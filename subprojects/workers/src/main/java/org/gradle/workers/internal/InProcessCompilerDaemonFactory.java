@@ -121,9 +121,14 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         ClassLoader actionFilteredClasspathLoader = classLoaderFactory.createFilteringClassLoader(actionClasspathLoader, actionFilterSpec);
 
         FilteringClassLoader.Spec gradleApiFilterSpec = new FilteringClassLoader.Spec();
+        // Logging
         gradleApiFilterSpec.allowPackage("org.slf4j");
         gradleApiFilterSpec.allowClass(Logger.class);
         gradleApiFilterSpec.allowClass(LogLevel.class);
+        // Native
+        gradleApiFilterSpec.allowPackage("org.gradle.internal.nativeintegration");
+        gradleApiFilterSpec.allowPackage("org.gradle.internal.nativeplatform");
+        gradleApiFilterSpec.allowPackage("net.rubygrapefruit.platform");
         // TODO:pm Add Gradle API and a way to opt out of it (for compiler workers)
         ClassLoader gradleApiLoader = classLoaderFactory.createFilteringClassLoader(actionClass.getClassLoader(), gradleApiFilterSpec);
 
