@@ -16,18 +16,9 @@
 
 package org.gradle.workers.internal
 
-import com.google.common.collect.Lists
-import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.junit.Rule
 import spock.lang.Unroll
 
-// We check the output in this test asynchronously because sometimes the logging output arrives
-// after the build finishes and we get a false negative
 class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     @Unroll
     def "worker lifecycle is logged in #forkMode"() {
@@ -44,33 +35,18 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
             task runInWorker(type: DaemonTask) {
                 forkMode = $forkMode
             }
-
-            task block {
-                dependsOn runInWorker
-                doLast {
-                    $blockUntilReleased
-                }
-            }
         """.stripIndent()
 
         when:
         args("--debug")
-        def gradle = executer.withTasks("block").start()
-
-        then:
-        server.waitFor()
-
-        and:
-        waitForAllOutput(gradle) {
-            outputShouldContain("Build operation 'org.gradle.test.TestRunnable' started")
-            outputShouldContain("Build operation 'org.gradle.test.TestRunnable' completed")
-        }
-
-        when:
-        server.release()
+        def gradle = executer.withTasks("runInWorker").start()
 
         then:
         gradle.waitForFinish()
+
+        and:
+        gradle.standardOutput.contains("Build operation 'org.gradle.test.TestRunnable' started")
+        gradle.standardOutput.contains("Build operation 'org.gradle.test.TestRunnable' completed")
 
         where:
         forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
@@ -83,39 +59,28 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
             task runInWorker(type: DaemonTask) {
                 forkMode = $forkMode
             }
-            task block {
-                dependsOn runInWorker
-                doLast {
-                    $blockUntilReleased
-                }
-            }
         """.stripIndent()
 
         when:
-        def gradle = executer.withTasks("block").start()
-
-        then:
-        server.waitFor()
-
-        then:
-        waitForAllOutput(gradle) {
-            outputShouldContain("stdout message")
-            outputShouldContain("warn message")
-            errorOutputShouldContain("error message")
-        }
-
-        when:
-        server.release()
+        def gradle = executer.withTasks("runInWorker").start()
 
         then:
         gradle.waitForFinish()
 
+        then:
+        gradle.standardOutput.contains("stdout message")
+        gradle.standardOutput.contains("warn message")
+
+        and:
+        gradle.errorOutput.contains("stderr message")
+        gradle.errorOutput.contains("error message")
+
+        and:
+        !gradle.standardOutput.contains("debug message")
+        !gradle.errorOutput.contains("debug message")
+
         where:
         forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
-    }
-
-    String getBlockUntilReleased() {
-        return "new URL('${server.uri}').text"
     }
 
     String getRunnableWithLogging() {
@@ -138,58 +103,6 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
                     System.err.println("stderr message");
                 }
             }
-        """
-    }
-
-    boolean waitForAllOutput(GradleHandle gradle, Closure closure) {
-        def watcher = new OutputWatcher(gradle)
-        watcher.with(closure)
-        return watcher.waitForAllOutputToBeSeen()
-    }
-
-    private static class OutputWatcher {
-        final GradleHandle gradle
-        final List<String> assertions = Lists.newArrayList()
-        final List<String> errorAssertions = Lists.newArrayList()
-
-        OutputWatcher(GradleHandle gradle) {
-            this.gradle = gradle
-        }
-
-        void outputShouldContain(String output) {
-            assertions.add(output)
-        }
-
-        void errorOutputShouldContain(String output) {
-            errorAssertions.add(output)
-        }
-
-        void assertAllOutputIsSeen() {
-            Iterator itr = assertions.iterator()
-            while (itr.hasNext()) {
-                String assertion = itr.next()
-                if (gradle.standardOutput.contains(assertion)) {
-                    itr.remove()
-                } else {
-                    throw new AssertionError("String '$assertion' not present in the build output")
-                }
-            }
-            itr = errorAssertions.iterator()
-            while (itr.hasNext()) {
-                String assertion = itr.next()
-                if (gradle.errorOutput.contains(assertion)) {
-                    itr.remove()
-                } else {
-                    throw new AssertionError("String '$assertion' not present in the build error output")
-                }
-            }
-        }
-
-        boolean waitForAllOutputToBeSeen() {
-            ConcurrentTestUtil.poll {
-                assertAllOutputIsSeen()
-            }
-            return true
-        }
+        """.stripIndent()
     }
 }
