@@ -139,7 +139,7 @@
                     Instead, the code must be injected via the build script itself.
                     The following sample demonstrates how this can be done.
                 </para>
-                <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/gradleRunner/manualClasspathInjection" includeLocation="true" title="Injecting the code under test classes into test builds">
+                <sample id="testKitFunctionalTestSpockClassesTestConfigGradleVersionPrior2Dot8" dir="testKit/gradleRunner/manualClasspathInjection" includeLocation="true" title="Injecting the code under test classes into test builds for Gradle versions prior to 2.8">
                     <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-older-gradle"/>
                 </sample>
             </section>
