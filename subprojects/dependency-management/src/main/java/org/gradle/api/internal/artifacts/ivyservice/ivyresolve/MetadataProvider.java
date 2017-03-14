@@ -63,7 +63,7 @@ public class MetadataProvider {
                 }
 
             };
-            componentMetadataSupplier.supply(details);
+            componentMetadataSupplier.execute(details);
             if (builder.mutated) {
                 return builder.build();
             }
