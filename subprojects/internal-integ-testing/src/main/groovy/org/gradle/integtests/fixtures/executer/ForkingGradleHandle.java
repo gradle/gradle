@@ -167,13 +167,14 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         String error = getErrorOutput();
 
         boolean didFail = execResult.getExitValue() != 0;
+        ExecutionResult executionResult = expectFailure ? toExecutionFailure(output, error) : toExecutionResult(output, error);
         if (didFail != expectFailure) {
             String message = String.format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%n-----%nError:%n%s%n-----%nExecution result:%n%s%n-----%n",
                 expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), output, error, execResult.toString());
-            throw new UnexpectedBuildFailure(message);
+            Exception exception = executionResult instanceof OutputScrapingExecutionFailure ? ((OutputScrapingExecutionFailure) execResult).getException() : null;
+            throw exception == null ? new UnexpectedBuildFailure(message) : new UnexpectedBuildFailure(message, exception);
         }
 
-        ExecutionResult executionResult = expectFailure ? toExecutionFailure(output, error) : toExecutionResult(output, error);
         resultAssertion.execute(executionResult);
         return executionResult;
     }
