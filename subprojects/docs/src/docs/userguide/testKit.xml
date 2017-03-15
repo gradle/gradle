@@ -304,11 +304,12 @@
             </para>
         </section>
         <section id="sub:test-kit-build-cache">
-            <title>Testing with the build cache</title>
+            <title>Testing with the Build Cache</title>
             <para>
-                In order to enable the <link linked="build_cache">Build Cache</link> from TestKit you can pass the <literal>--build-cache</literal>
+                To enable the <link linked="build_cache">Build Cache</link> in your tests, you can pass the <literal>--build-cache</literal>
                 argument to <apilink class="org.gradle.testkit.runner.GradleRunner"/> or use the other methods to <link linked="sec:build_cache_enable">enable the build cache</link>.
-                Then you can check for the task outcome <apilink class="org.gradle.testkit.runner.TaskOutcome" method="FROM_CACHE"/>.
+                You can then check for the task outcome <apilink class="org.gradle.testkit.runner.TaskOutcome" method="FROM_CACHE"/> when your plugin's custom task is cached.
+                This outcome is only valid for Gradle 3.5 and newer.
             </para>
             <sample id="testKitFunctionalTestSpockBuildCache" dir="testKit/gradleRunner/testKitFunctionalTestSpockBuildCache/src/test/groovy/org/gradle/sample" title="Testing cacheable tasks">
                 <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-build-cache"/>
