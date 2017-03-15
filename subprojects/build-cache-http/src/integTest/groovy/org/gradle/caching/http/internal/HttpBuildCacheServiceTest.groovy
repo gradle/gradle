@@ -18,13 +18,11 @@ package org.gradle.caching.http.internal
 
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
-import org.apache.http.impl.client.HttpClients
 import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
-import org.gradle.internal.resource.transport.http.HttpClientHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
@@ -71,7 +69,9 @@ class HttpBuildCacheServiceTest extends Specification {
 
     def setup() {
         server.start()
-        cache = new HttpBuildCacheService(new HttpClientHelper(HttpClients.createDefault()), server.uri.resolve("/cache/"))
+        def config = new HttpBuildCache()
+        config.url = server.uri.resolve("/cache/")
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(config)
     }
 
     def "can cache artifact"() {

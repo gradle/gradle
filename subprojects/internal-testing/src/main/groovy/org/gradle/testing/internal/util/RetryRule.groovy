@@ -61,12 +61,14 @@ class RetryRule implements MethodRule {
                 if (shouldReallyRetry(t1)) {
                     try {
                         println "Retrying (2nd attempt) " + method
+                        runCleanup(specification?.specificationContext?.currentSpec)
                         reRunSetup(specification?.specificationContext?.currentSpec)
                         base.evaluate()
                     } catch (Throwable t2) {
                         if (shouldReallyRetry(t2)) {
                             try {
                                 println "Retrying (3rd attempt) " + method
+                                runCleanup(specification?.specificationContext?.currentSpec)
                                 reRunSetup(specification?.specificationContext?.currentSpec)
                                 base.evaluate()
                             } catch (Throwable t3) {
@@ -79,6 +81,15 @@ class RetryRule implements MethodRule {
                 } else {
                     throw t1
                 }
+            }
+        }
+    }
+
+    private void runCleanup(SpecInfo spec) {
+        if (spec != null) {
+            runCleanup(spec.getSuperSpec())
+            for (MethodInfo method : spec.getCleanupMethods()) {
+                method.invoke(specification)
             }
         }
     }

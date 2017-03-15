@@ -58,11 +58,11 @@ class BuildLogicFunctionalTest extends Specification {
         then:
         result.task(":cacheableTask").outcome == FROM_CACHE
     }
+    // END SNIPPET functional-test-build-cache
 
     def runner() {
         return GradleRunner.create()
             .withProjectDir(testProjectDir.root)
             .withPluginClasspath()
     }
-    // END SNIPPET functional-test-build-cache
 }
