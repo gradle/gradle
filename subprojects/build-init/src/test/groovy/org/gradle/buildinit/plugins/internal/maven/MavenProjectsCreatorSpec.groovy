@@ -133,7 +133,7 @@ class MavenProjectsCreatorSpec extends Specification {
   </dependencies>
 </project>"""
         def mavenProjects = creator.create(settings.buildSettings(), pom)
-        def converter = new Maven2Gradle(mavenProjects, temp.root.getCanonicalFile())
+        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory)
 
         when:
         def gradleProject = converter.convert()
