@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -131,7 +130,6 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:2.3"
     }
 
-    @NotYetImplemented
     def "reuses cached result when using --offline"() {
         given:
         withPerVersionStatusSupplier()
@@ -147,10 +145,8 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         when:
         executer.withArgument('--offline')
 
-        then: "rule shouldn't be called in offline mode"
+        then: "will used cached status resources"
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
-        !output.contains('Metadata rule call count')
-
     }
 
     def "can recover from --offline mode"() {

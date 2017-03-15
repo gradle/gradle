@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -51,7 +50,6 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -77,7 +75,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final DependencyInjectingInstantiator.ConstructorCache constructorCache;
-    private final boolean isOffline;
     private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierClass;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
@@ -87,8 +84,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         AuthenticationContainer authenticationContainer,
                                         IvyContextManager ivyContextManager,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                        DependencyInjectingInstantiator.ConstructorCache constructorCache,
-                                        boolean isOffline) {
+                                        DependencyInjectingInstantiator.ConstructorCache constructorCache) {
         super(instantiator, authenticationContainer);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -102,7 +98,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.instantiator = instantiator;
         this.ivyContextManager = ivyContextManager;
         this.constructorCache = constructorCache;
-        this.isOffline = isOffline;
     }
 
     public ModuleVersionPublisher createPublisher() {
@@ -153,16 +148,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.addProvider(new Object() {
             RepositoryResourceAccessor createResourceAccessor() {
-                if (isOffline) {
-                    return new RepositoryResourceAccessor() {
-                        @Override
-                        public void withResource(String relativePath, Action<? super InputStream> action) {
-                            throw new UncheckedIOException("Cannot fetch " + relativePath + " when --offline is used");
-                        }
-                    };
-                } else {
-                    return createRepositoryAccessor(transport);
-                }
+                return createRepositoryAccessor(transport);
             }
         });
         return new DependencyInjectingInstantiator(registry, constructorCache);

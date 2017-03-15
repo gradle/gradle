@@ -226,14 +226,15 @@ class DependencyManagementBuildScopeServices {
         return new DefaultVersionComparator();
     }
 
-    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
+    RepositoryTransportFactory createRepositoryTransportFactory(StartParameter startParameter,
+                                                                ProgressLoggerFactory progressLoggerFactory,
                                                                 TemporaryFileProvider temporaryFileProvider,
                                                                 ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
                                                                 CacheLockingManager cacheLockingManager,
                                                                 ServiceRegistry serviceRegistry,
-                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                 BuildOperationExecutor buildOperationExecutor) {
+        StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new RepositoryTransportFactory(
             serviceRegistry.getAll(ResourceConnectorFactory.class),
             progressLoggerFactory,
@@ -241,8 +242,8 @@ class DependencyManagementBuildScopeServices {
             externalResourceIndex,
             buildCommencedTimeProvider,
             cacheLockingManager,
-            moduleIdentifierFactory,
-            buildOperationExecutor);
+            buildOperationExecutor,
+            startParameterResolutionOverride);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
