@@ -29,11 +29,4 @@ public interface BuildCacheKey {
      * Returns the string representation of the cache key.
      */
     String getHashCode();
-
-    /**
-     * Whether this build cache key can be used to retrieve or store entries.
-     *
-     * @since 3.5
-     */
-    boolean isValid();
 }
