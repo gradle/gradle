@@ -18,11 +18,14 @@ package org.gradle.integtests.resolve.ivy
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 
 class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
+
+    def projectA2
+    def projectB1
+    def projectB2
 
     def setup() {
         settingsFile << "rootProject.name = 'test' "
@@ -30,46 +33,19 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
         withMetadataSupplier()
+
+        ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
+        projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
+        projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
+        ivyHttpRepo.module("group", "projectA", "2.0").publish()
     }
 
     def "can use a custom metadata provider"() {
         given:
-        buildFile << """
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
+        withPerVersionStatusSupplier()
 
-          import javax.inject.Inject
-     
-          class MP implements ComponentMetadataSupplier {
-          
-            final RepositoryResourceAccessor repositoryResourceAccessor
-            
-            @Inject
-            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
-            int count
-          
-            void execute(ComponentMetadataSupplierDetails details) {
-                def id = details.id
-                println "Providing metadata for \$id"
-                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
-                    details.result.status = new String(it.bytes)
-                }
-                println "Metadata rule call count: \${++count}"
-            }
-          }
-"""
         when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
-
-
-        and:
         expectGetStatusOf(projectB1, 'release')
         expectGetStatusOf(projectB2, 'integration')
         expectGetDynamicRevision(projectA2)
@@ -87,39 +63,9 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
     def "re-executing in subsequent build requires no GET request"() {
         given:
-        buildFile << """
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
+        withPerVersionStatusSupplier()
 
-          import javax.inject.Inject
-     
-          class MP implements ComponentMetadataSupplier {
-          
-            final RepositoryResourceAccessor repositoryResourceAccessor
-            
-            @Inject
-            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
-            int count
-          
-            void execute(ComponentMetadataSupplierDetails details) {
-                def id = details.id
-                println "Providing metadata for \$id"
-                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
-                    details.result.status = new String(it.bytes)
-                }
-                println "Metadata rule call count: \${++count}"
-            }
-          }
-"""
         when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
         def statusOfB1 = expectGetStatusOf(projectB1, 'release')
         def statusOfB2 = expectGetStatusOf(projectB2, 'integration')
         expectGetDynamicRevision(projectA2)
@@ -139,39 +85,8 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
     def "publishing new integration version incurs get status file of new integration version only"() {
         given:
-        buildFile << """
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
-
-          import javax.inject.Inject
-     
-          class MP implements ComponentMetadataSupplier {
-          
-            final RepositoryResourceAccessor repositoryResourceAccessor
-            
-            @Inject
-            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
-            int count
-          
-            void execute(ComponentMetadataSupplierDetails details) {
-                def id = details.id
-                println "Providing metadata for \$id"
-                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
-                    details.result.status = new String(it.bytes)
-                }
-                println "Metadata rule call count: \${++count}"
-            }
-          }
-"""
+        withPerVersionStatusSupplier()
         when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
         def statusOfB1 = expectGetStatusOf(projectB1, 'release')
         def statusOfB2 = expectGetStatusOf(projectB2, 'integration')
         expectGetDynamicRevision(projectA2)
@@ -187,7 +102,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         then:
         server.expectHead('/repo/group/projectB/1.1/status.txt', statusOfB1)
         server.expectHead('/repo/group/projectB/2.2/status.txt', statusOfB2)
-        expectListVersions(projectA1)
+        expectListVersions(projectA2)
         expectListVersions(projectB3)
         expectGetStatusOf(projectB3, 'integration')
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
@@ -195,41 +110,10 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
     def "publishing new release version incurs get status file of new release version only"() {
         given:
-        buildFile << """
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
-
-          import javax.inject.Inject
-     
-          class MP implements ComponentMetadataSupplier {
-          
-            final RepositoryResourceAccessor repositoryResourceAccessor
-            
-            @Inject
-            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
-            int count
-          
-            void execute(ComponentMetadataSupplierDetails details) {
-                def id = details.id
-                println "Providing metadata for \$id"
-                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
-                    details.result.status = new String(it.bytes)
-                }
-                println "Metadata rule call count: \${++count}"
-            }
-          }
-"""
+        withPerVersionStatusSupplier()
         when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
-        def statusOfB1 = expectGetStatusOf(projectB1, 'release')
-        def statusOfB2 = expectGetStatusOf(projectB2, 'integration')
+        expectGetStatusOf(projectB1, 'release')
+        expectGetStatusOf(projectB2, 'integration')
         expectGetDynamicRevision(projectA2)
         expectGetDynamicRevision(projectB1)
 
@@ -241,7 +125,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         executer.withArgument('-PrefreshDynamicVersions')
 
         then:
-        expectListVersions(projectA1)
+        expectListVersions(projectA2)
         expectGetStatusOf(projectB3, 'release')
         expectGetDynamicRevision(projectB3)
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:2.3"
@@ -250,42 +134,8 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
     @NotYetImplemented
     def "reuses cached result when using --offline"() {
         given:
-        buildFile << """
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
-
-          import javax.inject.Inject
-     
-          class MP implements ComponentMetadataSupplier {
-          
-            final RepositoryResourceAccessor repositoryResourceAccessor
-            
-            @Inject
-            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
-            int count
-          
-            void execute(ComponentMetadataSupplierDetails details) {
-                def id = details.id
-                println "Providing metadata for \$id"
-                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
-                    details.result.status = new String(it.bytes)
-                }
-                println "Metadata rule call count: \${++count}"
-            }
-          }
-"""
+        withPerVersionStatusSupplier()
         when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
-
-
-        and:
         expectGetStatusOf(projectB1, 'release')
         expectGetStatusOf(projectB2, 'integration')
         expectGetDynamicRevision(projectA2)
@@ -305,39 +155,8 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
     def "can recover from --offline mode"() {
         given:
-        buildFile << """
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
-
-          import javax.inject.Inject
-     
-          class MP implements ComponentMetadataSupplier {
-          
-            final RepositoryResourceAccessor repositoryResourceAccessor
-            
-            @Inject
-            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
-            int count
-          
-            void execute(ComponentMetadataSupplierDetails details) {
-                def id = details.id
-                println "Providing metadata for \$id"
-                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
-                    details.result.status = new String(it.bytes)
-                }
-                println "Metadata rule call count: \${++count}"
-            }
-          }
-"""
+        withPerVersionStatusSupplier()
         when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
         executer.withArgument('--offline')
 
         then:
@@ -355,49 +174,18 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
     def "can recover from remote failure"() {
         given:
-        buildFile << """
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
-
-          import javax.inject.Inject
-     
-          class MP implements ComponentMetadataSupplier {
-          
-            final RepositoryResourceAccessor repositoryResourceAccessor
-            
-            @Inject
-            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
-            int count
-          
-            void execute(ComponentMetadataSupplierDetails details) {
-                def id = details.id
-                println "Providing metadata for \$id"
-                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
-                    details.result.status = new String(it.bytes)
-                }
-                println "Metadata rule call count: \${++count}"
-            }
-          }
-"""
+        withPerVersionStatusSupplier()
         when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
-
-        then:
         expectListVersions(projectA2)
         projectA2.ivy.expectGet()
         expectGetStatusOf(projectB2, 'integration', true)
         expectListVersions(projectB1)
+
+        then:
         fails 'checkDeps'
-        server.resetExpectations()
 
         when:
+        server.resetExpectations()
         expectGetStatusOf(projectB1, 'release')
         expectGetStatusOf(projectB2, 'integration')
         projectA2.jar.expectGet()
@@ -411,12 +199,6 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
     def "handles errors in a custom metadata provider"() {
         given:
         buildFile << """
-            
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
-
           class MP implements ComponentMetadataSupplier {
           
             void execute(ComponentMetadataSupplierDetails details) {
@@ -424,17 +206,14 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
             }
           }
 """
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
 
         when:
-        expectListVersions(projectA1)
-        projectA1.ivy.expectGet()
+        expectListVersions(projectA2)
+        projectA2.ivy.expectGet()
         expectListVersions(projectB1)
 
-        fails 'checkDeps'
-
         then:
+        fails 'checkDeps'
 
         errorOutput.contains('Could not resolve group:projectB:latest.release')
         failure.assertHasCause('meh: error from custom rule')
@@ -443,12 +222,6 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
     def "custom metadata provider doesn't have to do something"() {
         given:
         buildFile << """
-            
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.integration"
-            }
-
           class MP implements ComponentMetadataSupplier {
           
             void execute(ComponentMetadataSupplierDetails details) {
@@ -456,29 +229,20 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
             }
           }
 """
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
+        def projectB3 = ivyHttpRepo.module("group", "projectB", "3.3").withStatus('release').publish()
 
         when:
-        expectGetDynamicRevision(projectA1)
-        expectGetDynamicRevision(projectB1)
+        expectGetDynamicRevision(projectA2)
+        expectGetDynamicRevision(projectB3)
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.1",
-            "group:projectB:latest.integration": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2",
+            "group:projectB:latest.release": "group:projectB:3.3"
     }
 
     def "can use a single remote request to get status of multiple components"() {
         given:
         buildFile << """
-          
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
-
-          import javax.inject.Inject
-     
           class MP implements ComponentMetadataSupplier {
           
             final RepositoryResourceAccessor repositoryResourceAccessor
@@ -511,14 +275,6 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           }
 """
         when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
-
-
-        and:
         def statusFile = temporaryFolder.createFile("versions.status")
         statusFile << '''group:projectA:1.1;release
 group:projectA:1.2;release
@@ -574,14 +330,34 @@ group:projectB:2.2;release
 
     def "refresh-dependencies triggers revalidating external resources"() {
         given:
-        buildFile << """
-            dependencies {
-                compile group: "group", name: "projectA", version: "1.+"
-                compile group: "group", name: "projectB", version: "latest.release"
-            }
+        withPerVersionStatusSupplier()
 
-          import javax.inject.Inject
-     
+        when:
+        def projectB1Status = expectGetStatusOf(projectB1, 'release')
+        def projectB2Status = expectGetStatusOf(projectB2, 'integration')
+        expectGetDynamicRevision(projectA2)
+        expectGetDynamicRevision(projectB1)
+
+        then: "custom metadata rule prevented parsing of ivy descriptor"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+
+        when:
+        executer.withArgument('--refresh-dependencies')
+
+        then:
+        expectListVersions(projectA2)
+        expectListVersions(projectB1)
+        server.expectHead('/repo/group/projectB/2.2/status.txt', projectB2Status)
+        server.expectHead('/repo/group/projectB/1.1/status.txt', projectB1Status)
+        projectA2.ivy.expectHead()
+        projectA2.jar.expectHead()
+        projectB1.ivy.expectHead()
+        projectB1.jar.expectHead()
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+    }
+
+    private void withPerVersionStatusSupplier() {
+        buildFile << """
           class MP implements ComponentMetadataSupplier {
           
             final RepositoryResourceAccessor repositoryResourceAccessor
@@ -601,41 +377,12 @@ group:projectB:2.2;release
             }
           }
 """
-        when:
-        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
-        def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
-        def projectB2 = ivyHttpRepo.module("group", "projectB", "2.2").publish()
-        ivyHttpRepo.module("group", "projectA", "2.0").publish()
-
-
-        and:
-        def projectB1Status = expectGetStatusOf(projectB1, 'release')
-        def projectB2Status = expectGetStatusOf(projectB2, 'integration')
-        expectGetDynamicRevision(projectA2)
-        expectGetDynamicRevision(projectB1)
-
-        then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
-
-        when:
-        executer.withArgument('--refresh-dependencies')
-
-        then:
-        expectListVersions(projectA1)
-        expectListVersions(projectB1)
-        server.expectHead('/repo/group/projectB/2.2/status.txt', projectB2Status)
-        server.expectHead('/repo/group/projectB/1.1/status.txt', projectB1Status)
-        projectA2.ivy.expectHead()
-        projectA2.jar.expectHead()
-        projectB1.ivy.expectHead()
-        projectB1.jar.expectHead()
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
     }
 
-
-    def withMetadataSupplier() {
+    private void withMetadataSupplier() {
         buildFile << """
+          import javax.inject.Inject
+     
           repositories {
               ivy {
                   name 'repo'
@@ -653,7 +400,11 @@ group:projectB:2.2;release
           configurations {
              compile
           }
-            
+
+          dependencies {
+              compile group: "group", name: "projectA", version: "1.+"
+              compile group: "group", name: "projectB", version: "latest.release"
+          }
           """
     }
 
@@ -669,7 +420,7 @@ group:projectB:2.2;release
         true
     }
 
-    void expectGetDynamicRevision(IvyHttpModule module) {
+    private void expectGetDynamicRevision(IvyHttpModule module) {
         expectListVersions(module)
         module.ivy.expectGet()
         module.jar.expectGet()
@@ -679,7 +430,7 @@ group:projectB:2.2;release
         module.repository.directoryList(module.organisation, module.module).expectGet()
     }
 
-    File expectGetStatusOf(IvyHttpModule module, String status = 'release', boolean broken=false) {
+    private File expectGetStatusOf(IvyHttpModule module, String status = 'release', boolean broken=false) {
         def file = temporaryFolder.createFile("cheap-${module.version}.status")
         file << status
         if (!broken) {
@@ -689,17 +440,4 @@ group:projectB:2.2;release
         }
         file
     }
-
-    def useRepository(Repository... repo) {
-        buildFile << """
-repositories {
-"""
-        repo.each {
-            buildFile << "ivy { url '${it.uri}' }\n"
-        }
-        buildFile << """
-}
-"""
-    }
-
 }
