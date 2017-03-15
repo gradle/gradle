@@ -38,13 +38,13 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     def "underlying worker is executed when client is executed"() {
-        def workerDaemonWorker = Mock(WorkerDaemonWorker)
+        def workerDaemonWorker = Mock(WorkerDaemonProcess)
 
         given:
         client = client(workerDaemonWorker)
 
         when:
-        client.execute(Stub(WorkerDaemonAction), Stub(WorkSpec), workerOperation, buildOperation)
+        client.execute(Stub(WorkerAction), Stub(WorkSpec), workerOperation, buildOperation)
 
         then:
         1 * buildOperationExecutor.run(_ as BuildOperationDetails, _ as Transformer) >> { args -> args[1].transform(Mock(BuildOperationContext)) }
@@ -59,7 +59,7 @@ class WorkerDaemonClientTest extends Specification {
         assert client.uses == 0
 
         when:
-        5.times { client.execute(Stub(WorkerDaemonAction), Stub(WorkSpec), workerOperation, buildOperation) }
+        5.times { client.execute(Stub(WorkerAction), Stub(WorkSpec), workerOperation, buildOperation) }
 
         then:
         5 * buildOperationExecutor.run(_ as BuildOperationDetails, _ as Transformer) >> { args -> args[1].transform(Mock(BuildOperationContext)) }
@@ -76,7 +76,7 @@ class WorkerDaemonClientTest extends Specification {
         client = client()
 
         when:
-        client.execute(Stub(WorkerDaemonAction), Stub(WorkSpec), operation, buildOperation)
+        client.execute(Stub(WorkerAction), Stub(WorkSpec), operation, buildOperation)
 
         then:
         1 * operation.operationStart() >> completion
@@ -86,13 +86,13 @@ class WorkerDaemonClientTest extends Specification {
     def "build worker operation is finished even if worker fails"() {
         def operation = Mock(Operation)
         def completion = Mock(Completion)
-        def workerDaemonWorker = Mock(WorkerDaemonWorker)
+        def workerDaemonWorker = Mock(WorkerDaemonProcess)
 
         given:
         client = client(workerDaemonWorker)
 
         when:
-        client.execute(Stub(WorkerDaemonAction), Stub(WorkSpec), operation, buildOperation)
+        client.execute(Stub(WorkerAction), Stub(WorkSpec), operation, buildOperation)
 
         then:
         1 * operation.operationStart() >> completion
@@ -105,10 +105,10 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     WorkerDaemonClient client() {
-        return client(Mock(WorkerDaemonWorker))
+        return client(Mock(WorkerDaemonProcess))
     }
 
-    WorkerDaemonClient client(WorkerDaemonWorker workerDaemonWorker) {
+    WorkerDaemonClient client(WorkerDaemonProcess workerDaemonWorker) {
         def daemonForkOptions = Mock(DaemonForkOptions)
         def workerProcess = workerDaemonWorker.start()
         return new WorkerDaemonClient(daemonForkOptions, workerDaemonWorker, workerProcess, buildOperationExecutor)

@@ -67,12 +67,12 @@ import java.util.Set;
  *     (ActionExecutionWorker + worker action implementation)
  * </pre>
  */
-public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
+public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory implements WorkerImplementationFactory {
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
     private final JvmVersionDetector jvmVersionDetector;
 
-    public ApplicationClassesInSystemClassLoaderWorkerFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider, JvmVersionDetector jvmVersionDetector) {
+    public ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider, JvmVersionDetector jvmVersionDetector) {
         this.classPathRegistry = classPathRegistry;
         this.temporaryFileProvider = temporaryFileProvider;
         this.jvmVersionDetector = jvmVersionDetector;

@@ -26,7 +26,7 @@ class DaemonPlayCompilerTest extends Specification {
 
     def workingDirectory = Mock(File)
     def delegate = Mock(Compiler)
-    def compilerDaemonFactory = Mock(WorkerDaemonFactory)
+    def workerDaemonFactory = Mock(WorkerDaemonFactory)
     def spec = Mock(PlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
 
@@ -38,7 +38,7 @@ class DaemonPlayCompilerTest extends Specification {
         given:
         def classpath = someClasspath()
         def packages = ["foo", "bar"]
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, compilerDaemonFactory, classpath, packages)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, classpath, packages)
         when:
         def options = compiler.toDaemonOptions(spec);
         then:
@@ -48,7 +48,7 @@ class DaemonPlayCompilerTest extends Specification {
 
     def "applies fork settings to daemon options"(){
         given:
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, compilerDaemonFactory, someClasspath(), [])
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, someClasspath(), [])
         when:
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"

@@ -20,9 +20,9 @@ import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
 import org.gradle.internal.progress.BuildOperationExecutor;
 
 /**
- * A service that executes work in a (potentially) long-lived process.
+ * A service that executes work in a (potentially) long-lived process or in-process.
  */
-public interface WorkerDaemon {
-    <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec);
-    <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation);
+public interface Worker {
+    <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec);
+    <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation);
 }

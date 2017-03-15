@@ -32,7 +32,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
                 }
             }
 
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
             }
         """.stripIndent()
@@ -56,7 +56,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
     def "stdout, stderr and logging output of worker is redirected in #forkMode"() {
         buildFile << """
             ${runnableWithLogging}
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
             }
         """.stripIndent()

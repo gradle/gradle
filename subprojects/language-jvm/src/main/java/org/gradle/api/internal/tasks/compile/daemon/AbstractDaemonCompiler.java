@@ -21,23 +21,23 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.WorkSpec;
-import org.gradle.workers.internal.WorkerDaemonAction;
+import org.gradle.workers.internal.WorkerAction;
 import org.gradle.workers.internal.DefaultWorkResult;
-import org.gradle.workers.internal.WorkerDaemon;
-import org.gradle.workers.internal.WorkerDaemonFactory;
+import org.gradle.workers.internal.Worker;
 import org.gradle.workers.internal.WorkerDaemonServer;
+import org.gradle.workers.internal.WorkerFactory;
 
 import java.io.File;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
-    private final WorkerDaemonFactory compilerDaemonFactory;
+    private final WorkerFactory workerFactory;
     private final File daemonWorkingDir;
 
-    public AbstractDaemonCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory compilerDaemonFactory) {
+    public AbstractDaemonCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerFactory workerFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.delegate = delegate;
-        this.compilerDaemonFactory = compilerDaemonFactory;
+        this.workerFactory = workerFactory;
     }
 
     public Compiler<T> getDelegate() {
@@ -47,8 +47,8 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     @Override
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
-        WorkerDaemon daemon = compilerDaemonFactory.getDaemon(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
-        DefaultWorkResult result = daemon.execute(adapter(delegate), spec);
+        Worker worker = workerFactory.getWorker(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
+        DefaultWorkResult result = worker.execute(adapter(delegate), spec);
         if (result.isSuccess()) {
             return result;
         }
@@ -61,7 +61,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     protected abstract DaemonForkOptions toDaemonOptions(T spec);
 
-    private static class CompilerWorkerAdapter<T extends CompileSpec> implements WorkerDaemonAction<T> {
+    private static class CompilerWorkerAdapter<T extends CompileSpec> implements WorkerAction<T> {
         private final Compiler<T> compiler;
 
         CompilerWorkerAdapter(Compiler<T> compiler) {
@@ -87,7 +87,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     // jars for a compiler daemon.
     public static class CompilerDaemonServer extends WorkerDaemonServer {
         @Override
-        public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
+        public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec) {
             return super.execute(action, spec);
         }
     }

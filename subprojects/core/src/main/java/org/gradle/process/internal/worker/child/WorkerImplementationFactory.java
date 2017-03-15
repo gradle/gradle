@@ -23,7 +23,7 @@ import org.gradle.process.internal.JavaExecHandleBuilder;
 import java.net.URL;
 import java.util.List;
 
-public interface WorkerFactory {
+public interface WorkerImplementationFactory {
     /**
      * Configures the Java command that will be used to launch the child process.
      */

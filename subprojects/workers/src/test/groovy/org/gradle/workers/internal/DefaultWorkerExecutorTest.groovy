@@ -35,18 +35,18 @@ import spock.lang.Specification
 class DefaultWorkerExecutorTest extends Specification {
     @Rule RedirectStdOutAndErr output = new RedirectStdOutAndErr()
 
-    def workerDaemonFactory = Mock(WorkerDaemonFactory)
-    def workerInProcessFactory = Mock(WorkerDaemonFactory)
+    def workerDaemonFactory = Mock(WorkerFactory)
+    def inProcessWorkerFactory = Mock(WorkerFactory)
     def executorFactory = Mock(ExecutorFactory)
     def buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(FileResolver)
     def factory = Mock(Factory)
-    def actionImpl = Mock(Runnable)
-    def serverImpl = Mock(WorkerDaemonProtocol)
+    def runnable = Mock(Runnable)
+    def workerProtocolImplementation = Mock(WorkerProtocol)
     def executor = Mock(StoppableExecutor)
-    def workerDaemon = Mock(WorkerDaemon)
+    def worker = Mock(Worker)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
@@ -54,7 +54,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * fileResolver.resolveLater(_) >> factory
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * executorFactory.create(_ as String) >> executor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, fileResolver, serverImpl.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, fileResolver, workerProtocolImplementation.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
@@ -97,7 +97,7 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         when:
-        def daemonForkOptions = workerExecutor.getDaemonForkOptions(actionImpl.class, configuration)
+        def daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration)
 
         then:
         daemonForkOptions.minHeapSize == "128m"
@@ -115,7 +115,7 @@ class DefaultWorkerExecutorTest extends Specification {
         configuration.classpath([foo])
 
         when:
-        DaemonForkOptions daemonForkOptions = workerExecutor.getDaemonForkOptions(actionImpl.class, configuration)
+        DaemonForkOptions daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration)
 
         then:
         daemonForkOptions.classpath.contains(foo)
@@ -136,8 +136,8 @@ class DefaultWorkerExecutorTest extends Specification {
         task.run()
 
         then:
-        1 * workerDaemonFactory.getDaemon(_, _, _) >> workerDaemon
-        1 * workerDaemon.execute(_, _, _, _) >> { action, spec, workOperation, buildOperation ->
+        1 * workerDaemonFactory.getWorker(_, _, _) >> worker
+        1 * worker.execute(_, _, _, _) >> { action, spec, workOperation, buildOperation ->
             action.execute(spec)
             return new DefaultWorkResult(true, null)
         }
@@ -161,8 +161,8 @@ class DefaultWorkerExecutorTest extends Specification {
         task.run()
 
         then:
-        1 * workerInProcessFactory.getDaemon(_, _, _) >> workerDaemon
-        1 * workerDaemon.execute(_, _, _, _) >> { action, spec, workOperation, buildOperation ->
+        1 * inProcessWorkerFactory.getWorker(_, _, _) >> worker
+        1 * worker.execute(_, _, _, _) >> { action, spec, workOperation, buildOperation ->
             action.execute(spec)
             return new DefaultWorkResult(true, null)
         }

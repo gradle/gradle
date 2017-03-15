@@ -16,19 +16,6 @@
 
 package org.gradle.workers.internal;
 
-public class WorkerDaemonServer implements WorkerProtocol {
-
-    @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec) {
-        try {
-            return action.execute(spec);
-        } catch (Throwable t) {
-            return new DefaultWorkResult(true, t);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "WorkerDaemonServer{}";
-    }
+public interface WorkerProtocol {
+    <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec);
 }
