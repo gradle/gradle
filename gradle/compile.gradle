@@ -10,10 +10,13 @@ if (!hasProperty('java7Home')) {
 
 ext.jvmForCompilation = Jvm.current()
 
+tasks.withType(AbstractCompile) {
+    options.fork = true // Always fork compilation
+}
+
 if (java7Home) {
     jvmForCompilation = Jvm.forHome(file(java7Home))
     tasks.withType(AbstractCompile) {
-        // TODO (CACHE): This is a workaround until we handle fork options properly for up-to-date checks
         options.with {
             fork = true
             forkOptions.javaHome = jvmForCompilation.javaHome
