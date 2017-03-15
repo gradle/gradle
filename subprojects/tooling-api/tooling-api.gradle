@@ -50,8 +50,8 @@ daemonIntegTest {
 
 task shadedJarWithoutVersion(type: ShadedJar) {
     ext.outputDir = file("$buildDir/shaded-jar-without-version")
-    sourceFiles = jar.inputs.files +
-        files { (configurations.runtime - configurations.publishCompile).collect { zipTree(it) } }
+    sourceFiles = jar.outputs.files +
+        files { configurations.runtime - configurations.publishCompile }
     analysisFile = file("$outputDir/analysis.txt")
     classesDir = file("$outputDir/classes")
     jarFile = file("$outputDir/gradle-tooling-api-shaded-${baseVersion}.jar")
@@ -68,7 +68,6 @@ task toolingApiShadedJar(type: Zip) {
 
 task testToolingApiShadedJar(type: Zip) {
     ext.buildReceipt = project(':versionInfo').createTestBuildReceipt
-    outputs.cacheIf { true }
     destinationDir file("$buildDir/shaded-jar-with-test-version")
 }
 

@@ -41,9 +41,9 @@ public class ShadedJar extends DefaultTask {
     private File jarFile;
     private File analysisFile;
     private String shadowPackage;
-    private Set<String> keepPackages = new LinkedHashSet<String>();
-    private Set<String> unshadedPackages = new LinkedHashSet<String>();
-    private Set<String> ignorePackages = new LinkedHashSet<String>();
+    private Set<String> keepPackages = new LinkedHashSet<>();
+    private Set<String> unshadedPackages = new LinkedHashSet<>();
+    private Set<String> ignorePackages = new LinkedHashSet<>();
 
     /**
      * The directory to write temporary class files to.
@@ -120,8 +120,7 @@ public class ShadedJar extends DefaultTask {
     /**
      * The source files to generate the jar from.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
+    @Classpath
     public FileCollection getSourceFiles() {
         return sourceFiles;
     }
@@ -148,7 +147,11 @@ public class ShadedJar extends DefaultTask {
         PrintWriter writer = new PrintWriter(analysisFile);
         try {
             final ClassGraph classes = new ClassGraph(new PackagePatterns(keepPackages), new PackagePatterns(unshadedPackages), new PackagePatterns(ignorePackages), shadowPackage);
-            analyse(sourceFiles, classes, writer);
+            List<FileCollection> classFiles = new ArrayList<>();
+            for (File sourceFile : sourceFiles) {
+                classFiles.add(getProject().zipTree(sourceFile));
+            }
+            analyse(getProject().files(classFiles), classes, writer);
             writeJar(classes, classesDir, jarFile, writer);
         } finally {
             writer.close();
@@ -170,11 +173,8 @@ public class ShadedJar extends DefaultTask {
                 if (fileDetails.getPath().endsWith(".class")) {
                     try {
                         ClassReader reader;
-                        InputStream inputStream = new BufferedInputStream(fileDetails.open());
-                        try {
+                        try (InputStream inputStream = new BufferedInputStream(fileDetails.open())) {
                             reader = new ClassReader(inputStream);
-                        } finally {
-                            inputStream.close();
                         }
                         final ClassDetails details = classes.get(reader.getClassName());
                         details.visited = true;
@@ -195,11 +195,8 @@ public class ShadedJar extends DefaultTask {
                         writer.println("mapped class name: " + details.outputClassName);
                         File outputFile = new File(classesDir, details.outputClassName.concat(".class"));
                         outputFile.getParentFile().mkdirs();
-                        OutputStream outputStream = new FileOutputStream(outputFile);
-                        try {
+                        try (OutputStream outputStream = new FileOutputStream(outputFile)) {
                             outputStream.write(classWriter.toByteArray());
-                        } finally {
-                            outputStream.close();
                         }
                     } catch (Exception exception) {
                         throw new ClassAnalysisException("Could not transform class from " + fileDetails.getFile(), exception);
@@ -222,13 +219,12 @@ public class ShadedJar extends DefaultTask {
             writer.println();
             writer.println("CLASS GRAPH");
             writer.println();
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(jarFile));
-            try {
+            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(jarFile))) {
                 JarOutputStream jarOutputStream = new JarOutputStream(outputStream);
                 if (classes.manifest != null) {
                     addJarEntry(classes.manifest.resourceName, classes.manifest.sourceFile, jarOutputStream);
                 }
-                Set<ClassDetails> visited = new HashSet<ClassDetails>();
+                Set<ClassDetails> visited = new LinkedHashSet<>();
                 for (ClassDetails classDetails : classes.entryPoints) {
                     visitTree(classDetails, classesDir, jarOutputStream, writer, "- ", visited);
                 }
@@ -236,8 +232,6 @@ public class ShadedJar extends DefaultTask {
                     addJarEntry(resource.resourceName, resource.sourceFile, jarOutputStream);
                 }
                 jarOutputStream.close();
-            } finally {
-                outputStream.close();
             }
         } catch (Exception exception) {
             throw new ClassAnalysisException("Could not write shaded Jar " + jarFile, exception);
@@ -264,19 +258,16 @@ public class ShadedJar extends DefaultTask {
 
     private void addJarEntry(String entryName, File sourceFile, JarOutputStream jarOutputStream) throws IOException {
         jarOutputStream.putNextEntry(new ZipEntry(entryName));
-        InputStream inputStream = new BufferedInputStream(new FileInputStream(sourceFile));
-        try {
+        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(sourceFile))) {
             ByteStreams.copy(inputStream, jarOutputStream);
-        } finally {
-            inputStream.close();
         }
         jarOutputStream.closeEntry();
     }
 
     private static class ClassGraph {
-        final Map<String, ClassDetails> classes = new LinkedHashMap<String, ClassDetails>();
-        final Set<ClassDetails> entryPoints = new LinkedHashSet<ClassDetails>();
-        final Set<ResourceDetails> resources = new LinkedHashSet<ResourceDetails>();
+        final Map<String, ClassDetails> classes = new LinkedHashMap<>();
+        final Set<ClassDetails> entryPoints = new LinkedHashSet<>();
+        final Set<ResourceDetails> resources = new LinkedHashSet<>();
         ResourceDetails manifest;
         final PackagePatterns unshadedPackages;
         final PackagePatterns ignorePackages;
@@ -321,7 +312,7 @@ public class ShadedJar extends DefaultTask {
         final String className;
         final String outputClassName;
         boolean visited;
-        final Set<ClassDetails> dependencies = new HashSet<ClassDetails>();
+        final Set<ClassDetails> dependencies = new LinkedHashSet<>();
 
         public ClassDetails(String className, String outputClassName) {
             this.className = className;
@@ -330,8 +321,8 @@ public class ShadedJar extends DefaultTask {
     }
 
     private static class PackagePatterns {
-        private final Set<String> prefixes = new HashSet<String>();
-        private final Set<String> names = new HashSet<String>();
+        private final Set<String> prefixes = new HashSet<>();
+        private final Set<String> names = new HashSet<>();
 
         public PackagePatterns(Set<String> prefixes) {
             for (String prefix : prefixes) {
