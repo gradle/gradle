@@ -212,14 +212,12 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
         when: "Fails without making network request when offline"
         server.resetExpectations()
-        // TODO:DAZ Should not be making this request
-        server.expectGetMissing('/repo/group/projectB/2.2/status-offline.txt')
         executer.withArgument('--offline')
 
         then:
         fails 'checkDeps'
 
-        failure.assertHasCause("No cached version of group:projectB:2.2 available for offline mode")
+        failure.assertHasCause("No cached resource '${ivyHttpRepo.uri}/group/projectB/2.2/status-offline.txt' available for offline mode.")
     }
 
     def "can recover from remote failure"() {

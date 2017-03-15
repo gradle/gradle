@@ -105,8 +105,12 @@ public class RepositoryTransportFactory {
             return new FileTransport(name);
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
+
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
-        ExternalResourceCachePolicy cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(new DefaultExternalResourceCachePolicy());
+        resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnnector(resourceConnector);
+
+        ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
+        cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
 
         return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy);
     }
