@@ -127,8 +127,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                                           IvyContextManager ivyContextManager,
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                          ModuleExclusions moduleExclusions,
-                                                          StartParameter startParameter) {
+                                                          ModuleExclusions moduleExclusions) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -140,9 +139,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions),
                     authenticationSchemeRegistry,
                     ivyContextManager,
-                    moduleIdentifierFactory,
-                    startParameter.isOffline()
-                );
+                    moduleIdentifierFactory
+            );
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory) {

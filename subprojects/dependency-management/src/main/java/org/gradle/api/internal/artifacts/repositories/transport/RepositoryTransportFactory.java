@@ -19,8 +19,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
@@ -47,8 +49,8 @@ public class RepositoryTransportFactory {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final StartParameterResolutionOverride startParameterResolutionOverride;
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       ProgressLoggerFactory progressLoggerFactory,
@@ -56,15 +58,15 @@ public class RepositoryTransportFactory {
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
                                       CacheLockingManager cacheLockingManager,
-                                      ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                      BuildOperationExecutor buildOperationExecutor) {
+                                      BuildOperationExecutor buildOperationExecutor,
+                                      StartParameterResolutionOverride startParameterResolutionOverride) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.startParameterResolutionOverride = startParameterResolutionOverride;
 
         for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
             register(connectorFactory);
@@ -104,7 +106,9 @@ public class RepositoryTransportFactory {
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
-        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector, buildOperationExecutor, moduleIdentifierFactory);
+        ExternalResourceCachePolicy cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(new DefaultExternalResourceCachePolicy());
+
+        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy);
     }
 
     private void validateSchemes(Set<String> schemes) {

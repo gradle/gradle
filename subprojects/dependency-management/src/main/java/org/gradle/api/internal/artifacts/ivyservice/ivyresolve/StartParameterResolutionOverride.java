@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -79,6 +80,18 @@ public class StartParameterResolutionOverride {
                 }
             });
         }
+    }
+
+    public ExternalResourceCachePolicy overrideExternalResourceCachePolicy(ExternalResourceCachePolicy original) {
+        if (startParameter.isOffline()) {
+            return new ExternalResourceCachePolicy() {
+                @Override
+                public boolean mustRefreshExternalResource(long ageMillis) {
+                    return false;
+                }
+            };
+        }
+        return original;
     }
 
     public ModuleComponentRepository overrideModuleVersionRepository(ModuleComponentRepository original) {
