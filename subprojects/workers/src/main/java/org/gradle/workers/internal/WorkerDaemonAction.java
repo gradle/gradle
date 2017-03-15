@@ -16,10 +16,10 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.Describable;
+
 import java.io.Serializable;
 
-public interface WorkerDaemonAction<T> extends Serializable {
+public interface WorkerDaemonAction<T> extends Describable, Serializable {
     DefaultWorkResult execute(T spec);
-
-    String getDescription();
 }

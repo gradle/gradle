@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.workers;
 
-public class WorkerDaemonServer implements WorkerDaemonProtocol {
+import org.gradle.api.Incubating;
 
-    @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
-        try {
-            return action.execute(spec);
-        } catch (Throwable t) {
-            return new DefaultWorkResult(true, t);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "WorkerDaemonServer{}";
-    }
+/**
+ * Forking mode for workers.
+ *
+ * @since 3.5
+ */
+@Incubating
+public enum ForkMode {
+    /**
+     * Let Gradle decide, this is the default.
+     */
+    AUTO,
+    /**
+     * Never fork, aka. use in-process workers.
+     */
+    NEVER,
+    /**
+     * Always fork, aka. use out-of-process workers.
+     */
+    ALWAYS;
 }

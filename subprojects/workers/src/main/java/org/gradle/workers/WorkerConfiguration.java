@@ -53,6 +53,18 @@ public interface WorkerConfiguration extends Describable {
     Iterable<File> getClasspath();
 
     /**
+     * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
+     */
+    ForkMode getForkMode();
+
+    /**
+     * Sets the forking mode for this worker, see {@link ForkMode}.
+     *
+     * @param forkMode the forking mode for this worker, see {@link ForkMode}
+     */
+    void setForkMode(ForkMode forkMode);
+
+    /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.
      *
      * @param forkOptionsAction - An action to configure the {@link JavaForkOptions} for this builder

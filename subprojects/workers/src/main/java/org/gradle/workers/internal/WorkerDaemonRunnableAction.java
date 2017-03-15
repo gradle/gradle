@@ -20,11 +20,11 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 
 public class WorkerDaemonRunnableAction implements WorkerDaemonAction<ParamSpec> {
-    private final String description;
+    private final String displayName;
     private final Class<? extends Runnable> runnableClass;
 
-    WorkerDaemonRunnableAction(String description, Class<? extends Runnable> runnableClass) {
-        this.description = description;
+    WorkerDaemonRunnableAction(String displayName, Class<? extends Runnable> runnableClass) {
+        this.displayName = displayName;
         this.runnableClass = runnableClass;
     }
 
@@ -42,7 +42,7 @@ public class WorkerDaemonRunnableAction implements WorkerDaemonAction<ParamSpec>
     }
 
     @Override
-    public String getDescription() {
-        return description;
+    public String getDisplayName() {
+        return displayName;
     }
 }
