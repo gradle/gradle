@@ -453,7 +453,7 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
         _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
-            collectFiles(_) >> { it[0].addAll(files); return it[0] }
+            visitArtifacts(_) >> { ArtifactVisitor visitor ->  files.each { visitor.visitFile(null, null, it) } }
         }
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
@@ -470,7 +470,7 @@ class DefaultConfigurationSpec extends Specification {
         def resolvedConfiguration = Stub(ResolvedConfiguration)
 
         _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
-            collectFiles(_) >> { throw failure }
+            visitArtifacts(_) >> { throw failure }
         }
         _ * resolvedConfiguration.hasError() >> true
 

@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -43,7 +42,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -59,7 +57,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -129,6 +126,15 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor) {
+                if (hasError()) {
+                    List<Throwable> failures = new ArrayList<Throwable>();
+                    for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+                        failures.add(unresolvedDependency.getProblem());
+                    }
+                    ResolveException resolveException = new ResolveException(configuration.toString(), failures);
+                    visitor.visitFailure(resolveException);
+                }
+
                 DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
             }
 
@@ -325,87 +331,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return loadTransientGraphResults(getSelectedArtifacts()).getRootNode().getPublicView().getChildren();
     }
 
-    private static class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
-        private final Collection<? super File> files;
-        private final List<Throwable> failures = new ArrayList<Throwable>();
-        private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-
-        ResolvedFilesCollectingVisitor(Collection<? super File> files) {
-            this.files = files;
-        }
-
-        @Override
-        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-            // Defer adding the artifacts until after all the file dependencies have been visited
-            this.artifacts.add(artifact);
-        }
-
-        @Override
-        public void visitFailure(Throwable failure) {
-            failures.add(failure);
-        }
-
-        @Override
-        public boolean includeFiles() {
-            return true;
-        }
-
-        @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
-            this.files.add(file);
-        }
-
-        public void addArtifacts() {
-            for (ResolvedArtifact artifact : artifacts) {
-                try {
-                    this.files.add(artifact.getFile());
-                } catch (Throwable t) {
-                    failures.add(t);
-                }
-            }
-        }
-    }
-
-    private static class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
-        private final Collection<? super ResolvedArtifactResult> artifacts;
-        private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
-        private final List<Throwable> failures = new ArrayList<Throwable>();
-
-        ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> artifacts) {
-            this.artifacts = artifacts;
-        }
-
-        @Override
-        public void visitFailure(Throwable failure) {
-            failures.add(failure);
-        }
-
-        @Override
-        public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-            try {
-                if (seenArtifacts.add(artifact.getId())) {
-                    // Trigger download of file, if required
-                    File file = artifact.getFile();
-                    this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), variant, Artifact.class, file));
-                }
-            } catch (Throwable t) {
-                failures.add(t);
-            }
-        }
-
-        @Override
-        public boolean includeFiles() {
-            return true;
-        }
-
-        @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
-            if (seenArtifacts.add(artifactIdentifier)) {
-                artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, variant, Artifact.class, file));
-            }
-        }
-    }
-
     private static class FilesAndArtifactCollectingVisitor extends ArtifactCollectingVisitor {
         final Collection<File> files;
 
@@ -424,7 +349,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
     }
 
-    private static class ArtifactResolveException extends ResolveException {
+    public static class ArtifactResolveException extends ResolveException {
         private final String type;
         private final String displayName;
 

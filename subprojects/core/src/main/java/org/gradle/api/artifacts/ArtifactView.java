@@ -54,5 +54,16 @@ public interface ArtifactView extends HasAttributes {
          * This method cannot be called a multiple times for a view.
          */
         ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter);
+
+        /**
+         * Specify if the view should be resolved in a 'lenient' fashion.
+         *
+         * When set to <code>true</code>, this view will resolve as many artifacts and/or files as possible
+         * collecting any failures.
+         *
+         * When set to <code>false</code>, any failures will be propagated as exceptions when the view is resolved.
+         */
+        ViewConfiguration lenient(boolean lenient);
+
     }
 }

@@ -182,7 +182,9 @@ task showMissing { doLast { println configurations.compile.files } }
         moduleB.ivy.expectGetMissing()
         moduleB.jar.expectHeadMissing()
         moduleC.ivy.expectGet()
+        moduleC.jar.expectGet()
         moduleD.ivy.expectGet()
+        moduleD.jar.expectGet()
 
         then:
         fails("showMissing")
@@ -208,8 +210,6 @@ Required by:
         moduleA.jar.expectGet()
         moduleB.ivy.expectGet()
         moduleB.jar.expectGet()
-        moduleC.jar.expectGet()
-        moduleD.jar.expectGet()
 
         then:
         succeeds('showMissing')

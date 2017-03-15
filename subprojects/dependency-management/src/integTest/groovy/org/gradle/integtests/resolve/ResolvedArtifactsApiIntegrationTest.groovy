@@ -474,4 +474,45 @@ task show {
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
     }
+
+    def "lenient artifact view includes only artifacts that are successfully resolved"() {
+        buildFile << """
+allprojects {
+    repositories { maven { url '$mavenHttpRepo.uri' } }
+}
+dependencies {
+    compile 'org:missing-module:1.0'
+    compile 'org:missing-artifact:1.0'
+    compile 'org:found:2.0'
+    compile files('lib.jar')
+    compile files { throw new RuntimeException('broken') }
+}
+
+task resolveLenient {
+    doLast {
+        def resolvedFiles = ['lib.jar', 'found-2.0.jar']
+        def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
+        assert lenientView.files.collect { it.name } == resolvedFiles
+        assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
+        assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
+    }
+}
+"""
+
+        given:
+        def m0 = mavenHttpRepo.module('org', 'missing-module', '1.0')
+        m0.pom.expectGetMissing()
+        m0.artifact.expectHeadMissing()
+
+        def m1 = mavenHttpRepo.module('org', 'missing-artifact', '1.0').publish()
+        m1.pom.expectGet()
+        m1.artifact.expectGetMissing()
+
+        def m2 = mavenHttpRepo.module('org', 'found', '2.0').publish()
+        m2.pom.expectGet()
+        m2.artifact.expectGet()
+
+        expect:
+        succeeds 'resolveLenient'
+    }
 }

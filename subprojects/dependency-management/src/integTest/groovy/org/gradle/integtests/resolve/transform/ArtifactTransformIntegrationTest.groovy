@@ -1282,9 +1282,9 @@ Found the following transforms:
         given:
         buildFile << """
             def a = file('a.jar')
-            a.text = '1234'
+            a << '1234'
             def b = file('b.jar')
-            b.text = '321'
+            b << '321'
 
             dependencies {
                 compile files(a, b)
@@ -1312,6 +1312,13 @@ Found the following transforms:
 
         and:
         outputContains("Transforming b.jar")
+
+        when:
+        executer.withArgument("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains("files: [b.jar]")
     }
 
     def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
@@ -1355,6 +1362,16 @@ Found the following transforms:
         outputContains("Transforming test-api-1.3.jar to test-api-1.3.jar.txt")
         outputContains("Transforming test-impl2-1.3.jar to test-impl2-1.3.jar.txt")
         outputContains("Transforming test-2-0.1.jar to test-2-0.1.jar.txt")
+
+        when:
+        // We attempt to get the artifact each time we query the lenient view
+        7.times { m1.getArtifact(name: 'test-impl').expectGetBroken() }
+
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains("files: [test-api-1.3.jar.txt, test-impl2-1.3.jar.txt, test-2-0.1.jar.txt]")
     }
 
     def "user gets a reasonable error message when file dependency cannot be listed and continues with other inputs"() {
@@ -1382,6 +1399,13 @@ Found the following transforms:
         and:
         outputContains("Transforming thing1.jar to thing1.jar.txt")
         outputContains("Transforming thing2.jar to thing2.jar.txt")
+
+        when:
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains("files: [thing1.jar.txt, thing2.jar.txt]")
     }
 
     def "user gets a reasonable error message when a output property returns null"() {
@@ -1436,6 +1460,13 @@ Found the following transforms:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform NoExistTransform")
         failure.assertHasCause("Transform output file this_file_does_not.exist does not exist.")
+
+        when:
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains(":resolve NO-SOURCE")
     }
 
     def "user gets a reasonable error message when transform returns a file that is not input or in output directory"() {
@@ -1560,6 +1591,15 @@ Found the following transforms:
         outputContains("Transforming a.jar")
         outputContains("Transforming c.jar")
         outputContains("Transforming c-2.0.jar")
+
+        when:
+        7.times { m1.artifact.expectGetBroken() }
+
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains("files: [a.jar, c.jar, c-2.0.jar]")
     }
 
     def "provides useful error message when registration action fails"() {
@@ -1620,6 +1660,9 @@ Found the following transforms:
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
+                    if (project.hasProperty("lenient")) {
+                        lenient(true)
+                    }
                 }.artifacts
                 from artifacts.artifactFiles
                 into "\${buildDir}/libs"
