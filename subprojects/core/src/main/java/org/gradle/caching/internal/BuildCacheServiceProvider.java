@@ -61,6 +61,10 @@ public class BuildCacheServiceProvider {
         BuildCache local = buildCacheConfiguration.getLocal();
         BuildCache remote = buildCacheConfiguration.getRemote();
 
+        if (canUseRemoteBuildCache(remote) && startParameter.isOffline()) {
+            LOGGER.warn("Remote build cache is disabled when running with --offline.");
+        }
+
         RoleAwareBuildCacheService buildCacheService;
         if (local.isEnabled()) {
             if (canUseRemoteBuildCache(remote) && !startParameter.isOffline()) {
@@ -92,7 +96,7 @@ public class BuildCacheServiceProvider {
 
         return buildCacheService;
     }
-    
+
     private boolean canUseRemoteBuildCache(BuildCache remote) {
         return remote != null && remote.isEnabled();
     }
