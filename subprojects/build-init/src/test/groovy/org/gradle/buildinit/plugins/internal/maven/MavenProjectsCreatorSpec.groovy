@@ -114,7 +114,7 @@ class MavenProjectsCreatorSpec extends Specification {
         ex.message == "Unable to create Maven project model. The POM file $pom does not exist."
     }
 
-    def "creates projects with compileOnly library"() {
+    def "can translate dependency assigned to Maven provided scope into compileOnly"() {
         given:
             def pom = temp.file("pom.xml")
             pom.text = """<project>
@@ -136,8 +136,9 @@ class MavenProjectsCreatorSpec extends Specification {
         def converter = new Maven2Gradle(mavenProjects, temp.root.getCanonicalFile())
 
         when:
-            def gradleProject = converter.convert()
+        def gradleProject = converter.convert()
+
         then:
-            gradleProject.contains("compileOnly group: 'org.gradle', name: 'build-init', version:'1.0.0'")
+        gradleProject.contains("compileOnly group: 'org.gradle', name: 'build-init', version:'1.0.0'")
     }
 }

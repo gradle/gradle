@@ -311,7 +311,7 @@ version = '$project.version'""";
                 }
                 def exclusions = mavenDependency.exclusions.exclusion
                 if (exclusions.size() > 0) {
-                    createComplexDependency(mavenDependency, sb, scope, "")
+                    createComplexDependency(mavenDependency, sb, scope)
                 } else {
                     createBasicDependency(mavenDependency, sb, scope)
                 }
@@ -486,13 +486,10 @@ project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as
  * iterate over each <exclusion> node and print out the artifact id.
  * It also provides review comments for the user.
  */
-    private def createComplexDependency(it, build, scope, providedMessage) {
+    private def createComplexDependency(it, build, scope) {
         build.append("    ${scope}(${contructSignature(it)}) {\n")
         it.exclusions.exclusion.each() {
             build.append("exclude(module: '${it.artifactId}')\n")
-        }
-        if (providedMessage) {
-            build.append(providedMessage)
         }
         build.append("    }\n")
     }
