@@ -49,7 +49,10 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     buildScan.value "${task.path}-build-cache-key", String.valueOf(key.hashCode)
                     def inputs = key.inputs
                     buildScan.value "${task.path}-classloader-hash", String.valueOf(inputs.classLoaderHash)
-                    buildScan.value "${task.path}-action-classloader-hash", String.valueOf(inputs.actionsClassLoaderHash)
+                    int actionIndex = 0
+                    inputs.actionClassLoaderHashes.each {
+                        buildScan.value "${task.path}-action-classloader-hash-${actionIndex++}", String.valueOf(it)
+                    }
                     if (tasksToInvestigateForCache.any { task.getPath().contains(it) }) {
                         inputs.inputHashes.each { name, hash ->
                             buildScan.value "${task.path}-input-${name}", String.valueOf(hash)
@@ -88,8 +91,6 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                         if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
                             def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
                             new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
-                            int actionIndex = 0
-                            task.actionClassLoaders.each { new Visitor(task.project.buildScan, hasher, "${task.path}-action-classloader-${actionIndex++}").visit(it) }
                         }
                     }
                 }
