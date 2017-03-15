@@ -130,7 +130,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:2.3"
     }
 
-    def "reuses cached result when using --offline"() {
+    def "can use --offline to use cached result after remote failure"() {
         given:
         withPerVersionStatusSupplier()
         when:
@@ -143,6 +143,16 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
 
         when:
+        server.expectHeadBroken('/repo/group/projectB/2.2/status.txt')
+
+        then:
+        fails 'checkDeps'
+
+        and:
+        failure.assertHasCause("Could not HEAD '${ivyHttpRepo.uri}/group/projectB/2.2/status.txt'.")
+
+        when:
+        server.resetExpectations()
         executer.withArgument('--offline')
 
         then: "will used cached status resources"
@@ -166,6 +176,50 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
         then: "recovers from previous --offline mode"
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+    }
+
+    def "will not make network requests when run with --offline"() {
+        given:
+        buildFile << """
+          // Requests a different resource when offline, to ensure uncached
+          if (project.gradle.startParameter.offline) {
+             MP.filename = 'status-offline.txt'
+          }
+          class MP implements ComponentMetadataSupplier {
+            final RepositoryResourceAccessor repositoryResourceAccessor
+            
+            @Inject
+            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
+          
+            static String filename = 'status.txt'
+          
+            void execute(ComponentMetadataSupplierDetails details) {
+                def id = details.id
+                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/\${filename}") {
+                    details.result.status = new String(it.bytes)
+                }
+            }
+          }
+"""
+        when: "Resolves when online"
+        expectGetStatusOf(projectB1, 'release')
+        expectGetStatusOf(projectB2, 'integration')
+        expectGetDynamicRevision(projectA2)
+        expectGetDynamicRevision(projectB1)
+
+        then:
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+
+        when: "Fails without making network request when offline"
+        server.resetExpectations()
+        // TODO:DAZ Should not be making this request
+        server.expectGetMissing('/repo/group/projectB/2.2/status-offline.txt')
+        executer.withArgument('--offline')
+
+        then:
+        fails 'checkDeps'
+
+        failure.assertHasCause("No cached version of group:projectB:2.2 available for offline mode")
     }
 
     def "can recover from remote failure"() {
