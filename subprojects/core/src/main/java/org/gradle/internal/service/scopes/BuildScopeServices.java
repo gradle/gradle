@@ -74,7 +74,7 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
-import org.gradle.caching.internal.DefaultDirectoryBuildCacheServiceFactory;
+import org.gradle.caching.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -458,6 +458,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
-        return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DefaultDirectoryBuildCacheServiceFactory.class);
+        return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
     }
 }

@@ -28,11 +28,11 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
-class DefaultDirectoryBuildCacheServiceFactoryTest extends Specification {
+class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheRepository = Mock(CacheRepository)
     def cacheScopeMapping = Mock(CacheScopeMapping)
     def resolver = Mock(FileResolver)
-    def factory = new DefaultDirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
 

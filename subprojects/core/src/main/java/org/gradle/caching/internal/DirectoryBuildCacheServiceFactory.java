@@ -27,14 +27,14 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import javax.inject.Inject;
 import java.io.File;
 
-public class DefaultDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
+public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     private static final String BUILD_CACHE_VERSION = "1";
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
     private final FileResolver resolver;
 
     @Inject
-    public DefaultDirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, FileResolver resolver) {
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, FileResolver resolver) {
         this.cacheRepository = cacheRepository;
         this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
