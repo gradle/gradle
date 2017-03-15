@@ -16,10 +16,10 @@
 
 // START SNIPPET configure-built-in-build-caches
 buildCache {
-    local(org.gradle.caching.local.DirectoryBuildCache) {
+    local(DirectoryBuildCache) {
         directory = new File(rootDir, 'build-cache')
     }
-    remote(org.gradle.caching.http.HttpBuildCache) {
+    remote(HttpBuildCache) {
         url = 'http://example.com:8123/build-cache/'
         credentials {
             username = 'build-cache-user'
