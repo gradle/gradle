@@ -21,6 +21,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
+import org.gradle.tooling.internal.consumer.ConsumerProgressListener;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 
 import java.io.Closeable;
@@ -35,12 +36,12 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         this.loader = loader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
-        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, connectionParameters.getGradleUserHomeDir(), cancellationToken);
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
+        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters.getGradleUserHomeDir(), cancellationToken);
 
         ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {
-            connection = loader.create(distribution, progressLoggerFactory, connectionParameters, cancellationToken);
+            connection = loader.create(distribution, progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
             connections.put(classpath, connection);
         }
 

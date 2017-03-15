@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.wrapper.DownloadProgressListener;
+import org.gradle.wrapper.IDownload;
 
-import java.io.File;
-
-public interface Distribution {
-    String getDisplayName();
-
-    ClassPath getToolingImplementationClasspath(
-        ProgressLoggerFactory progressLoggerFactory, ConsumerProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken);
+public interface ConsumerProgressListener extends IDownload, DownloadProgressListener {
 }

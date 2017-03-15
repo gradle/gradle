@@ -20,6 +20,7 @@ import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -36,6 +37,8 @@ class DistributionFactoryTest extends Specification {
     final BuildCancellationToken cancellationToken = Mock()
     final ExecutorService executor = Executors.newSingleThreadExecutor()
     final DistributionFactory factory = new DistributionFactory(executorFactory)
+    final InternalBuildProgressListener buildProgressListener = Mock()
+    final ConsumerProgressListener consumerProgressListener = new DefaultConsumerProgressListener(progressLoggerFactory, buildProgressListener)
 
     def setup() {
         _ * progressLoggerFactory.newOperation(!null) >> progressLogger
@@ -76,7 +79,7 @@ class DistributionFactoryTest extends Specification {
 
         expect:
         def dist = factory.getDistribution(tmpDir.testDirectory)
-        dist.getToolingImplementationClasspath(progressLoggerFactory, null, cancellationToken).asFiles as Set == [libA, libB] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, null, cancellationToken).asFiles as Set == [libA, libB] as Set
     }
 
     def failsWhenInstallationDirectoryDoesNotExist() {
@@ -84,7 +87,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, null, cancellationToken)
 
         then:
         IllegalArgumentException e = thrown()
@@ -96,7 +99,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, null, cancellationToken)
 
         then:
         IllegalArgumentException e = thrown()
@@ -108,7 +111,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, null, cancellationToken)
 
         then:
         IllegalArgumentException e = thrown()
@@ -133,7 +136,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, null, cancellationToken).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, null, cancellationToken).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
     }
 
     def usesWrapperDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
@@ -147,7 +150,7 @@ class DistributionFactoryTest extends Specification {
         }
         tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
         def dist = factory.getDefaultDistribution(tmpDir.testDirectory, false)
-        def result = dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome, cancellationToken)
+        def result = dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, customUserHome, cancellationToken)
 
         expect:
         result.asFiles.name as Set == ['a.jar', 'b.jar'] as Set
@@ -164,7 +167,7 @@ class DistributionFactoryTest extends Specification {
             }
         }
         def dist = factory.getDistribution(zipFile.toURI())
-        def result = dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome, cancellationToken)
+        def result = dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, customUserHome, cancellationToken)
 
         expect:
         result.asFiles.name as Set == ['a.jar', 'b.jar'] as Set
@@ -183,10 +186,11 @@ class DistributionFactoryTest extends Specification {
         ProgressLogger loggerTwo = Mock()
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, customUserHome, cancellationToken)
 
         then:
-        2 * progressLoggerFactory.newOperation(DistributionFactory.class) >>> [loggerOne, loggerTwo]
+        1 * progressLoggerFactory.newOperation(DefaultConsumerProgressListener.class) >>> loggerOne
+        1 * progressLoggerFactory.newOperation(DistributionFactory.class) >>> loggerTwo
 
         1 * loggerOne.setDescription("Download ${zipFile.toURI()}")
         1 * loggerOne.started()
@@ -208,7 +212,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, null, cancellationToken)
 
         then:
         IllegalArgumentException e = thrown()
@@ -220,7 +224,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, null, cancellationToken)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, consumerProgressListener, null, cancellationToken)
 
         then:
         1 * executorFactory.create() >> executor

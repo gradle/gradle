@@ -26,6 +26,7 @@ import org.gradle.tooling.events.OperationResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.StartEvent
+import org.gradle.tooling.events.StatusEvent
 import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
@@ -101,7 +102,11 @@ class ProgressEvents implements ProgressListener {
 
                     assert event.result.startTime == startEvent.eventTime
                     assert event.result.endTime == event.eventTime
-                } else {
+                } else if (event instanceof StatusEvent) {
+                    def descriptor = event.descriptor
+                    assert seen.add(descriptor)
+                }
+                else {
                     throw new AssertionError("Unexpected type of progress event received: ${event.getClass()}")
                 }
             }

@@ -21,6 +21,7 @@ import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.internal.consumer.ConnectionParameters
+import org.gradle.tooling.internal.consumer.ConsumerProgressListener
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 
@@ -37,22 +38,22 @@ public class SynchronizedToolingImplementationLoaderTest extends ConcurrentSpec 
     def "blocks and reports progress when busy"() {
         when:
         start {
-            loader.create(distro, factory, params, cancellationToken)
+            loader.create(distro, factory, _ as ConsumerProgressListener, params, cancellationToken)
         }
         async {
             thread.blockUntil.busy
-            loader.create(distro, factory, params, cancellationToken)
+            loader.create(distro, factory, _ as ConsumerProgressListener, params, cancellationToken)
         }
 
         then:
         instant.idle < instant.created
-        1 * target.create(distro, factory, params, cancellationToken) >> {
+        1 * target.create(distro, factory, _ as ConsumerProgressListener, params, cancellationToken) >> {
             instant.busy
             thread.block()
             instant.idle
             Stub(ConsumerConnection)
         }
-        1 * target.create(distro, factory, params, cancellationToken) >> {
+        1 * target.create(distro, factory, _ as ConsumerProgressListener, params, cancellationToken) >> {
             instant.created
             Stub(ConsumerConnection)
         }
@@ -67,10 +68,10 @@ public class SynchronizedToolingImplementationLoaderTest extends ConcurrentSpec 
 
     def "does not report progress when appropriate"() {
         when:
-        loader.create(distro, factory, params, cancellationToken)
+        loader.create(distro, factory, _ as ConsumerProgressListener, params, cancellationToken)
 
         then:
-        1 * target.create(distro, factory, params, cancellationToken)
+        1 * target.create(distro, factory, _ as ConsumerProgressListener, params, cancellationToken)
         0 * _
     }
 }

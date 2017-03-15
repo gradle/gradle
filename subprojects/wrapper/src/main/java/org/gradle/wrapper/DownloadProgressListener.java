@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
+package org.gradle.wrapper;
 
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import java.net.URI;
 
-import java.io.File;
-
-public interface Distribution {
-    String getDisplayName();
-
-    ClassPath getToolingImplementationClasspath(
-        ProgressLoggerFactory progressLoggerFactory, ConsumerProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken);
+public interface DownloadProgressListener {
+    /**
+     * Reports the current progress of the download
+     *
+     * @param address       distribution url
+     * @param contentLength the content length of the distribution, or -1 if the content length is not known.
+     * @param downloaded    the total amount of currently downloaded bytes
+     */
+    void downloadStatusChanged(URI address, long contentLength, long downloaded);
 }

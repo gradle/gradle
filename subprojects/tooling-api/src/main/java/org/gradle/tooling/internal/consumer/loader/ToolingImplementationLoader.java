@@ -19,9 +19,10 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
+import org.gradle.tooling.internal.consumer.ConsumerProgressListener;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 
 public interface ToolingImplementationLoader {
     ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory,
-                              ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken);
+                              ConsumerProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken);
 }
