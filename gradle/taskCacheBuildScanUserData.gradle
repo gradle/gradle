@@ -30,15 +30,21 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
             'compileJava',
             ':jar',
-            ':docs:test'
+            ':docs:test',
+            ':launcher:startScripts',
+            ':toolingApi:shadedJarWithoutVersion',
+            ':integTest'
         ]
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
             ':dependencyManagement:generateGradleApiPackageList',
             ':launcher:integTest',
-            ':baseServices:classpathManifest'
+            ':baseServices:classpathManifest',
+            ':baseServices:integTest'
         ]
         ext.taskPropertiesWithFullFileSnapshot = [
-            ':baseServices:compileJava': 'classpath'
+            ':baseServices:compileJava': ['classpath'],
+            ':toolingApi:shadedJarWithoutVersion': ['sourceFiles'],
+            ':baseServices:integTest': ['distribution.core', 'distribution.plugins','distribution.staticContent']
         ]
 
         gradle.addListener(new TaskOutputCachingListener() {
@@ -84,7 +90,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                             if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
                                 publishPaths(inputProperty.propertyFiles, prefix)
                             }
-                            if (taskPropertiesWithFullFileSnapshot[task.getPath()] == name) {
+                            if (name in taskPropertiesWithFullFileSnapshot[task.getPath()]) {
                                 publishIndividualFileHashes(snapshot, prefix)
                             }
                         }

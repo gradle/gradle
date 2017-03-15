@@ -126,19 +126,26 @@
                 Task types need to opt-in to task output caching using the <literal>@<apilink class="org.gradle.api.tasks.CacheableTask"/></literal> annotation.
                 Many built-in Gradle task types are cacheable, but custom task types are <emphasis>not</emphasis> cacheable by default.
             </para>
+            <para>
+                For an initial release, we have focused on improving continuous integration and developer build times when using the build cache.
+                We expect users to have an organization wide remote build cache that is populated regularly by continuous integration builds.
+                Developers and other continuous integration agents will pull cache entries from the remote build cache.
+                We expect that developers are not allowed to populate the remote build cache and all continuous integration builds are populating the cache while running the clean task.
+            </para>
         </section>
     </section>
     <section id="sec:build_cache_known_issues">
         <title>Feedback and Known issues</title>
         <para>
-            The build cache feature has known issues that may impact the performance, correctness and usability of your build when using the build cache.
+            The build cache feature has known issues that may impact the correctness, usability and performance of your build when using the build cache.
             These issues will be corrected as this feature becomes stable.
         </para>
         <note>
             <para>
-                When reporting issues with the build cache, please check if your issue is a known issue or related to a known issue.
+                When <ulink url="https://github.com/gradle/gradle/issues/new?labels=in:build-cache">reporting issues with the build cache</ulink>, please check if your issue is a known issue or related to a known issue.
             </para>
         </note>
+
         <table>
             <title>Correctness Issues</title>
             <thead>
@@ -161,7 +168,7 @@
             <tr>
                 <td>Mixed source projects with Java and another JVM language.</td>
                 <td>If a project has both Java and another JVM language, the compilation tasks share an output directory. This causes Gradle to mix the result of one task into another. Depending on the order the tasks run, Gradle may delete all output from one of the tasks and cause broken builds.</td>
-                <td>Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in <literal>src/main/groovy</literal> too.</td>
+                <td>Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in <literal>src/main/groovy</literal>.</td>
             </tr>
             <tr>
                 <td>Overlapping outputs.</td>
@@ -189,19 +196,11 @@
                 <td>You can add your custom options as input properties or disable caching of Javadoc.</td>
             </tr>
             <tr>
-                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider changes to filter or expand in up-to-date checks.</td>
-                <td>Changes to the parameters to filter or expand do not cause Copy-like tasks to be executed if that is the only change made to its inputs. See <ulink url="https://github.com/gradle/gradle/issues/1191">gradle/gradle#1191</ulink></td>
-                <td>None. By default, these tasks are not considered cacheable.</td>
-            </tr>
-            <tr>
-                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider changes to rename in up-to-date checks.</td>
-                <td>Changes to the parameters to rename does not cause Copy-like tasks to be executed if that is the only change made to its inputs. See <ulink url="https://github.com/gradle/gradle/issues/1150">gradle/gradle#1150</ulink></td>
-                <td>None. By default, these tasks are not considered cacheable.</td>
-            </tr>
-            <tr>
-                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider system line endings when used with filter or expand.</td>
-                <td>When filtering or expanding files while copying them, Copy-like tasks use the system line endings. This can cause files to have different line endings between operating systems. See <ulink url="https://github.com/gradle/gradle/issues/1151">gradle/gradle#1151</ulink></td>
-                <td>None. By default, these tasks are not considered cacheable.</td>
+                <td>Missing inputs or outputs for cacheable tasks.</td>
+                <td>It's very important that a cacheable task has a complete picture of its inputs so that the results from one build can be safely re-used somewhere else.
+                    Missing task inputs can cause incorrect cache hits, where different results are treated as identical because the same cache key is used by both executions.
+                    Missing task outputs can cause build failures if Gradle does not completely capture all outputs for a given task.</td>
+                <td>Use TestKit/integration tests to check that a task is relocatable, produces the same outputs for identical inputs and captures all output files for the task.</td>
             </tr>
         </table>
         <table>
@@ -246,7 +245,7 @@
             <tr>
                 <td>Limiting the size of the directory build cache.</td>
                 <td>Currently, the directory build cache uses a Gradle-version specific directory that can grow unbounded.</td>
-                <td>Periodically delete the directory build cache if it grows too large.</td>
+                <td>When using <apilink class="org.gradle.caching.local.DirectoryBuildCache"/>, periodically delete the directory build cache if it grows too large.</td>
             </tr>
             <tr>
                 <td>Adding new actions to cacheable tasks in a build file makes that task sensitive to unrelated changes to the build file.</td>
@@ -259,21 +258,17 @@
                 <td>Use a configure task to finalize configuration for a given task. A configure task configures another task as part of its execution.</td>
             </tr>
             <tr>
-                <td>Properties file in a jar file with volatile data.</td>
-                <td>If a input file for a cacheable task changes on every build, such as it contains a timestamp, the task is unlikely to have very many build cache hits. If these files are contained in jars, it can affect the cacheability of compilation and test execution.</td>
+                <td>Files with volatile data.</td>
+                <td>If input files for a cacheable task change on every build, such as when they contain a timestamp, the task is unlikely to have very many build cache hits.
+                    If these files are contained in jars, it can affect the cacheability of Java compilation and test execution.
+                    Java compilation is only affected when the jar is found on the annotation processor classpath.
+                </td>
                 <td>You can produce consistently ordered properties files without a timestamp comment with <apilink class="org.gradle.api.tasks.WriteProperties"/>.</td>
             </tr>
             <tr>
                 <td>Order of input files affects outputs.</td>
                 <td>Some tools are sensitive to the order of its inputs and will produce slightly different output. Gradle will usually provide the order of files from the filesystem, which will be different across operating systems.</td>
                 <td>Provide a stable order for tools affected by order.</td>
-            </tr>
-            <tr>
-                <td>Missing inputs or outputs for cacheable tasks.</td>
-                <td>It's very important that a cacheable task has a complete picture of its inputs so that the results from one build can be safely re-used somewhere else.
-                    Missing task inputs can cause incorrect cache hits, where different results are treated as identical because the same cache key is used by both executions.
-                    Missing task outputs can cause build failures if Gradle does not completely capture all outputs for a given task.</td>
-                <td>Use TestKit/integration tests to check that a task is relocatable, produces the same outputs for identical inputs and captures all output files for the task.</td>
             </tr>
             <tr>
                 <td>Antlr3 produces output with a timestamp.</td>
@@ -307,8 +302,38 @@
             </tr>
             <tr>
                 <td>Remote cache entries are downloaded each time they are needed.</td>
-                <td>Gradle does not keep a local copy of remotely downloaded cache entries.</td>
+                <td>Gradle does not keep a local copy of remotely downloaded cache entries. After every clean build, Gradle will need to download all remote cache entries again.</td>
                 <td>None.</td>
+            </tr>
+        </table>
+        <table>
+            <title>Potential Issues</title>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Impact</th>
+                    <th>Workaround</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <row>
+                    <entry>These issues may affect the correctness of the build cache. These issues can only cause problems if your build cache is populated by non-clean builds or caching has been enabled for unsupported tasks.</entry>
+                </row>
+            </tfoot>
+            <tr>
+                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider changes to filter or expand in up-to-date checks.</td>
+                <td>Changes to the parameters to filter or expand do not cause Copy-like tasks to be executed if that is the only change made to its inputs. See <ulink url="https://github.com/gradle/gradle/issues/1191">gradle/gradle#1191</ulink>.</td>
+                <td>None. By default, these tasks are not considered cacheable.</td>
+            </tr>
+            <tr>
+                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider changes to rename in up-to-date checks.</td>
+                <td>Changes to the parameters to rename does not cause Copy-like tasks to be executed if that is the only change made to its inputs. See <ulink url="https://github.com/gradle/gradle/issues/1150">gradle/gradle#1150</ulink>.</td>
+                <td>None. By default, these tasks are not considered cacheable.</td>
+            </tr>
+            <tr>
+                <td>Copy-like tasks (Jar, Copy, Sync, Zip) do not consider system line endings when used with filter or expand.</td>
+                <td>When filtering or expanding files while copying them, Copy-like tasks use the system line endings. This can cause files to have different line endings between operating systems. See <ulink url="https://github.com/gradle/gradle/issues/1151">gradle/gradle#1151</ulink>.</td>
+                <td>None. By default, these tasks are not considered cacheable.</td>
             </tr>
         </table>
     </section>

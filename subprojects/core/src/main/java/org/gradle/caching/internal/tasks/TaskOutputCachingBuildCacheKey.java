@@ -20,4 +20,9 @@ import org.gradle.caching.BuildCacheKey;
 
 public interface TaskOutputCachingBuildCacheKey extends BuildCacheKey {
     BuildCacheKeyInputs getInputs();
+
+    /**
+     * Whether this key can be used to retrieve or store task output entries.
+     */
+    boolean isValid();
 }

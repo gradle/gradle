@@ -21,6 +21,7 @@ import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.BuildCacheService
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -49,16 +50,12 @@ class HttpBuildCacheServiceTest extends Specification {
     @Rule HttpServer server = new HttpServer()
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
-    HttpBuildCacheService cache
+    BuildCacheService cache
+
     def key = new BuildCacheKey() {
         @Override
         String getHashCode() {
             return '0123456abcdef'
-        }
-
-        @Override
-        boolean isValid() {
-            return true
         }
 
         @Override
