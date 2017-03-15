@@ -47,7 +47,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
             }
         """
@@ -67,7 +67,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         withRunnableClassInBuildScript()
 
         buildFile << """
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
             }
         """
@@ -94,7 +94,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 }
             }
 
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
             }
         """
@@ -114,11 +114,11 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask) {
+            task runInDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
             }
 
-            task reuseDaemon(type: DaemonTask) {
+            task reuseDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
                 dependsOn runInDaemon
             }
@@ -135,9 +135,9 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask)
+            task runInDaemon(type: WorkerTask)
 
-            task startNewDaemon(type: DaemonTask) {
+            task startNewDaemon(type: WorkerTask) {
                 dependsOn runInDaemon
                 forkMode = ForkMode.ALWAYS
 
@@ -163,12 +163,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         withBlockingRunnableClassInBuildSrc("http://localhost:${blockingServer.port}")
 
         buildFile << """
-            task runInDaemon(type: DaemonTask) {
+            task runInDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
                 runnableClass = BlockingRunnable.class
             }
 
-            task startNewDaemon(type: DaemonTask) {
+            task startNewDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
                 runnableClass = BlockingRunnable.class
             }
@@ -192,11 +192,11 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         withAlternateRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask) {
+            task runInDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
             }
 
-            task reuseDaemon(type: DaemonTask) {
+            task reuseDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
                 runnableClass = AlternateRunnable.class
                 dependsOn runInDaemon
@@ -217,7 +217,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         and:
         buildFile << """
-            class DaemonTaskUsingCustomThreads extends DaemonTask {
+            class WorkerTaskUsingCustomThreads extends WorkerTask {
                 @TaskAction
                 void executeTask() {
                     def thrown = null
@@ -244,11 +244,11 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 }
             }
 
-            task runInDaemon(type: DaemonTaskUsingCustomThreads)
+            task runInWorker(type: WorkerTaskUsingCustomThreads)
         """.stripIndent()
 
         when:
-        fails 'runInDaemon'
+        fails 'runInWorker'
 
         then:
         failure.assertHasCause 'No build operation associated with the current thread'
@@ -268,7 +268,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
             $optionVerifyingRunnable
 
-            task runInDaemon(type: DaemonTask) {
+            task runInDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
                 runnableClass = OptionVerifyingRunnable.class
                 additionalForkOptions = { options ->
@@ -306,7 +306,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         buildFile << """
             ${getExecutableVerifyingRunnable(differentJvm.javaHome)}
 
-            task runInDaemon(type: DaemonTask) {
+            task runInDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
                 runnableClass = ExecutableVerifyingRunnable.class
                 additionalForkOptions = { options ->
@@ -327,14 +327,14 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 displayName = "Test Work"
             }
         """.stripIndent()
 
         when:
-        succeeds("runInDaemon")
+        succeeds("runInWorker")
 
         then:
         buildOperations.hasOperation("Test Work")
@@ -343,16 +343,21 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "can use a parameter that references classes in other packages"() {
+    def "can use a parameter that references classes in other packages in #forkMode"() {
         withRunnableClassInBuildSrc()
         withParameterClassReferencingClassInAnotherPackage()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask)
+            task runInWorker(type: WorkerTask) {
+                forkMode = $forkMode
+            }
         """
 
         expect:
-        succeeds("runInDaemon")
+        succeeds("runInWorker")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
     void withParameterClassReferencingClassInAnotherPackage() {

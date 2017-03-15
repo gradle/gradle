@@ -21,7 +21,7 @@ import org.gradle.util.TextUtil
 
 
 class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
-    def outputFileDir = file("build/workerDaemons")
+    def outputFileDir = file("build/workers")
     def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
     def list = [ 1, 2, 3 ]
 
@@ -58,7 +58,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.other.Foo
 
             @ParallelizableTask
-            class DaemonTask extends DefaultTask {
+            class WorkerTask extends DefaultTask {
                 def list = $list
                 def outputFileDirPath = "${outputFileDirPath}/\${name}"
                 def additionalForkOptions = {}

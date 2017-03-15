@@ -16,6 +16,9 @@
 
 package org.gradle.workers.internal;
 
-public interface WorkerDaemonProtocol {
-    <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec);
+import java.io.File;
+
+public interface WorkerFactory {
+    // TODO - workingDir should be injected into the implementation
+    Worker getWorker(Class<? extends WorkerProtocol> workerImplementationClass, File workingDir, DaemonForkOptions forkOptions);
 }

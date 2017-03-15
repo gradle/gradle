@@ -32,7 +32,7 @@ class WorkerDaemonExpirationTest extends Specification {
     def threeGbOptions = new DaemonForkOptions('3g', '3g', ['three-gb-options'])
     def reportsMemoryUsage = true
     def daemonStarter = Mock(WorkerDaemonStarter) {
-        startDaemon(_, _, _) >> { Class<? extends WorkerDaemonProtocol> impl, File workDir, DaemonForkOptions forkOptions ->
+        startDaemon(_, _, _) >> { Class<? extends WorkerProtocol> impl, File workDir, DaemonForkOptions forkOptions ->
             Mock(WorkerDaemonClient) {
                 getForkOptions() >> forkOptions
                 isCompatibleWith(_) >> { DaemonForkOptions otherForkOptions ->

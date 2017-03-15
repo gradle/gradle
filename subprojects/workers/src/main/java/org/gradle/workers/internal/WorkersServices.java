@@ -58,16 +58,16 @@ public class WorkersServices implements PluginServiceRegistry {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, startParameter, buildOperationExecutor));
         }
 
-        WorkerDaemonManager createWorkerDaemonManager(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryManager memoryManager, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
-            return new WorkerDaemonManager(workerDaemonClientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor);
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryManager memoryManager, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor);
         }
 
-        WorkerExecutor createWorkerDaemonExecutor(WorkerDaemonManager workerDaemonFactory, InProcessCompilerDaemonFactory inProcessWorkerDaemonFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+        WorkerExecutor createWorkerExecutor(WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerDaemonFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
             return new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerDaemonFactory, fileResolver, WorkerDaemonServer.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker);
         }
 
-        InProcessCompilerDaemonFactory createInProcessWorkerDaemonFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
-            return new InProcessCompilerDaemonFactory(classLoaderFactory, buildOperationWorkerRegistry, buildOperationExecutor);
+        InProcessWorkerFactory createInProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
+            return new InProcessWorkerFactory(classLoaderFactory, buildOperationWorkerRegistry, buildOperationExecutor);
         }
     }
 }

@@ -26,22 +26,22 @@ import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
-class WorkerDaemonClient implements WorkerDaemon, Stoppable {
+class WorkerDaemonClient implements Worker, Stoppable {
     private final DaemonForkOptions forkOptions;
-    private final WorkerDaemonWorker workerDaemonWorker;
+    private final WorkerDaemonProcess workerDaemonProcess;
     private final WorkerProcess workerProcess;
     private final BuildOperationExecutor buildOperationExecutor;
     private int uses;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonWorker workerDaemonWorker, WorkerProcess workerProcess, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, BuildOperationExecutor buildOperationExecutor) {
         this.forkOptions = forkOptions;
-        this.workerDaemonWorker = workerDaemonWorker;
+        this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(final WorkerDaemonAction<T> action, final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
+    public <T extends WorkSpec> DefaultWorkResult execute(final WorkerAction<T> action, final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
         Completion workerLease = parentWorkerOperation.operationStart();
         BuildOperationDetails buildOperation = BuildOperationDetails.displayName(action.getDisplayName()).parent(parentBuildOperation).build();
         try {
@@ -49,7 +49,7 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
                 @Override
                 public DefaultWorkResult transform(BuildOperationContext buildOperationContext) {
                     uses++;
-                    return workerDaemonWorker.execute(action, spec);
+                    return workerDaemonProcess.execute(action, spec);
                 }
             });
         } finally {
@@ -58,7 +58,7 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
     }
 
     @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
+    public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec) {
         throw new UnsupportedOperationException();
     }
 
@@ -72,7 +72,7 @@ class WorkerDaemonClient implements WorkerDaemon, Stoppable {
 
     @Override
     public void stop() {
-        workerDaemonWorker.stop();
+        workerDaemonProcess.stop();
     }
 
     DaemonForkOptions getForkOptions() {

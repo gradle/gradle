@@ -16,10 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.Describable;
+import org.gradle.process.internal.worker.WorkerControl;
 
-import java.io.Serializable;
-
-public interface WorkerDaemonAction<T> extends Describable, Serializable {
-    DefaultWorkResult execute(T spec);
+public interface WorkerDaemonProcess extends WorkerProtocol, WorkerControl {
 }

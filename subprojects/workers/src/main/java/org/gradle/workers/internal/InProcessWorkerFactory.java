@@ -48,30 +48,29 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
-public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
+public class InProcessWorkerFactory implements WorkerFactory {
 
     private final ClassLoaderFactory classLoaderFactory;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
 
-
-    public InProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public InProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.classLoaderFactory = classLoaderFactory;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
-    public WorkerDaemon getDaemon(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
-        return new WorkerDaemon() {
+    public Worker getWorker(Class<? extends WorkerProtocol> workerImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
+        return new Worker() {
             @Override
-            public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
+            public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec) {
                 return execute(action, spec, buildOperationWorkerRegistry.getCurrent(), buildOperationExecutor.getCurrentOperation());
             }
 
             @Override
-            public <T extends WorkSpec> DefaultWorkResult execute(final WorkerDaemonAction<T> action, final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
+            public <T extends WorkSpec> DefaultWorkResult execute(final WorkerAction<T> action, final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
                 BuildOperationWorkerRegistry.Completion workerLease = parentWorkerOperation.operationStart();
                 BuildOperationDetails buildOperation = BuildOperationDetails.displayName(action.getDisplayName()).parent(parentBuildOperation).build();
                 try {
@@ -88,7 +87,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         };
     }
 
-    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(WorkerDaemonAction<T> action, T spec, DaemonForkOptions forkOptions) {
+    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(WorkerAction<T> action, T spec, DaemonForkOptions forkOptions) {
         ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
         GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
 
@@ -113,7 +112,7 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         return classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));
     }
 
-    private ClassLoader createWorkerClassLoader(ClassLoader actionClasspathLoader, Iterable<String> sharedPackages, Class<? extends WorkerDaemonAction> actionClass) {
+    private ClassLoader createWorkerClassLoader(ClassLoader actionClasspathLoader, Iterable<String> sharedPackages, Class<? extends WorkerAction> actionClass) {
         FilteringClassLoader.Spec actionFilterSpec = new FilteringClassLoader.Spec();
         for (String packageName : sharedPackages) {
             actionFilterSpec.allowPackage(packageName);
@@ -137,8 +136,8 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         return new VisitableURLClassLoader(actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
     }
 
-    private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(WorkerDaemonAction<T> action, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
-        byte[] serializedWorker = GUtil.serialize(new Worker<T>(action, spec));
+    private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(WorkerAction<T> action, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
+        byte[] serializedWorker = GUtil.serialize(new WorkerCallable<T>(action, spec));
         ObjectInputStream ois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), workerClassLoader);
         return (Callable<?>) ois.readObject();
     }
@@ -155,11 +154,11 @@ public class InProcessCompilerDaemonFactory implements WorkerDaemonFactory {
         return (DefaultWorkResult) ois.readObject();
     }
 
-    private static class Worker<T extends WorkSpec> implements Callable<Object>, Serializable {
-        private final WorkerDaemonAction<T> workerAction;
+    private static class WorkerCallable<T extends WorkSpec> implements Callable<Object>, Serializable {
+        private final WorkerAction<T> workerAction;
         private final T spec;
 
-        private Worker(WorkerDaemonAction<T> workerAction, T spec) {
+        private WorkerCallable(WorkerAction<T> workerAction, T spec) {
             this.workerAction = workerAction;
             this.spec = spec;
         }
