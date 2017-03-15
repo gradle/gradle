@@ -18,8 +18,12 @@ package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.DefaultExternalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +78,20 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
             }
         }
         return result;
+    }
+
+    @Override
+    public <T> T withResource(URI location, boolean revalidate, Transformer<T, ExternalResource> transformer) throws ResourceException {
+        HttpResponseResource httpResponseResource = openResource(location, revalidate);
+        if (httpResponseResource == null) {
+            return null;
+        }
+        DefaultExternalResource in = new DefaultExternalResource(location, httpResponseResource);
+        try{
+            return transformer.transform(in);
+        }finally {
+            in.close();
+        }
     }
 
     private HttpResponseResource wrapResponse(URI uri, CloseableHttpResponse response) {

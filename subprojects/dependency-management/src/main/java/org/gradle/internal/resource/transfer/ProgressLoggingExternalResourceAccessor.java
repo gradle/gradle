@@ -17,8 +17,14 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.api.Transformer;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,13 +32,15 @@ import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final ExternalResourceAccessor delegate;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory) {
+    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory, BuildOperationExecutor buildOperationExecutor) {
         super(progressLoggerFactory);
         this.delegate = delegate;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
+    public ExternalResourceReadResponse openResource(final URI location, final boolean revalidate) {
         ExternalResourceReadResponse resource = delegate.openResource(location, revalidate);
         if (resource != null) {
             return new ProgressLoggingExternalResource(location, resource);
@@ -44,6 +52,28 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     @Nullable
     public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         return delegate.getMetaData(location, revalidate);
+    }
+
+    @Override
+    public <T> T withResource(final URI location, boolean revalidate, final Transformer<T, ExternalResource> transformer) throws ResourceException {
+        BuildOperationDetails buildOperationDetails = createOperationDetailsDetails(location, revalidate);
+        return buildOperationExecutor.run(buildOperationDetails, new Transformer<T, BuildOperationContext>() {
+            @Override
+            public T transform(BuildOperationContext context) {
+                return delegate.withResource(location, false, new Transformer<T, ExternalResource>() {
+                    @Override
+                    public T transform(ExternalResource readResponse) {
+                        return transformer.transform(readResponse);
+                    }
+                });
+            }
+        });
+    }
+
+    private BuildOperationDetails createOperationDetailsDetails(URI location, boolean revalidate) {
+        ExternalResourceMetaData metaData = delegate.getMetaData(location, revalidate);
+        DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
+        return BuildOperationDetails.displayName("Download " + metaData.getLocation().toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
     }
 
     private class ProgressLoggingExternalResource implements ExternalResourceReadResponse {
@@ -77,8 +107,9 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             return resource.isLocal();
         }
 
-        public String toString(){
+        public String toString() {
             return resource.toString();
         }
     }
+
 }

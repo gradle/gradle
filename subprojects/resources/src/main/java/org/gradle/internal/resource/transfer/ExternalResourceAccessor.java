@@ -17,7 +17,9 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.net.URI;
@@ -56,4 +58,5 @@ public interface ExternalResourceAccessor {
     @Nullable
     ExternalResourceMetaData getMetaData(URI location, boolean revalidate) throws ResourceException;
 
+    <T> T withResource(final URI location, boolean revalidate, final Transformer<T, ExternalResource> transformer) throws ResourceException;
 }

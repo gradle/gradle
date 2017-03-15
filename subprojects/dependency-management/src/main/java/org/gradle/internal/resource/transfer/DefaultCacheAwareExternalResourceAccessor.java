@@ -78,8 +78,15 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
 
         // If we have no caching options, just get the thing directly
+        Transformer<LocallyAvailableExternalResource, ExternalResource> cachingResourceTransformer = new Transformer<LocallyAvailableExternalResource, ExternalResource>() {
+            @Override
+            public LocallyAvailableExternalResource transform(ExternalResource resource) {
+                return copyToCache(location, fileStore, resource);
+            }
+        };
         if (cached == null && (localCandidates == null || localCandidates.isNone())) {
-            return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, false));
+            ExternalResourceRepository externalResourceRepository = delegate.withProgressLogging();
+            return externalResourceRepository.withResource(location, false, cachingResourceTransformer);
         }
 
         // We might be able to use a cached/locally available version
@@ -138,31 +145,32 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
 
         // All local/cached options failed, get directly
-        return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, revalidate));
+        return delegate.withProgressLogging().withResource(location, revalidate, cachingResourceTransformer);
     }
 
     private HashValue getResourceSha1(URI location, boolean revalidate) {
         try {
             URI sha1Location = new URI(location.toASCIIString() + ".sha1");
-            ExternalResource resource = delegate.getResource(sha1Location, revalidate);
-            if (resource == null) {
-                return null;
-            }
-            try {
-                return resource.withContent(new Transformer<HashValue, InputStream>() {
-                    @Override
-                    public HashValue transform(InputStream inputStream) {
-                        try {
-                            String sha = IOUtils.toString(inputStream, "us-ascii");
-                            return HashValue.parse(sha);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
+            return delegate.withResource(sha1Location, revalidate, new Transformer<HashValue, ExternalResource>() {
+                @Override
+                public HashValue transform(ExternalResource resource) {
+                    try {
+                        return resource.withContent(new Transformer<HashValue, InputStream>() {
+                            @Override
+                            public HashValue transform(InputStream inputStream) {
+                                try {
+                                    String sha = IOUtils.toString(inputStream, "us-ascii");
+                                    return HashValue.parse(sha);
+                                } catch (IOException e) {
+                                    throw new UncheckedIOException(e);
+                                }
+                            }
+                        });
+                    } finally {
+                        resource.close();
                     }
-                });
-            } finally {
-                resource.close();
-            }
+                }
+            });
         } catch (Exception e) {
             throw new ResourceException(location, String.format("Failed to download SHA1 for resource '%s'.", location), e);
         }

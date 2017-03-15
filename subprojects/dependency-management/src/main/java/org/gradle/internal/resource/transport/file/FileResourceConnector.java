@@ -16,11 +16,12 @@
 package org.gradle.internal.resource.transport.file;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
+import org.gradle.api.Transformer;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.GFileUtils;
@@ -48,6 +49,11 @@ public class FileResourceConnector implements ExternalResourceRepository {
             }
         }
         return null;
+    }
+
+    @Override
+    public <T> T withResource(URI source, boolean revalidate, Transformer<T, ExternalResource> action) {
+        return action.transform(getResource(source, revalidate));
     }
 
     @Override

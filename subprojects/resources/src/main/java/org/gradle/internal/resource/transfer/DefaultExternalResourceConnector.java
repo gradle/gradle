@@ -17,6 +17,9 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
+import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -61,6 +64,23 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
     public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         STATS.metadata(location);
         return accessor.getMetaData(location, revalidate);
+    }
+
+    @Override
+    public <T> T withResource(URI location, boolean revalidate, Transformer<T, ExternalResource> transformer) throws ResourceException {
+        ExternalResourceReadResponse readResponse = openResource(location, revalidate);
+        if(readResponse == null){
+            return null;
+        }
+        try {
+            return transformer.transform(new DefaultExternalResource(location, readResponse));
+        } finally {
+            try{
+                readResponse.close();
+            }catch(IOException e){
+                throw new ResourceException(e.getMessage());
+            }
+        }
     }
 
     @Nullable
@@ -192,7 +212,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
             if (count == null) {
                 container.put(uri, 1);
             } else {
-                container.put(uri, count+1);
+                container.put(uri, count + 1);
             }
         }
 
@@ -254,7 +274,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
             int cpt = 0;
             for (Map.Entry<URI, Integer> entry : entries) {
                 sb.append("   ").append(entry.getKey()).append(" (").append(entry.getValue()).append(" times)\n");
-                if (++cpt==max) {
+                if (++cpt == max) {
                     break;
                 }
             }

@@ -18,10 +18,14 @@ package org.gradle.internal.resource.transport.aws.s3;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import org.gradle.api.Transformer;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.DefaultExternalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
@@ -71,6 +75,17 @@ public class S3ResourceConnector implements ExternalResourceConnector {
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
         } finally {
             IoActions.closeQuietly(s3Object);
+        }
+    }
+
+    @Override
+    public <T> T withResource(URI location, boolean revalidate, Transformer<T, ExternalResource> transformer) throws ResourceException {
+        ExternalResourceReadResponse readResponse = openResource(location, revalidate);
+        ExternalResource externalResource = readResponse == null ? null : new DefaultExternalResource(location, readResponse);
+        try {
+            return transformer.transform(externalResource);
+        } finally {
+            externalResource.close();
         }
     }
 
