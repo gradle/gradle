@@ -20,22 +20,24 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
-import spock.lang.Ignore
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.5")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
+    public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
 
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
+            
             rootProject.name = 'multi'
             include 'a', 'b'
         """
@@ -92,7 +94,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
-    @Ignore("Need to fix file locking issue on windows")
+    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -120,7 +122,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 compile "group:projectD:2.0-SNAPSHOT"
             }
             configurations.compile.each { println it }
-
 """
         when:
         projectB.pom.expectGet()
@@ -138,6 +139,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
+                    .setJvmArguments("-D${REUSE_USER_HOME_SERVICES}=false")
                     .addProgressListener(events)
                     .run()
         }
@@ -181,6 +183,68 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             LOGGER.warn("Unable to kill daemon(s)", ex);
         }
 
+    }
+
+    def "generate events for task actions"() {
+        given:
+        settingsFile << "rootProject.name = 'single'"
+        buildFile << 'apply plugin:"java"'
+        file("src/main/java/Thing.java") << """class Thing { }"""
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .forTasks('compileJava')
+                    .addProgressListener(events)
+                    .run()
+        }
+
+        then:
+        events.assertIsABuild()
+
+        and:
+        def compileJavaActions = events.operations.findAll { it.descriptor.displayName.matches('Execute task action [0-9]+/[0-9]+ for :compileJava') }
+        compileJavaActions.size() > 0
+        compileJavaActions[0].parent.descriptor.displayName == 'Task :compileJava'
+    }
+
+    def "generates events for worker actions"() {
+        given:
+        settingsFile << "rootProject.name = 'single'"
+        buildFile << """
+            import org.gradle.workers.*
+            class TestRunnable implements Runnable {
+                @Override public void run() {
+                    // Do nothing
+                }
+            }
+            task runInWorker {
+                doLast {
+                    def workerExecutor = gradle.services.get(WorkerExecutor)
+                    workerExecutor.submit(TestRunnable) { config ->
+                        config.displayName = 'My Worker Action'
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .forTasks('runInWorker')
+                    .addProgressListener(events)
+                    .run()
+        }
+
+        then:
+        events.assertIsABuild()
+
+        and:
+        events.operation('Task :runInWorker').descendant('My Worker Action')
     }
 
     MavenHttpRepository getMavenHttpRepo() {

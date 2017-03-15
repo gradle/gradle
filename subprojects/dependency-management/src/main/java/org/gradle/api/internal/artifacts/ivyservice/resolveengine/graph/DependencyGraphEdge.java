@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
@@ -36,7 +37,7 @@ public interface DependencyGraphEdge extends DependencyResult {
     // TODO This should be replaced by getRequested()
     ModuleVersionSelector getRequestedModuleVersion();
 
-    ModuleExclusion getExclusions();
+    ModuleExclusion getExclusions(ModuleExclusions moduleExclusions);
 
     boolean isTransitive();
 

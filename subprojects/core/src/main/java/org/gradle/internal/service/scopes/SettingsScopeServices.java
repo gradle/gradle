@@ -16,25 +16,40 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.*;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
+import org.gradle.api.internal.plugins.PluginApplicator;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class SettingsScopeServices extends DefaultServiceRegistry {
     private final SettingsInternal settings;
 
-    public SettingsScopeServices(ServiceRegistry parent, final SettingsInternal settings) {
+    public SettingsScopeServices(final ServiceRegistry parent, final SettingsInternal settings) {
         super(parent);
         this.settings = settings;
+        register(new Action<ServiceRegistration>() {
+            public void execute(ServiceRegistration registration) {
+                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                    if (pluginServiceRegistry instanceof SettingScopePluginServiceRegistry) {
+                        ((SettingScopePluginServiceRegistry) pluginServiceRegistry).registerSettingsServices(registration);
+                    }
+                }
+            }
+        });
     }
 
     protected FileResolver createFileResolver() {

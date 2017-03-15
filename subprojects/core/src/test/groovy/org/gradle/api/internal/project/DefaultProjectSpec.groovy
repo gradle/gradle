@@ -16,10 +16,22 @@
 
 package org.gradle.api.internal.project
 
+import org.gradle.api.Action
+import org.gradle.api.AntBuilder
+import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -27,9 +39,62 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultProjectSpec extends Specification {
+
+    def "can create file collection configured with an Action"() {
+        given:
+        def project = project('root', null, Stub(GradleInternal))
+        def action = { files -> files.builtBy('something') } as Action<ConfigurableFileCollection>
+
+        when:
+        def fileCollection = project.files('path', action)
+
+        then:
+        fileCollection.builtBy == ['something'] as Set
+    }
+
+    def "can create file tree configured with an Action"() {
+        given:
+        def project = project('root', null, Stub(GradleInternal))
+        def action = { fileTree -> fileTree.builtBy('something') } as Action<ConfigurableFileTree>
+
+        when:
+        def fileTree = project.fileTree('path', action)
+
+        then:
+        fileTree.builtBy == ['something'] as Set
+    }
+
+    def "can configure ant tasks with an Action"() {
+        given:
+        def project = project('root', null, Stub(GradleInternal))
+        def antBuilder = Mock(AntBuilder)
+        project.ant >> antBuilder
+
+        when:
+        project.ant({ AntBuilder ant -> ant.importBuild('someAntBuild') } as Action<AntBuilder>)
+
+        then:
+        1 * antBuilder.importBuild('someAntBuild')
+    }
+
+    def "can configure artifacts with an Action"() {
+        given:
+        def project = project('root', null, Stub(GradleInternal))
+        def artifactHandler = Mock(ArtifactHandler)
+        project.artifacts >> artifactHandler
+
+        when:
+        project.artifacts({ artifacts -> artifacts.add('foo', 'bar') } as Action<ArtifactHandler>)
+
+        then:
+        1 * artifactHandler.add('foo', 'bar')
+    }
+
     def "has useful toString and displayName and paths"() {
         def rootBuild = Stub(GradleInternal)
         rootBuild.parent >> null
@@ -80,15 +145,25 @@ class DefaultProjectSpec extends Specification {
     }
 
     def project(String name, ProjectInternal parent, GradleInternal build) {
+        def instantiator = DirectInstantiator.INSTANCE
         def serviceRegistryFactory = Stub(ServiceRegistryFactory)
         def serviceRegistry = Stub(ServiceRegistry)
 
         _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
         _ * serviceRegistry.newInstance(TaskContainerInternal) >> Stub(TaskContainerInternal)
-        _ * serviceRegistry.get(Instantiator) >> DirectInstantiator.INSTANCE
+        _ * serviceRegistry.get(Instantiator) >> instantiator
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
 
-        new DefaultProject(name, parent, new File("project"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        def fileResolver = Mock(FileResolver) { getPatternSetFactory() >> TestFiles.getPatternSetFactory() }
+        def taskResolver = Mock(TaskResolver)
+        def tempFileProvider = Mock(TemporaryFileProvider)
+        def fileLookup = Mock(FileLookup)
+        def directoryFileTreeFactory = Mock(DefaultDirectoryFileTreeFactory)
+        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory)
+
+        return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
+            getFileOperations() >> fileOperations
+        }
     }
 }

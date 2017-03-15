@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 
 public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> implements Factory<T> {
     private final CompileOptions compileOptions;
@@ -29,7 +30,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
     @Override
     public T create() {
         if (compileOptions.isFork()) {
-            if (compileOptions.getForkOptions().getExecutable() != null) {
+            if (getExecutable() != null || compileOptions.getForkOptions().getJavaHome() != null) {
                 return getCommandLineSpec();
             } else {
                 return getForkingSpec();
@@ -37,6 +38,16 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         } else {
             return getDefaultSpec();
         }
+    }
+
+    private String getExecutable() {
+        return DeprecationLogger.whileDisabled(new Factory<String>() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public String create() {
+                return compileOptions.getForkOptions().getExecutable();
+            }
+        });
     }
 
     abstract protected T getCommandLineSpec();

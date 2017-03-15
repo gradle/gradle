@@ -19,11 +19,13 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -50,10 +52,14 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     private static final String DEPENDENCY_IMPORT_SCOPE = "import";
     private final VersionSelectorScheme gradleVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ModuleExclusions moduleExclusions;
 
-    public GradlePomModuleDescriptorParser(VersionSelectorScheme gradleVersionSelectorScheme) {
+    public GradlePomModuleDescriptorParser(VersionSelectorScheme gradleVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
         this.gradleVersionSelectorScheme = gradleVersionSelectorScheme;
         mavenVersionSelectorScheme = new MavenVersionSelectorScheme(gradleVersionSelectorScheme);
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.moduleExclusions = moduleExclusions;
     }
 
     @Override
@@ -66,17 +72,19 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     protected MutableMavenModuleResolveMetadata doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
-        PomReader pomReader = new PomReader(resource);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);
+        PomReader pomReader = new PomReader(resource, moduleIdentifierFactory);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme, moduleIdentifierFactory, moduleExclusions);
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
         ModuleDescriptorState moduleDescriptor = mdBuilder.getModuleDescriptor();
         List<DependencyMetadata> dependencies = mdBuilder.getDependencies();
+        ModuleComponentIdentifier cid = moduleDescriptor.getComponentIdentifier();
+        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
         if (pomReader.getRelocation() != null) {
-            return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, "pom", true, dependencies);
+            return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "pom", true, dependencies);
         }
-        return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, pomReader.getPackaging(), false, dependencies);
+        return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, pomReader.getPackaging(), false, dependencies);
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {
@@ -201,8 +209,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      */
     private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId) throws IOException, SAXException {
         LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(parentId, ArtifactType.MAVEN_POM);
-        PomReader pomReader = new PomReader(localResource);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);
+        PomReader pomReader = new PomReader(localResource, moduleIdentifierFactory);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme, moduleIdentifierFactory, moduleExclusions);
         doParsePom(parseContext, mdBuilder, pomReader);
         return pomReader;
     }

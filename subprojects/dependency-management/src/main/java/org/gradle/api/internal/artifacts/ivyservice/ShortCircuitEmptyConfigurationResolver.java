@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -49,10 +49,12 @@ import java.util.Set;
 public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
     private final ConfigurationResolver delegate;
     private final ComponentIdentifierFactory componentIdentifierFactory;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory) {
+    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.delegate = delegate;
         this.componentIdentifierFactory = componentIdentifierFactory;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override
@@ -75,7 +77,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     private void emptyGraph(ConfigurationInternal configuration, ResolverResults results) {
         Module module = configuration.getModule();
-        ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
+        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor();

@@ -31,7 +31,7 @@ dependencies {
     compile project(':baseServices')
     compile libraries.slf4j_api
     compile project(':internalIntegTesting')
-    compile 'com.googlecode.jatl:jatl:0.2.2'
+    compile libraries.jatl
     compile 'org.eclipse.jgit:org.eclipse.jgit:3.0.0.201306101825-r'
 
     runtime 'com.h2database:h2:1.4.192'

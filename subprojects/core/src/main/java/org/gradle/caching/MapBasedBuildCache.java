@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,60 +16,18 @@
 
 package org.gradle.caching;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.io.StreamByteBuffer;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
 /**
  * Simple build cache implementation that delegates to a {@link ConcurrentMap}.
  *
  * @since 3.3
+ *
+ * @deprecated Use {@link MapBasedBuildCacheService} instead.
  */
-@Incubating
-public class MapBasedBuildCache implements BuildCache {
-    private final String description;
-    private final ConcurrentMap<String, byte[]> delegate;
-
+@Deprecated
+public class MapBasedBuildCache extends MapBasedBuildCacheService implements BuildCache {
     public MapBasedBuildCache(String description, ConcurrentMap<String, byte[]> delegate) {
-        this.description = description;
-        this.delegate = delegate;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        final byte[] bytes = delegate.get(key.getHashCode());
-        if (bytes == null) {
-            return false;
-        }
-        try {
-            reader.readFrom(new ByteArrayInputStream(bytes));
-        } catch (IOException e) {
-            throw new BuildCacheException("loading " + key, e);
-        }
-        return true;
-    }
-
-    @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter output) throws BuildCacheException {
-        StreamByteBuffer buffer = new StreamByteBuffer();
-        try {
-            output.writeTo(buffer.getOutputStream());
-        } catch (IOException e) {
-            throw new BuildCacheException("storing " + key, e);
-        }
-        delegate.put(key.getHashCode(), buffer.readAsByteArray());
-    }
-
-    @Override
-    public void close() throws IOException {
-        // Do nothing
+        super(description, delegate);
     }
 }

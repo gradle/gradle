@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedArtifactResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedComponentResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Factory;
@@ -162,7 +163,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             if (resolveResult.getFailure() != null) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getFailure()));
             } else {
-                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getResult()));
+                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, type, resolveResult.getResult()));
             }
         }
     }

@@ -82,14 +82,17 @@ project(':b') {
 
 task show {
     doLast {
-        println "files 1: " + configurations.compile.incoming.files.collect { it.name }
-        println "files 2: " + configurations.compile.files.collect { it.name }
-        println "files 3: " + configurations.compile.resolve().collect { it.name }
-        println "files 4: " + configurations.compile.files { true }.collect { it.name }
-        println "files 5: " + configurations.compile.fileCollection { true }.collect { it.name }
-        println "files 6: " + configurations.compile.fileCollection { true }.files.collect { it.name }
-        println "files 7: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
-        println "files 8: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
+        println "files 1: " + configurations.compile.collect { it.name }
+        println "files 2: " + configurations.compile.incoming.files.collect { it.name }
+        println "files 3: " + configurations.compile.files.collect { it.name }
+        println "files 4: " + configurations.compile.resolve().collect { it.name }
+        println "files 5: " + configurations.compile.incoming.artifactView().files.collect { it.name }
+        println "files 6: " + configurations.compile.incoming.artifactView().componentFilter { true }.files.collect { it.name }
+        println "files 7: " + configurations.compile.files { true }.collect { it.name }
+        println "files 8: " + configurations.compile.fileCollection { true }.collect { it.name }
+        println "files 9: " + configurations.compile.fileCollection { true }.files.collect { it.name }
+        println "files 10: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
+        println "files 11: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
     }
 }
 """
@@ -101,12 +104,15 @@ task show {
         outputContains("files 1: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
         outputContains("files 2: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
         outputContains("files 3: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
+        outputContains("files 4: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
+        outputContains("files 5: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
+        outputContains("files 6: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
         // Note: the filtered views order files differently. This is documenting existing behaviour rather than necessarily desired behaviour
-        outputContains("files 4: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
-        outputContains("files 5: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
-        outputContains("files 6: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
         outputContains("files 7: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
         outputContains("files 8: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+        outputContains("files 9: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+        outputContains("files 10: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+        outputContains("files 11: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
     }
 
     @Unroll
@@ -142,13 +148,16 @@ task show {
         failure.assertHasCause("Could not resolve org:test2:2.0.")
 
         where:
-        expression                                                                            | _
-        "configurations.compile.incoming.files"                                               | _
-        "configurations.compile.files"                                                        | _
-        "configurations.compile.resolve()"                                                    | _
-        "configurations.compile.files { true }"                                               | _
-        "configurations.compile.fileCollection { true }"                                      | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                      | _
+        expression                                                                      | _
+        "configurations.compile"                                                        | _
+        "configurations.compile.incoming.files"                                         | _
+        "configurations.compile.files"                                                  | _
+        "configurations.compile.resolve()"                                              | _
+        "configurations.compile.files { true }"                                         | _
+        "configurations.compile.fileCollection { true }"                                | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
+        "configurations.compile.incoming.artifactView().files"                          | _
+        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
     }
 
     @Unroll
@@ -185,13 +194,16 @@ task show {
         failure.assertHasCause("Could not find test.jar (org:test:1.0).")
 
         where:
-        expression                                                                            | _
-        "configurations.compile.incoming.files"                                               | _
-        "configurations.compile.files"                                                        | _
-        "configurations.compile.resolve()"                                                    | _
-        "configurations.compile.files { true }"                                               | _
-        "configurations.compile.fileCollection { true }"                                      | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                      | _
+        expression                                                                      | _
+        "configurations.compile"                                                        | _
+        "configurations.compile.incoming.files"                                         | _
+        "configurations.compile.files"                                                  | _
+        "configurations.compile.resolve()"                                              | _
+        "configurations.compile.files { true }"                                         | _
+        "configurations.compile.fileCollection { true }"                                | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
+        "configurations.compile.incoming.artifactView().files"                          | _
+        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
     }
 
     @Unroll
@@ -216,13 +228,16 @@ task show {
         failure.assertHasCause("broken")
 
         where:
-        expression                                                                            | _
-        "configurations.compile.incoming.files"                                               | _
-        "configurations.compile.files"                                                        | _
-        "configurations.compile.resolve()"                                                    | _
-        "configurations.compile.files { true }"                                               | _
-        "configurations.compile.fileCollection { true }"                                      | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                      | _
+        expression                                                                      | _
+        "configurations.compile"                                                        | _
+        "configurations.compile.incoming.files"                                         | _
+        "configurations.compile.files"                                                  | _
+        "configurations.compile.resolve()"                                              | _
+        "configurations.compile.files { true }"                                         | _
+        "configurations.compile.fileCollection { true }"                                | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
+        "configurations.compile.incoming.artifactView().files"                          | _
+        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
     }
 
     @Unroll
@@ -264,12 +279,15 @@ task show {
         failure.assertHasCause("broken 2")
 
         where:
-        expression                                                                            | _
-        "configurations.compile.incoming.files"                                               | _
-        "configurations.compile.files"                                                        | _
-        "configurations.compile.resolve()"                                                    | _
-        "configurations.compile.files { true }"                                               | _
-        "configurations.compile.fileCollection { true }"                                      | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                      | _
+        expression                                                                      | _
+        "configurations.compile"                                                        | _
+        "configurations.compile.incoming.files"                                         | _
+        "configurations.compile.files"                                                  | _
+        "configurations.compile.resolve()"                                              | _
+        "configurations.compile.files { true }"                                         | _
+        "configurations.compile.fileCollection { true }"                                | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
+        "configurations.compile.incoming.artifactView().files"                          | _
+        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
     }
 }

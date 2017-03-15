@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
@@ -51,10 +53,15 @@ class DefaultConfigurationContainerTest extends Specification {
 
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private DefaultImmutableAttributesFactory immutableAttributesFactory = new DefaultImmutableAttributesFactory()
+    private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
+        module(_, _) >> { args ->
+            DefaultModuleIdentifier.newId(*args)
+        }
+    }
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, new BasicDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
-            globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory)
+            globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory, moduleIdentifierFactory)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 
 import java.io.File;
 
@@ -29,15 +29,20 @@ public interface ArtifactVisitor {
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily downloaded.
      */
-    void visitArtifact(ResolvedArtifact artifact);
+    void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
 
     /**
-     * Should {@link #visitFiles(ComponentIdentifier, Iterable)} be called?
+     * Should {@link #visitFile(ComponentArtifactIdentifier, AttributeContainer, File)} be called?
      */
     boolean includeFiles();
 
     /**
-     * Visits a file collection. Should be considered a set of artifacts but is separate as a migration step.
+     * Visits a file. Should be considered an artifact but is separate as a migration step.
      */
-    void visitFiles(@Nullable ComponentIdentifier componentIdentifier, Iterable<File> files);
+    void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file);
+
+    /**
+     * Called when some problem occurs visiting some element of the set. Visiting may continue.
+     */
+    void visitFailure(Throwable failure);
 }

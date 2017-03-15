@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -97,6 +98,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -104,6 +106,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -612,7 +616,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(), getServices().get(BuildOperationWorkerRegistry.class), getServices().get(BuildOperationExecutor.class));
+            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
+                getServices().get(BuildOperationWorkerRegistry.class),
+                getServices().get(BuildOperationExecutor.class),
+                getServices().get(StartParameter.class).getMaxWorkerCount());
         }
 
         JavaVersion javaVersion = getJavaVersion();
@@ -978,7 +985,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Nested
     // TODO:LPTR This doesn't resolve any of the nested options for the concrete subtypes
     public TestFrameworkOptions getOptions() {
-        return options(Actions.doNothing());
+        return getTestFramework().getOptions();
     }
 
     /**
@@ -987,16 +994,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @return The test framework options.
      */
     public TestFrameworkOptions options(Closure testFrameworkConfigure) {
-        return options(ClosureBackedAction.of(testFrameworkConfigure));
+        return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
     }
 
     /**
      * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
+     * @since 3.5
      */
     public TestFrameworkOptions options(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
-        TestFrameworkOptions options = getTestFramework().getOptions();
+        TestFrameworkOptions options = getOptions();
         testFrameworkConfigure.execute(options);
         return options;
     }
@@ -1033,7 +1041,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
-        useJUnit(ClosureBackedAction.of(testFrameworkConfigure));
+        useJUnit(configureUsing(testFrameworkConfigure));
     }
 
     /**
@@ -1041,6 +1049,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
      *
      * @param testFrameworkConfigure An action used to configure the JUnit options.
+     * @since 3.5
      */
     public void useJUnit(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
@@ -1060,7 +1069,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
-        useTestNG(ClosureBackedAction.of(testFrameworkConfigure));
+        useTestNG(configureUsing(testFrameworkConfigure));
     }
 
     /**
@@ -1068,6 +1077,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
      *
      * @param testFrameworkConfigure An action used to configure the TestNG options.
+     * @since 3.5
      */
     public void useTestNG(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this, this.filter, getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
@@ -1122,6 +1132,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Returns the maximum number of forked test processes to execute in parallel. The default value is 1 (no parallel test execution).
+     * It cannot exceed the value of {@literal max-workers} for the current build.
      *
      * @return The maximum number of forked test processes.
      */
@@ -1178,7 +1189,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure configure closure
      */
     public void testLogging(Closure closure) {
-        testLogging(ClosureBackedAction.of(closure));
+        ConfigureUtil.configure(closure, testLogging);
     }
 
     /**
@@ -1187,6 +1198,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * //makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
      *
      * @param action configure action
+     * @since 3.5
      */
     public void testLogging(Action<? super TestLoggingContainer> action) {
         action.execute(testLogging);

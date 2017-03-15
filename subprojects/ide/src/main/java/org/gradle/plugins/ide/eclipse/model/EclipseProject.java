@@ -24,12 +24,14 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
@@ -300,20 +302,11 @@ public class EclipseProject {
         linkedResources.add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
     }
 
+    /**
+     * The resource filters of the eclipse project.
+     */
     public Set<ResourceFilter> getResourceFilters() {
         return resourceFilters;
-    }
-
-    /**
-     * The resource filters to apply to this Eclipse project.
-     * <p>
-     * For examples, see docs for {@link ResourceFilter}
-     */
-    public void setResourceFilters(Set<ResourceFilter> resourceFilters) {
-        if (resourceFilters == null) {
-            throw new InvalidUserDataException("resourceFilters must not be null");
-        }
-        this.resourceFilters = resourceFilters;
     }
 
     /**
@@ -335,7 +328,7 @@ public class EclipseProject {
      * @param configureAction The action to use to configure the resource filter.
      */
     public ResourceFilter resourceFilter(Action<? super ResourceFilter> configureAction) {
-        ResourceFilter f = new ResourceFilter();
+        ResourceFilter f = new DefaultResourceFilter();
         configureAction.execute(f);
         resourceFilters.add(f);
         return f;
@@ -348,11 +341,22 @@ public class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void file(Closure closure) {
-        ConfigureUtil.configure(closure, file);
+        configure(closure, file);
     }
 
     /**
-     * See {@link #file(Closure)}
+     * Enables advanced configuration like tinkering with the output XML or affecting the way existing .project content is merged with gradle build information.
+     *
+     * For example see docs for {@link EclipseProject}
+     *
+     * @since 3.5
+     */
+    public void file(Action<? super XmlFileContentMerger> action) {
+        action.execute(file);
+    }
+
+    /**
+     * See {@link #file(Action)}
      */
     public final XmlFileContentMerger getFile() {
         return file;

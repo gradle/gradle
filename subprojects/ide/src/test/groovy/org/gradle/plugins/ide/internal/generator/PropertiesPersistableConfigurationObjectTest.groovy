@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.internal.generator
 
+import org.gradle.api.Action
 import org.gradle.api.internal.PropertiesTransformer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Matchers
@@ -67,5 +68,21 @@ class PropertiesPersistableConfigurationObjectTest extends Specification {
 
         then:
         Matchers.containsLine(outputFile.text, 'prop=modified-value')
+    }
+
+    def "can add transform Actions"() {
+        object.loadDefaults()
+        def outputFile = tmpDir.file('output.properties')
+
+        when:
+        object.transformAction({ properties ->
+            properties.put('some', 'property')
+        } as Action<Properties>)
+
+        and:
+        object.store(outputFile)
+
+        then:
+        Matchers.containsLine(outputFile.text, 'some=property')
     }
 }

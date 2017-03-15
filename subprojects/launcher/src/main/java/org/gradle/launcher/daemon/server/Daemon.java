@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.remote.Address;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -254,12 +253,12 @@ public class Daemon implements Stoppable {
 
     private static class DaemonExpirationPeriodicCheck implements Runnable {
         private final DaemonExpirationStrategy expirationStrategy;
-        private final ListenerBroadcast<DaemonExpirationListener> listenerBroadcast;
+        private final DaemonExpirationListener listenerBroadcast;
         private final Lock lock = new ReentrantLock();
 
         DaemonExpirationPeriodicCheck(DaemonExpirationStrategy expirationStrategy, ListenerManager listenerManager) {
             this.expirationStrategy = expirationStrategy;
-            this.listenerBroadcast = listenerManager.createAnonymousBroadcaster(DaemonExpirationListener.class);
+            this.listenerBroadcast = listenerManager.getBroadcaster(DaemonExpirationListener.class);
         }
 
         @Override
@@ -269,7 +268,7 @@ public class Daemon implements Stoppable {
                     LOGGER.debug("DaemonExpirationPeriodicCheck running");
                     final DaemonExpirationResult result = expirationStrategy.checkExpiration();
                     if (result.getStatus() != DO_NOT_EXPIRE) {
-                        listenerBroadcast.getSource().onExpirationEvent(result);
+                        listenerBroadcast.onExpirationEvent(result);
                     }
                 } catch (Throwable t) {
                     LOGGER.error("Problem in daemon expiration check", t);

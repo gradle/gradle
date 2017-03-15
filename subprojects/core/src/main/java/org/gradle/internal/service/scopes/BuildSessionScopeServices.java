@@ -29,8 +29,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
-import org.gradle.caching.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.internal.DefaultBuildCacheConfiguration;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.classpath.ClassPath;
@@ -43,11 +41,12 @@ import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.work.AsyncWorkTracker;
+import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -81,7 +80,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     BuildOperationProcessor createBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, StartParameter startParameter, ExecutorFactory executorFactory) {
-        return new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(buildOperationWorkerRegistry), executorFactory, startParameter.getMaxWorkerCount());
+        return new DefaultBuildOperationProcessor(buildOperationWorkerRegistry, new DefaultBuildOperationQueueFactory(), executorFactory, startParameter.getMaxWorkerCount());
     }
 
     BuildOperationWorkerRegistry createBuildOperationWorkerRegistry(StartParameter startParameter) {
@@ -117,10 +116,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new WorkerProcessClassPathProvider(cacheRepository);
     }
 
-    BuildCacheConfigurationInternal createBuildCacheConfiguration(CacheRepository cacheRepository, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultBuildCacheConfiguration(cacheRepository, startParameter, buildOperationExecutor);
-    }
-
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
@@ -128,5 +123,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {
         return new DefaultImmutableAttributesFactory();
+    }
+
+    AsyncWorkTracker createAsyncWorkTracker() {
+        return new DefaultAsyncWorkTracker();
     }
 }

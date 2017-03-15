@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
@@ -35,17 +34,9 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             def required = Attribute.of('required', String)
             
             class VariantArtifactTransform extends ArtifactTransform {
-
-                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                    from.attribute(Attribute.of('variant', String), "variant1")
-
-                    targets.newTarget().attribute(Attribute.of('variant', String), "variant2")
-                }
-
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     println this.class.name
-                    def output = new File(input.parentFile, "producer.variant2")
-                    input.parentFile.mkdirs()
+                    def output = new File(outputDirectory, "producer.variant2")
                     output << "transformed"
                     return [output]         
                 }
@@ -94,7 +85,11 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                 }
                 project(':consumer') {
                     dependencies {
-                        registerTransform(VariantArtifactTransform) {}
+                        registerTransform {
+                            from.attribute(Attribute.of('variant', String), "variant1")
+                            to.attribute(Attribute.of('variant', String), "variant2")
+                            artifactTransform(VariantArtifactTransform)
+                        }
                     }
                 }
             """
@@ -322,11 +317,11 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         true                        | true
     }
 
+    // Documenting current behaviour, not necessarily desirable behaviour
     @Unroll
-    @NotYetImplemented //ComponentAttributeMatcher.isMatching() currently does not have access to the producer schema and uses the consumer schema for everything
-    def "honors producer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
+    def "ignores producer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
         given:
-        setupWith("it.attribute(variant, 'variant2')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
+        setupWith("it.attribute(variant, 'variant2')", false, useView, "['producer.variant2']")
 
         String assumeCompatibleWhenMissingRequiredAttribute = assumeCompatibleWhenMissing ? "compatibilityRules.assumeCompatibleWhenMissing()" : ""
 
@@ -367,7 +362,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks.unique().sort() == (assumeCompatibleWhenMissing ? [':consumer:resolve', ':producer:variant2'] : [':consumer:resolve'])
+        executedTasks.sort() == [':consumer:resolve', ':producer:variant2']
         executedTransforms            == []
 
         where:

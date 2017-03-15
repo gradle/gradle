@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.Iterators;
+import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -43,7 +44,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
     private final TaskExecution current;
     private Collection<File> discoveredFiles = Collections.emptySet();
 
-    public DiscoveredInputsTaskStateChanges(TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory,
+    public DiscoveredInputsTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory,
                                             TaskInternal task) {
         this.taskName = task.getName();
         this.snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class);

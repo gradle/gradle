@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -49,9 +51,14 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DependencySubstitutionRules globalSubstitutionRules = Mock()
     private BuildOperationExecutor buildOperationExecutor = Mock()
     private TaskResolver taskResolver = Mock()
+    private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
+        module(_, _) >> { args ->
+            DefaultModuleIdentifier.newId(*args)
+        }
+    }
     private DefaultImmutableAttributesFactory immutableAttributesFactory = new DefaultImmutableAttributesFactory()
 
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory, moduleIdentifierFactory);
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")

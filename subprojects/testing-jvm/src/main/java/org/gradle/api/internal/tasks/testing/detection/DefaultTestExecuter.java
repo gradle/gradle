@@ -27,6 +27,8 @@ import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassPro
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
@@ -42,18 +44,23 @@ import java.util.Set;
  * The default test class scanner factory.
  */
 public class DefaultTestExecuter implements TestExecuter {
+
+    private static final Logger LOGGER = Logging.getLogger(DefaultTestExecuter.class);
+
     private final WorkerProcessFactory workerFactory;
     private final ActorFactory actorFactory;
     private final ModuleRegistry moduleRegistry;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final int maxWorkerCount;
 
-    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
         this.moduleRegistry = moduleRegistry;
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.maxWorkerCount = maxWorkerCount;
     }
 
     @Override
@@ -74,7 +81,7 @@ public class DefaultTestExecuter implements TestExecuter {
             }
         };
 
-        TestClassProcessor processor = new MaxNParallelTestClassProcessor(testTask.getMaxParallelForks(),
+        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testTask),
             reforkingProcessorFactory, actorFactory);
 
         final FileTree testClassFiles = testTask.getCandidateClassFiles();
@@ -89,8 +96,17 @@ public class DefaultTestExecuter implements TestExecuter {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
 
-        final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getId();
+        final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getParentId();
 
         new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), testTaskOperationId, testTask.getPath(), "Gradle Test Run " + testTask.getIdentityPath()).run();
+    }
+
+    private int getMaxParallelForks(Test testTask) {
+        int maxParallelForks = testTask.getMaxParallelForks();
+        if (maxParallelForks > maxWorkerCount) {
+            LOGGER.warn("{}.maxParallelForks ({}) is larger than max-workers ({}), forcing it to {}", testTask.getName(), maxParallelForks, maxWorkerCount, maxWorkerCount);
+            maxParallelForks = maxWorkerCount;
+        }
+        return maxParallelForks;
     }
 }

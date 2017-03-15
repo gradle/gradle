@@ -15,10 +15,6 @@
  */
 package org.gradle.util
 
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
@@ -107,12 +103,6 @@ class TestUtil {
             .withParent(parent)
             .withProjectDir(projectDir)
             .build();
-    }
-
-    static DefaultModuleDescriptor createModuleDescriptor(Set confs) {
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId('org', 'name'), 'rev'), "status", null)
-        confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
-        return moduleDescriptor;
     }
 
     static groovy.lang.Script createScript(String code) {

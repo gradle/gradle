@@ -24,6 +24,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface TaskOutputPacker {
+    // Initial format version
+    // NOTE: This should be changed whenever we change the way we pack a cache entry, such as
+    // - changing from gzip to bzip2.
+    // - adding/removing properties to the origin metadata
+    // - using a different format for the origin metadata
+    // - any major changes of the layout of a cache entry
+    int CACHE_ENTRY_FORMAT = 1;
+
     void pack(TaskOutputsInternal taskOutputs, OutputStream output, TaskOutputOriginWriter writeOrigin);
 
     void unpack(TaskOutputsInternal taskOutputs, InputStream input, TaskOutputOriginReader readOrigin);

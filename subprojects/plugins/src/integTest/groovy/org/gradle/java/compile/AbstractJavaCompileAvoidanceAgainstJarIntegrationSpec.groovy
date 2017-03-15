@@ -16,6 +16,8 @@
 
 package org.gradle.java.compile
 
+import spock.lang.Issue
+
 abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends AbstractJavaCompileAvoidanceIntegrationSpec {
     def setup() {
         useJar()
@@ -56,6 +58,30 @@ abstract class AbstractJavaCompileAvoidanceAgainstJarIntegrationSpec extends Abs
         succeeds ':b:compileJava'
         executedAndNotSkipped ':a:jar'
         skipped ':b:compileJava'
+    }
+
+    @Issue("gradle/gradle#1457")
+    def "doesn't fail when jar is missing"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+            project(':a') {
+                jar.enabled = false
+            }
+        """
+        file("b/src/main/java/Main.java") << """
+            public class Main { }
+        """
+
+        when:
+        succeeds ':b:compileJava'
+
+        then:
+        noExceptionThrown()
     }
 
 }

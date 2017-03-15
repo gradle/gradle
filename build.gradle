@@ -139,17 +139,16 @@ buildTypes {
 
 apply from: "gradle/testGroupings.gradle"
 apply from: 'gradle/buildSplits.gradle'
-apply from: 'gradle/buildScanUserData.gradle'
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
-    isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
+    isCiServer = System.getenv().containsKey("CI")
     isWindows = org.gradle.internal.os.OperatingSystem.current().windows
 
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
     } else {
-        ext.maxParallelForks = 1
+        ext.maxParallelForks = 4
     }
 
     if (project.hasProperty("useIncomingDistributions")) {
@@ -183,6 +182,7 @@ ext {
     publishedProjects = [
         project(':logging'),
         project(':core'),
+        project(':modelCore'),
         project(':toolingApi'),
         project(':wrapper'),
         project(':baseServices'),
@@ -196,6 +196,7 @@ ext {
     removedProjects = ['sonar']
 }
 
+apply from: 'gradle/buildScanUserData.gradle'
 apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
@@ -218,11 +219,11 @@ allprojects {
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
     }
 
-    // Force clean tasks to run before any other tasks 
+    // Force clean tasks to run before any other tasks
     tasks.withType(Delete) { cleanTask ->
         tasks.all { otherTask ->
-            if (cleanTask != otherTask && 
-                !(otherTask instanceof Delete) && 
+            if (cleanTask != otherTask &&
+                !(otherTask instanceof Delete) &&
                 !(otherTask.name in [ 'killExistingDaemons', 'tasks' ])) {
                 otherTask.mustRunAfter cleanTask
             }
@@ -284,7 +285,7 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.5.1'
+    externalModules 'org.gradle:gradle-script-kotlin:0.8.0'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")

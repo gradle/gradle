@@ -16,8 +16,9 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
+import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -39,8 +40,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: fails "foo"
-        then: failure.assertHasDescription("Could not add entry ':foo' to cache taskHistory.bin")
-        then: failure.assertHasCause("Unable to store task input properties. Property 'b' with value 'xxx' cannot be serialized.")
+        then: failure.assertHasDescription("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {
@@ -259,8 +259,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         executer.expectDeprecationWarning()
-        // TODO:RG Temporary fix: it seems deprecation logs are not always forwarded correctly
-        executer.requireGradleDistribution()
 
         when:
         succeeds "test"
@@ -323,125 +321,210 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "b" assertTasksExecuted ":a", ":b"
     }
 
-    @Unroll("can use Enum from buildSrc as input property - flushCaches: #flushCaches taskType: #taskType")
-    @Issue("GRADLE-3537")
-    def "can use Enum from buildSrc as input property"() {
-        given:
-        file("buildSrc/src/main/java/org/gradle/MessageType.java") << """
-            package org.gradle;
-
-            public enum MessageType {
-                HELLO_WORLD
-            }
-        """
-        file("buildSrc/src/main/java/org/gradle/MyTask.java") << """
-            package org.gradle;
-
-            public class MyTask extends org.gradle.api.DefaultTask {
-
-            }
-        """
-
+    def "task is out of date when property added"() {
         buildFile << """
-            import org.gradle.MessageType
-            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
-
-            if(project.hasProperty('flushCaches')) {
-                println "Flushing InMemoryTaskArtifactCache"
-                gradle.taskGraph.whenReady {
-                    gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
-                }
-            }
+task someTask {
+    inputs.property("a", "value1")
+    outputs.file "out"
+    doLast org.gradle.internal.Actions.doNothing() // attach an action that is not defined by the build script
+}
 """
-        def taskDefinitionPart = """
-            task createFile(type: $taskType) {
-                ext.messageType = MessageType.HELLO_WORLD
-                ext.outputFile = file('output.txt')
-                inputs.property('messageType', messageType)
-                outputs.file(outputFile)
-
-                doLast {
-                    outputFile << messageType
-                }
-            }
-"""
-        if (taskType == 'MyScriptPluginTask') {
-            buildFile << """
-apply from:'scriptPlugin.gradle'
-"""
-            file("scriptPlugin.gradle") << taskDefinitionPart
-            file("scriptPlugin.gradle") << "class $taskType extends DefaultTask {}\n"
-        } else {
-            buildFile << taskDefinitionPart
-            if (taskType == 'MyBuildScriptTask') {
-                buildFile << "class $taskType extends DefaultTask {}\n"
-            }
-        }
+        given:
+        succeeds "someTask"
 
         when:
-        succeeds 'createFile'
+        run "someTask"
 
         then:
-        executedTasks == [':createFile']
-        skippedTasks.empty
+        skipped(":someTask")
+
+        // add property
+        when:
+        buildFile << """
+someTask.inputs.property("b", 12)
+"""
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Input property 'b' has been added for task ':someTask'")
 
         when:
-        if (flushCaches) {
-            executer.withArgument('-PflushCaches')
-        }
-        succeeds 'createFile'
+        run "someTask"
 
         then:
-        executedTasks == [':createFile']
-        skippedTasks == [':createFile'] as Set
-
-        where:
-        [flushCaches, taskType] << [[false, true], ['DefaultTask', 'org.gradle.MyTask', 'MyBuildScriptTask', 'MyScriptPluginTask']].combinations()
+        skipped(":someTask")
     }
 
-
-    @NotYetImplemented
-    @Issue("gradle/gradle#784")
-    def "can use a custom Serializable type from build script as input property in a never up-to-date custom Task"() {
-        given:
+    def "task is out of date when property removed"() {
         buildFile << """
-            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
+task someTask {
+    inputs.property("a", "value1")
+    inputs.property("b", "value2")
+    outputs.file "out"
+    doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
+}
+"""
+        given:
+        succeeds "someTask"
 
-            println "Flushing InMemoryTaskArtifactCache"
-            gradle.taskGraph.whenReady {
-                gradle.services.get(InMemoryTaskArtifactCache).invalidateAll()
-            }
+        when:
+        run "someTask"
 
-            enum FooType { FOO }
+        then:
+        skipped(":someTask")
 
-            class MyTask extends DefaultTask {
-                @Input
-                FooType foo
+        // add property
+        when:
+        buildFile.text = """
+task someTask {
+    inputs.property("b", "value2")
+    outputs.file "out"
+    doLast ${Actions.name}.doNothing()
+}
+"""
+        and:
+        executer.withArgument("-i")
+        run "someTask"
 
-                MyTask() {
-                    outputs.upToDateWhen {
-                        false
-                    }
-                }
-            }
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Input property 'a' has been removed for task ':someTask'")
 
-            task neverUpToDate(type: MyTask) {
-                foo = FooType.FOO
-            }
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+    }
+
+    @Unroll
+    def "task is out of date when property type changes"() {
+        buildFile << """
+task someTask {
+    inputs.property("a", $oldValue)
+    outputs.file "out"
+    doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
+}
+"""
+        given:
+        succeeds "someTask"
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        // change property type
+        when:
+        buildFile.replace(oldValue, newValue)
+
+        and:
+        executer.withArgument("-i")
+        run "someTask"
+
+        then:
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'a' has changed for task ':someTask'")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        where:
+        oldValue             | newValue
+        "'value1'"           | "['value1']"
+        "'value1'"           | "null"
+        "null"               | "123"
+        "[123]"              | "123"
+        "false"              | "12.3"
+        "[345, 'hi'] as Set" | "[345, 'hi']"
+        "file('1')"          | "files('1')"
+        "123"                | "123L"
+        "123"                | "123 as short"
+    }
+
+    @Unroll
+    def "task can use property of type #type"() {
+        file("buildSrc/src/main/java/SomeTask.java") << """
+import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.Optional;
+import java.io.File;
+
+public class SomeTask extends DefaultTask {
+    public $type v;
+    @Input
+    public $type getV() { return v; }
+
+    public File d;
+    @OutputDirectory
+    public File getD() { return d; }
+    
+    @TaskAction
+    public void go() { }
+}
 """
 
+        buildFile << """
+task someTask(type: SomeTask) {
+    v = $initialValue
+    d = file("build/out")
+}
+"""
+        given:
+        succeeds "someTask"
+
         when:
-        succeeds 'neverUpToDate'
+        run "someTask"
 
         then:
-        executedTasks == [':neverUpToDate']
-        skippedTasks.empty
+        skipped(":someTask")
 
         when:
-        succeeds 'neverUpToDate'
+        buildFile.replace("v = $initialValue", "v = $newValue")
+        executer.withArgument("-i")
+        run "someTask"
 
         then:
-        executedTasks == [':neverUpToDate']
-        skippedTasks.empty
+        executedAndNotSkipped(":someTask")
+        outputContains("Value of input property 'v' has changed for task ':someTask'")
+
+        when:
+        run "someTask"
+
+        then:
+        skipped(":someTask")
+
+        where:
+        type                             | initialValue                    | newValue
+        "String"                         | "'value 1'"                     | "'value 2'"
+        "java.io.File"                   | "file('file1')"                 | "file('file2')"
+        "boolean"                        | "true"                          | "false"
+        "Boolean"                        | "Boolean.TRUE"                  | "Boolean.FALSE"
+        "int"                            | "123"                           | "-45"
+        "Integer"                        | "123"                           | "-45"
+        "long"                           | "123"                           | "-45"
+        "Long"                           | "123"                           | "-45"
+        "short"                          | "123"                           | "-45"
+        "Short"                          | "123"                           | "-45"
+        "java.math.BigDecimal"           | "12.3"                          | "-45.432"
+        "java.math.BigInteger"           | "12"                            | "-45"
+        "java.util.List<String>"         | "['value1', 'value2']"          | "['value1']"
+        "java.util.List<String>"         | "[]"                            | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
+        "String[]"                       | "new String[0]"                 | "['abc'] as String[]"
+        "Object[]"                       | "[123, 'abc'] as Object[]"      | "['abc'] as String[]"
+        "java.util.Collection<String>"   | "['value1', 'value2']"          | "['value1'] as SortedSet"
+        "java.util.Set<String>"          | "['value1', 'value2'] as Set"   | "['value1'] as Set"
+        "Iterable<java.io.File>"         | "[file('1'), file('2')] as Set" | "files('1')"
+        FileCollection.name              | "files('1', '2')"               | "configurations.create('empty')"
+        "java.util.Map<String, Boolean>" | "[a: true, b: false]"           | "[a: true, b: true]"
     }
 }

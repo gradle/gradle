@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -25,6 +26,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 
 import java.util.Collections;
@@ -81,31 +83,36 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public List<? extends HasAttributes> getMatches(AttributesSchema producerAttributeSchema, List<HasAttributes> candidates, AttributeContainer consumer) {
+    public <T extends HasAttributes> List<T> getMatches(AttributesSchema producerAttributeSchema, List<T> candidates, AttributeContainer consumer) {
         if (candidates.isEmpty()) {
             return Collections.emptyList();
         }
-        Key key = new Key(producerAttributeSchema, candidates, consumer);
+        Key key = new Key(producerAttributeSchema, ImmutableList.copyOf(candidates), consumer);
         List<? extends HasAttributes> match = this.matchesCache.get(key);
         if (match == null) {
-            match = componentAttributeMatcher.match(this, producerAttributeSchema, candidates, consumer);
+            match = componentAttributeMatcher.match(this, (AttributesSchemaInternal) producerAttributeSchema, candidates, consumer);
             matchesCache.put(key, match);
         }
-        return match;
+        return Cast.uncheckedCast(match);
     }
 
     @Override
-    public boolean isMatching(AttributeContainer candidate, AttributeContainer target, boolean incompleteCandidate) {
-        return componentAttributeMatcher.isMatching(this, candidate, target, incompleteCandidate);
+    public AttributeMatcher ignoreAdditionalProducerAttributes() {
+        return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalProducerAttributes());
+    }
+
+    @Override
+    public AttributeMatcher ignoreAdditionalConsumerAttributes() {
+        return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalConsumerAttributes());
     }
 
     private static class Key {
         final private AttributesSchema producerAttributeSchema;
-        final private List<HasAttributes> candidates;
+        final private List<?> candidates;
         final private AttributeContainer consumer;
         private final int hashCode;
 
-        public Key(AttributesSchema producerAttributeSchema, List<HasAttributes> candidates, AttributeContainer consumer) {
+        public Key(AttributesSchema producerAttributeSchema, List<?> candidates, AttributeContainer consumer) {
             this.producerAttributeSchema = producerAttributeSchema;
             this.candidates = candidates;
             this.consumer = consumer;
@@ -145,4 +152,21 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
         }
     }
 
+    private class DefaultAttributeMatcher implements AttributeMatcher {
+        private final ComponentAttributeMatcher componentAttributeMatcher;
+
+        DefaultAttributeMatcher(ComponentAttributeMatcher componentAttributeMatcher) {
+            this.componentAttributeMatcher = componentAttributeMatcher;
+        }
+
+        @Override
+        public boolean isMatching(AttributeContainer candidate, AttributeContainer target) {
+            return componentAttributeMatcher.isMatching(DefaultAttributesSchema.this, candidate, target);
+        }
+
+        @Override
+        public List<AttributeContainer> matches(List<AttributeContainer> candidates, AttributeContainerInternal target) {
+            return componentAttributeMatcher.match(DefaultAttributesSchema.this, DefaultAttributesSchema.this, candidates, target);
+        }
+    }
 }

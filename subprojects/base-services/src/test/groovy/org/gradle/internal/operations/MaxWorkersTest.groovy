@@ -25,7 +25,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         given:
         def maxWorkers = 1
         def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+        def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:
@@ -65,7 +65,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         given:
         def maxWorkers = 1
         def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+        def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:
@@ -105,7 +105,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         given:
         def maxWorkers = 1
         def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+        def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:

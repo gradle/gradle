@@ -105,19 +105,21 @@ task c {
         previousExecuter.withArgument("-Penable-block1")
         previousExecuter.withTasks("c")
         def build1 = previousExecuter.start()
-        server1.waitFor()
+        def server1WaitForResult = server1.waitFor(false)
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         def currentExecuter = version(current)
         currentExecuter.withArgument("-Penable-block2")
         currentExecuter.withTasks("c")
         def build2 = currentExecuter.start()
-        server2.waitFor()
+        def server2WaitForResult = server2.waitFor(false)
 
         // Finish up build 1 and 2
         server1.release() // finish build 1 while build 2 is still running
         build1.waitForFinish()
         server2.release()
         build2.waitForFinish()
+
+        server1WaitForResult && server2WaitForResult
     }
 }

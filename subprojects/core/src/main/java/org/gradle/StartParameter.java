@@ -34,6 +34,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.io.Serializable;
@@ -84,7 +85,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private boolean refreshDependencies;
     private boolean recompileScripts;
     private boolean parallelProjectExecution;
-    private boolean taskOutputCacheEnabled;
+    private boolean buildCacheEnabled;
     private boolean configureOnDemand;
     private int maxWorkerCount;
     private boolean continuous;
@@ -227,7 +228,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
         p.parallelProjectExecution = parallelProjectExecution;
-        p.taskOutputCacheEnabled = taskOutputCacheEnabled;
+        p.buildCacheEnabled = buildCacheEnabled;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
@@ -652,19 +653,46 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     }
 
     /**
-     * Returns true if task output caching is enabled.
+     * Returns true if the build cache is enabled.
+     *
+     * @since 3.5
      */
     @Incubating
+    public boolean isBuildCacheEnabled() {
+        return buildCacheEnabled;
+    }
+
+    /**
+     * Enables/disables the build cache.
+     *
+     * @since 3.5
+     */
+    @Incubating
+    public void setBuildCacheEnabled(boolean buildCacheEnabled) {
+        this.buildCacheEnabled = buildCacheEnabled;
+    }
+
+    /**
+     * Returns true if task output caching is enabled.
+     *
+     * @deprecated Use {@link #isBuildCacheEnabled()}
+     */
+    @Incubating
+    @Deprecated
     public boolean isTaskOutputCacheEnabled() {
-        return taskOutputCacheEnabled;
+        return isBuildCacheEnabled();
     }
 
     /**
      * Enables/disables task output caching.
+     *
+     * @deprecated Use {@link #setBuildCacheEnabled(boolean)}
      */
     @Incubating
-    public void setTaskOutputCacheEnabled(boolean taskOutputCacheEnabled) {
-        this.taskOutputCacheEnabled = taskOutputCacheEnabled;
+    @Deprecated
+    public void setTaskOutputCacheEnabled(boolean buildCacheEnabled) {
+        SingleMessageLogger.nagUserOfReplacedMethod("StartParameter.setTaskOutputCacheEnabled", "StartParameter.setBuildCacheEnabled");
+        setBuildCacheEnabled(buildCacheEnabled);
     }
 
     /**
@@ -734,7 +762,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
             + ", parallelProjectExecution=" + parallelProjectExecution
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + maxWorkerCount
-            + ", taskOutputCacheEnabled=" + taskOutputCacheEnabled
+            + ", buildCacheEnabled=" + buildCacheEnabled
             + '}';
     }
 

@@ -16,18 +16,33 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.CachingClasspathEntryHasher;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.ClasspathEntryHasher;
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathContentHasher;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathEntryHasher;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror;
+import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
+import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
@@ -36,14 +51,16 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.classloader.ClassPathSnapshotter;
+import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -64,16 +81,16 @@ public class GradleUserHomeScopeServices {
         }
     }
 
-    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
-        return new CrossBuildFileHashCache(cacheRepository, inMemoryTaskArtifactCache);
+    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new CrossBuildFileHashCache(cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
     GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping) {
         return new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
-        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes");
+    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
+        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
         fileTimeStampInspector.attach(fileHasher);
         return fileHasher;
     }
@@ -82,23 +99,46 @@ public class GradleUserHomeScopeServices {
         return new CrossBuildInMemoryCachingScriptClassCache(hasher, cacheFactory);
     }
 
+    ValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        return new ValueSnapshotter(classLoaderHierarchyHasher);
+    }
+
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
         return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderHasher);
     }
 
-    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
-        return new DefaultClassLoaderCache(classLoaderFactory, classPathSnapshotter);
+    ClasspathEntryHasher createClasspathEntryHasher(TaskHistoryStore store) {
+        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        return new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher()), signatureCache);
     }
 
-    HashingClassLoaderFactory createClassLoaderFactory(ClassPathSnapshotter snapshotter) {
-        return new DefaultHashingClassLoaderFactory(snapshotter);
+    FileSystemMirror createFileSystemMirror(ListenerManager listenerManager) {
+        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
+        listenerManager.addListener(fileSystemMirror);
+        return fileSystemMirror;
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(FileHasher hasher, FileSystem fileSystem) {
-        return new HashClassPathSnapshotter(hasher, fileSystem);
+    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+        return new DefaultGenericFileCollectionSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory,  fileSystemMirror);
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, ServiceRegistry serviceRegistry) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(), serviceRegistry.getAll(CachedJarFileStore.class));
+    ClasspathSnapshotter createClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ClasspathEntryHasher classpathEntryHasher, FileSystemMirror fileSystemMirror) {
+        return new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror, classpathEntryHasher);
+    }
+
+    ClasspathHasher createClasspathHasher(ClasspathSnapshotter snapshotter) {
+        return new DefaultClasspathHasher(snapshotter);
+    }
+
+    HashingClassLoaderFactory createClassLoaderFactory(ClasspathHasher classpathHasher) {
+        return new DefaultHashingClassLoaderFactory(classpathHasher);
+    }
+
+    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher classpathHasher) {
+        return new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
+    }
+
+    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, ServiceRegistry serviceRegistry) {
+        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), serviceRegistry.getAll(CachedJarFileStore.class));
     }
 }

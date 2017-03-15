@@ -21,8 +21,11 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.*;
@@ -190,7 +193,11 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 ModelSchema<? extends BinarySpec> schema = schemaStore.getSchema(((BinarySpecInternal) binary).getPublicType());
                 VariantsMetaData variantsMetaData = DefaultVariantsMetaData.extractFrom(binary, schema);
                 AttributesSchema attributesSchema = serviceRegistry.get(AttributesSchema.class);
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema);
+                ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
+                ModuleExclusions moduleExclusions = serviceRegistry.get(ModuleExclusions.class);
+                BuildOperationProcessor buildOperationProcessor = serviceRegistry.get(BuildOperationProcessor.class);
+
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

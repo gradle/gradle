@@ -17,10 +17,12 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.Action;
 
 import java.io.File;
 import java.util.Map;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the IDEA project information.
@@ -85,21 +87,45 @@ public class IdeaModel {
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
      */
     public void module(Closure closure) {
-        ConfigureUtil.configure(closure, getModule());
+        configure(closure, getModule());
+    }
+
+    /**
+     * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
+     * @since 3.5
+     */
+    public void module(Action<? super IdeaModule> action) {
+        action.execute(getModule());
     }
 
     /**
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
      */
     public void project(Closure closure) {
-        ConfigureUtil.configure(closure, getProject());
+        configure(closure, getProject());
+    }
+
+    /**
+     * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
+     * @since 3.5
+     */
+    public void project(Action<? super IdeaProject> action) {
+        action.execute(getProject());
     }
 
     /**
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
      */
     public void workspace(Closure closure) {
-        ConfigureUtil.configure(closure, getWorkspace());
+        configure(closure, getWorkspace());
+    }
+
+    /**
+     * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
+     * @since 3.5
+     */
+    public void workspace(Action<? super IdeaWorkspace> action) {
+        action.execute(getWorkspace());
     }
 
     /**

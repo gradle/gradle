@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.tasks
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
@@ -41,9 +42,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         when:
         packer.pack(taskOutputs, output, writeOrigin)
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: sourceOutputFile)
-        ] as SortedSet)
+        )
         1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
         _ * sourceOutputFile.lastModified() >> fileDate
         _ * sourceOutputFile._
@@ -54,9 +55,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.unpack(taskOutputs, input, readOrigin)
 
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: targetOutputFile)
-        ] as SortedSet)
+        )
         1 * fileSystem.chmod(targetOutputFile, unixMode)
         1 * targetOutputFile.setLastModified(_) >> { long time ->
             assert time == fileDate
@@ -85,9 +86,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         when:
         packer.pack(taskOutputs, output, writeOrigin)
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: sourceOutputDir)
-        ] as SortedSet)
+        )
         1 * fileSystem.getUnixMode(sourceSubDir) >> 0711
         1 * fileSystem.getUnixMode(sourceDataFile) >> 0600
         0 * _
@@ -97,15 +98,60 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.unpack(taskOutputs, input, readOrigin)
 
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "test", outputFile: targetOutputDir)
-        ] as SortedSet)
+        )
         1 * fileSystem.chmod(targetOutputDir, 0755)
         1 * fileSystem.chmod(targetSubDir, 0711)
         1 * fileSystem.chmod(targetDataFile, 0600)
         then:
         targetDataFile.text == "output"
         0 * _
+    }
+
+    @Unroll
+    def "can pack task output with missing #type (pre-existing as: #preExistsAs)"() {
+        def sourceOutput = tempDir.file("source")
+        def targetOutput = tempDir.file("target")
+        switch (preExistsAs) {
+            case "file":
+                targetOutput.createNewFile()
+                break
+            case "dir":
+                targetOutput.createDir()
+                break
+            case "none":
+                break
+        }
+        def output = new ByteArrayOutputStream()
+        when:
+        packer.pack(taskOutputs, output, writeOrigin)
+        then:
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
+            new TestProperty(propertyName: "test", outputFile: sourceOutput, outputType: type)
+        )
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        packer.unpack(taskOutputs, input, readOrigin)
+
+        then:
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
+            new TestProperty(propertyName: "test", outputFile: targetOutput, outputType: type)
+        )
+        then:
+        !targetOutput.exists()
+        0 * _
+
+        where:
+        type      | preExistsAs
+        FILE      | "file"
+        FILE      | "dir"
+        FILE      | "none"
+        DIRECTORY | "file"
+        DIRECTORY | "dir"
+        DIRECTORY | "none"
     }
 
     def "can pack single task output file with long name"() {
@@ -118,9 +164,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: propertyName, outputFile: sourceOutputFile)
-        ] as SortedSet)
+        )
         1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
         0 * _
 
@@ -129,25 +175,25 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.unpack(taskOutputs, input, readOrigin)
 
         then:
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: propertyName, outputFile: targetOutputFile)
-        ] as SortedSet)
+        )
         1 * fileSystem.chmod(targetOutputFile, 0644)
         then:
         targetOutputFile.text == "output"
         0 * _
     }
 
-    def "can pack task output with all optional, empty outputs"() {
+    def "can pack task output with all optional, null outputs"() {
         def output = new ByteArrayOutputStream()
         when:
         packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
-        taskOutputs.getFileProperties() >> ([
-            new TestProperty(propertyName: "out1", outputFile: null),
-            new TestProperty(propertyName: "out2", outputFile: null)
-        ] as SortedSet)
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
+            new TestProperty(propertyName: "out1", outputFile: null, outputType: FILE),
+            new TestProperty(propertyName: "out2", outputFile: null, outputType: DIRECTORY)
+        )
         0 * _
 
         when:
@@ -156,10 +202,10 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         then:
         noExceptionThrown()
-        taskOutputs.getFileProperties() >> ([
-            new TestProperty(propertyName: "out1", outputFile: null),
-            new TestProperty(propertyName: "out2", outputFile: null)
-        ] as SortedSet)
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
+            new TestProperty(propertyName: "out1", outputFile: null, outputType: FILE),
+            new TestProperty(propertyName: "out2", outputFile: null, outputType: DIRECTORY)
+        )
         0 * _
     }
 
@@ -176,10 +222,10 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "missingFile", outputFile: missingSourceFile, outputType: FILE),
             new TestProperty(propertyName: "missingDir", outputFile: missingSourceDir, outputType: DIRECTORY)
-        ] as SortedSet)
+        )
         0 * _
 
         when:
@@ -188,10 +234,10 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         then:
         noExceptionThrown()
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "missingFile", outputFile: missingTargetFile, outputType: FILE),
             new TestProperty(propertyName: "missingDir", outputFile: missingTargetDir, outputType: DIRECTORY)
-        ] as SortedSet)
+        )
         0 * _
     }
 
@@ -203,9 +249,9 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         packer.pack(taskOutputs, output, writeOrigin)
         then:
         noExceptionThrown()
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "empty", outputFile: sourceDir, outputType: DIRECTORY)
-        ] as SortedSet)
+        )
         0 * _
 
         when:
@@ -214,12 +260,66 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         then:
         noExceptionThrown()
-        taskOutputs.getFileProperties() >> ([
+        taskOutputs.getFileProperties() >> ImmutableSortedSet.of(
             new TestProperty(propertyName: "empty", outputFile: targetDir, outputType: DIRECTORY),
-        ] as SortedSet)
+        )
         1 * fileSystem.chmod(targetDir, 0755)
         then:
         targetDir.assertIsEmptyDir()
         0 * _
+    }
+
+    def "parent directory is created for output file"() {
+        def targetOutputFile = tempDir.file("build/some-dir/output.txt")
+        targetOutputFile << "Some data"
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(FILE, targetOutputFile)
+
+        then:
+        targetOutputFile.parentFile.assertIsEmptyDir()
+    }
+
+    def "directory is created for output directory"() {
+        def targetOutputDir = tempDir.file("build/output")
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+
+        then:
+        targetOutputDir.assertIsEmptyDir()
+    }
+
+    def "cleans up leftover files in output directory"() {
+        def targetOutputDir = tempDir.file("build/output")
+        targetOutputDir.file("sub-dir/data.txt") << "Some data"
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+
+        then:
+        targetOutputDir.assertIsEmptyDir()
+    }
+
+    def "creates directories even if there is a pre-existing file in its place"() {
+        def targetOutputDir = tempDir.file("build/output")
+        targetOutputDir << "This should become a directory"
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+
+        then:
+        targetOutputDir.assertIsEmptyDir()
+    }
+
+    def "creates parent directories for output file even if there is a pre-existing directory in its place"() {
+        def targetOutputFile = tempDir.file("build/some-dir/output.txt")
+        targetOutputFile.createDir()
+
+        when:
+        TarTaskOutputPacker.ensureDirectoryForProperty(FILE, targetOutputFile)
+
+        then:
+        targetOutputFile.parentFile.assertIsEmptyDir()
     }
 }

@@ -17,17 +17,25 @@ package org.gradle.util;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.LimitedDescription;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.zip.Checksum;
 
@@ -123,11 +131,7 @@ public class GFileUtils {
         }
     }
 
-    public static Collection listFiles(File directory, IOFileFilter fileFilter, IOFileFilter dirFilter) {
-        return FileUtils.listFiles(directory, fileFilter, dirFilter);
-    }
-
-    public static Collection listFiles(File directory, String[] extensions, boolean recursive) {
+    public static Collection<File> listFiles(File directory, String[] extensions, boolean recursive) {
         return FileUtils.listFiles(directory, extensions, recursive);
     }
 

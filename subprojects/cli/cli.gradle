@@ -20,11 +20,8 @@
     It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
     It has no dependencies, and should never have any.
 */
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
-
-dependencies {
-    testCompile libraries.groovy
-}
 
 useClassycle()

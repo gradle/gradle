@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.plugins.JavaPlugin;
@@ -29,6 +28,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.util.GUtil;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultSourceSet implements SourceSet {
     private final String name;
@@ -198,7 +199,8 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSet java(Closure configureClosure) {
-        return java(ClosureBackedAction.of(configureClosure));
+        configure(configureClosure, getJava());
+        return this;
     }
 
     @Override
@@ -216,7 +218,8 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public SourceSet resources(Closure configureClosure) {
-        return resources(ClosureBackedAction.of(configureClosure));
+        configure(configureClosure, getResources());
+        return this;
     }
 
     @Override

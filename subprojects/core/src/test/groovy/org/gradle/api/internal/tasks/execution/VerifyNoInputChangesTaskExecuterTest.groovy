@@ -23,7 +23,9 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskExecutionException
-import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
+import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import spock.lang.Specification
 
 class VerifyNoInputChangesTaskExecuterTest extends Specification {
@@ -31,7 +33,6 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
     private TaskArtifactStateRepository repository = Mock()
     private TaskExecuter delegate = Mock()
     private TaskInternal task = Mock()
-    private TaskArtifactState before = Mock()
     private String hashKeyBefore = "rsetnarosntanroston"
     private String hashKeyAfter = "345sratart22341234fw"
     private TaskArtifactState after = Mock()
@@ -44,8 +45,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         executer.execute(task, state, context)
 
         then:
-        1 * context.getTaskArtifactState() >> before
-        1 * before.calculateCacheKey() >> cacheKey(hashKeyBefore)
+        1 * context.getBuildCacheKey() >> cacheKey(hashKeyBefore)
         then:
         1 * delegate.execute(task, state, context)
 
@@ -60,8 +60,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         executer.execute(task, state, context)
 
         then:
-        1 * context.getTaskArtifactState() >> before
-        1 * before.calculateCacheKey() >> null
+        1 * context.getBuildCacheKey() >> invalidCacheKey()
         then:
         1 * delegate.execute(task, state, context)
         0 * _
@@ -72,8 +71,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         executer.execute(task, state, context)
 
         then:
-        1 * context.getTaskArtifactState() >> before
-        1 * before.calculateCacheKey() >> cacheKey(hashKeyBefore)
+        1 * context.getBuildCacheKey() >> cacheKey(hashKeyBefore)
         then:
         1 * delegate.execute(task, state, context)
 
@@ -87,12 +85,45 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
         e.cause.message == "The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs."
     }
 
-    private static BuildCacheKey cacheKey(String hash) {
-        new BuildCacheKey() {
+    def 'exception if cache key became invalid'() {
+        when:
+        executer.execute(task, state, context)
+
+        then:
+        1 * context.getBuildCacheKey() >> cacheKey(hashKeyBefore)
+        then:
+        1 * delegate.execute(task, state, context)
+
+        then:
+        1 * repository.getStateFor(task) >> after
+        1 * after.calculateCacheKey() >> invalidCacheKey()
+        0 * _
+
+        TaskExecutionException e = thrown(TaskExecutionException)
+        e.task == task
+        e.cause.message == "The build cache key became invalid after the task has been executed!"
+    }
+
+    private static TaskOutputCachingBuildCacheKey cacheKey(String hash) {
+        new TaskOutputCachingBuildCacheKey() {
             @Override
             String getHashCode() {
                 return hash
             }
+
+            @Override
+            BuildCacheKeyInputs getInputs() {
+                return null
+            }
+
+            @Override
+            boolean isValid() {
+                return true
+            }
         }
+    }
+
+    private static TaskOutputCachingBuildCacheKey invalidCacheKey() {
+        return new DefaultTaskOutputCachingBuildCacheKeyBuilder().build()
     }
 }

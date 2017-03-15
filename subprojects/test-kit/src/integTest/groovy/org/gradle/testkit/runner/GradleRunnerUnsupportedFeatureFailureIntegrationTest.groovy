@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.testing.internal.util.RetryRule
 import org.gradle.testkit.runner.fixtures.Debug
@@ -40,7 +41,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
     RetryRule unsupportedFeatureRetryRule = retryIf(
         { Throwable failure ->
             if (failure.class != UnsupportedFeatureException) {
-                return retryWithCleanProjectDir()
+                return RetryRuleUtil.retryWithCleanProjectDir(this)
             }
             false
         }

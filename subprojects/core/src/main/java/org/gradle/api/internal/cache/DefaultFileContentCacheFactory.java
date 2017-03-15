@@ -19,7 +19,7 @@ package org.gradle.api.internal.cache;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.FileDetails;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.invocation.Gradle;
@@ -48,16 +48,16 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private final FileHasher fileHasher;
     private final FileSystem fileSystem;
     private final FileSystemMirror fileSystemMirror;
-    private final InMemoryTaskArtifactCache inMemoryTaskArtifactCache;
+    private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, Gradle gradle) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle) {
         this.listenerManager = listenerManager;
         this.fileHasher = fileHasher;
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
-        this.inMemoryTaskArtifactCache = inMemoryTaskArtifactCache;
+        this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
             .cache(gradle, "fileContent")
             .withDisplayName("file content cache")
@@ -73,7 +73,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
         PersistentIndexedCacheParameters<HashCode, V> parameters = new PersistentIndexedCacheParameters<HashCode, V>(name, hashCodeSerializer, serializer)
-                .cacheDecorator(inMemoryTaskArtifactCache.decorator(normalizedCacheSize, true));
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
         PersistentIndexedCache<HashCode, V> store = cache.createCache(parameters);
 
         DefaultFileContentCache<V> cache = new DefaultFileContentCache<V>(name, fileHasher, fileSystem, fileSystemMirror, store, calculator);

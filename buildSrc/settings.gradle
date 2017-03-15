@@ -14,7 +14,4 @@
  * limitations under the License.
  */
 
-if (gradle.startParameter.systemPropertiesArgs.containsKey("gradle.cache.remote.url")) {
-    println "Applying remoteHttpCacheInit to buildSrc"
-    apply from: new File(settingsDir, '../gradle/remoteHttpCacheInit.gradle')
-}
+apply from: new File(settingsDir, '../gradle/remoteHttpCacheSettings.gradle')

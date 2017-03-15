@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.transform
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -193,7 +192,6 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         executed ":libExclude:jar"
     }
 
-    @NotYetImplemented
     def "can filer local file dependencies"() {
         given:
         buildFile << """
@@ -202,7 +200,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             }
             
             def artifactFilter = { component -> 
-                println "filter applied"
+                println "filter applied to " + component
                 false 
             }
             def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).files
@@ -219,7 +217,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         succeeds "checkFiltered"
 
         then:
-        output.contains("filter applied")
+        output.contains("filter applied to internalLocalLibExclude.jar")
     }
 
     def "transforms are not triggered for artifacts that are not accessed" () {
@@ -228,16 +226,9 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             def artifactType = Attribute.of('artifactType', String)
 
             class Jar2Class extends ArtifactTransform {
-                File output
-            
-                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
-                    from.attribute(Attribute.of('artifactType', String), "jar")
-                    targets.newTarget().attribute(Attribute.of('artifactType', String), "class")
-                }
-            
-                List<File> transform(File input, AttributeContainer target) {
+                List<File> transform(File input) {
                     println "Jar2Class"
-                    def classes = new File(output, 'classes')
+                    def classes = new File(outputDirectory, 'classes')
                     classes.mkdirs()
                     return [classes]
                 }
@@ -247,7 +238,11 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 compile project('libInclude')
                 compile project('libExclude')
                 
-                registerTransform(Jar2Class) { output = project.file('transformed')}
+                registerTransform {
+                    from.attribute(Attribute.of('artifactType', String), "jar")
+                    to.attribute(Attribute.of('artifactType', String), "class")
+                    artifactTransform(Jar2Class)
+                }
             }
             def artifactFilter = { component -> component.projectPath == ':libInclude' }
             def filteredView = configurations.compile.incoming.artifactView().componentFilter(artifactFilter).attributes { it.attribute(artifactType, "class") }.files

@@ -28,7 +28,7 @@ class CompositeBuildWarningContinuousBuildIntegrationTest extends Java7Requiring
         singleProjectBuild("project")
 
         when:
-        succeeds 'build'
+        succeeds 'help'
 
         then:
         output.count(WARNING_MESSAGE) == 0
@@ -41,7 +41,7 @@ class CompositeBuildWarningContinuousBuildIntegrationTest extends Java7Requiring
         }
 
         when:
-        succeeds 'build'
+        succeeds 'help'
 
         then:
         output.count(WARNING_MESSAGE) == 1

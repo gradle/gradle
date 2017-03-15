@@ -39,8 +39,8 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
         output.contains("""
 Build Setup tasks
 -----------------
-init - Initializes a new Gradle build. [incubating]
-wrapper - Generates Gradle wrapper files. [incubating]
+init - Initializes a new Gradle build.
+wrapper - Generates Gradle wrapper files.
 
 Help tasks
 ----------

@@ -39,7 +39,7 @@ class JavaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         Assume.assumeTrue(target != null)
         def java = TextUtil.escapeString(target.getJavaExecutable())
-        def javac = TextUtil.escapeString(target.getExecutable("javac"))
+        def javaHome = TextUtil.escapeString(target.getJavaHome())
         def javadoc = TextUtil.escapeString(target.getExecutable("javadoc"))
 
         buildFile << """
@@ -50,7 +50,7 @@ repositories { mavenCentral() }
 tasks.withType(JavaCompile) {
     options.with {
         fork = true
-        forkOptions.executable = "$javac"
+        forkOptions.javaHome = file("$javaHome")
     }
 }
 tasks.withType(Javadoc) {

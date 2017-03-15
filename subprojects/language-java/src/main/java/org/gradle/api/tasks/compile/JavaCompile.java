@@ -19,17 +19,21 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
+import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
@@ -51,12 +55,14 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
@@ -67,7 +73,8 @@ import java.io.File;
  *
  * <pre autoTested=''>
  *     apply plugin: 'java'
- *     compileJava {
+ *
+ *     tasks.withType(JavaCompile) {
  *         //enable compilation in a separate daemon process
  *         options.fork = true
  *
@@ -111,10 +118,17 @@ public class JavaCompile extends AbstractCompile {
      *
      * @return The tool chain.
      */
-    @Incubating @Inject
+    @Nested
+    @Incubating
     public JavaToolChain getToolChain() {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
+        if (getOptions().isFork()) {
+            ForkOptions forkOptions = getOptions().getForkOptions();
+            File javaHome = forkOptions.getJavaHome();
+            if (javaHome != null) {
+                return new JavaHomeBasedJavaToolChain(javaHome, getJavaCompilerFactory(), getExecActionFactory(), getJvmVersionDetector());
+            }
+        }
+        return new CurrentJvmJavaToolChain(getJavaCompilerFactory(), getExecActionFactory());
     }
 
     /**
@@ -124,7 +138,6 @@ public class JavaCompile extends AbstractCompile {
      */
     @Incubating
     public void setToolChain(JavaToolChain toolChain) {
-        // Implementation is generated
         throw new UnsupportedOperationException();
     }
 
@@ -171,15 +184,38 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    @Inject protected FileOperations getFileOperations() {
+    @Inject
+    protected FileOperations getFileOperations() {
         throw new UnsupportedOperationException();
     }
 
-    @Inject protected GeneralCompileCaches getGeneralCompileCaches() {
+    @Inject
+    protected GeneralCompileCaches getGeneralCompileCaches() {
         throw new UnsupportedOperationException();
     }
 
-    @Inject protected CacheRepository getCacheRepository() {
+    @Inject
+    protected CacheRepository getCacheRepository() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaCompilerFactory getJavaCompilerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Factory<AntBuilder> getAntBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JvmVersionDetector getJvmVersionDetector() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ExecActionFactory getExecActionFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -189,10 +225,6 @@ public class JavaCompile extends AbstractCompile {
         performCompilation(spec, createCompiler(spec));
     }
 
-    @Inject
-    protected Factory<AntBuilder> getAntBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
@@ -201,7 +233,7 @@ public class JavaCompile extends AbstractCompile {
 
     @Nested
     protected JavaPlatform getPlatform() {
-        return DefaultJavaPlatform.current();
+        return new DefaultJavaPlatform(JavaVersion.toVersion(getTargetCompatibility()));
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {

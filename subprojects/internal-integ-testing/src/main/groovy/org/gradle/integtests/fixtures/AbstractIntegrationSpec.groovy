@@ -59,7 +59,6 @@ class AbstractIntegrationSpec extends Specification {
         return IntegrationTestBuildContext.INSTANCE;
     }
 
-
 //    @Rule
     M2Installation m2 = new M2Installation(temporaryFolder)
 
@@ -241,7 +240,7 @@ class AbstractIntegrationSpec extends Specification {
     ArtifactBuilder artifactBuilder() {
         def executer = distribution.executer(temporaryFolder, getBuildContext())
         executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
-        for (int i = 1;; i++) {
+        for (int i = 1; ; i++) {
             def dir = getTestDirectory().file("artifacts-$i")
             if (!dir.exists()) {
                 return new GradleBackedArtifactBuilder(executer, dir)
@@ -314,11 +313,36 @@ class AbstractIntegrationSpec extends Specification {
         TestFile zip = file(name)
         zipRoot.create(cl)
         zipRoot.zipTo(zip)
+        return zip
     }
 
     def createDir(String name, Closure cl) {
         TestFile root = file(name)
         root.create(cl)
+    }
+
+    /**
+     * Replaces the given text in the build script with new value, asserting that the change was actually applied (ie the text was present).
+     */
+    void editBuildFile(String oldText, String newText) {
+        def newContent = buildFile.text.replace(oldText, newText)
+        assert newContent != buildFile.text
+        buildFile.text = newContent
+    }
+
+    /**
+     * Creates a JAR that is unique to the test. The uniqueness is achieved via a properties file with a value containing the path to the test itself.
+     */
+    def createJarWithProperties(String path, Map<String, ?> properties = [source: 1]) {
+        def props = new Properties()
+        def sw = new StringWriter()
+        props.putAll(properties.collectEntries { k, v -> [k, String.valueOf(v)] })
+        props.setProperty(path, testDirectory.path)
+        props.store(sw, null)
+        file(path).delete()
+        createZip(path) {
+            file("data.properties") << sw.toString()
+        }
     }
 
     void outputContains(String string) {

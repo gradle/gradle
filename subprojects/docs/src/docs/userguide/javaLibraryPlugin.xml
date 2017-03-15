@@ -111,10 +111,10 @@
 
     <section id="sec:java_library_configurations_graph">
         <title>The Java Library plugin configurations</title>
-        <para>The following graph describes the configuration setup when the Java Library plugin is in use.
+        <para>The following graph describes the main configurations setup when the Java Library plugin is in use.
         </para>
         <imageobject>
-            <imagedata fileref="img/java-library-ignore-deprecated.png"/>
+            <imagedata fileref="img/java-library-ignore-deprecated-main.png"/>
         </imageobject>
         <itemizedlist>
             <listitem>The configurations in <firstterm>green</firstterm> are the ones a user should use to declare dependencies
@@ -126,6 +126,11 @@
             <listitem>The configurations in <firstterm>white</firstterm> are configurations inherited from the Java plugin
             </listitem>
         </itemizedlist>
+        <para>And the next graph describes the test configurations setup:
+        </para>
+        <imageobject>
+            <imagedata fileref="img/java-library-ignore-deprecated-test.png"/>
+        </imageobject>
         <note>
             The <firstterm>compile</firstterm>, <firstterm>testCompile</firstterm>, <firstterm>runtime</firstterm> and <firstterm>testRuntime</firstterm> configurations
             inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
@@ -267,4 +272,25 @@
 
     </section>
 
+    <section id="sec:java_library_known_issues">
+    <title>Known issues</title>
+        <section id="sec:java_library_known_issues_compat">
+            <title>Compatibility with other plugins</title>
+            <para>At the moment the Java Library plugin is only wired to behave correctly with the <literal>java</literal> plugin. Other plugins, such as
+            the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the <literal>java-library</literal> plugin,
+            then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile
+            dependency, like this:</para>
+            <sample id="useGroovyPlugin" dir="java-library/with-groovy" title="Configuring the Groovy plugin to work with Java Library">
+                <sourcefile file="a/build.gradle" snippet="configure-groovy"/>
+            </sample>
+        </section>
+        <section id="sec:java_library_known_issues_memory">
+            <title>Increased memory usage for consumers</title>
+            <para>When a project uses the Java Library plugin, consumers will use the output classes directory of this project directly on their compile
+            classpath, instead of the jar file if the project uses the Java plugin. An indirect consequence is that up-to-date checking will require more
+            memory, because Gradle will snapshot individual class files instead of a single jar. This may lead to increased memory consumption for large
+            projects.
+            </para>
+        </section>
+    </section>
 </chapter>

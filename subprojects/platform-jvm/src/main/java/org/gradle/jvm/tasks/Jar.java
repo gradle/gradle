@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -31,11 +30,11 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -45,7 +44,6 @@ import java.util.concurrent.Callable;
  * Assembles a JAR archive.
  */
 @ParallelizableTask
-@CacheableTask
 @Incubating
 public class Jar extends Zip {
 
@@ -178,7 +176,8 @@ public class Jar extends Zip {
      * @return This.
      */
     public Jar manifest(Closure<?> configureClosure) {
-        return manifest(ClosureBackedAction.of(configureClosure));
+        ConfigureUtil.configure(configureClosure, forceManifest());
+        return this;
     }
 
     /**
@@ -188,13 +187,18 @@ public class Jar extends Zip {
      *
      * @param configureAction The action.
      * @return This.
+     * @since 3.5
      */
     public Jar manifest(Action<? super Manifest> configureAction) {
-        if (getManifest() == null) {
+        configureAction.execute(forceManifest());
+        return this;
+    }
+
+    private Manifest forceManifest() {
+        if (manifest == null) {
             manifest = new DefaultManifest(((ProjectInternal) getProject()).getFileResolver());
         }
-        configureAction.execute(getManifest());
-        return this;
+        return manifest;
     }
 
     @Internal
@@ -211,7 +215,7 @@ public class Jar extends Zip {
      * @return The created {@code CopySpec}
      */
     public CopySpec metaInf(Closure<?> configureClosure) {
-        return metaInf(ClosureBackedAction.of(configureClosure));
+        return ConfigureUtil.configure(configureClosure, getMetaInf());
     }
 
     /**
@@ -221,6 +225,7 @@ public class Jar extends Zip {
      *
      * @param configureAction The action.
      * @return The created {@code CopySpec}
+     * @since 3.5
      */
     public CopySpec metaInf(Action<? super CopySpec> configureAction) {
         CopySpec metaInf = getMetaInf();

@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -25,11 +26,12 @@ import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
@@ -140,7 +142,7 @@ public class IdeaProject {
     }
 
     /**
-     * See {@link #ipr(Closure) }
+     * See {@link #ipr(Action) }
      */
     public XmlFileContentMerger getIpr() {
         return ipr;
@@ -152,8 +154,20 @@ public class IdeaProject {
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    public void ipr(Closure<XmlFileContentMerger> closure) {
-        ConfigureUtil.configure(closure, getIpr());
+    public void ipr(Closure closure) {
+        configure(closure, getIpr());
+    }
+
+    /**
+     * Enables advanced configuration like tinkering with the output XML
+     * or affecting the way existing *.ipr content is merged with Gradle build information.
+     * <p>
+     * See the examples in the docs for {@link IdeaProject}
+     *
+     * @since 3.5
+     */
+    public void ipr(Action<? super XmlFileContentMerger> action) {
+        action.execute(getIpr());
     }
 
     /**

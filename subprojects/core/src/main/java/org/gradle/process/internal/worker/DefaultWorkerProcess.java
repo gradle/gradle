@@ -86,11 +86,19 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public void onConnect(ObjectConnection connection) {
-        AsyncStoppable stoppable;
+        onConnect(connection, null);
+    }
 
+    public void onConnect(ObjectConnection connection, Runnable connectionHandler) {
+        AsyncStoppable stoppable;
         lock.lock();
         try {
             LOGGER.debug("Received connection {} from {}", connection, execHandle);
+            
+            if (connectionHandler != null && running) {
+                connectionHandler.run();
+            }
+
             this.connection = connection;
             condition.signalAll();
             stoppable = acceptor;
@@ -165,11 +173,12 @@ public class DefaultWorkerProcess implements WorkerProcess {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-            if (processFailure != null) {
-                throw UncheckedException.throwAsUncheckedException(processFailure);
-            }
             if (connection == null) {
-                throw new ExecException(format("Never received a connection from %s.", execHandle));
+                if (processFailure != null) {
+                    throw UncheckedException.throwAsUncheckedException(processFailure);
+                } else {
+                    throw new ExecException(format("Never received a connection from %s.", execHandle));
+                }
             }
         } finally {
             lock.unlock();

@@ -168,17 +168,31 @@ public class CyclicBarrierHttpServer extends ExternalResource {
         }
     }
 
+    public boolean waitFor() {
+        return waitFor(true);
+    }
+
     /**
      * Blocks until a connection to the URI has been received. No response is returned to the client until
      * {@link #release()} is called.
+     *
+     * @param failAtTimeout if client connection timeout occurs: should the build fail directly or return with 'false'? (if it fails, it might hide the original error)
+     *
+     * @return false on timeout
      */
-    public void waitFor() {
+    public boolean waitFor(boolean failAtTimeout) {
         long expiry = monotonicClockMillis() + 20000;
         synchronized (lock) {
             while (!connected && !stopped) {
                 long delay = expiry - monotonicClockMillis();
                 if (delay <= 0) {
-                    throw new AssertionFailedError(String.format("Timeout waiting for client to connect to %s.", getUri()));
+                    String message = String.format("Timeout waiting for client to connect to %s.", getUri());
+                    if (failAtTimeout) {
+                        throw new AssertionFailedError(message);
+                    } else {
+                        System.out.println(message);
+                        return false;
+                    }
                 }
                 System.out.println("waiting for client to connect");
                 try {
@@ -191,6 +205,7 @@ public class CyclicBarrierHttpServer extends ExternalResource {
                 throw new AssertionFailedError(String.format("Server was stopped while waiting for client to connect to %s.", getUri()));
             }
             System.out.println("client connected - unblocking");
+            return true;
         }
     }
 

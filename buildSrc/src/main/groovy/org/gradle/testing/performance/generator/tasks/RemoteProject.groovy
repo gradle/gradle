@@ -17,6 +17,7 @@ package org.gradle.testing.performance.generator.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
@@ -24,16 +25,24 @@ import org.gradle.internal.os.OperatingSystem
 class RemoteProject extends DefaultTask {
     @Input String remoteUri
     @Input String branch
+    @Input @Optional String subdirectory
     @OutputDirectory File outputDirectory = project.file("$project.buildDir/$name")
 
     @TaskAction
     void checkout() {
         outputDirectory.deleteDir()
+        File tmpDir = getTemporaryDir()
+        if (tmpDir.exists()) {
+            project.delete(tmpDir)
+        }
         project.exec {
-            commandLine = ["git", "clone", "--depth", "1", "--branch", branch, remoteUri, outputDirectory.absolutePath]
+            commandLine = ["git", "clone", "--depth", "1", "--branch", branch, remoteUri, tmpDir.absolutePath]
             if (OperatingSystem.current().windows) {
                 commandLine = ["cmd", "/c"] + commandLine
             }
+            errorOutput = System.out
         }
+        File baseDir = subdirectory?new File(tmpDir, subdirectory) : tmpDir
+        baseDir.renameTo(outputDirectory)
     }
 }

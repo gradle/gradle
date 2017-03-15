@@ -64,10 +64,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
+    @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() })
     def "can debug with org.gradle.debug=true"() {
-        given:
-        debugPortIsFree()
-
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
 
@@ -79,26 +77,23 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         gradle.waitForFinish()
     }
 
-    boolean debugPortIsFree() {
+    static boolean debugPortIsFree() {
+        boolean free = true
+
         ConcurrentTestUtil.poll(30) {
-            boolean listening = false
-            Socket probe;
+            Socket probe
             try {
                 probe = new Socket(InetAddress.getLocalHost(), 5005)
                 // something is listening, keep polling
-                listening = true
+                free = false
             } catch (Exception e) {
                 // nothing listening - exit the polling loop
             } finally {
-                if (probe != null) {
-                    probe.close()
-                }
-            }
-
-            if (listening) {
-                throw new IllegalStateException("Something is listening on port 5005")
+                probe?.close()
             }
         }
+
+        free
     }
 
     def "running gradle with --scan flag marks BuildScanRequest as requested"() {
@@ -135,16 +130,16 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         succeeds("assertBuildScanRequest")
     }
 
-    def "running gradle with --scan without plugin applied results in error message"() {
+    def "running gradle with --scan without plugin applied results in a warning"() {
         when:
         buildFile << """
             task someTask
         """
         then:
-        fails("someTask", "--scan")
+        succeeds("someTask", "--scan")
 
         and:
-        errorOutput.contains("Build scan cannot be created since the build scan plugin has not been applied.\n"
+        outputContains("Build scan cannot be created since the build scan plugin has not been applied.\n"
             + "For more information on how to apply the build scan plugin, please visit https://gradle.com/get-started.")
     }
 

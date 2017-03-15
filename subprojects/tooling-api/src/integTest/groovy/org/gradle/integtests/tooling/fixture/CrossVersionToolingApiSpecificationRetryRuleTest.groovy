@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.api.GradleException
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
@@ -61,11 +63,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         iteration++
 
         when:
-        //def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
-        //fakeDaemonLogDir.mkdirs()
-        //def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
-        //fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
-        throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to Gradle daemon.")), iteration == 1)
+        throwWhen(new IOException("Some action failed", new GradleException("Timeout waiting to connect to Gradle daemon.\n more infos")), iteration == 1)
 
         then:
         true
@@ -77,25 +75,20 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         iteration++
 
         when:
-        def fakeDaemonLogDir = new File(toolingApi.daemonBaseDir, targetDist.version.baseVersion.version)
-        fakeDaemonLogDir.mkdirs()
-        def fakeDaemonLog = new File(fakeDaemonLogDir, "daemon-fake.out.log")
-        fakeDaemonLog << "Advertised daemon context: DefaultDaemonContext[uid=x,javaHome=/jdk,daemonRegistryDir=/daemon,pid=null,idleTimeout=120000,daemonOpts=-opt]"
-        throwWhen(new IOException("Some action failed", new IOException("Timeout waiting to connect to the Gradle daemon.")), iteration == 1)
+        throwWhen(new IOException("Some action failed", new GradleException("Timeout waiting to connect to the Gradle daemon.\n more infos")), iteration == 1)
 
         then:
         IOException ioe = thrown()
-        ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon."
+        ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon.\n more infos"
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "retries if expected exception occurs"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
 
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.",
             new IOException("Some exception in the chain",
                 new IOException("An existing connection was forcibly closed by the remote host"))), iteration == 1)
@@ -104,14 +97,13 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         true
     }
 
-    @Requires(adhoc = {!ToolingApiSpecification.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = {!RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "does not retry on non-windows and non-java7 environments"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
 
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -119,14 +111,13 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon('java.net.SocketException: Socket operation on nonsocket: no further information')
 
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("A different cause")), iteration == 1)
 
         then:
@@ -134,14 +125,13 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(adhoc = {ToolingApiSpecification.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
-        logWhileBuildingOnDaemon("Caused by: java.net.SocketException: Something else")
 
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        logToFakeDaemonLog("Caused by: java.net.SocketException: Something else")
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -149,7 +139,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.message == "Could not dispatch a message to the daemon."
     }
 
-    @TargetGradleVersion("<1.8")
+    @TargetGradleVersion("=1.7")
     def "project directory is cleaned before retry"() {
         given:
         iteration++
@@ -189,7 +179,11 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         }
     }
 
-    private void logWhileBuildingOnDaemon(String exceptionInDaemon) {
-        buildFile << "println '$exceptionInDaemon'" //makes the expected error appear in the daemon's log
+    private void logToFakeDaemonLog(String exceptionInDaemon) {
+        def logDir = new File(daemonsFixture.daemonBaseDir, daemonsFixture.getVersion())
+        logDir.mkdirs()
+        def log = new File(logDir, "daemon-fake.log")
+        log << "DefaultDaemonContext[uid=0000,javaHome=javaHome,daemonRegistryDir=daemonRegistryDir,pid=-9999,idleTimeout=120000,daemonOpts=daemonOpts]\n"
+        log << exceptionInDaemon
     }
 }

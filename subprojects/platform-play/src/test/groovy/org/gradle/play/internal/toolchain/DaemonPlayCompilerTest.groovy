@@ -15,10 +15,11 @@
  */
 
 package org.gradle.play.internal.toolchain
-import org.gradle.process.internal.daemon.WorkerDaemonFactory
+
 import org.gradle.api.tasks.compile.BaseForkOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.spec.PlayCompileSpec
+import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 
 class DaemonPlayCompilerTest extends Specification {

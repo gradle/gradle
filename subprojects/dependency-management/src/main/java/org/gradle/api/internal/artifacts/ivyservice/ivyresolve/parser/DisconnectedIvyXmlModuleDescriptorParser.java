@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.xml.sax.SAXException;
@@ -33,20 +34,33 @@ import java.util.Map;
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
 
 public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
+    private final IvyModuleDescriptorConverter moduleDescriptorConverter;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+    public DisconnectedIvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        super(moduleDescriptorConverter, moduleIdentifierFactory);
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    }
 
     @Override
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new DisconnectedParser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties);
+        return new DisconnectedParser(parseContext, moduleDescriptorConverter, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, moduleIdentifierFactory);
     }
 
     private static class DisconnectedParser extends Parser {
-        public DisconnectedParser(DescriptorParseContext parseContext, ExternalResource res, URL descriptorURL, Map<String, String> properties) {
-            super(parseContext, res, descriptorURL, properties);
+        private final IvyModuleDescriptorConverter moduleDescriptorConverter;
+        private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+        public DisconnectedParser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, Map<String, String> properties, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            super(parseContext, moduleDescriptorConverter, res, descriptorURL, moduleIdentifierFactory, properties);
+            this.moduleDescriptorConverter = moduleDescriptorConverter;
+            this.moduleIdentifierFactory = moduleIdentifierFactory;
         }
 
         @Override
         public Parser newParser(ExternalResource res, URL descriptorURL) {
-            Parser parser = new DisconnectedParser(getParseContext(), res, descriptorURL, properties);
+            Parser parser = new DisconnectedParser(getParseContext(), moduleDescriptorConverter, res, descriptorURL, properties, moduleIdentifierFactory);
             parser.setValidate(isValidate());
             return parser;
         }

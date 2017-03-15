@@ -25,7 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.classloader.ClassPathSnapshotter;
+import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
@@ -93,8 +93,8 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
             // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
             // We should be reusing those persistent snapshots to avoid reading into memory again.
-            ClassPathSnapshotter classPathSnapshotter = getServices().get(ClassPathSnapshotter.class);
-            String hash = classPathSnapshotter.snapshot(new DefaultClassPath(getPluginClasspath())).getStrongHash().toString();
+            ClasspathHasher classpathHasher = getServices().get(ClasspathHasher.class);
+            String hash = classpathHasher.hash(new DefaultClassPath(getPluginClasspath())).toString();
             properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, hash);
         }
 

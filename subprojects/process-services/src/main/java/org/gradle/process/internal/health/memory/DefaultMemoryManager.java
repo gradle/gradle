@@ -18,19 +18,19 @@ package org.gradle.process.internal.health.memory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableScheduledExecutor;
 import org.gradle.internal.event.ListenerManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultMemoryManager implements MemoryManager, Stoppable {
-    private static final Logger LOGGER = Logging.getLogger(MemoryManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MemoryManager.class);
     public static final int STATUS_INTERVAL_SECONDS = 5;
     private static final double DEFAULT_MIN_FREE_MEMORY_PERCENTAGE = 0.1D; // 10%
     private static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024; // 384M

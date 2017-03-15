@@ -287,25 +287,41 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public Rule addRule(final String description, final Closure ruleAction) {
-        return addRule(description, ClosureBackedAction.<String>of(ruleAction));
+        return addRule(new RuleAdapter(description) {
+            @Override
+            public void apply(String domainObjectName) {
+                ruleAction.call(domainObjectName);
+            }
+        });
     }
 
     @Override
     public Rule addRule(final String description, final Action<String> ruleAction) {
-        return addRule(new Rule() {
-            public String getDescription() {
-                return description;
-            }
-
-            public void apply(String taskName) {
-                ruleAction.execute(taskName);
-            }
-
+        return addRule(new RuleAdapter(description) {
             @Override
-            public String toString() {
-                return "Rule: " + description;
+            public void apply(String domainObjectName) {
+                ruleAction.execute(domainObjectName);
             }
         });
+    }
+
+    private static abstract class RuleAdapter implements Rule {
+
+        private final String description;
+
+        RuleAdapter(String description) {
+            this.description = description;
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String toString() {
+            return "Rule: " + description;
+        }
     }
 
     public List<Rule> getRules() {

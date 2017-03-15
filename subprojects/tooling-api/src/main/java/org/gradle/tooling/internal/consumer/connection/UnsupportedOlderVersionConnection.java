@@ -30,7 +30,7 @@ import org.gradle.tooling.model.internal.Exceptions;
 /**
  * An adapter for unsupported connection using a {@code ConnectionVersion4} based provider.
  *
- * <p>Used for providers >= 1.0-milestone-3 and <= 1.0-milestone-7.</p>
+ * <p>Used for providers >= 1.0-milestone-3 and <= 1.2.</p>
  */
 public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     private final ProtocolToModelAdapter adapter;

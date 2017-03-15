@@ -28,7 +28,7 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
         
         class BuildOperationLogPlugin implements Plugin<Project> {
             void apply(Project project){
-                project.gradle.services.get(BuildOperationService).addListener(new BuildOperationListener() {
+                def listener = new BuildOperationListener() {
                     @Override
                     void started(BuildOperationInternal operation, OperationStartEvent startEvent) {
                         project.logger.lifecycle "START \$operation.displayName"
@@ -38,7 +38,11 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
                     void finished(BuildOperationInternal operation, OperationResult finishEvent) {
                         project.logger.lifecycle "FINISH \$operation.displayName"
                     }
-                })
+                }
+                project.gradle.services.get(BuildOperationService).addListener(listener)
+                project.gradle.buildFinished {
+                    project.gradle.services.get(BuildOperationService).removeListener(listener)
+                }
             }
         }     
         """
@@ -52,5 +56,13 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.output.contains 'START Task :help'
         result.output.contains 'FINISH Task :help'
+
+        when:
+        buildFile.text = ""
+        succeeds("help")
+
+        then:
+        !result.output.contains('START Task :help')
+        !result.output.contains('FINISH Task :help')
     }
 }

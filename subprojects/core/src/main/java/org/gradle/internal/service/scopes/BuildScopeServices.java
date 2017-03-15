@@ -24,6 +24,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -67,8 +69,15 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
+import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
+import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
+import org.gradle.caching.internal.BuildCacheServiceProvider;
+import org.gradle.caching.internal.DefaultDirectoryBuildCacheServiceFactory;
 import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
 import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
+import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
@@ -118,6 +127,7 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
+import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
@@ -151,6 +161,8 @@ import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
+
+import java.util.List;
 
 /**
  * Contains the singleton services for a single build invocation.
@@ -218,7 +230,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
-            new PluginsProjectConfigureActions(cachingServiceLocator),
+            PluginsProjectConfigureActions.from(cachingServiceLocator),
             new BuildScriptProcessor(scriptPluginFactory),
             new DelayedConfigurationActions()
         );
@@ -297,7 +309,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
-                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
+                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer,
+                                                                CachingServiceLocator cachingServiceLocator) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
@@ -307,7 +320,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 cacheRepository,
                 buildOperationExecutor,
                 cachedClasspathTransformer,
-                new BuildSrcBuildListenerFactory()),
+                new BuildSrcBuildListenerFactory(
+                    PluginsProjectConfigureActions.of(
+                        BuildSrcProjectConfigurationAction.class,
+                        cachingServiceLocator))),
             buildLoader,
             serviceRegistry
         );
@@ -425,5 +441,23 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     BuildScanRequest createBuildScanRequest() {
         return new DefaultBuildScanRequest();
+    }
+
+    BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator, StartParameter startParameter) {
+        List<BuildCacheServiceRegistration> allBuildCacheServiceFactories = getAll(BuildCacheServiceRegistration.class);
+        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories, startParameter);
+    }
+
+    BuildCacheServiceProvider createBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor, TemporaryFileProvider temporaryFileProvider) {
+        return new BuildCacheServiceProvider(
+            buildCacheConfiguration,
+            startParameter,
+            new DependencyInjectingInstantiator(this, new DependencyInjectingInstantiator.ConstructorCache()),
+            buildOperationExecutor,
+            temporaryFileProvider);
+    }
+
+    BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
+        return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DefaultDirectoryBuildCacheServiceFactory.class);
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.performance.results;
 import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
+import org.gradle.performance.util.Git;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.reporting.ReportRenderer;
@@ -27,6 +28,7 @@ import org.gradle.util.GradleVersion;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
@@ -194,5 +196,18 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                 }
             }
         }
+    }
+
+    protected List<? extends PerformanceTestExecution> filterForRequestedCommit(List<? extends PerformanceTestExecution> results) {
+        String commitId = Git.current().getCommitId();
+        if (commitId == null) {
+            return results;
+        }
+        for (PerformanceTestExecution execution : results) {
+            if (execution.getVcsCommits().contains(commitId)) {
+                return results;
+            }
+        }
+        return Collections.emptyList();
     }
 }

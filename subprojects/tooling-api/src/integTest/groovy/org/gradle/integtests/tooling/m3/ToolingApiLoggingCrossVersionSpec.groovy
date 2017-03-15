@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.m3
 
-import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
@@ -47,17 +46,19 @@ task log {
         def output = new TestOutputStream()
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
-            build.standardOutput =  new TeeOutputStream(output, System.out)
+            build.standardOutput = output
             build.forTasks("log")
             build.run(resultHandler)
-            server.waitFor()
-            ConcurrentTestUtil.poll {
-                // Need to poll, as logging output is delivered asynchronously to client
-                assert output.toString().contains(waitingMessage)
+            if (server.waitFor(false)) {
+                ConcurrentTestUtil.poll {
+                    // Need to poll, as logging output is delivered asynchronously to client
+                    assert output.toString().contains(waitingMessage)
+                }
+                assert !output.toString().contains(finishedMessage)
+                server.release()
+                resultHandler.finished()
             }
-            assert !output.toString().contains(finishedMessage)
-            server.release()
-            resultHandler.finished()
+            resultHandler.failWithFailure()
         }
 
         then:

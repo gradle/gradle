@@ -16,7 +16,17 @@
 package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.apache.maven.settings.Settings;
-import org.apache.maven.settings.building.*;
+import org.apache.maven.settings.building.DefaultSettingsBuilder;
+import org.apache.maven.settings.building.DefaultSettingsBuilderFactory;
+import org.apache.maven.settings.building.DefaultSettingsBuildingRequest;
+import org.apache.maven.settings.building.SettingsBuildingException;
+import org.apache.maven.settings.building.SettingsBuildingResult;
+import org.apache.maven.settings.io.DefaultSettingsReader;
+import org.apache.maven.settings.io.SettingsReader;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.Map;
 
 public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
 
@@ -26,6 +36,13 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
         this.mavenFileLocations = mavenFileLocations;
     }
 
+    /**
+     * Builds a complete `Settings` instance for this machine.
+     *
+     * Note that this can be an expensive operation, spawning an external process
+     * and doing a bunch of additional processing.
+     */
+    @Override
     public Settings buildSettings() throws SettingsBuildingException {
         DefaultSettingsBuilderFactory factory = new DefaultSettingsBuilderFactory();
         DefaultSettingsBuilder defaultSettingsBuilder = factory.newInstance();
@@ -35,5 +52,30 @@ public class DefaultMavenSettingsProvider implements MavenSettingsProvider {
         settingsBuildingRequest.setGlobalSettingsFile(mavenFileLocations.getGlobalSettingsFile());
         SettingsBuildingResult settingsBuildingResult = defaultSettingsBuilder.build(settingsBuildingRequest);
         return settingsBuildingResult.getEffectiveSettings();
+    }
+
+    /**
+     * Read the local repository location from local Maven settings files.
+     */
+    @Override
+    public String getLocalRepository() {
+        String localRepo = readLocalRepository(mavenFileLocations.getUserSettingsFile());
+        if (localRepo == null) {
+            localRepo = readLocalRepository(mavenFileLocations.getGlobalSettingsFile());
+        }
+        return localRepo;
+    }
+
+    private String readLocalRepository(File settingsFile) {
+        if (settingsFile == null || !settingsFile.exists()) {
+            return null;
+        }
+        Map<String, ?> options = Collections.singletonMap(SettingsReader.IS_STRICT, Boolean.FALSE);
+        SettingsReader settingsReader = new DefaultSettingsReader();
+        try {
+            return settingsReader.read(settingsFile, options).getLocalRepository();
+        } catch (Exception parseException) {
+            throw new CannotLocateLocalMavenRepositoryException("Unable to parse local Maven settings: " + settingsFile.getAbsolutePath(), parseException);
+        }
     }
 }

@@ -15,9 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
 import java.io.File;
@@ -25,7 +24,7 @@ import java.io.File;
 /**
  * Information about a resolved artifact.
  */
-public interface ResolvedArtifact extends HasAttributes {
+public interface ResolvedArtifact {
     File getFile();
 
     /**

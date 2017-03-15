@@ -1,4 +1,3 @@
-import org.gradle.build.ReproduciblePropertiesWriter
 import org.gradle.build.ClasspathManifest
 
 import java.util.jar.Attributes
@@ -18,7 +17,7 @@ ext {
 }
 
 dependencies {
-    testCompile libraries.junit, libraries.jmock, libraries.spock
+    testCompile libraries.junit, libraries.jmock, libraries.spock, libraries.groovy
 }
 
 // Extracted as it's also used by buildSrc
@@ -33,9 +32,16 @@ sourceSets {
 testTasks.all { task ->
     maxParallelForks = rootProject.maxParallelForks
     if (isCiServer) {
-        systemProperties['org.gradle.test.maxParallelForks'] = maxParallelForks
-        systemProperties['org.gradle.ci.agentCount'] = 2
-        systemProperties['org.gradle.ci.agentNum'] = rootProject.agentNum
+        def ciProperties = [
+            'org.gradle.test.maxParallelForks': maxParallelForks,
+            'org.gradle.ci.agentCount': 2,
+            'org.gradle.ci.agentNum': rootProject.agentNum,
+        ]
+        systemProperties(ciProperties)
+        // Ignore Forking/agentNum properties in order to be able to pull tests
+        inputs.property('systemProperties') {
+            systemProperties - ciProperties
+        }
     }
     if (javaVersion.java7) {
         // enable class unloading
@@ -76,7 +82,6 @@ if (file("src/testFixtures").exists()) {
 }
 
 apply from: "$rootDir/gradle/integTest.gradle"
-
 
 if (file("src/performanceTest").exists()) {
     apply from: "$rootDir/gradle/performanceTest.gradle"

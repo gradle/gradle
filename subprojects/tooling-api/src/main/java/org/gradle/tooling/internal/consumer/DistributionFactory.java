@@ -41,9 +41,10 @@ import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.net.URI;
-import java.util.LinkedHashSet;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -243,12 +244,14 @@ public class DistributionFactory {
             if (!libDir.isDirectory()) {
                 throw new IllegalArgumentException(String.format("The specified %s does not appear to contain a Gradle distribution.", locationDisplayName));
             }
-            LinkedHashSet<File> files = new LinkedHashSet<File>();
-            for (File file : libDir.listFiles()) {
-                if (hasExtension(file, ".jar")) {
-                    files.add(file);
+            File[] files = libDir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return hasExtension(file, ".jar");
                 }
-            }
+            });
+            // Make sure file order is always consistent
+            Arrays.sort(files);
             return new DefaultClassPath(files);
         }
     }

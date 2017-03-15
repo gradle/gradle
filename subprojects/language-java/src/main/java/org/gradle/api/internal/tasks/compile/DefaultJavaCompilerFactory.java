@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.process.internal.daemon.WorkerDaemonFactory;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;

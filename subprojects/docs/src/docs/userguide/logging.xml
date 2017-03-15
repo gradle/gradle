@@ -80,6 +80,12 @@
             </tr>
             <tr>
                 <td>
+                    <literal>-w</literal> or <literal>--warn</literal>
+                </td>
+                <td>WARN and higher</td>
+            </tr>
+            <tr>
+                <td>
                     <literal>-i</literal> or <literal>--info</literal>
                 </td>
                 <td>INFO and higher</td>

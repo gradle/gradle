@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 
 public interface TaskOutputCachingState {
     /**
@@ -25,8 +26,14 @@ public interface TaskOutputCachingState {
     boolean isEnabled();
 
     /**
-     * Gives reasons why caching is not enabled for the task.
+     * Returns the reason why caching is disabled for the task.
      */
     @Nullable
     String getDisabledReason();
+
+    /**
+     * Returns the category of the reason why caching is disabled for the task.
+     */
+    @Nullable
+    TaskOutputCachingDisabledReasonCategory getDisabledReasonCategory();
 }

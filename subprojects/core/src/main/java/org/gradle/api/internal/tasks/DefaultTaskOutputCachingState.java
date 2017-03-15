@@ -16,23 +16,29 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskOutputCachingState;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
 
 class DefaultTaskOutputCachingState implements TaskOutputCachingState {
-    static final TaskOutputCachingState ENABLED = new DefaultTaskOutputCachingState(null);
-    static final TaskOutputCachingState DISABLED = disabled("Task output caching is disabled.");
+    static final TaskOutputCachingState ENABLED = new DefaultTaskOutputCachingState(null, null);
+    static final TaskOutputCachingState DISABLED = disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
 
-    static TaskOutputCachingState disabled(String disabledReason) {
+    static TaskOutputCachingState disabled(TaskOutputCachingDisabledReasonCategory disabledReasonCategory, String disabledReason) {
         checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task output caching is disabled");
-        return new DefaultTaskOutputCachingState(disabledReason);
+        checkNotNull(disabledReasonCategory, "disabledReasonCategory must be set if task output caching is disabled");
+        return new DefaultTaskOutputCachingState(disabledReasonCategory, disabledReason);
     }
 
     private final String disabledReason;
+    private final TaskOutputCachingDisabledReasonCategory disabledReasonCategory;
 
-    private DefaultTaskOutputCachingState(String disabledReason) {
+    private DefaultTaskOutputCachingState(TaskOutputCachingDisabledReasonCategory disabledReasonCategory, String disabledReason) {
+        this.disabledReasonCategory = disabledReasonCategory;
         this.disabledReason = disabledReason;
     }
 
@@ -41,15 +47,23 @@ class DefaultTaskOutputCachingState implements TaskOutputCachingState {
         return disabledReason == null;
     }
 
+    @Nullable
     @Override
     public String getDisabledReason() {
         return disabledReason;
+    }
+
+    @Nullable
+    @Override
+    public TaskOutputCachingDisabledReasonCategory getDisabledReasonCategory() {
+        return disabledReasonCategory;
     }
 
     @Override
     public String toString() {
         return "DefaultTaskOutputCachingState{"
             + "disabledReason='" + disabledReason + '\''
+            + ", disabledReasonCategory=" + disabledReasonCategory
             + '}';
     }
 }

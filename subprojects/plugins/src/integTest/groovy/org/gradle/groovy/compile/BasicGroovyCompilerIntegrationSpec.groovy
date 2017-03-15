@@ -29,7 +29,7 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.7'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.9'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
@@ -94,7 +94,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        checkCompileOutput('unable to resolve class')
         failure.assertHasCause(compilationFailureMessage)
 
         file('build/classes/stub/Groovy.java').exists()
@@ -113,7 +113,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        checkCompileOutput('unable to resolve class')
         failure.assertHasCause(compilationFailureMessage)
 
         // No Groovy stubs will be created if there are no java files
@@ -140,7 +140,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        checkCompileOutput('unable to resolve class')
         failure.assertHasCause(compilationFailureMessage)
 
         // Because annotation processing is disabled
@@ -161,7 +161,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        checkCompileOutput('unable to resolve class')
         failure.assertHasCause(compilationFailureMessage)
 
         // If there is no annotation processor on the classpath,
@@ -230,7 +230,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        checkCompileOutput('unable to resolve class')
         failure.assertHasCause(compilationFailureMessage)
 
         // Because there is an annotation processor on the classpath,
@@ -289,7 +289,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains 'unable to resolve class'
+        checkCompileOutput('unable to resolve class')
         failure.assertHasCause(compilationFailureMessage)
 
         // Because annotation processing is disabled
@@ -373,7 +373,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         fails("compileGroovy")
-        compileErrorOutput.contains('Cannot find matching method java.lang.String#bar()')
+        checkCompileOutput('Cannot find matching method java.lang.String#bar()')
     }
 
     def "failsBecauseOfMissingConfigFile"() {
@@ -415,7 +415,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         then:
         fails("compileGroovy")
-        compileErrorOutput.contains("unable to resolve class ${gradleBaseServicesClass.name}")
+        checkCompileOutput("unable to resolve class ${gradleBaseServicesClass.name}")
     }
 
     @Ignore
@@ -587,6 +587,10 @@ ${compilerConfiguration()}
                 }
             }
         }
+    }
+
+    String checkCompileOutput(String errorMessage) {
+        compileErrorOutput.contains(errorMessage)
     }
 
     protected boolean gradleLeaksIntoAnnotationProcessor() {

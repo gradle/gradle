@@ -59,7 +59,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         1 * outputs.getCachingState() >> taskOutputCaching
         1 * taskState.setTaskOutputCaching(taskOutputCaching)
         1 * taskOutputCaching.isEnabled() >> false
-        1 * taskOutputCaching.getDisabledReason() >> "Some reason"
+        1 * taskOutputCaching.getDisabledReason() >> "Some"
 
         then:
         1 * delegate.execute(task, taskState, taskContext)

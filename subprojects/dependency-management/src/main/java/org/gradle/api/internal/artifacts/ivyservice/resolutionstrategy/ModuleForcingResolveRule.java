@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
@@ -33,11 +33,14 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
 
     private final Map<ModuleIdentifier, String> forcedModules;
 
-    public ModuleForcingResolveRule(Collection<? extends ModuleVersionSelector> forcedModules) {
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+    public ModuleForcingResolveRule(Collection<? extends ModuleVersionSelector> forcedModules, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         if (!forcedModules.isEmpty()) {
             this.forcedModules = new HashMap<ModuleIdentifier, String>();
             for (ModuleVersionSelector module : forcedModules) {
-                this.forcedModules.put(new DefaultModuleIdentifier(module.getGroup(), module.getName()), module.getVersion());
+                this.forcedModules.put(moduleIdentifierFactory.module(module.getGroup(), module.getName()), module.getVersion());
             }
         } else {
             this.forcedModules = null;
@@ -49,7 +52,7 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
         if (forcedModules == null) {
             return;
         }
-        ModuleIdentifier key = new DefaultModuleIdentifier(details.getOldRequested().getGroup(), details.getOldRequested().getName());
+        ModuleIdentifier key = moduleIdentifierFactory.module(details.getOldRequested().getGroup(), details.getOldRequested().getName());
         if (forcedModules.containsKey(key) && details.getRequested() instanceof ModuleComponentSelector) {
             details.useTarget(DefaultModuleComponentSelector.newSelector(key.getGroup(), key.getName(), forcedModules.get(key)), VersionSelectionReasons.FORCED);
         }

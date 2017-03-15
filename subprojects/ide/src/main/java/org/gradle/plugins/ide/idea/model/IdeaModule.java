@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -29,12 +30,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning module details (*.iml file) of the IDEA plugin.
@@ -441,7 +443,7 @@ public class IdeaModule {
     }
 
     /**
-     * See {@link #iml(Closure)}
+     * See {@link #iml(Action)}
      */
     public IdeaModuleIml getIml() {
         return iml;
@@ -490,7 +492,18 @@ public class IdeaModule {
      * For example see docs for {@link IdeaModule}.
      */
     public void iml(Closure closure) {
-        ConfigureUtil.configure(closure, getIml());
+        configure(closure, getIml());
+    }
+
+    /**
+     * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
+     * <p>
+     * For example see docs for {@link IdeaModule}.
+     *
+     * @since 3.5
+     */
+    public void iml(Action<? super IdeaModuleIml> action) {
+        action.execute(getIml());
     }
 
     /**

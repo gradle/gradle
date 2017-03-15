@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.authentication.Authentication;
@@ -46,6 +47,7 @@ public class RepositoryTransportFactory {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
@@ -54,12 +56,14 @@ public class RepositoryTransportFactory {
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
                                       CacheLockingManager cacheLockingManager,
+                                      ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                       BuildOperationExecutor buildOperationExecutor) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
 
         for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
@@ -100,7 +104,7 @@ public class RepositoryTransportFactory {
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
-        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector, buildOperationExecutor);
+        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector, buildOperationExecutor, moduleIdentifierFactory);
     }
 
     private void validateSchemes(Set<String> schemes) {

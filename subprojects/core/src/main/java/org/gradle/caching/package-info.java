@@ -15,6 +15,8 @@
  */
 
 /**
- * Classes for build caching.
+ * Classes for build caches.
+ *
+ * @since 3.3
  */
 package org.gradle.caching;

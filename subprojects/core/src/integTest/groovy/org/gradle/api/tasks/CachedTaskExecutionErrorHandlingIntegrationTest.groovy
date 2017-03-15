@@ -22,75 +22,109 @@ import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
     def setup() {
-        file("init-cache.gradle") << """
-            import org.gradle.caching.*
-            import org.gradle.caching.internal.*
-
-            buildCache {
-                useCacheFactory { startParameter ->
-                    return new BuildCache() {
-                        @Override
-                        boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-                            if (startParameter.systemPropertiesArgs.containsKey("fail")) {
-                                throw new BuildCacheException("Unable to read " + key)
-                            } else {
-                                return false
-                            }
-                        }
+        settingsFile << """
+            class FailingBuildCache extends AbstractBuildCache {
+                boolean shouldFail
+            }
             
-                        @Override
-                        void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-                            if (startParameter.systemPropertiesArgs.containsKey("fail")) {
-                                throw new BuildCacheException("Unable to write " + key)
-                            }
-                        }
+            class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory<FailingBuildCache> {
+                FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration) {
+                    return new FailingBuildCacheService(configuration.shouldFail)
+                }
+            }
             
-                        @Override
-                        String getDescription() {
-                            return "Failing cache backend"
-                        }
-            
-                        @Override
-                        void close() throws IOException {
-                        }
+            class FailingBuildCacheService implements BuildCacheService {
+                boolean shouldFail
+                
+                FailingBuildCacheService(boolean shouldFail) {
+                    this.shouldFail = shouldFail
+                }
+                
+                @Override
+                boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+                    if (shouldFail) {
+                        throw new BuildCacheException("Unable to read " + key)
+                    } else {
+                        return false
                     }
+                }
+    
+                @Override
+                void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+                    if (shouldFail) {
+                        throw new BuildCacheException("Unable to write " + key)
+                    }
+                }
+    
+                @Override
+                String getDescription() {
+                    return "Failing cache backend"
+                }
+    
+                @Override
+                void close() throws IOException {
+                }
+            }
+            
+            buildCache {
+                registerBuildCacheService(FailingBuildCache, FailingBuildCacheServiceFactory)
+                
+                local {
+                    enabled = false
+                }
+                
+                remote(FailingBuildCache) {
+                    shouldFail = gradle.startParameter.systemPropertiesArgs.containsKey("fail")
+                    push = true
                 }
             }
         """
 
         buildFile << """
             apply plugin: "java"
+            
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile 
+                File outputFile = new File(temporaryDir, "output.txt")
+                
+                @TaskAction
+                void generate() {
+                    outputFile.text = "done"
+                }
+            }
+            
+            task customTask(type: CustomTask)
+            task anotherCustomTask(type: CustomTask)
+            
+            assemble.dependsOn customTask, anotherCustomTask
         """
 
         file("src/main/java/Hello.java") << "public class Hello {}"
     }
 
     def "cache switches off after third error for the current build"() {
-        when:
-        setupExecuter()
+        // We require a distribution here so that we can capture
+        // the output produced after the build has finished
+        executer.requireGradleDistribution()
+        executer.withBuildCacheEnabled()
         executer.withStackTraceChecksDisabled()
+
+        when:
         succeeds "assemble", "-Dfail"
         then:
-        output.count("Could not load cache entry") + output.count("Could not store cache entry") == 3
-        output.count("Failing cache backend is now disabled because 3 errors were encountered") == 1
-        output.count("Failing cache backend was disabled during the build after encountering 3 errors.") == 1
+        output.count("Could not load entry") == 2
+        output.count("Could not store entry") == 1
+        output.count("The remote build cache is now disabled because 3 errors were encountered") == 1
+        output.count("The remote build cache was disabled during the build after encountering 3 errors.") == 1
 
         expect:
         succeeds "clean"
 
         when:
-        setupExecuter()
         succeeds "assemble"
-
         then:
-        !output.contains("Failing cache backend is now disabled")
-        !output.contains("Failing cache backend was disabled during the build")
-    }
-
-    private void setupExecuter() {
-        // We need this so that we can capture the output produced after the build has finished
-        executer.requireGradleDistribution()
-        executer.withBuildCacheEnabled()
-            .withArgument "-I" withArgument "init-cache.gradle"
+        !output.contains("The remote build cache is now disabled")
+        !output.contains("The remote build cache was disabled during the build")
     }
 }

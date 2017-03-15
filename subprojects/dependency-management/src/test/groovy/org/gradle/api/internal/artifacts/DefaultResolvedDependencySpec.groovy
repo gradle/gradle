@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedArtifactSet
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import spock.lang.Specification
 
 class DefaultResolvedDependencySpec extends Specification {
@@ -75,7 +75,7 @@ class DefaultResolvedDependencySpec extends Specification {
 
         given:
         dependency.parents.add(parent)
-        dependency.addParentSpecificArtifacts(parent, ArtifactBackedArtifactSet.of([artifact6, artifact1, artifact7, artifact5, artifact2, artifact3, artifact4]))
+        dependency.addParentSpecificArtifacts(parent, TestArtifactSet.create(ImmutableAttributes.EMPTY, [artifact6, artifact1, artifact7, artifact5, artifact2, artifact3, artifact4]))
 
         expect:
         dependency.getParentArtifacts(parent) as List == [artifact1, artifact2, artifact3, artifact4, artifact5, artifact6, artifact7]
@@ -92,6 +92,6 @@ class DefaultResolvedDependencySpec extends Specification {
     }
 
     def add(DefaultResolvedDependency dependency, ResolvedArtifact artifact) {
-        dependency.addParentSpecificArtifacts(Stub(DefaultResolvedDependency), ArtifactBackedArtifactSet.of([artifact]))
+        dependency.addParentSpecificArtifacts(Stub(DefaultResolvedDependency), TestArtifactSet.create(ImmutableAttributes.EMPTY, [artifact]))
     }
 }

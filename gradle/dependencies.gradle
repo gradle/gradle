@@ -21,7 +21,7 @@ ext {
 
 versions.commons_io = 'commons-io:commons-io:2.2'
 
-versions.groovy = "2.4.7"
+versions.groovy = "2.4.9"
 
 versions.bouncycastle = "1.51"
 
@@ -83,21 +83,24 @@ libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:ht
 
 
 libraries += [
-        dom4j: 'dom4j:dom4j:1.6.1@jar',
-        guava: 'com.google.guava:guava-jdk5:17.0@jar',
-        jsr305: 'com.google.code.findbugs:jsr305:1.3.9@jar',
-        groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}",
-        jaxen: 'jaxen:jaxen:1.1@jar',
-        jcip: "net.jcip:jcip-annotations:1.0@jar",
-        junit: 'junit:junit:4.12@jar',
-        xmlunit: 'xmlunit:xmlunit:1.3',
-        equalsVerifier: 'nl.jqno.equalsverifier:equalsverifier:2.1.6',
-        nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
-        xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
-        nativePlatform: 'net.rubygrapefruit:native-platform:0.13',
-        xerces: "xerces:xercesImpl:2.9.1",
-        objenesis: 'org.objenesis:objenesis:1.2@jar',
-        jsoup:'org.jsoup:jsoup:1.6.3'
+    jatl: 'com.googlecode.jatl:jatl:0.2.2',
+    dom4j: 'dom4j:dom4j:1.6.1@jar',
+    guava: 'com.google.guava:guava-jdk5:17.0@jar',
+    kryo: 'com.esotericsoftware.kryo:kryo:2.20',
+    jsr305: 'com.google.code.findbugs:jsr305:1.3.9@jar',
+    groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}",
+    jaxen: 'jaxen:jaxen:1.1@jar',
+    jcip: "net.jcip:jcip-annotations:1.0@jar",
+    junit: 'junit:junit:4.12@jar',
+    xmlunit: 'xmlunit:xmlunit:1.3',
+    equalsVerifier: 'nl.jqno.equalsverifier:equalsverifier:2.1.6',
+    nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
+    xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
+    nativePlatform: 'net.rubygrapefruit:native-platform:0.14',
+    jansi: dependencies.module('org.fusesource.jansi:jansi:1.14'),
+    xerces: "xerces:xercesImpl:2.9.1",
+    objenesis: 'org.objenesis:objenesis:1.2@jar',
+    jsoup:'org.jsoup:jsoup:1.6.3'
 ]
 
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {

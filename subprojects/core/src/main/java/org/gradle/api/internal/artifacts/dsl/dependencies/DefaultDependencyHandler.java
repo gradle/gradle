@@ -26,8 +26,8 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformRegistrations;
+import org.gradle.api.artifacts.transform.VariantTransform;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityRuleChain;
@@ -41,7 +41,7 @@ import org.gradle.util.ConfigureUtil;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
 public class DefaultDependencyHandler extends GroovyObjectSupport implements DependencyHandler, MethodMixIn {
     private static final Action<AttributeMatchingStrategy<String>> ARTIFACT_ATTRIBUTE_CONFIG = new Action<AttributeMatchingStrategy<String>>() {
@@ -55,8 +55,6 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         @Override
         public void execute(AttributesSchema attributesSchema) {
             attributesSchema.attribute(ARTIFACT_FORMAT, ARTIFACT_ATTRIBUTE_CONFIG);
-            attributesSchema.attribute(ARTIFACT_CLASSIFIER, ARTIFACT_ATTRIBUTE_CONFIG);
-            attributesSchema.attribute(ARTIFACT_EXTENSION, ARTIFACT_ATTRIBUTE_CONFIG);
         }
     };
 
@@ -67,13 +65,13 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     private final ComponentModuleMetadataHandler componentModuleMetadataHandler;
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final AttributesSchema attributesSchema;
-    private final ArtifactTransformRegistrations transforms;
+    private final VariantTransformRegistry transforms;
     private final DynamicMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
                                     ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
                                     ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema,
-                                    ArtifactTransformRegistrations transforms) {
+                                    VariantTransformRegistry transforms) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
@@ -193,8 +191,8 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     }
 
     @Override
-    public void registerTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransform> config) {
-        transforms.registerTransform(type, config);
+    public void registerTransform(Action<? super VariantTransform> registrationAction) {
+        transforms.registerTransform(registrationAction);
     }
 
     private class DynamicMethods implements MethodAccess {

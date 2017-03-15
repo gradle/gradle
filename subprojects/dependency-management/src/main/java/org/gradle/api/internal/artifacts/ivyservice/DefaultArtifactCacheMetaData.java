@@ -26,13 +26,21 @@ public class DefaultArtifactCacheMetaData implements ArtifactCacheMetaData, Cach
 
     public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
     private final File cacheDir;
+    private final File transformsDir;
 
     public DefaultArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
         cacheDir = cacheScopeMapping.getBaseDirectory(null, CacheLayout.ROOT.getKey(), VersionStrategy.SharedCache);
+        transformsDir = cacheScopeMapping.getBaseDirectory(null, CacheLayout.TRANSFORMS.getKey(), VersionStrategy.SharedCache);
     }
 
+    @Override
     public File getCacheDir() {
         return cacheDir;
+    }
+
+    @Override
+    public File getTransformsStoreDirectory() {
+        return transformsDir;
     }
 
     @Override
@@ -40,10 +48,12 @@ public class DefaultArtifactCacheMetaData implements ArtifactCacheMetaData, Cach
         return getFileStoreDirectory();
     }
 
+    @Override
     public File getFileStoreDirectory() {
         return createCacheRelativeDir(CacheLayout.FILE_STORE);
     }
 
+    @Override
     public File getMetaDataStoreDirectory() {
         return new File(createCacheRelativeDir(CacheLayout.META_DATA), "descriptors");
     }

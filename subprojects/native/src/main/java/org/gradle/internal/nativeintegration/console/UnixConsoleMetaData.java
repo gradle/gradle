@@ -51,4 +51,17 @@ public class UnixConsoleMetaData implements ConsoleMetaData {
         }
         return 0;
     }
+
+    @Override
+    public int getRows() {
+        final String rows = System.getenv("LINES");
+        if (rows != null) {
+            try {
+                return Integer.parseInt(rows);
+            } catch (NumberFormatException ex) {
+                LOGGER.debug("Cannot parse LINES environment variable to get console height. Value: '{}'", rows);
+            }
+        }
+        return 0;
+    }
 }

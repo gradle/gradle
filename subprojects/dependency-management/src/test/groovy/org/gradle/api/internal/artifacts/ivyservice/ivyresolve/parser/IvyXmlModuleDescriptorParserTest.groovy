@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -42,9 +43,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
-    DescriptorParseContext parseContext = Mock()
+    DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory)
 
+    DescriptorParseContext parseContext = Mock()
     ModuleDescriptorState md
     MutableIvyModuleResolveMetadata metadata
 
@@ -349,6 +351,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertArtifacts("myconf3", ["myartifact1", "myartifact3", "myartifact4"])
         assertArtifacts("myconf4", ["myartifact1"])
 
+        assertArtifact('myartifact1', 'jar', 'jar', 'classy1')
+        assertArtifact('myartifact2', 'jar', 'jar', 'classy2')
+        assertArtifact('myartifact3', 'jar', 'jar', null)
+
         metadata.dependencies.size() == 13
 
         verifyFullDependencies(metadata.dependencies)
@@ -599,6 +605,45 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         artifacts("d")*.artifactName*.name == ['mymodule', 'art2']
     }
 
+    def "parses artifact attributes"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0" 
+                    xmlns:m="http://ant.apache.org/ivy/maven" 
+                    xmlns:e="http://ant.apache.org/ivy/extra"
+                    xmlns:arbitrary="http://anything.org">
+                <info organisation="myorg"
+                      module="mymodule"
+                      revision="myrev">
+                </info>
+                <configurations>
+                    <conf name="a" />
+                </configurations>
+                <publications>
+                    <artifact/>
+                    <artifact name='art2' type='type' ext='ext'/>
+                    <artifact name='art3' type='type2' m:classifier='classy1'/>
+                    <artifact name='art4' ext='ext' e:classifier='classy2'/>
+                    <artifact name='art5' arbitrary:classifier='classy3'/>
+                </publications>
+            </ivy-module>
+        """
+
+        when:
+        parse(parseContext, file)
+
+        then:
+        assertArtifacts("a", ["mymodule", "art2", "art3", "art4", "art5"])
+
+        and:
+        assertArtifact('mymodule', 'jar', 'jar', null)
+        assertArtifact('art2', 'ext', 'type', null)
+        assertArtifact('art3', 'type2', 'type2', 'classy1')
+        assertArtifact('art4', 'ext', 'jar', 'classy2')
+        assertArtifact('art5', 'jar', 'jar', 'classy3')
+    }
+
     def "accumulates configurations if the same artifact listed more than once"() {
         given:
         def file = temporaryFolder.createFile("ivy.xml")
@@ -663,6 +708,14 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     static componentId(String group, String module, String version) {
         DefaultModuleComponentIdentifier.newId(group, module, version)
+    }
+
+    void assertArtifact(String name, String extension, String type, String classifier) {
+        def artifactName = md.artifacts*.artifactName.find({it.name == name})
+        assert artifactName.name == name
+        assert artifactName.type == type
+        assert artifactName.extension == extension
+        assert artifactName.classifier == classifier
     }
 
     def verifyFullDependencies(Collection<IvyDependencyMetadata> dependencies) {
@@ -746,9 +799,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         dd = getDependency(dependencies, "yourmodule10")
         assert dd.requested == newSelector("yourorg", "yourmodule10", "10.1")
         assert dd.dependencyArtifacts.empty
-        assert dd.dependencyExcludes.size() == 1
-        assert dd.dependencyExcludes[0].artifact.name == "toexclude"
-        assert dd.dependencyExcludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
+        assert dd.excludes.size() == 1
+        assert dd.excludes[0].artifact.name == "toexclude"
+        assert dd.excludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
         true
     }
 

@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.internal.resolve.VariantSelector;
+import org.gradle.api.internal.resolve.VariantBinarySelector;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.BinarySpec;
@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class JvmVariantSelector implements VariantSelector {
+public class JvmVariantSelector implements VariantBinarySelector {
     private final VariantsMatcher variantsMatcher;
     private final VariantsMetaData variantsMetaData;
 

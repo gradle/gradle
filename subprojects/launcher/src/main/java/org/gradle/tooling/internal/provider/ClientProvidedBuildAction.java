@@ -22,11 +22,13 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 public class ClientProvidedBuildAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
     private final SerializedPayload action;
+    private final boolean runTasks;
 
-    public ClientProvidedBuildAction(StartParameter startParameter, SerializedPayload action, BuildClientSubscriptions clientSubscriptions) {
+    public ClientProvidedBuildAction(StartParameter startParameter, SerializedPayload action, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.action = action;
+        this.runTasks = runTasks;
     }
 
     @Override
@@ -36,5 +38,9 @@ public class ClientProvidedBuildAction extends SubscribableBuildAction {
 
     public SerializedPayload getAction() {
         return action;
+    }
+
+    public boolean isRunTasks() {
+        return runTasks;
     }
 }

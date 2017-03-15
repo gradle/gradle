@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -41,12 +42,13 @@ import org.gradle.util.DeprecationLogger;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
+
 public class DefaultTaskOutputs implements TaskOutputsInternal {
-    private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled("Caching has not been enabled for the task");
-    private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled("No outputs declared");
+    private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task");
+    private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
@@ -54,7 +56,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private TaskExecutionHistory history;
     private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
-    private SortedSet<TaskOutputFilePropertySpec> fileProperties;
+    private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
@@ -104,19 +106,27 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
                 return DefaultTaskOutputCachingState.disabled(
+                    PLURAL_OUTPUTS,
                     "Declares multiple output files for the single output property '"
                         + spec.getPropertyName()
-                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`");
+                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+                );
             }
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
             if (!selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
+                return DefaultTaskOutputCachingState.disabled(
+                    CACHE_IF_SPEC_NOT_SATISFIED,
+                    "'" + selfDescribingSpec.getDisplayName() + "' not satisfied"
+                );
             }
         }
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
             if (selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCachingState.disabled("'" + selfDescribingSpec.getDisplayName() + "' satisfied");
+                return DefaultTaskOutputCachingState.disabled(
+                    DO_NOT_CACHE_IF_SPEC_SATISFIED,
+                    "'" + selfDescribingSpec.getDisplayName() + "' satisfied"
+                );
             }
         }
         return DefaultTaskOutputCachingState.ENABLED;
@@ -167,7 +177,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public SortedSet<TaskOutputFilePropertySpec> getFileProperties() {
+    public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
             TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
             Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(filePropertiesInternal, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {

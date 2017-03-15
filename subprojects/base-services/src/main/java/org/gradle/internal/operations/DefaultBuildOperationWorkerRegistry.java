@@ -54,6 +54,15 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
         return doStartOperation(parent);
     }
 
+    @Override
+    public Completion maybeStartOperation() {
+        List<DefaultOperation> operations = threads.get(Thread.currentThread());
+        if (operations.isEmpty()) {
+            return operationStart();
+        }
+        return new NoOpCompletion();
+    }
+
     private BuildOperationWorkerRegistry.Completion doStartOperation(LeaseHolder parent) {
         synchronized (lock) {
             int workerId = counter++;
@@ -176,6 +185,13 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
                     throw new IllegalStateException("Some child operations have not yet completed.");
                 }
             }
+        }
+    }
+
+    private static class NoOpCompletion implements Completion {
+        @Override
+        public void operationFinish() {
+
         }
     }
 }

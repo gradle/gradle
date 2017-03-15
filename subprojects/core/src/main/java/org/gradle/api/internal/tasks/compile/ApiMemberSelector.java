@@ -83,7 +83,7 @@ public class ApiMemberSelector extends ClassVisitor {
         }
         for (FieldMember field : fields) {
             FieldVisitor fieldVisitor = apiMemberAdapter.visitField(
-                field.getAccess(), field.getName(), field.getTypeDesc(), field.getSignature(), null);
+                field.getAccess(), field.getName(), field.getTypeDesc(), field.getSignature(), field.getValue());
             visitAnnotationMembers(fieldVisitor, field.getAnnotations());
             fieldVisitor.visitEnd();
         }
@@ -188,7 +188,8 @@ public class ApiMemberSelector extends ClassVisitor {
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers)) {
-            final FieldMember fieldMember = new FieldMember(access, name, signature, desc);
+            Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
+            final FieldMember fieldMember = new FieldMember(access, name, signature, desc, keepValue);
             fields.add(fieldMember);
             return new FieldVisitor(ASM5) {
                 @Override

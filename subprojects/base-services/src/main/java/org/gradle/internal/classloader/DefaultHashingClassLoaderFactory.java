@@ -27,11 +27,11 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory implements HashingClassLoaderFactory {
-    private final ClassPathSnapshotter snapshotter;
+    private final ClasspathHasher classpathHasher;
     private final Map<ClassLoader, HashCode> hashCodes = new WeakHashMap<ClassLoader, HashCode>();
 
-    public DefaultHashingClassLoaderFactory(ClassPathSnapshotter snapshotter) {
-        this.snapshotter = snapshotter;
+    public DefaultHashingClassLoaderFactory(ClasspathHasher classpathHasher) {
+        this.classpathHasher = classpathHasher;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     private HashCode calculateClassLoaderHash(ClassPath classPath) {
-        return snapshotter.snapshot(classPath).getStrongHash();
+        return classpathHasher.hash(classPath);
     }
 
     private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {

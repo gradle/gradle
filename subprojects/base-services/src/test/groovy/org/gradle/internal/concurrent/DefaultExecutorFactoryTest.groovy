@@ -18,6 +18,7 @@ package org.gradle.internal.concurrent
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class DefaultExecutorFactoryTest extends ConcurrentSpec {
@@ -122,15 +123,19 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
     }
 
     def stopThrowsExceptionOnTimeout() {
+        def timeoutMs = 100
+        def latch = new CountDownLatch(1)
+
         def action = {
-            thread.block()
+            latch.await()
         }
 
         when:
         def executor = factory.create('<display-name>')
         executor.execute(action)
+
         operation.stop {
-            executor.stop(200, TimeUnit.MILLISECONDS)
+            executor.stop(timeoutMs, TimeUnit.MILLISECONDS)
         }
 
         then:
@@ -138,7 +143,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         e.message == 'Timeout waiting for concurrent jobs to complete.'
 
         and:
-        operation.stop.duration in approx(200)
+        operation.stop.duration in approx(timeoutMs)
     }
 
     def stopRethrowsFirstExecutionException() {

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.cache.PersistentIndexedCache;
@@ -35,11 +35,13 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
 
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private PersistentIndexedCache<ModuleKey, ModuleVersionsCacheEntry> cache;
 
-    public SingleFileBackedModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public SingleFileBackedModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     private PersistentIndexedCache<ModuleKey, ModuleVersionsCacheEntry> getCache() {
@@ -50,7 +52,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
     }
 
     private PersistentIndexedCache<ModuleKey, ModuleVersionsCacheEntry> initCache() {
-        return cacheLockingManager.createCache("module-versions", new ModuleKeySerializer(), new ModuleVersionsCacheEntrySerializer());
+        return cacheLockingManager.createCache("module-versions", new ModuleKeySerializer(moduleIdentifierFactory), new ModuleVersionsCacheEntrySerializer());
     }
 
     public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
@@ -99,6 +101,12 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
     }
 
     private static class ModuleKeySerializer extends AbstractSerializer<ModuleKey> {
+        private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+        private ModuleKeySerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            this.moduleIdentifierFactory = moduleIdentifierFactory;
+        }
+
         public void write(Encoder encoder, ModuleKey value) throws Exception {
             encoder.writeString(value.repositoryId);
             encoder.writeString(value.moduleId.getGroup());
@@ -109,7 +117,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
             String resolverId = decoder.readString();
             String group = decoder.readString();
             String module = decoder.readString();
-            return new ModuleKey(resolverId, new DefaultModuleIdentifier(group, module));
+            return new ModuleKey(resolverId, moduleIdentifierFactory.module(group, module));
         }
     }
 

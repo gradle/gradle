@@ -72,12 +72,7 @@ public class BuildOperationExternalResource implements ExternalResource {
         buildOperationExecutor.run(createBuildOperationDetails(), new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
-                try {
-                    delegate.writeTo(destination);
-                } catch (ResourceException e) {
-                    buildOperationContext.failed(e);
-                    throw e;
-                }
+                delegate.writeTo(destination);
             }
         });
     }
@@ -87,12 +82,7 @@ public class BuildOperationExternalResource implements ExternalResource {
         buildOperationExecutor.run(createBuildOperationDetails(), new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
-                try {
-                    delegate.writeTo(destination);
-                } catch (ResourceException e) {
-                    buildOperationContext.failed(e);
-                    throw e;
-                }
+                delegate.writeTo(destination);
             }
         });
     }
@@ -102,12 +92,7 @@ public class BuildOperationExternalResource implements ExternalResource {
         buildOperationExecutor.run(createBuildOperationDetails(), new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
-                try {
-                    delegate.withContent(readAction);
-                } catch (ResourceException e) {
-                    buildOperationContext.failed(e);
-                    throw e;
-                }
+                delegate.withContent(readAction);
             }
         });
     }
@@ -117,12 +102,7 @@ public class BuildOperationExternalResource implements ExternalResource {
         return buildOperationExecutor.run(createBuildOperationDetails(), new Transformer<T, BuildOperationContext>() {
             @Override
             public T transform(BuildOperationContext buildOperationContext) {
-                try {
-                    return delegate.withContent(readAction);
-                } catch (ResourceException e) {
-                    buildOperationContext.failed(e);
-                    throw e;
-                }
+                return delegate.withContent(readAction);
 
             }
         });
@@ -133,12 +113,7 @@ public class BuildOperationExternalResource implements ExternalResource {
         return buildOperationExecutor.run(createBuildOperationDetails(), new Transformer<T, BuildOperationContext>() {
             @Override
             public T transform(BuildOperationContext buildOperationContext) {
-                try {
-                    return delegate.withContent(readAction);
-                } catch (ResourceException e) {
-                    buildOperationContext.failed(e);
-                    throw e;
-                }
+                return delegate.withContent(readAction);
             }
         });
     }

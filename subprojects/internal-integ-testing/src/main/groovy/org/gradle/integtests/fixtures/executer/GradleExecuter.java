@@ -177,14 +177,6 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildCacheEnabled();
 
     /**
-     * Activates the build cache for a local directory
-     *
-     * @param cacheDir the directory for the cache
-     * @return this executer
-     */
-    GradleExecuter withLocalBuildCache(File cacheDir);
-
-    /**
      * Don't set temp folder explicitly.
      */
     GradleExecuter withNoExplicitTmpDir();
@@ -203,7 +195,7 @@ public interface GradleExecuter extends Stoppable {
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */
-    GradleExecuter useDefaultBuildJvmArgs();
+    GradleExecuter useOnlyRequestedJvmOpts();
 
     /**
      * Sets the default character encoding to use.
@@ -328,6 +320,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter requireIsolatedDaemons();
 
     /**
+     * Disable worker daemons expiration.
+     */
+    GradleExecuter withWorkerDaemonsExpirationDisabled();
+
+    /**
      * Returns true if this executer will share daemons with other executers.
      */
     boolean usesSharedDaemons();
@@ -398,4 +395,16 @@ public interface GradleExecuter extends Stoppable {
      * Returns true if this executer uses a daemon
      */
     boolean isUseDaemon();
+
+    /**
+     * Configures that user home services should not be reused across multiple invocations.
+     *
+     * <p>
+     * Note: You will want to call this method if the test case defines a custom Gradle user home directory
+     * so the services can be shut down after test execution in
+     * {@link org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry#release(org.gradle.internal.service.ServiceRegistry)}.
+     * Not calling the method in those situations will result in the inability to delete a file lock.
+     * </p>
+     */
+    GradleExecuter withOwnUserHomeServices();
 }

@@ -52,7 +52,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
     private final String cacheDisplayName;
     private final File baseDir;
-    private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
     private final Map<String, IndexedCacheEntry> caches = new HashMap<String, IndexedCacheEntry>();
@@ -69,7 +68,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private FileLock fileLock;
     private FileLock.State stateAtOpen;
     private Runnable fileLockHeldByOwner;
-    private boolean contended;
     private final CacheAccessOperationsStack operations;
     private int cacheClosedCount;
 
@@ -77,7 +75,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
         this.cacheDisplayName = cacheDisplayName;
         this.lockOptions = lockOptions;
         this.baseDir = baseDir;
-        this.lockManager = lockManager;
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
 
@@ -163,8 +160,14 @@ public class DefaultCacheAccess implements CacheCoordinator {
             }
         } finally {
             owner = null;
+            fileLockHeldByOwner = null;
             lock.unlock();
         }
+    }
+
+    @Override
+    public <T> T withFileLock(Factory<? extends T> action) {
+        return crossProcessCacheAccess.withFileLock(action);
     }
 
     @Override
@@ -174,10 +177,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     @Override
     public <T> T useCache(Factory<? extends T> factory) {
-        if (lockOptions != null && lockOptions.getMode() == FileLockManager.LockMode.Shared) {
-            throw new UnsupportedOperationException("Not implemented yet.");
-        }
-
         boolean wasStarted;
         lock.lock();
         try {
@@ -364,19 +363,12 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return entry.getCache();
     }
 
-    @Override
-    public synchronized void flush() {
-        if(cacheAccessWorker != null) {
-            cacheAccessWorker.flush();
-        }
-    }
-
     <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         return new BTreePersistentIndexedCache<K, V>(cacheFile, keySerializer, valueSerializer);
     }
 
     /**
-     * Called just after the file lock has been acquire.
+     * Called just after the file lock has been acquired.
      */
     private void afterLockAcquire(FileLock fileLock) {
         assert this.fileLock == null;
@@ -389,9 +381,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
             }
         } finally {
             releaseOwnership();
-        }
-        if (lockOptions.getMode() == None) {
-            lockManager.allowContention(fileLock, whenContended());
         }
     }
 
@@ -420,7 +409,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
         } finally {
             this.fileLock = null;
             this.stateAtOpen = null;
-            contended = false;
         }
     }
 
@@ -436,12 +424,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
         if (fileLockHeldByOwner == null) {
             return false;
         }
-        if (contended) {
-            try {
-                fileLockHeldByOwner.run();
-            } finally {
-                fileLockHeldByOwner = null;
-            }
+        try {
+            fileLockHeldByOwner.run();
+        } finally {
+            fileLockHeldByOwner = null;
         }
         return true;
     }
@@ -475,40 +461,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
         public void writeFile(Runnable action) throws LockTimeoutException {
             getLock().writeFile(action);
         }
-    }
-
-    Runnable whenContended() {
-        return new Runnable() {
-            public void run() {
-                lock.lock();
-                try {
-                    LOG.debug("Detected file lock contention of {} (fileLock={}, contended={}, owner={})", cacheDisplayName, fileLock != null, contended, owner);
-                    if (fileLock == null) {
-                        //the lock may have been closed
-                        return;
-                    }
-                    if (owner != null) {
-                        contended = true;
-                        return;
-                    }
-
-                    takeOwnership();
-                    try {
-                        if (fileLockHeldByOwner != null) {
-                            try {
-                                fileLockHeldByOwner.run();
-                            } finally {
-                                fileLockHeldByOwner = null;
-                            }
-                        }
-                    } finally {
-                        releaseOwnership();
-                    }
-                } finally {
-                    lock.unlock();
-                }
-            }
-        };
     }
 
     Thread getOwner() {

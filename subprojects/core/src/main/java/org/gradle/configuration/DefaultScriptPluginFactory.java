@@ -51,8 +51,8 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.plugin.use.internal.PluginRequests;
-import org.gradle.plugin.use.internal.PluginRequestsSerializer;
+import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.management.internal.PluginRequestsSerializer;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();

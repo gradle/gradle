@@ -30,24 +30,37 @@ class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuo
 
     def "should trigger rebuild when java source file is changed during build execution"() {
         given:
-        file("src/main/java/Thing.java") << "class Thing {}"
+        def inputFile = file("src/main/java/Thing.java")
+        inputFile << "class Thing {}"
+        inputFile.makeOlder()
 
         when:
         buildFile << """
 apply plugin: 'java'
-gradle.taskGraph.afterTask { Task task ->
-    if(task.path == ':classes' && !file('changetrigged').exists()) {
-       sleep(500) // attempt to workaround JDK-8145981
-       println "Modifying 'Thing.java' after initial compile task"
-       file("src/main/java/Thing.java").text = "class Thing { private static final boolean CHANGED=true; }"
-       file('changetrigged').text = 'done'
+
+task postCompile {
+    doLast {
+        if (!file('change-triggered').exists()) {
+            sleep(500) // attempt to workaround JDK-8145981
+            println "Modifying 'Thing.java' after initial compile task"
+            file("src/main/java/Thing.java").text = "class Thing { private static final boolean CHANGED=true; }"
+            file('change-triggered').text = 'done'
+        }
     }
+    dependsOn 'classes'
 }
+jar.dependsOn postCompile
 """
         then:
         succeeds("build")
 
         when:
+        int count = 20
+        while (count >= 0 && !output.contains("modified: ")) {
+            println "Waiting for 'Thing.java' modification detection ($count)..."
+            Thread.sleep(100)
+            count--
+        }
         sendEOT()
 
         then:
@@ -87,10 +100,10 @@ gradle.taskGraph.afterTask { Task task ->
             }
 
             gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
+                if(task.path == ':$changingInput' && !file('change-triggered').exists()) {
                    sleep(500) // attempt to workaround JDK-8145981
                    file('$changingInput/input.txt').text = 'New input file'
-                   file('changetrigged').text = 'done'
+                   file('change-triggered').text = 'done'
                 }
             }
         """
@@ -114,10 +127,10 @@ gradle.taskGraph.afterTask { Task task ->
         when:
         buildFile << """
             def taskAction = { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
+                if(task.path == ':$changingInput' && !file('change-triggered').exists()) {
                    sleep(500) // attempt to workaround JDK-8145981
                    file('$changingInput/input.txt').text = 'New input file'
-                   file('changetrigged').text = 'done'
+                   file('change-triggered').text = 'done'
                 }
             }
 

@@ -20,294 +20,129 @@ import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyResolvedVariant
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
-import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.internal.component.model.ComponentAttributeMatcher
-import org.gradle.internal.resolve.ArtifactResolveException
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_CLASSIFIER
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_EXTENSION
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultArtifactTransformsTest extends Specification {
-    def matchingCache = Mock(ArtifactAttributeMatchingCache)
-    def transformer = new DefaultArtifactTransforms(matchingCache, null)
-    def ImmutableAttributesFactory immutableAttributesFactory
-
-    def setup() {
-        immutableAttributesFactory = new DefaultImmutableAttributesFactory()
-    }
-
-    def "forwards artifact whose type matches requested format"() {
-        def visitor = Mock(ArtifactVisitor)
-        def artifact = Stub(ResolvedArtifact)
-        def requestAttributes = typeAttributes("classpath")
-
-        given:
-        artifact.attributes >> requestAttributes
-
-        when:
-        def transformVisitor = transformer.visitor(visitor, requestAttributes, immutableAttributesFactory)
-        transformVisitor.visitArtifact(artifact)
-
-        then:
-        1 * visitor.visitArtifact(artifact)
-        1 * matchingCache.getTransformedArtifacts(artifact, requestAttributes) >> null
-        1 * matchingCache.areMatchingAttributes(requestAttributes, requestAttributes) >> true
-        1 * matchingCache.putTransformedArtifact(artifact, requestAttributes, [artifact])
-        0 * _
-    }
-
-    def "applies matching transform to artifact whose type does not matches requested format"() {
-        def visitor = Mock(ArtifactVisitor)
-        def artifact = Stub(TestArtifact)
-        def transform = Mock(Transformer)
-        def file = new File("thing.zip")
-        def transformedFile = new File("thing.classpath")
-        def transformedArtifact = null
-
-        given:
-        artifact.attributes >> typeAttributes("zip")
-
-        when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
-        transformVisitor.visitArtifact(artifact)
-
-        then:
-        1 * matchingCache.areMatchingAttributes(typeAttributes("zip"), typeAttributes("classpath")) >> false
-        1 * matchingCache.getTransformedArtifacts(artifact, typeAttributes("classpath"))
-        1 * matchingCache.getTransform(typeAttributes("zip"), typeAttributes("classpath")) >> transform
-        1 * transform.transform(file) >> [transformedFile]
-        1 * matchingCache.putTransformedArtifact(artifact, typeAttributes("classpath"), _)
-        1 * visitor.visitArtifact(_) >> { ResolvedArtifact a -> transformedArtifact = a }
-        0 * _
-
-        and:
-        transformedArtifact.type == "classpath"
-        transformedArtifact.file == transformedFile
-    }
-
-    def "ignores artifact whose type cannot be transformed"() {
-        def visitor = Mock(ArtifactVisitor)
-        def artifact = Stub(ResolvedArtifact)
-
-        given:
-        artifact.attributes >> typeAttributes("lib")
-        matchingCache.getTransform("lib", "classpath") >> null
-
-        when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
-        transformVisitor.visitArtifact(artifact)
-
-        then:
-        def e = thrown(ArtifactResolveException)
-        e.message == "Artifact $artifact is not compatible with requested attributes {artifactType=classpath}"
-        0 * visitor._
-    }
-
-    def "forwards file whose extension matches requested format"() {
-        def visitor = Mock(ArtifactVisitor)
-        def id = Stub(ComponentIdentifier)
-        def file = new File("thing.classpath")
-
-        def requestAttributes = typeAttributes("classpath")
-
-        when:
-        def transformVisitor = transformer.visitor(visitor, requestAttributes, immutableAttributesFactory)
-        transformVisitor.visitFiles(id, [file])
-
-        then:
-        1 * matchingCache.getTransformedFile(file, requestAttributes) >> null
-        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), requestAttributes) >> true
-        1 * matchingCache.putTransformedFile(file, requestAttributes, [file]) >> null
-        1 * visitor.visitFiles(id, [file])
-        0 * _
-    }
-
-    def "applies transform to file whose extension does not match requested format"() {
-        def visitor = Mock(ArtifactVisitor)
-        def id = Stub(ComponentIdentifier)
-        def transform = Mock(Transformer)
-        def file = new File("thing.zip")
-        def transformedFile = new File("thing.classpath")
-
-        when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
-        transformVisitor.visitFiles(id, [file])
-
-        then:
-        1 * matchingCache.getTransformedFile(file, typeAttributes("classpath")) >> null
-        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), typeAttributes("classpath")) >> false
-        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), typeAttributes("classpath")) >> transform
-        1 * matchingCache.putTransformedFile(file, typeAttributes("classpath"), [transformedFile])
-        1 * transform.transform(file) >> [transformedFile]
-        1 * visitor.visitFiles(id, [transformedFile])
-        0 * _
-    }
-
-    def "ignores file whose extension cannot be transformed"() {
-        def visitor = Mock(ArtifactVisitor)
-        def id = Stub(ComponentIdentifier)
-        def file = new File("thing.lib")
-
-        when:
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
-        transformVisitor.visitFiles(id, [file])
-
-        then:
-        1 * matchingCache.getTransformedFile(file, typeAttributes("classpath")) >> null
-        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), typeAttributes("classpath")) >> false
-        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file, immutableAttributesFactory), typeAttributes("classpath")) >> null
-        0 * _
-    }
-
-    def "applies transform once only"() {
-        def visitor = Mock(ArtifactVisitor)
-        def id = Stub(ComponentIdentifier)
-        def transform = Mock(Transformer)
-        def file1 = new File("thing1.zip")
-        def transformedFile1 = new File("thing1.classpath")
-        def file2 = new File("thing2.zip")
-        def transformedFile2 = new File("thing2.classpath")
-
-        given:
-        matchingCache.getTransform(DefaultArtifactAttributes.forFile(file1, immutableAttributesFactory), typeAttributes("classpath")) >> transform
-        matchingCache.getTransform(DefaultArtifactAttributes.forFile(file2, immutableAttributesFactory), typeAttributes("classpath")) >> transform
-        transform.transform(file1) >> [transformedFile1]
-
-        def transformVisitor = transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory)
-        transformVisitor.visitFiles(id, [file1])
-
-        when:
-        transformVisitor.visitFiles(id, [file1])
-
-        then:
-        1 * matchingCache.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
-        1 * visitor.visitFiles(id, [transformedFile1])
-        0 * _
-
-        when:
-        transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory).visitFiles(id, [file1])
-
-        then:
-        1 * matchingCache.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
-        1 * visitor.visitFiles(id, [transformedFile1])
-        0 * _
-
-        when:
-        transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory).visitFiles(id, [file1, file2])
-
-        then:
-        1 * matchingCache.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
-        1 * matchingCache.getTransformedFile(file2, typeAttributes("classpath")) >> null
-        1 * matchingCache.areMatchingAttributes(DefaultArtifactAttributes.forFile(file2, immutableAttributesFactory), typeAttributes("classpath")) >> false
-        1 * matchingCache.getTransform(DefaultArtifactAttributes.forFile(file2, immutableAttributesFactory), typeAttributes("classpath")) >> transform
-        1 * transform.transform(file2) >> [transformedFile2]
-        1 * matchingCache.putTransformedFile(file2, typeAttributes("classpath"), [transformedFile2])
-        1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
-        0 * _
-
-        when:
-        transformer.visitor(visitor, typeAttributes("classpath"), immutableAttributesFactory).visitFiles(id, [file1, file2])
-
-        then:
-        1 * matchingCache.getTransformedFile(file1, typeAttributes("classpath")) >> [transformedFile1]
-        1 * matchingCache.getTransformedFile(file2, typeAttributes("classpath")) >> [transformedFile2]
-        1 * visitor.visitFiles(id, [transformedFile1, transformedFile2])
-        0 * _
-    }
+    def matchingCache = Mock(VariantAttributeMatchingCache)
+    def transforms = new DefaultArtifactTransforms(matchingCache)
 
     def "selects variant with requested attributes"() {
-        def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache, null)
-        def artifact1 = Stub(ResolvedArtifact)
-        def artifact2 = Stub(ResolvedArtifact)
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
 
         given:
-        artifact1.attributes >> typeAttributes("classes")
-        artifact2.attributes >> typeAttributes("jar")
+        variant1.attributes >> typeAttributes("classes")
+        variant2.attributes >> typeAttributes("jar")
+
+        matchingCache.selectMatches([variant1, variant2], typeAttributes("classes")) >> [variant1]
 
         expect:
-        def spec = transformer.variantSelector(typeAttributes("classes"))
-        spec.transform([artifact1, artifact2]) == artifact1
+        def result = transforms.variantSelector(typeAttributes("classes")).select([variant1, variant2])
+        result == variant1
     }
 
     def "selects variant with attributes that can be transformed to requested format"() {
-        def artifact1 = Stub(ResolvedArtifact)
-        def artifact2 = Stub(ResolvedArtifact)
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
+        def id = Stub(ComponentIdentifier)
+        def sourceArtifact = Stub(TestArtifact)
+        def sourceArtifactFile = new File("thing-1.0.jar")
+        def sourceFile = new File("thing-file.jar")
+        def outFile1 = new File("out1.classes")
+        def outFile2 = new File("out2.classes")
+        def outFile3 = new File("out3.classes")
+        def outFile4 = new File("out4.classes")
+        def transformer = Mock(Transformer)
+        def visitor = Mock(ArtifactVisitor)
+        def targetAttributes = typeAttributes("classes")
 
         given:
-        artifact1.attributes >> typeAttributes("jar")
-        artifact2.attributes >> typeAttributes("dll")
+        variant1.attributes >> typeAttributes("jar")
+        variant2.attributes >> typeAttributes("dll")
 
-        matchingCache.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
-        matchingCache.getTransform(typeAttributes("dll"), typeAttributes("classes")) >> null
+        matchingCache.selectMatches(_, _) >> []
+        matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
+            result.matched(to, transformer, 1)
+        }
+        matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
 
-        expect:
-        def spec = transformer.variantSelector(typeAttributes("classes"))
-        spec.transform([artifact1, artifact2]) == artifact1
+        when:
+        def result = transforms.variantSelector(targetAttributes).select([variant1, variant2])
+        result.visit(visitor)
+
+        then:
+        _ * variant1.visit(_) >> { ArtifactVisitor v ->
+            v.visitArtifact(targetAttributes, sourceArtifact)
+            v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), targetAttributes, sourceFile)
+        }
+        1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
+        1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
+        1 * visitor.visitArtifact(targetAttributes, {it.file == outFile1})
+        1 * visitor.visitArtifact(targetAttributes, {it.file == outFile2})
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), targetAttributes, outFile3)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), targetAttributes, outFile4)
+        0 * visitor._
+        0 * transformer._
     }
 
-    def "selects variant with requested attributes when another variant can be transformed"() {
-        def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache, null)
-
-        def artifact1 = Stub(ResolvedArtifact)
-        def artifact2 = Stub(ResolvedArtifact)
+    def "fails when multiple transforms match"() {
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
 
         given:
-        artifact1.attributes >> typeAttributes("jar")
-        artifact2.attributes >> typeAttributes("classes")
+        variant1.attributes >> typeAttributes("jar")
+        variant2.attributes >> typeAttributes("classes")
 
-        matchingCache.getTransform(typeAttributes("jar"), typeAttributes("classes")) >> Stub(Transformer)
+        matchingCache.selectMatches(_, _) >> []
+        matchingCache.collectConsumerVariants(_, _, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
+                result.matched(to, Stub(Transformer), 1)
+        }
 
-        expect:
-        def spec = transformer.variantSelector(typeAttributes("classes"))
-        spec.transform([artifact1, artifact2]) == artifact2
+        def selector = transforms.variantSelector(typeAttributes("dll"))
+
+        when:
+        selector.select([variant1, variant2])
+
+        then:
+        def e = thrown(AmbiguousTransformException)
+        e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant for consumer attributes: artifactType 'dll'
+Found the following transforms:
+  - Transform from variant: artifactType 'jar'
+  - Transform from variant: artifactType 'classes'""")
     }
 
-    def "selects no variant when none match"() {
-        def realCache = new ArtifactAttributeMatchingCache(new DefaultArtifactTransformRegistrations(), setupSchema())
-        transformer = new DefaultArtifactTransforms(realCache, null)
-
-        def artifact1 = Stub(ResolvedArtifact)
-        def artifact2 = Stub(ResolvedArtifact)
+    def "selects empty variant when none match"() {
+        def variant1 = Stub(ResolvedVariant)
+        def variant2 = Stub(ResolvedVariant)
 
         given:
-        artifact1.attributes >> typeAttributes("jar")
-        artifact2.attributes >> typeAttributes("classes")
+        variant1.attributes >> typeAttributes("jar")
+        variant2.attributes >> typeAttributes("classes")
+
+        matchingCache.selectMatches(_, _) >> []
+        matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("jar"), _) >> null
+        matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         expect:
-        def spec = transformer.variantSelector(typeAttributes("dll"))
-        spec.transform([artifact1, artifact2]) == null
+        def result = transforms.variantSelector(typeAttributes("dll")).select([variant1, variant2])
+        result instanceof EmptyResolvedVariant
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {
-        def attributeContainer = new DefaultMutableAttributeContainer(immutableAttributesFactory)
+        def attributeContainer = new DefaultMutableAttributeContainer(new DefaultImmutableAttributesFactory())
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable {}
-
-    private AttributesSchema setupSchema() {
-        def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
-        attributesSchema.attribute(ARTIFACT_FORMAT) {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        }
-        attributesSchema.attribute(ARTIFACT_CLASSIFIER) {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        }
-        attributesSchema.attribute(ARTIFACT_EXTENSION) {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        }
-        attributesSchema
-    }
 }

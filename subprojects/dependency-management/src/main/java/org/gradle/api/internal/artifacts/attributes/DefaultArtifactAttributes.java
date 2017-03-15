@@ -17,31 +17,21 @@
 package org.gradle.api.internal.artifacts.attributes;
 
 import com.google.common.io.Files;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.*;
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
 public class DefaultArtifactAttributes {
-
-    public static AttributeContainer forIvyArtifactName(IvyArtifactName ivyArtifactName, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory) {
-        return createAttributes(ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getClassifier(), parentAttributes, attributesFactory);
-    }
-
-    public static AttributeContainer forFile(File file, ImmutableAttributesFactory attributesFactory) {
+    public static AttributeContainerInternal forFile(File file, ImmutableAttributesFactory attributesFactory) {
         String extension = Files.getFileExtension(file.getName());
-        return createAttributes(extension, extension, "", ImmutableAttributes.EMPTY, attributesFactory);
+        return createAttributes(extension, ImmutableAttributes.EMPTY, attributesFactory);
     }
 
-    private static AttributeContainer createAttributes(String type, String extension, String classifier, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory) {
-        return attributesFactory.builder(parentAttributes.asImmutable())
-            .addAttribute(ARTIFACT_FORMAT, type == null ? "" : type)
-            .addAttribute(ARTIFACT_EXTENSION, extension == null ? "" : extension)
-            .addAttribute(ARTIFACT_CLASSIFIER, classifier == null ? "" : classifier).get();
+    private static AttributeContainerInternal createAttributes(String type, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory) {
+        return attributesFactory.builder(parentAttributes.asImmutable()).addAttribute(ARTIFACT_FORMAT, type == null ? "" : type).get();
     }
 }

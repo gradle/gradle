@@ -303,13 +303,16 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failsWith("""Cannot choose between the following configurations on 'project :b' : foo2, foo3. All of them match the consumer attributes:
-   - Configuration 'foo2' :
+        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+  - foo2
+  - foo3
+All of them match the consumer attributes:
+  - Configuration 'foo2':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' and found compatible value 'free'.
-   - Configuration 'foo3' :
+  - Configuration 'foo3':
       - Required buildType 'debug' and found compatible value 'debug'.
-      - Required flavor 'free' and found compatible value 'free'.""")
+      - Required flavor 'free' and found compatible value 'free'."""
 
     }
 

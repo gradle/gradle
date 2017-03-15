@@ -361,6 +361,18 @@ public class TestFile extends File {
         return write(formatter);
     }
 
+    /**
+     * Replaces the given text in the file with new value, asserting that the change was actually applied (ie the text was present).
+     */
+    public void replace(String oldText, String newText) {
+        String original = getText();
+        String newContent = original.replace(oldText, newText);
+        if (original.equals(newContent)) {
+            throw new AssertionError("File " + this + " does not contain the expected text.");
+        }
+        setText(newContent);
+    }
+
     public TestFile assertExists() {
         assertTrue(String.format("%s does not exist", this), exists());
         return this;

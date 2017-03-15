@@ -24,7 +24,13 @@ public interface ImmutableAttributesFactory {
 
     ImmutableAttributes of(Attribute<?> key, Object value);
 
+    /**
+     * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
+     */
     ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value);
 
+    /**
+     * Merges the second container into the first container and returns the result. Values in the second container win.
+     */
     ImmutableAttributes concat(ImmutableAttributes attributes, ImmutableAttributes state);
 }

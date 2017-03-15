@@ -18,9 +18,10 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.tasks.ScalaSourceSet;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultScalaSourceSet implements ScalaSourceSet {
     private final SourceDirectorySet scala;
@@ -39,7 +40,8 @@ public class DefaultScalaSourceSet implements ScalaSourceSet {
     }
 
     public ScalaSourceSet scala(Closure configureClosure) {
-        return scala(ClosureBackedAction.of(configureClosure));
+        configure(configureClosure, getScala());
+        return this;
     }
 
     @Override

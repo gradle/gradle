@@ -51,4 +51,38 @@ class CacheLayoutTest extends Specification {
         cacheLayout.formattedVersion == '2.23'
         cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.23')
     }
+
+    def "use transforms layout"() {
+        when:
+        CacheLayout cacheLayout = CacheLayout.TRANSFORMS
+
+        then:
+        cacheLayout.key == 'transforms-1'
+        cacheLayout.version == VersionNumber.parse("1.0.0")
+        cacheLayout.formattedVersion == '1'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-1')
+    }
+
+    def "use transforms metadata layout"() {
+        when:
+        CacheLayout cacheLayout = CacheLayout.TRANSFORMS_META_DATA
+
+        then:
+        cacheLayout.key == 'metadata-1.1'
+        cacheLayout.version == VersionNumber.parse("1.1.0")
+        cacheLayout.formattedVersion == '1.1'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-1.1')
+    }
+
+    def "use transforms store layout"() {
+        when:
+        CacheLayout cacheLayout = CacheLayout.TRANSFORMS_STORE
+
+        then:
+        cacheLayout.key == 'files-1.1'
+        cacheLayout.version == VersionNumber.parse("1.1.0")
+        cacheLayout.formattedVersion == '1.1'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/files-1.1')
+    }
+
 }

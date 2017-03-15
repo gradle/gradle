@@ -31,6 +31,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.CacheStatisticsReporter;
+import org.gradle.internal.buildevents.ProjectEvaluationLogger;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.cleanup.BuildOutputCleanupListener;
@@ -72,6 +73,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         // Register default loggers
         buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
         listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
+        listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
         listenerManager.useLogger(new DependencyResolutionLogger(progressLoggerFactory));
     }
 
@@ -137,14 +139,14 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }
 
-        if (startParameter.isTaskOutputCacheEnabled()) {
+        if (startParameter.isBuildCacheEnabled()) {
             listenerManager.addListener(serviceRegistry.get(TaskExecutionStatisticsEventAdapter.class));
             listenerManager.addListener(new CacheStatisticsReporter(serviceRegistry.get(StyledTextOutputFactory.class)));
         }
 
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
-            listenerManager.addListener(new ReportGeneratingProfileListener());
+            listenerManager.addListener(new ReportGeneratingProfileListener(serviceRegistry.get(StyledTextOutputFactory.class)));
         }
         BuildScanRequest buildScanRequest = serviceRegistry.get(BuildScanRequest.class);
         if (startParameter.isBuildScan()) {

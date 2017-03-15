@@ -19,8 +19,6 @@ dependencies {
 
     compile libraries.slf4j_api
 
-    testCompile libraries.groovy
-
     integTestCompile project(':internalIntegTesting')
     // Needed for testing debug command line option (JDWPUtil)
     integTestCompile files(jvmForCompilation.toolsJar ?: [])
@@ -38,9 +36,7 @@ useTestFixtures(project: ':messaging')
 useTestFixtures(project: ":logging")
 
 integTestTasks.all {
-    if (isCiServer) {
-        maxParallelForks = Math.min(3, rootProject.maxParallelForks)
-    }
+    maxParallelForks = Math.min(3, rootProject.maxParallelForks)
 }
 
 task configureJar {

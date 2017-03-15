@@ -37,8 +37,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.caching.internal.BuildCacheConfiguration;
-import org.gradle.caching.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
@@ -48,7 +46,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
@@ -68,7 +66,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final Collection<IncludedBuild> includedBuilds = Lists.newArrayList();
-    private ActionBroadcast<Project> rootProjectActions = new ActionBroadcast<Project>();
+    private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
 
@@ -314,11 +312,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    public void buildCache(Action<? super BuildCacheConfiguration> action) {
-        action.execute(getBuildCache());
-    }
-
-    @Override
     public Gradle getGradle() {
         return this;
     }
@@ -361,11 +354,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
-    }
-
-    @Inject
-    public BuildCacheConfigurationInternal getBuildCache() {
-        throw new UnsupportedOperationException();
     }
 
     @Inject

@@ -48,7 +48,7 @@ apply from: '../gradle/taskOrdering.gradle'
 apply from: '../gradle/dependencies.gradle'
 apply from: '../gradle/classycle.gradle'
 
-ext.isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
+ext.isCiServer = System.getenv().containsKey("CI")
 
 if (!isCiServer || (isCiServer && Boolean.getBoolean('enableCodeQuality'))) {
     apply from: '../gradle/codeQuality.gradle'

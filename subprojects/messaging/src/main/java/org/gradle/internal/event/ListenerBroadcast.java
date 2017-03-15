@@ -28,17 +28,18 @@ import org.gradle.internal.dispatch.ProxyDispatchAdapter;
  * <p>Ordering is maintained for events, so that events are delivered to listeners in the order they are generated.
  * Events are delivered to listeners in the order that listeners are added to this broadcaster.</p>
  *
+ * <p>Implementations are not thread-safe.</p>
+ *
  * @param <T> The listener type.
  */
 public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
-    private final ProxyDispatchAdapter<T> source;
-    private final BroadcastDispatch<T> broadcast;
+    private ProxyDispatchAdapter<T> source;
+    private BroadcastDispatch<T> broadcast;
     private final Class<T> type;
 
     public ListenerBroadcast(Class<T> type) {
         this.type = type;
-        broadcast = new BroadcastDispatch<T>(type);
-        source = new ProxyDispatchAdapter<T>(broadcast, type);
+        broadcast = BroadcastDispatch.empty(type);
     }
 
     /**
@@ -47,6 +48,9 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      * @return The broadcaster.
      */
     public T getSource() {
+        if (source == null) {
+            source = new ProxyDispatchAdapter<T>(this, type);
+        }
         return source.getSource();
     }
 
@@ -74,7 +78,7 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      * @param listener The listener.
      */
     public void add(T listener) {
-        broadcast.add(listener);
+        broadcast = broadcast.add(listener);
     }
 
     /**
@@ -83,23 +87,21 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      * @param listeners The listeners
      */
     public void addAll(Iterable<? extends T> listeners) {
-        for (T listener : listeners) {
-            broadcast.add(listener);
-        }
+        broadcast = broadcast.addAll(listeners);
     }
 
     /**
      * Adds a {@link Dispatch} to receive events from this broadcast.
      */
     public void add(Dispatch<MethodInvocation> dispatch) {
-        broadcast.add(dispatch);
+        broadcast = broadcast.add(dispatch);
     }
 
     /**
      * Adds an action to be executed when the given method is called.
      */
     public void add(String methodName, Action<?> action) {
-        broadcast.add(methodName, action);
+        broadcast = broadcast.add(methodName, action);
     }
 
     /**
@@ -108,7 +110,7 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      * @param listener The listener.
      */
     public void remove(Object listener) {
-        broadcast.remove(listener);
+        broadcast = broadcast.remove(listener);
     }
 
     /**
@@ -117,16 +119,14 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      * @param listeners The listeners
      */
     public void removeAll(Iterable<?> listeners) {
-        for (Object listener : listeners) {
-            remove(listener);
-        }
+        broadcast = broadcast.removeAll(listeners);
     }
 
     /**
      * Removes all listeners.
      */
     public void removeAll() {
-        broadcast.removeAll();
+        broadcast = BroadcastDispatch.empty(type);
     }
 
     /**

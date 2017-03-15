@@ -58,6 +58,11 @@ Current state is ${lastLogState}.""")
     }
 
     @Override
+    File getLogFile() {
+        return logFileProbe.logFile
+    }
+
+    @Override
     void changeTokenVisibleToClient() {
         throw new UnsupportedOperationException()
     }

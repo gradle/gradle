@@ -20,16 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ import java.util.concurrent.Callable;
 /**
  * Assembles a WAR archive.
  */
-@CacheableTask
 public class War extends Jar {
     public static final String WAR_EXTENSION = "war";
     private static final Spec<File> IS_DIRECTORY = new Spec<File>() {
@@ -118,7 +116,7 @@ public class War extends Jar {
      * @return The newly created {@code CopySpec}.
      */
     public CopySpec webInf(Closure configureClosure) {
-        return webInf(ClosureBackedAction.of(configureClosure));
+        return ConfigureUtil.configure(configureClosure, getWebInf());
     }
 
     /**
@@ -128,6 +126,7 @@ public class War extends Jar {
      *
      * @param configureAction The action to execute
      * @return The newly created {@code CopySpec}.
+     * @since 3.5
      */
     public CopySpec webInf(Action<? super CopySpec> configureAction) {
         CopySpec webInf = getWebInf();

@@ -28,6 +28,6 @@ public class CrashingRemoteProcess implements Action<WorkerProcessContext>, Seri
         sender.send("message 1", 1);
         sender.send("message 2", 2);
         // crash
-        Runtime.getRuntime().halt(1);
+        Runtime.getRuntime().halt(1234);
     }
 }

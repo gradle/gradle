@@ -20,9 +20,9 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
-import org.gradle.plugin.internal.PluginId;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 public class CorePluginResolver implements PluginResolver {
 
@@ -34,10 +34,10 @@ public class CorePluginResolver implements PluginResolver {
         this.pluginRegistry = pluginRegistry;
     }
 
-    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
+    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
         PluginId id = pluginRequest.getId();
 
-        if (!id.isQualified() || id.inNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE)) {
+        if (id.getNamespace() == null || id.getNamespace().equals(DefaultPluginManager.CORE_PLUGIN_NAMESPACE)) {
             PluginImplementation<?> plugin = pluginRegistry.lookup(id);
             if (plugin == null) {
                 result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
@@ -46,6 +46,12 @@ public class CorePluginResolver implements PluginResolver {
                     throw new InvalidPluginRequestException(pluginRequest,
                             "Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a version number. "
                                     + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
+                    );
+                }
+                if (pluginRequest.getModule() != null) {
+                    throw new InvalidPluginRequestException(pluginRequest,
+                            "Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a custom implementation artifact. "
+                                    + "Such plugins are versioned as part of Gradle. Please remove the custom artifact from the request."
                     );
                 }
                 if (!pluginRequest.isApply()) {

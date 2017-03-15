@@ -43,15 +43,18 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
             }
 """
         def cacheDir = file("task-output-cache")
-        file("gradle.properties") << """
-            org.gradle.cache.tasks=true
-            systemProp.org.gradle.cache.tasks.directory=${TextUtil.escapeString(cacheDir.absolutePath)}
-"""
+        settingsFile << """
+            buildCache {
+                local(DirectoryBuildCache) {
+                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
+                }
+            }
+        """
         file("input").text = "input file"
     }
 
     @ToolingApiVersion('>=3.3')
-    @TargetGradleVersion('>=3.3')
+    @TargetGradleVersion('>=3.5')
     def "cacheable task is reported as FROM_CACHE"() {
         when:
         def pushToCacheEvents = new ProgressEvents()
@@ -71,7 +74,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion('<3.3 >=2.5')
-    @TargetGradleVersion('>=3.3')
+    @TargetGradleVersion('>=3.5')
     def "cacheable task is reported as UP-TO-DATE on older TAPI versions"() {
         when:
         def pushToCacheEvents = new ProgressEvents()
@@ -96,7 +99,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     private void runCacheableBuild(listener) {
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('cacheable').addProgressListener(listener, EnumSet.of(OperationType.TASK)).run()
+                connection.newBuild().withArguments("--build-cache").forTasks('cacheable').addProgressListener(listener, EnumSet.of(OperationType.TASK)).run()
         }
     }
 }

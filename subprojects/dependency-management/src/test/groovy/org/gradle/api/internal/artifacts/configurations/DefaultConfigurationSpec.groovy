@@ -38,6 +38,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -54,6 +55,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.Factories
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.TestBuildOperationExecutor
@@ -79,6 +81,7 @@ class DefaultConfigurationSpec extends Specification {
     def metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
+    def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
 
     def setup() {
         ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
@@ -774,6 +777,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.dependencies.add(dependency("group1", "name1", "version1"))
         configuration.dependencies.add(dependency("group2", "name2", "version2"))
         configuration.getAttributes().attribute(Attribute.of('key', String.class), 'value')
+        configuration.resolutionStrategy
 
         def otherConf = conf("other")
         otherConf.dependencies.add(dependency("otherGroup", "name3", "version3"))
@@ -797,7 +801,6 @@ class DefaultConfigurationSpec extends Specification {
         assert copy.canBeConsumed == original.canBeConsumed
         true
     }
-
 
     def "incoming dependencies set has same name and path as owner configuration"() {
         def config = conf("conf", ":path")
@@ -930,7 +933,6 @@ class DefaultConfigurationSpec extends Specification {
         def copied = child.copyRecursive()
 
         then:
-        1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
         copied.excludeRules.size() == 2
         copied.excludeRules.collect { [group: it.group, module: it.module] }.sort { it.group } == [p1Exclude, p2Exclude]
     }
@@ -938,6 +940,7 @@ class DefaultConfigurationSpec extends Specification {
     def "copied configuration has own instance of resolution strategy"() {
         def strategy = Mock(ResolutionStrategyInternal)
         def conf = conf()
+        conf.resolutionStrategy
 
         when:
         def copy = conf.copy()
@@ -1202,6 +1205,7 @@ class DefaultConfigurationSpec extends Specification {
         given:
         resolves(config, result, Mock(ResolvedConfiguration))
 
+        config.resolutionStrategy
         config.incoming.resolutionResult
 
         when:
@@ -1623,8 +1627,8 @@ All Artifacts:
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
-            resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
-            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory)
+            Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
+            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory, moduleIdentifierFactory)
     }
 
     private DefaultPublishArtifact artifact(String name) {

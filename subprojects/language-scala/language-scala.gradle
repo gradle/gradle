@@ -7,10 +7,8 @@ dependencies {
     compile project(":platformJvm")
     compile project(":languageJava")
     compile project(":languageJvm")
-    
-    compileOnly libraries.zinc
 
-    testCompile libraries.groovy
+    compileOnly libraries.zinc
 }
 
 strictCompile()

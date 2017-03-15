@@ -39,8 +39,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.util.GFileUtils;
+import org.gradle.workers.internal.WorkerDaemonManager;
 
 import java.io.File;
 import java.util.List;

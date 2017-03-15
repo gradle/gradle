@@ -17,7 +17,6 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.process.internal.daemon.WorkerDaemonManager;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -35,6 +34,7 @@ import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.TreeVisitor;
+import org.gradle.workers.internal.WorkerDaemonManager;
 
 import java.io.File;
 import java.util.Set;

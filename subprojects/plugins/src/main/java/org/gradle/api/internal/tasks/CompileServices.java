@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.jvm.JvmBinaryRenderer;
 import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultGeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
@@ -50,8 +50,8 @@ public class CompileServices implements PluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        GeneralCompileCaches createGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
-            return new DefaultGeneralCompileCaches(cacheRepository, gradle, inMemoryTaskArtifactCache);
+        GeneralCompileCaches createGeneralCompileCaches(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+            return new DefaultGeneralCompileCaches(cacheRepository, gradle, inMemoryCacheDecoratorFactory);
         }
     }
 }

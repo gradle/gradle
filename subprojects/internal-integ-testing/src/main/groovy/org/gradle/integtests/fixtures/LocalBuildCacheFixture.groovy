@@ -33,6 +33,17 @@ trait LocalBuildCacheFixture {
     void setupCacheDirectory() {
         // Make sure cache dir is empty for every test execution
         cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+        settingsFile << localCacheConfiguration()
+    }
+
+    def localCacheConfiguration() {
+        """
+            buildCache {
+                local(DirectoryBuildCache) {
+                    directory = '${cacheDir.absoluteFile.toURI()}'
+                }
+            }
+        """
     }
 
     TestFile getCacheDir() {
@@ -40,11 +51,15 @@ trait LocalBuildCacheFixture {
     }
 
     AbstractIntegrationSpec withBuildCache() {
-        executer.withLocalBuildCache(cacheDir)
+        executer.withBuildCacheEnabled()
         this
     }
 
     List<TestFile> listCacheFiles() {
+        listCacheFiles(cacheDir)
+    }
+
+    static List<TestFile> listCacheFiles(TestFile cacheDir) {
         cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/}.sort()
     }
 }

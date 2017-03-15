@@ -191,7 +191,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
 
     def handlesWorkerActionThatCannotBeDeserialized() {
         when:
-        execute(worker(new NotDeserializable()).expectStopFailure())
+        execute(worker(new NotDeserializable()).expectStartFailure())
 
         then:
         noExceptionThrown()
@@ -203,6 +203,16 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
 
         then:
         noExceptionThrown()
+    }
+
+    def "handles output after worker messaging services are stopped"() {
+        when:
+        execute(worker(new OutputOnShutdownHookProcess()))
+
+        then:
+        noExceptionThrown()
+        stdout.stdOut.contains("Goodbye, world!")
+        ! stdout.stdErr.contains("java.lang.IllegalStateException")
     }
 
     private class ChildProcess {

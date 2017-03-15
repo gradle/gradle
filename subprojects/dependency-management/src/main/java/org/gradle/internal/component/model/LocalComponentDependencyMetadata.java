@@ -26,23 +26,22 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
+import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,7 +57,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
-    private final ModuleExclusion exclusions;
     private final AttributeContainer moduleAttributes;
 
     public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
@@ -74,7 +72,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
         this.excludes = excludes;
-        this.exclusions = ModuleExclusions.excludeAny(excludes);
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
@@ -107,23 +104,18 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema) {
-        // assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
         boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
-        AttributesSchema producerAttributeSchema = targetComponent instanceof LocalComponentMetadata ? ((LocalComponentMetadata) targetComponent).getAttributesSchema() : attributesSchema;
+        AttributesSchema producerAttributeSchema = targetComponent.getAttributesSchema() == null ? attributesSchema : targetComponent.getAttributesSchema();
         if (useConfigurationAttributes) {
-            List<HasAttributes> consumableConfigurations = getConfigurationsAsHasAttributes(targetComponent);
-            List<ConfigurationMetadata> matches = Cast.uncheckedCast(((AttributesSchemaInternal) attributesSchema).getMatches(producerAttributeSchema, consumableConfigurations, fromConfigurationAttributes));
+            List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
+            List<? extends ConfigurationMetadata> matches = ((AttributesSchemaInternal) attributesSchema).getMatches(producerAttributeSchema, consumableConfigurations, fromConfigurationAttributes);
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
                 throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, matches, targetComponent);
-            }/* else {
-                Set<String> configurationNames = Sets.newTreeSet();
-                configurationNames.addAll(targetComponent.getConfigurationNames());
-                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, targetComponent, configurationNames);
-            }*/
+            }
         }
 
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
@@ -145,9 +137,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (consumerHasAttributes) {
             if (!delegate.getAttributes().isEmpty()) {
                 // need to validate that the selected configuration still matches the consumer attributes
-                List<? extends HasAttributes> matches = ((AttributesSchemaInternal) attributesSchema).getMatches(producerAttributeSchema, Collections.singletonList((HasAttributes) delegate), fromConfigurationAttributes);
+                List<ConfigurationMetadata> matches = ((AttributesSchemaInternal) attributesSchema).getMatches(producerAttributeSchema, Collections.singletonList(delegate), fromConfigurationAttributes);
                 if (matches.isEmpty()) {
-                    throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, targetComponent, Collections.singletonList(targetConfiguration));
+                    throw new IncompatibleConfigurationSelectionException(fromConfigurationAttributes, attributesSchema, targetComponent, targetConfiguration);
                 }
             }
         }
@@ -155,10 +147,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, fromConfigurationAttributes);
         }
         return ImmutableSet.of(delegate);
-    }
-
-    private List<HasAttributes> getConfigurationsAsHasAttributes(ComponentResolveMetadata targetComponent) {
-        return Cast.uncheckedCast(targetComponent.getConsumableConfigurationsHavingAttributes());
     }
 
     private static String getOrDefaultConfiguration(String configuration) {
@@ -171,13 +159,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        return exclusions;
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 
     @Override
-    public List<Exclude> getExcludes() {
+    public List<Exclude> getExcludes(Collection<String> configurations) {
         return excludes;
     }
 
@@ -308,8 +295,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public ModuleExclusion getExclusions() {
-            return delegate.getExclusions();
+        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+            return delegate.getExclusions(moduleExclusions);
         }
 
         @Override

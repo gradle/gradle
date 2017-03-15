@@ -17,7 +17,7 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.Action;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
 
 /**
  * The result of attempting to resolve a plugin to a classpath.

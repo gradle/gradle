@@ -16,12 +16,14 @@
 package org.gradle.plugins.ide.internal.generator;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.internal.PropertiesTransformer;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
+
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 public abstract class PropertiesPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
 
@@ -50,6 +52,14 @@ public abstract class PropertiesPersistableConfigurationObject extends AbstractP
     protected abstract void load(Properties properties);
 
     public void transformAction(Closure action) {
-        transformer.addAction(ConfigureUtil.configureUsing(action));
+        transformAction(configureUsing(action));
+    }
+
+    /**
+     * @param action transform action
+     * @since 3.5
+     */
+    public void transformAction(Action<? super Properties> action) {
+        transformer.addAction(action);
     }
 }

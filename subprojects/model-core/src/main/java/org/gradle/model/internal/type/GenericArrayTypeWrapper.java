@@ -29,6 +29,10 @@ class GenericArrayTypeWrapper implements TypeWrapper {
         this.hashCode = hashCode;
     }
 
+    public TypeWrapper getComponentType() {
+        return componentType;
+    }
+
     @Override
     public Class<?> getRawClass() {
         // This could probably be more efficient

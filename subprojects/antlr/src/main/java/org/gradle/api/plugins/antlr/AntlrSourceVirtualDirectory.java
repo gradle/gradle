@@ -50,6 +50,7 @@ public interface AntlrSourceVirtualDirectory {
      *
      * @param configureAction The action to use to configure the Antlr source.
      * @return this
+     * @since 3.5
      */
     AntlrSourceVirtualDirectory antlr(Action<? super SourceDirectorySet> configureAction);
 }

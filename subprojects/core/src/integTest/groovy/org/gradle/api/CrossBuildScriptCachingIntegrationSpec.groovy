@@ -377,10 +377,8 @@ task fastTask { }
     }
 
     def "build script is recompiled when project's classpath changes"() {
+        createJarWithProperties("lib/foo.jar", [source: 1])
         root {
-            lib {
-                'foo.jar'('foo')
-            }
             'build.gradle'('''
                 buildscript {
                     dependencies {
@@ -401,12 +399,8 @@ task fastTask { }
         getCompileClasspath(coreHash, 'proj').length == 1
 
         when:
-        root {
-            lib {
-                'foo.jar'('baz')
-            }
-        }
         sleep(1000)
+        createJarWithProperties("lib/foo.jar", [target: 2])
         run 'help'
         coreHash = uniqueRemapped('build')
 
@@ -418,10 +412,8 @@ task fastTask { }
     }
 
     def "build script is recompiled when parent project's classpath changes"() {
+        createJarWithProperties("lib/foo.jar", [source: 1])
         root {
-            lib {
-                'foo.jar'('foo')
-            }
             'build.gradle'('''
                 buildscript {
                     dependencies {
@@ -449,12 +441,8 @@ task fastTask { }
         getCompileClasspath(moduleHash, 'proj').length == 1
 
         when:
-        root {
-            lib {
-                'foo.jar'('baz')
-            }
-        }
         sleep(1000)
+        createJarWithProperties("lib/foo.jar", [target: 2])
         run 'help'
         coreHash = uniqueRemapped('build')
         moduleHash = uniqueRemapped('module')
@@ -562,9 +550,9 @@ task fastTask { }
         def iterations = 3
         def builder = root
         iterations.times { n ->
+            createJarWithProperties("foo${n}.jar", [value: n])
             new File(root.baseDir, 'build.gradle').delete()
             builder {
-                "foo${n}.jar"('abcdef'.bytes)
                 'build.gradle'("""
                     buildscript {
                         dependencies {

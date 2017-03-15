@@ -65,7 +65,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     @Input
     String teamCityUsername
 
-    @Input
     String teamCityPassword
 
     @OutputFile

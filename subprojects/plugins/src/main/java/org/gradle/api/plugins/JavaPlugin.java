@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -25,11 +26,15 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -49,6 +54,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.FOR_RUNTIME;
@@ -242,26 +248,55 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     @Incubating
     public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
 
+    /**
+     * Represents the "jar" format of a variant of a Java component.
+     */
+    @Incubating
+    public static final String JAR_TYPE = "jar";
+
+    // this is a workaround to force the classes variant to be used at compile time when using the Java library
+    static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
+
+    private static final Set<String> VARIANT_TYPES = ImmutableSet.of(JAR_TYPE, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
+    private static final Set<String> DIR_VARIANT_TYPES = ImmutableSet.of(NON_DEFAULT_JAR_TYPE, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
+
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
-        final BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
+        configureCompatibilityRules(project);
         configureConfigurations(project);
 
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
-
-
     }
 
-    private void configureSourceSets(final JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
-        final Project project = pluginConvention.getProject();
+    private void configureCompatibilityRules(ProjectInternal project) {
+        AttributeMatchingStrategy<String> matchingStrategy = project.getDependencies().getAttributesSchema().getMatchingStrategy(ArtifactAttributes.ARTIFACT_FORMAT);
+        matchingStrategy.getDisambiguationRules().add(new Action<MultipleCandidatesDetails<String>>() {
+            @Override
+            public void execute(MultipleCandidatesDetails<String> details) {
+                // Use Jar if all are selected
+                if (details.getCandidateValues().equals(VARIANT_TYPES)) {
+                    details.closestMatch(JAR_TYPE);
+                    return;
+                }
+                // Use classes if dir variants are selected
+                if (details.getCandidateValues().equals(DIR_VARIANT_TYPES)) {
+                    details.closestMatch(CLASS_DIRECTORY);
+                }
+            }
+        });
+    }
+
+    private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+        Project project = pluginConvention.getProject();
 
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
 
@@ -278,7 +313,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
+    private void configureJavaDoc(JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
 
         SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -290,39 +325,45 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
     }
 
-    private void configureArchivesAndComponent(final Project project, final JavaPluginConvention pluginConvention) {
+    private void configureArchivesAndComponent(Project project, JavaPluginConvention pluginConvention) {
         Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class);
         jar.setDescription("Assembles a jar archive containing the main classes.");
         jar.setGroup(BasePlugin.BUILD_GROUP);
         jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
 
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
+        Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
-        runtimeConfiguration.getArtifacts().add(jarArtifact);
-        runtimeElementsConfiguration.getArtifacts().add(jarArtifact);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
-        final JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
-        final ProcessResources processResources = (ProcessResources) project.getTasks().getByPath(PROCESS_RESOURCES_TASK_NAME);
+        JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
+        ProcessResources processResources = (ProcessResources) project.getTasks().getByPath(PROCESS_RESOURCES_TASK_NAME);
+
+        addVariants(apiElementConfiguration, jarArtifact, javaCompile, processResources);
         addVariants(runtimeConfiguration, jarArtifact, javaCompile, processResources);
         addVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
+
         project.getComponents().add(new JavaLibrary(project.getConfigurations(), jarArtifact));
     }
 
-    private void addVariants(Configuration configuration, final ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
-        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = configuration.getOutgoing().getVariants();
-        // Must make sure the Jar variant comes first, in alphabetical order!
-        // TODO: CC find a better way
-        createVariant(runtimeVariants, "a_jar", jarArtifact);
-        createVariant(runtimeVariants, "classes", new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+    private void addVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
+        ConfigurationPublications publications = configuration.getOutgoing();
+
+        // Configure an implicit variant
+        publications.getArtifacts().add(jarArtifact);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+
+        // Define some additional variants
+        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
+        createVariant(runtimeVariants, "classes", JavaPlugin.CLASS_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.getDestinationDir();
             }
         });
-        createVariant(runtimeVariants, "resources", new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
+        createVariant(runtimeVariants, "resources", JavaPlugin.RESOURCES_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.getDestinationDir();
@@ -330,13 +371,10 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private static void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, final PublishArtifact artifact) {
-        variants.create(name, new Action<ConfigurationVariant>() {
-            @Override
-            public void execute(ConfigurationVariant configurationVariant) {
-                configurationVariant.artifact(artifact);
-            }
-        });
+    private void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, String artifactType, PublishArtifact artifact) {
+        ConfigurationVariant variant = variants.create(name);
+        variant.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, artifactType);
+        variant.artifact(artifact);
     }
 
     private void configureBuild(Project project) {
@@ -367,7 +405,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
     }
 
-    void configureConfigurations(Project project) {
+    private void configureConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
 
         Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
@@ -421,6 +459,9 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
     }
 
+    /**
+     * This is only used by buildSrc to add to the buildscript classpath.
+     */
     private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
         private final JavaPluginConvention convention;
 
@@ -437,10 +478,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         }
 
         public FileCollection getRuntimeClasspath() {
-            FileCollection runtimeClasspath = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
             ProjectInternal project = convention.getProject();
+            SourceSet mainSourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            FileCollection runtimeClasspath = mainSourceSet.getRuntimeClasspath();
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
-            return runtimeClasspath.minus(gradleApi);
+            Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());
+            FileCollection mainSourceSetArtifact = runtimeElements.getOutgoing().getArtifacts().getFiles();
+            return mainSourceSetArtifact.plus(runtimeClasspath.minus(mainSourceSet.getOutput()).minus(gradleApi));
         }
 
         public Configuration getCompileDependencies() {
@@ -455,7 +499,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
-        public IntermediateJavaArtifact(String type, Task task) {
+        IntermediateJavaArtifact(String type, Task task) {
             super(task);
             this.type = type;
         }

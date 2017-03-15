@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply plugin: 'java-library'
+
 sourceCompatibility = 1.6
 
 dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':reporting')
-    compile project(':platformBase')
-    compile project(':dependencyManagement')
+    api libraries.groovy
 
-    integTestRuntime project(':plugins')
-    integTestRuntime project(':platformNative')
-    integTestRuntime project(':languageNative')
+    api project(':core')
+    api project(':reporting')
+    api project(':platformBase')
+
+    implementation project(':dependencyManagement')
+    implementation project(':baseServicesGroovy')
+    implementation libraries.guava
+    implementation libraries.jatl
+    implementation libraries.commons_collections
+    implementation libraries.commons_lang
+
+    integTestRuntimeOnly project(':plugins')
+    integTestRuntimeOnly project(':platformNative')
+    integTestRuntimeOnly project(':languageNative')
 }
 
 useTestFixtures()

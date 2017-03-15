@@ -22,12 +22,11 @@ import org.gradle.api.tasks.TaskPropertyBuilder;
 
 import java.util.Iterator;
 import java.util.Set;
-import java.util.SortedSet;
 
 public class TaskPropertyUtils {
 
     // Note: sorted set used to keep order of properties consistent
-    public static <T extends TaskFilePropertySpec> SortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
+    public static <T extends TaskFilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
         Set<String> names = Sets.newHashSet();
         ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
         while (fileProperties.hasNext()) {

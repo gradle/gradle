@@ -223,7 +223,6 @@ class ActionsTest extends Specification {
         set.execute(called)
 
         then:
-        set.size() == 3
         called == ['b', 'a', 'c']
     }
 

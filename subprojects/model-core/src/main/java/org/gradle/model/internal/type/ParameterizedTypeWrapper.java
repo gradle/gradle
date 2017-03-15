@@ -47,6 +47,10 @@ class ParameterizedTypeWrapper implements TypeWrapper {
         return hashCode;
     }
 
+    public TypeWrapper getRawType() {
+        return rawType;
+    }
+
     @Override
     public Class<?> getRawClass() {
         return rawType.unwrap();
@@ -190,6 +194,14 @@ class ParameterizedTypeWrapper implements TypeWrapper {
                 }
             }
             newArguments[i] = argument;
+        }
+        return new ParameterizedTypeWrapper(newArguments, rawType, ownerType);
+    }
+
+    ParameterizedTypeWrapper substituteAll(TypeWrapper[] newArguments) {
+        if (actualTypeArguments.length != newArguments.length) {
+            throw new IllegalArgumentException(
+                "Expecting " + actualTypeArguments.length + " type arguments but got " + newArguments.length + ".");
         }
         return new ParameterizedTypeWrapper(newArguments, rawType, ownerType);
     }

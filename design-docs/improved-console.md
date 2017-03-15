@@ -174,8 +174,8 @@ the possible task outcomes as that is lengthy and unnecessary.
 "EXECUTED" tasks are not included, it is assumed that whatever is left was executed.
 
 ### Implementation
-`TaskGraphExecutor` generates events with `TaskExecutionOutcome`. 
-`BuildProgressBarLogger` listens for these events and aggregates, notifying
+Break apart `TaskExecutionStatisticsEventAdapter` to only handle task
+execution events. Leverage that in `BuildProgressLogger`, notifying
 `ConsoleBackedProgressBarRenderer` of updates that are then rendered to the
 attached console (if any).
 
@@ -195,7 +195,7 @@ For example:
 ```
  > [:foo:compileJava] 0.1s
  > [:bar:compileJava] 2s
- > [:baz:compileJava] 3m
+ > [:baz:test] 3m
 ```
 
 This has the visual effect of updating frequently for small tasks and infrequently for larger tasks. 
@@ -210,7 +210,14 @@ The Gradle console looks like it's hung when workers are working in the backgrou
 `StatusBarFormatter` can choose to render an operation slightly differently depending on its lifespan.
 
 ### Test Coverage
-TODO
+* Time formatter handles durations up to hours
+* Performance impact is nominal
+
+### Open issues
+* How are parent operations represented?
+* Is overall build status affected?
+* Should we change Console throttling to avoid skipping tenths of seconds?
+* How about parallel test execution?
 
 ## Story: (Optional) Add a status line for work in-progress that doesn't fit on the terminal
 Suppose there is more work in-progress in parallel than lines available on the terminal.

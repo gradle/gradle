@@ -16,26 +16,20 @@
 
 package org.gradle.internal.file;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.google.common.hash.HashCode;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.internal.Factory;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @ThreadSafe
 public class JarCache {
-    private final Lock lock = new ReentrantLock();
-    private final Cache<File, FileInfo> cachedFiles;
+    private final FileHasher fileHasher;
 
-    public JarCache() {
-        this.cachedFiles = CacheBuilder.newBuilder().maximumSize(200).build();
+    public JarCache(FileHasher fileHasher) {
+        this.fileHasher = fileHasher;
     }
 
     /**
@@ -46,58 +40,12 @@ public class JarCache {
      * @return The cached file.
      */
     public File getCachedJar(File original, Factory<File> baseDirFactory) {
-        File source = FileUtils.canonicalize(original);
-        FileInfo fileInfo;
-        // TODO - do some of this work concurrently
-        lock.lock();
-        try {
-            fileInfo = cachedFiles.getIfPresent(source);
-            if (fileInfo == null || !fileInfo.cachedFile.exists()) {
-                // TODO - use the hashing service for this
-                long lastModified = source.lastModified();
-                long length = source.length();
-                HashValue hashValue = HashUtil.createHash(source, "sha1");
-                fileInfo = copyIntoCache(baseDirFactory, source, lastModified, length, hashValue);
-            } else {
-                // TODO - use the change detection service for this
-                long lastModified = source.lastModified();
-                long length = source.length();
-                if (lastModified != fileInfo.lastModified || length != fileInfo.length) {
-                    HashValue hashValue = HashUtil.createHash(source, "sha1");
-                    if (!hashValue.equals(fileInfo.hashValue)) {
-                        fileInfo = copyIntoCache(baseDirFactory, source, lastModified, length, hashValue);
-                    }
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-        return fileInfo.cachedFile;
-    }
-
-    private FileInfo copyIntoCache(Factory<File> baseDirFactory, File source, long lastModified, long length, HashValue hashValue) {
+        HashCode hashValue = fileHasher.hash(original);
         File baseDir = baseDirFactory.create();
-        File cachedFile = new File(baseDir, hashValue.asCompactString() + '/' + source.getName());
+        File cachedFile = new File(baseDir, hashValue.toString() + '/' + original.getName());
         if (!cachedFile.isFile()) {
-            // Has previously been added to the cache directory
-            GFileUtils.copyFile(source, cachedFile);
+            GFileUtils.copyFile(original, cachedFile);
         }
-        FileInfo fileInfo = new FileInfo(lastModified, length, hashValue, cachedFile);
-        cachedFiles.put(source, fileInfo);
-        return fileInfo;
-    }
-
-    private static class FileInfo {
-        final long lastModified;
-        final long length;
-        final HashValue hashValue;
-        final File cachedFile;
-
-        private FileInfo(long lastModified, long length, HashValue hashValue, File cachedFile) {
-            this.lastModified = lastModified;
-            this.length = length;
-            this.hashValue = hashValue;
-            this.cachedFile = cachedFile;
-        }
+        return cachedFile;
     }
 }

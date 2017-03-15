@@ -23,7 +23,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -94,6 +94,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final CacheAwareExternalResourceAccessor cachingResourceAccessor;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private final VersionLister versionLister;
 
@@ -105,7 +106,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        CacheAwareExternalResourceAccessor cachingResourceAccessor,
                                        VersionLister versionLister,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                       FileStore<ModuleComponentArtifactIdentifier> artifactFileStore) {
+                                       FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -113,6 +115,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public String getId() {
@@ -146,7 +149,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void doListModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-        ModuleIdentifier module = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+        ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getRequested().getGroup(), dependency.getRequested().getName());
         Set<String> versions = new LinkedHashSet<String>();
         VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 
