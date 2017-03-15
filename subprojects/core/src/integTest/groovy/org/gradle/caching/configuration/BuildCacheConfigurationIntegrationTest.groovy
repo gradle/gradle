@@ -141,6 +141,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("help", "--build-cache", "--offline")
+        result.output.contains("Remote build cache is disabled when running with --offline.")
     }
 
     def "system properties still have an effect on pushing and pulling"() {
