@@ -104,12 +104,6 @@ task binZip(type: Zip) {
 }
 
 task testBinZip(type: Zip) {
-    // We need to cache the bin zip here to make integration tests cacheable.
-    // This is because when rebuilding a zip file with the same contents then
-    // the metadata is different -> the hash of the zip file would be different.
-    // This would prevent caching of integration tests having binZip as a dependency -
-    // even if all the included files are the same.
-    outputs.cacheIf { true }
     classifier = 'test-bin'
     into(testZipRootFolder) {
         with binDistImage
