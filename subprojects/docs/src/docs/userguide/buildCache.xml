@@ -302,7 +302,7 @@
             </tr>
             <tr>
                 <td>Remote cache entries are downloaded each time they are needed.</td>
-                <td>Gradle does not keep a local copy of remotely downloaded cache entries.</td>
+                <td>Gradle does not keep a local copy of remotely downloaded cache entries. After every clean build, Gradle will need to download all remote cache entries again.</td>
                 <td>None.</td>
             </tr>
         </table>
