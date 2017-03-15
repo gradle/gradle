@@ -19,6 +19,7 @@ package org.gradle.caching.internal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -46,7 +47,7 @@ public class DefaultDirectoryBuildCacheServiceFactory implements BuildCacheServi
         if (cacheDirectory != null) {
             target = resolver.resolve(cacheDirectory);
         } else {
-            target = new File(cacheScopeMapping.getRootDirectory(null), "build-cache-" + BUILD_CACHE_VERSION);
+            target = cacheScopeMapping.getBaseDirectory(null, "build-cache-" + BUILD_CACHE_VERSION, VersionStrategy.SharedCache);
         }
         return new DirectoryBuildCacheService(cacheRepository, target);
     }
