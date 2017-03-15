@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.quality
 
 import groovy.transform.NotYetImplemented
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -33,7 +32,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
-@TargetCoverage({ JavaVersion.current().java7 ? CheckstyleCoverage.JDK7_SUPPORTED : CheckstyleCoverage.ALL })
+@TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule

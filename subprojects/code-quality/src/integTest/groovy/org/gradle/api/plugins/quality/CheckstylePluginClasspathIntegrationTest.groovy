@@ -15,14 +15,13 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import spock.lang.Issue
 
 @Issue("gradle/gradle#855")
-@TargetCoverage({ JavaVersion.current().java7 ? CheckstyleCoverage.JDK7_SUPPORTED : CheckstyleCoverage.ALL })
+@TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginClasspathIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         writeBuildFiles()
