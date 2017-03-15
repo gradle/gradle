@@ -91,7 +91,6 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.description == 'The first test artifact'
         pomReader.packaging == 'jar'
         !pomReader.hasParent()
-        pomReader.pomProperties.size() == 0
         pomReader.properties.size() == 6
         pomReader.properties['parent.version'] == 'version-one'
         pomReader.properties['parent.groupId'] == 'group-one'
@@ -130,9 +129,6 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.description == 'The first test artifact'
         pomReader.packaging == 'jar'
         !pomReader.hasParent()
-        pomReader.pomProperties.size() == 5
-        pomReader.pomProperties.containsKey('some.prop1')
-        pomReader.pomProperties.containsKey('some.prop2')
         pomReader.properties.size() == 11
         pomReader.properties.containsKey('some.prop1')
         pomReader.properties.containsKey('some.prop2')
@@ -483,7 +479,6 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.packaging == 'jar'
         pomReader.description == ''
         !pomReader.hasParent()
-        pomReader.pomProperties.size() == 0
         pomReader.properties.size() == 15
         pomReader.properties['parent.version'] == 'version-one'
         pomReader.properties['parent.groupId'] == 'group-one'
@@ -525,7 +520,6 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.packaging == 'jar'
         pomReader.description == ''
         !pomReader.hasParent()
-        pomReader.pomProperties.size() == 0
         pomReader.relocation != null
         pomReader.relocation == DefaultModuleVersionIdentifier.newId('group-one', 'artifact-one', 'version-one')
     }
@@ -554,7 +548,6 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.packaging == 'jar'
         pomReader.description == ''
         !pomReader.hasParent()
-        pomReader.pomProperties.size() == 0
         pomReader.relocation != null
         pomReader.relocation == DefaultModuleVersionIdentifier.newId('group-two', 'artifact-one', 'version-one')
     }
@@ -584,7 +577,6 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.packaging == 'jar'
         pomReader.description == ''
         !pomReader.hasParent()
-        pomReader.pomProperties.size() == 0
         pomReader.relocation != null
         pomReader.relocation == DefaultModuleVersionIdentifier.newId('group-two', 'artifact-two', 'version-one')
     }
@@ -615,7 +607,6 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.packaging == 'jar'
         pomReader.description == ''
         !pomReader.hasParent()
-        pomReader.pomProperties.size() == 0
         pomReader.relocation != null
         pomReader.relocation == DefaultModuleVersionIdentifier.newId('group-two', 'artifact-two', 'version-two')
     }
@@ -832,9 +823,8 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.artifactId == 'artifact-one'
         pomReader.version == 'version-one'
         pomReader.packaging == packaging
-        pomReader.pomProperties.size() == 1
-        pomReader.pomProperties.containsKey('package.type')
-        pomReader.pomProperties['package.type'] == packaging
+        pomReader.properties.containsKey('package.type')
+        pomReader.properties['package.type'] == packaging
 
         where:
         packaging << ['pom', 'jar', 'ejb', 'war', 'ear', 'rar', 'par']
