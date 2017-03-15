@@ -97,6 +97,8 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             task customTask(type: CustomTask)
             task anotherCustomTask(type: CustomTask)
             
+            // All of our tests just run 'assemble', so make sure
+            // our custom tasks are run with assemble.
             assemble.dependsOn customTask, anotherCustomTask
         """
 
