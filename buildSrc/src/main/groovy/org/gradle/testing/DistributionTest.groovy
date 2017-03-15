@@ -43,7 +43,10 @@ class DistributionTest extends Test {
 
     @Input
     String getOperatingSystem() {
-        OperatingSystem.current().toString()
+        def current = OperatingSystem.current()
+        // the version currently differs between our dev infrastructure, so we only track the name and the architecture
+        return current.getName() + " " + System.getProperty("os.arch")
+
     }
 
     /**
