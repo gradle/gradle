@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.Transformer;
@@ -47,11 +48,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
 
@@ -121,8 +120,8 @@ public class PomReader implements PomParent {
     };
 
     private PomParent pomParent = new RootPomParent();
-    private final Map<String, String> properties = new HashMap<String, String>();
-    private final Set<String> pomPropertyKeys = new HashSet<String>();
+    private final Map<String, String> pomProperties = new HashMap<String, String>();
+    private final Map<String, String> effectiveProperties = new HashMap<String, String>();
     private List<PomDependencyMgt> declaredDependencyMgts;
     private List<PomProfile> declaredActivePomProfiles;
     private Map<MavenDependencyKey, PomDependencyMgt> resolvedDependencyMgts;
@@ -153,12 +152,19 @@ public class PomReader implements PomParent {
         parentElement = getFirstChildElement(projectElement, PARENT);
 
         setDefaultParentGavProperties();
-        setPomProperties();
+        setPomProperties(parseProperties(projectElement));
         setActiveProfileProperties();
     }
 
     public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws SAXException {
-        this(resource, moduleIdentifierFactory, new HashMap<String, String>());
+        this(resource, moduleIdentifierFactory, Maps.<String, String>newHashMap());
+    }
+
+    public void setPomParent(PomParent pomParent) {
+        this.pomParent = pomParent;
+        for(Map.Entry<String, String> entry : pomParent.getProperties().entrySet()) {
+            maybeSetEffectiveProperty(entry.getKey(), entry.getValue());
+        }
     }
 
     private void setDefaultParentGavProperties() {
@@ -169,19 +175,15 @@ public class PomReader implements PomParent {
 
     private void maybeSetGavProperties(GavProperty gavProperty, String propertyValue) {
         for(String name : gavProperty.getNames()) {
-            maybeSetProperty(name, propertyValue);
+            maybeSetEffectiveProperty(name, propertyValue);
         }
     }
 
     private void setPomProperties(Map<String, String> pomProperties) {
+        this.pomProperties.putAll(pomProperties);
         for(Map.Entry<String, String> pomProperty : pomProperties.entrySet()) {
-            pomPropertyKeys.add(pomProperty.getKey());
-            maybeSetProperty(pomProperty.getKey(), pomProperty.getValue());
+            maybeSetEffectiveProperty(pomProperty.getKey(), pomProperty.getValue());
         }
-    }
-
-    private void setPomProperties() {
-        setPomProperties(getPomProperties());
     }
 
     /**
@@ -190,20 +192,8 @@ public class PomReader implements PomParent {
     private void setActiveProfileProperties() {
         for(PomProfile activePomProfile : parseActivePomProfiles()) {
             for(Map.Entry<String, String> property : activePomProfile.getProperties().entrySet()) {
-                properties.put(property.getKey(), property.getValue());
+                effectiveProperties.put(property.getKey(), property.getValue());
             }
-        }
-    }
-
-    public void setPomParent(PomParent pomParent) {
-        this.pomParent = pomParent;
-        setPomParentProperties();
-    }
-
-    private void setPomParentProperties() {
-        Map<String, String> parentPomProps = pomParent.getProperties();
-        for(Map.Entry<String, String> entry : parentPomProps.entrySet()) {
-            maybeSetProperty(entry.getKey(), entry.getValue());
         }
     }
 
@@ -212,9 +202,9 @@ public class PomReader implements PomParent {
      * This guarantee that property keep the first value that is put on it and that the properties
      * are never null.
      */
-    private void maybeSetProperty(String prop, String val) {
-        if (!properties.containsKey(prop) && val != null) {
-            properties.put(prop, val);
+    private void maybeSetEffectiveProperty(String prop, String val) {
+        if (!effectiveProperties.containsKey(prop) && val != null) {
+            effectiveProperties.put(prop, val);
         }
     }
 
@@ -272,7 +262,7 @@ public class PomReader implements PomParent {
     }
 
     public Map<String, String> getProperties() {
-        return properties;
+        return effectiveProperties;
     }
 
     public void addImportedDependencyMgts(Map<MavenDependencyKey, PomDependencyMgt> inherited) {
@@ -497,7 +487,7 @@ public class PomReader implements PomParent {
 
     private void setGavPropertyValue(GavProperty gavProperty, String propertyValue) {
         for(String name : gavProperty.getNames()) {
-            properties.put(name, propertyValue);
+            effectiveProperties.put(name, propertyValue);
         }
     }
 
@@ -607,7 +597,7 @@ public class PomReader implements PomParent {
         }
 
         public Map<String, String> getProperties() {
-            return getPomProperties(element);
+            return parseProperties(element);
         }
 
         public List<PomDependencyMgt> getDependencyMgts() {
@@ -693,24 +683,13 @@ public class PomReader implements PomParent {
     }
 
     /**
-     * @return the content of the properties tag into the pom.
-     */
-    public Map<String, String> getPomProperties() {
-        return getPomProperties(projectElement);
-    }
-
-    /**
      * @return properties of both current and children poms.
      */
-    public Map<String, String> getAllPomProperties() {
-        Map<String, String> res = new HashMap<String, String>();
-        for(String pomProperty : pomPropertyKeys) {
-            res.put(pomProperty, properties.get(pomProperty));
-        }
-        return res;
+    Map<String, String> getAllPomProperties() {
+        return pomProperties;
     }
 
-    private Map<String, String> getPomProperties(Element parentElement) {
+    private Map<String, String> parseProperties(Element parentElement) {
         Map<String, String> pomProperties = new HashMap<String, String>();
         Element propsEl = getFirstChildElement(parentElement, PROPERTIES);
         if (propsEl != null) {
@@ -726,7 +705,7 @@ public class PomReader implements PomParent {
         if (val == null) {
             return null;
         } else {
-            return IvyPatternHelper.substituteVariables(val, properties).trim();
+            return IvyPatternHelper.substituteVariables(val, effectiveProperties).trim();
         }
     }
 }
