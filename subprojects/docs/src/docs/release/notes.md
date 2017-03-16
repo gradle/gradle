@@ -212,6 +212,19 @@ projects like those using Spring to have correct version comparison.
 
 See [gradle/gradle#1378](https://github.com/gradle/gradle/issues/1378) for more details.
 
+### Version of Checkstyle has been upgraded
+
+By default, Gradle now uses [Checkstyle 6.19](http://checkstyle.sourceforge.net/releasenotes.html#Release_6.19). Previously, Gradle used Checkstyle 5.9.
+We cannot upgrade to the latest release because Checkstyle 7.0+ require Java 8. Gradle has been tested against Checkstyle 7.0 and 7.6. 
+
+Newer versions of Checkstyle usually bring new rules, better inspections and bug fixes.  Your build may fail due to these changes.
+
+You can upgrade or downgrade the version of Checkstyle with:
+
+    checkstyle {
+        toolVersion = '5.9'
+    }
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
