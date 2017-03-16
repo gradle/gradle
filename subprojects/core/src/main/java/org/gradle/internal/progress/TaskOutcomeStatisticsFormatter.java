@@ -20,22 +20,29 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
 
 public class TaskOutcomeStatisticsFormatter {
-    private int executedTasksCount;
+    private int avoidedTasksCount;
     private int allTasksCount;
 
-    public String incrementAndGetProgress(TaskState state) {
+    public String incrementAndGetProgress(final TaskState state) {
         recordTaskOutcome(state);
 
-        final long executedPercentage = Math.round(executedTasksCount * 100.0 / allTasksCount);
-        return " [" + (100 - executedPercentage) + "% AVOIDED, " + executedPercentage + "% DONE]";
+        if (allTasksCount > 0) {
+            final long avoidedPercentage = Math.round(avoidedTasksCount * 100.0 / allTasksCount);
+            return " [" + avoidedPercentage + "% AVOIDED, " + (100 - avoidedPercentage) + "% DONE]";
+        } else {
+            return "";
+        }
     }
 
     private void recordTaskOutcome(final TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
+
         TaskExecutionOutcome outcome = stateInternal.getOutcome();
-        if (outcome == TaskExecutionOutcome.EXECUTED) {
-            executedTasksCount++;
+        if (outcome == TaskExecutionOutcome.UP_TO_DATE || outcome == TaskExecutionOutcome.FROM_CACHE) {
+            avoidedTasksCount++;
         }
-        allTasksCount++;
+        if (outcome != TaskExecutionOutcome.NO_SOURCE && outcome != TaskExecutionOutcome.SKIPPED && stateInternal.isHasActions()) {
+            allTasksCount++;
+        }
     }
 }

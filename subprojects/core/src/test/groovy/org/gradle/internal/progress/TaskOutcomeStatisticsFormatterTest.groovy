@@ -36,28 +36,58 @@ class TaskOutcomeStatisticsFormatterTest extends Specification {
         expect:
         formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [100% AVOIDED, 0% DONE]"
         formatter.incrementAndGetProgress(taskState(FROM_CACHE)) == " [100% AVOIDED, 0% DONE]"
-        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == " [100% AVOIDED, 0% DONE]"
-        formatter.incrementAndGetProgress(taskState(SKIPPED)) == " [100% AVOIDED, 0% DONE]"
+    }
+
+    def "tasks with NO-SOURCE are not counted"() {
+        given:
+        formatter.incrementAndGetProgress(taskState(EXECUTED))
+
+        expect:
+        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == " [0% AVOIDED, 100% DONE]"
+    }
+
+    def "SKIPPED tasks are not counted"() {
+        given:
+        formatter.incrementAndGetProgress(taskState(EXECUTED))
+
+        expect:
+        formatter.incrementAndGetProgress(taskState(SKIPPED)) == " [0% AVOIDED, 100% DONE]"
+    }
+
+    def "tasks with no actions are not counted"() {
+        given:
+        formatter.incrementAndGetProgress(taskState(UP_TO_DATE))
+
+        expect:
+        formatter.incrementAndGetProgress(taskState(EXECUTED, false)) == " [100% AVOIDED, 0% DONE]"
+    }
+
+    def "returns nothing given only non-counted tasks"() {
+        expect:
+        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == ""
+        formatter.incrementAndGetProgress(taskState(SKIPPED)) == ""
+        formatter.incrementAndGetProgress(taskState(EXECUTED, false)) == ""
     }
 
     def "formats executed tasks as DONE"() {
         expect:
-        formatter.incrementAndGetProgress(taskState(EXECUTED)) == " [0% AVOIDED, 100% DONE]"
+        formatter.incrementAndGetProgress(taskState(EXECUTED, true)) == " [0% AVOIDED, 100% DONE]"
     }
 
     def "formats multiple outcome types"() {
         expect:
-        formatter.incrementAndGetProgress(taskState(SKIPPED)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == ""
         formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [100% AVOIDED, 0% DONE]"
-        formatter.incrementAndGetProgress(taskState(FROM_CACHE)) == " [100% AVOIDED, 0% DONE]"
-        formatter.incrementAndGetProgress(taskState(NO_SOURCE)) == " [100% AVOIDED, 0% DONE]"
-        formatter.incrementAndGetProgress(taskState(EXECUTED)) == " [80% AVOIDED, 20% DONE]"
-        formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [83% AVOIDED, 17% DONE]"
+        formatter.incrementAndGetProgress(taskState(EXECUTED)) == " [50% AVOIDED, 50% DONE]"
+        formatter.incrementAndGetProgress(taskState(SKIPPED)) == " [50% AVOIDED, 50% DONE]"
+        formatter.incrementAndGetProgress(taskState(FROM_CACHE)) == " [67% AVOIDED, 33% DONE]"
+        formatter.incrementAndGetProgress(taskState(UP_TO_DATE)) == " [75% AVOIDED, 25% DONE]"
     }
 
-    private TaskState taskState(TaskExecutionOutcome taskExecutionOutcome) {
+    private TaskState taskState(TaskExecutionOutcome taskExecutionOutcome, boolean hasActions = true) {
         def state = new TaskStateInternal('')
         state.outcome = taskExecutionOutcome
+        state.hasActions = hasActions
         state
     }
 }
