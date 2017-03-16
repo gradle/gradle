@@ -26,7 +26,6 @@ import org.gradle.tooling.events.OperationResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.StartEvent
-import org.gradle.tooling.events.StatusEvent
 import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
@@ -76,7 +75,7 @@ class ProgressEvents implements ProgressListener {
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
                     def parent = descriptor.parent == null ? null : operations.find { it.descriptor == descriptor.parent }
 
-                    Operation operation = new Operation(parent, descriptor)
+                    Operation operation = newOperation(parent, descriptor)
                     operations.add(operation)
 
                     assert descriptor.displayName == descriptor.toString()
@@ -102,21 +101,26 @@ class ProgressEvents implements ProgressListener {
 
                     assert event.result.startTime == startEvent.eventTime
                     assert event.result.endTime == event.eventTime
-                } else if (event instanceof StatusEvent) {
+                } else {
                     def descriptor = event.descriptor
                     // operation should still be running
-                    assert running.containsKey(descriptor)
-                    def operation = operations.find { it.descriptor == descriptor }
-                    operation.statusEvents.add(event)
-                }
-                else {
-                    throw new AssertionError("Unexpected type of progress event received: ${event.getClass()}")
+                    assert running.containsKey(descriptor) != null
+                    def operation = operations.find { it.descriptor == event.descriptor }
+                    otherEvent(event, operation)
                 }
             }
             assert running.size() == 0: "Not all operations completed: ${running.values()}, events: ${events}"
 
             dirty = false
         }
+    }
+
+    protected Operation newOperation(Operation parent, OperationDescriptor descriptor) {
+        new Operation(parent, descriptor)
+    }
+
+    protected void otherEvent(ProgressEvent event, Operation operation) {
+        throw new AssertionError("Unexpected type of progress event received: ${event.getClass()}")
     }
 
     // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
@@ -247,10 +251,9 @@ class ProgressEvents implements ProgressListener {
         final OperationDescriptor descriptor
         final Operation parent
         final List<Operation> children = []
-        final List<StatusEvent> statusEvents = []
         OperationResult result
 
-        private Operation(Operation parent, OperationDescriptor descriptor) {
+        protected Operation(Operation parent, OperationDescriptor descriptor) {
             this.descriptor = descriptor
             this.parent = parent
             if (parent != null) {

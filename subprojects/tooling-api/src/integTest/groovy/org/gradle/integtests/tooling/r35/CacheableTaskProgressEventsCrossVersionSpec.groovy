@@ -58,7 +58,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
     @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations for load and store"() {
         when:
-        def pushToCacheEvents = new ProgressEvents()
+        def pushToCacheEvents = progressEvents()
         runCacheableBuild(pushToCacheEvents)
         then:
         writingOperations(pushToCacheEvents).size() == 1
@@ -66,7 +66,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         when:
         file("build").deleteDir()
         and:
-        def pullFromCacheResults = new ProgressEvents()
+        def pullFromCacheResults = progressEvents()
         runCacheableBuild(pullFromCacheResults)
         then:
         readingOperations(pullFromCacheResults).size() == 1
@@ -92,7 +92,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
 
         when:
-        def pushToCacheEvents = new ProgressEvents()
+        def pushToCacheEvents = progressEvents()
         runCacheableBuild(pushToCacheEvents)
 
         then:
@@ -101,7 +101,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         when:
         file("build").deleteDir()
         and:
-        def pullFromCacheResults = new ProgressEvents()
+        def pullFromCacheResults = progressEvents()
         runCacheableBuild(pullFromCacheResults)
 
         then:

@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r33
 
-import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -32,7 +31,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'single'"
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -59,7 +58,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -98,7 +97,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -142,7 +141,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -186,7 +185,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -221,7 +220,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("src/main/java/Thing.java") << """class Thing { }"""
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -249,7 +248,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("src/test/java/Thing.java") << """class ThingTest { }"""
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -285,7 +284,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -325,7 +324,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         javaProjectWithTests()
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()

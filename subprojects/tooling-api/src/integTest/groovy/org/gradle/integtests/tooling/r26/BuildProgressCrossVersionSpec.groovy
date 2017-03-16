@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r26
 
-import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -29,7 +28,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("init.gradle") << "println 'init'"
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -59,7 +58,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates buildSrc operation when there is a nested buildSrc build"() {
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()

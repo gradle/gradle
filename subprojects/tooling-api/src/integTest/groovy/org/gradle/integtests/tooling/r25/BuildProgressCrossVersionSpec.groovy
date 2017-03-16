@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -54,7 +53,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some task(s) to run first"
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations).forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).get()
@@ -71,7 +70,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
@@ -123,7 +122,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('classes').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
@@ -173,7 +172,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()

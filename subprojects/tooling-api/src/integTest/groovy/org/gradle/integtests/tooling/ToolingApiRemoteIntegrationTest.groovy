@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.tooling.fixture.ProgressEvents
+import org.gradle.integtests.tooling.fixture.ProgressEventsWithStatus
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -92,7 +92,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEvents()
+        def events = new ProgressEventsWithStatus()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("help")
@@ -134,7 +134,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEvents()
+        def events = new ProgressEventsWithStatus()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("help")
@@ -176,7 +176,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEvents()
+        def events = new ProgressEventsWithStatus()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("hello")
