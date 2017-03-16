@@ -104,7 +104,10 @@ class ProgressEvents implements ProgressListener {
                     assert event.result.endTime == event.eventTime
                 } else if (event instanceof StatusEvent) {
                     def descriptor = event.descriptor
-                    assert seen.add(descriptor)
+                    // operation should still be running
+                    assert running.containsKey(descriptor)
+                    def operation = operations.find { it.descriptor == descriptor }
+                    operation.statusEvents.add(event)
                 }
                 else {
                     throw new AssertionError("Unexpected type of progress event received: ${event.getClass()}")
@@ -244,6 +247,7 @@ class ProgressEvents implements ProgressListener {
         final OperationDescriptor descriptor
         final Operation parent
         final List<Operation> children = []
+        final List<StatusEvent> statusEvents = []
         OperationResult result
 
         private Operation(Operation parent, OperationDescriptor descriptor) {

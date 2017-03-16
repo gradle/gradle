@@ -25,10 +25,10 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
@@ -127,14 +127,15 @@ public class DistributionFactory {
             return "Gradle distribution '" + wrapperConfiguration.getDistribution() + "'";
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final ConsumerProgressListener progressListener, final File userHomeDir, BuildCancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final File userHomeDir, BuildCancellationToken cancellationToken) {
             if (installedDistribution == null) {
+                final DefaultConsumerProgressListener downloadListener = new DefaultConsumerProgressListener(progressLoggerFactory, progressListener);
                 Callable<File> installDistroTask = new Callable<File>() {
                     public File call() throws Exception {
                         File installDir;
                         try {
                             File realUserHomeDir = determineRealUserHomeDir(userHomeDir);
-                            Install install = new Install(new Logger(false), progressListener, new PathAssembler(realUserHomeDir));
+                            Install install = new Install(new Logger(false), downloadListener, new PathAssembler(realUserHomeDir));
                             installDir = install.createDist(wrapperConfiguration);
                         } catch (FileNotFoundException e) {
                             throw new IllegalArgumentException(String.format("The specified %s does not exist.", getDisplayName()), e);
@@ -201,18 +202,7 @@ public class DistributionFactory {
             return displayName;
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, ConsumerProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
-            progressLogger.setDescription("Validate distribution");
-            progressLogger.started();
-            try {
-                return getToolingImpl();
-            } finally {
-                progressLogger.completed();
-            }
-        }
-
-        private ClassPath getToolingImpl() {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
             if (!gradleHomeDir.exists()) {
                 throw new IllegalArgumentException(String.format("The specified %s does not exist.", locationDisplayName));
             }
@@ -240,7 +230,7 @@ public class DistributionFactory {
             return "Gradle classpath distribution";
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, ConsumerProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
             ClassPath classpath = new DefaultClassPath();
             DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
             for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {

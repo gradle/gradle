@@ -24,9 +24,9 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationTokenSource
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.StatusEvent
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -45,13 +45,12 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     void setup() {
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the 'testBinZip' task"
         server.start()
         toolingApi.requireIsolatedUserHome()
     }
 
     def "downloads distribution with valid user-agent information"() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
-
         given:
         settingsFile << "";
         buildFile << "task hello { doLast { println hello } }"
@@ -80,11 +79,8 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "receives distribution download progress events"() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
-
         given:
-        settingsFile << "";
-        buildFile << ""
+        settingsFile << ""
 
         and:
         server.expectGet("/custom-dist.zip", distribution.binDistribution)
@@ -105,15 +101,61 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        def lastProgressEvent = events.all.findAll { it instanceof StatusEvent }.last() as StatusEvent
-        lastProgressEvent.displayName == "Downloading " + distUri
+        def download = events.buildOperations.first()
+        download.successful
+        download.descriptor.displayName == "Download " + distUri
+
+        !download.statusEvents.empty
+
+        def lastProgressEvent = download.statusEvents.last()
+        lastProgressEvent.displayName == "Download " + distUri
         lastProgressEvent.total == distribution.binDistribution.length()
         lastProgressEvent.progress <= distribution.binDistribution.length()
+
+        // Build execution is sibling of download
+        def build = events.buildOperations.get(1)
+        build.descriptor.displayName == "Run build"
+
         toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
+    def "receives distribution download progress events when download fails"() {
+        given:
+        settingsFile << ""
+
+        and:
+        server.expectGetBroken("/custom-dist.zip")
+
+        and:
+        def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useDistribution(distUri)
+        }
+
+        when:
+        def events = new ProgressEvents()
+        toolingApi.withConnection { ProjectConnection connection ->
+            connection.newBuild()
+                .forTasks("help")
+                .addProgressListener(events)
+                .run()
+        }
+
+        then:
+        GradleConnectionException e = thrown()
+        e.message == "Could not install Gradle distribution from '$distUri'."
+
+        and:
+        events.buildOperations.size() == 1
+
+        def download = events.buildOperations.first()
+        !download.successful
+        download.descriptor.displayName == "Download " + distUri
+        download.failures.size() == 1
+        download.failures.first().message == "Server returned HTTP response code: 500 for URL: ${distUri}"
+    }
+
     def "can cancel distribution download"() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
         def userHomeDir = file("user-home-dir")
         server.server.setGracefulShutdown(2 * 1000)
 
@@ -122,25 +164,37 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "task hello { doLast { println hello } }"
         CancellationTokenSource tokenSource = new DefaultCancellationTokenSource()
         CountDownLatch latch = new CountDownLatch(1)
+        def distUri = URI.create("http://localhost:${server.port}/cancelled-dist.zip")
 
         server.expect("/cancelled-dist.zip", false, ['GET'], new SendDataAndCancelAction("/cancelled-dist.zip", distribution.binDistribution, tokenSource, latch))
 
         and:
         toolingApi.withConnector { GradleConnector connector ->
-            connector.useDistribution(URI.create("http://localhost:${server.port}/cancelled-dist.zip"))
+            connector.useDistribution(distUri)
             connector.useGradleUserHomeDir(userHomeDir)
         }
 
         when:
+        def events = new ProgressEvents()
         toolingApi.withConnection { ProjectConnection connection ->
-            BuildLauncher launcher = connection.newBuild().forTasks("hello")
+            connection.newBuild()
+                .forTasks("hello")
                 .withCancellationToken(tokenSource.token())
-            launcher.run()
+                .addProgressListener(events)
+                .run()
         }
 
         then:
         BuildCancelledException e = thrown()
         e.message.contains('Distribution download cancelled.')
+
+        and:
+        events.buildOperations.size() == 1
+
+        def download = events.buildOperations.first()
+        !download.successful
+        download.descriptor.displayName == "Download " + distUri
+        download.failures.size() == 1
 
         cleanup:
         latch.countDown()

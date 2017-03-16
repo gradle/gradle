@@ -19,7 +19,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
-import org.gradle.tooling.internal.consumer.DefaultConsumerProgressListener;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
@@ -99,8 +98,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
                 ProgressLoggerFactory progressLoggerFactory = loggingProvider.getProgressLoggerFactory();
-                DefaultConsumerProgressListener consumerProgressListener = new DefaultConsumerProgressListener(progressLoggerFactory, buildProgressListener);
-                connection = implementationLoader.create(distribution, progressLoggerFactory, consumerProgressListener, connectionParameters, cancellationToken);
+                connection = implementationLoader.create(distribution, progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken);
             }
             return connection;
         } finally {

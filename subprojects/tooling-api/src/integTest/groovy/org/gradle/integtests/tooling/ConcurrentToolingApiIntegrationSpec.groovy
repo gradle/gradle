@@ -30,7 +30,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.internal.consumer.ConsumerProgressListener
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
@@ -274,7 +274,7 @@ project.description = text
             return 'mock'
         }
 
-        ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, ConsumerProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
+        ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
             def o = progressLoggerFactory.newOperation("mock")
             operation(o)
             o.started()
