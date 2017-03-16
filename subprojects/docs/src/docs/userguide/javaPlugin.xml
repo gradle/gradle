@@ -44,7 +44,7 @@
         <para>The Java plugin defines two standard source sets, called <literal>main</literal> and <literal>test</literal>.
             The <literal>main</literal> source set contains your production source code, which is compiled and assembled
             into a JAR file. The <literal>test</literal> source set contains your test source code, which is
-            compiled and executed using JUnit or TestNG.  These can be unit tests, integration tests, acceptance tests,
+            compiled and executed using JUnit or TestNG. These can be unit tests, integration tests, acceptance tests,
             or any combination that is useful to you.
         </para>
     </section>
@@ -329,7 +329,7 @@
 
     <section id="sec:java_project_layout">
         <title>Project layout</title>
-        <para>The Java plugin assumes the project layout shown below. None of these directories need exist or have
+        <para>The Java plugin assumes the project layout shown below. None of these directories need to exist or have
             anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
         </para>
 
@@ -1146,7 +1146,7 @@
                 <listitem>Avoid wasting time compiling source classes that don't have to be compiled.
                     This means faster builds, especially when a change to a source class or a jar does not incur recompilation of many source classes that depend on the changed input.</listitem>
                 <listitem>Change as few output classes as possible. Classes that don't need to be recompiled remain unchanged in the output directory.
-                    An example scenario when this is really useful is using JRebel - the fewer output classes are changed the quicker the jvm can use refreshed classes.</listitem>
+                    An example scenario when this is really useful is using JRebel - the fewer output classes are changed the quicker the JVM can use refreshed classes.</listitem>
             </itemizedlist>
             The incremental compilation at a high level:
             <itemizedlist>
@@ -1290,7 +1290,7 @@
                         However, the vast majority of tests and use cases should be handled neatly.
                     </listitem>
                     <listitem>Test filtering supersedes the file-based test selection. The latter may be completely replaced in future.
-                        We will grow the test filtering api and add more kinds of filters.
+                        We will grow the test filtering API and add more kinds of filters.
                     </listitem>
                 </itemizedlist>
             </para>
@@ -1352,8 +1352,8 @@
                   will only execute tests that match the specified <replaceable>testNamePattern</replaceable>.
                   The <replaceable>taskName</replaceable> can be a full multi-project path like “:sub1:sub2:test”
                   or just the task name.  The <replaceable>testNamePattern</replaceable> will be used to form an include
-                  pattern of “**/testNamePattern*.class”;.
-                  If no tests with this pattern can be found an exception is thrown. This is to shield you from false security.
+                  pattern of “**/testNamePattern*.class”.
+                  If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security.
                   If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception
                   is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the
                   pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully
@@ -1564,7 +1564,7 @@
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Customization of MANIFEST.MF">
                 <sourcefile file="build.gradle" snippet="add-to-manifest"/>
             </sample>
-            <para>You can create stand alone instances of a <classname>Manifest</classname>. You can use that for example,
+            <para>You can create standalone instances of a <classname>Manifest</classname>. You can use that for example,
                 to share manifest information between jars.
             </para>
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Creating a manifest object.">
