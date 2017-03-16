@@ -81,10 +81,11 @@
             <sourcefile file="settings.gradle" snippet="http-build-cache"/>
         </sample>
         <para>
-            In order to populate the remote build cache, pushing needs to be enabled and the local build cache can be disabled as shown in the following sample.
+            The recommended use case for the build cache is that your continuous integration server populates the remote build cache with clean builds while developers pull
+            from the remote build cache and push to a local build cache. The configuration would then look as follows.
         </para>
-        <sample id="pushToRemoteBuildCache" dir="buildCache/push-to-remote" title="Enable pushing to remote build cache">
-            <sourcefile file="settings.gradle" snippet="push-to-remote"/>
+        <sample id="developerCiSetup" dir="buildCache/developer-ci-setup" title="Recommended setup for CI push use case">
+            <sourcefile file="settings.gradle" snippet="developer-ci-setup"/>
         </sample>
         <para>
             You can configure the directory the <apilink class='org.gradle.caching.local.DirectoryBuildCache'/> uses to store the build outputs and

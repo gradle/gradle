@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-// START SNIPPET push-to-remote
+ext.isCiServer = System.getenv().containsKey("CI")
+
+// START SNIPPET developer-ci-setup
+ext.isCiServer = System.getenv().containsKey("CI")
+
 buildCache {
     local {
-        enabled = false
+        enabled = !isCiServer
     }
     remote(HttpBuildCache) {
         url = 'https://example.com:8123/build-cache/'
-        push = true
+        push = isCiServer
     }
 }
-// END SNIPPET push-to-remote
+// END SNIPPET developer-ci-setup
