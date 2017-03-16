@@ -223,7 +223,7 @@ class DefaultModuleRegistryTest extends Specification {
 
         then:
         UnknownModuleException e = thrown()
-        e.message == "Cannot locate manifest for module 'gradle-some-module' in classpath."
+        e.message ==~ /Cannot locate manifest for module 'gradle-some-module' in classpath: \[.*]\./
     }
 
     def "fails when classpath and distribution image do not contain manifest"() {

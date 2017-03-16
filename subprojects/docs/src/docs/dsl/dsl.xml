@@ -145,9 +145,6 @@
                 <td>org.gradle.api.initialization.IncludedBuild</td>
             </tr>
             <tr>
-                <td>org.gradle.caching.configuration.BuildCacheConfiguration</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.Script</td>
             </tr>
             <tr>
