@@ -159,10 +159,12 @@ def publishCacheConfiguration(String role, cache) {
         if (cache.push) {
             buildScan.tag "PUSH-TO-${role.toUpperCase()}"
         }
-        buildScan.value "build-cache-${role}-class", String.valueOf(cache.getClass().simpleName.replace('_Decorated', ''))
     }
-    buildScan.value "build-cache-${role}-enabled", String.valueOf(cache?.enabled)
-    buildScan.value "build-cache-${role}-push", String.valueOf(cache?.push)
+    buildScan.value "build-cache-${role}-class", String.valueOf(cache?.getClass()?.superclass?.simpleName ?: "<no build cache>")
+    if (cache != null) {
+        buildScan.value "build-cache-${role}-enabled", String.valueOf(cache.enabled)
+        buildScan.value "build-cache-${role}-push", String.valueOf(cache.push)
+    }
 }
 
 
