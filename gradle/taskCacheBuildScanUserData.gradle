@@ -50,6 +50,10 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             ':compileGroovy': ['classpath']
         ]
 
+        def cacheConfiguration = gradle.services.get(org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal)
+        publishCacheConfiguration('local', cacheConfiguration.local)
+        publishCacheConfiguration('remote', cacheConfiguration.remote)
+
         gradle.addListener(new TaskOutputCachingListener() {
             @Override
             void cacheKeyEvaluated(Task task, TaskOutputCachingBuildCacheKey key) {
@@ -148,6 +152,19 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         })
     }
 }
+
+def publishCacheConfiguration(String role, cache) {
+    if (cache?.enabled) {
+        buildScan.tag "PULL-FROM-${role.toUpperCase()}"
+        if (cache.push) {
+            buildScan.tag "PUSH-TO-${role.toUpperCase()}"
+        }
+        buildScan.value "build-cache-${role}-class", String.valueOf(cache.getClass().simpleName.replace('_Decorated', ''))
+    }
+    buildScan.value "build-cache-${role}-enabled", String.valueOf(cache?.enabled)
+    buildScan.value "build-cache-${role}-push", String.valueOf(cache?.push)
+}
+
 
 class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
     final buildScan
