@@ -28,17 +28,12 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
 class DistributionFactoryTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
-    final ExecutorServiceFactory executorFactory = Mock()
     final BuildCancellationToken cancellationToken = Mock()
-    final ExecutorService executor = Executors.newSingleThreadExecutor()
-    final DistributionFactory factory = new DistributionFactory(executorFactory)
+    final DistributionFactory factory = new DistributionFactory()
     final InternalBuildProgressListener buildProgressListener = Mock()
 
     def setup() {
@@ -127,7 +122,6 @@ class DistributionFactoryTest extends Specification {
     }
 
     def usesContentsOfDistributionZipLibDirectoryAsImplementationClasspath() {
-        1 * executorFactory.create() >> executor
         def zipFile = createZip {
             lib {
                 file("a.jar")
@@ -141,7 +135,6 @@ class DistributionFactoryTest extends Specification {
     }
 
     def usesWrapperDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
-        1 * executorFactory.create() >> executor
         File customUserHome = tmpDir.file('customUserHome')
         def zipFile = createZip {
             lib {
@@ -159,7 +152,6 @@ class DistributionFactoryTest extends Specification {
     }
 
     def usesZipDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
-        1 * executorFactory.create() >> executor
         File customUserHome = tmpDir.file('customUserHome')
         def zipFile = createZip {
             lib {
@@ -189,7 +181,6 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, customUserHome, cancellationToken)
 
         then:
-        1 * executorFactory.create() >> executor
         1 * cancellationToken.addCallback(_)
 
         then:
@@ -210,7 +201,6 @@ class DistributionFactoryTest extends Specification {
     }
 
     def failsWhenDistributionZipDoesNotExist() {
-        1 * executorFactory.create() >> executor
         URI zipFile = tmpDir.file("no-exists.zip").toURI()
         def dist = factory.getDistribution(zipFile)
 
@@ -230,7 +220,6 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
 
         then:
-        1 * executorFactory.create() >> executor
         1 * cancellationToken.addCallback(_)
         IllegalArgumentException e = thrown()
         e.message == "The specified Gradle distribution '${zipFile.toURI()}' does not appear to contain a Gradle distribution."

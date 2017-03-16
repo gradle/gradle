@@ -238,9 +238,9 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
                 if (i == 30000) { // more than one progress tick in output
                     println('call cancel')
                     tokenSource.cancel()
-                    println('cancel request processed')
+                    println('waiting for test to continue')
                     latch.await(10, TimeUnit.SECONDS)
-                    println('cancel request processed')
+                    println('test continued, closing connection')
                     break;
                 }
             }
