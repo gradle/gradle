@@ -823,7 +823,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             // create a new temporary parser to read the configurations from
             // the specified file.
             Parser parser = newParser(UrlExternalResource.open(url), url);
-            ParserHelper.parse(url , null, parser);
+            ParserHelper.parse(url, null, parser);
 
             // add the configurations from this temporary parser to this module descriptor
             Configuration[] configs = parser.getModuleDescriptor().getConfigurations();

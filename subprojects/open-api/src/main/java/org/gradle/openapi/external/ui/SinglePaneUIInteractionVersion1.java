@@ -25,6 +25,5 @@ package org.gradle.openapi.external.ui;
    @deprecated No replacement
 */
 @Deprecated
-public interface SinglePaneUIInteractionVersion1 extends GradleUIInteractionVersion1
-{
+public interface SinglePaneUIInteractionVersion1 extends GradleUIInteractionVersion1 {
 }

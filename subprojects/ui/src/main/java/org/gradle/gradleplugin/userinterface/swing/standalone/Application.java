@@ -163,8 +163,7 @@ public class Application implements AlternateUIInteraction {
     }
 
     public void browseFile(File file) {
-        if (!file.exists())  //the file might not exist. This happens if its just using the default settings (no file is required).
-        {
+        if (!file.exists()) { //the file might not exist. This happens if its just using the default settings (no file is required).
             JOptionPane.showMessageDialog(frame, "File does not exist '" + file.getAbsolutePath() + "'");
         } else {
 
@@ -189,8 +188,7 @@ public class Application implements AlternateUIInteraction {
      * @param attemptToOpen true if we should attempt to just open the file is editing it fails. Often, file associations don't distinguish edit from open and open is the default.
      */
     public void editFileInExternalApplication(File file, boolean attemptToOpen) {
-        if (!file.exists())  //the file might not exist. This happens if its just using the default settings (no file is required).
-        {
+        if (!file.exists()) { //the file might not exist. This happens if its just using the default settings (no file is required).
             JOptionPane.showMessageDialog(frame, "File does not exist '" + file.getAbsolutePath() + "'");
         } else {
             if (!invokeDesktopFunction("edit", File.class, file)) {
@@ -201,8 +199,7 @@ public class Application implements AlternateUIInteraction {
 
     public void openFileInExternalApplication(File file) {
 
-        if (!file.exists())  //the file might not exist. This happens if its just using the default settings (no file is required).
-        {
+        if (!file.exists()) { //the file might not exist. This happens if its just using the default settings (no file is required).
             JOptionPane.showMessageDialog(frame, "File does not exist '" + file.getAbsolutePath() + "'");
         } else {
             if (!invokeDesktopFunction("open", File.class, file)) {
@@ -226,8 +223,7 @@ public class Application implements AlternateUIInteraction {
             Class<?> desktopClass = Class.forName("java.awt.Desktop");
             Method getDesktopMethod = desktopClass.getDeclaredMethod("getDesktop", (Class<?>[]) null);
             Object desktopObject = getDesktopMethod.invoke(null, (Object[]) null);
-            if (desktopObject != null)   //may be null if this plaform doesn't support this.
-            {
+            if (desktopObject != null) { //may be null if this plaform doesn't support this.
                 Method method = desktopClass.getMethod(name, new Class[]{argumentClass});
                 method.invoke(desktopObject, argument);
                 return true;
@@ -298,8 +294,7 @@ public class Application implements AlternateUIInteraction {
          */
         public File promptForFile(FileFilter fileFilters) {
             File settingsFile = getSettingsFile();
-            if (!settingsFile.exists())  //if its not present (first time we've run on this machine), just cancel the read.
-            {
+            if (!settingsFile.exists()) { //if its not present (first time we've run on this machine), just cancel the read.
                 return null;
             }
             return settingsFile;

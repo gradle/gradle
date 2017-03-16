@@ -230,8 +230,7 @@ public class SearchPanel {
         try {
             SearchRequest searchRequest = searchRequests.take();  //this will block until at least one request is on our queue.
 
-            if (searchRequests.size() > 1)  //if we've got multiple requests, go get the latest.
-            {
+            if (searchRequests.size() > 1) { //if we've got multiple requests, go get the latest.
                 List<SearchRequest> tasks = new ArrayList<SearchRequest>();
                 searchRequests.drainTo(tasks);
                 if (!tasks.isEmpty()) {

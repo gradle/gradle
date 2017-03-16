@@ -219,8 +219,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     private void handleRightClick(MouseEvent e) {
         Point point = e.getPoint();
         int index = list.locationToIndex(point);
-        if (index != -1)  //all of this is because the JList won't select things on right-click. Which means you won't be acting upon what you think you're acting upon.
-        {
+        if (index != -1) { //all of this is because the JList won't select things on right-click. Which means you won't be acting upon what you think you're acting upon.
             if (!list.isSelectedIndex(index)) {
                 if (Utility.isCTRLDown(e.getModifiersEx())) {
                     list.addSelectionInterval(index, index); //the CTRL key is down, just add this to our selection
