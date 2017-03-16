@@ -18,12 +18,17 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
+import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule
+    Resources resources = new Resources()
 
     @Issue("GRADLE-3152")
     def "can use the task without applying java-base plugin"() {
@@ -501,6 +506,32 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ':compileJava'
         outputContains 'Malformed jar [foo.jar] found on compile classpath'
+
+    }
+
+    @Issue("gradle/gradle#1581")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // java.nio.file.InvalidPathException: Path: nul character not allowed
+    def "compile classpath snapshotting should warn when jar on classpath has non-utf8 characters in filenames"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            dependencies {
+               compile files('broken-utf8.jar')
+            }
+        '''
+        // This file has a file name which is not UTF-8.
+        // See https://bugs.openjdk.java.net/browse/JDK-7062777?focusedCommentId=12254124&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12254124.
+        resources.findResource('broken-utf8.is-a-jar').copyTo(file('broken-utf8.jar'))
+        file('src/main/java/Hello.java') << 'public class Hello {}'
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run 'compileJava'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        outputContains 'Malformed jar [broken-utf8.jar] found on classpath'
 
     }
 

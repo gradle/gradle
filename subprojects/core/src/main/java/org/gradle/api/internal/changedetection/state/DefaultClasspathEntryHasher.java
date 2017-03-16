@@ -89,11 +89,14 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
                 }
             }
             return hasher.hash();
-        } catch (ZipException e) {
+        } catch (Exception e) {  // RuntimeExceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
+            // IOExceptions other than ZipException are failures.
+            // ZipExceptions point to a problem with the Zip, we try to be lenient for now.
+            if (e instanceof IOException && !(e instanceof ZipException)) {
+                throw new UncheckedIOException("Error snapshotting jar [" + fileDetails.getName() + "]", e);
+            }
             DeprecationLogger.nagUserWith("Malformed jar [" + fileDetails.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
             return hashFile(fileDetails, hasher, classpathContentHasher);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         } finally {
             IOUtils.closeQuietly(zipInput);
         }
