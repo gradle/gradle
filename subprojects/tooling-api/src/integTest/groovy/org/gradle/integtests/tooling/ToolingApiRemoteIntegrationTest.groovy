@@ -107,10 +107,11 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         !download.statusEvents.empty
 
-        def lastProgressEvent = download.statusEvents.last()
-        lastProgressEvent.displayName == "Download " + distUri
-        lastProgressEvent.total == distribution.binDistribution.length()
-        lastProgressEvent.progress <= distribution.binDistribution.length()
+        download.statusEvents.each { statusEvent ->
+            assert statusEvent.displayName == "Download $distUri $statusEvent.progress/$statusEvent.total bytes downloaded"
+            assert statusEvent.total == distribution.binDistribution.length()
+            assert statusEvent.progress <= distribution.binDistribution.length()
+        }
 
         // Build execution is sibling of download
         def build = events.buildOperations.get(1)

@@ -173,7 +173,8 @@ public class DefaultConsumerProgressListener implements IDownload, DownloadProgr
 
     @Override
     public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
-        StatusEvent statusEvent = new DefaultStatusEvent(timeProvider.getCurrentTime(), descriptor.getDisplayName(), descriptor, contentLength, downloaded, "bytes");
+        String eventDisplayName = descriptor.getDisplayName() + " " + downloaded + "/" + contentLength + " bytes downloaded";
+        StatusEvent statusEvent = new DefaultStatusEvent(timeProvider.getCurrentTime(), eventDisplayName, descriptor, contentLength, downloaded, "bytes");
         // This is called from the download thread. Only forward the events when not cancelled
         currentListener.get().onEvent(statusEvent);
     }
