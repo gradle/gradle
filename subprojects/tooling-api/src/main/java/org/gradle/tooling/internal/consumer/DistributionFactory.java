@@ -112,7 +112,7 @@ public class DistributionFactory {
 
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final File userHomeDir, BuildCancellationToken cancellationToken) {
             if (installedDistribution == null) {
-                final DefaultConsumerProgressListener installer = new DefaultConsumerProgressListener(progressLoggerFactory, progressListener);
+                final DistributionInstaller installer = new DistributionInstaller(progressLoggerFactory, progressListener);
                 File installDir;
                 try {
                     cancellationToken.addCallback(new Runnable() {

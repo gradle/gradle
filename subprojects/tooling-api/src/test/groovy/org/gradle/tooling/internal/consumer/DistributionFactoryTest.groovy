@@ -187,7 +187,7 @@ class DistributionFactoryTest extends Specification {
         1 * buildProgressListener.onEvent({it instanceof StartEvent})
 
         then:
-        1 * progressLoggerFactory.newOperation(DefaultConsumerProgressListener.class) >>> loggerOne
+        1 * progressLoggerFactory.newOperation(DistributionInstaller.class) >>> loggerOne
 
         1 * loggerOne.setDescription("Download ${zipFile.toURI()}")
         1 * loggerOne.started()

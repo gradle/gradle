@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DefaultConsumerProgressListener implements IDownload, DownloadProgressListener {
+public class DistributionInstaller implements IDownload, DownloadProgressListener {
     private static final String APP_NAME = "Gradle Tooling API";
     private static final InternalBuildProgressListener NO_OP = new NoOpListener();
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -61,7 +61,7 @@ public class DefaultConsumerProgressListener implements IDownload, DownloadProgr
     private Throwable failure;
     private OperationDescriptor descriptor;
 
-    public DefaultConsumerProgressListener(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener) {
+    public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildProgressListener = buildProgressListener;
         this.timeProvider = new TrueTimeProvider();
@@ -114,7 +114,7 @@ public class DefaultConsumerProgressListener implements IDownload, DownloadProgr
     }
 
     private void withProgressLogging(URI address, File destination) throws Throwable {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultConsumerProgressListener.class);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionInstaller.class);
         progressLogger.setDescription("Download " + address);
         progressLogger.started();
         try {
@@ -132,7 +132,7 @@ public class DefaultConsumerProgressListener implements IDownload, DownloadProgr
                 @Override
                 public void run() {
                     try {
-                        new Download(new Logger(false), DefaultConsumerProgressListener.this, APP_NAME, GradleVersion.current().getVersion()).download(address, destination);
+                        new Download(new Logger(false), DistributionInstaller.this, APP_NAME, GradleVersion.current().getVersion()).download(address, destination);
                     } catch (Throwable t) {
                         synchronized (lock) {
                             failure = t;
