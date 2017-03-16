@@ -29,7 +29,7 @@ class CheckstyleCoverage {
     // JDK7 support was dropped in 7.0
     private final static List<String> JDK7_SUPPORTED = ALL_VERSIONS.findAll({ it < VersionNumber.parse("7.0") }).collect({ "${it.major}.${it.minor}" }).asImmutable()
 
-    static getSupportedVersionsByJdk() {
+    static List<String> getSupportedVersionsByJdk() {
         JavaVersion.current().java7 ? JDK7_SUPPORTED : ALL
     }
 }
