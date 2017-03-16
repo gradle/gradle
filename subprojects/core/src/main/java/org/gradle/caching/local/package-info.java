@@ -16,5 +16,7 @@
 
 /**
  * Classes for local build cache services.
+ *
+ * @since 3.5
  */
 package org.gradle.caching.local;
