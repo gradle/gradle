@@ -83,8 +83,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
                 for (Task task : (allprojects*.tasks).flatten()) {
-                    if (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
-                        || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath())) {
+                    if (task.state.executed && (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
+                        || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath()))) {
                         def buildScan = task.project.buildScan
                         def fileProperties = task.inputs.fileProperties
                         fileProperties.each { inputProperty ->
