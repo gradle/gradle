@@ -16,7 +16,8 @@
 
 def buckets = [
     "1": [
-        ":platformPlay"
+        ":platformPlay",
+        ":runtimeApiInfo",
     ],
 
     "2": [
