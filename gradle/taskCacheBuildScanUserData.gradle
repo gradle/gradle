@@ -26,6 +26,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.buildCacheEnabled) {
+        buildScan.tag 'CACHED'
 
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
             'compileJava',
@@ -39,12 +40,14 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             ':dependencyManagement:generateGradleApiPackageList',
             ':launcher:integTest',
             ':baseServices:classpathManifest',
-            ':baseServices:integTest'
+            ':baseServices:integTest',
+            ':compileGroovy'
         ]
         ext.taskPropertiesWithFullFileSnapshot = [
             ':baseServices:compileJava': ['classpath'],
             ':toolingApi:shadedJarWithoutVersion': ['sourceFiles'],
-            ':baseServices:integTest': ['distribution.core', 'distribution.plugins','distribution.staticContent']
+            ':baseServices:integTest': ['distribution.core', 'distribution.plugins','distribution.staticContent'],
+            ':compileGroovy': ['classpath']
         ]
 
         gradle.addListener(new TaskOutputCachingListener() {
