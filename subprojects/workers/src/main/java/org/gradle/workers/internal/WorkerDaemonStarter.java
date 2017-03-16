@@ -54,10 +54,10 @@ public class WorkerDaemonStarter {
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(workingDir);
-        WorkerDaemonProcess worker = builder.build();
-        WorkerProcess workerProcess = worker.start();
+        WorkerDaemonProcess workerDaemonProcess = builder.build();
+        WorkerProcess workerProcess = workerDaemonProcess.start();
 
-        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, worker, workerProcess, buildOperationExecutor);
+        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, workerDaemonProcess, workerProcess, buildOperationExecutor);
 
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 

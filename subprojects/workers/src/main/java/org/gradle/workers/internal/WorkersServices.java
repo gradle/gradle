@@ -62,8 +62,8 @@ public class WorkersServices implements PluginServiceRegistry {
             return new WorkerDaemonFactory(workerDaemonClientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor);
         }
 
-        WorkerExecutor createWorkerExecutor(WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerDaemonFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
-            return new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerDaemonFactory, fileResolver, WorkerDaemonServer.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker);
+        WorkerExecutor createWorkerExecutor(WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+            return new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, fileResolver, WorkerDaemonServer.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker);
         }
 
         InProcessWorkerFactory createInProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
