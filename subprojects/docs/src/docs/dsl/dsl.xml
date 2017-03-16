@@ -299,6 +299,23 @@
     </section>
 
     <section>
+        <title>Build Cache types</title>
+        <para>Types used to connect to and configure the build cache:</para>
+        <table>
+            <title>Build Cache types</title>
+            <tr>
+                <td>org.gradle.caching.configuration.BuildCacheConfiguration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.caching.local.DirectoryBuildCache</td>
+            </tr>
+            <tr>
+                <td>org.gradle.caching.http.HttpBuildCache</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
         <title>Help Task types</title>
         <para>Below are the task types that are available for every Gradle project.
             Those task types can also be declared and configured directly in the build script.
