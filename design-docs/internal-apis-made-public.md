@@ -205,7 +205,7 @@ A `FileCollection` provides a set of files. Therefore, a `FileCollection` is a `
 
 Initially the JaCoCo plugin was used a POC playground for the provider concept. Now all Gradle core plugins need to switch from convention mapping to the use of `Provider`.
 
-## Story: DependencyHandler exposes methods for referring to public and internal Gradle API
+## Story: DependencyHandler exposes methods for declaring public and internal Gradle API
 
 Developers have to rely on the `gradleApi()` dependency when implementing a Gradle plugin. This dependency exposes the public _and_ the private API. Given that the internal API is not clearly separated from the public API plugins can easily break in future versions of Gradle. This story aims for exposing just the public API so users do not accidentally use the internal API leading to more stable plugins and better cross-version compatibility.
 
@@ -238,6 +238,15 @@ Introduce a new method for exposing the Gradle public API:
         Dependency gradleApi();
     }
 
+### Usage example
+
+Declaring a dependency on the Gradle core public and internal API:
+
+    dependencies {
+        compile gradlePublicApi()
+        compile gradleInteralApi()
+    }
+
 ### Implementation
 
 * The method `gradlePublicApi()` only exposes Gradle's public API and no internal API.
@@ -264,6 +273,67 @@ Introduce a new method for exposing the Gradle public API:
 * `ProjectBuilder` can use use the new methods.
 * Users of `gradleApi()` receive a warning that method is deprecated.
 
-### Open issues
+## Story: DependencyHandler exposes methods for declaring public API for Gradle core plugins
 
-* In a follow-up story classes from Gradle core plugins should be separated out.
+The goal of this story is to separate Gradle core public API from the core plugins public API. As a result none of the Gradle core plugins will be included in `gradlePublicApi()`. Users will have to declare a new dependency on individual plugin APIs. This change will allow for more fine-grained control on dependencies needed for a plugin project. In turn this information can be used for documentation purposes for consumers of plugins.
+
+This is a breaking changes for `gradlePublicApi()` but should not have a huge impact on plugin developers. Upon upgrading to the Gradle version introducing the change, user will have to declare specific plugin APIs instead of just `gradlePublicApi()`. The produced plugin artifacts will not change.
+
+### User visible changes
+
+Introduce a new method for exposing the Gradle public API:
+
+    public interface DependencyHandler {
+
+        /**
+         * Creates a dependency on the public API of the current version of Gradle.
+         * The API declared by this dependency <b>does not</b> include the API of Gradle core plugins.
+         *
+         * @return The dependency.
+         */
+        Dependency gradlePublicApi();
+
+        /**
+         * Creates a dependency on a plugin API.
+         * <p>
+         * The following options are available:
+         * <p>
+         * <ul>
+         * <li>{@code id}: The identifier of the plugin.</li>
+         * </ul>
+         *
+         * @return The dependency.
+         */
+        Dependency plugin(Map<String, ?> options);
+    }
+
+### Usage example
+
+Declaring a dependency on the Gradle core public API and the public API of the Java and JaCoCo plugin:
+
+    dependencies {
+        compile gradlePublicApi()
+        compile plugin id: 'java'
+        compile plugin id: 'jacoco'
+    }
+
+### Implementation
+
+* Remove any plugin-related classes from the dependency `gradlePublicApi()`.
+* Introduce a new method for declaring a dependency on the public API of a core plugin.
+    * The identifier parameter indicates the plugin which is the same that is used for applying a plugin.
+    * The dependency on a plugin does not include the internal API of a plugin.
+* Indicate the breaking change in Javadocs and release notes.
+* Add sample project using both Gradle public API and the public API of a core plugin.
+* Update user guide, sample projects and guide.
+
+### Test coverage
+
+* A plugin project that doesn't use a core plugin only needs to declare `gradlePublicApi()` to compile properly.
+* A plugin project that applies one or many core plugins needs to declare a dependency on the public API of those plugins to compile properly. Compilation fails if the relevant plugin is not applied.
+* The dependency on a core plugin does not include the internal API of the plugin.
+* `ProjectBuilder` can use use the new methods.
+
+## Open issues
+
+* In the light of modularizing Gradle core plugins should we think about how to resolve external plugins as well? What exactly does that mean for plugin developers of external plugins? Do they publish two artifacts - one containing the public API and another one for the internal API of a plugin? We'd definitely need guidelines for plugin developers. What exactly does this mean to the process and tooling of publishing to the plugin portal?
