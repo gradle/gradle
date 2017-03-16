@@ -17,6 +17,7 @@ package org.gradle.integtests.publish.maven
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.GradleVersion
@@ -460,7 +461,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST]
         // TODO: Does not work with DIGEST authentication
     }
 
@@ -556,7 +557,7 @@ uploadArchives {
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.5'
-        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions;
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions
         exclusions.size() == 1
         exclusions[0].groupId == 'org.slf4j'
         exclusions[0].artifactId == 'slf4j-api'
@@ -603,7 +604,7 @@ uploadArchives {
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.7'
-        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions;
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions
         exclusions.size() == 1
         exclusions[0].groupId == 'ch.qos.logback'
         exclusions[0].artifactId == 'logback-core'
@@ -643,7 +644,7 @@ uploadArchives {
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.5'
-        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions;
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions
         exclusions.size() == 1
         exclusions[0].groupId == 'org.slf4j'
         exclusions[0].artifactId == 'slf4j-api'
@@ -683,7 +684,7 @@ uploadArchives {
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.7'
-        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions;
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions
         exclusions.size() == 1
         exclusions[0].groupId == 'ch.qos.logback'
         exclusions[0].artifactId == 'logback-core'

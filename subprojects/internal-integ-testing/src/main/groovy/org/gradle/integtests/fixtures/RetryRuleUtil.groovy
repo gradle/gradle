@@ -162,6 +162,10 @@ class RetryRuleUtil {
             specification.projectDir.listFiles().each {
                 it.deleteDir()
             }
+        } else if (specification.hasProperty("testDirectory")) {
+            specification.testDirectory.listFiles().each {
+                it.deleteDir()
+            }
         }
         true
     }

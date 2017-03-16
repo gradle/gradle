@@ -84,7 +84,7 @@ The idea is to traverse the graph the other way and print the dependent path for
 This report is useful to track where the given version of some dependency was picked up from in case of conflict resolution.
 This drives some conveniences to our dependency graph API.
 
-For interesting version modules, the report shows also if the the version was 'forced' or if it was selected by 'conflict resolution'.
+For interesting version modules, the report shows also if the version was 'forced' or if it was selected by 'conflict resolution'.
 
 ### Integration test coverage
 

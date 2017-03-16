@@ -50,7 +50,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
-    private final VariantSelector variantSelector;
+    private final VariantBinarySelector variantSelector;
     private final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
     private final LocalLibraryMetaDataAdapter libraryMetaDataAdapter;
     private final LocalLibraryResolver libraryResolver;
@@ -61,7 +61,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     public LocalLibraryDependencyResolver(final Class<? extends Binary> binaryType,
                                           ProjectModelResolver projectModelResolver,
                                           LocalLibraryResolver libraryResolver,
-                                          VariantSelector variantSelector,
+                                          VariantBinarySelector variantSelector,
                                           LocalLibraryMetaDataAdapter libraryMetaDataAdapter,
                                           LibraryResolutionErrorMessageBuilder errorMessageBuilder) {
         this.libraryMetaDataAdapter = libraryMetaDataAdapter;

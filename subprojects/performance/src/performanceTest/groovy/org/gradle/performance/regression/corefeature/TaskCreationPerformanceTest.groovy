@@ -19,10 +19,9 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 
 class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    def "measures performance of task creation"() {
+
+    def "create many tasks"() {
         given:
-        runner.testId = "Creating many tasks"
-        runner.previousTestIds = ['creating createLotsOfTasks tasks without configuring them (daemon)']
         runner.testProject = "createLotsOfTasks"
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -40,7 +41,6 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -76,7 +76,7 @@ public class DefaultArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         return snapshot().select(componentFilter, selector);
     }
 
@@ -119,7 +119,7 @@ public class DefaultArtifactSet implements ArtifactSet {
                 }
                 resolvedArtifacts.add(resolvedArtifact);
             }
-            result.add(new DefaultResolvedVariant(attributes, ArtifactBackedArtifactSet.forVariant(attributes, resolvedArtifacts)));
+            result.add(ArtifactBackedResolvedVariant.create(attributes, resolvedArtifacts));
         }
         return new ArtifactSetSnapshot(id, componentIdentifier, result.build());
     }
@@ -146,11 +146,11 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
 
         @Override
-        public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
+        public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
             if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
                 return ResolvedArtifactSet.EMPTY;
             } else {
-                return selector.transform(variants);
+                return new SingleVariantResolvedArtifactSet(selector.select(variants));
             }
         }
     }
@@ -198,23 +198,4 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
     }
 
-    private static class DefaultResolvedVariant implements ResolvedVariant {
-        private final AttributeContainerInternal attributes;
-        private final ResolvedArtifactSet artifactSet;
-
-        DefaultResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifactSet) {
-            this.attributes = attributes;
-            this.artifactSet = artifactSet;
-        }
-
-        @Override
-        public AttributeContainerInternal getAttributes() {
-            return attributes;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return artifactSet;
-        }
-    }
 }

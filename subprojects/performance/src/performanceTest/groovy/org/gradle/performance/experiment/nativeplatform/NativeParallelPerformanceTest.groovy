@@ -20,20 +20,20 @@ import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
+
 @Category(PerformanceExperiment)
 class NativeParallelPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
-    def "#size parallel performance test" () {
+    def "clean assemble on #testProject with parallel workers" () {
         when:
-        runner.testId = "native parallel build ${size}"
         runner.testGroup = 'parallel builds'
         runner.buildSpec {
-            projectName("${size}Native").displayName("parallel").invocation {
+            projectName(testProject).displayName("parallel").invocation {
                 tasksToRun("clean", "assemble")
             }
         }
         runner.baseline {
-            projectName("${size}Native").displayName("serial").invocation {
+            projectName(testProject).displayName("serial").invocation {
                 tasksToRun("clean", "assemble").disableParallelWorkers()
             }
         }
@@ -42,6 +42,6 @@ class NativeParallelPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.run()
 
         where:
-        size << [ "small", "medium", "big", "multi" ]
+        testProject << [ "smallNative", "mediumNative", "bigNative", "multiNative" ]
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.RetryRuleUtil
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
@@ -171,6 +172,19 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
 
         then:
         iteration != 1
+    }
+
+    @TargetGradleVersion("<2.10")
+    def "retries on clock shift issue for <2.10 if exception is provided through build error output"() {
+        given:
+        iteration++
+
+        when:
+        throwWhen(new UnexpectedBuildFailure("Gradle execution failed",
+            new IllegalArgumentException("Unable to calculate percentage: 19 of -233. All inputs must be >= 0")), iteration == 1)
+
+        then:
+        true
     }
 
     private static void throwWhen(Throwable throwable, boolean condition) {

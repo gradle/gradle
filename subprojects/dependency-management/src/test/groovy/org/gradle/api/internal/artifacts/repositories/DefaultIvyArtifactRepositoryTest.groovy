@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ComponentMetadataSupplier
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
+import org.gradle.api.internal.DependencyInjectingInstantiator
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
@@ -26,6 +29,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.resource.cached.ExternalResourceFileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
@@ -37,13 +41,14 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ExternalResourceRepository resourceRepository = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
+    final ExternalResourceFileStore externalResourceFileStore = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
     final ivyContextManager = Mock(IvyContextManager)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
         fileResolver, transportFactory, locallyAvailableResourceFinder,
-        DirectInstantiator.INSTANCE, artifactIdentifierFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory
+        DirectInstantiator.INSTANCE, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, new DependencyInjectingInstantiator.ConstructorCache()
     )
 
     def "default values"() {
@@ -275,6 +280,30 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         InvalidUserDataException e = thrown()
         e.message == 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
+    }
+
+    def "can set a custom metadata rule"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+
+        given:
+        repository.metadataSupplier(CustomMetadataSupplier)
+
+        when:
+        def resolver = repository.createResolver()
+
+        then:
+        resolver.createMetadataSupplier() instanceof CustomMetadataSupplier
+    }
+
+    static class CustomMetadataSupplier implements ComponentMetadataSupplier {
+
+        @Override
+        void execute(ComponentMetadataSupplierDetails details) {
+
+        }
     }
 
     private RepositoryTransport transport() {

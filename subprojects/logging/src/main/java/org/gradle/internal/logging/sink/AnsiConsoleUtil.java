@@ -213,7 +213,7 @@ public final class AnsiConsoleUtil {
         }
 
         private short invertAttributeColors(short attributes) {
-            // Swap the the Foreground and Background bits.
+            // Swap the Foreground and Background bits.
             int fg = 0x000F & attributes;
             fg <<= 8;
             int bg = 0X00F0 * attributes;

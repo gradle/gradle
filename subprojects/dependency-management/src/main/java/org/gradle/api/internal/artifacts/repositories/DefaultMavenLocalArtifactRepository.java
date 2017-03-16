@@ -38,7 +38,8 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
 
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
-                                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                                AuthenticationContainer authenticationContainer,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, authenticationContainer, moduleIdentifierFactory);

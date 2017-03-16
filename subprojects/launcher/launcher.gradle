@@ -1,4 +1,4 @@
-import org.gradle.internal.jvm.Jvm
+import org.gradle.build.GradleStartScriptGenerator
 
 // Main entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -50,47 +50,10 @@ jar {
     manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
 }
 
-task startScripts(type: StartScriptGenerator) {
+task startScripts(type: GradleStartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
     classpath = configurations.startScriptGenerator
     launcherJar = jar.outputs.files
-}
-
-@CacheableTask
-class StartScriptGenerator extends DefaultTask {
-    File startScriptsDir
-
-    @Classpath
-    FileCollection classpath
-
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    @InputFiles
-    FileCollection launcherJar
-
-    @OutputFile
-    File getShellScript() {
-        return new File(startScriptsDir, "gradle")
-    }
-
-    @OutputFile
-    File getBatchFile() {
-        return new File(startScriptsDir, "gradle.bat")
-    }
-
-    @TaskAction
-    def generate() {
-        logging.captureStandardOutput(LogLevel.INFO)
-        def generator = new org.gradle.api.internal.plugins.StartScriptGenerator()
-        generator.applicationName = 'Gradle'
-        generator.optsEnvironmentVar = 'GRADLE_OPTS'
-        generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
-        generator.mainClassName = 'org.gradle.launcher.GradleMain'
-        generator.scriptRelPath = 'bin/gradle'
-        generator.classpath = ["lib/${launcherJar.singleFile.name}" as String]
-        generator.appNameSystemProperty = 'org.gradle.appname'
-        generator.generateUnixScript(shellScript)
-        generator.generateWindowsScript(batchFile)
-    }
 }
 
 daemonIntegTest {

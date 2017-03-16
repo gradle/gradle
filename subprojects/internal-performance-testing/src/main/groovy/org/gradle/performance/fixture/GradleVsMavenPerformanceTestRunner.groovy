@@ -32,6 +32,15 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
 
     final M2Installation m2
 
+    String testProject
+    String gradleTasks
+    String equivalentMavenTasks
+    String[] jvmOpts = []
+    String[] args = []
+
+    int warmUpRuns = 2
+    int runs = 6
+
     GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, dataReporter, buildContext)
         m2 = new M2Installation(testDirectoryProvider)
@@ -45,7 +54,28 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
         }
     }
 
-    public void mavenBuildSpec(@DelegatesTo(MavenBuildExperimentSpec.MavenBuilder) Closure<?> configureAction) {
+    @Override
+    GradleVsMavenBuildPerformanceResults run() {
+        def commonBaseDisplayName = "$gradleTasks on $testProject"
+        baseline {
+            warmUpCount = warmUpRuns
+            invocationCount = runs
+            projectName(testProject).displayName("Gradle $commonBaseDisplayName").invocation {
+                tasksToRun(gradleTasks.split(' ')).useDaemon().gradleOpts(jvmOpts)
+            }
+        }
+        mavenBuildSpec {
+            warmUpCount = warmUpRuns
+            invocationCount = runs
+            projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
+                tasksToRun(equivalentMavenTasks.split(' ')).mavenOpts(jvmOpts).args(args)
+                    .args('-q', '-Dsurefire.printSummary=false')
+            }
+        }
+        super.run()
+    }
+
+    protected void mavenBuildSpec(@DelegatesTo(MavenBuildExperimentSpec.MavenBuilder) Closure<?> configureAction) {
         configureAndAddSpec(MavenBuildExperimentSpec.builder(), configureAction)
     }
 
@@ -66,7 +96,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
                     localRepoPath = localRepoPath.replace("\\", "\\\\").replace(" ", "\\ ")
                     invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
                 } else {
-                    invocation.args.add("-Dmaven.repo.local=\"${localRepoPath}\"".toString())
+                    invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
                 }
             }
             if (!invocation.mavenHome) {

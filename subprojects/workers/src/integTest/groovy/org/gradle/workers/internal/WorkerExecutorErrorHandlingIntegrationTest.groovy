@@ -17,21 +17,24 @@
 package org.gradle.workers.internal
 
 import org.gradle.internal.jvm.Jvm
+import spock.lang.Unroll
 
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    def "produces a sensible error when there is a failure in the daemon runnable"() {
+    @Unroll
+    def "produces a sensible error when there is a failure in the worker runnable in #forkMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableThatFails
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: DaemonTask) {
+                forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
             }
-        """
+        """.stripIndent()
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing RunnableThatFails")
@@ -41,19 +44,23 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         and:
         errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from runnable")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error when there is a failure starting a daemon"() {
+    def "produces a sensible error when there is a failure starting a worker daemon"() {
         executer.withStackTraceChecksDisabled()
         withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInDaemon(type: DaemonTask) {
+                forkMode = ForkMode.ALWAYS
                 additionalForkOptions = {
                     it.jvmArgs "-foo"
                 }
             }
-        """
+        """.stripIndent()
 
         when:
         fails("runInDaemon")
@@ -68,25 +75,28 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Failed to run Gradle Worker Daemon")
     }
 
-    def "produces a sensible error when a parameter can't be serialized"() {
+    @Unroll
+    def "produces a sensible error when a parameter can't be serialized to the worker in #forkMode"() {
         withRunnableClassInBuildSrc()
         withParameterMemberThatFailsSerialization()
 
         buildFile << """
             $alternateRunnable
 
-            task runAgainInDaemon(type: DaemonTask) {
+            task runAgainInWorker(type: DaemonTask) {
+                forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
             
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: DaemonTask) {
+                forkMode = $forkMode
                 foo = new FooWithUnserializableBar()
-                finalizedBy runAgainInDaemon
+                finalizedBy runAgainInWorker
             }
-        """
+        """.stripIndent()
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
@@ -94,29 +104,37 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Broken")
 
         and:
-        executedAndNotSkipped(":runAgainInDaemon")
-        assertRunnableExecuted("runAgainInDaemon")
+        executedAndNotSkipped(":runAgainInWorker")
+        assertRunnableExecuted("runAgainInWorker")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error when a parameter can't be de-serialized in the worker"() {
+    @Unroll
+    def "produces a sensible error when a parameter can't be de-serialized in the worker in #forkMode"() {
+        def parameterJar = file("parameter.jar")
         withRunnableClassInBuildSrc()
         withParameterMemberThatFailsDeserialization()
 
         buildFile << """  
             $alternateRunnable
 
-            task runAgainInDaemon(type: DaemonTask) {
+            task runAgainInWorker(type: DaemonTask) {
+                forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: DaemonTask) {
+                forkMode = $forkMode
+                additionalClasspath = files('${parameterJar.name}')
                 foo = new FooWithUnserializableBar()
-                finalizedBy runAgainInDaemon
+                finalizedBy runAgainInWorker
             }
         """
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
@@ -124,76 +142,95 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Broken")
 
         and:
-        executedAndNotSkipped(":runAgainInDaemon")
-        assertRunnableExecuted("runAgainInDaemon")
+        executedAndNotSkipped(":runAgainInWorker")
+        assertRunnableExecuted("runAgainInWorker")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error even if the action failure cannot be fully serialized"() {
+    @Unroll
+    def "produces a sensible error even if the action failure cannot be fully serialized in #forkMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $alternateRunnable
 
-            task runAgainInDaemon(type: DaemonTask) {
+            task runAgainInWorker(type: DaemonTask) {
+                forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
 
             $runnableThatThrowsUnserializableMemberException
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: DaemonTask) {
+                forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
-                finalizedBy runAgainInDaemon
+                finalizedBy runAgainInWorker
             }
         """
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing RunnableThatFails")
         failureHasCause("Unserializable exception from runnable")
 
         and:
-        executedAndNotSkipped(":runAgainInDaemon")
-        assertRunnableExecuted("runAgainInDaemon")
+        executedAndNotSkipped(":runAgainInWorker")
+        assertRunnableExecuted("runAgainInWorker")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error when the runnable cannot be instantiated"() {
+    @Unroll
+    def "produces a sensible error when the runnable cannot be instantiated in #forkMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableThatFailsInstantiation
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: DaemonTask) {
+                forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
             }
-        """
+        """.stripIndent()
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing RunnableThatFails")
         failureHasCause("You shall not pass!")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error when parameters are incorrect"() {
+    @Unroll
+    def "produces a sensible error when parameters are incorrect in #forkMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableWithDifferentConstructor
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: DaemonTask) {
+                forkMode = $forkMode
                 runnableClass = RunnableWithDifferentConstructor.class
             }
-        """
+        """.stripIndent()
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing RunnableWithDifferentConstructor")
         failureHasCause("Could not find any public constructor for class RunnableWithDifferentConstructor which accepts parameters")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
     String getUnrecognizedOptionError() {

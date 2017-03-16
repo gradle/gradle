@@ -15,11 +15,12 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * The state for a single task execution.
@@ -27,8 +28,8 @@ import java.util.Map;
 public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
-    private HashCode taskActionsClassLoaderHash;
-    private ImmutableMap<String, ValueSnapshot> inputProperties;
+    private List<HashCode> taskActionsClassLoaderHashes;
+    private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
 
@@ -38,8 +39,8 @@ public abstract class TaskExecution {
      * and excludes optional properties that don't have a value set. If the task is not
      * cacheable, it returns an empty collection.
      */
-    public ImmutableSet<String> getOutputPropertyNamesForCacheKey() {
-        return ImmutableSet.copyOf(outputPropertyNamesForCacheKey);
+    public ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey() {
+        return ImmutableSortedSet.copyOf(outputPropertyNamesForCacheKey);
     }
 
     public void setOutputPropertyNamesForCacheKey(Iterable<String> outputPropertyNames) {
@@ -75,32 +76,32 @@ public abstract class TaskExecution {
         this.taskClassLoaderHash = taskClassLoaderHash;
     }
 
-    public HashCode getTaskActionsClassLoaderHash() {
-        return taskActionsClassLoaderHash;
+    public List<HashCode> getTaskActionsClassLoaderHashes() {
+        return taskActionsClassLoaderHashes;
     }
 
-    public void setTaskActionsClassLoaderHash(HashCode taskActionsClassLoaderHash) {
-        this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
+    public void setTaskActionsClassLoaderHashes(List<HashCode> taskActionsClassLoaderHashes) {
+        this.taskActionsClassLoaderHashes = taskActionsClassLoaderHashes;
     }
 
-    public ImmutableMap<String, ValueSnapshot> getInputProperties() {
+    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
         return inputProperties;
     }
 
-    public void setInputProperties(ImmutableMap<String, ValueSnapshot> inputProperties) {
+    public void setInputProperties(ImmutableSortedMap<String, ValueSnapshot> inputProperties) {
         this.inputProperties = inputProperties;
     }
 
     /**
      * @return May return null.
      */
-    public abstract Map<String, FileCollectionSnapshot> getOutputFilesSnapshot();
+    public abstract ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot();
 
-    public abstract void setOutputFilesSnapshot(Map<String, FileCollectionSnapshot> outputFilesSnapshot);
+    public abstract void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot);
 
-    public abstract Map<String, FileCollectionSnapshot> getInputFilesSnapshot();
+    public abstract ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot();
 
-    public abstract void setInputFilesSnapshot(Map<String, FileCollectionSnapshot> inputFilesSnapshot);
+    public abstract void setInputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot);
 
     public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 

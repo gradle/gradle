@@ -55,7 +55,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
                     @Override
                     public void execute(MeasuredOperation measuredOperation) {
                         final ExecAction mavenInvocation = createMavenInvocation(invocationCustomizer.customize(invocationInfo, buildSpec));
-                        System.out.println("Run Maven using JVM opts: " + buildSpec.getJvmOpts());
+                        System.out.println("Run Maven using JVM opts: " + Iterables.concat(buildSpec.getMavenOpts(), buildSpec.getJvmOpts()));
                         DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
                             @Override
                             public void run() {

@@ -36,17 +36,28 @@ import java.util.List;
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
+    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final StoppableExecutor fixedSizePool;
 
-    public DefaultBuildOperationProcessor(BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
     }
 
     @Override
     public <T extends BuildOperation> void run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
-        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(fixedSizePool, worker);
+        BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.maybeStartOperation();
+        try {
+            doRun(worker, generator);
+        } finally {
+            completion.operationFinish();
+        }
+    }
+
+    private <T extends BuildOperation> void doRun(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
+        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(buildOperationWorkerRegistry.getCurrent(), fixedSizePool, worker);
 
         List<GradleException> failures = Lists.newArrayList();
         try {

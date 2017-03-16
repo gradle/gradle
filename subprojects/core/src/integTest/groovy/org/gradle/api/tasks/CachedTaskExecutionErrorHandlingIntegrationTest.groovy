@@ -81,7 +81,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         """
 
         buildFile << """
-            apply plugin: "java"
+            apply plugin: "base"
             
             @CacheableTask
             class CustomTask extends DefaultTask {
@@ -97,10 +97,14 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             task customTask(type: CustomTask)
             task anotherCustomTask(type: CustomTask)
             
+            // All of our tests just run 'assemble' and we need several 
+            // tasks that are cacheable.
+
+            // CustomTask is a dummy cacheable task that will cause
+            // enough requests to the build cache to trip our short circuiting if
+            // there are errors.
             assemble.dependsOn customTask, anotherCustomTask
         """
-
-        file("src/main/java/Hello.java") << "public class Hello {}"
     }
 
     def "cache switches off after third error for the current build"() {

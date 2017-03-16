@@ -54,6 +54,15 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
         return doStartOperation(parent);
     }
 
+    @Override
+    public Completion maybeStartOperation() {
+        List<DefaultOperation> operations = threads.get(Thread.currentThread());
+        if (operations.isEmpty()) {
+            return operationStart();
+        }
+        return new NoOpCompletion();
+    }
+
     private BuildOperationWorkerRegistry.Completion doStartOperation(LeaseHolder parent) {
         synchronized (lock) {
             int workerId = counter++;
@@ -62,7 +71,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
             DefaultOperation operation = new DefaultOperation(parent, workerId, ownerThread);
             while (!parent.grantLease()) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Worker {} waiting for a lease. Currently {} in use", operation.getDisplayName(), root.leasesInUse);
+                    LOGGER.debug("Build operation {} waiting for a lease. Currently {} worker(s) in use", operation.getDisplayName(), root.leasesInUse);
                 }
                 try {
                     lock.wait();
@@ -73,7 +82,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
 
             threads.put(ownerThread, operation);
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Worker {} started ({} in use).", operation.getDisplayName(), root.leasesInUse);
+                LOGGER.debug("Build operation {} started ({} worker(s) in use).", operation.getDisplayName(), root.leasesInUse);
             }
             return operation;
         }
@@ -169,13 +178,20 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
                 lock.notifyAll();
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Worker {} completed ({} in use)", getDisplayName(), root.leasesInUse);
+                    LOGGER.debug("Build operation {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
                 }
 
                 if (children != 0) {
                     throw new IllegalStateException("Some child operations have not yet completed.");
                 }
             }
+        }
+    }
+
+    private static class NoOpCompletion implements Completion {
+        @Override
+        public void operationFinish() {
+
         }
     }
 }

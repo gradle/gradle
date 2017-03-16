@@ -17,14 +17,16 @@
 package org.gradle.testing
 
 import groovy.transform.CompileStatic
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.testing.Test
+import org.gradle.build.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
 
 /**
@@ -41,7 +43,10 @@ class DistributionTest extends Test {
 
     @Input
     String getOperatingSystem() {
-        OperatingSystem.current().toString()
+        def current = OperatingSystem.current()
+        // the version currently differs between our dev infrastructure, so we only track the name and the architecture
+        return current.getName() + " " + System.getProperty("os.arch")
+
     }
 
     /**
@@ -69,8 +74,12 @@ class DistributionTest extends Test {
         return super.getSystemProperties()
     }
 
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Nested
+    GradleDistribution getDistribution() {
+        return gradleHomeDir ? new GradleDistribution(project, gradleHomeDir) : null
+    }
+
+    @Internal
     File gradleHomeDir
 
     void setGradleHomeDir(File gradleHomeDir) {
@@ -84,9 +93,7 @@ class DistributionTest extends Test {
         this.gradleUserHomeDir = fileSystemProperty('integTest.gradleUserHomeDir', gradleUserHomeDir)
     }
 
-    @Optional
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Internal
     File libsRepo
 
     void setLibsRepo(File libsRepo) {
@@ -96,12 +103,16 @@ class DistributionTest extends Test {
     @Input
     boolean requiresLibsRepo
 
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Internal
     File toolingApiShadedJarDir
 
     void setToolingApiShadedJarDir(File toolingApiShadedJarDir) {
         this.toolingApiShadedJarDir = fileSystemProperty('integTest.toolingApiShadedJarDir', toolingApiShadedJarDir)
+    }
+
+    @Classpath
+    Set<File> getToolingApiShadedJar() {
+        return toolingApiShadedJarDir ? project.fileTree(toolingApiShadedJarDir).files : null
     }
 
     @Optional
@@ -119,8 +130,7 @@ class DistributionTest extends Test {
     @Input
     boolean requiresBinZip
 
-    @Optional
-    @InputFile
+    @Internal
     File binZip
 
     void setBinZip(File binZip) {

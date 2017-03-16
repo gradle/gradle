@@ -39,10 +39,19 @@ class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
             args.add("--parallel-threads=4");
         } else {
             args.add("--parallel");
-            args.add("--max-workers=4");
+            maybeSetMaxWorkers(args);
         }
         args.add("-D" + DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE + "=true");
         return args;
+    }
+
+    private void maybeSetMaxWorkers(List<String> args) {
+        for (String arg : args) {
+            if (arg.startsWith("--max-workers")) {
+                return;
+            }
+        }
+        args.add("--max-workers=4");
     }
 
     @Override

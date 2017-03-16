@@ -47,7 +47,7 @@ abstract class NativeCompilerTest extends Specification {
 
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
 
-    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(Stub(BuildOperationWorkerRegistry)), new DefaultExecutorFactory(), 1)
+    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(Stub(BuildOperationWorkerRegistry), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), 1)
 
     def "arguments include source file"() {
         given:

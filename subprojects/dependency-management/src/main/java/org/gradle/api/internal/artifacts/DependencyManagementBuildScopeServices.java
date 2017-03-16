@@ -75,6 +75,8 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
@@ -84,6 +86,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -195,6 +198,10 @@ class DependencyManagementBuildScopeServices {
         return new ArtifactIdentifierFileStore(new UniquePathKeyFileStore(artifactCacheMetaData.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
     }
 
+    ExternalResourceFileStore createExternalResourceFileStore(CacheScopeMapping cacheScopeMapping) {
+        return new ExternalResourceFileStore(cacheScopeMapping.getBaseDirectory(null, "external-resources", VersionStrategy.SharedCache), new TmpDirTemporaryFileProvider());
+    }
+
     MavenSettingsProvider createMavenSettingsProvider() {
         return new DefaultMavenSettingsProvider(new DefaultMavenFileLocations());
     }
@@ -219,14 +226,15 @@ class DependencyManagementBuildScopeServices {
         return new DefaultVersionComparator();
     }
 
-    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
+    RepositoryTransportFactory createRepositoryTransportFactory(StartParameter startParameter,
+                                                                ProgressLoggerFactory progressLoggerFactory,
                                                                 TemporaryFileProvider temporaryFileProvider,
                                                                 ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
                                                                 CacheLockingManager cacheLockingManager,
                                                                 ServiceRegistry serviceRegistry,
-                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                 BuildOperationExecutor buildOperationExecutor) {
+        StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new RepositoryTransportFactory(
             serviceRegistry.getAll(ResourceConnectorFactory.class),
             progressLoggerFactory,
@@ -234,8 +242,8 @@ class DependencyManagementBuildScopeServices {
             externalResourceIndex,
             buildCommencedTimeProvider,
             cacheLockingManager,
-            moduleIdentifierFactory,
-            buildOperationExecutor);
+            buildOperationExecutor,
+            startParameterResolutionOverride);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,

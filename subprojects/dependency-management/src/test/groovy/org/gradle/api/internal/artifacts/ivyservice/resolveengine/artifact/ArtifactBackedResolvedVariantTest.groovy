@@ -22,28 +22,16 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
-class ArtifactBackedArtifactSetTest extends Specification {
+class ArtifactBackedResolvedVariantTest extends Specification {
     def variant = Mock(AttributeContainerInternal)
     def artifact1 = Mock(TestArtifact)
     def artifact2 = Mock(TestArtifact)
-    def artifact3 = Mock(TestArtifact)
 
     def "factory method returns specialized sets for zero and one elements"() {
         expect:
-        of([]) == ResolvedArtifactSet.EMPTY
-        of([artifact1]) instanceof ArtifactBackedArtifactSet.SingletonSet
-        of([artifact1, artifact2]) instanceof ArtifactBackedArtifactSet
-    }
-
-    def "returns artifacts and retains order"() {
-        def set1 = of([artifact1, artifact2, artifact3])
-        def set2 = of([artifact1, artifact2, artifact1, artifact2])
-        def set3 = of([artifact1])
-
-        expect:
-        set1.artifacts as List == [artifact1, artifact2, artifact3]
-        set2.artifacts as List == [artifact1, artifact2]
-        set3.artifacts as List == [artifact1]
+        of([]) instanceof EmptyResolvedVariant
+        of([artifact1]) instanceof ArtifactBackedResolvedVariant.SingleArtifactResolvedVariant
+        of([artifact1, artifact2]) instanceof ArtifactBackedResolvedVariant
     }
 
     def "visits artifacts and retains order"() {
@@ -94,8 +82,8 @@ class ArtifactBackedArtifactSetTest extends Specification {
         buildDeps == [deps1]
     }
 
-    ResolvedArtifactSet of(artifacts) {
-        return ArtifactBackedArtifactSet.forVariant(variant, artifacts)
+    ResolvedVariant of(artifacts) {
+        return ArtifactBackedResolvedVariant.create(variant, artifacts)
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable { }

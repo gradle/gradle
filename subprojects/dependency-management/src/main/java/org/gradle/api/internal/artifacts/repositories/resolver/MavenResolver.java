@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -207,6 +208,10 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return new MavenRemoteRepositoryAccess();
+    }
+
+    public ComponentMetadataSupplier createMetadataSupplier() {
+        return null;
     }
 
     @Override

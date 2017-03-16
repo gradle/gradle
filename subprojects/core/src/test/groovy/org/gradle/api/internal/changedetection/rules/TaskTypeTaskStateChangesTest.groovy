@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.rules
 
 import com.google.common.hash.HashCode
-import com.google.common.hash.Hashing
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
@@ -28,7 +27,6 @@ import spock.lang.Specification
 
 class TaskTypeTaskStateChangesTest extends Specification {
     def taskLoaderHash = HashCode.fromLong(123)
-    def taskActionsLoaderHash = Hashing.md5().hashBytes(taskLoaderHash.asBytes())
     def taskLoader = SimpleTask.getClassLoader()
     def hasher = Mock(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(taskLoader) >> taskLoaderHash
@@ -38,7 +36,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = Mock(TaskExecution) {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
+            getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
         }
         def current = Mock(TaskExecution)
 
@@ -52,7 +50,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = Mock(TaskExecution) {
             getTaskClass() >> PreviousTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
+            getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
         }
         def current = Mock(TaskExecution)
 
@@ -67,7 +65,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = Mock(TaskExecution) {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> previousHash
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
+            getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
         }
         def current = Mock(TaskExecution)
 
@@ -82,14 +80,56 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = Mock(TaskExecution) {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> previousHash
+            getTaskActionsClassLoaderHashes() >> [previousHash]
         }
         def current = Mock(TaskExecution)
 
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
 
         expect:
-        changes == ["Task ':test' additional action class path has changed from ${previousHash} to ${taskActionsLoaderHash}." as String]
+        changes == ["Task ':test' additional action class paths have changed from [${previousHash}] to [${taskLoaderHash}]." as String]
+    }
+
+    def "not up-to-date when action is added"() {
+        def previous = Mock(TaskExecution) {
+            getTaskClass() >> SimpleTask.name
+            getTaskClassLoaderHash() >> taskLoaderHash
+            getTaskActionsClassLoaderHashes() >> []
+        }
+        def current = Mock(TaskExecution)
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+
+        expect:
+        changes == ["Task ':test' additional action class paths have changed from [] to [${taskLoaderHash}]." as String]
+    }
+
+    def "not up-to-date when action is removed"() {
+        def previous = Mock(TaskExecution) {
+            getTaskClass() >> SimpleTask.name
+            getTaskClassLoaderHash() >> taskLoaderHash
+            getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+        }
+        def current = Mock(TaskExecution)
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [], hasher))
+
+        expect:
+        changes == ["Task ':test' additional action class paths have changed from [${taskLoaderHash}] to []." as String]
+    }
+
+    def "not up-to-date when action with same class-loader is added"() {
+        def previous = Mock(TaskExecution) {
+            getTaskClass() >> SimpleTask.name
+            getTaskClassLoaderHash() >> taskLoaderHash
+            getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+        }
+        def current = Mock(TaskExecution)
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader, taskLoader], hasher))
+
+        expect:
+        changes == ["Task ':test' additional action class paths have changed from [${taskLoaderHash}] to [${taskLoaderHash}, ${taskLoaderHash}]." as String]
     }
 
     def "not up-to-date when task is loaded with an unknown classloader"() {
@@ -103,7 +143,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = Mock(TaskExecution) {
             getTaskClass() >> simpleTaskClass.name
             getTaskClassLoaderHash() >> null
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
+            getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
         }
         def current = Mock(TaskExecution)
 
@@ -119,7 +159,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = Mock(TaskExecution) {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
+            getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
         }
         def current = Mock(TaskExecution)
 
@@ -133,7 +173,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = Mock(TaskExecution) {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> null
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
+            getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
         }
         def current = Mock(TaskExecution)
 
@@ -147,7 +187,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = Mock(TaskExecution) {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> null
+            getTaskActionsClassLoaderHashes() >> [null]
         }
         def current = Mock(TaskExecution)
 

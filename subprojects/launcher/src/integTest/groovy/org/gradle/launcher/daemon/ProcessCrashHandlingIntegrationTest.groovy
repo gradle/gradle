@@ -39,7 +39,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
 
         when:
         def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
-        server.waitFor()
+        def waitForResult = server.waitFor(false)
         daemons.daemon.assertBusy()
         client.kill()
 
@@ -48,6 +48,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         daemons.daemon.stops()
+        waitForResult
     }
 
     def "daemon is idle after the client disconnects and build cancels in a timely manner"() {

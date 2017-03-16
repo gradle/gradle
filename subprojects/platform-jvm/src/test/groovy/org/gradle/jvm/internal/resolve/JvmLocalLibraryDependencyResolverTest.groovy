@@ -29,7 +29,7 @@ import org.gradle.api.internal.resolve.DefaultLocalLibraryResolver
 import org.gradle.api.internal.resolve.DefaultProjectModelResolver
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver
 import org.gradle.api.internal.resolve.ProjectModelResolver
-import org.gradle.api.internal.resolve.VariantSelector
+import org.gradle.api.internal.resolve.VariantBinarySelector
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.component.model.ComponentArtifactMetadata
@@ -95,7 +95,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         def libraryAdapter = new JvmLocalLibraryMetaDataAdapter()
         def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
         def variantDimensionSelectorFactories = [DefaultVariantAxisCompatibilityFactory.of(JavaPlatform, new DefaultJavaPlatformVariantAxisCompatibility())]
-        VariantSelector variantSelector = new JvmVariantSelector(variantDimensionSelectorFactories, JvmBinarySpec.class, schemaStore, variants);
+        VariantBinarySelector variantSelector = new JvmVariantSelector(variantDimensionSelectorFactories, JvmBinarySpec.class, schemaStore, variants);
 
         resolver = new LocalLibraryDependencyResolver(JarBinarySpec, projectModelResolver, new DefaultLocalLibraryResolver(), variantSelector, libraryAdapter, errorMessageBuilder)
         metadata = Mock(DependencyMetadata)

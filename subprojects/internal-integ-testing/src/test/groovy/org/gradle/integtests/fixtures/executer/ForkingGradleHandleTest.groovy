@@ -86,6 +86,33 @@ class ForkingGradleHandleTest extends Specification {
         executionResult instanceof OutputScrapingExecutionFailure
     }
 
+    def "recreates exception from error output"() {
+        when:
+        def error = """
+* What went wrong:
+The exception message
+
+* Try:
+Run with --info or --debug option to get more log output.
+
+* Exception is:
+java.lang.IllegalArgumentException: The exception message
+    at org.gradle.internal.SomeClass(SomeClass.java:34)
+"""
+        forkingGradleHandle.errorOutputCapturer.outputStream.write(error.bytes)
+        def executionResult = forkingGradleHandle.waitForFailure()
+
+        then:
+        1 * execHandle.waitForFinish() >> execResult
+        0 * execHandle._
+        1 * execResult.rethrowFailure()
+        1 * execResult.getExitValue() >> FAILURE_EXIT_VALUE
+        1 * resultAssertion.execute(_)
+        executionResult instanceof OutputScrapingExecutionFailure
+        executionResult.exception instanceof IllegalArgumentException
+        executionResult.exception.message == 'The exception message'
+    }
+
     def "wait for failure for successful execution"() {
         given:
         def executionResultMessage = "Successful execution with exit value $SUCCESS_EXIT_VALUE"

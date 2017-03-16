@@ -24,18 +24,17 @@ import spock.lang.Unroll
 @Category(PerformanceExperiment)
 class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
-    def "#size pch performance test" () {
+    def "clean assemble on #testProject with precompiled headers" () {
         when:
-        runner.testId = "native pch build ${size}"
         runner.testGroup = 'pre-compiled header builds'
         runner.buildSpec {
-            projectName("${size}PCHNative").displayName("Using PCH").invocation {
+            projectName(testProject).displayName("Using PCH").invocation {
                 args("-PusePCH")
                 tasksToRun("clean", "assemble")
             }
         }
         runner.baseline {
-            projectName("${size}PCHNative").displayName("No PCH").invocation {
+            projectName(testProject).displayName("No PCH").invocation {
                 tasksToRun("clean", "assemble")
             }
         }
@@ -44,6 +43,6 @@ class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerforman
         runner.run()
 
         where:
-        size << [ "small", "medium", "big" ]
+        testProject << [ "smallPCHNative", "mediumPCHNative", "bigPCHNative" ]
     }
 }

@@ -48,7 +48,15 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        assert !file("src/main/java").deleteDir().exists()
+        if (TestPrecondition.WINDOWS) {
+            //the main src dir might be locked, only delete children
+            file("src/main/java").listFiles().each {
+                assert !it.deleteDir().exists()
+            }
+        } else {
+            assert !file("src/main/java").deleteDir().exists()
+        }
+
 
         then:
         succeeds()

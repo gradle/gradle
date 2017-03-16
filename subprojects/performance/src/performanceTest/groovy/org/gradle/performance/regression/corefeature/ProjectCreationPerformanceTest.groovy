@@ -20,10 +20,8 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 
 class ProjectCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    def "creating many empty projects"() {
+    def "create many empty projects"() {
         given:
-        runner.testId = "creating many empty projects"
-        runner.previousTestIds = ['many empty projects help (daemon)']
         runner.testProject = "bigEmpty"
         runner.tasksToRun = ['help']
         runner.gradleOpts = ['-Xms1g', '-Xmx1g']

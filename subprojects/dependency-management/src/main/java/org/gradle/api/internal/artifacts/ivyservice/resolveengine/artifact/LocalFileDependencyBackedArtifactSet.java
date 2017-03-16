@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ResolvedArtifact;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
+import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -29,19 +28,22 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
-public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet {
+public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArtifactSet {
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
-    private final Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector;
+    private final VariantSelector selector;
     private final ImmutableAttributesFactory attributesFactory;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector, ImmutableAttributesFactory attributesFactory) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ImmutableAttributesFactory attributesFactory) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
         this.selector = selector;
@@ -49,34 +51,20 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-        dest.add(dependencyMetadata.getFiles().getBuildDependencies());
-    }
-
-    @Override
-    public void visit(ArtifactVisitor visitor) {
-        if (!visitor.includeFiles()) {
-            return;
-        }
-
+    public ResolvedArtifactSet snapshot() {
         ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
         if (componentIdentifier != null && !componentFilter.isSatisfiedBy(componentIdentifier)) {
-            return;
+            return ResolvedArtifactSet.EMPTY;
         }
 
         Set<File> files;
         try {
             files = dependencyMetadata.getFiles().getFiles();
         } catch (Throwable throwable) {
-            visitor.visitFailure(throwable);
-            return;
+            return new FailingResolvedArtifactSetSnapshot(throwable);
         }
 
+        List<ResolvedVariant> variants = Lists.newArrayListWithCapacity(files.size());
         for (File file : files) {
             ComponentArtifactIdentifier artifactIdentifier;
             if (componentIdentifier == null) {
@@ -89,31 +77,41 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             }
 
             AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
-            ResolvedVariant variant = new DefaultResolvedVariant(file, artifactIdentifier, variantAttributes);
-            selector.transform(Collections.singleton(variant)).visit(visitor);
+            ResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes);
+            variants.add(selector.select(Collections.singleton(variant)));
+        }
+
+        return new ResolvedVariantBackedArtifactSetSnapshot(variants, dependencyMetadata);
+    }
+
+    @Override
+    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+        dest.add(dependencyMetadata.getFiles().getBuildDependencies());
+    }
+
+    @Override
+    public void addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
+        if (visitor.includeFiles()) {
+            snapshot().addPrepareActions(actions, visitor);
         }
     }
 
-    private static class SingletonFileResolvedArtifactSet implements ResolvedArtifactSet {
+    @Override
+    public void visit(final ArtifactVisitor visitor) {
+        if (visitor.includeFiles()) {
+            snapshot().visit(visitor);
+        }
+    }
+
+    private static class SingletonFileResolvedVariant implements ResolvedVariant {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
-        private final AttributeContainer variantAttributes;
+        private final AttributeContainerInternal variantAttributes;
 
-
-        SingletonFileResolvedArtifactSet(File file, ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variantAttributes) {
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, AttributeContainerInternal variantAttributes) {
             this.file = file;
             this.artifactIdentifier = artifactIdentifier;
             this.variantAttributes = variantAttributes;
-        }
-
-        @Override
-        public Set<ResolvedArtifact> getArtifacts() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -122,27 +120,82 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
                 visitor.visitFile(artifactIdentifier, variantAttributes, file);
             }
         }
-    }
 
-    private static class DefaultResolvedVariant implements ResolvedVariant {
-        private final File file;
-        private final ComponentArtifactIdentifier artifactIdentifier;
-        private final AttributeContainerInternal variantAttributes;
-
-        DefaultResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, AttributeContainerInternal variantAttributes) {
-            this.file = file;
-            this.artifactIdentifier = artifactIdentifier;
-            this.variantAttributes = variantAttributes;
+        @Override
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
         }
 
         @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return new SingletonFileResolvedArtifactSet(file, artifactIdentifier, variantAttributes);
+        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
+        }
+    }
+
+    private class FailingResolvedArtifactSetSnapshot implements ResolvedArtifactSet {
+        private final Throwable throwable;
+
+        public FailingResolvedArtifactSetSnapshot(Throwable throwable) {
+            this.throwable = throwable;
+        }
+
+        @Override
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+            if (visitor.includeFiles()) {
+                visitor.visitFailure(throwable);
+            }
+        }
+
+        @Override
+        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            if (visitor.includeFiles()) {
+                visitor.visitFailure(throwable);
+            }
+        }
+    }
+
+    private static class ResolvedVariantBackedArtifactSetSnapshot implements ResolvedArtifactSet {
+        private final LocalFileDependencyMetadata dependencyMetadata;
+        private final List<ResolvedVariant> variants;
+
+        public ResolvedVariantBackedArtifactSetSnapshot(List<ResolvedVariant> variants, LocalFileDependencyMetadata dependencyMetadata) {
+            this.variants = variants;
+            this.dependencyMetadata = dependencyMetadata;
+        }
+
+        @Override
+        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+            dest.add(dependencyMetadata.getFiles().getBuildDependencies());
+        }
+
+        @Override
+        public void addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
+            if (!visitor.includeFiles()) {
+                return;
+            }
+
+            for (ResolvedVariant variant : variants) {
+                variant.addPrepareActions(actions, visitor);
+            }
+        }
+
+        @Override
+        public void visit(final ArtifactVisitor visitor) {
+            if (!visitor.includeFiles()) {
+                return;
+            }
+
+            for (ResolvedVariant variant : variants) {
+                variant.visit(visitor);
+            }
         }
     }
 }

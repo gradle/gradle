@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes
+import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -32,13 +32,8 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def attributesFactory = new DefaultImmutableAttributesFactory()
     def dep = Mock(LocalFileDependencyMetadata)
     def filter = Mock(Spec)
-    def selector = Mock(Transformer)
+    def selector = Mock(VariantSelector)
     def set = new LocalFileDependencyBackedArtifactSet(dep, filter, selector, new DefaultImmutableAttributesFactory())
-
-    def "has no artifacts"() {
-        expect:
-        set.artifacts.empty
-    }
 
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)
@@ -113,7 +108,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * visitor.includeFiles() >> true
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.transform(_) >> { Set<ResolvedVariant> variants -> variants.first().artifacts }
+        2 * selector.select(_) >> { Set<ResolvedVariant> variants -> variants.first() }
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
         0 * visitor._
@@ -134,7 +129,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * filter.isSatisfiedBy(_) >> true
         _ * visitor.includeFiles() >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.transform(_) >> { Set<ResolvedVariant> variants -> variants.first().artifacts }
+        2 * selector.select(_) >> { Set<ResolvedVariant> variants -> variants.first() }
         1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f1), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
         1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f2), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
         0 * visitor._
@@ -154,5 +149,62 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * files.files >> { throw failure }
         1 * visitor.visitFailure(failure)
         0 * visitor._
+    }
+
+    def "snapshot lists files once and reports failure on subsequent visits"() {
+        def visitor = Mock(ArtifactVisitor)
+        def files = Mock(FileCollection)
+        def failure = new RuntimeException()
+
+        when:
+        def snapshot = set.snapshot()
+        snapshot.visit(visitor)
+
+        then:
+        1 * dep.files >> files
+        _ * visitor.includeFiles() >> true
+        1 * files.files >> { throw failure }
+        1 * visitor.visitFailure(failure)
+        0 * visitor._
+
+        when:
+        snapshot.visit(visitor)
+
+        then:
+        _ * visitor.includeFiles() >> true
+        1 * visitor.visitFailure(failure)
+        0 * _._
+    }
+
+    def "snapshot lists files once and visits multiple times"() {
+        def f1 = new File("a.jar")
+        def f2 = new File("a.dll")
+        def id = Stub(ComponentIdentifier)
+        def visitor = Mock(ArtifactVisitor)
+        def files = Mock(FileCollection)
+
+        when:
+        def snapshot = set.snapshot()
+        snapshot.visit(visitor)
+
+        then:
+        _ * dep.componentId >> id
+        _ * dep.files >> files
+        _ * visitor.includeFiles() >> true
+        _ * filter.isSatisfiedBy(_) >> true
+        1 * files.files >> ([f1, f2] as Set)
+        2 * selector.select(_) >> { Set<ResolvedVariant> variants -> variants.first() }
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
+        0 * visitor._
+
+        when:
+        snapshot.visit(visitor)
+
+        then:
+        _ * visitor.includeFiles() >> true
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
+        0 * _._
     }
 }

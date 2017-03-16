@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks
+package org.gradle.api.internal.resolve;
 
-import org.gradle.api.JavaVersion
+import org.gradle.api.Nullable;
+import org.gradle.platform.base.Binary;
+import org.gradle.platform.base.VariantComponent;
 
-class EmbeddedJavaToolChainTest extends AbstractJavaToolChainTest {
-    JavaVersion toolChainJavaVersion = JavaVersion.current()
-    EmbeddedJavaToolChain toolChain = new EmbeddedJavaToolChain(javaCompilerFactory, execActionFactory)
+import java.util.Collection;
+
+public interface VariantBinarySelector {
+    Collection<? extends Binary> selectVariants(VariantComponent componentSpec, @Nullable String requestedVariant);
 }

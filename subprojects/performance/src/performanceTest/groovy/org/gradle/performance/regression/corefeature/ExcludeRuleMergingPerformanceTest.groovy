@@ -20,7 +20,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 
 class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    def "exclude rule merging"() {
+    def "merge exclude rules"() {
         given:
         runner.testProject = "excludeRuleMergingBuild"
         runner.tasksToRun = ['resolveDependencies']

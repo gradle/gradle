@@ -16,21 +16,13 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-
 public class WorkerDaemonServer implements WorkerDaemonProtocol {
-    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonServer.class);
 
     @Override
     public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
         try {
-            LOGGER.info("Executing {} in worker daemon.", action.getDescription());
-            DefaultWorkResult result = action.execute(spec);
-            LOGGER.info("Successfully executed {} in worker daemon.", action.getDescription());
-            return result;
+            return action.execute(spec);
         } catch (Throwable t) {
-            LOGGER.info("Exception executing {} in worker daemon: {}.", action.getDescription(), t);
             return new DefaultWorkResult(true, t);
         }
     }

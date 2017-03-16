@@ -20,14 +20,14 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG
 
 class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "test change on #testProject"() {
+    def "test for non-abi change on #testProject"() {
         given:
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
@@ -45,9 +45,9 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         where:
         testProject                            | warmUpRuns | runs | fileToChange
-        LARGE_JAVA_MULTI_PROJECT               | 2          | 6    | "project450/src/main/java/org/gradle/test/performance450_1/Production450_1.java"
-        MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG | 2          | 6    | "project50/src/main/java/org/gradle/test/performance50_1/Production50_1.java"
-        LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6    | "src/main/java/org/gradle/test/performancenull_450/Productionnull_44901.java"
+        LARGE_JAVA_MULTI_PROJECT               | 2          | 6    | "project450/src/main/java/org/gradle/test/performance/largejavamultiproject/project450/p2250/Production45000.java"
+        MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG | 2          | 6    | "project50/src/main/java/org/gradle/test/performance/mediumjavamultiprojectwithtestng/project50/p250/Production5000.java"
+        LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6    | "src/main/java/org/gradle/test/performance/largemonolithicjavaproject/p0/Production0.java"
 
         //monolithicJavaTestNGProject" - testNG requires more test workers, which take too long to start up
     }

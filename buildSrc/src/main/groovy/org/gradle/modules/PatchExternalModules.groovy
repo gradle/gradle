@@ -35,12 +35,10 @@ class PatchExternalModules extends DefaultTask {
         externalModules.dependencies*.name as Set
     }
 
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    @InputFiles
+    @Classpath
     Configuration externalModulesRuntime
 
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFiles
+    @Classpath
     Configuration coreRuntime
 
     @OutputDirectory
