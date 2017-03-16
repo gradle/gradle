@@ -57,9 +57,12 @@ class TaskOutcomeStatisticsFormatterTest extends Specification {
     def "tasks with no actions are not counted"() {
         given:
         formatter.incrementAndGetProgress(taskState(UP_TO_DATE))
+        formatter.incrementAndGetProgress(taskState(EXECUTED))
 
         expect:
-        formatter.incrementAndGetProgress(taskState(EXECUTED, false)) == " [100% AVOIDED, 0% DONE]"
+        formatter.incrementAndGetProgress(taskState(EXECUTED, false)) == " [50% AVOIDED, 50% DONE]"
+        formatter.incrementAndGetProgress(taskState(UP_TO_DATE, false)) == " [50% AVOIDED, 50% DONE]"
+        formatter.incrementAndGetProgress(taskState(FROM_CACHE, false)) == " [50% AVOIDED, 50% DONE]"
     }
 
     def "returns nothing given only non-counted tasks"() {
