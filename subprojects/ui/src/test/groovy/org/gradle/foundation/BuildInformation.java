@@ -78,9 +78,7 @@ public class BuildInformation {
         }
 
         ProjectView rootProject = getRootLevelProject(pathParserPortion.getFirstPart());
-        if (rootProject
-                == null)  //if the root wasn't specified, just go get the first item we have. root' isn't typically specified if a user gives us the path.
-        {
+        if (rootProject == null) { //if the root wasn't specified, just go get the first item we have. root' isn't typically specified if a user gives us the path.
             if (!projects.isEmpty()) {
                 rootProject = projects.get(0);
             }
