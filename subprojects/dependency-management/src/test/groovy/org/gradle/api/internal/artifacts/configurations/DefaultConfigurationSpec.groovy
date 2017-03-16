@@ -62,6 +62,7 @@ import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.Path
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -84,8 +85,7 @@ class DefaultConfigurationSpec extends Specification {
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
 
     def setup() {
-        ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
-        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> broadcast
+        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
     }
 
     def void defaultValues() {
@@ -763,6 +763,51 @@ class DefaultConfigurationSpec extends Specification {
         checkCopiedConfiguration(configuration, copiedConfiguration, resolutionStrategyCopy)
         assert copiedConfiguration.dependencies == configuration.allDependencies
         assert copiedConfiguration.extendsFrom.empty
+    }
+
+    @Issue("gradle/gradle#1567")
+    def "Calls resolve actions and closures from original configuration when copied configuration is resolved"() {
+        Action<ResolvableDependencies> beforeResolveAction = Mock()
+        Action<ResolvableDependencies> afterResolveAction = Mock()
+        def config = conf("conf")
+        def beforeResolveCalled = false
+        def afterResolveCalled = false
+
+        given:
+        config.incoming.beforeResolve(beforeResolveAction)
+        config.incoming.afterResolve(afterResolveAction)
+        config.incoming.beforeResolve {
+            beforeResolveCalled = true
+        }
+        config.incoming.afterResolve {
+            afterResolveCalled = true
+        }
+        def copy = config.copy()
+
+        when:
+        copy.resolvedConfiguration
+
+        then:
+        interaction { resolveConfig(copy) }
+        1 * beforeResolveAction.execute(copy.incoming)
+        1 * afterResolveAction.execute(copy.incoming)
+        beforeResolveCalled
+        afterResolveCalled
+    }
+
+    @Issue("gradle/gradle#1567")
+    def "A copy of a configuration that has no resolution listeners also has no resolution listeners"() {
+        given:
+        def config = conf("conf")
+
+        expect:
+        config.dependencyResolutionListeners.isEmpty()
+
+        when:
+        def copy = config.copy()
+
+        then:
+        copy.dependencyResolutionListeners.isEmpty()
     }
 
     private prepareConfigurationForCopyTest() {

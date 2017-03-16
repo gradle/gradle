@@ -119,7 +119,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
-    private final ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
+    private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
@@ -624,6 +624,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.description = description;
 
         copiedConfiguration.defaultDependencyActions = defaultDependencyActions;
+        copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners;
 
         copiedConfiguration.canBeConsumed = canBeConsumed;
         copiedConfiguration.canBeResolved = canBeResolved;
