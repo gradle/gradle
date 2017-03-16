@@ -1564,7 +1564,7 @@
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Customization of MANIFEST.MF">
                 <sourcefile file="build.gradle" snippet="add-to-manifest"/>
             </sample>
-            <para>You can create standalone instances of a <classname>Manifest</classname>. You can use that for example,
+            <para>You can create stand-alone instances of a <classname>Manifest</classname>. You can use that for example,
                 to share manifest information between jars.
             </para>
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Creating a manifest object.">
