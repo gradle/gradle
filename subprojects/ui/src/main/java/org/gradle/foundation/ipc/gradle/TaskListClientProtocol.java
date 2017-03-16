@@ -84,8 +84,7 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
             boolean wasSuccessful = buildResult.getFailure() == null;
             String output = allOutputText.toString();
 
-            if (!wasSuccessful) //if we fail, send the results, otherwise, we'll send the projects.
-            {
+            if (!wasSuccessful) { //if we fail, send the results, otherwise, we'll send the projects.
                 //we can't send the exception itself because it might not be serializable (it can include anything from anywhere inside gradle
                 //or one of its dependencies). So format it as text.
                 String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(), gradle.getStartParameter().getShowStacktrace());

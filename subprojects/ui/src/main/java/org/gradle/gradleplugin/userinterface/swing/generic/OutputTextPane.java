@@ -261,8 +261,7 @@ public class OutputTextPane {
         boolean shouldScroll = viewSize.height - maxViewBoundsY < 20;
 
         try {
-            if (replaceExisting)   //if we're supposed to be replacing, then do so.
-            {
+            if (replaceExisting) { //if we're supposed to be replacing, then do so.
                 hasClickableLinks = false;
                 document.remove(0, document.getLength());
             }

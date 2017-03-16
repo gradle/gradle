@@ -33,8 +33,10 @@ public interface Namer<T> {
 
     /**
      * A comparator implementation based on the names returned by the given namer.
+     *
+     * @param <T> The type of object that the namer can name
      */
-    static class Comparator<T> implements java.util.Comparator<T> {
+    class Comparator<T> implements java.util.Comparator<T> {
 
         private final Namer<? super T> namer;
 

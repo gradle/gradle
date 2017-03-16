@@ -17,6 +17,8 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.integtests.fixtures.RetryRuleUtil
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -27,6 +29,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.Distribution
@@ -47,6 +50,13 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 
     int threads = 3
+
+    @Rule
+    RetryRule retryRule = RetryRuleUtil.retryToolingAPIOnWindowsSocketDisappearance(this)
+
+    DaemonsFixture getDaemonsFixture() {
+        toolingApi.daemons
+    }
 
     def setup() {
         //concurrent tooling api at the moment is only supported for forked mode

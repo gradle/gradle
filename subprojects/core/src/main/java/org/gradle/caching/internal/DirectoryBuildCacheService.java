@@ -18,6 +18,7 @@ package org.gradle.caching.internal;
 
 import com.google.common.io.Closer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -44,6 +45,7 @@ public class DirectoryBuildCacheService implements BuildCacheService {
             .cache(checkDirectory(baseDir))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
     }
 

@@ -163,8 +163,7 @@ public class GradlePluginLord {
      * @param gradleHomeDirectory the new home directory
      */
     public void setGradleHomeDirectory(File gradleHomeDirectory) {
-        if (areEqual(this.gradleHomeDirectory, gradleHomeDirectory))    //already set to this. This prevents recursive notifications.
-        {
+        if (areEqual(this.gradleHomeDirectory, gradleHomeDirectory)) { //already set to this. This prevents recursive notifications.
             return;
         }
         this.gradleHomeDirectory = gradleHomeDirectory;
@@ -183,8 +182,7 @@ public class GradlePluginLord {
      * @returns true if we changed the current directory, false if not (it was already set to this)
      */
     public boolean setCurrentDirectory(File currentDirectory) {
-        if (areEqual(this.currentDirectory, currentDirectory))    //already set to this. This prevents recursive notifications.
-        {
+        if (areEqual(this.currentDirectory, currentDirectory)) { //already set to this. This prevents recursive notifications.
             return false;
         }
         this.currentDirectory = currentDirectory;
@@ -197,8 +195,7 @@ public class GradlePluginLord {
     }
 
     public boolean setCustomGradleExecutor(File customGradleExecutor) {
-        if (areEqual(this.customGradleExecutor, customGradleExecutor))    //already set to this. This prevents recursive notifications.
-        {
+        if (areEqual(this.customGradleExecutor, customGradleExecutor)) { //already set to this. This prevents recursive notifications.
             return false;
         }
         this.customGradleExecutor = customGradleExecutor;
@@ -214,8 +211,7 @@ public class GradlePluginLord {
      * this allows you to change how much information is given when an error occurs.
      */
     public void setStackTraceLevel(ShowStacktrace stackTraceLevel) {
-        if (areEqual(this.stackTraceLevel, stackTraceLevel))    //already set to this. This prevents recursive notifications.
-        {
+        if (areEqual(this.stackTraceLevel, stackTraceLevel)) { //already set to this. This prevents recursive notifications.
             return;
         }
         this.stackTraceLevel = stackTraceLevel;
@@ -235,8 +231,7 @@ public class GradlePluginLord {
             return;
         }
 
-        if (areEqual(this.logLevel, logLevel))    //already set to this. This prevents recursive notifications.
-        {
+        if (areEqual(this.logLevel, logLevel)) { //already set to this. This prevents recursive notifications.
             return;
         }
         this.logLevel = logLevel;

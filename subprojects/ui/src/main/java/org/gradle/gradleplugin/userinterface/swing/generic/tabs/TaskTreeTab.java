@@ -428,9 +428,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
 
         executeButton.setEnabled(canDoThings);
 
-        if (alternateUIInteraction
-                .doesSupportEditingOpeningFiles())   //I'll allow this to be dynamic. If we start supporting editing while running (say a user configured a setting to use a specific external tool), then we'll allow it.
-        {
+        if (alternateUIInteraction.doesSupportEditingOpeningFiles()) { //I'll allow this to be dynamic. If we start supporting editing while running (say a user configured a setting to use a specific external tool), then we'll allow it.
             editFileMenuItem.setVisible(true);
             boolean hasProjectsSelected = treeComponent.hasProjectsSelected();
             editFileMenuItem.setEnabled(hasProjectsSelected && canDoThings);

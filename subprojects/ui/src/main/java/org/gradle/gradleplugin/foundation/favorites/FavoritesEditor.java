@@ -179,8 +179,7 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     public FavoriteTask addFavorite(String fullCommandLine, String displayName, boolean alwaysShowOutput) {
-        if ((fullCommandLine == null || fullCommandLine.trim().equals("")) && (displayName == null || displayName.trim().equals("")))    //don't allow someone to add a blank favorite.
-        {
+        if ((fullCommandLine == null || fullCommandLine.trim().equals("")) && (displayName == null || displayName.trim().equals(""))) { //don't allow someone to add a blank favorite.
             return null;
         }
 
@@ -206,8 +205,7 @@ public class FavoritesEditor implements SettingsSerializable {
             }
         }
 
-        if (addedFavorite)  //don't notify anyone unless we actually did something.
-        {
+        if (addedFavorite) { //don't notify anyone unless we actually did something.
             favoriteTasksObserverLord.notifyObservers(new ObserverLord.ObserverNotification<FavoritesEditor.FavoriteTasksObserver>() {
                 public void notify(FavoritesEditor.FavoriteTasksObserver observer) {
                     observer.favoritesChanged();

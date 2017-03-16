@@ -15,6 +15,7 @@
  */
 package org.gradle.build.docs.dsl.docbook;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;
@@ -104,10 +105,11 @@ public class JavadocConverter {
         }
 
         Text comment = (Text) firstNode.getFirstChild();
-        Pattern getterPattern = Pattern.compile("returns\\s+the\\s+", Pattern.CASE_INSENSITIVE);
+        Pattern getterPattern = Pattern.compile("returns\\s+(the|whether)\\s+", Pattern.CASE_INSENSITIVE);
         Matcher matcher = getterPattern.matcher(comment.getData());
         if (matcher.lookingAt()) {
-            comment.setData("The " + comment.getData().substring(matcher.end()));
+            String theOrWhether = matcher.group(1).toLowerCase(Locale.US);
+            comment.setData(StringUtils.capitalize(theOrWhether) + " " + comment.getData().substring(matcher.end()));
         }
     }
 

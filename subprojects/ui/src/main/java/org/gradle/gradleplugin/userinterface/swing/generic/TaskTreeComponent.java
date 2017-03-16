@@ -311,10 +311,8 @@ public class TaskTreeComponent {
             }
 
             int actualIndex = parentProjectObject.getIndex(projectTreeNode);
-            if (actualIndex != indexOfProject) //this will be -1 for a new node
-            {
-                if (actualIndex != -1) //only try to remove it if its already there. Swing doesn't like this otherwise.
-                {
+            if (actualIndex != indexOfProject) { //this will be -1 for a new node
+                if (actualIndex != -1) { //only try to remove it if its already there. Swing doesn't like this otherwise.
                     model.removeNodeFromParent(projectTreeNode);
                 }
 

@@ -36,8 +36,7 @@ public class TextBlockSearchEditor {
         }
 
         Pattern pattern = searchCriteria.getRegularExpressionPattern();
-        if (pattern == null)   //this happens if the user clears the 'search for' text. We have no pattern.
-        {
+        if (pattern == null) { //this happens if the user clears the 'search for' text. We have no pattern.
             return 0;
         }
 

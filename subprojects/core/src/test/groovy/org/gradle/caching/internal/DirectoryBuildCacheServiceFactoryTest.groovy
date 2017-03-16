@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
+import org.gradle.cache.internal.VersionStrategy
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,26 +28,25 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
-class DefaultDirectoryBuildCacheServiceFactoryTest extends Specification {
+class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheRepository = Mock(CacheRepository)
     def cacheScopeMapping = Mock(CacheScopeMapping)
     def resolver = Mock(FileResolver)
-    def factory = new DefaultDirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def "can create service with default directory"() {
-        def cachesRootDir = temporaryFolder.file("gradle-home", "caches")
-        def cacheDir = cachesRootDir.file("build-cache-1")
+        def cacheDir = temporaryFolder.file("build-cache-1")
 
         when:
         def service = factory.createBuildCacheService(config)
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> null
-        1 * cacheScopeMapping.getRootDirectory(null) >> cachesRootDir
+        1 * cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         0 * _
     }

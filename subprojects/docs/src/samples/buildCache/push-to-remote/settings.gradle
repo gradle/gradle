@@ -19,7 +19,7 @@ buildCache {
     local {
         enabled = false
     }
-    remote(org.gradle.caching.http.HttpBuildCache) {
+    remote(HttpBuildCache) {
         url = 'https://example.com:8123/build-cache/'
         push = true
     }

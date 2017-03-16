@@ -624,8 +624,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
      * @return true if the request stopped, false if not.
      */
     public boolean stop() {
-        if (request != null)   //if we have a request, we can only close if it allows us to.
-        {
+        if (request != null) { //if we have a request, we can only close if it allows us to.
             if (!request.cancel()) {
                 return false;
             }
@@ -647,8 +646,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     @Override
     public void setFont(Font font) {
         super.setFont(font);
-        if (gradleOutputTextPane != null)  //this gets called by internal Swing APIs, so we may not have this yet.
-        {
+        if (gradleOutputTextPane != null) { //this gets called by internal Swing APIs, so we may not have this yet.
             gradleOutputTextPane.setFont(font);
         }
     }
@@ -696,8 +694,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
             //adding 'refresh' to favorites no sense. Hide this button in that case.
             if (request.getType() == RefreshTaskListRequest.TYPE) {
                 isVisible = false;
-            } else if (gradlePluginLord.getFavoritesEditor().getFavorite(request.getFullCommandLine()) != null) //is it a command that's already a favorite?
-            {
+            } else if (gradlePluginLord.getFavoritesEditor().getFavorite(request.getFullCommandLine()) != null) { //is it a command that's already a favorite?
                 isVisible = false;
             }
         }
