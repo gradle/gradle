@@ -29,6 +29,8 @@ import java.io.File;
 
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     private static final String BUILD_CACHE_VERSION = "1";
+    private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
+    
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
     private final FileResolver resolver;
@@ -47,7 +49,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         if (cacheDirectory != null) {
             target = resolver.resolve(cacheDirectory);
         } else {
-            target = cacheScopeMapping.getBaseDirectory(null, "build-cache-" + BUILD_CACHE_VERSION, VersionStrategy.SharedCache);
+            target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
         return new DirectoryBuildCacheService(cacheRepository, target);
     }
