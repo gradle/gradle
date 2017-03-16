@@ -140,6 +140,54 @@
                 </para>
             </note>
         </section>
+        <section id="sec:task_output_caching_example">
+            <title>What does it look like</title>
+            <para>
+                Let us start with a project using the Java plugin which has a few java source files. We run the build the first time.
+            </para>
+            <programlisting>
+                $> gradle compileJava --build-cache
+                Build cache is an incubating feature.
+                Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
+                :compileJava
+                :processResources
+                :classes
+                :jar
+                :assemble
+
+                BUILD SUCCESSFUL
+            </programlisting>
+            <para>
+                We see the directory used by the local build cache in the output. Apart from that the build was the same as without the build cache.
+                Let's clean and run the build again.
+            </para>
+            <programlisting>
+                $> gradle clean --build-cache
+                Build cache is an incubating feature.
+                Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
+                :clean
+
+                BUILD SUCCESSFUL
+            </programlisting>
+            <programlisting>
+                $> gradle assemble --build-cache
+                Build cache is an incubating feature.
+                Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
+                :compileJava FROM-CACHE
+                :processResources
+                :classes
+                :jar
+                :assemble
+
+                BUILD SUCCESSFUL
+            </programlisting>
+            <para>
+                Now we see that, instead of executing the <literal>:compileJava</literal> task, the outputs of the task have been loaded from the build cache.
+                The other tasks have not been loaded from the build cache since they are not cacheable. This is due to
+                <literal>:classes</literal> and <literal>:assemble</literal> being <xref linkend="sec:lifecycle_tasks"/> and <literal>:processResources</literal>
+                and <literal>jar</literal> being Copy-like tasks which are not cacheable since it is mostly faster to execute them.
+            </para>
+        </section>
     </section>
     <section id="sec:build_cache_known_issues">
         <title>Feedback and Known issues</title>
