@@ -33,7 +33,7 @@ class WorkerDaemonFactoryTest extends Specification {
     def workerOperation = Mock(Operation)
     def buildOperation = Mock(BuildOperationExecutor.Operation)
 
-    @Subject manager = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
 
     def workingDir = new File("some-dir")
     def workerAction = Stub(WorkerAction)
@@ -43,7 +43,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "getting a worker daemon does not assume client use"() {
         when:
-        manager.getWorker(workerProtocolImplementation.class, workingDir, options);
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options);
 
         then:
         0 * clientsManager._
@@ -51,7 +51,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        manager.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -73,7 +73,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "idle client is reused when daemon is executed"() {
         when:
-        manager.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -92,7 +92,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "client is released even if execution fails"() {
         when:
-        manager.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -114,13 +114,13 @@ class WorkerDaemonFactoryTest extends Specification {
         WorkerDaemonExpiration workerDaemonExpiration
 
         when:
-        def manager = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
+        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
 
         then:
         1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }
 
         when:
-        manager.stop()
+        factory.stop()
 
         then:
         1 * memoryManager.removeMemoryHolder(_) >> { args -> assert args[0] == workerDaemonExpiration }
@@ -128,7 +128,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "stops clients"() {
         when:
-        manager.stop()
+        factory.stop()
 
         then:
         clientsManager.stop()

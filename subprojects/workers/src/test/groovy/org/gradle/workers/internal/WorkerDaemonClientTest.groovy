@@ -38,10 +38,10 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     def "underlying worker is executed when client is executed"() {
-        def workerDaemonWorker = Mock(WorkerDaemonProcess)
+        def workerDaemonProcess = Mock(WorkerDaemonProcess)
 
         given:
-        client = client(workerDaemonWorker)
+        client = client(workerDaemonProcess)
 
         when:
         client.execute(Stub(WorkerAction), Stub(WorkSpec), workerOperation, buildOperation)
@@ -50,7 +50,7 @@ class WorkerDaemonClientTest extends Specification {
         1 * buildOperationExecutor.run(_ as BuildOperationDetails, _ as Transformer) >> { args -> args[1].transform(Mock(BuildOperationContext)) }
 
         and:
-        1 * workerDaemonWorker.execute(_, _)
+        1 * workerDaemonProcess.execute(_, _)
     }
 
     def "use count is incremented when client is executed"() {
@@ -86,10 +86,10 @@ class WorkerDaemonClientTest extends Specification {
     def "build worker operation is finished even if worker fails"() {
         def operation = Mock(Operation)
         def completion = Mock(Completion)
-        def workerDaemonWorker = Mock(WorkerDaemonProcess)
+        def workerDaemonProcess = Mock(WorkerDaemonProcess)
 
         given:
-        client = client(workerDaemonWorker)
+        client = client(workerDaemonProcess)
 
         when:
         client.execute(Stub(WorkerAction), Stub(WorkSpec), operation, buildOperation)
@@ -100,7 +100,7 @@ class WorkerDaemonClientTest extends Specification {
 
         then:
         thrown(RuntimeException)
-        1 * workerDaemonWorker.execute(_, _) >> { throw new RuntimeException() }
+        1 * workerDaemonProcess.execute(_, _) >> { throw new RuntimeException() }
         1 * completion.operationFinish()
     }
 
@@ -108,9 +108,9 @@ class WorkerDaemonClientTest extends Specification {
         return client(Mock(WorkerDaemonProcess))
     }
 
-    WorkerDaemonClient client(WorkerDaemonProcess workerDaemonWorker) {
+    WorkerDaemonClient client(WorkerDaemonProcess workerDaemonProcess) {
         def daemonForkOptions = Mock(DaemonForkOptions)
-        def workerProcess = workerDaemonWorker.start()
-        return new WorkerDaemonClient(daemonForkOptions, workerDaemonWorker, workerProcess, buildOperationExecutor)
+        def workerProcess = workerDaemonProcess.start()
+        return new WorkerDaemonClient(daemonForkOptions, workerDaemonProcess, workerProcess, buildOperationExecutor)
     }
 }
