@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DistributionInstaller implements IDownload, DownloadProgressListener {
+public class DistributionInstaller {
     private static final String APP_NAME = "Gradle Tooling API";
     private static final InternalBuildProgressListener NO_OP = new NoOpListener();
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -59,7 +59,6 @@ public class DistributionInstaller implements IDownload, DownloadProgressListene
     private boolean completed;
     private boolean cancelled;
     private Throwable failure;
-    private OperationDescriptor descriptor;
 
     public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener) {
         this.progressLoggerFactory = progressLoggerFactory;
@@ -67,22 +66,21 @@ public class DistributionInstaller implements IDownload, DownloadProgressListene
         this.timeProvider = new TrueTimeProvider();
     }
 
+    /**
+     * Installs the distribution and returns the result.
+     */
     public File install(File userHomeDir, WrapperConfiguration wrapperConfiguration) throws Exception {
-        Install install = new Install(new Logger(false), this, new PathAssembler(userHomeDir));
+        Install install = new Install(new Logger(false), new AsyncDownload(), new PathAssembler(userHomeDir));
         return install.createDist(wrapperConfiguration);
     }
 
+    /**
+     * Cancels the current installation, if running.
+     */
     public void cancel() {
         synchronized (lock) {
             cancelled = true;
             lock.notifyAll();
-        }
-    }
-
-    @Override
-    public void download(URI address, File destination) throws Exception {
-        synchronized (lock) {
-            doDownload(address, destination);
         }
     }
 
@@ -91,13 +89,13 @@ public class DistributionInstaller implements IDownload, DownloadProgressListene
         OperationIdentifier id = new OperationIdentifier(0);
         org.gradle.tooling.internal.provider.events.DefaultOperationDescriptor internalDescriptor =
             new org.gradle.tooling.internal.provider.events.DefaultOperationDescriptor(id, displayName, displayName, null);
-        descriptor = new DefaultOperationDescriptor(internalDescriptor, null);
+        OperationDescriptor descriptor = new DefaultOperationDescriptor(internalDescriptor, null);
         long startTime = timeProvider.getCurrentTime();
         buildProgressListener.onEvent(new DefaultStartEvent(startTime, displayName + " started", descriptor));
 
         Throwable failure = null;
         try {
-            withProgressLogging(address, destination);
+            withProgressLogging(address, destination, descriptor);
         } catch (Throwable t) {
             failure = t;
         }
@@ -113,18 +111,18 @@ public class DistributionInstaller implements IDownload, DownloadProgressListene
         }
     }
 
-    private void withProgressLogging(URI address, File destination) throws Throwable {
+    private void withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor) throws Throwable {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionInstaller.class);
         progressLogger.setDescription("Download " + address);
         progressLogger.started();
         try {
-            withAsyncDownload(address, destination);
+            withAsyncDownload(address, destination, operationDescriptor);
         } finally {
             progressLogger.completed();
         }
     }
 
-    private void withAsyncDownload(final URI address, final File destination) throws Throwable {
+    private void withAsyncDownload(final URI address, final File destination, final OperationDescriptor operationDescriptor) throws Throwable {
         currentListener.set(buildProgressListener);
         try {
             // Start the download in another thread and wait for the result
@@ -132,7 +130,7 @@ public class DistributionInstaller implements IDownload, DownloadProgressListene
                 @Override
                 public void run() {
                     try {
-                        new Download(new Logger(false), DistributionInstaller.this, APP_NAME, GradleVersion.current().getVersion()).download(address, destination);
+                        new Download(new Logger(false), new ForwardingDownloadProgressListener(operationDescriptor), APP_NAME, GradleVersion.current().getVersion()).download(address, destination);
                     } catch (Throwable t) {
                         synchronized (lock) {
                             failure = t;
@@ -171,14 +169,6 @@ public class DistributionInstaller implements IDownload, DownloadProgressListene
         }
     }
 
-    @Override
-    public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
-        String eventDisplayName = descriptor.getDisplayName() + " " + downloaded + "/" + contentLength + " bytes downloaded";
-        StatusEvent statusEvent = new DefaultStatusEvent(timeProvider.getCurrentTime(), eventDisplayName, descriptor, contentLength, downloaded, "bytes");
-        // This is called from the download thread. Only forward the events when not cancelled
-        currentListener.get().onEvent(statusEvent);
-    }
-
     private static class NoOpListener implements InternalBuildProgressListener {
         @Override
         public void onEvent(Object event) {
@@ -187,6 +177,31 @@ public class DistributionInstaller implements IDownload, DownloadProgressListene
         @Override
         public List<String> getSubscribedOperations() {
             return Collections.emptyList();
+        }
+    }
+
+    private class ForwardingDownloadProgressListener implements DownloadProgressListener {
+        private final OperationDescriptor descriptor;
+
+        ForwardingDownloadProgressListener(OperationDescriptor descriptor) {
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
+            String eventDisplayName = descriptor.getDisplayName() + " " + downloaded + "/" + contentLength + " bytes downloaded";
+            StatusEvent statusEvent = new DefaultStatusEvent(timeProvider.getCurrentTime(), eventDisplayName, descriptor, contentLength, downloaded, "bytes");
+            // This is called from the download thread. Only forward the events when not cancelled
+            currentListener.get().onEvent(statusEvent);
+        }
+    }
+
+    private class AsyncDownload implements IDownload {
+        @Override
+        public void download(URI address, File destination) throws Exception {
+            synchronized (lock) {
+                doDownload(address, destination);
+            }
         }
     }
 }
