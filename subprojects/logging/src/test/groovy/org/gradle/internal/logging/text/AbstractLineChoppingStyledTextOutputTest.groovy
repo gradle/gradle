@@ -34,7 +34,6 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     ]
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final StringBuilder result = new StringBuilder()
-    //final String eol = SystemProperties.instance.getLineSeparator()
 
     def "appends text to current line"() {
         def output = output()
