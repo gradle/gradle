@@ -2,8 +2,8 @@ The Gradle team is pleased to announce Gradle 3.5.
 
 We're excited to highlight _4_ newsworthy improvements in this release:
 
-First, the [Gradle Build Cache](userguide/buildCache.html) has been promoted out of incubating! 
-This allows task outputs to be cached locally or remotely, and has a large impact on build performance.
+First, this is the first release of the [Gradle Build Cache](userguide/build_cache.html)! 
+This can have a large impact on build performance because it allows your build to avoid doing work by reusing task outputs from previous builds.
 For example, a clean build of _this one awesome project_ was reduced from a _long time_ to a _little time_!
 
 Indeed, our median build time has _decreased X%_ since enabling this in production: 
@@ -40,6 +40,28 @@ Add-->
 When attached to a terminal, Gradle will now show you a _build summary_ and more detailed _work-in-progress_. The build summary tells you how much of the task graph has been completed, and a measure of how much of the graph could be avoided. The work-in-progress section tells you which tasks are being processed. It gets much more interesting when you turn on `--parallel`.
 
 If you encounter any problems, use the `--console plain` option and please file an issue with your environment and terminal information.
+
+### Faster builds with the Gradle Build Cache
+
+Gradle has always had intelligent up-to-date checks to avoid doing work that was already done, but this feature has relied on running `clean` infrequently and never deleting your build directory.
+This release adds a [build cache](userguide/build_cache.html) that speeds up builds by reusing task outputs from other builds. Your local build can avoid doing work by just copying the task outputs from somewhere else.
+Gradle achieves this by uniquely identifying task outputs by all of the inputs to a task (its implementation, source files, configuration properties) and searching for a matching cache entry in a build cache.
+
+After upgrading to 3.5, try out the Gradle Build Cache straightaway by running:
+
+    gradle --build-cache clean assemble
+    gradle --build-cache clean assemble
+
+For Java projects, your second build should be faster because some task outputs, like Java classes, can be reused from the first build.
+These outputs are pulled from the Gradle build cache.
+If you like what you see, add `org.gradle.caching=true` to your `gradle.properties` to enjoy the build cache for all builds.
+
+Without any extra configuration, your build will use a local directory in your `GRADLE_USER_HOME` to store task outputs.
+To take this to another level, you can configure your build to pull task outputs from a distributed build cache.
+We provide a [recommended configuration](userguide/build_cache.html#sec:build_cache_configure) that is configured to use your continuous integration builds to populate a distributed build cache and allow all developers to pull from that build cache.
+Our recommended configuration does not directly share task outputs from other developer builds.
+
+The Gradle Build Cache is an opt-in feature for tasks, so not every task will be cacheable yet. Look at [the build cache userguide chapter](userguide/build_cache.html#sec:build_cache_known_issues) to see all of the current limitations with using the build cache.
 
 ### Plugin resolution rules
 
