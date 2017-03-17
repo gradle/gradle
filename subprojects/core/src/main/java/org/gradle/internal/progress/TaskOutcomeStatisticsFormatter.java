@@ -19,23 +19,32 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
 
-public class TaskOutcomeStatisticsFormatter {
-    private int executedTasksCount;
-    private int allTasksCount;
+import java.util.concurrent.atomic.AtomicInteger;
 
-    public String incrementAndGetProgress(TaskState state) {
+public class TaskOutcomeStatisticsFormatter {
+    private AtomicInteger avoidedTasksCount = new AtomicInteger(0);
+    private AtomicInteger executedTasksCount = new AtomicInteger(0);
+
+    public String incrementAndGetProgress(final TaskState state) {
         recordTaskOutcome(state);
 
-        final long executedPercentage = Math.round(executedTasksCount * 100.0 / allTasksCount);
-        return " [" + (100 - executedPercentage) + "% AVOIDED, " + executedPercentage + "% DONE]";
+        final int numAvoidedTasks = avoidedTasksCount.get();
+        final int allTasksCount = numAvoidedTasks + executedTasksCount.get();
+        if (allTasksCount > 0) {
+            final long avoidedPercentage = Math.round(numAvoidedTasks * 100.0 / allTasksCount);
+            return " [" + avoidedPercentage + "% AVOIDED, " + (100 - avoidedPercentage) + "% DONE]";
+        } else {
+            return "";
+        }
     }
 
     private void recordTaskOutcome(final TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
-        TaskExecutionOutcome outcome = stateInternal.getOutcome();
-        if (outcome == TaskExecutionOutcome.EXECUTED) {
-            executedTasksCount++;
+
+        if (stateInternal.getOutcome() == TaskExecutionOutcome.UP_TO_DATE || stateInternal.getOutcome() == TaskExecutionOutcome.FROM_CACHE) {
+            avoidedTasksCount.getAndIncrement();
+        } else if (stateInternal.getOutcome() == TaskExecutionOutcome.EXECUTED && stateInternal.isHasActions()) {
+            executedTasksCount.getAndIncrement();
         }
-        allTasksCount++;
     }
 }

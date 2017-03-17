@@ -24,11 +24,11 @@ import org.gradle.api.tasks.TaskState;
 public class TaskStateInternal implements TaskState {
     private boolean executing;
     private boolean didWork;
+    private boolean hasActions;
     private Throwable failure;
     private String description;
     private TaskOutputCachingState taskOutputCaching;
     private TaskExecutionOutcome outcome;
-
     public TaskStateInternal(String description) {
         this.description = description;
     }
@@ -127,5 +127,13 @@ public class TaskStateInternal implements TaskState {
 
     public boolean isFromCache() {
         return outcome == TaskExecutionOutcome.FROM_CACHE;
+    }
+
+    public boolean isHasActions() {
+        return hasActions;
+    }
+
+    public void setHasActions(boolean hasActions) {
+        this.hasActions = hasActions;
     }
 }

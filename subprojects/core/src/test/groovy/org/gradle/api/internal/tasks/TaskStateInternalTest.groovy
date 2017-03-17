@@ -39,6 +39,7 @@ class TaskStateInternalTest {
         assertThat(state.getSkipMessage(), nullValue())
         assertFalse(state.upToDate)
         assertFalse(state.taskOutputCaching.enabled)
+        assertFalse(state.hasActions)
     }
 
     @Test
