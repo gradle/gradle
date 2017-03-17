@@ -24,7 +24,7 @@ import java.util.Map;
 
 import static org.gradle.util.GUtil.isTrue;
 
-public class PropertiesToParallelConfigurationConverter {
+public class PropertiesToParallelismConfigurationConverter {
     public ParallelismConfiguration convert(Map<String, String> properties, ParallelismConfiguration parallelismConfiguration) {
         String parallel = properties.get(GradleProperties.PARALLEL_PROPERTY);
         if (isTrue(parallel)) {

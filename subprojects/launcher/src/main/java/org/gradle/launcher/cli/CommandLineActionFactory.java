@@ -46,7 +46,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.cli.converter.PropertiesToParallelConfigurationConverter;
+import org.gradle.launcher.cli.converter.PropertiesToParallelismConfigurationConverter;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.util.GradleVersion;
 
@@ -221,8 +221,8 @@ public class CommandLineActionFactory {
                 Map<String, String> properties = new HashMap<String, String>();
                 systemPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
                 projectPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
-                PropertiesToParallelConfigurationConverter propertiesToParallelConfigurationConverter = new PropertiesToParallelConfigurationConverter();
-                propertiesToParallelConfigurationConverter.convert(properties, parallelismConfiguration);
+                PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
+                propertiesToParallelismConfigurationConverter.convert(properties, parallelismConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }

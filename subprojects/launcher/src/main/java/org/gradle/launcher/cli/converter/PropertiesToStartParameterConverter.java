@@ -25,12 +25,12 @@ import java.util.Map;
 import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 public class PropertiesToStartParameterConverter {
-    private final PropertiesToParallelConfigurationConverter propertiesToParallelConfigurationConverter = new PropertiesToParallelConfigurationConverter();
+    private final PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
 
     public StartParameter convert(Map<String, String> properties, StartParameter startParameter) {
         startParameter.setConfigureOnDemand(isTrue(properties.get(GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY)));
 
-        propertiesToParallelConfigurationConverter.convert(properties, startParameter);
+        propertiesToParallelismConfigurationConverter.convert(properties, startParameter);
 
         // Warn anyone using the old property to stop
         String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);
