@@ -117,7 +117,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
             }
         }
 
-        if (!(!isPreviouslyVisible && !isVisible)) {
+        if (isPreviouslyVisible || isVisible) {
             ansi.cursorAt(parkCursor());
         }
         isPreviouslyVisible = isVisible;
