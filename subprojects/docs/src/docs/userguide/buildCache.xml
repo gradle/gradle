@@ -157,7 +157,7 @@
                 Let us start with a project using the Java plugin which has a few java source files. We run the build the first time.
             </para>
             <programlisting>
-                $> gradle compileJava --build-cache
+                $> gradle --build-cache compileJava
                 Build cache is an incubating feature.
                 Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
                 :compileJava
@@ -173,15 +173,13 @@
                 Let's clean and run the build again.
             </para>
             <programlisting>
-                $> gradle clean --build-cache
-                Build cache is an incubating feature.
-                Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
+                $> gradle clean
                 :clean
 
                 BUILD SUCCESSFUL
             </programlisting>
             <programlisting>
-                $> gradle assemble --build-cache
+                $> gradle --build-cache assemble
                 Build cache is an incubating feature.
                 Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
                 :compileJava FROM-CACHE
