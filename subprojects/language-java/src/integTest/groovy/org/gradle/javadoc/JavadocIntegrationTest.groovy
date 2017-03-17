@@ -21,6 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
@@ -62,10 +63,12 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1090")
-    def "escape single quotes in doubled quoted string"() {
+    @Unroll
+    def "escape single quote in options enclosed with #quote"() {
+        given:
         buildFile << """
             apply plugin: "java"
-            javadoc.options.header = "'double quoted' \' \\\'"
+            javadoc.options.header = $optionIn
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -74,55 +77,14 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'javadoc'
 
         then:
-        file("build/docs/javadoc/Foo.html").text.contains("""'double quoted' ' '""")
-    }
+        file("build/docs/javadoc/Foo.html").text.contains(optionOut)
 
-    @Issue("gradle/gradle#1090")
-    def "escape single quotes triple quoted string"() {
-        buildFile << """
-            apply plugin: "java"
-            javadoc.options.header = \"\"\""'triple quoted' \' \\\'\"\"\"
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        succeeds 'javadoc'
-
-        then:
-        file("build/docs/javadoc/Foo.html").text.contains("""'triple quoted' ' '""")
-    }
-
-    @Issue("gradle/gradle#1090")
-    def "escape single quotes in single quoted string"() {
-        buildFile << """
-            apply plugin: "java"
-            javadoc.options.header = '\\\'single quoted\\\''
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        succeeds 'javadoc'
-
-        then:
-        file("build/docs/javadoc/Foo.html").text.contains("""'single quoted'""")
-    }
-
-    @Issue("gradle/gradle#1090")
-    def "escape single quotes in slashed string"() {
-        buildFile << """
-            apply plugin: "java"
-            javadoc.options.header = /'slash quoted' \'/
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        succeeds 'javadoc'
-
-        then:
-        file("build/docs/javadoc/Foo.html").text.contains("""'slash quoted' '""")
+        where:
+        quote    | optionIn                                   | optionOut
+        "\'"     | """'\\\'single quoted\\\''"""              | """'single quoted'"""
+        "\""     | """\"'double quoted' \' \\\'\""""          | """'double quoted' ' '"""
+        "\"\"\"" | """\"\"\""'triple quoted' \' \\\'\"\"\"""" | """'triple quoted' ' '"""
+        "/"      |"""/'slash quoted' \'/"""                   | """'slash quoted' '"""
     }
 
     def "can configure options with an Action"() {
