@@ -52,6 +52,9 @@ class ProgressEvents implements ProgressListener {
             Map<OperationDescriptor, StartEvent> running = [:]
             for (ProgressEvent event : events) {
                 assert event.displayName == event.toString()
+                assert event.descriptor.displayName
+                assert event.descriptor.displayName == event.descriptor.toString()
+                assert event.descriptor.name
 
                 if (event instanceof StartEvent) {
                     def descriptor = event.descriptor
