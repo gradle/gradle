@@ -29,13 +29,23 @@
     <section id="sec:build_cache_intro">
         <title>Overview</title>
         <para>
-            Build caching is a new kind of cache mechanism that aims to save time by reusing outputs produced by other builds.
+            A <firstterm>build cache</firstterm> is a cache mechanism that aims to save time by reusing outputs produced by other builds.
+            The build cache works by storing (locally or remotely) build outputs and allowing builds to fetch these outputs from the cache when it is determined that inputs have not changed, avoiding the expensive work of regenerating them.
+        </para>
+        <para>
+            A first feature using the build cache is <firstterm>task output caching</firstterm>.
+            Essentially, task output caching leverages the same intelligence as <xref linked="sec:up_to_date_checks">UP-TO-DATE checking</xref> that Gradle uses to avoid work when a previous local build has already produced a set of outputs.
+            But instead of being limited to the previous build in the same workspace, task output caching allows Gradle to reuse build outputs from any earlier build in any location.
+            When using a shared build cache for task output caching this even works across developer machines and build agents.
+        </para>
+        <para>
+            Apart from task output caching, we expect other features to use the build cache in the future.
         </para>
     </section>
     <section id="sec:build_cache_enable">
         <title>Enable the Build Cache</title>
         <para>
-            By default, the <firstterm>build cache</firstterm> is not enabled. You can enable the build cache in a couple of ways:
+            By default, the build cache is not enabled. You can enable the build cache in a couple of ways:
             <varlistentry>
                 <term>Run with <literal>--build-cache</literal> on the command-line.</term>
                 <listitem>
