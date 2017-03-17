@@ -24,7 +24,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
@@ -49,7 +48,6 @@ import java.util.concurrent.Callable;
  * Translates Assembly language source files into object files.
  */
 @Incubating
-@ParallelizableTask
 public class Assemble extends DefaultTask {
     private FileCollection source;
     private NativeToolChainInternal toolChain;

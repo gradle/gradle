@@ -54,7 +54,6 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 @CacheableTask
-@ParallelizableTask
 public class WriteProperties extends DefaultTask {
     private final Map<String, Callable<String>> deferredProperties = Maps.newHashMap();
     private final Map<String, String> properties = Maps.newHashMap();

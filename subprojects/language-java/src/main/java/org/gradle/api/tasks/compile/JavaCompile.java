@@ -44,7 +44,6 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -79,7 +78,6 @@ import java.io.File;
  *     }
  * </pre>
  */
-@ParallelizableTask
 @CacheableTask
 public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();

@@ -27,7 +27,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
@@ -43,7 +42,6 @@ import java.io.File;
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
 @Incubating
-@ParallelizableTask
 public class InstallExecutable extends DefaultTask {
 
     private ToolChain toolChain;

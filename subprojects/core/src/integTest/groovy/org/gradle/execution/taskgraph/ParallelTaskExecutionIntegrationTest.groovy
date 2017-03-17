@@ -75,7 +75,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            @ParallelizableTask
             class FailingPing extends DefaultTask {
                 @TaskAction
                 void ping() {
