@@ -37,6 +37,7 @@ import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
@@ -114,6 +115,29 @@ class CommandLineActionFactoryTest extends Specification {
         1 * actionFactory1.configureCommandLineParser(!null)
         1 * actionFactory2.configureCommandLineParser(!null)
         1 * actionFactory1.createAction(!null, !null) >> rawAction
+    }
+
+    @Unroll
+    def "set logging max worker count to #expectedMaxWorkerCount according to command line flags #flags"() {
+        when:
+        def action = factory.convert(flags)
+
+        then:
+        action
+
+        when:
+        action.execute(executionListener)
+
+        then:
+        1 * loggingManager.setMaxWorkerCount(expectedMaxWorkerCount);
+
+        where:
+        expectedMaxWorkerCount | flags
+        1                      | []
+        1                      | ['--max-workers=4']
+        4                      | ['--parallel', '--max-workers=4']
+        4                      | ['--parallel', '-Dorg.gradle.workers.max=4']
+        6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
     }
 
     def "reports command-line parse failure"() {
