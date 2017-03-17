@@ -23,13 +23,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskOutcomeStatisticsFormatter {
     private AtomicInteger avoidedTasksCount = new AtomicInteger(0);
-    private AtomicInteger allTasksCount = new AtomicInteger(0);
+    private AtomicInteger executedTasksCount = new AtomicInteger(0);
 
     public String incrementAndGetProgress(final TaskState state) {
         recordTaskOutcome(state);
 
-        if (allTasksCount.get() > 0) {
-            final long avoidedPercentage = Math.round(avoidedTasksCount.get() * 100.0 / allTasksCount.get());
+        final int numAvoidedTasks = avoidedTasksCount.get();
+        final int allTasksCount = numAvoidedTasks + executedTasksCount.get();
+        if (allTasksCount > 0) {
+            final long avoidedPercentage = Math.round(numAvoidedTasks * 100.0 / allTasksCount);
             return " [" + avoidedPercentage + "% AVOIDED, " + (100 - avoidedPercentage) + "% DONE]";
         } else {
             return "";
@@ -39,18 +41,10 @@ public class TaskOutcomeStatisticsFormatter {
     private void recordTaskOutcome(final TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
 
-        if (shouldCountTask(stateInternal)) {
-            allTasksCount.getAndIncrement();
-            if (stateInternal.getUpToDate() || stateInternal.isFromCache()) {
-                avoidedTasksCount.getAndIncrement();
-            }
+        if (stateInternal.getOutcome() == TaskExecutionOutcome.UP_TO_DATE || stateInternal.getOutcome() == TaskExecutionOutcome.FROM_CACHE) {
+            avoidedTasksCount.getAndIncrement();
+        } else if (stateInternal.getOutcome() == TaskExecutionOutcome.EXECUTED && stateInternal.isHasActions()) {
+            executedTasksCount.getAndIncrement();
         }
-    }
-
-    private boolean shouldCountTask(final TaskStateInternal state) {
-        return state.isHasActions() &&
-            !state.getNoSource() &&
-            // NOTE: cannot use state.getSkipped() because UP-TO-DATE tasks are considered "skipped" in TaskExecutionOutcome
-            state.getOutcome() != TaskExecutionOutcome.SKIPPED;
     }
 }
