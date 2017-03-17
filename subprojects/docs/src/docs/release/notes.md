@@ -108,10 +108,20 @@ For example, if you have a `FancyExtension` type, implemented by some `DefaultFa
     FancyExtension fancyInstance = new DefaultFancyExtension(...)
     project.extensions.add FancyExtension, 'fancy', fancyInstance
 
-### BuildActionExecutor supports running tasks
+### Tooling API improvements
+
+#### BuildActionExecutor supports running tasks
 
 Tooling API clients can now run tasks before running a build action. This allows them to fetch tooling models which depend on the result of
 executing some task. This mirrors the existing `ModelBuilder.forTasks()` API.
+
+#### Specify environment variables
+
+Tooling API clients can now specify environment variables to use when invoking a Gradle build.
+
+#### Progress events for Gradle distribution download
+
+The Tooling API can now report progress when it downloads of the Gradle distribution. A new type of `ProgressEvent`, called `StatusEvent`, is passed to the `ProgressListener.statusChanged()` method as the download proceeds. 
 
 ### Support for multi-value Javadoc options
 
@@ -225,6 +235,10 @@ You can upgrade or downgrade the version of Checkstyle with:
         toolVersion = '5.9'
     }
 
+### New subtype of Tooling API `ProgressEvent`
+
+A new subtype of the Tooling API type `ProgressEvent`, called `StatusEvent`, has been added to represent the interim progress of a particular operation. Instances of this new type will be passed to `ProgressListener.statusChanged()`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -235,6 +249,7 @@ We would like to thank the following community members for making contributions 
  - [Ethan Hall](https://github.com/ethankhall) - Plugin resolution rules ([gradle/gradle#1343](https://github.com/gradle/gradle/pull/1343))
  - [Lucas Smaira](https://github.com/lsmaira) - BuildActionExecutor.forTasks() support ([gradle/gradle#1442](https://github.com/gradle/gradle/pull/1442))
  - [Vladislav Soroka](https://github.com/vladsoroka) - Allow environment variables to be configured through Tooling API ([gradle/gradle#1029](https://github.com/gradle/gradle/pull/1029))
+ - [Vladislav Soroka](https://github.com/vladsoroka) - Tooling API reports Gradle distribution download progress ([gradle/gradle#1182](https://github.com/gradle/gradle/pull/1182))
  - [Jacob Beardsley](https://github.com/jacobwu) - Fix `NullPointerException` when excluding transitive dependencies in dependency configuration ([gradle/gradle#1113](https://github.com/gradle/gradle/pull/1113))
  - [Attila Kelemen](https://github.com/kelemen) - Project.file supports java.nio.file.Path instances ([gradle/gradle#813](https://github.com/gradle/gradle/pull/813))
  - [Kevin Page](https://github.com/kpage) - Eclipse resource filters ([gradle/gradle#846](https://github.com/gradle/gradle/pull/846))
