@@ -124,7 +124,7 @@ The following inputs contribute to the build cache key for a task in the same wa
 * The content of the build script when it affects execution of the task
 
 Task types need to opt-in to task output caching using the `@api:org.gradle.api.tasks.CacheableTask[]` annotation.
-Note that `@api:org.gradle.api.tasks.CacheableTask[]` is, like `@api:org.gradle.api.tasks.ParallelizableTask[]`, not inherited by subclasses.
+Note that `@api:org.gradle.api.tasks.CacheableTask[]` is not inherited by subclasses.
 Custom task types are _not_ cacheable by default.
 Currently, the following built-in Gradle tasks are cacheable:
 

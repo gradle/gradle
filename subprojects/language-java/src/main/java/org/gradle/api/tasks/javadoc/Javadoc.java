@@ -28,7 +28,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
@@ -87,7 +86,6 @@ import java.util.List;
  * </pre>
  */
 @CacheableTask
-@ParallelizableTask
 public class Javadoc extends SourceTask {
     private File destinationDir;
 
