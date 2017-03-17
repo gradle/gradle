@@ -16,9 +16,6 @@
 
 package org.gradle.internal.progress
 
-import org.gradle.api.internal.tasks.TaskExecutionOutcome
-import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.tasks.TaskState
 import org.gradle.internal.logging.progress.ProgressLogger
 import spock.lang.Specification
 import spock.lang.Subject
@@ -82,10 +79,6 @@ class BuildProgressLoggerTest extends Specification {
     }
 
     def "logs execution phase"() {
-        given:
-        TaskState taskState = new TaskStateInternal(":task")
-        taskState.setOutcome(TaskExecutionOutcome.EXECUTED)
-
         when:
         buildProgressLogger.buildStarted()
         buildProgressLogger.graphPopulated(10)
@@ -95,7 +88,7 @@ class BuildProgressLoggerTest extends Specification {
         1 * provider.start(BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, _) >> buildProgress
 
         when:
-        buildProgressLogger.afterExecute(taskState)
+        buildProgressLogger.afterExecute()
 
         then:
         1 * buildProgress.progress(_)
