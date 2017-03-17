@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -27,7 +26,11 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.test.*
+import org.gradle.tooling.events.test.JvmTestKind
+import org.gradle.tooling.events.test.TestFailureResult
+import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.tooling.events.test.TestProgressEvent
+import org.gradle.tooling.events.test.TestSkippedResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -58,7 +61,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some test task(s) to run first"
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).get()
@@ -76,7 +79,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -153,7 +156,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -223,7 +226,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -305,7 +308,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -373,7 +376,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -446,7 +449,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         when:
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).withArguments('--parallel').run()
@@ -468,7 +471,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: 'listening to test progress events and task listener is attached'
-        def events = new ProgressEvents()
+        def events = progressEvents()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TASK, OperationType.TEST)).run()

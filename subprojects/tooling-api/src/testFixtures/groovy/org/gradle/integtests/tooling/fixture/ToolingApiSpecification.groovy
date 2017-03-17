@@ -91,6 +91,10 @@ abstract class ToolingApiSpecification extends Specification {
         toolingApi.daemons
     }
 
+    ProgressEvents progressEvents() {
+        return GradleVersion.current().baseVersion < GradleVersion.version("3.5") ? new ProgressEvents() : new ProgressEventsWithStatus()
+    }
+
     TestFile getProjectDir() {
         temporaryFolder.testDirectory
     }
