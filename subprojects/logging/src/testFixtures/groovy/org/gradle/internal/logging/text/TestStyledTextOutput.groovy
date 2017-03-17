@@ -16,10 +16,9 @@
 
 package org.gradle.internal.logging.text
 
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.text.StyledTextOutput.Style
 
-class TestStyledTextOutput extends AbstractStyledTextOutput {
+class TestStyledTextOutput extends AbstractLineChoppingStyledTextOutput {
     StringBuilder result = new StringBuilder()
 
     @Override
@@ -47,9 +46,8 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
     String getValue() {
         StringBuilder normalised = new StringBuilder()
 
-        String eol = SystemProperties.instance.lineSeparator
         boolean inStackTrace = false
-        new StringTokenizer(result.toString().replaceAll(eol, '\n'), '\n', true).each { String line ->
+        new StringTokenizer(result.toString(), '\n', true).each { String line ->
             if (line == '\n') {
                 if (!inStackTrace) {
                     normalised.append('\n')
@@ -73,7 +71,12 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
     }
 
     @Override
-    protected void doAppend(String text) {
+    protected void doLineText(CharSequence text) {
         result.append(text)
+    }
+
+    @Override
+    protected void doEndLine(CharSequence endOfLine) {
+        result.append("\n");
     }
 }
