@@ -136,11 +136,35 @@
             </itemizedlist>
             <para>
                 Task types need to opt-in to task output caching using the <literal>@<apilink class="org.gradle.api.tasks.CacheableTask"/></literal> annotation.
-                Many built-in Gradle task types are cacheable, but custom task types are <emphasis>not</emphasis> cacheable by default.
+                Custom task types are <emphasis>not</emphasis> cacheable by default.
+                Currently, the following built-in Gradle tasks are cacheable:
             </para>
+            <itemizedlist>
+                <listitem>Java toolchain:
+                    <apilink class="org.gradle.api.tasks.compile.JavaCompile" />,
+                    <apilink class="org.gradle.api.tasks.javadoc.Javadoc" />
+                </listitem>
+                <listitem>Groovy toolchain:
+                    <apilink class="org.gradle.api.tasks.compile.GroovyCompile" />,
+                    <apilink class="org.gradle.api.tasks.javadoc.Groovydoc" />
+                </listitem>
+                <listitem><apilink class="org.gradle.api.tasks.testing.Test" /></listitem>
+                <listitem>Code quality tasks:
+                    <apilink class="org.gradle.api.plugins.quality.Checkstyle"/>,
+                    <apilink class="org.gradle.api.plugins.quality.CodeNarc" />,
+                    <apilink class="org.gradle.api.plugins.quality.FindBugs" />,
+                    <apilink class="org.gradle.api.plugins.quality.JDepend" />,
+                    <apilink class="org.gradle.api.plugins.quality.Pmd" />
+                </listitem>
+                <listitem>Jacoco:
+                    <apilink class="org.gradle.testing.jacoco.tasks.JacocoMerge" />,
+                    <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport" />
+                </listitem>
+                <listitem><apilink class="org.gradle.api.tasks.WriteProperties" /></listitem>
+                <listitem><apilink class="org.gradle.plugin.devel.tasks.ValidateTaskProperties" /></listitem>
+            </itemizedlist>
             <para>
-                For an initial release, we have focused on improving continuous integration and developer build times when using the build cache.
-                We expect users to have an organization wide remote build cache that is populated regularly by continuous integration builds.
+                For an initial release, we have focused on on the use case where users have an organization wide remote build cache that is populated regularly by continuous integration builds.
                 Developers and other continuous integration agents will pull cache entries from the remote build cache.
                 We expect that developers are not allowed to populate the remote build cache and all continuous integration builds are populating the cache while running the clean task.
             </para>
