@@ -1,26 +1,24 @@
 The Gradle team is pleased to announce Gradle 3.5.
 
-We're excited to highlight _4_ newsworthy improvements in this release:
+First and foremost, we're excited to announce a new [Build Cache](userguide/buildCache.html)!
+Beyond incremental builds, Gradle can save time by reusing outputs from previous executions of a task, resolving them locally or remotely.
+This is an advanced feature that requires engineering rigor to apply, but can substantially reduce build times when used properly.
+It is not enabled by default.
 
-First, this is the first release of the [Gradle Build Cache](userguide/build_cache.html)! 
-This can have a large impact on build performance because it allows your build to avoid doing work by reusing task outputs from previous builds.
-For example, a clean build of _this one awesome project_ was reduced from a _long time_ to a _little time_!
+We have been testing this ourselves and with open-source partners for quite some time, and the feedback has been very positive.
+While this feature is incubating, we are improving the user interface, documentation, and debuggability so that everyone can enable this eventually.
 
-Indeed, our median build time has _decreased X%_ since enabling this in production: 
-
-(TODO Gradle Enterprise hotness graph)
-
-Open-source partners have been running with this in production for months, and the feedback has been
-very positive. Read the [user guide section](userguide/buildCache.html) for setup instructions.
+We would like feedback from a wide variety of builds for this feature. Please read the [Build Cache user manual](userguide/buildCache.html),
+try it in non-critical environments, and submit GitHub issues with build scans if you encounter any irregularites.
 
 Second, improvements in parallelization from recent releases have highlighted a need to keep you more informed about
 all of the work that's _really_ going on in your build, so we've developed brand new console output!
 
 (TODO animated GIF)
 
-Third, [Gradle Script Kotlin v0.8.0](#kotlin-build-scripts) (included in the distribution) is a major step forward in usability, 
-bringing a more consistent DSL, convenient and type-safe access to contributed project extensions and conventions, 
-much better error reporting, bug fixes and, of course, the latest and greatest Kotlin release.
+Third, [Gradle Script Kotlin v0.8.0](#kotlin-build-scripts) (included in the distribution) is a major step forward in
+usability. It brings a more consistent DSL, convenient and type-safe access to contributed project extensions and
+conventions, much better error reporting, bug fixes and, of course, the latest and greatest Kotlin release.
 
 Finally, Ethan Hall worked with us to develop [plugin resolution rules](userguide/plugins.html#sec:plugin_management) that give you tighter control over how plugins
 are resolved through the new `pluginManagement {}` block. 
