@@ -140,7 +140,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         outputContains("Build scan cannot be created since the build scan plugin has not been applied.\n"
-            + "For more information on how to apply the build scan plugin, please visit https://gradle.com/get-started.")
+            + "For more information on how to apply the build scan plugin, please visit https://gradle.com/scans/get-started.")
     }
 
     def "running gradle with --scan sets `scan` system property to true if not yet set"() {
@@ -196,7 +196,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def withDummyBuildScanPlugin() {
-        file("buildSrc/src/main/groovy/BuildScanPlugin.groovy").text =  """
+        file("buildSrc/src/main/groovy/BuildScanPlugin.groovy").text = """
             package com.gradle.test.build.dummy
             import org.gradle.api.Plugin
             import org.gradle.api.Project

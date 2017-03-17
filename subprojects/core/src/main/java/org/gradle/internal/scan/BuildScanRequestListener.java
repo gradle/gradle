@@ -35,7 +35,7 @@ public final class BuildScanRequestListener extends BuildAdapter {
         Project rootProject = gradle.getRootProject();
         if (!hasBuildScanPluginApplied(rootProject)) {
             LOGGER.warn("Build scan cannot be created since the build scan plugin has not been applied.\n"
-                + "For more information on how to apply the build scan plugin, please visit https://gradle.com/get-started.");
+                + "For more information on how to apply the build scan plugin, please visit https://gradle.com/scans/get-started.");
         }
     }
 
