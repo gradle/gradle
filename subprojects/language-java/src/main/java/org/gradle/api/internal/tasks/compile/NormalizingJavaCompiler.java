@@ -97,8 +97,8 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     private WorkResult delegateAndHandleErrors(JavaCompileSpec spec) {
         try {
             return delegate.execute(spec);
-        } catch (CompilationFailedException e) {
-            if (spec.getCompileOptions().isFailOnError()) {
+        } catch (RuntimeException e) {
+            if (spec.getCompileOptions().isFailOnError() || !CompilationFailedException.hasCompilationFailedCause(e)) {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");

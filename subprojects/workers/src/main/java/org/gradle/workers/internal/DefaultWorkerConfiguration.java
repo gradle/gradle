@@ -25,15 +25,16 @@ import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.util.GUtil;
 import org.gradle.workers.ForkMode;
 import org.gradle.workers.IsolationMode;
-import org.gradle.workers.WorkerConfiguration;
 
 import java.io.File;
 import java.util.List;
 
-public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfiguration {
+public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfigurationInternal {
     private final JavaForkOptions forkOptions;
     private IsolationMode isolationMode = IsolationMode.AUTO;
     private List<File> classpath = Lists.newArrayList();
+    private List<String> sharedPackages = Lists.newArrayList();
+    private boolean scriptClasspath;
     private String displayName;
 
     public DefaultWorkerConfiguration(FileResolver fileResolver) {
@@ -113,5 +114,30 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     @Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    @Override
+    public Iterable<String> getSharedPackages() {
+        return sharedPackages;
+    }
+
+    @Override
+    public void setSharedPackages(Iterable<String> sharedPackages) {
+        this.sharedPackages = Lists.newArrayList(sharedPackages);
+    }
+
+    @Override
+    public void sharedPackages(Iterable<String> sharedPackages) {
+        GUtil.addToCollection(this.sharedPackages, sharedPackages);
+    }
+
+    @Override
+    public boolean isStrictClasspath() {
+        return scriptClasspath;
+    }
+
+    @Override
+    public void setStrictClasspath(boolean strictClasspath) {
+        this.scriptClasspath = strictClasspath;
     }
 }

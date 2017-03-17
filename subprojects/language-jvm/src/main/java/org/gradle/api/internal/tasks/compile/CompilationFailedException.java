@@ -27,4 +27,15 @@ public class CompilationFailedException extends RuntimeException {
     public CompilationFailedException(Throwable cause) {
         super(cause);
     }
+
+    public static boolean hasCompilationFailedCause(Throwable throwable) {
+        Throwable next = throwable;
+        while (next != null) {
+            if (next instanceof CompilationFailedException) {
+                return true;
+            }
+            next = next.getCause();
+        }
+        return false;
+    }
 }

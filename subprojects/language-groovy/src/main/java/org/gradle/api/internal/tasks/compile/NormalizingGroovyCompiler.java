@@ -120,10 +120,8 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         try {
             return delegate.execute(spec);
         } catch (RuntimeException e) {
-            // in-process Groovy compilation throws a CompilationFailedException from another classloader, hence testing class name equality
-            // TODO:pm Prefer class over class name for equality check once using WorkerExecutor for in-process groovy compilation
             if ((spec.getCompileOptions().isFailOnError() && spec.getGroovyCompileOptions().isFailOnError())
-                || (!CompilationFailedException.class.getName().equals(e.getClass().getName()))) {
+                || !CompilationFailedException.hasCompilationFailedCause(e)) {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");

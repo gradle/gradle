@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -116,7 +117,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private WorkerFactory getWorkerFactory(IsolationMode isolationMode) {
-        switch(isolationMode) {
+        switch (isolationMode) {
             case AUTO:
             case CLASSLOADER:
                 return isolatedClassloaderWorkerFactory;
@@ -130,7 +131,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private Class<? extends WorkerProtocol<ActionExecutionSpec>> getWorkerServer(IsolationMode isolationMode) {
-        switch(isolationMode) {
+        switch (isolationMode) {
             case AUTO:
             case CLASSLOADER:
             case NONE:
@@ -183,6 +184,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
+    @VisibleForTesting
     DaemonForkOptions getDaemonForkOptions(Class<?> actionClass, WorkerConfiguration configuration) {
         validateWorkerConfiguration(configuration);
         Iterable<Class<?>> paramTypes = CollectionUtils.collect(configuration.getParams(), new Transformer<Class<?>, Object>() {
@@ -191,7 +193,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 return o.getClass();
             }
         });
-        return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath());
+        return toDaemonOptions(actionClass, paramTypes, (WorkerConfigurationInternal) configuration);
     }
 
     private void validateWorkerConfiguration(WorkerConfiguration configuration) {
@@ -228,22 +230,28 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath) {
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, WorkerConfigurationInternal configuration) {
         ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
 
-        sharedPackagesBuilder.add("javax.inject");
-
+        Iterable<File> classpath = configuration.getClasspath();
         if (classpath != null) {
             classpathBuilder.addAll(classpath);
         }
 
-        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder, true);
+        sharedPackagesBuilder.add("javax.inject");
 
-        for (Class<?> paramClass : paramClasses) {
-            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
+        if (!configuration.isStrictClasspath()) {
+            // Automatically enrich classpath and shared packages from action and parameters classes
+            addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder, true);
+            for (Class<?> paramClass : paramClasses) {
+                addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
+            }
         }
 
+        sharedPackagesBuilder.addAll(configuration.getSharedPackages());
+
+        JavaForkOptions forkOptions = configuration.getForkOptions();
         Iterable<File> daemonClasspath = classpathBuilder.build();
         Iterable<String> daemonSharedPackages = sharedPackagesBuilder.build();
 

@@ -15,70 +15,81 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Action;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.workers.internal.ActionExecutionSpec;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
-import org.gradle.workers.internal.SimpleActionExecutionSpec;
-import org.gradle.workers.internal.Worker;
-import org.gradle.workers.internal.WorkerDaemonServer;
-import org.gradle.workers.internal.WorkerFactory;
-import org.gradle.workers.internal.WorkerProtocol;
-import org.gradle.workers.internal.WorkerServer;
+import org.gradle.workers.internal.WorkerConfigurationInternal;
 
 import javax.inject.Inject;
 import java.io.File;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
-    private final WorkerFactory workerFactory;
+    private final WorkerExecutor workerExecutor;
     private final File executionWorkingDir;
 
-    public AbstractDaemonCompiler(File executionWorkingDir, Compiler<T> delegate, WorkerFactory workerFactory) {
+    public AbstractDaemonCompiler(File executionWorkingDir, Compiler<T> delegate, WorkerExecutor workerExecutor) {
         this.executionWorkingDir = executionWorkingDir;
         this.delegate = delegate;
-        this.workerFactory = workerFactory;
-    }
-
-    public Compiler<T> getDelegate() {
-        return delegate;
-    }
-
-    @Override
-    public WorkResult execute(T spec) {
-        DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
-        Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getServerImplementation(), daemonForkOptions);
-        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerRunnable.class, "compiler daemon", executionWorkingDir, new Object[] {delegate, spec}));
-        if (result.isSuccess()) {
-            return result;
-        } else {
-            throw UncheckedException.throwAsUncheckedException(result.getException());
-        }
+        this.workerExecutor = workerExecutor;
     }
 
     protected abstract DaemonForkOptions toDaemonOptions(T spec);
 
-    private Class<? extends WorkerProtocol<ActionExecutionSpec>> getServerImplementation() {
-        switch(workerFactory.getIsolationMode()) {
-            case NONE:
-            case CLASSLOADER:
-                return WorkerServer.class;
-            case PROCESS:
-                return WorkerDaemonServer.class;
-            default:
-                throw new IllegalArgumentException("Unknown isolation mode: " + workerFactory.getIsolationMode());
+    protected IsolationMode getIsolationMode() {
+        return IsolationMode.PROCESS;
+    }
+
+    @Override
+    public WorkResult execute(final T spec) {
+        final DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
+        workerExecutor.submit(CompilerWorkerRunnable.class, new Action<WorkerConfiguration>() {
+            @Override
+            public void execute(WorkerConfiguration config) {
+                config.setIsolationMode(getIsolationMode());
+                config.forkOptions(new Action<JavaForkOptions>() {
+                    @Override
+                    public void execute(JavaForkOptions forkOptions) {
+                        forkOptions.setWorkingDir(executionWorkingDir);
+                        forkOptions.setJvmArgs(daemonForkOptions.getJvmArgs());
+                        forkOptions.setMinHeapSize(daemonForkOptions.getMinHeapSize());
+                        forkOptions.setMaxHeapSize(daemonForkOptions.getMaxHeapSize());
+                    }
+                });
+                config.setClasspath(daemonForkOptions.getClasspath());
+                config.setParams(delegate, spec);
+                config.setStrictClasspath(true);
+                ((WorkerConfigurationInternal) config).setSharedPackages(daemonForkOptions.getSharedPackages());
+            }
+        });
+        try {
+            workerExecutor.await();
+            return new DefaultWorkResult(true, null);
+        } catch (Exception ex) {
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 
-    private static class CompilerRunnable<T extends CompileSpec> implements Runnable {
+    @VisibleForTesting
+    public Compiler<T> getDelegate() {
+        return delegate;
+    }
+
+    private static class CompilerWorkerRunnable<T extends CompileSpec> implements Runnable {
         private final Compiler<T> compiler;
         private final T compileSpec;
 
         @Inject
-        public CompilerRunnable(Compiler<T> compiler, T compileSpec) {
+        public CompilerWorkerRunnable(Compiler<T> compiler, T compileSpec) {
             this.compiler = compiler;
             this.compileSpec = compileSpec;
         }

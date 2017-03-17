@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
@@ -33,22 +32,20 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
-import org.gradle.workers.internal.WorkerDaemonFactory;
+import org.gradle.workers.WorkerExecutor;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultPlayToolChain implements PlayToolChainInternal {
-    private FileResolver fileResolver;
-    private WorkerDaemonFactory workerDaemonFactory;
+    private final WorkerExecutor workerExecutor;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
 
-    public DefaultPlayToolChain(FileResolver fileResolver, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
-        this.fileResolver = fileResolver;
-        this.workerDaemonFactory = workerDaemonFactory;
+    public DefaultPlayToolChain(WorkerExecutor workerExecutor, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
+        this.workerExecutor = workerExecutor;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
@@ -70,7 +67,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
-            return new DefaultPlayToolProvider(fileResolver, workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);
+            return new DefaultPlayToolProvider(workerExecutor, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);
         } catch (ResolveException e) {
             return new UnavailablePlayToolProvider(e);
         }

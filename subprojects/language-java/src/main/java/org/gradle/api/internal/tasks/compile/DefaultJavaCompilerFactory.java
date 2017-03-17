@@ -15,22 +15,19 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.tools.JavaCompiler;
-import java.io.File;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
-    private final File daemonWorkingDir;
-    private final WorkerDaemonFactory workerDaemonFactory;
+    private final WorkerExecutor workerExecutor;
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
-        this.daemonWorkingDir = daemonWorkingDir;
-        this.workerDaemonFactory = workerDaemonFactory;
+    public DefaultJavaCompilerFactory(WorkerExecutor workerExecutor, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+        this.workerExecutor = workerExecutor;
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
     }
 
@@ -56,7 +53,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
         Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type) && !jointCompilation) {
-            return new DaemonJavaCompiler(daemonWorkingDir, compiler, workerDaemonFactory);
+            return new DaemonJavaCompiler(compiler, workerExecutor);
         }
 
         return compiler;

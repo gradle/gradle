@@ -22,20 +22,19 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.workers.internal.WorkerDaemonFactory
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.language.scala.ScalaPlatform
+import org.gradle.workers.WorkerExecutor
 import spock.lang.Specification
 
 class DownloadingScalaToolChainTest extends Specification {
 
     ConfigurationContainer configurationContainer = Mock()
-    WorkerDaemonFactory workerDaemonFactory = Mock()
+    WorkerExecutor workerExecutor = Mock()
     DependencyHandler dependencyHandler = Mock()
     File gradleUserHome = Mock()
-    File rootProjectDir = Mock()
-    DownloadingScalaToolChain scalaToolChain = new DownloadingScalaToolChain(gradleUserHome, rootProjectDir, workerDaemonFactory, configurationContainer, dependencyHandler)
+    DownloadingScalaToolChain scalaToolChain = new DownloadingScalaToolChain(gradleUserHome, workerExecutor, configurationContainer, dependencyHandler)
     ScalaPlatform scalaPlatform = Mock()
 
     def setup() {

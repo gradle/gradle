@@ -22,9 +22,10 @@ import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.KeepAliveMode;
-import org.gradle.workers.internal.WorkerFactory;
 
 import java.io.File;
 import java.util.Arrays;
@@ -33,10 +34,17 @@ import java.util.Collection;
 public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJointCompileSpec> {
     private final static Iterable<String> SHARED_PACKAGES = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
     private final ClassPathRegistry classPathRegistry;
+    private final IsolationMode isolationMode;
 
-    public DaemonGroovyCompiler(File daemonWorkingDir, Compiler<GroovyJavaJointCompileSpec> delegate, ClassPathRegistry classPathRegistry, WorkerFactory workerFactory) {
-        super(daemonWorkingDir, delegate, workerFactory);
+    public DaemonGroovyCompiler(File daemonWorkingDir, Compiler<GroovyJavaJointCompileSpec> delegate, ClassPathRegistry classPathRegistry, WorkerExecutor workerExecutor, IsolationMode isolationMode) {
+        super(daemonWorkingDir, delegate, workerExecutor);
         this.classPathRegistry = classPathRegistry;
+        this.isolationMode = isolationMode;
+    }
+
+    @Override
+    protected IsolationMode getIsolationMode() {
+        return isolationMode;
     }
 
     @Override

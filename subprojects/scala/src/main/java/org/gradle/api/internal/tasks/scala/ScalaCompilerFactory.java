@@ -19,23 +19,19 @@ package org.gradle.api.internal.tasks.scala;
 import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
-import org.gradle.workers.internal.WorkerDaemonFactory;
+import org.gradle.workers.WorkerExecutor;
 
 import java.io.File;
 import java.util.Set;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
-    private final WorkerDaemonFactory workerDaemonFactory;
+    private final WorkerExecutor workerExecutor;
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
-    private final File rootProjectDirectory;
     private final File gradleUserHomeDir;
 
-    public ScalaCompilerFactory(
-        File rootProjectDirectory, WorkerDaemonFactory workerDaemonFactory, FileCollection scalaClasspath,
-        FileCollection zincClasspath, File gradleUserHomeDir) {
-        this.rootProjectDirectory = rootProjectDirectory;
-        this.workerDaemonFactory = workerDaemonFactory;
+    public ScalaCompilerFactory(WorkerExecutor workerExecutor, FileCollection scalaClasspath, FileCollection zincClasspath, File gradleUserHomeDir) {
+        this.workerExecutor = workerExecutor;
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
         this.gradleUserHomeDir = gradleUserHomeDir;
@@ -47,8 +43,8 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
 
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
-            rootProjectDirectory, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
-            workerDaemonFactory, zincClasspathFiles);
+            new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
+            workerExecutor, zincClasspathFiles);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }
