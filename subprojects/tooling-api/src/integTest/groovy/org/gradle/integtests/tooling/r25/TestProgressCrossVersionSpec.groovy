@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -61,7 +62,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some test task(s) to run first"
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).get()
@@ -79,7 +80,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -156,7 +157,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -226,7 +227,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -308,7 +309,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -376,7 +377,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
@@ -449,7 +450,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         when:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).withArguments('--parallel').run()
@@ -471,7 +472,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: 'listening to test progress events and task listener is attached'
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TASK, OperationType.TEST)).run()

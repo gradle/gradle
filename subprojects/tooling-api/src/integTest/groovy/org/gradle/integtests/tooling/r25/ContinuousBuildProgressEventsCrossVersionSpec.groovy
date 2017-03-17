@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.BuildLauncher
@@ -24,7 +25,7 @@ import org.gradle.tooling.BuildLauncher
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
 class ContinuousBuildProgressEventsCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
-    def events = progressEvents()
+    def events = ProgressEvents.create()
 
     void customizeLauncher(BuildLauncher launcher) {
         launcher.addProgressListener(events)

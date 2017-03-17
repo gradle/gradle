@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r35
 
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -55,7 +56,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 """
 
         when:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -134,7 +135,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         projectD.artifact.expectGet()
 
         and:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -191,7 +192,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("src/main/java/Thing.java") << """class Thing { }"""
 
         when:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -230,7 +231,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """.stripIndent()
 
         when:
-        def events = progressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()

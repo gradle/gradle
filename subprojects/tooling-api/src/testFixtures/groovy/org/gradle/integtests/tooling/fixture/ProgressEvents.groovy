@@ -29,6 +29,7 @@ import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.util.GradleVersion
 
 class ProgressEvents implements ProgressListener {
     private final List<ProgressEvent> events = []
@@ -36,6 +37,16 @@ class ProgressEvents implements ProgressListener {
     private final List<Operation> operations = new ArrayList<Operation>()
     private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
     boolean skipValidation
+
+    /**
+     * Creates a {@link ProgressEvents} implementation for the current tooling api client version.
+     */
+    static ProgressEvents create() {
+        return GradleVersion.current().baseVersion < GradleVersion.version("3.5") ? new ProgressEvents() : new ProgressEventsWithStatus()
+    }
+
+    protected ProgressEvents() {
+    }
 
     void clear() {
         events.clear()

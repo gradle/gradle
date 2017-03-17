@@ -36,7 +36,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
-    ProgressEvents events = progressEvents()
+    ProgressEvents events = ProgressEvents.create()
 
     @Rule
     GradleBuildCancellation cancellationTokenSource

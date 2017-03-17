@@ -37,7 +37,7 @@ class NoSourceTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('>=3.4')
     def "tasks with no source is reported as NO-SOURCE"() {
         when:
-        def taskEvents = progressEvents()
+        def taskEvents = ProgressEvents.create()
         runBuild(taskEvents)
         then:
         skippedTaskResult(taskEvents).skipMessage == "NO-SOURCE"
@@ -47,7 +47,7 @@ class NoSourceTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('>=3.4')
     def "NO-SOURCE tasks with are reported as SKIPPED for older tapi versions"() {
         when:
-        def taskEvents = progressEvents()
+        def taskEvents = ProgressEvents.create()
         runBuild(taskEvents)
         then:
         skippedTaskResult(taskEvents).skipMessage == "NO-SOURCE"

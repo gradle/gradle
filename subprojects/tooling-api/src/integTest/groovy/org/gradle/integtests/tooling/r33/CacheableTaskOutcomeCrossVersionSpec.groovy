@@ -57,7 +57,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('>=3.5')
     def "cacheable task is reported as FROM_CACHE"() {
         when:
-        def pushToCacheEvents = progressEvents()
+        def pushToCacheEvents = ProgressEvents.create()
         runCacheableBuild(pushToCacheEvents)
         then:
         !cacheableTaskResult(pushToCacheEvents).fromCache
@@ -66,7 +66,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         when:
         file("build").deleteDir()
         and:
-        def pullFromCacheResults = progressEvents()
+        def pullFromCacheResults = ProgressEvents.create()
         runCacheableBuild(pullFromCacheResults)
         then:
         cacheableTaskResult(pullFromCacheResults).fromCache
@@ -77,7 +77,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion('>=3.5')
     def "cacheable task is reported as UP-TO-DATE on older TAPI versions"() {
         when:
-        def pushToCacheEvents = progressEvents()
+        def pushToCacheEvents = ProgressEvents.create()
         runCacheableBuild(pushToCacheEvents)
         then:
         !cacheableTaskResult(pushToCacheEvents).upToDate
@@ -85,7 +85,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         when:
         file("build").deleteDir()
         and:
-        def pullFromCacheResults = progressEvents()
+        def pullFromCacheResults = ProgressEvents.create()
         runCacheableBuild(pullFromCacheResults)
         then:
         cacheableTaskResult(pullFromCacheResults).upToDate
