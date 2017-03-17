@@ -38,7 +38,6 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.settingsEvaluated()
 
         then:
-        1 * buildProgress.progress(_)
         1 * buildProgress.completed()
         0 * _
     }
