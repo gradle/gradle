@@ -24,7 +24,6 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.ProjectPropertiesCommandLineConverter;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
@@ -46,6 +45,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToParallelismConfigurationConverter;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.util.GradleVersion;
@@ -197,7 +197,7 @@ public class CommandLineActionFactory {
             CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
             CommandLineConverter<ParallelismConfiguration> parallelConverter = new ParallelismConfigurationCommandLineConverter();
             CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
-            CommandLineConverter<Map<String, String>> projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
+            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter();
 
             BuildLayoutParameters buildLayout = new BuildLayoutParameters();
             ParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
@@ -207,22 +207,26 @@ public class CommandLineActionFactory {
             buildLayoutConverter.configure(parser);
             parallelConverter.configure(parser);
             systemPropertiesCommandLineConverter.configure(parser);
-            projectPropertiesCommandLineConverter.configure(parser);
 
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
 
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
-                loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
+
                 buildLayoutConverter.convert(parsedCommandLine, buildLayout);
-                parallelConverter.convert(parsedCommandLine, parallelismConfiguration);
+                loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
 
                 Map<String, String> properties = new HashMap<String, String>();
+                // Read *.properties files
+                layoutToPropertiesConverter.convert(buildLayout, properties);
+                // Read -D command line flags
                 systemPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
-                projectPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
+                // Convert properties to ParallelismConfiguration object
                 PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
                 propertiesToParallelismConfigurationConverter.convert(properties, parallelismConfiguration);
+                // Parse parallelism flags
+                parallelConverter.convert(parsedCommandLine, parallelismConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }
