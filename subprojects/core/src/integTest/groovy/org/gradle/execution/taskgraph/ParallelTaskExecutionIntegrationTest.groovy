@@ -106,7 +106,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void withParallelThreads(int threadCount) {
-        executer.withArgument("--parallel")
         executer.withArgument("--max-workers=$threadCount")
     }
 
@@ -204,12 +203,24 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":aPing", ":bPing", ":cPing", ":dPing"
     }
 
-    def "tasks are run in parallel even if there are tasks without async work running in a different project"() {
+    def "tasks are run in parallel if there are tasks without async work running in a different project using --parallel"() {
         given:
+        executer.withArgument("--parallel")
         withParallelThreads(3)
 
         expect:
         blockingServer.expectConcurrentExecution(":a:aSerialPing", ":b:aPing", ":b:bPing")
+
+        run ":a:aSerialPing", ":b:aPing", ":b:bPing"
+    }
+
+    def "tasks are not run in parallel if there are tasks without async work running in a different project without --parallel"() {
+        given:
+        withParallelThreads(3)
+
+        expect:
+        blockingServer.expectConcurrentExecution(":a:aSerialPing")
+        blockingServer.expectConcurrentExecution(":b:aPing", ":b:bPing")
 
         run ":a:aSerialPing", ":b:aPing", ":b:bPing"
     }

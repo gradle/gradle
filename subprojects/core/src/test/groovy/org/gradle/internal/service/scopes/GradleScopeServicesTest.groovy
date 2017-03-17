@@ -56,7 +56,7 @@ public class GradleScopeServicesTest extends Specification {
     private PluginRegistry pluginRegistryChild = Stub()
 
     public void setup() {
-        parent.get(StartParameter) >> Stub(StartParameter)
+        parent.get(StartParameter) >> Stub(StartParameter) { _ * getMaxWorkerCount() >> 1 }
         parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         parent.get(InMemoryCacheDecoratorFactory) >> Stub(InMemoryCacheDecoratorFactory)
         parent.get(ListenerManager) >> new DefaultListenerManager()
