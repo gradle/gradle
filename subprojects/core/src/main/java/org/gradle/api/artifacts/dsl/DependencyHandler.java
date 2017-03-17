@@ -409,6 +409,7 @@ public interface DependencyHandler {
      * Register an artifact transformation.
      *
      * @see org.gradle.api.artifacts.transform.ArtifactTransform
+     * @since 3.5
      */
     @Incubating
     void registerTransform(Action<? super VariantTransform> registrationAction);

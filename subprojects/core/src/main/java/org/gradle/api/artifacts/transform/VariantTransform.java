@@ -22,6 +22,8 @@ import org.gradle.api.attributes.AttributeContainer;
 
 /**
  * Registration of an variant transform.
+ *
+ * @since 3.5
  */
 @Incubating
 public interface VariantTransform {

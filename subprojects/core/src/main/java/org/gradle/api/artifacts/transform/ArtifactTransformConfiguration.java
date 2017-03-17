@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Configuration for an artifact transformation.
  * This is likely to be replaced by a more general 'worker configuration' API.
+ * @since 3.5
  */
 @Incubating
 public interface ArtifactTransformConfiguration {
