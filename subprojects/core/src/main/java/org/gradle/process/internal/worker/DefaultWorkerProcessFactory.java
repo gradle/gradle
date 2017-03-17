@@ -44,7 +44,8 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
-                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector, OutputEventListener outputEventListener, MemoryManager memoryManager) {
+                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory,
+                                       JvmVersionDetector jvmVersionDetector, OutputEventListener outputEventListener, MemoryManager memoryManager) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.idGenerator = idGenerator;
@@ -61,28 +62,27 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
     @Override
     public WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction) {
-        DefaultWorkerProcessBuilder builder = newWorker();
+        DefaultWorkerProcessBuilder builder = newWorkerProcessBuilder();
         builder.worker(workerAction);
         builder.setImplementationClasspath(ClasspathUtil.getClasspath(workerAction.getClass().getClassLoader()).getAsURLs());
         return builder;
     }
 
-    private DefaultWorkerProcessBuilder newWorker() {
-        DefaultWorkerProcessBuilder workerProcessBuilder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager);
-        workerProcessBuilder.setLogLevel(workerLogLevel);
-        workerProcessBuilder.setGradleUserHomeDir(gradleUserHomeDir);
-        workerProcessBuilder.setConnectTimeoutSeconds(connectTimeoutSeconds);
-        return workerProcessBuilder;
-    }
-
     @Override
     public <P> SingleRequestWorkerProcessBuilder<P> singleRequestWorker(Class<P> protocolType, Class<? extends P> workerImplementation) {
-        return new DefaultSingleRequestWorkerProcessBuilder<P>(protocolType, workerImplementation, newWorker());
+        return new DefaultSingleRequestWorkerProcessBuilder<P>(protocolType, workerImplementation, newWorkerProcessBuilder());
     }
 
     @Override
     public <P, W extends P> MultiRequestWorkerProcessBuilder<W> multiRequestWorker(Class<W> workerType, Class<P> protocolType, Class<? extends P> workerImplementation) {
-        return new DefaultMultiRequestWorkerProcessBuilder<W>(workerType, workerImplementation, newWorker());
+        return new DefaultMultiRequestWorkerProcessBuilder<W>(workerType, workerImplementation, newWorkerProcessBuilder());
     }
 
+    private DefaultWorkerProcessBuilder newWorkerProcessBuilder() {
+        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager);
+        builder.setLogLevel(workerLogLevel);
+        builder.setGradleUserHomeDir(gradleUserHomeDir);
+        builder.setConnectTimeoutSeconds(connectTimeoutSeconds);
+        return builder;
+    }
 }
