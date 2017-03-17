@@ -14,6 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'org.asciidoctor.convert' version '1.5.3'
+}
+
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.stream.StreamSource
+
 import org.gradle.build.docs.UserGuideSectionVerifier
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
@@ -93,6 +101,7 @@ dependencies {
 ext {
     srcDocsDir = file('src/docs')
     userguideSrcDir = new File(srcDocsDir, 'userguide')
+    userguideAsciidocGeneratedDir = new File(buildDir, 'asciidoc/userguide')
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
     userguideDir = new File(docsDir, 'userguide')
@@ -206,6 +215,93 @@ task userguideStyleSheets(type: Copy) {
     }
 }
 
+asciidoctor {
+    backends = ['docbook']
+    sourceDir = file("src/docs/userguide-asciidoc")
+    outputDir = userguideAsciidocGeneratedDir
+    separateOutputDirs = false
+    options doctype: 'book'
+
+    doLast {
+        outputDir.eachFile { File file ->
+            project.file("$outputDir/../$file.name").text = file.text
+            // Load xslt
+            def xslt = """<?xml version="1.0"?>
+<xsl:stylesheet
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:docbook="http://docbook.org/ns/docbook"
+    xmlns:xml="http://www.w3.org/XML/1998/namespace"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    exclude-result-prefixes="docbook xlink xml"
+    version="1.0">
+    <xsl:output method="xml" />
+
+    <xsl:template match="/docbook:book">
+        <xsl:apply-templates select="docbook:chapter"/>
+    </xsl:template>
+
+    <xsl:template match="docbook:link">
+        <ulink>
+            <xsl:attribute name="url">
+                <xsl:value-of select="@xlink:href"/>
+            </xsl:attribute>
+            <xsl:apply-templates select="node()"/>
+        </ulink>
+    </xsl:template>
+
+    <xsl:template match="//docbook:table//docbook:row">
+        <tr>
+            <xsl:apply-templates select="node()"/>
+        </tr>
+    </xsl:template>
+
+    <xsl:template match="//docbook:table//docbook:thead//docbook:entry">
+        <th>
+            <xsl:apply-templates select="node()"/>
+        </th>
+    </xsl:template>
+
+    <xsl:template match="//docbook:table//docbook:entry">
+        <td>
+            <xsl:apply-templates select="node()"/>
+        </td>
+    </xsl:template>
+
+    <xsl:template match="//docbook:table/docbook:tgroup">
+        <xsl:apply-templates select="node()"/>
+    </xsl:template>
+
+    <xsl:template match="//docbook:colspec"/>
+
+    <xsl:template match="*">
+        <xsl:element name="{local-name()}">
+            <xsl:apply-templates select="node()|@*"/>
+        </xsl:element>
+    </xsl:template>
+
+    <xsl:template match="@*">
+        <xsl:attribute name="{local-name()}">
+            <xsl:value-of select="."/>
+        </xsl:attribute>
+    </xsl:template>
+</xsl:stylesheet>
+            """
+
+            // Create transformer
+            def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(new StringReader(xslt)))
+
+            // Load xml
+            def input = file.text
+
+            // Set output file
+            def output = new FileOutputStream(file)
+
+            // Perform transformation
+            transformer.transform(new StreamSource(new StringReader(input)), new StreamResult(output))
+        }
+    }
+}
+
 task samplesDocbook(type: AssembleSamplesDocTask) {
     source samplesSrcDir
     include '**/readme.xml'
@@ -272,7 +368,11 @@ task dslHtml(type: Docbook2Xhtml) {
 }
 
 task checkSectionIds(type: UserGuideSectionVerifier) {
-    docbookFiles = fileTree(userguideSrcDir) { include "**/*.xml" }
+    dependsOn asciidoctor
+    docbookFiles = files(
+        fileTree(userguideSrcDir) { include "**/*.xml" },
+        fileTree(userguideAsciidocGeneratedDir) { include "**/*.xml" }
+    )
 }
 
 [configureCss, samples, samplesDocbook, defaultImports]*.mustRunAfter(checkSectionIds)
