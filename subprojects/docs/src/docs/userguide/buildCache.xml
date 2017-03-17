@@ -160,7 +160,6 @@
                     <apilink class="org.gradle.testing.jacoco.tasks.JacocoMerge" />,
                     <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport" />
                 </listitem>
-                <listitem><apilink class="org.gradle.api.tasks.WriteProperties" /></listitem>
                 <listitem><apilink class="org.gradle.plugin.devel.tasks.ValidateTaskProperties" /></listitem>
             </itemizedlist>
             <para>
