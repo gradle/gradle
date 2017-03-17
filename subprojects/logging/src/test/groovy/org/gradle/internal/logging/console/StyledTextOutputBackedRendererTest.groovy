@@ -17,11 +17,12 @@ package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.SystemProperties
+import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.RenderableOutputEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
-import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.logging.text.TestLineChoppingStyledTextOuput
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -114,7 +115,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
     @Issue("https://github.com/gradle/gradle/issues/1566")
     @Unroll
     def renderMultiNonNativeNewLineTextCorrectly() {
-        StyledTextOutput output = new TestStyledTextOutput()
+        StyledTextOutput output = new TestLineChoppingStyledTextOuput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
         RenderableOutputEvent event = Mock()
         String headerLine = "###"
