@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-import cucumber.api.junit.Cucumber;
-import org.junit.runner.RunWith;
+apply plugin: 'java'
 
-@RunWith(Cucumber.class)
-public class CucumberTest {
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.12"
+}
+
+test {
+    useJUnit {
+        excludeCategories 'CategoryA'
+    }
 }

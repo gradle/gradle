@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-repositories {
-    mavenCentral()
-}
+@RunWith(CustomRunner.class)
+public class DescriptionWithNullClassTest {
 
-dependencies {
-    testCompile "junit:junit:4.12"
-    testCompile "info.cukes:cucumber-java:1.1.2"
-    testCompile "info.cukes:cucumber-junit:1.1.2"
-}
+    @Test
+    public void someTest() throws Exception {
 
-test {
-    useJUnit {
-        excludeCategories 'CategoryA'
+
     }
 }
