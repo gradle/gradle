@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.TimeProvider;
@@ -24,8 +23,8 @@ import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.StatusEvent;
+import org.gradle.tooling.events.internal.ConsumerOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
-import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
@@ -86,10 +85,7 @@ public class DistributionInstaller {
 
     private void doDownload(URI address, File destination) throws Exception {
         String displayName = "Download " + address;
-        OperationIdentifier id = new OperationIdentifier(0);
-        org.gradle.tooling.internal.provider.events.DefaultOperationDescriptor internalDescriptor =
-            new org.gradle.tooling.internal.provider.events.DefaultOperationDescriptor(id, displayName, displayName, null);
-        OperationDescriptor descriptor = new DefaultOperationDescriptor(internalDescriptor, null);
+        OperationDescriptor descriptor = new ConsumerOperationDescriptor(displayName);
         long startTime = timeProvider.getCurrentTime();
         buildProgressListener.onEvent(new DefaultStartEvent(startTime, displayName + " started", descriptor));
 
