@@ -134,7 +134,9 @@ public class TextUtil {
     public static String minus(String originalString, String removeString) {
         String s = originalString.toString();
         int index = s.indexOf(removeString);
-        if (index == -1) return s;
+        if (index == -1) {
+            return s;
+        }
         int end = index + removeString.length();
         if (s.length() > end) {
             return s.substring(0, index) + s.substring(end);
