@@ -29,13 +29,23 @@
     <section id="sec:build_cache_intro">
         <title>Overview</title>
         <para>
-            Build caching is a new kind of cache mechanism that aims to save time by reusing outputs produced by other builds.
+            A <firstterm>build cache</firstterm> is a cache mechanism that aims to save time by reusing outputs produced by other builds.
+            The build cache works by storing (locally or remotely) build outputs and allowing builds to fetch these outputs from the cache when it is determined that inputs have not changed, avoiding the expensive work of regenerating them.
+        </para>
+        <para>
+            A first feature using the build cache is <firstterm>task output caching</firstterm>.
+            Essentially, task output caching leverages the same intelligence as <link linkend="sec:up_to_date_checks">UP-TO-DATE checks</link> that Gradle uses to avoid work when a previous local build has already produced a set of outputs.
+            But instead of being limited to the previous build in the same workspace, task output caching allows Gradle to reuse build outputs from any earlier build in any location.
+            When using a shared build cache for task output caching this even works across developer machines and build agents.
+        </para>
+        <para>
+            Apart from task output caching, we expect other features to use the build cache in the future.
         </para>
     </section>
     <section id="sec:build_cache_enable">
         <title>Enable the Build Cache</title>
         <para>
-            By default, the <firstterm>build cache</firstterm> is not enabled. You can enable the build cache in a couple of ways:
+            By default, the build cache is not enabled. You can enable the build cache in a couple of ways:
             <varlistentry>
                 <term>Run with <literal>--build-cache</literal> on the command-line.</term>
                 <listitem>
@@ -114,7 +124,7 @@
                 <firstterm>continuous integration</firstterm> server or other developers, you can avoid executing most tasks locally.
             </para>
             <para>
-                The following inputs contribute to the build cache key for a task in the same way as they do for <link linked="sec:how_does_it_work">up to date checks</link>:
+                The following inputs contribute to the build cache key for a task in the same way as they do for <link linkend="sec:how_does_it_work">up to date checks</link>:
             </para>
             <itemizedlist>
                 <listitem>The task type and its classpath</listitem>
@@ -126,17 +136,40 @@
             </itemizedlist>
             <para>
                 Task types need to opt-in to task output caching using the <literal>@<apilink class="org.gradle.api.tasks.CacheableTask"/></literal> annotation.
-                Many built-in Gradle task types are cacheable, but custom task types are <emphasis>not</emphasis> cacheable by default.
+                Custom task types are <emphasis>not</emphasis> cacheable by default.
+                Currently, the following built-in Gradle tasks are cacheable:
             </para>
+            <itemizedlist>
+                <listitem>Java toolchain:
+                    <apilink class="org.gradle.api.tasks.compile.JavaCompile" />,
+                    <apilink class="org.gradle.api.tasks.javadoc.Javadoc" />
+                </listitem>
+                <listitem>Groovy toolchain:
+                    <apilink class="org.gradle.api.tasks.compile.GroovyCompile" />,
+                    <apilink class="org.gradle.api.tasks.javadoc.Groovydoc" />
+                </listitem>
+                <listitem><apilink class="org.gradle.api.tasks.testing.Test" /></listitem>
+                <listitem>Code quality tasks:
+                    <apilink class="org.gradle.api.plugins.quality.Checkstyle"/>,
+                    <apilink class="org.gradle.api.plugins.quality.CodeNarc" />,
+                    <apilink class="org.gradle.api.plugins.quality.FindBugs" />,
+                    <apilink class="org.gradle.api.plugins.quality.JDepend" />,
+                    <apilink class="org.gradle.api.plugins.quality.Pmd" />
+                </listitem>
+                <listitem>Jacoco:
+                    <apilink class="org.gradle.testing.jacoco.tasks.JacocoMerge" />,
+                    <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport" />
+                </listitem>
+                <listitem><apilink class="org.gradle.plugin.devel.tasks.ValidateTaskProperties" /></listitem>
+            </itemizedlist>
             <para>
-                For an initial release, we have focused on improving continuous integration and developer build times when using the build cache.
-                We expect users to have an organization wide remote build cache that is populated regularly by continuous integration builds.
-                Developers and other continuous integration agents will pull cache entries from the remote build cache.
-                We expect that developers are not allowed to populate the remote build cache and all continuous integration builds are populating the cache while running the clean task.
+                For an initial release, we have focused on on the use case where users have an organization wide remote build cache that is populated regularly by continuous integration builds.
+                Developers and other continuous integration agents should pull cache entries from the remote build cache.
+                We expect that developers are not allowed to populate the remote build cache and all continuous integration builds are populating the cache while running the <literal>clean</literal> task.
             </para>
             <note>
                 <para>
-                    If you use a <literal>buildSrc</literal> directory make sure to apply the same <link linked="sec:build_cache_configure">build cache configuration</link> to <literal>buildSrc</literal>
+                    If you use a <literal>buildSrc</literal> directory make sure to apply the same <link linkend="sec:build_cache_configure">build cache configuration</link> to <literal>buildSrc</literal>
                     and the main build. This can be achieved by applying the same script to <literal>buildSrc/settings.gradle</literal> and <literal>settings.gradle</literal>.
                 </para>
             </note>
@@ -147,7 +180,7 @@
                 Let us start with a project using the Java plugin which has a few java source files. We run the build the first time.
             </para>
             <programlisting>
-                $> gradle compileJava --build-cache
+                $> gradle --build-cache compileJava
                 Build cache is an incubating feature.
                 Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
                 :compileJava
@@ -163,15 +196,13 @@
                 Let's clean and run the build again.
             </para>
             <programlisting>
-                $> gradle clean --build-cache
-                Build cache is an incubating feature.
-                Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
+                $> gradle clean
                 :clean
 
                 BUILD SUCCESSFUL
             </programlisting>
             <programlisting>
-                $> gradle assemble --build-cache
+                $> gradle --build-cache assemble
                 Build cache is an incubating feature.
                 Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
                 :compileJava FROM-CACHE

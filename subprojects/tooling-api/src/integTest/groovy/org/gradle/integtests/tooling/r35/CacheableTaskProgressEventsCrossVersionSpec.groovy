@@ -58,7 +58,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
     @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations for load and store"() {
         when:
-        def pushToCacheEvents = new ProgressEvents()
+        def pushToCacheEvents = ProgressEvents.create()
         runCacheableBuild(pushToCacheEvents)
         then:
         writingOperations(pushToCacheEvents).size() == 1
@@ -66,7 +66,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         when:
         file("build").deleteDir()
         and:
-        def pullFromCacheResults = new ProgressEvents()
+        def pullFromCacheResults = ProgressEvents.create()
         runCacheableBuild(pullFromCacheResults)
         then:
         readingOperations(pullFromCacheResults).size() == 1
@@ -92,7 +92,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
 
         when:
-        def pushToCacheEvents = new ProgressEvents()
+        def pushToCacheEvents = ProgressEvents.create()
         runCacheableBuild(pushToCacheEvents)
 
         then:
@@ -101,7 +101,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         when:
         file("build").deleteDir()
         and:
-        def pullFromCacheResults = new ProgressEvents()
+        def pullFromCacheResults = ProgressEvents.create()
         runCacheableBuild(pullFromCacheResults)
 
         then:
@@ -110,7 +110,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> writingOperations(ProgressEvents pushToCacheEvents) {
         def pushTaskOperation = pushToCacheEvents.operation("Task :cacheable")
-        def writingOperations = pushTaskOperation.children.findAll { it.descriptor.displayName =~ /Storing entry .+ in (local|remote) build cache/ }
+        def writingOperations = pushTaskOperation.children.findAll { it.descriptor.displayName =~ /Store entry .+ in (local|remote) build cache/ }
         writingOperations.each {
             assert !it.children
         }
@@ -119,7 +119,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private static List<Operation> readingOperations(ProgressEvents pullFromCacheResults) {
         def pullTaskOperation = pullFromCacheResults.operation("Task :cacheable")
-        def pullOperations = pullTaskOperation.children.findAll { it.descriptor.displayName =~ /Loading entry .+ from (local|remote) build cache/ }
+        def pullOperations = pullTaskOperation.children.findAll { it.descriptor.displayName =~ /Load entry .+ from (local|remote) build cache/ }
         pullOperations.each {
             assert !it.children
         }

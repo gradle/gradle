@@ -250,6 +250,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     /**
      * Represents the "jar" format of a variant of a Java component.
+     * @since 3.5
      */
     @Incubating
     public static final String JAR_TYPE = "jar";

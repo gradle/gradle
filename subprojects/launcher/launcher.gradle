@@ -26,8 +26,6 @@ dependencies {
     integTestRuntime project(':languageNative')
 
     testFixturesCompile project(':internalIntegTesting')
-
-    startScriptGenerator project(':plugins')
 }
 
 useTestFixtures()
@@ -52,7 +50,6 @@ jar {
 
 task startScripts(type: GradleStartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
-    classpath = configurations.startScriptGenerator
     launcherJar = jar.outputs.files
 }
 

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-ext.isCiServer = System.getenv().containsKey("CI")
-
 // START SNIPPET developer-ci-setup
 ext.isCiServer = System.getenv().containsKey("CI")
 

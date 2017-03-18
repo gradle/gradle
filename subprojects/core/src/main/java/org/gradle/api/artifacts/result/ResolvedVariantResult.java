@@ -26,5 +26,8 @@ import org.gradle.api.attributes.AttributeContainer;
  */
 @Incubating
 public interface ResolvedVariantResult {
+    /**
+     * The attributes associated with this variant.
+     */
     AttributeContainer getAttributes();
 }

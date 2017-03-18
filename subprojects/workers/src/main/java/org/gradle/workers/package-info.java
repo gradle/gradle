@@ -15,6 +15,11 @@
  */
 
 /**
- * Workers.
+ * Workers allow running pieces of work in the background, either
+ * in-process in isolated classloaders or out-of-process in reausable
+ * daemons.
+ *
+ * @since 3.5
  */
+@org.gradle.api.Incubating
 package org.gradle.workers;

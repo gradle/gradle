@@ -73,7 +73,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private void doBroadcast(Object event) {
-        if (event instanceof InternalTestProgressEvent) {
+        if (event instanceof ProgressEvent) {
+            broadcastProgressEvent((ProgressEvent) event);
+        } else if (event instanceof InternalTestProgressEvent) {
             // Special case for events defined prior to InternalBuildProgressEvent
             InternalTestProgressEvent progressEvent = (InternalTestProgressEvent) event;
             broadcastTestProgressEvent(progressEvent);
@@ -85,6 +87,17 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 // Everything else treat as a generic operation
                 broadcastProgressEvent(progressEvent);
             }
+        }
+    }
+
+    private void broadcastProgressEvent(ProgressEvent event) {
+        if (event instanceof TestProgressEvent) {
+            testProgressListeners.getSource().statusChanged(event);
+        } else if (event instanceof TaskProgressEvent) {
+            taskProgressListeners.getSource().statusChanged(event);
+        } else {
+            // Everything else treat as a generic operation
+            buildOperationProgressListeners.getSource().statusChanged(event);
         }
     }
 

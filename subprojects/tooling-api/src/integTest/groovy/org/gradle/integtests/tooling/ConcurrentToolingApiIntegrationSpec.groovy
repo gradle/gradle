@@ -33,6 +33,7 @@ import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.Distribution
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
@@ -283,12 +284,12 @@ project.description = text
             return 'mock'
         }
 
-        ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir, BuildCancellationToken cancellationToken) {
+        ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
             def o = progressLoggerFactory.newOperation("mock")
             operation(o)
             o.started()
             o.completed()
-            return delegate.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir, cancellationToken)
+            return delegate.getToolingImplementationClasspath(progressLoggerFactory, progressListener, userHomeDir, cancellationToken)
         }
     }
 

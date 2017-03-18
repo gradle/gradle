@@ -124,6 +124,26 @@ public class TextUtil {
         }
     }
 
+    /**
+     * Same behavior as Groovy minus operator between Strings
+     *
+     * @param originalString original string
+     * @param removeString string to remove
+     * @return string with removeString removed or the original string if it did not contain removeString
+     */
+    public static String minus(String originalString, String removeString) {
+        String s = originalString.toString();
+        int index = s.indexOf(removeString);
+        if (index == -1) {
+            return s;
+        }
+        int end = index + removeString.length();
+        if (s.length() > end) {
+            return s.substring(0, index) + s.substring(end);
+        }
+        return s.substring(0, index);
+    }
+
     public static String normaliseFileAndLineSeparators(String in) {
         return normaliseLineSeparators(normaliseFileSeparators(in));
     }

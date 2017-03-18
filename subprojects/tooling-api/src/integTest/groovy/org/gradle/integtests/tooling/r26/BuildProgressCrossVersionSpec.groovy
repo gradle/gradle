@@ -29,7 +29,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("init.gradle") << "println 'init'"
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -59,7 +59,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates buildSrc operation when there is a nested buildSrc build"() {
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()

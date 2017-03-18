@@ -13,25 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.api.reflect;
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
 /**
- * Allows a scriptable object, such as a project extension, to declare its preferred public type.
- *
- * The public type of an object is the one exposed to statically-typed consumers, such as Kotlin build scripts, by default.
+ * An event that informs about an interim results of the operation.
  *
  * @since 3.5
  */
 @Incubating
-public interface HasPublicType {
+public interface StatusEvent extends ProgressEvent {
+    /**
+     * The amount of work already performed by the build operation.
+     *
+     * @return The amount of performed work
+     */
+    long getProgress();
 
     /**
-     * Public type.
+     * The total amount of work that the build operation is in the progress of performing, or -1 if not known.
      *
-     * @return this object's public type
+     * @return The total amount of work, or -1 if not known.
      */
-    TypeOf<?> getPublicType();
+    long getTotal();
+
+    /**
+     * The measure used to express the amount of work.
+     *
+     * @return The measure used to express the amount of work.
+     */
+    String getUnit();
 }

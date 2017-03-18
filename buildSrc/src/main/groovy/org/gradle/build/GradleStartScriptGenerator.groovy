@@ -19,10 +19,11 @@ package org.gradle.build
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.plugins.StartScriptGenerator
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
@@ -31,10 +32,7 @@ import org.gradle.api.tasks.TaskAction
 class GradleStartScriptGenerator extends DefaultTask {
     File startScriptsDir
 
-    @Classpath
-    FileCollection classpath
-
-    @Classpath
+    @Internal
     FileCollection launcherJar
 
     @Input
@@ -55,7 +53,7 @@ class GradleStartScriptGenerator extends DefaultTask {
     @TaskAction
     def generate() {
         logging.captureStandardOutput(LogLevel.INFO)
-        def generator = new org.gradle.api.internal.plugins.StartScriptGenerator()
+        def generator = new StartScriptGenerator()
         generator.applicationName = 'Gradle'
         generator.optsEnvironmentVar = 'GRADLE_OPTS'
         generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'

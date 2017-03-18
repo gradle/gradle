@@ -188,7 +188,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         @Override
         public File create() {
             String displayName = artifactId.getDisplayName();
-            BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Resolve artifact " + displayName).name("Resolve artifact " + displayName).operationDescriptor(artifactId).build();
+            BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Resolve artifact " + displayName).operationDescriptor(artifactId).build();
             return buildOperationExecutor.run(operationDetails, new Transformer<File, BuildOperationContext>() {
                 @Override
                 public File transform(BuildOperationContext context) {

@@ -16,26 +16,29 @@
 
 package org.gradle.build
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
+@CompileStatic
 class GradleDistribution {
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    def staticContent
+    ConfigurableFileTree staticContent
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    def samples
+    ConfigurableFileTree samples
 
     @Classpath
-    def core
+    SortedSet<File> core
 
     @Classpath
-    def plugins
+    SortedSet<File> plugins
 
     GradleDistribution(Project project, File gradleHome) {
         staticContent  = project.fileTree(gradleHome)

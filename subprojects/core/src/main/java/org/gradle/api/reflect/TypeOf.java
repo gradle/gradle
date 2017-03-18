@@ -43,15 +43,31 @@ import static java.util.Arrays.asList;
 @Incubating
 public abstract class TypeOf<T> {
 
+    /**
+     * Creates an instance of {@literal TypeOf} for the given {@literal Class}.
+     *
+     * @param type the {@literal Class}
+     * @param <T> the parameterized type of the given {@literal Class}
+     * @return the {@literal TypeOf} that captures the generic type of the given {@literal Class}
+     */
     public static <T> TypeOf<T> typeOf(Class<T> type) {
         return new TypeOf<T>(
-            ModelType.of(typeWhichCannotBeNull(type))) {};
+            ModelType.of(typeWhichCannotBeNull(type))) {
+        };
     }
 
+    /**
+     * Creates an instance of {@literal TypeOf} for the given {@literal Type}.
+     *
+     * @param type the {@literal Type}
+     * @param <T> the parameterized type of the given {@literal Type}
+     * @return the {@literal TypeOf} that captures the generic type of the given {@literal Type}
+     */
     public static <T> TypeOf<T> typeOf(Type type) {
         return new TypeOf<T>(
             Cast.<ModelType<T>>uncheckedCast(
-                ModelType.of(typeWhichCannotBeNull(type)))) {};
+                ModelType.of(typeWhichCannotBeNull(type)))) {
+        };
     }
 
     /**
@@ -62,7 +78,6 @@ public abstract class TypeOf<T> {
      *
      * @param parameterizedType the parameterized type from which to construct the new parameterized type
      * @param typeArguments the arguments with which to construct the new parameterized type
-     *
      * @see #isParameterized()
      */
     public static TypeOf<?> parameterizedTypeOf(TypeOf<?> parameterizedType, TypeOf<?>... typeArguments) {
@@ -120,7 +135,6 @@ public abstract class TypeOf<T> {
      * Queries whether this object represents an array, generic or otherwise.
      *
      * @return true if this object represents an array.
-     *
      * @see #getComponentType()
      */
     public boolean isArray() {
@@ -132,7 +146,6 @@ public abstract class TypeOf<T> {
      * Returns the component type of the array type this object represents.
      *
      * @return null if this object does not represent an array type.
-     *
      * @see #isArray()
      */
     @Nullable
@@ -146,7 +159,6 @@ public abstract class TypeOf<T> {
      * Queries whether this object represents a parameterized type.
      *
      * @return true if this object represents a parameterized type.
-     *
      * @see #getParameterizedTypeDefinition()
      * @see #getActualTypeArguments()
      */
@@ -177,7 +189,6 @@ public abstract class TypeOf<T> {
      * {@code ?}, {@code ? extends Number}, or {@code ? super Integer}.
      *
      * @return true if this object represents a wildcard type expression.
-     *
      * @see #getUpperBound()
      */
     public boolean isWildcard() {
@@ -194,14 +205,31 @@ public abstract class TypeOf<T> {
         return nullableTypeOf(type.getUpperBound());
     }
 
+    /**
+     * Is this type assignable from the given type?
+     *
+     * @param type the given type
+     * @return {@literal true} if this type is assignable from the given type, {@literal false otherwise}
+     */
     public final boolean isAssignableFrom(TypeOf<?> type) {
         return this.type.isAssignableFrom(type.type);
     }
 
+    /**
+     * Is this type assignable from the given type?
+     *
+     * @param type the given type
+     * @return {@literal true} if this type is assignable from the given type, {@literal false otherwise}
+     */
     public final boolean isAssignableFrom(Type type) {
         return this.type.isAssignableFrom(ModelType.of(type));
     }
 
+    /**
+     * Simple name.
+     *
+     * @return this type's simple name
+     */
     public String getSimpleName() {
         return type.getDisplayName();
     }
@@ -266,7 +294,8 @@ public abstract class TypeOf<T> {
     }
 
     private static <U> TypeOf<U> typeOf(ModelType<U> componentType) {
-        return new TypeOf<U>(componentType) {};
+        return new TypeOf<U>(componentType) {
+        };
     }
 
     private TypeOf<?> nullableTypeOf(Class<?> type) {

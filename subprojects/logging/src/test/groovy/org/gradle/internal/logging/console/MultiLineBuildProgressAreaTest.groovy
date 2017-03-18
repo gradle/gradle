@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console
 
 import org.fusesource.jansi.Ansi
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import spock.lang.Issue
 import spock.lang.Specification
 
 class MultiLineBuildProgressAreaTest extends Specification {
@@ -199,6 +200,52 @@ class MultiLineBuildProgressAreaTest extends Specification {
             1 * ansi.cursorUp(absoluteDeltaRowToAreaTop)
             0 * ansi._
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1482")
+    def "doesn't move the write cursor when progress area was never visible while out of bound"() {
+        given:
+        progressArea.visible = false
+        progressArea.scrollDownBy(1)
+
+        when:
+        redraw()
+
+        then:
+        progressArea.writePosition.row < 0
+        0 * ansi._
+    }
+
+    def "doesn't move the write cursor when progress area was never visible"() {
+        given:
+        progressArea.visible = false
+        writeCursor.row = 4  // Not on origin row
+
+        when:
+        redraw()
+
+        then:
+        writeCursor.row == 4
+        0 * ansi._
+
+    }
+
+    def "doesn't move the write cursor when progress area turn invisible while out of bound"() {
+        given:
+        progressArea.visible = false
+        progressArea.scrollUpBy(progressArea.height - 1)
+        redraw()  // Ensure visible
+
+        when:
+        progressArea.scrollDownBy(progressArea.height)
+        writeCursor.row = 2  // Not on origin row
+        redraw()
+
+        then:
+        writeCursor.row == 2
+        progressArea.writePosition.row == -1
+        0 * ansi._
+
     }
 
     void redraw() {

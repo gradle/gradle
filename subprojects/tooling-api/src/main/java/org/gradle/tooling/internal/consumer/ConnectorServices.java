@@ -74,8 +74,8 @@ public class ConnectorServices {
             return new DefaultExecutorServiceFactory();
         }
 
-        protected DistributionFactory createDistributionFactory(ExecutorServiceFactory executorFactory) {
-            return new DistributionFactory(executorFactory);
+        protected DistributionFactory createDistributionFactory() {
+            return new DistributionFactory();
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {

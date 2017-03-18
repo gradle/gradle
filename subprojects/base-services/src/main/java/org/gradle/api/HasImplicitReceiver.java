@@ -34,6 +34,8 @@ import java.lang.annotation.Target;
  *         from("./sources") // the given CopySpec is the implicit receiver
  *     }
  * </pre>
+ *
+ * @since 3.5
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
