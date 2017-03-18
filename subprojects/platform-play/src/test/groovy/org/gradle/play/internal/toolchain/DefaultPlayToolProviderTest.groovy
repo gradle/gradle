@@ -38,6 +38,7 @@ class DefaultPlayToolProviderTest extends Specification {
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Mock()
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
+    File workerExecutionDir = Mock()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
@@ -50,7 +51,7 @@ class DefaultPlayToolProviderTest extends Specification {
         _ * playPlatform.getPlayVersion() >> playVersion
 
         when:
-        playToolProvider = new DefaultPlayToolProvider(workerExecutor, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = new DefaultPlayToolProvider(workerExecutionDir, workerExecutor, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
         def runner = playToolProvider.get(PlayApplicationRunner.class)
 
         then:
@@ -68,7 +69,7 @@ class DefaultPlayToolProviderTest extends Specification {
     def "cannot create tool provider for unsupported play versions"() {
         when:
         _ * playPlatform.getPlayVersion() >> playVersion
-        playToolProvider = new DefaultPlayToolProvider(workerExecutor, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = new DefaultPlayToolProvider(workerExecutionDir, workerExecutor, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
 
         then: "fails with meaningful error message"
         def exception = thrown(InvalidUserDataException)
@@ -85,7 +86,7 @@ class DefaultPlayToolProviderTest extends Specification {
     def "newCompiler provides decent error for unsupported CompileSpec"() {
         setup:
         _ * playPlatform.getPlayVersion() >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION
-        playToolProvider = new DefaultPlayToolProvider(workerExecutor, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
+        playToolProvider = new DefaultPlayToolProvider(workerExecutionDir, workerExecutor, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath)
 
         when:
         playToolProvider.newCompiler(UnknownCompileSpec.class)

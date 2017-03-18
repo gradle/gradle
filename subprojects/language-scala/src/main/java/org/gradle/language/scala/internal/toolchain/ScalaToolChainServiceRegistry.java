@@ -19,6 +19,7 @@ package org.gradle.language.scala.internal.toolchain;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.workers.WorkerExecutor;
@@ -32,8 +33,9 @@ public class ScalaToolChainServiceRegistry extends AbstractPluginServiceRegistry
 
 
     private static class ProjectScopeCompileServices {
-        ScalaToolChainInternal createScalaToolChain(GradleInternal gradle, WorkerExecutor workerExecutor, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
-            return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), workerExecutor, configurationContainer, dependencyHandler);
+        ScalaToolChainInternal createScalaToolChain(GradleInternal gradle, FileResolver fileResolver, WorkerExecutor workerExecutor, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+            // TODO:pm Use projectLayout.projectDirectory once it is available
+            return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), fileResolver.resolve("."), workerExecutor, configurationContainer, dependencyHandler);
         }
     }
 }

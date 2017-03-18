@@ -26,19 +26,20 @@ import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.internal.DefaultWorkResult;
+import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerConfigurationInternal;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 
-public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
+public abstract class AbstractWorkerCompiler<T extends CompileSpec> implements Compiler<T> {
     private final File executionWorkingDir;
     private final Compiler<T> delegate;
     private final WorkerExecutor workerExecutor;
     private final IsolationMode isolationMode;
 
-    public AbstractDaemonCompiler(File executionWorkingDir, Compiler<T> delegate, WorkerExecutor workerExecutor, IsolationMode isolationMode) {
+    public AbstractWorkerCompiler(File executionWorkingDir, Compiler<T> delegate, WorkerExecutor workerExecutor, IsolationMode isolationMode) {
         Preconditions.checkArgument(delegate instanceof Serializable, "Delegate compiler must be Serializable");
         this.executionWorkingDir = executionWorkingDir;
         this.delegate = delegate;
@@ -55,7 +56,12 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
             public void execute(WorkerConfiguration config) {
                 config.setIsolationMode(isolationMode);
                 config.setParams(delegate, spec);
-                applyWorkerConfiguration(spec, (WorkerConfigurationInternal) config);
+                if (isolationMode == IsolationMode.PROCESS) {
+                    config.getForkOptions().setWorkingDir(executionWorkingDir);
+                }
+                WorkerConfigurationInternal configInternal = (WorkerConfigurationInternal) config;
+                configInternal.setKeepAliveMode(KeepAliveMode.SESSION); // TODO:pm See if some could use DAEMON
+                applyWorkerConfiguration(spec, configInternal);
             }
         });
         try {
@@ -69,6 +75,11 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     @VisibleForTesting
     public Compiler<T> getDelegate() {
         return delegate;
+    }
+
+    @VisibleForTesting
+    public IsolationMode getIsolationMode() {
+        return isolationMode;
     }
 
     private static class CompilerWorkerRunnable<T extends CompileSpec> implements Runnable {

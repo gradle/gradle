@@ -34,7 +34,7 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.ForkOptionsMerger;
-import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.api.internal.tasks.compile.daemon.AbstractWorkerCompiler;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
@@ -45,12 +45,11 @@ import org.gradle.workers.internal.WorkerConfigurationInternal;
 import java.io.File;
 import java.util.Arrays;
 
-public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
-    private static final Iterable<String> SHARED_PACKAGES =
-        Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
+public class WorkerDaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractWorkerCompiler<T> {
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
     private final Iterable<File> zincClasspath;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerExecutor workerExecutor, Iterable<File> zincClasspath) {
+    public WorkerDaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerExecutor workerExecutor, Iterable<File> zincClasspath) {
         super(daemonWorkingDir, delegate, workerExecutor, IsolationMode.PROCESS);
         this.zincClasspath = zincClasspath;
     }

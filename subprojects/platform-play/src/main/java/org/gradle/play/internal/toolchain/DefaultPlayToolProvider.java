@@ -40,6 +40,7 @@ import java.util.Set;
 
 class DefaultPlayToolProvider implements PlayToolProvider {
 
+    private final File workerExecutionDir;
     private final WorkerExecutor workerExecutor;
     private final PlayPlatform targetPlatform;
     private WorkerProcessFactory workerProcessBuilderFactory;
@@ -47,8 +48,9 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final Set<File> routesClasspath;
     private final Set<File> javaScriptClasspath;
 
-    public DefaultPlayToolProvider(WorkerExecutor workerExecutor, WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
+    public DefaultPlayToolProvider(File workerExecutionDir, WorkerExecutor workerExecutor, WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath) {
+        this.workerExecutionDir = workerExecutionDir;
         this.workerExecutor = workerExecutor;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
         this.targetPlatform = targetPlatform;
@@ -63,13 +65,13 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
         if (TwirlCompileSpec.class.isAssignableFrom(spec)) {
             TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);
-            return cast(new DaemonPlayCompiler<TwirlCompileSpec>(twirlCompiler, workerExecutor, twirlClasspath, twirlCompiler.getClassLoaderPackages()));
+            return cast(new WorkerDaemonPlayCompiler<TwirlCompileSpec>(workerExecutionDir, twirlCompiler, workerExecutor, twirlClasspath, twirlCompiler.getClassLoaderPackages()));
         } else if (RoutesCompileSpec.class.isAssignableFrom(spec)) {
             RoutesCompiler routesCompiler = RoutesCompilerFactory.create(targetPlatform);
-            return cast(new DaemonPlayCompiler<RoutesCompileSpec>(routesCompiler, workerExecutor, routesClasspath, routesCompiler.getClassLoaderPackages()));
+            return cast(new WorkerDaemonPlayCompiler<RoutesCompileSpec>(workerExecutionDir, routesCompiler, workerExecutor, routesClasspath, routesCompiler.getClassLoaderPackages()));
         } else if (JavaScriptCompileSpec.class.isAssignableFrom(spec)) {
             GoogleClosureCompiler javaScriptCompiler = new GoogleClosureCompiler();
-            return cast(new DaemonPlayCompiler<JavaScriptCompileSpec>(javaScriptCompiler, workerExecutor, javaScriptClasspath, javaScriptCompiler.getClassLoaderPackages()));
+            return cast(new WorkerDaemonPlayCompiler<JavaScriptCompileSpec>(workerExecutionDir, javaScriptCompiler, workerExecutor, javaScriptClasspath, javaScriptCompiler.getClassLoaderPackages()));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }

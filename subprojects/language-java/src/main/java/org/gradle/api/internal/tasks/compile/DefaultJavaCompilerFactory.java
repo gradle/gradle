@@ -18,16 +18,19 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.workers.ForkMode;
+import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.tools.JavaCompiler;
+import java.io.File;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
+    private final File workerExecutionDir;
     private final WorkerExecutor workerExecutor;
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
-    public DefaultJavaCompilerFactory(WorkerExecutor workerExecutor, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+    public DefaultJavaCompilerFactory(File workerExecutionDir, WorkerExecutor workerExecutor, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+        this.workerExecutionDir = workerExecutionDir;
         this.workerExecutor = workerExecutor;
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
     }
@@ -52,14 +55,14 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
             if (jointCompilation) {
                 return new CommandLineJavaCompiler();
             } else {
-                return new DaemonJavaCompiler(new CommandLineJavaCompiler(), workerExecutor, ForkMode.NEVER);
+                return new WorkerJavaCompiler(workerExecutionDir, new CommandLineJavaCompiler(), workerExecutor, IsolationMode.CLASSLOADER);
             }
         }
 
         Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         if (!jointCompilation) {
-            ForkMode forkMode = ForkingJavaCompileSpec.class.isAssignableFrom(type) ? ForkMode.ALWAYS : ForkMode.NEVER;
-            return new DaemonJavaCompiler(compiler, workerExecutor, forkMode);
+            IsolationMode isolationMode = ForkingJavaCompileSpec.class.isAssignableFrom(type) ? IsolationMode.PROCESS : IsolationMode.CLASSLOADER;
+            return new WorkerJavaCompiler(workerExecutionDir, compiler, workerExecutor, isolationMode);
         }
 
         return compiler;

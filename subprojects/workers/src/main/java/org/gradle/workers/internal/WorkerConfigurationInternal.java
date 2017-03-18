@@ -19,6 +19,11 @@ package org.gradle.workers.internal;
 import org.gradle.workers.WorkerConfiguration;
 
 public interface WorkerConfigurationInternal extends WorkerConfiguration {
+
+    KeepAliveMode getKeepAliveMode();
+
+    void setKeepAliveMode(KeepAliveMode keepAliveMode);
+
     /**
      * Adds a set of packages to be shared from the worker runtime.
      *

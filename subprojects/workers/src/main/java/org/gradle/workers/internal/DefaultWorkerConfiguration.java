@@ -32,6 +32,7 @@ import java.util.List;
 public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfigurationInternal {
     private final JavaForkOptions forkOptions;
     private IsolationMode isolationMode = IsolationMode.AUTO;
+    private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
     private List<File> classpath = Lists.newArrayList();
     private List<String> sharedPackages = Lists.newArrayList();
     private boolean scriptClasspath;
@@ -59,6 +60,16 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
 
     public void setIsolationMode(IsolationMode isolationMode) {
         this.isolationMode = isolationMode == null ? IsolationMode.AUTO : isolationMode;
+    }
+
+    @Override
+    public KeepAliveMode getKeepAliveMode() {
+        return keepAliveMode;
+    }
+
+    @Override
+    public void setKeepAliveMode(KeepAliveMode keepAliveMode) {
+        this.keepAliveMode = keepAliveMode;
     }
 
     @Override

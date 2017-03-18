@@ -16,9 +16,9 @@
 
 package org.gradle.language.scala.internal.toolchain;
 
-import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.WorkerDaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ZincScalaCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -33,12 +33,14 @@ public class DefaultScalaToolProvider implements ToolProvider {
     public static final String DEFAULT_ZINC_VERSION = "0.3.13";
 
     private final File gradleUserHomeDir;
+    private final File workerExecutionDir;
     private final WorkerExecutor workerExecutor;
     private final Set<File> resolvedScalaClasspath;
     private final Set<File> resolvedZincClasspath;
 
-    public DefaultScalaToolProvider(File gradleUserHomeDir, WorkerExecutor workerExecutor, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath) {
+    public DefaultScalaToolProvider(File gradleUserHomeDir, File workerExecutionDir, WorkerExecutor workerExecutor, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath) {
         this.gradleUserHomeDir = gradleUserHomeDir;
+        this.workerExecutionDir = workerExecutionDir;
         this.workerExecutor = workerExecutor;
         this.resolvedScalaClasspath = resolvedScalaClasspath;
         this.resolvedZincClasspath = resolvedZincClasspath;
@@ -49,7 +51,7 @@ public class DefaultScalaToolProvider implements ToolProvider {
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         if (ScalaJavaJointCompileSpec.class.isAssignableFrom(spec)) {
             Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new ZincScalaCompiler(resolvedScalaClasspath, resolvedZincClasspath, gradleUserHomeDir);
-            return (Compiler<T>) new NormalizingScalaCompiler(new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(scalaCompiler, workerExecutor, resolvedZincClasspath));
+            return (Compiler<T>) new NormalizingScalaCompiler(new WorkerDaemonScalaCompiler<ScalaJavaJointCompileSpec>(workerExecutionDir, scalaCompiler, workerExecutor, resolvedZincClasspath));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }

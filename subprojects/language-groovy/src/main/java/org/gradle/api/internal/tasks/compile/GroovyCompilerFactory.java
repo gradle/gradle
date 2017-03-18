@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
+import org.gradle.api.internal.tasks.compile.daemon.WorkerGroovyCompiler;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
@@ -44,7 +44,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
         Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
         IsolationMode isolationMode = groovyOptions.isFork() ? IsolationMode.PROCESS : IsolationMode.CLASSLOADER;
-        groovyCompiler = new DaemonGroovyCompiler(project.getRootProject().getProjectDir(), groovyCompiler, classPathRegistry, workerExecutor, isolationMode);
+        groovyCompiler = new WorkerGroovyCompiler(project.getRootProject().getProjectDir(), groovyCompiler, classPathRegistry, workerExecutor, isolationMode);
         return new NormalizingGroovyCompiler(groovyCompiler);
     }
 }

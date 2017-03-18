@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.internal.Factory
-import org.gradle.workers.ForkMode
+import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutor
 import spock.lang.Specification
 
@@ -24,14 +24,14 @@ import javax.tools.JavaCompiler
 
 class DefaultJavaCompilerFactoryTest extends Specification {
     Factory<JavaCompiler> javaCompilerFinder = Mock()
-    def factory = new DefaultJavaCompilerFactory(Mock(WorkerExecutor), javaCompilerFinder)
+    def factory = new DefaultJavaCompilerFactory(Mock(File), Mock(WorkerExecutor), javaCompilerFinder)
 
     def "creates in-process jdk compiler worker when JavaCompileSpec is provided"() {
         expect:
         def compiler = factory.create(JavaCompileSpec.class)
         compiler instanceof NormalizingJavaCompiler
-        compiler.delegate instanceof DaemonJavaCompiler
-        compiler.delegate.forkMode == ForkMode.NEVER
+        compiler.delegate instanceof WorkerJavaCompiler
+        compiler.delegate.isolationMode == IsolationMode.CLASSLOADER
         compiler.delegate.delegate instanceof JdkJavaCompiler
     }
 
@@ -45,8 +45,8 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         expect:
         def compiler = factory.create(TestCommandLineJavaSpec.class)
         compiler instanceof NormalizingJavaCompiler
-        compiler.delegate instanceof DaemonJavaCompiler
-        compiler.delegate.forkMode == ForkMode.NEVER
+        compiler.delegate instanceof WorkerJavaCompiler
+        compiler.delegate.isolationMode == IsolationMode.CLASSLOADER
         compiler.delegate.delegate instanceof CommandLineJavaCompiler
     }
 
@@ -60,8 +60,8 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         expect:
         def compiler = factory.create(TestForkingJavaCompileSpec)
         compiler instanceof NormalizingJavaCompiler
-        compiler.delegate instanceof DaemonJavaCompiler
-        compiler.delegate.forkMode == ForkMode.ALWAYS
+        compiler.delegate instanceof WorkerJavaCompiler
+        compiler.delegate.isolationMode == IsolationMode.PROCESS
         compiler.delegate.delegate instanceof JdkJavaCompiler
     }
 

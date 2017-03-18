@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile;
+
+package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.api.internal.tasks.compile.daemon.AbstractWorkerCompiler;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.internal.WorkerConfigurationInternal;
 
 import java.io.File;
-import java.util.Collections;
 
-public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
-    private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("com.sun.tools.javac");
+public class WorkerDaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractWorkerCompiler<T> {
+    private final Iterable<File> compilerClasspath;
+    private final Iterable<String> classLoaderPackages;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerExecutor workerExecutor, IsolationMode isolationMode) {
-        super(daemonWorkingDir, delegate, workerExecutor, isolationMode);
+    public WorkerDaemonPlayCompiler(File daemonWorkingDir, Compiler<T> compiler, WorkerExecutor workerExecutor, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages) {
+        super(daemonWorkingDir, compiler, workerExecutor, IsolationMode.PROCESS);
+        this.compilerClasspath = compilerClasspath;
+        this.classLoaderPackages = classLoaderPackages;
     }
 
     @Override
-    protected void applyWorkerConfiguration(JavaCompileSpec spec, WorkerConfigurationInternal config) {
-        final ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+    protected void applyWorkerConfiguration(T spec, WorkerConfigurationInternal config) {
+        final BaseForkOptions forkOptions = spec.getForkOptions();
         config.forkOptions(new Action<JavaForkOptions>() {
             @Override
             public void execute(JavaForkOptions javaForkOptions) {
@@ -46,6 +50,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             }
         });
         config.setStrictClasspath(true);
-        config.setSharedPackages(SHARED_PACKAGES);
+        config.setClasspath(compilerClasspath);
+        config.setSharedPackages(classLoaderPackages);
     }
 }

@@ -31,13 +31,15 @@ import java.util.Set;
 
 public class DownloadingScalaToolChain implements ScalaToolChainInternal {
     private final File gradleUserHomeDir;
+    private final File workerExecutionDir;
     private final WorkerExecutor workerExecutor;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
     private final JavaVersion javaVersion;
 
-    public DownloadingScalaToolChain(File gradleUserHomeDir, WorkerExecutor workerExecutor, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+    public DownloadingScalaToolChain(File gradleUserHomeDir, File workerExecutionDir, WorkerExecutor workerExecutor, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
         this.gradleUserHomeDir = gradleUserHomeDir;
+        this.workerExecutionDir = workerExecutionDir;
         this.workerExecutor = workerExecutor;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
@@ -61,7 +63,7 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
             Configuration zincClasspath = resolveDependency("com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
             Set<File> resolvedScalaClasspath = scalaClasspath.resolve();
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
-            return new DefaultScalaToolProvider(gradleUserHomeDir, workerExecutor, resolvedScalaClasspath, resolvedZincClasspath);
+            return new DefaultScalaToolProvider(gradleUserHomeDir, workerExecutionDir, workerExecutor, resolvedScalaClasspath, resolvedZincClasspath);
 
         } catch (ResolveException resolveException) {
             return new NotFoundScalaToolProvider(resolveException);

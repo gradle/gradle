@@ -18,6 +18,7 @@ package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
@@ -37,8 +38,9 @@ public class PlayToolChainServiceRegistry extends AbstractPluginServiceRegistry 
     }
 
     private static class ProjectScopeCompileServices {
-        PlayToolChainInternal createPlayToolChain(WorkerExecutor workerExecutor, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
-            return new DefaultPlayToolChain(workerExecutor, configurationContainer, dependencyHandler, workerProcessBuilderFactory);
+        PlayToolChainInternal createPlayToolChain(FileResolver fileResolver, WorkerExecutor workerExecutor, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
+            // TODO:pm Use projectLayout.projectDirectory once it is available
+            return new DefaultPlayToolChain(fileResolver.resolve("."), workerExecutor, configurationContainer, dependencyHandler, workerProcessBuilderFactory);
         }
     }
 }
