@@ -19,6 +19,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class NormalizingGroovyCompilerTest extends Specification {
     org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> target = Mock()
@@ -54,6 +55,38 @@ class NormalizingGroovyCompilerTest extends Specification {
         1 * target.execute(spec) >> {
             assert spec.source.files == files('package.html').files
         }
+    }
+
+    def "propagates compile failure when both compileOptions.failOnError and groovyCompileOptions.failOnError are true"() {
+        def failure
+        target.execute(spec) >> { throw failure = new CompilationFailedException() }
+
+        spec.compileOptions.failOnError = true
+        spec.groovyCompileOptions.failOnError = true
+
+        when:
+        compiler.execute(spec)
+
+        then:
+        CompilationFailedException e = thrown()
+        e == failure
+    }
+
+    @Unroll
+    def "ignores compile failure when one of #options dot failOnError is false"() {
+        target.execute(spec) >> { throw new CompilationFailedException() }
+
+        spec[options].failOnError = false
+
+        when:
+        def result = compiler.execute(spec)
+
+        then:
+        noExceptionThrown()
+        !result.didWork
+
+        where:
+        options << ['compileOptions', 'groovyCompileOptions']
     }
 
     private files(String... paths) {

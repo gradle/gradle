@@ -100,7 +100,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         try {
             return delegate.execute(spec);
         } catch (CompilationFailedException e) {
-            if (spec.getScalaCompileOptions().isFailOnError()) {
+            if (spec.getCompileOptions().isFailOnError() && spec.getScalaCompileOptions().isFailOnError()) {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");

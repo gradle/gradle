@@ -51,6 +51,52 @@ abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegration
         file("build/classes/main").assertHasDescendants()
     }
 
+    def "compile bad scala code do not fail the build when options.failOnError is false"() {
+        given:
+        badCode()
+
+        and:
+        buildFile << "compileScala.options.failOnError = false\n"
+
+        expect:
+        succeeds 'compileScala'
+    }
+
+    def "compile bad scala code do not fail the build when scalaCompileOptions.failOnError is false"() {
+        given:
+        badCode()
+
+        and:
+        buildFile << "compileScala.scalaCompileOptions.failOnError = false\n"
+
+        expect:
+        succeeds 'compileScala'
+    }
+
+    def "joint compile bad java code do not fail the build when options.failOnError is false"() {
+        given:
+        goodCode()
+        badJavaCode()
+
+        and:
+        buildFile << "compileScala.options.failOnError = false\n"
+
+        expect:
+        succeeds 'compileScala'
+    }
+
+    def "joint compile bad java code do not fail the build when scalaCompileOptions.failOnError is false"() {
+        given:
+        goodCode()
+        badJavaCode()
+
+        and:
+        buildFile << "compileScala.scalaCompileOptions.failOnError = false\n"
+
+        expect:
+        succeeds 'compileScala'
+    }
+
     def compileBadCodeWithoutFailing() {
         given:
         badCode()
@@ -213,6 +259,13 @@ class Person(val name: String, val age: Int) {
     def hello() : String = 42
 }
 """
+    }
+
+    def badJavaCode() {
+        file("src/main/scala/compile/test/Something.java") << """
+            package compile.test;
+            public class Something extends {}
+        """.stripIndent()
     }
 
     def classFile(String path) {

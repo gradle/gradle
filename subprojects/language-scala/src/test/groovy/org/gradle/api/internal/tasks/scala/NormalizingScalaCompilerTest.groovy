@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.tasks.scala
+
 import groovy.transform.InheritConstructors
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
@@ -22,6 +23,7 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class NormalizingScalaCompilerTest extends Specification {
     Compiler<ScalaJavaJointCompileSpec> target = Mock()
@@ -52,9 +54,12 @@ class NormalizingScalaCompilerTest extends Specification {
         result == workResult
     }
 
-    def "propagates compile failure"() {
+    def "propagates compile failure when both compileOptions.failOnError and scalaCompileOptions.failOnError are true"() {
         def failure
         target.execute(spec) >> { throw failure = new CompilationFailedException() }
+
+        spec.compileOptions.failOnError = true
+        spec.scalaCompileOptions.failOnError = true
 
         when:
         compiler.execute(spec)
@@ -64,10 +69,11 @@ class NormalizingScalaCompilerTest extends Specification {
         e == failure
     }
 
-    def "ignores compile failure when failOnError is false"() {
+    @Unroll
+    def "ignores compile failure when one of #options dot failOnError is false"() {
         target.execute(spec) >> { throw new CompilationFailedException() }
 
-        spec.scalaCompileOptions.failOnError = false
+        spec[options].failOnError = false
 
         when:
         def result = compiler.execute(spec)
@@ -75,7 +81,11 @@ class NormalizingScalaCompilerTest extends Specification {
         then:
         noExceptionThrown()
         !result.didWork
+
+        where:
+        options << ['compileOptions', 'scalaCompileOptions']
     }
+
 
     def "propagates other failure"() {
         def failure
