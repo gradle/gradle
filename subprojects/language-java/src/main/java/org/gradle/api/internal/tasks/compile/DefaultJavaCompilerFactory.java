@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.workers.ForkMode;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.tools.JavaCompiler;
@@ -48,12 +49,17 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         if (CommandLineJavaCompileSpec.class.isAssignableFrom(type)) {
-            return new CommandLineJavaCompiler();
+            if (jointCompilation) {
+                return new CommandLineJavaCompiler();
+            } else {
+                return new DaemonJavaCompiler(new CommandLineJavaCompiler(), workerExecutor, ForkMode.NEVER);
+            }
         }
 
         Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
-        if (ForkingJavaCompileSpec.class.isAssignableFrom(type) && !jointCompilation) {
-            return new DaemonJavaCompiler(compiler, workerExecutor);
+        if (!jointCompilation) {
+            ForkMode forkMode = ForkingJavaCompileSpec.class.isAssignableFrom(type) ? ForkMode.ALWAYS : ForkMode.NEVER;
+            return new DaemonJavaCompiler(compiler, workerExecutor, forkMode);
         }
 
         return compiler;

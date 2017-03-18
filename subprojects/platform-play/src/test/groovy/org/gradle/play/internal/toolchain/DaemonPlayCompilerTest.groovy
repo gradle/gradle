@@ -16,10 +16,12 @@
 
 package org.gradle.play.internal.toolchain
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.compile.BaseForkOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.spec.PlayCompileSpec
 import org.gradle.workers.WorkerExecutor
+import org.gradle.workers.internal.DefaultWorkerConfiguration
 import spock.lang.Specification
 
 class DaemonPlayCompilerTest extends Specification {
@@ -29,32 +31,35 @@ class DaemonPlayCompilerTest extends Specification {
     def spec = Mock(PlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
 
-    def setup(){
+    def setup() {
         _ * spec.getForkOptions() >> forkOptions
+        _ * forkOptions.getJvmArgs() >> []
     }
 
-    def "passes compile classpath and packages to daemon options"() {
+    def "passes compile classpath and packages to worker daemon configuration"() {
         given:
         def classpath = someClasspath()
         def packages = ["foo", "bar"]
         def compiler = new DaemonPlayCompiler(delegate, workerExecutor, classpath, packages)
         when:
-        def options = compiler.toDaemonOptions(spec);
+        def config = new DefaultWorkerConfiguration(Mock(FileResolver))
+        compiler.applyWorkerConfiguration(spec, config)
         then:
-        options.getClasspath() == classpath
-        options.getSharedPackages() == packages
+        config.getClasspath() == classpath
+        config.getSharedPackages() == packages
     }
 
-    def "applies fork settings to daemon options"(){
+    def "applies fork settings to worker daemon configuration"() {
         given:
         def compiler = new DaemonPlayCompiler(delegate, workerExecutor, someClasspath(), [])
         when:
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"
         then:
-        def options = compiler.toDaemonOptions(spec);
-        options.getMinHeapSize() == "256m"
-        options.getMaxHeapSize() == "512m"
+        def config = new DefaultWorkerConfiguration(Mock(FileResolver))
+        compiler.applyWorkerConfiguration(spec, config)
+        config.forkOptions.getMinHeapSize() == "256m"
+        config.forkOptions.getMaxHeapSize() == "512m"
     }
 
     def someClasspath() {

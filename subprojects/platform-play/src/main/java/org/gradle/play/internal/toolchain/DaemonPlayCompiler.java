@@ -16,30 +16,41 @@
 
 package org.gradle.play.internal.toolchain;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
-import org.gradle.workers.internal.DaemonForkOptions;
-import org.gradle.workers.internal.KeepAliveMode;
+import org.gradle.workers.internal.WorkerConfigurationInternal;
 
 import java.io.File;
-import java.util.Collections;
 
 public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Iterable<File> compilerClasspath;
     private final Iterable<String> classLoaderPackages;
 
     public DaemonPlayCompiler(File daemonWorkingDir, Compiler<T> compiler, WorkerExecutor workerExecutor, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages) {
-        super(daemonWorkingDir, compiler, workerExecutor);
+        super(daemonWorkingDir, compiler, workerExecutor, IsolationMode.PROCESS);
         this.compilerClasspath = compilerClasspath;
         this.classLoaderPackages = classLoaderPackages;
     }
 
     @Override
-    protected DaemonForkOptions toDaemonOptions(PlayCompileSpec spec) {
-        BaseForkOptions forkOptions = spec.getForkOptions();
-        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), Collections.<String>emptyList(), compilerClasspath, classLoaderPackages, KeepAliveMode.SESSION);
+    protected void applyWorkerConfiguration(T spec, WorkerConfigurationInternal config) {
+        final BaseForkOptions forkOptions = spec.getForkOptions();
+        config.forkOptions(new Action<JavaForkOptions>() {
+            @Override
+            public void execute(JavaForkOptions javaForkOptions) {
+                javaForkOptions.setJvmArgs(forkOptions.getJvmArgs());
+                javaForkOptions.setMinHeapSize(forkOptions.getMemoryInitialSize());
+                javaForkOptions.setMaxHeapSize(forkOptions.getMemoryMaximumSize());
+            }
+        });
+        config.setStrictClasspath(true);
+        config.setClasspath(compilerClasspath);
+        config.setSharedPackages(classLoaderPackages);
     }
 }

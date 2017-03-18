@@ -19,8 +19,8 @@ package org.gradle.workers.internal;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
+import org.gradle.process.internal.health.memory.MemoryAmount;
 
 import java.io.File;
 import java.util.Collections;
@@ -73,53 +73,12 @@ public class DaemonForkOptions {
     }
 
     public boolean isCompatibleWith(DaemonForkOptions other) {
-        return getHeapSizeMb(minHeapSize) >= getHeapSizeMb(other.getMinHeapSize())
-                && getHeapSizeMb(maxHeapSize) >= getHeapSizeMb(other.getMaxHeapSize())
-                && getNormalizedJvmArgs(jvmArgs).containsAll(getNormalizedJvmArgs(other.getJvmArgs()))
-                && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
-                && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
-                && keepAliveMode == other.getKeepAliveMode();
-    }
-
-    // one way to merge fork options, good for current use case
-    public DaemonForkOptions mergeWith(DaemonForkOptions other) {
-        if (keepAliveMode != other.getKeepAliveMode()) {
-            throw new IllegalArgumentException("Cannot merge a fork options object with a different keep alive mode (this: " + keepAliveMode + ", other: " + other.getKeepAliveMode() + ").");
-        }
-
-        String mergedMinHeapSize = mergeHeapSize(minHeapSize, other.minHeapSize);
-        String mergedMaxHeapSize = mergeHeapSize(maxHeapSize, other.maxHeapSize);
-        Set<String> mergedJvmArgs = getNormalizedJvmArgs(jvmArgs);
-        mergedJvmArgs.addAll(getNormalizedJvmArgs(other.getJvmArgs()));
-        Set<File> mergedClasspath = getNormalizedClasspath(classpath);
-        mergedClasspath.addAll(getNormalizedClasspath(other.classpath));
-        Set<String> mergedAllowedPackages = getNormalizedSharedPackages(sharedPackages);
-        mergedAllowedPackages.addAll(getNormalizedSharedPackages(other.sharedPackages));
-        return new DaemonForkOptions(mergedMinHeapSize, mergedMaxHeapSize, mergedJvmArgs, mergedClasspath, mergedAllowedPackages, keepAliveMode);
-    }
-
-    private int getHeapSizeMb(String heapSize) {
-        if (heapSize == null) {
-            return -1; // unspecified
-        }
-
-        String normalized = heapSize.trim().toLowerCase();
-        try {
-            if (normalized.endsWith("m")) {
-                return Integer.parseInt(normalized.substring(0, normalized.length() - 1));
-            }
-            if (normalized.endsWith("g")) {
-                return Integer.parseInt(normalized.substring(0, normalized.length() - 1)) * 1024;
-            }
-        } catch (NumberFormatException e) {
-            throw new InvalidUserDataException("Cannot parse heap size: " + heapSize, e);
-        }
-        throw new InvalidUserDataException("Cannot parse heap size: " + heapSize);
-    }
-
-    private String mergeHeapSize(String heapSize1, String heapSize2) {
-        int mergedHeapSizeMb = Math.max(getHeapSizeMb(heapSize1), getHeapSizeMb(heapSize2));
-        return mergedHeapSizeMb == -1 ? null : String.valueOf(mergedHeapSizeMb) + "m";
+        return MemoryAmount.parseNotation(minHeapSize) >= MemoryAmount.parseNotation(other.getMinHeapSize())
+            && MemoryAmount.parseNotation(maxHeapSize) >= MemoryAmount.parseNotation(other.getMaxHeapSize())
+            && getNormalizedJvmArgs(jvmArgs).containsAll(getNormalizedJvmArgs(other.getJvmArgs()))
+            && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
+            && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
+            && keepAliveMode == other.getKeepAliveMode();
     }
 
     private Set<String> getNormalizedJvmArgs(Iterable<String> jvmArgs) {
