@@ -140,7 +140,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         outputContains("Build scan cannot be created since the build scan plugin has not been applied.\n"
-            + "For more information on how to apply the build scan plugin, please visit https://gradle.com/scans/get-started.")
+            + "For more information on how to apply the build scan plugin, please visit https://gradle.com/scans/help/gradle-cli.")
     }
 
     def "running gradle with --scan sets `scan` system property to true if not yet set"() {
