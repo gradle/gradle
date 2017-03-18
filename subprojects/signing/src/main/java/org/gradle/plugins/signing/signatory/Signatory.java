@@ -45,4 +45,13 @@ public interface Signatory {
      * @return The raw bytes of the signature
      */
     byte[] sign(InputStream toSign);
+
+    /**
+     * Returns an object that represents the value of the {@code signatory} property in the Sign task. The value
+     * returned by this method should change when the configuration of the signatory changes in a way that would
+     * change the output of the Sign task.
+     *
+     * @return An object representing the value of the {@code signatory} property.
+     */
+    Object getInputProperty();
 }

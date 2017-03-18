@@ -84,6 +84,12 @@ public class PgpSignatory extends SignatorySupport {
         }
     }
 
+    @Override
+    public Object getInputProperty() {
+        PgpKeyId id = getKeyId();
+        return id == null ? null : id.getAsHex();
+    }
+
     private void feedGeneratorWith(InputStream toSign, PGPSignatureGenerator generator) throws IOException {
         byte[] buffer = new byte[1024];
         int read = toSign.read(buffer);
