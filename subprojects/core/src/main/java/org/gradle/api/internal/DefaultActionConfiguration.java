@@ -14,16 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.Incubating;
 
-/**
- * Configuration for an artifact transformation.
- *
- * @since 3.5
- */
-@Incubating
-public interface ArtifactTransformConfiguration extends ActionConfiguration {
+import java.util.Collections;
+import java.util.List;
+
+public class DefaultActionConfiguration implements ActionConfiguration {
+    private final List<Object> params = Lists.newArrayList();
+
+    @Override
+    public void params(Object... params) {
+        Collections.addAll(this.params, params);
+    }
+
+    @Override
+    public void setParams(Object... params) {
+        this.params.clear();
+        Collections.addAll(this.params, params);
+    }
+
+    @Override
+    public Object[] getParams() {
+        return this.params.toArray();
+    }
 }

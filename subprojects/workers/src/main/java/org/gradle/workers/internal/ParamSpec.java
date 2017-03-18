@@ -24,7 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
 /**
  * Represents a {@link WorkSpec} that contains constructor parameters.
@@ -32,15 +31,15 @@ import java.io.Serializable;
 public class ParamSpec implements WorkSpec {
     private final byte[] params;
 
-    ParamSpec(Serializable[] params) {
+    ParamSpec(Object[] params) {
         this.params = serialize(params);
     }
 
-    Serializable[] getParams(ClassLoader classLoader) {
+    Object[] getParams(ClassLoader classLoader) {
         return deserialize(classLoader);
     }
 
-    private byte[] serialize(Serializable[] params) {
+    private byte[] serialize(Object[] params) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
             ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -51,11 +50,11 @@ public class ParamSpec implements WorkSpec {
         return bos.toByteArray();
     }
 
-    private Serializable[] deserialize(ClassLoader classLoader) {
+    private Object[] deserialize(ClassLoader classLoader) {
         ByteArrayInputStream bis = new ByteArrayInputStream(params);
         try {
             ObjectInputStream ois = new ClassLoaderObjectInputStream(bis, classLoader);
-            return (Serializable[])ois.readObject();
+            return (Object[])ois.readObject();
         } catch (IOException e) {
             throw new ParameterSerializationException("Could not deserialize parameters", e);
         } catch (ClassNotFoundException e) {

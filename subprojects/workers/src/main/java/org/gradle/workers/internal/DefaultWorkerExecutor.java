@@ -42,7 +42,6 @@ import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -70,7 +69,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     @Override
-    public void submit(Class<? extends Runnable> actionClass, Action<WorkerConfiguration> configAction) {
+    public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
         configAction.execute(configuration);
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
@@ -78,7 +77,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         submit(action, configuration.getParams(), configuration.getForkOptions().getWorkingDir(), configuration.getForkMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final WorkerAction action, final Serializable[] params, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
+    private void submit(final WorkerAction action, final Object[] params, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
         final Operation currentWorkerOperation = buildOperationWorkerRegistry.getCurrent();
         final BuildOperationExecutor.Operation currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
