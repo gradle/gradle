@@ -1470,7 +1470,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform BrokenTransform")
-        failure.assertHasCause("Could not create instance of type BrokenTransform.")
+        failure.assertHasCause("Could not create an instance of type BrokenTransform.")
         failure.assertHasCause("broken")
     }
 
