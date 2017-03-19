@@ -18,12 +18,19 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.attributes.DisambiguationRuleChain;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Comparator;
 
 public class DefaultAttributeMatchingStrategy<T> implements AttributeMatchingStrategy<T> {
-    private final CompatibilityRuleChain<T> compatibilityRules = new DefaultCompatibilityRuleChain<T>();
-    private final DisambiguationRuleChain<T> disambiguationRules = new DefaultDisambiguationRuleChain<T>();
+    private final CompatibilityRuleChain<T> compatibilityRules;
+    private final DisambiguationRuleChain<T> disambiguationRules;
+
+    public DefaultAttributeMatchingStrategy(Instantiator instantiator) {
+        compatibilityRules = Cast.uncheckedCast(instantiator.newInstance(DefaultCompatibilityRuleChain.class));
+        disambiguationRules = Cast.uncheckedCast(instantiator.newInstance(DefaultDisambiguationRuleChain.class));
+    }
 
     @Override
     public CompatibilityRuleChain<T> getCompatibilityRules() {

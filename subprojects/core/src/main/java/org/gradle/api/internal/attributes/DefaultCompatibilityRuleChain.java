@@ -17,8 +17,10 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.internal.type.ModelType;
 
@@ -26,7 +28,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainInternal<T> {
-
+    private static final Object[] NO_PARAMS = new Object[0];
     private final List<Action<? super CompatibilityCheckDetails<T>>> rules = Lists.newArrayList();
 
     private boolean assumeCompatibleWhenMissing;
@@ -44,18 +46,15 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     }
 
     @Override
+    public void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
+        DefaultActionConfiguration configuration = new DefaultActionConfiguration();
+        configureAction.execute(configuration);
+        rules.add(new InstantiatingAction<T>(rule, configuration.getParams()));
+    }
+
+    @Override
     public void add(final Class<? extends AttributeCompatibilityRule<T>> rule) {
-        rules.add(new Action<CompatibilityCheckDetails<T>>() {
-            @Override
-            public void execute(CompatibilityCheckDetails<T> details) {
-                try {
-                    AttributeCompatibilityRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule);
-                    instance.execute(details);
-                } catch (Throwable t) {
-                    throw new AttributeMatchException(String.format("Could not determine whether value %s is compatible with value %s using %s.", details.getProducerValue(), details.getConsumerValue(), ModelType.of(rule).getDisplayName()), t);
-                }
-            }
-        });
+        rules.add(new InstantiatingAction<T>(rule, NO_PARAMS));
     }
 
     @Override
@@ -115,6 +114,26 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
         public void incompatible() {
             determined = true;
             delegate.incompatible();
+        }
+    }
+
+    private static class InstantiatingAction<T> implements Action<CompatibilityCheckDetails<T>> {
+        private final Class<? extends AttributeCompatibilityRule<T>> rule;
+        private final Object[] params;
+
+        InstantiatingAction(Class<? extends AttributeCompatibilityRule<T>> rule, Object[] params) {
+            this.rule = rule;
+            this.params = params;
+        }
+
+        @Override
+        public void execute(CompatibilityCheckDetails<T> details) {
+            try {
+                AttributeCompatibilityRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule, params);
+                instance.execute(details);
+            } catch (Throwable t) {
+                throw new AttributeMatchException(String.format("Could not determine whether value %s is compatible with value %s using %s.", details.getProducerValue(), details.getConsumerValue(), ModelType.of(rule).getDisplayName()), t);
+            }
         }
     }
 }

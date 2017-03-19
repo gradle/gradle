@@ -28,6 +28,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,11 +38,13 @@ import java.util.Set;
 public class DefaultAttributesSchema implements AttributesSchemaInternal {
 
     private final ComponentAttributeMatcher componentAttributeMatcher;
+    private final Instantiator instantiator;
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
     private final Map<Key, List<? extends HasAttributes>> matchesCache = Maps.newHashMap();
 
-    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher) {
+    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, Instantiator instantiator) {
         this.componentAttributeMatcher = componentAttributeMatcher;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -63,7 +66,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
-            strategy = new DefaultAttributeMatchingStrategy<T>();
+            strategy = Cast.uncheckedCast(instantiator.newInstance(DefaultAttributeMatchingStrategy.class, instantiator));
             strategies.put(attribute, strategy);
         }
         if (configureAction != null) {

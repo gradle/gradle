@@ -15,6 +15,8 @@
  */
 package org.gradle.api.attributes;
 
+import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -53,6 +55,7 @@ public interface CompatibilityRuleChain<T> {
 
     /**
      * <p>Adds an arbitrary compatibility rule to the chain.</p>
+     *
      * <p>A compatibility rule can tell if two values are compatible.
      * Compatibility doesn't mean equality. Typically two different Java platforms can be
      * compatible, without being equal.</p>
@@ -64,6 +67,14 @@ public interface CompatibilityRuleChain<T> {
      * @param rule the rule to add to the chain
      */
     void add(Class<? extends AttributeCompatibilityRule<T>> rule);
+
+    /**
+     * <p>Adds an arbitrary compatibility rule to the chain, possibly configuring the rule as well.</p>
+     *
+     * @param rule the rule to add to the chain
+     * @param configureAction the action to use to configure the rule
+     */
+    void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
      * Adds a rule that tells that if an attribute is missing, either on the producer or the consumer, then

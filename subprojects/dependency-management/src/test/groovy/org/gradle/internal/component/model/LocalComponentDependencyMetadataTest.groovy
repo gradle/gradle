@@ -39,6 +39,7 @@ import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -49,7 +50,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     ImmutableAttributesFactory factory
 
     def setup() {
-        attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+        attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), DirectInstantiator.INSTANCE)
         factory = new DefaultImmutableAttributesFactory()
     }
 
@@ -484,7 +485,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
         }
-        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher(), DirectInstantiator.INSTANCE)
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
             it.compatibilityRules.add(ValueIncompatibleRule)
             it.compatibilityRules.add(EqualsValuesCompatibleRule)

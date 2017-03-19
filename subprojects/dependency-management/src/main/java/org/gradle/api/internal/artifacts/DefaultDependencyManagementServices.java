@@ -112,7 +112,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
     private static class DependencyResolutionScopeServices {
         AttributesSchemaInternal createConfigurationAttributesSchema(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher());
+            return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiator);
         }
 
         VariantTransformRegistry createVariantTransforms(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {

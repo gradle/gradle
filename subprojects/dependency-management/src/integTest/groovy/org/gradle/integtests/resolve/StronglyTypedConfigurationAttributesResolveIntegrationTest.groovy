@@ -156,8 +156,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
+                    assert details.candidateValues*.value == ['FREE', 'free']
                     details.candidateValues.each { producerValue ->
-                        if (producerValue.value.toLowerCase() == producerValue.value) {
+                        if (producerValue.value == 'free') {
                             details.closestMatch(producerValue)
                         }
                     }
@@ -168,7 +169,6 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                dependencies {
                    attributesSchema {
                       attribute(flavor) {
-                          compatibilityRules.@rules.clear() // dirty hack only for testing, don't do this at home!
                           compatibilityRules.add(FlavorCompatibilityRule)
                           disambiguationRules.add(FlavorSelectionRule)
                       }
@@ -194,7 +194,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':b') {
                 configurations {
                     foo {
-                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("FREE")) }
+                        attributes { $debug; attribute(flavor, Flavor.of("FREE")) }
                     }
                     foo2 {
                         attributes { $freeDebug }
@@ -600,6 +600,100 @@ All of them match the consumer attributes:
         then:
         executedAndNotSkipped ':b:barJar', ':c:barJar'
         notExecuted ':b:fooJar', ':c:fooJar'
+    }
+
+    def "can inject configuration into compatibility and disambiguation rules"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                String value
+            
+                FlavorCompatibilityRule(String value) { this.value = value }
+
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    if (details.producerValue.value == value) {
+                        details.compatible()
+                    } else {
+                        details.incompatible()
+                    }
+                }
+            }
+
+            class BuildTypeSelectionRule implements AttributeDisambiguationRule<BuildType> {
+                BuildType value
+
+                BuildTypeSelectionRule(BuildType value) { this.value = value }
+                void execute(MultipleCandidatesDetails<BuildType> details) {
+                    if (details.candidateValues.contains(value)) {
+                        details.closestMatch(value)
+                    }
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.add(FlavorCompatibilityRule) { params("paid") }
+                        }
+                        attribute(buildType) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                            disambiguationRules.add(BuildTypeSelectionRule) { params(BuildType.debug) }
+                        }
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile { attributes { $free } }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task checkDebug(dependsOn: configurations.compile) {
+                    doLast {
+                        // Compatibility rules select paid flavors, disambiguation rules select debug
+                        assert configurations.compile.collect { it.name } == ['b-foo2.jar']
+                    }
+                }
+            }
+            project(':b') {
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task foo2Jar(type: Jar) {
+                   baseName = 'b-foo2'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                configurations {
+                    _compileFreeDebug { attributes { $free; $debug } }
+                    _compileFreeRelease { attributes { $free; $release } }
+                    _compilePaidDebug { attributes { $paid; $debug } }
+                    _compilePaidRelease { attributes { $paid; $release } }
+                }
+                artifacts {
+                    _compileFreeDebug fooJar
+                    _compileFreeRelease fooJar
+                    _compilePaidDebug foo2Jar
+                    _compilePaidRelease barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:foo2Jar'
+        notExecuted ':b:fooJar', ':b:barJar'
+
     }
 
     def "user receives reasonable error message when compatibility rule cannot be created"() {
