@@ -149,21 +149,28 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         buildFile << """
             $typeDefs
 
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    details.candidateValues.each { producerValue ->
+                        if (producerValue.value.toLowerCase() == producerValue.value) {
+                            details.closestMatch(producerValue)
+                        }
+                    }
+                }
+            }
+
             project(':a') {
                dependencies {
                    attributesSchema {
                       attribute(flavor) {
                           compatibilityRules.@rules.clear() // dirty hack only for testing, don't do this at home!
-                          compatibilityRules.add { details ->
-                             details.compatible()
-                          }
-                          disambiguationRules.add { details ->
-                             details.candidateValues.each { producerValue ->
-                                if (producerValue.value.toLowerCase() == producerValue.value) {
-                                    details.closestMatch(producerValue)
-                                }
-                             }
-                          }
+                          compatibilityRules.add(FlavorCompatibilityRule)
+                          disambiguationRules.add(FlavorSelectionRule)
                       }
                    }
                }
@@ -229,21 +236,28 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         buildFile << """
             $typeDefs
 
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
+                        details.compatible()
+                    }
+                }
+            }
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    details.candidateValues.each { producerValue ->
+                        if (producerValue.value.toLowerCase() == producerValue.value) {
+                            details.closestMatch(producerValue)
+                        }
+                    }
+                }
+            }
+
             project(':a') {
                dependencies.attributesSchema {
                   attribute(flavor) {
-                      compatibilityRules.add { details ->
-                         if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
-                             details.compatible()
-                         }
-                      }
-                      disambiguationRules.add { details ->
-                         details.candidateValues.each { producerValue ->
-                            if (producerValue.value.toLowerCase() == producerValue.value) {
-                                details.closestMatch(producerValue)
-                            }
-                         }
-                      }
+                      compatibilityRules.add(FlavorCompatibilityRule)
+                      disambiguationRules.add(FlavorSelectionRule)
                   }
                }
             }
@@ -322,31 +336,44 @@ All of them match the consumer attributes:
         buildFile << """
             $typeDefs
 
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
+                        details.compatible()
+                    }
+                }
+            }
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    details.candidateValues.each { producerValue ->
+                        if (producerValue.value.toLowerCase() == producerValue.value) {
+                            details.closestMatch(producerValue)
+                        }
+                    }
+                }
+            }
+            class BuildTypeCompatibilityRule implements AttributeCompatibilityRule<BuildType> {
+                void execute(CompatibilityCheckDetails<BuildType> details) {
+                    details.compatible()
+                }
+            }
+            class SelectDebugRule implements AttributeDisambiguationRule<BuildType> {
+                void execute(MultipleCandidatesDetails<BuildType> details) {
+                    details.closestMatch(BuildType.debug)
+                }
+            }
+
             project(':a') {
                dependencies.attributesSchema {
                   attribute(flavor) {
-                      compatibilityRules.add { details ->
-                         if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
-                             details.compatible()
-                         }
-                      }
-                      disambiguationRules.add { details ->
-                         details.candidateValues.each { producerValue ->
-                            if (producerValue.value.toLowerCase() == producerValue.value) {
-                                details.closestMatch(producerValue)
-                            }
-                         }
-                      }
+                      compatibilityRules.add(FlavorCompatibilityRule)
+                      disambiguationRules.add(FlavorSelectionRule)
                   }
 
                   // for testing purposes, this strategy says that all build types are compatible, but returns the debug value as best
                   attribute(buildType) {
-                     compatibilityRules.add { details ->
-                        details.compatible()
-                     }
-                     disambiguationRules.add { details ->
-                         details.closestMatch(BuildType.debug)
-                     }
+                     compatibilityRules.add(BuildTypeCompatibilityRule)
+                     disambiguationRules.add(SelectDebugRule)
                   }
                }
             }
@@ -417,14 +444,17 @@ All of them match the consumer attributes:
         buildFile << """
             $typeDefs
 
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    details.closestMatch(details.candidateValues.sort { it }.first())
+                }
+            }
+
             project(':b') {
                dependencies.attributesSchema {
                   attribute(buildType)
                   attribute(flavor) {
-                       disambiguationRules.add { details ->
-                            details.closestMatch(details.candidateValues.sort { it }.first())
-                       }
-
+                       disambiguationRules.add(FlavorSelectionRule)
                   }
                }
             }

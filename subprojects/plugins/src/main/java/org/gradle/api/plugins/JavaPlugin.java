@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -31,7 +30,6 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
@@ -42,6 +40,7 @@ import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.internal.VariantDisambiguationRule;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -54,7 +53,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.FOR_RUNTIME;
@@ -256,10 +254,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String JAR_TYPE = "jar";
 
     // this is a workaround to force the classes variant to be used at compile time when using the Java library
-    static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
-
-    private static final Set<String> VARIANT_TYPES = ImmutableSet.of(JAR_TYPE, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
-    private static final Set<String> DIR_VARIANT_TYPES = ImmutableSet.of(NON_DEFAULT_JAR_TYPE, CLASS_DIRECTORY, RESOURCES_DIRECTORY);
+    public static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -280,20 +275,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     private void configureCompatibilityRules(ProjectInternal project) {
         AttributeMatchingStrategy<String> matchingStrategy = project.getDependencies().getAttributesSchema().getMatchingStrategy(ArtifactAttributes.ARTIFACT_FORMAT);
-        matchingStrategy.getDisambiguationRules().add(new Action<MultipleCandidatesDetails<String>>() {
-            @Override
-            public void execute(MultipleCandidatesDetails<String> details) {
-                // Use Jar if all are selected
-                if (details.getCandidateValues().equals(VARIANT_TYPES)) {
-                    details.closestMatch(JAR_TYPE);
-                    return;
-                }
-                // Use classes if dir variants are selected
-                if (details.getCandidateValues().equals(DIR_VARIANT_TYPES)) {
-                    details.closestMatch(CLASS_DIRECTORY);
-                }
-            }
-        });
+        matchingStrategy.getDisambiguationRules().add(VariantDisambiguationRule.class);
     }
 
     private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
@@ -531,4 +513,5 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             return null;
         }
     }
+
 }

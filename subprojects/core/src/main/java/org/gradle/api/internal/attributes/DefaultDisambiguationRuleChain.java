@@ -18,7 +18,9 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.util.Comparator;
 import java.util.List;
@@ -29,20 +31,26 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     private final List<Action<? super MultipleCandidatesDetails<T>>> rules = Lists.newArrayList();
 
     @Override
-    public void add(Action<? super MultipleCandidatesDetails<T>> rule) {
-        this.rules.add(rule);
+    public void add(final Class<? extends AttributeDisambiguationRule<T>> rule) {
+        this.rules.add(new Action<MultipleCandidatesDetails<T>>() {
+            @Override
+            public void execute(MultipleCandidatesDetails<T> details) {
+                AttributeDisambiguationRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule);
+                instance.execute(details);
+            }
+        });
     }
 
     @Override
     public void pickFirst(Comparator<? super T> comparator) {
         Action<? super MultipleCandidatesDetails<T>> rule = AttributeMatchingRules.orderedDisambiguation(comparator, true);
-        add(rule);
+        rules.add(rule);
     }
 
     @Override
     public void pickLast(Comparator<? super T> comparator) {
         Action<? super MultipleCandidatesDetails<T>> rule = AttributeMatchingRules.orderedDisambiguation(comparator, false);
-        add(rule);
+        rules.add(rule);
     }
 
     @Override
