@@ -27,7 +27,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         buildFile << """
             $runnableThatFails
 
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
             }
@@ -54,7 +54,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask) {
+            task runInDaemon(type: WorkerTask) {
                 forkMode = ForkMode.ALWAYS
                 additionalForkOptions = {
                     it.jvmArgs "-foo"
@@ -83,12 +83,12 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         buildFile << """
             $alternateRunnable
 
-            task runAgainInWorker(type: DaemonTask) {
+            task runAgainInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
             
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 foo = new FooWithUnserializableBar()
                 finalizedBy runAgainInWorker
@@ -120,12 +120,12 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         buildFile << """  
             $alternateRunnable
 
-            task runAgainInWorker(type: DaemonTask) {
+            task runAgainInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
 
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 additionalClasspath = files('${parameterJar.name}')
                 foo = new FooWithUnserializableBar()
@@ -156,14 +156,14 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         buildFile << """
             $alternateRunnable
 
-            task runAgainInWorker(type: DaemonTask) {
+            task runAgainInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
 
             $runnableThatThrowsUnserializableMemberException
 
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
                 finalizedBy runAgainInWorker
@@ -192,7 +192,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         buildFile << """
             $runnableThatFailsInstantiation
 
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
             }
@@ -216,7 +216,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         buildFile << """
             $runnableWithDifferentConstructor
 
-            task runInWorker(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
                 forkMode = $forkMode
                 runnableClass = RunnableWithDifferentConstructor.class
             }

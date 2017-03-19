@@ -117,8 +117,7 @@ public class ObserverLord<E> {
      * @param notification in,  notification sent to the observer
      */
     private void notifyObserversInEventQueueThread(final ObserverNotification<E> notification) {
-        if (eventQueueObservers.size() == 0) //if we have no event queue observsers, we're done
-        {
+        if (eventQueueObservers.size() == 0) { //if we have no event queue observsers, we're done
             return;
         }
 
@@ -152,8 +151,7 @@ public class ObserverLord<E> {
             E observer = iterator.next();
             try {
                 notification.notify(observer);
-            } catch (Exception e) //this is so an error in the notification doesn't stop the entire process.
-            {
+            } catch (Exception e) { //this is so an error in the notification doesn't stop the entire process.
                 logger.error("error notifying observers", e);
             }
         }

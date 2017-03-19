@@ -36,7 +36,7 @@ public class BuildOperationBuildOutputDeleterDecorator implements BuildOutputDel
     }
 
     private BuildOperationDetails getDisplayName() {
-        return BuildOperationDetails.displayName("Cleaning stale outputs for " + gradle.getIdentityPath().getName()).build();
+        return BuildOperationDetails.displayName("Clean stale outputs for " + gradle.getIdentityPath().getName()).build();
     }
 
     @Override

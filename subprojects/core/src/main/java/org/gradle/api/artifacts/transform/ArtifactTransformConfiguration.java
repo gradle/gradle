@@ -16,34 +16,14 @@
 
 package org.gradle.api.artifacts.transform;
 
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 
 /**
  * Configuration for an artifact transformation.
- * This is likely to be replaced by a more general 'worker configuration' API.
+ *
+ * @since 3.5
  */
 @Incubating
-public interface ArtifactTransformConfiguration {
-
-    /**
-     * Adds initialization parameters to use when constructing an instance of the implementation class.
-     *
-     * @param params - the parameters to use during construction
-     */
-    void params(Object... params);
-
-    /**
-     * Sets any initialization parameters to use when constructing an instance of the implementation class.
-     *
-     * @param params - the parameters to use during construction
-     */
-    void setParams(Object... params);
-
-    /**
-     * Gets the initialization parameters that will be used when constructin an instance of the implementation class.
-     *
-     * @return the parameters to use during construction
-     */
-    Object[] getParams();
-
+public interface ArtifactTransformConfiguration extends ActionConfiguration {
 }

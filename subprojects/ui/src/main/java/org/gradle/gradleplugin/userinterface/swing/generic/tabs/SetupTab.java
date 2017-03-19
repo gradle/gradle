@@ -224,8 +224,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         if (logLevelName != null) {
             try {
                 logLevel = LogLevel.valueOf(logLevelName);
-            } catch (IllegalArgumentException e) //this may happen if the enum changes. We don't want this to stop the whole UI
-            {
+            } catch (IllegalArgumentException e) { //this may happen if the enum changes. We don't want this to stop the whole UI
                 logger.error("Converting log level text to log level enum '" + logLevelName + "'", e);
             }
         }

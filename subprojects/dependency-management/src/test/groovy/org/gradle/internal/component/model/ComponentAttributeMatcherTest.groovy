@@ -17,10 +17,12 @@
 package org.gradle.internal.component.model
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
+import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import spock.lang.Specification
 
@@ -127,11 +129,20 @@ class ComponentAttributeMatcherTest extends Specification {
         matches2 == [candidate]
     }
 
+    static class SelectValueRule implements AttributeDisambiguationRule<String> {
+        @Override
+        void execute(MultipleCandidatesDetails<String> details) {
+            if (details.candidateValues.contains("ignore2")) {
+                details.closestMatch("ignore2")
+            }
+        }
+    }
+
     def "disambiguates using ignored producer attributes" () {
         def key1 = Attribute.of("a1", String)
         def key2 = Attribute.of("a2", String)
         schema.attribute(key1)
-        schema.attribute(key2).disambiguationRules.add { details -> if (details.candidateValues.contains("ignore2")) { details.closestMatch("ignore2") } }
+        schema.attribute(key2).disambiguationRules.add(SelectValueRule)
 
         given:
         def candidate1 = attributes()

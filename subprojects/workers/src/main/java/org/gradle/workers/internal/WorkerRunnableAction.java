@@ -19,11 +19,11 @@ package org.gradle.workers.internal;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 
-public class WorkerDaemonRunnableAction implements WorkerDaemonAction<ParamSpec> {
+public class WorkerRunnableAction implements WorkerAction<ParamSpec> {
     private final String displayName;
     private final Class<? extends Runnable> runnableClass;
 
-    WorkerDaemonRunnableAction(String displayName, Class<? extends Runnable> runnableClass) {
+    WorkerRunnableAction(String displayName, Class<? extends Runnable> runnableClass) {
         this.displayName = displayName;
         this.runnableClass = runnableClass;
     }
@@ -31,7 +31,7 @@ public class WorkerDaemonRunnableAction implements WorkerDaemonAction<ParamSpec>
     @Override
     public DefaultWorkResult execute(ParamSpec spec) {
         try {
-            Runnable runnable = DirectInstantiator.instantiate(runnableClass, (Object[])spec.getParams(runnableClass.getClassLoader()));
+            Runnable runnable = DirectInstantiator.instantiate(runnableClass, spec.getParams(runnableClass.getClassLoader()));
             runnable.run();
             return new DefaultWorkResult(true, null);
         } catch (ObjectInstantiationException e) {

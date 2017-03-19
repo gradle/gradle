@@ -25,17 +25,17 @@ import java.io.File;
 import java.util.Set;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
-    private final WorkerDaemonFactory compilerDaemonFactory;
+    private final WorkerDaemonFactory workerDaemonFactory;
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private final File rootProjectDirectory;
     private final File gradleUserHomeDir;
 
     public ScalaCompilerFactory(
-        File rootProjectDirectory, WorkerDaemonFactory compilerDaemonFactory, FileCollection scalaClasspath,
+        File rootProjectDirectory, WorkerDaemonFactory workerDaemonFactory, FileCollection scalaClasspath,
         FileCollection zincClasspath, File gradleUserHomeDir) {
         this.rootProjectDirectory = rootProjectDirectory;
-        this.compilerDaemonFactory = compilerDaemonFactory;
+        this.workerDaemonFactory = workerDaemonFactory;
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
         this.gradleUserHomeDir = gradleUserHomeDir;
@@ -48,7 +48,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
             rootProjectDirectory, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
-            compilerDaemonFactory, zincClasspathFiles);
+            workerDaemonFactory, zincClasspathFiles);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

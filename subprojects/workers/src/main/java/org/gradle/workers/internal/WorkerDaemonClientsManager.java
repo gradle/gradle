@@ -30,7 +30,7 @@ import java.util.List;
 
 public class WorkerDaemonClientsManager {
 
-    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonManager.class);
+    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonFactory.class);
 
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
@@ -60,9 +60,9 @@ public class WorkerDaemonClientsManager {
         }
     }
 
-    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerProtocol> workerProtocolImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
-        WorkerDaemonClient client = workerDaemonStarter.startDaemon(serverImplementationClass, workingDir, forkOptions);
+        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, workingDir, forkOptions);
         synchronized (lock) {
             allClients.add(client);
         }

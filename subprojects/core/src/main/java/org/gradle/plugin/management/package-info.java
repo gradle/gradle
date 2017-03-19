@@ -16,6 +16,7 @@
 
 /**
  * APIs to influence how plugins are resolved.
+ * @since 3.5
  */
 @org.gradle.api.Incubating
 package org.gradle.plugin.management;

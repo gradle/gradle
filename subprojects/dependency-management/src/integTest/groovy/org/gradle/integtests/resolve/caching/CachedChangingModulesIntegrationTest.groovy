@@ -62,7 +62,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
 
         when:
         server.resetExpectations()
-        module.metaData.expectGetRevalidate()
+        module.metaData.expectHeadRevalidate()
         sourceArtifact.expectHeadRevalidate()
         module.pom.expectHeadRevalidate()
         then:
@@ -72,6 +72,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
         module.publishWithChangedContent()
         server.resetExpectations()
 
+        module.metaData.expectHeadRevalidate()
         module.metaData.expectGetRevalidate()
         module.pom.sha1.expectGetRevalidate()
         module.pom.expectHeadRevalidate()

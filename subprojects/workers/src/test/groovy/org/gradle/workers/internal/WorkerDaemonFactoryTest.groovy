@@ -23,7 +23,7 @@ import org.gradle.process.internal.health.memory.MemoryManager
 import spock.lang.Specification
 import spock.lang.Subject
 
-class WorkerDaemonManagerTest extends Specification {
+class WorkerDaemonFactoryTest extends Specification {
 
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
@@ -33,17 +33,17 @@ class WorkerDaemonManagerTest extends Specification {
     def workerOperation = Mock(Operation)
     def buildOperation = Mock(BuildOperationExecutor.Operation)
 
-    @Subject manager = new WorkerDaemonManager(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
 
     def workingDir = new File("some-dir")
-    def worker = Stub(WorkerDaemonAction)
+    def workerAction = Stub(WorkerAction)
     def options = Stub(DaemonForkOptions)
     def spec = Stub(WorkSpec)
-    def serverImpl = Stub(WorkerDaemonProtocol)
+    def workerProtocolImplementation = Stub(WorkerProtocol)
 
     def "getting a worker daemon does not assume client use"() {
         when:
-        manager.getDaemon(serverImpl.class, workingDir, options);
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options);
 
         then:
         0 * clientsManager._
@@ -51,7 +51,7 @@ class WorkerDaemonManagerTest extends Specification {
 
     def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        manager.getDaemon(serverImpl.class, workingDir, options).execute(worker, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -61,10 +61,10 @@ class WorkerDaemonManagerTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
-        1 * clientsManager.reserveNewClient(serverImpl.class, workingDir, options) >> client
+        1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, workingDir, options) >> client
 
         then:
-        1 * client.execute(worker, spec, workerOperation, buildOperation)
+        1 * client.execute(workerAction, spec, workerOperation, buildOperation)
 
         then:
         1 * clientsManager.release(client)
@@ -73,7 +73,7 @@ class WorkerDaemonManagerTest extends Specification {
 
     def "idle client is reused when daemon is executed"() {
         when:
-        manager.getDaemon(serverImpl.class, workingDir, options).execute(worker, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -83,7 +83,7 @@ class WorkerDaemonManagerTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * client.execute(worker, spec, workerOperation, buildOperation)
+        1 * client.execute(workerAction, spec, workerOperation, buildOperation)
 
         then:
         1 * clientsManager.release(client)
@@ -92,7 +92,7 @@ class WorkerDaemonManagerTest extends Specification {
 
     def "client is released even if execution fails"() {
         when:
-        manager.getDaemon(serverImpl.class, workingDir, options).execute(worker, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -102,7 +102,7 @@ class WorkerDaemonManagerTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * client.execute(worker, spec, workerOperation, buildOperation) >> { throw new RuntimeException("Boo!") }
+        1 * client.execute(workerAction, spec, workerOperation, buildOperation) >> { throw new RuntimeException("Boo!") }
 
         then:
         thrown(RuntimeException)
@@ -114,13 +114,13 @@ class WorkerDaemonManagerTest extends Specification {
         WorkerDaemonExpiration workerDaemonExpiration
 
         when:
-        def manager = new WorkerDaemonManager(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
+        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
 
         then:
         1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }
 
         when:
-        manager.stop()
+        factory.stop()
 
         then:
         1 * memoryManager.removeMemoryHolder(_) >> { args -> assert args[0] == workerDaemonExpiration }
@@ -128,7 +128,7 @@ class WorkerDaemonManagerTest extends Specification {
 
     def "stops clients"() {
         when:
-        manager.stop()
+        factory.stop()
 
         then:
         clientsManager.stop()

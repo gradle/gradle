@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
@@ -33,7 +34,6 @@ import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
@@ -74,7 +74,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return transforms;
     }
 
-    private Object[] getTransformParameters(Action<ArtifactTransformConfiguration> configAction) {
+    private Object[] getTransformParameters(Action<? super ArtifactTransformConfiguration> configAction) {
         if (configAction == null) {
             return NO_PARAMETERS;
         }
@@ -87,7 +87,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
         private Class<? extends ArtifactTransform> type;
-        private Action<ArtifactTransformConfiguration> config;
+        private Action<? super ArtifactTransformConfiguration> config;
 
         public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
             from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
@@ -110,7 +110,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> config) {
+        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransformConfiguration> config) {
             if (this.type != null) {
                 throw new VariantTransformConfigurationException("Could not register transform: only one ArtifactTransform may be provided for registration.");
             }
@@ -119,24 +119,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
-    private static class DefaultArtifactTransformConfiguration implements ArtifactTransformConfiguration {
-        private final List<Object> params = Lists.newArrayList();
-
-        @Override
-        public void params(Object... params) {
-            Collections.addAll(this.params, params);
-        }
-
-        @Override
-        public void setParams(Object... params) {
-            this.params.clear();
-            Collections.addAll(this.params, params);
-        }
-
-        @Override
-        public Object[] getParams() {
-            return this.params.toArray();
-        }
+    private static class DefaultArtifactTransformConfiguration extends DefaultActionConfiguration implements ArtifactTransformConfiguration {
     }
 
 }

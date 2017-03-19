@@ -15,13 +15,18 @@
  */
 
 package org.gradle.integtests.tooling
+
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.tooling.fixture.GradleBuildCancellation
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.*
+import org.gradle.tooling.BuildException
+import org.gradle.tooling.CancellationToken
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
@@ -31,7 +36,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
-    ProgressEvents events = new ProgressEvents()
+    ProgressEvents events = ProgressEvents.create()
 
     @Rule
     GradleBuildCancellation cancellationTokenSource

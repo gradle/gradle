@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+// START SNIPPET developer-ci-setup
+ext.isCiServer = System.getenv().containsKey("CI")
 
-import org.gradle.process.internal.worker.WorkerControl;
-
-public interface WorkerDaemonWorker extends WorkerDaemonProtocol, WorkerControl {
+buildCache {
+    local {
+        enabled = !isCiServer
+    }
+    remote(HttpBuildCache) {
+        url = 'https://example.com:8123/build-cache/'
+        push = isCiServer
+    }
 }
+// END SNIPPET developer-ci-setup

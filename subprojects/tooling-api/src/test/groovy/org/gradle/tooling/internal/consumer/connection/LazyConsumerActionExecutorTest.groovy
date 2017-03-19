@@ -22,6 +22,8 @@ import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import spock.lang.Specification
 
 class LazyConsumerActionExecutorTest extends Specification {
@@ -33,6 +35,7 @@ class LazyConsumerActionExecutorTest extends Specification {
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final FailsafeBuildProgressListenerAdapter buildProgressListener = Mock()
     final BuildCancellationToken cancellationToken = Mock()
     final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, connectionParams)
 
@@ -42,9 +45,10 @@ class LazyConsumerActionExecutorTest extends Specification {
 
         then:
         1 * loggingProvider.progressLoggerFactory >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
+        1 * implementationLoader.create(distribution, progressLoggerFactory, _ as InternalBuildProgressListener, connectionParams, cancellationToken) >> consumerConnection
         _ * action.parameters >> params
         _ * params.cancellationToken >> cancellationToken
+        _ * params.buildProgressListener >> buildProgressListener
         1 * action.run(consumerConnection)
         0 * _._
     }
@@ -58,15 +62,17 @@ class LazyConsumerActionExecutorTest extends Specification {
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
+        1 * implementationLoader.create(distribution, progressLoggerFactory, _ as InternalBuildProgressListener, connectionParams, cancellationToken) >> consumerConnection
         _ * action.parameters >> params
         1 * params.cancellationToken >> cancellationToken
+        1 * params.buildProgressListener >> buildProgressListener
         1 * action.run(consumerConnection)
         0 * _._
 
         then:
         _ * action2.parameters >> params
         _ * params.cancellationToken >> cancellationToken
+        1 * params.buildProgressListener >> buildProgressListener
         1 * action2.run(consumerConnection)
         0 * _._
     }
@@ -89,9 +95,10 @@ class LazyConsumerActionExecutorTest extends Specification {
         RuntimeException e = thrown()
         e == failure
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> { throw failure }
+        1 * implementationLoader.create(distribution, progressLoggerFactory, _ as InternalBuildProgressListener, connectionParams, cancellationToken) >> { throw failure }
         _ * action.parameters >> params
         _ * params.cancellationToken >> cancellationToken
+        _ * params.buildProgressListener >> buildProgressListener
 
         when:
         connection.stop()

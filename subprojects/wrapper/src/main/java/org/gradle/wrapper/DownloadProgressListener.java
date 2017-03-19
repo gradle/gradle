@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.wrapper;
 
-package org.gradle.workers.internal;
+import java.net.URI;
 
-public interface WorkerDaemonProtocol {
-    <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec);
+public interface DownloadProgressListener {
+    /**
+     * Reports the current progress of the download
+     *
+     * @param address       distribution url
+     * @param contentLength the content length of the distribution, or -1 if the content length is not known.
+     * @param downloaded    the total amount of currently downloaded bytes
+     */
+    void downloadStatusChanged(URI address, long contentLength, long downloaded);
 }

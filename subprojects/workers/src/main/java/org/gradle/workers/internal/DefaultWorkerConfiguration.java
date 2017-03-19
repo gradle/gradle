@@ -18,6 +18,7 @@ package org.gradle.workers.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -26,14 +27,12 @@ import org.gradle.workers.ForkMode;
 import org.gradle.workers.WorkerConfiguration;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.List;
 
-public class DefaultWorkerConfiguration implements WorkerConfiguration {
+public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfiguration {
     private final JavaForkOptions forkOptions;
     private ForkMode forkMode = ForkMode.AUTO;
     private List<File> classpath = Lists.newArrayList();
-    private Serializable[] params = new Serializable[]{};
     private String displayName;
 
     public DefaultWorkerConfiguration(FileResolver fileResolver) {
@@ -49,15 +48,6 @@ public class DefaultWorkerConfiguration implements WorkerConfiguration {
     @Override
     public void setClasspath(Iterable<File> classpath) {
         this.classpath = Lists.newArrayList(classpath);
-    }
-
-    @Override
-    public Serializable[] getParams() {
-        return params;
-    }
-
-    public void setParams(Serializable[] params) {
-        this.params = params;
     }
 
     @Override

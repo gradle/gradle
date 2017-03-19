@@ -15,7 +15,6 @@
  */
 package org.gradle.api.attributes;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -64,7 +63,7 @@ public interface CompatibilityRuleChain<T> {
      *
      * @param rule the rule to add to the chain
      */
-    void add(Action<? super CompatibilityCheckDetails<T>> rule);
+    void add(Class<? extends AttributeCompatibilityRule<T>> rule);
 
     /**
      * Adds a rule that tells that if an attribute is missing, either on the producer or the consumer, then

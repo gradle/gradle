@@ -97,8 +97,7 @@ public class ListReorderer {
         T moveBeforeObject = sourceList.get(index);
 
         //This fixes a bug. This happens if the user selects things and moves them to an index where something is already selected. I select 1, 2, and 4 and I say move to 2. 2 is already selected. This makes no sense, but its happened in the field.
-        if (moveList.contains(moveBeforeObject)) //just remove the item from the move list.
-        {
+        if (moveList.contains(moveBeforeObject)) { //just remove the item from the move list.
             List<T> newMoveList = new ArrayList<T>(
                     moveList);   //we don't want to actually affect the move list. Callers use it for visually selecting items after the move. So we'll make a duplicate and just recursively call ourselves again.
             newMoveList.remove(moveBeforeObject);

@@ -238,15 +238,29 @@ allprojects {
 
     def "applies compatibility and disambiguation rules when selecting variant"() {
         buildFile << """
+class BuildTypeCompatibilityRule implements AttributeCompatibilityRule<String> {
+    void execute(CompatibilityCheckDetails<String> details) {
+        if (details.consumerValue == "debug" && details.producerValue == "profile") { 
+            details.compatible()
+        }    
+    }
+}
+class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
+    void execute(MultipleCandidatesDetails<String> details) {
+        if (details.candidateValues.contains('tasty')) { 
+            details.closestMatch('tasty')
+        }
+    }
+}
 
 allprojects {
     configurations.compile.attributes.attribute(usage, 'compile')
     dependencies.attributesSchema {
         attribute(buildType) {
-            compatibilityRules.add { details -> if (details.consumerValue == "debug" && details.producerValue == "profile") { details.compatible() } }
+            compatibilityRules.add(BuildTypeCompatibilityRule)
         }
         attribute(flavor) {
-            disambiguationRules.add { details -> if (details.candidateValues.contains('tasty')) { details.closestMatch('tasty') } }
+            disambiguationRules.add(FlavorSelectionRule)
         }
     }
 }

@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
+import org.gradle.api.Incubating;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
@@ -127,10 +128,22 @@ public class Project extends XmlPersistableConfigurationObject {
         this.linkedResources = linkedResources;
     }
 
+    /*
+     * The resource filters of this Eclipse project.
+     *
+     * @since 3.5
+     */
+    @Incubating
     public Set<ResourceFilter> getResourceFilters() {
         return resourceFilters;
     }
 
+    /*
+     * Sets the resource filters of this Eclipse project.
+     *
+     * @since 3.5
+     */
+    @Incubating
     public void setResourceFilters(Set<ResourceFilter> resourceFilters) {
         this.resourceFilters = resourceFilters;
     }

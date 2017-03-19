@@ -32,6 +32,11 @@ import java.net.URL;
  *
  * The build cache only supports BASIC authentication currently.
  *
+ * <p>Cache entries are loaded via {@literal GET} and stored via {@literal PUT} requests.</p>
+ * For a {@literal GET} request we expect a 200 or 404 response and for {@literal PUT} we expect any 2xx response.
+ * Other responses are treated as recoverable or non-recoverable errors, depending on the status code.
+ * E.g. we treat authentication failures (401 and 409) as non-recoverable while an internal server error (500) is recoverable.
+ *
  * @since 3.5
  */
 @Incubating

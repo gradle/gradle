@@ -163,4 +163,9 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
         backingModule.withNonUniqueSnapshots();
         return t();
     }
+
+    @Override
+    public boolean getUniqueSnapshots() {
+        return backingModule.getUniqueSnapshots();
+    }
 }

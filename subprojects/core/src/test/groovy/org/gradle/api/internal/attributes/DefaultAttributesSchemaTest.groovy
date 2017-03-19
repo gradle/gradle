@@ -17,6 +17,8 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeCompatibilityRule
+import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.internal.component.model.ComponentAttributeMatcher
@@ -108,23 +110,33 @@ class DefaultAttributesSchemaTest extends Specification {
         e.message == 'Unable to find matching strategy for map'
     }
 
+    static class CustomCompatibilityRule implements AttributeCompatibilityRule<Map> {
+        @Override
+        void execute(CompatibilityCheckDetails<Map> details) {
+            def producerValue = details.producerValue
+            def consumerValue = details.consumerValue
+            if (producerValue.size() == consumerValue.size()) {
+                // arbitrary, just for testing purposes
+                details.compatible()
+            }
+        }
+    }
+
+    static class CustomSelectionRule implements AttributeDisambiguationRule<Map> {
+        @Override
+        void execute(MultipleCandidatesDetails<Map> details) {
+            details.closestMatch(details.candidateValues.first())
+        }
+    }
+
     @SuppressWarnings('VariableName')
     def "can set a custom matching strategy"() {
         def attr = Attribute.of(Map)
 
         given:
         schema.attribute(attr) {
-            it.compatibilityRules.add { CompatibilityCheckDetails<Map> details ->
-                def producerValue = details.producerValue
-                def consumerValue = details.consumerValue
-                if (producerValue.size() == consumerValue.size()) {
-                    // arbitrary, just for testing purposes
-                    details.compatible()
-                }
-            }
-            it.disambiguationRules.add { details ->
-                details.closestMatch(details.candidateValues.first())
-            }
+            it.compatibilityRules.add(CustomCompatibilityRule)
+            it.disambiguationRules.add(CustomSelectionRule)
         }
         def strategy = schema.getMatchingStrategy(attr)
         def checkDetails = Mock(CompatibilityCheckDetails)

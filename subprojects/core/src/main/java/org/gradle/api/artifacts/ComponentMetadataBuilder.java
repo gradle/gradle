@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * A component metadata builder.
  *
- * @since 4.0
+ * @since 3.6
  */
 @Incubating
 public interface ComponentMetadataBuilder {

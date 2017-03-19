@@ -221,6 +221,7 @@ idea {
                 "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
                 "-Dorg.gradle.integtest.versions=latest",
+                "-Dorg.gradle.integtest.multiversion=default",
                 "-Dorg.gradle.integtest.testkit.compatibility=current",
                 "-ea",
                 "-Xmx512m"

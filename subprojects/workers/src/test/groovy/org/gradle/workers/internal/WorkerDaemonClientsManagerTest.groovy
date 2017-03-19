@@ -26,7 +26,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def options = Stub(DaemonForkOptions)
     def starter = Stub(WorkerDaemonStarter)
-    def serverImpl = Stub(WorkerDaemonProtocol)
+    def serverImpl = Stub(WorkerProtocol)
 
     @Subject manager = new WorkerDaemonClientsManager(starter)
 

@@ -194,6 +194,14 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         String variantToMatchViaConfiguration = variant.toLowerCase()
 
         buildFile << """
+            class CompatibleWhenValuesEqualIgnoringCaseRule implements AttributeCompatibilityRule<String> {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.consumerValue.toLowerCase() == details.producerValue.toLowerCase()) {
+                        details.compatible()
+                    }
+                }
+            }
+
             project(':producer') {
                 dependencies {
                     attributesSchema {
@@ -211,11 +219,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                     attributesSchema {
                         attribute(flavor)
                         attribute(variant) {
-                            compatibilityRules.add { details ->
-                                if (details.consumerValue.toLowerCase() == details.producerValue.toLowerCase()) {
-                                    details.compatible()
-                                }
-                            }
+                            compatibilityRules.add(CompatibleWhenValuesEqualIgnoringCaseRule)
                             compatibilityRules.assumeCompatibleWhenMissing()
                         }
                     }

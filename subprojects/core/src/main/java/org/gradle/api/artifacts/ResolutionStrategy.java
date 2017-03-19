@@ -298,7 +298,7 @@ public interface ResolutionStrategy {
      * NOTE: For a particular Gradle version, artifact ordering will be consistent. Multiple resolves for the same inputs will result in the
      * same outputs in the same order.
      *
-     * @since 3.4
+     * @since 3.5
      */
     @Incubating
     void sortArtifacts(SortOrder sortOrder);
@@ -307,7 +307,7 @@ public interface ResolutionStrategy {
      * Defines the sort order for components and artifacts produced by the configuration.
      *
      * @see #sortArtifacts(SortOrder)
-     * @since 3.4
+     * @since 3.5
      */
     @Incubating
     enum SortOrder {

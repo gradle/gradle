@@ -16,13 +16,10 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.api.Describable;
 
-/**
- * A service that executes work in a (potentially) long-lived process.
- */
-public interface WorkerDaemon {
-    <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec);
-    <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation);
+import java.io.Serializable;
+
+public interface WorkerAction<T> extends Describable, Serializable {
+    DefaultWorkResult execute(T spec);
 }

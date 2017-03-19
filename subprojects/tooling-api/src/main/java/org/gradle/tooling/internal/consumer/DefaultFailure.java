@@ -18,6 +18,9 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.Failure;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Collections;
 import java.util.List;
 
 public final class DefaultFailure implements Failure {
@@ -47,4 +50,12 @@ public final class DefaultFailure implements Failure {
         return causes;
     }
 
+    public static DefaultFailure fromThrowable(Throwable t) {
+        StringWriter out = new StringWriter();
+        PrintWriter wrt = new PrintWriter(out);
+        t.printStackTrace(wrt);
+        Throwable cause = t.getCause();
+        DefaultFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
+        return new DefaultFailure(t.getMessage(), out.toString(), Collections.singletonList(causeFailure));
+    }
 }

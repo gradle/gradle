@@ -69,8 +69,7 @@ public class FileLinkDefinitionLord {
         }
 
         extension = extension.toLowerCase();
-        if (extensions.contains(extension)) //don't add extensions already added
-        {
+        if (extensions.contains(extension)) { //don't add extensions already added
             return;
         }
 

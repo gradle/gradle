@@ -187,6 +187,7 @@ public interface LongRunningOperation {
      * @return this
      * @since 3.5
      */
+    @Incubating
     LongRunningOperation setEnvironmentVariables(@Nullable Map<String, String> envVariables);
 
     /**

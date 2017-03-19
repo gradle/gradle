@@ -37,8 +37,8 @@ public class Exceptions {
         return String.format("Unsupported method: %s."
                 + "\nThe version of Gradle you connect to does not support that method."
                 + "\nTo resolve the problem you can change/upgrade the target version of Gradle you connect to."
-                + "\nAlternatively, you can ignore this exception and read other information from the model."
-                , method);
+                + "\nAlternatively, you can ignore this exception and read other information from the model.",
+            method);
     }
 
     public static UnknownModelException unsupportedModel(Class<?> modelType, String targetVersion) {

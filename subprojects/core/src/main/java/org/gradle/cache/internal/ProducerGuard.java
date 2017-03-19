@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.cache.internal;
 
-// START SNIPPET push-to-remote
-buildCache {
-    local {
-        enabled = false
-    }
-    remote(org.gradle.caching.http.HttpBuildCache) {
-        url = 'https://example.com:8123/build-cache/'
-        push = true
-    }
+import org.gradle.internal.Factory;
+
+public interface ProducerGuard<T> {
+    <V> V guardByKey(T key, Factory<V> factory);
 }
-// END SNIPPET push-to-remote

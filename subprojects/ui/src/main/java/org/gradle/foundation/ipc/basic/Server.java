@@ -166,13 +166,12 @@ public class Server<P extends Server.Protocol, O extends Server.ServerObserver> 
                 clientSocket.close();
             } catch (IOException e) {
                 consecutiveFailures++;
-                if (consecutiveFailures >= 20)  //if we fail too many times, we'll request to shutdown. It's obviously not working. This is an arbitrary number.
-                {
+                if (consecutiveFailures >= 20) { //if we fail too many times, we'll request to shutdown. It's obviously not working. This is an arbitrary number.
+
                     requestShutdown();
                 }
 
-                if (consecutiveFailures > 8)    //the first few usually fail while we're waiting for the process to startup.
-                {
+                if (consecutiveFailures > 8) {  //the first few usually fail while we're waiting for the process to startup.
                     logger.error("Accept failed (" + consecutiveFailures + ").");
                 }
             } catch (Throwable t) {  //something really bad happened, shut down
@@ -197,12 +196,10 @@ public class Server<P extends Server.Protocol, O extends Server.ServerObserver> 
             Object object = clientSocket.readObject();
 
             if (object == null) {
-                if (!hasRequestedShutdown)   //if we're trying to shutdown, we can get errors here. Just ignore them and move on
-                {
+                if (!hasRequestedShutdown) { //if we're trying to shutdown, we can get errors here. Just ignore them and move on
                     failureCount++;
                     protocol.readFailureOccurred();
-                    if (failureCount == 3) //after 3 failures, assume the client went away.
-                    {
+                    if (failureCount == 3) { //after 3 failures, assume the client went away.
                         hasClientStopped = true;
                         protocol.clientCommunicationStopped();
                     }

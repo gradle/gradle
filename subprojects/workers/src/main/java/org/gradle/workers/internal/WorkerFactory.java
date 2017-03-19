@@ -16,10 +16,9 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.Describable;
+import java.io.File;
 
-import java.io.Serializable;
-
-public interface WorkerDaemonAction<T> extends Describable, Serializable {
-    DefaultWorkResult execute(T spec);
+public interface WorkerFactory {
+    // TODO - workingDir should be injected into the implementation
+    Worker getWorker(Class<? extends WorkerProtocol> workerImplementationClass, File workingDir, DaemonForkOptions forkOptions);
 }

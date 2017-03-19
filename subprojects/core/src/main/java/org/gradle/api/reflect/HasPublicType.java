@@ -28,5 +28,10 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface HasPublicType {
 
+    /**
+     * Public type.
+     *
+     * @return this object's public type
+     */
     TypeOf<?> getPublicType();
 }

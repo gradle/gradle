@@ -16,14 +16,20 @@
 
 package org.gradle.quality.integtest.fixtures
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.CheckstylePlugin
 import org.gradle.util.VersionNumber
 
 class CheckstyleCoverage {
     // Note, this only work for major.minor versions
-    final static List<String> ALL = ['6.12', '6.9', '6.5', '6.0', '5.5', CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION].asImmutable()
+    private final static List<String> ALL = ['5.9', '6.2', '6.9', '6.12', '7.0', '7.6', CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION].asImmutable()
 
-    final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
-    // JDK6 support was dropped in 6.2
-    final static List<String> JDK6_SUPPORTED = ALL_VERSIONS.findAll({ it < VersionNumber.parse("6.2") }).collect({ "${it.major}.${it.minor}" }).asImmutable()
+    private final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
+
+    // JDK7 support was dropped in 7.0
+    private final static List<String> JDK7_SUPPORTED = ALL_VERSIONS.findAll({ it < VersionNumber.parse("7.0") }).collect({ "${it.major}.${it.minor}" }).asImmutable()
+
+    static List<String> getSupportedVersionsByJdk() {
+        JavaVersion.current().java7 ? JDK7_SUPPORTED : ALL
+    }
 }
