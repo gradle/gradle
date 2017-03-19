@@ -15,10 +15,10 @@
  */
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -34,6 +34,7 @@ import org.gradle.api.internal.attributes.DisambiguationRuleChainInternal;
 import org.gradle.internal.Cast;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,7 +110,7 @@ public class ComponentAttributeMatcher {
     private class Matcher<T extends HasAttributes> {
         private final AttributesSchemaInternal consumerAttributeSchema;
         private final AttributesSchemaInternal producerAttributeSchema;
-        private final Map<T, MatchDetails> matchDetails = Maps.newHashMap();
+        private final Map<T, MatchDetails> matchDetails = Maps.newLinkedHashMap();
         private final AttributeContainer requested;
 
         public Matcher(AttributesSchemaInternal consumerAttributeSchema,
@@ -157,7 +158,7 @@ public class ComponentAttributeMatcher {
             // then see if there's a non-empty intersection.
             List<T> remainingMatches = Lists.newArrayList(matches);
             List<T> best = Lists.newArrayListWithCapacity(matches.size());
-            final ListMultimap<Object, T> candidatesByValue = ArrayListMultimap.create();
+            Multimap<Object, T> candidatesByValue = LinkedHashMultimap.create();
             Set<Attribute<?>> allAttributes = Sets.newHashSet();
             for (MatchDetails details : matchDetails.values()) {
                 allAttributes.addAll(details.matchesByAttribute.keySet());
@@ -185,7 +186,7 @@ public class ComponentAttributeMatcher {
         }
 
         private void disambiguate(List<T> remainingMatches,
-                                  ListMultimap<Object, T> candidatesByValue,
+                                  Multimap<Object, T> candidatesByValue,
                                   AttributeMatchingStrategy<?> matchingStrategy,
                                   List<T> best) {
             if (candidatesByValue.isEmpty()) {
@@ -253,10 +254,10 @@ public class ComponentAttributeMatcher {
     }
 
     private static class CandidateDetails<T> implements MultipleCandidatesDetails<Object> {
-        private final ListMultimap<Object, T> candidatesByValue;
+        private final Multimap<Object, T> candidatesByValue;
         private final List<T> best;
 
-        public CandidateDetails(ListMultimap<Object, T> candidatesByValue, List<T> best) {
+        CandidateDetails(Multimap<Object, T> candidatesByValue, List<T> best) {
             this.candidatesByValue = candidatesByValue;
             this.best = best;
         }
@@ -268,7 +269,7 @@ public class ComponentAttributeMatcher {
 
         @Override
         public void closestMatch(Object candidate) {
-            List<T> hasAttributes = candidatesByValue.get(candidate);
+            Collection<T> hasAttributes = candidatesByValue.get(candidate);
             for (T attributes : hasAttributes) {
                 best.add(attributes);
             }
