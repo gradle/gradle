@@ -657,6 +657,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
+        failure.assertHasCause("Could not find any public constructor for class FlavorCompatibilityRule which accepts parameters [].")
     }
 
     def "user receives reasonable error message when compatibility rule fails"() {
@@ -784,6 +785,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
+        failure.assertHasCause("Could not find any public constructor for class FlavorSelectionRule which accepts parameters [].")
     }
 
     def "user receives reasonable error message when disambiguation rule fails"() {
