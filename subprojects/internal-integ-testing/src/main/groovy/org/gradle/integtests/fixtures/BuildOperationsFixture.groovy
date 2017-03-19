@@ -28,7 +28,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-
 class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
     private Map operations
@@ -61,7 +60,11 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
 
                 void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
                     if (!operations[buildOperation.id]) {
-                        operations[buildOperation.id] = [:]
+                        operations[buildOperation.id] = [
+                            displayName: "\${buildOperation.displayName}",
+                            parentId: "\${buildOperation.parentId}",
+                            name: "\${buildOperation.name}"
+                        ]
                     }
                     operations[buildOperation.id].endTime = finishEvent.endTime
                     if (finishEvent.failure != null) {

@@ -33,6 +33,8 @@ import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
@@ -66,6 +68,7 @@ class DefaultGradleLauncherSpec extends Specification {
     private ModelConfigurationListener modelListenerMock = Mock(ModelConfigurationListener.class);
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class);
     private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
+    private BuildOperationWorkerRegistry buildOperationWorkerRegistry = new DefaultBuildOperationWorkerRegistry(1)
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class);
     private Stoppable otherService = Mock(Stoppable)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -105,6 +108,7 @@ class DefaultGradleLauncherSpec extends Specification {
         0 * gradleMock._
 
         buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
+        buildServices.get(BuildOperationWorkerRegistry) >> buildOperationWorkerRegistry
     }
 
     DefaultGradleLauncher launcher() {

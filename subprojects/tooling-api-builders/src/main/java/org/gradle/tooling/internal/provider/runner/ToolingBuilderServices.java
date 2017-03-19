@@ -32,13 +32,12 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
         registration.addProvider(new Object() {
             BuildActionRunner createBuildActionRunner(BuildOperationExecutor buildOperationExecutor, BuildOperationService buildOperationService) {
                 return new SubscribableBuildActionRunner(
-                    new RunAsBuildOperationBuildActionRunner(
-                        new ChainingBuildActionRunner(
-                            Arrays.asList(
-                                new BuildModelActionRunner(),
-                                new TestExecutionRequestActionRunner(buildOperationService),
-                                new ClientProvidedBuildActionRunner())),
-                        buildOperationExecutor), buildOperationService);
+                    new ChainingBuildActionRunner(
+                        Arrays.asList(
+                            new BuildModelActionRunner(),
+                            new TestExecutionRequestActionRunner(buildOperationService),
+                            new ClientProvidedBuildActionRunner())),
+                    buildOperationService);
             }
         });
     }
