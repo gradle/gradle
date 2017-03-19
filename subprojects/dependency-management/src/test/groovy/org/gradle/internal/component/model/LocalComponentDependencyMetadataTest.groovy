@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -507,49 +506,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         'exact match'                | [key: 'something else']         | 'bar'
         'compatible value'           | [key: 'other']                  | 'bar'
         'wrong number of attributes' | [key: 'something', extra: 'no'] | 'default'
-    }
-
-    def "matcher failure"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata) {
-            getAttributes() >> attributes(key: 'something')
-        }
-        fromConfig.hierarchy >> ["from"]
-        def defaultConfig = defaultConfiguration()
-        def toFooConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'foo'
-            getAttributes() >> attributes(key: 'something')
-            isCanBeConsumed() >> true
-        }
-        def toBarConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'bar'
-            getAttributes() >> attributes(key: 'something else')
-            isCanBeConsumed() >> true
-        }
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
-        }
-        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher())
-        attributeSchemaWithCompatibility.attribute(Attribute.of("key", String), {
-            it.ordered(Mock(Comparator) {
-                compare(_, _) >> {
-                    throw new RuntimeException('oh noes!')
-                }
-            })
-        })
-
-        given:
-        toComponent.getConfiguration("default") >> defaultConfig
-        toComponent.getConfiguration("foo") >> toFooConfig
-        toComponent.getConfiguration("bar") >> toBarConfig
-
-        when:
-        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
-
-        then:
-        def e = thrown(GradleException)
-        e.message.startsWith("Unexpected error thrown when trying to match attribute values with org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy")
     }
 
     def configuration(String name, String... parents) {

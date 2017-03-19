@@ -602,5 +602,256 @@ All of them match the consumer attributes:
         notExecuted ':b:fooJar', ':c:fooJar'
     }
 
+    def "user receives reasonable error message when compatibility rule cannot be created"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
 
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                FlavorCompatibilityRule(String thing) { }
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                }
+            }
+
+            allprojects {
+                dependencies.attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $free; $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       configurations.compile.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    bar.attributes { $paid; $debug }
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails("a:check")
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
+        failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
+    }
+
+    def "user receives reasonable error message when compatibility rule fails"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    throw new RuntimeException("broken!")
+                }
+            }
+
+            allprojects {
+                dependencies.attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $free; $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       configurations.compile.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    bar.attributes { $paid; $debug }
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails("a:check")
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
+        failure.assertHasCause("broken!")
+    }
+
+    def "user receives reasonable error message when disambiguation rule cannot be created"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                FlavorSelectionRule(String thing) {
+                }
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                }
+            }
+
+            allprojects {
+                dependencies.attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                        disambiguationRules.add(FlavorSelectionRule)
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $free; $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       configurations.compile.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes { $free; $debug }
+                    bar.attributes { $paid; $debug }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails("a:check")
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
+    }
+
+    def "user receives reasonable error message when disambiguation rule fails"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    throw new RuntimeException("broken!")
+                }
+            }
+
+            allprojects {
+                dependencies.attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                        disambiguationRules.add(FlavorSelectionRule)
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $free; $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       configurations.compile.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes { $free; $debug }
+                    bar.attributes { $paid; $debug }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails("a:check")
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("broken!")
+    }
 }

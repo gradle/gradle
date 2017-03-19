@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Comparator;
 import java.util.List;
@@ -47,8 +48,12 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
         rules.add(new Action<CompatibilityCheckDetails<T>>() {
             @Override
             public void execute(CompatibilityCheckDetails<T> details) {
-                AttributeCompatibilityRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule);
-                instance.execute(details);
+                try {
+                    AttributeCompatibilityRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule);
+                    instance.execute(details);
+                } catch (Throwable t) {
+                    throw new AttributeMatchException(String.format("Could not determine whether value %s is compatible with value %s using %s.", details.getProducerValue(), details.getConsumerValue(), ModelType.of(rule).getDisplayName()), t);
+                }
             }
         });
     }

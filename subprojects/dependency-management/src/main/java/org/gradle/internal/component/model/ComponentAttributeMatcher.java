@@ -20,7 +20,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.GradleException;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -249,11 +248,7 @@ public class ComponentAttributeMatcher {
                     compatible = false;
                 }
             };
-            try {
-                compatibilityRules.execute(details);
-            } catch (Exception ex) {
-                throw new GradleException("Unexpected error thrown when trying to match attribute values with " + strategy, ex);
-            }
+            compatibilityRules.execute(details);
         }
     }
 

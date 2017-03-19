@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Comparator;
 import java.util.List;
@@ -35,8 +36,12 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         this.rules.add(new Action<MultipleCandidatesDetails<T>>() {
             @Override
             public void execute(MultipleCandidatesDetails<T> details) {
-                AttributeDisambiguationRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule);
-                instance.execute(details);
+                try {
+                    AttributeDisambiguationRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule);
+                    instance.execute(details);
+                } catch (Throwable t) {
+                    throw new AttributeMatchException(String.format("Could not select value from candidates %s using %s.", details.getCandidateValues(), ModelType.of(rule).getDisplayName()), t);
+                }
             }
         });
     }
