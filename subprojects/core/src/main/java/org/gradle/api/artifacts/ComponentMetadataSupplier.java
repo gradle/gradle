@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * from a remote repository, in place of parsing the descriptor. Users may implement a provider
  * to make dependency resolution faster.
  *
- * @since 4.0
+ * @since 3.6
  */
 @Incubating
 public interface ComponentMetadataSupplier extends Action<ComponentMetadataSupplierDetails> {
