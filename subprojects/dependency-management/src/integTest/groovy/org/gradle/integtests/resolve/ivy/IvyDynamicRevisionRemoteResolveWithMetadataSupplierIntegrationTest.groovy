@@ -263,8 +263,34 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         then:
         fails 'checkDeps'
 
-        errorOutput.contains('Could not resolve group:projectB:latest.release')
+        failure.assertHasCause('Could not resolve group:projectB:latest.release')
         failure.assertHasCause('meh: error from custom rule')
+    }
+
+    def "handles failure to create custom metadata provider"() {
+        given:
+        buildFile << """
+          class MP implements ComponentMetadataSupplier {
+            MP() {
+                throw new RuntimeException("broken")
+            }
+          
+            void execute(ComponentMetadataSupplierDetails details) {
+            }
+          }
+"""
+
+        when:
+        expectListVersions(projectA2)
+        projectA2.ivy.expectGet()
+        expectListVersions(projectB1)
+
+        then:
+        fails 'checkDeps'
+
+        failure.assertHasCause('Could not resolve group:projectB:latest.release')
+        failure.assertHasCause('Could not create an instance of type MP.')
+        failure.assertHasCause('broken')
     }
 
     def "custom metadata provider doesn't have to do something"() {

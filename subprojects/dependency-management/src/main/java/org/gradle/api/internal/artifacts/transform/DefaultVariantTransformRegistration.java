@@ -102,8 +102,8 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
             HashCode resultHash = hasher.hash();
 
             return transformedFileCache.getResult(absoluteFile, resultHash, transformer);
-        } catch (Exception e) {
-            throw new ArtifactTransformException(input, to, implementation, e);
+        } catch (Throwable t) {
+            throw new ArtifactTransformException(input, to, implementation, t);
         }
     }
 }

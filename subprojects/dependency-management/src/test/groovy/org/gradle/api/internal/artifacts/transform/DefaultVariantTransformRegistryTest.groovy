@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -141,8 +142,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         def e = thrown(ArtifactTransformException)
         e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.AbstractArtifactTransform"
-        e.cause instanceof VariantTransformConfigurationException
-        e.cause.message == 'Could not create instance of DefaultVariantTransformRegistryTest.AbstractArtifactTransform.'
+        e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type $AbstractArtifactTransform.name."
         e.cause.cause instanceof InstantiationException
 
         and:
@@ -174,8 +175,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         def e = thrown(ArtifactTransformException)
         e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.TestArtifactTransform"
-        e.cause instanceof VariantTransformConfigurationException
-        e.cause.message == 'Could not create instance of DefaultVariantTransformRegistryTest.TestArtifactTransform.'
+        e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type $TestArtifactTransform.name."
         e.cause.cause instanceof IllegalArgumentException
         e.cause.cause.message == 'Could not find any public constructor for ' + TestArtifactTransform + ' which accepts parameters [java.lang.String, java.lang.String, java.lang.String].'
 

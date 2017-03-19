@@ -42,9 +42,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         and:
         failureHasCause("Failure from runnable")
 
-        and:
-        errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from runnable")
-
         where:
         forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
@@ -203,6 +200,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         then:
         failureHasCause("A failure occurred while executing RunnableThatFails")
+        failureHasCause("Could not create an instance of type RunnableThatFails.")
         failureHasCause("You shall not pass!")
 
         where:
@@ -227,6 +225,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         then:
         failureHasCause("A failure occurred while executing RunnableWithDifferentConstructor")
+        failureHasCause("Could not create an instance of type RunnableWithDifferentConstructor.")
         failureHasCause("Could not find any public constructor for class RunnableWithDifferentConstructor which accepts parameters")
 
         where:

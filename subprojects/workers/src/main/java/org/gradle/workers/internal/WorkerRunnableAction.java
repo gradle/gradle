@@ -17,7 +17,6 @@
 package org.gradle.workers.internal;
 
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
 
 public class WorkerRunnableAction implements WorkerAction<ParamSpec> {
     private final String displayName;
@@ -34,8 +33,6 @@ public class WorkerRunnableAction implements WorkerAction<ParamSpec> {
             Runnable runnable = DirectInstantiator.instantiate(runnableClass, spec.getParams(runnableClass.getClassLoader()));
             runnable.run();
             return new DefaultWorkResult(true, null);
-        } catch (ObjectInstantiationException e) {
-            return new DefaultWorkResult(true, e.getCause());
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
