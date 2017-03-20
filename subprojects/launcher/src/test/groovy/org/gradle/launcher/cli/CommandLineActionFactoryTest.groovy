@@ -138,6 +138,7 @@ class CommandLineActionFactoryTest extends Specification {
         4                      | ['--parallel', '--max-workers=4']
         4                      | ['--parallel', '-Dorg.gradle.workers.max=4']
         6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
+        4                      | ['-Dorg.gradle.parallel=true', '--max-workers=4']
     }
 
     def "reports command-line parse failure"() {
