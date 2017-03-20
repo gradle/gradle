@@ -1331,7 +1331,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The value of the property, possibly null or null if not found.
      * @see Project#property(String)
      */
-    @Incubating
+    @Incubating @Nullable
     Object findProperty(String propertyName);
 
     /**
