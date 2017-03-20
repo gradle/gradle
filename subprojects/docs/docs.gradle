@@ -222,6 +222,19 @@ asciidoctor {
     separateOutputDirs = false
     options doctype: 'book'
 
+    extensions {
+        inlinemacro (name: "api") {
+            parent, target, attributes ->
+            def (className, method) = target.split('#') as List
+            def content = "<apilink class=\"$className\""
+            if (method) {
+                content += " method=\"$method\""
+            }
+            content += " />"
+            return content
+        }
+    }
+
     doLast {
         outputDir.eachFile { File file ->
             project.file("$outputDir/../$file.name").text = file.text
