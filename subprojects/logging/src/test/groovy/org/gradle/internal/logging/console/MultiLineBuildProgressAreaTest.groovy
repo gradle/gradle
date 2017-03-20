@@ -38,7 +38,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
 
     def setup() {
         progressArea.resizeBuildProgressTo(4);
-        newLineListener.beforeNewLineWritten(_) >> {
+        newLineListener.beforeNewLineWritten(_, _) >> {
             progressArea.newLineAdjustment();
         }
 
