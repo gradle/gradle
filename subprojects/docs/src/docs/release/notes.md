@@ -217,9 +217,9 @@ You should [set the Java home to choose a toolchain for cross compilation](#use-
 
 ## Potential breaking changes
 
-### Groovy upgraded from 2.4.7 to 2.4.9
+### Groovy upgraded from 2.4.7 to 2.4.10
 
-The version of Groovy bundled with Gradle has been upgraded to [2.4.9](http://www.groovy-lang.org/changelogs/changelog-2.4.9.html).
+The version of Groovy bundled with Gradle has been upgraded to [2.4.10](http://www.groovy-lang.org/changelogs/changelog-2.4.10.html).
 
 ### Core extensions should be addressed by their public type
 
