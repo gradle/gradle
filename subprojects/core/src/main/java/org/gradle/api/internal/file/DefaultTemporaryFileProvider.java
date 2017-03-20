@@ -23,15 +23,25 @@ import org.gradle.internal.FileUtils;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
 public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Serializable {
     private final Factory<File> baseDirFactory;
+    private final Path tempDirectory;
 
     public DefaultTemporaryFileProvider(final Factory<File> fileFactory) {
         this.baseDirFactory = fileFactory;
+        try {
+            this.tempDirectory = Files.createTempDirectory("GradleTemp");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        Runtime.getRuntime().addShutdownHook(new DefaultTemporaryFileCleanup(this.tempDirectory.toFile()));
     }
 
     public File newTemporaryFile(String... path) {
@@ -52,12 +62,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
         GFileUtils.mkdirs(dir);
         try {
-            // TODO: This is not a great paradigm for creating a temporary directory.
-            // See http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.
-            File tmpDir = File.createTempFile("gradle", "projectDir", dir);
-            tmpDir.delete();
-            tmpDir.mkdir();
-            return tmpDir;
+            return Files.createTempDirectory(tempDirectory, prefix + "_" + suffix).toFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
