@@ -89,6 +89,7 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
 
     /**
      * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
+     * @since 3.6
      */
     ForkMode getForkMode();
 
@@ -96,6 +97,7 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
      * Sets the forking mode for this worker, see {@link ForkMode}.
      *
      * @param forkMode the forking mode for this worker, see {@link ForkMode}
+     * @since 3.6
      */
     void setForkMode(ForkMode forkMode);
 

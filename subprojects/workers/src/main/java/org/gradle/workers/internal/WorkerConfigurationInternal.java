@@ -38,12 +38,10 @@ public interface WorkerConfigurationInternal extends WorkerConfiguration {
      */
     Iterable<String> getSharedPackages();
 
-
     /**
      * Sets the packages to be shared from the worker runtime.
      *
      * @param sharedPackages shared package to be shared from the worker runtime
      */
     void setSharedPackages(Iterable<String> sharedPackages);
-
 }
