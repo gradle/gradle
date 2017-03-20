@@ -102,6 +102,7 @@ class DefaultPropertyStateTest extends Specification {
         value = propertyState.getOrNull()
 
         then:
+        1 * provider.present >> true
         1 * provider.getOrNull() >> true
         value == true
     }

@@ -58,7 +58,7 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
 
     @Override
     public boolean isPresent() {
-        return provider != null;
+        return provider != null && provider.isPresent();
     }
 
     @Override
