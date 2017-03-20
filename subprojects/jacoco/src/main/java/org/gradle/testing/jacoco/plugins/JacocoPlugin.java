@@ -179,7 +179,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
-        reportTask.getReports().all(new Action<ConfigurableReport>() {
+        reportTask.getReports().withType(ConfigurableReport.class, new Action<ConfigurableReport>() {
             @Override
             public void execute(final ConfigurableReport report) {
                 report.setEnabled(project.provider(new Callable<Boolean>() {
@@ -235,7 +235,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
         reportTask.executionData(task);
         reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
-        reportTask.getReports().all(new Action<ConfigurableReport>() {
+        reportTask.getReports().withType(ConfigurableReport.class, new Action<ConfigurableReport>() {
             @Override
             public void execute(final ConfigurableReport report) {
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
