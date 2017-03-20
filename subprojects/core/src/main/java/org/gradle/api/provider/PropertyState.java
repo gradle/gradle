@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * You can create a {@code PropertyState} instance using the method {@link org.gradle.api.Project#property(java.lang.Class)}.
  *
  * @param <T> Type of value represented by property state
- * @since 3.5
+ * @since 4.0
  */
 @Incubating
 public interface PropertyState<T> extends Provider<T> {

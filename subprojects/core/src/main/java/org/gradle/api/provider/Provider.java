@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()} or {@code getOrNull()}.
  *
  * @param <T> Type of value represented by provider
- * @since 3.5
+ * @since 4.0
  */
 @Incubating
 public interface Provider<T> {

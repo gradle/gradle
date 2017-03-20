@@ -368,7 +368,7 @@ public interface Script {
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
-     * @since 3.5
+     * @since 4.0
      */
     @Incubating
     <T> Provider<T> provider(Callable<T> value);
@@ -379,7 +379,7 @@ public interface Script {
      * @param clazz The class to be used for property state.
      * @return The property state. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
-     * @since 3.5
+     * @since 4.0
      */
     @Incubating
     <T> PropertyState<T> property(Class<T> clazz);

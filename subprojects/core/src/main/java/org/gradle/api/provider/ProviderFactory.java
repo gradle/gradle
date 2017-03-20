@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * }
  * </pre>
  *
- * @since 3.5
+ * @since 4.0
  */
 @Incubating
 public interface ProviderFactory {
