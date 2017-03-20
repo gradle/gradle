@@ -49,7 +49,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
     }
 
     protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language) {
-        String targetFileName = clazzTemplate.substring(clazzTemplate.lastIndexOf("/") + 1).replace(".template", "");
+        String targetFileName = clazzTemplate.substring(clazzTemplate.lastIndexOf('/') + 1).replace(".template", "");
         return fromClazzTemplate(clazzTemplate, sourceSetName, language, targetFileName);
     }
 

@@ -54,7 +54,7 @@ public class ValueSnapshotter {
         }
         if (value instanceof List) {
             List<?> list = (List<?>) value;
-            if (list.size() == 0) {
+            if (list.isEmpty()) {
                 return ListValueSnapshot.EMPTY;
             }
             ValueSnapshot[] elements = new ValueSnapshot[list.size()];

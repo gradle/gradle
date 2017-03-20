@@ -320,7 +320,7 @@ public abstract class OperatingSystem {
 
         protected String getOsPrefix() {
             String osPrefix = getName().toLowerCase();
-            int space = osPrefix.indexOf(" ");
+            int space = osPrefix.indexOf(' ');
             if (space != -1) {
                 osPrefix = osPrefix.substring(0, space);
             }

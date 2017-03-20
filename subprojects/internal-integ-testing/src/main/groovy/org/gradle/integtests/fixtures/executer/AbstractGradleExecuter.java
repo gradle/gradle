@@ -776,7 +776,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put("user.home", getUserHomeDir().getAbsolutePath());
         }
 
-        properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
+        properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, Integer.toString(daemonIdleTimeoutSecs * 1000));
         properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());

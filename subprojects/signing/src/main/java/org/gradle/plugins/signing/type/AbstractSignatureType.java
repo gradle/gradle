@@ -73,7 +73,7 @@ public abstract class AbstractSignatureType implements SignatureType {
     @Override
     public String combinedExtension(File toSign) {
         String name = toSign.getName();
-        int dotIndex = name.lastIndexOf(".");
+        int dotIndex = name.lastIndexOf('.');
         if (dotIndex == -1 || dotIndex + 1 == name.length()) {
             return getExtension();
         } else {

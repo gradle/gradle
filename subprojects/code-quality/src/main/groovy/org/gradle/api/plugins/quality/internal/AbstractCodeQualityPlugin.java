@@ -144,7 +144,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
                 if (prunedName.isEmpty()) {
                     prunedName = task.getName();
                 }
-                prunedName = ("" + prunedName.charAt(0)).toLowerCase() + prunedName.substring(1);
+                prunedName = Character.toString(prunedName.charAt(0)).toLowerCase() + prunedName.substring(1);
                 configureTaskDefaults((T) task, prunedName);
             }
         });

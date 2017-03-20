@@ -898,8 +898,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             if (org == null) {
                 org = getMd().getModuleRevisionId().getOrganisation();
             }
-            boolean force = Boolean.valueOf(substitute(attributes.getValue("force")));
-            boolean changing = Boolean.valueOf(substitute(attributes.getValue("changing")));
+            boolean force = Boolean.parseBoolean(substitute(attributes.getValue("force")));
+            boolean changing = Boolean.parseBoolean(substitute(attributes.getValue("changing")));
 
             String transitiveValue = substitute(attributes.getValue("transitive"));
             boolean transitive = (transitiveValue == null) ? true : Boolean.valueOf(transitiveValue);

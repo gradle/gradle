@@ -195,7 +195,7 @@ public class UriTextResource implements TextResource {
         }
         paramName.setLength(0);
         paramValue.setLength(0);
-        int separator = contentType.indexOf("=", pos);
+        int separator = contentType.indexOf('=', pos);
         if (separator < 0) {
             separator = contentType.length();
         }

@@ -45,7 +45,7 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
         Element thead = getChild(classDoc.getPropertiesTable(), "thead");
         Element tr = getChild(thead, "tr");
         List<Element> header = children(tr, "td");
-        if (header.size() < 1) {
+        if (header.isEmpty()) {
             throw new RuntimeException(String.format("Expected at least 1 <td> in <thead>/<tr>, found: %s", header));
         }
         Map<String, Element> inheritedValueTitleMapping = new HashMap<String, Element>();
