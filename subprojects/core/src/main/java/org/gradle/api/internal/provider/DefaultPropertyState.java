@@ -22,6 +22,8 @@ import org.gradle.api.tasks.Internal;
 
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.provider.DefaultProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
+
 public class DefaultPropertyState<T> implements PropertyState<T> {
 
     private Provider<? extends T> provider;

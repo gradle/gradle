@@ -26,6 +26,8 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.api.internal.provider.DefaultProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE
+
 class DefaultProviderFactoryTest extends Specification {
 
     static final PROJECT = ProjectBuilder.builder().build()
@@ -125,29 +127,36 @@ class DefaultProviderFactoryTest extends Specification {
         FileTree       | TEST_FILETREE
     }
 
-    def "can create property type for FileCollection"() {
+    def "can create property type for ConfigurableFileCollection"() {
         when:
-        def provider = providerFactory.property(type)
+        def provider = providerFactory.property(ConfigurableFileCollection)
         def evaluatedValue = provider.get()
 
         then:
-        evaluatedValue instanceof FileCollection
+        evaluatedValue instanceof ConfigurableFileCollection
         1 * fileOperations.files() >> PROJECT.files()
-
-        where:
-        type << [FileCollection, ConfigurableFileCollection]
     }
 
-    def "can create property type for FileTree"() {
+    def "can create property type for ConfigurableFileTree"() {
         when:
-        def provider = providerFactory.property(type)
+        def provider = providerFactory.property(ConfigurableFileTree)
         def evaluatedValue = provider.get()
 
         then:
-        evaluatedValue instanceof FileTree
+        evaluatedValue instanceof ConfigurableFileTree
         1 * fileOperations.fileTree([:]) >> PROJECT.fileTree([:])
+    }
+
+    def "can create property type for #type"() {
+        when:
+        def provider = providerFactory.property(type)
+        provider.get()
+
+        then:
+        def t = thrown(IllegalStateException)
+        t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
 
         where:
-        type << [FileTree, ConfigurableFileTree]
+        type << [FileCollection, FileTree]
     }
 }

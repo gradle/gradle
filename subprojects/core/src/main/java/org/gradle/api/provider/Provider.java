@@ -27,8 +27,6 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface Provider<T> {
 
-    String NON_NULL_VALUE_EXCEPTION_MESSAGE = "Needs to set a non-null value before it can be retrieved";
-
     /**
      * If a value is present in this provider, returns the value, otherwise throws {@code java.lang.IllegalStateException}.
      *

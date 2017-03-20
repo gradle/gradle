@@ -24,6 +24,7 @@ import java.util.concurrent.Callable;
 
 public class DefaultProvider<T> implements Provider<T> {
 
+    public static final String NON_NULL_VALUE_EXCEPTION_MESSAGE = "Needs to set a non-null value before it can be retrieved";
     private final Callable<T> value;
 
     public DefaultProvider(Callable<T> value) {

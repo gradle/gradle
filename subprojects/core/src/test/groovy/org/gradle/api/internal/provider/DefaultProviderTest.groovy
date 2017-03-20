@@ -21,7 +21,7 @@ import org.gradle.internal.UncheckedException
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.provider.Provider.NON_NULL_VALUE_EXCEPTION_MESSAGE
+import static org.gradle.api.internal.provider.DefaultProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE
 
 class DefaultProviderTest extends Specification {
 
