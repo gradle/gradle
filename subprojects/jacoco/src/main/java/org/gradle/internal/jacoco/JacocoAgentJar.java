@@ -19,7 +19,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.VersionNumber;
 
@@ -34,7 +33,7 @@ public class JacocoAgentJar {
     private static final VersionNumber V_0_7_6_0 = VersionNumber.parse("0.7.6.0");
 
     private final Project project;
-    private final PropertyState<FileCollection> agentConf;
+    private FileCollection agentConf;
     private File agentJar;
 
     /**
@@ -44,18 +43,17 @@ public class JacocoAgentJar {
      */
     public JacocoAgentJar(Project project) {
         this.project = project;
-        agentConf = project.property(FileCollection.class);
     }
 
     /**
      * @return the configuration that the agent JAR is located in
      */
     public FileCollection getAgentConf() {
-        return agentConf.get();
+        return agentConf;
     }
 
     public void setAgentConf(FileCollection agentConf) {
-        this.agentConf.set(agentConf);
+        this.agentConf = agentConf;
     }
 
     /**
@@ -65,7 +63,7 @@ public class JacocoAgentJar {
      */
     public File getJar() {
         if (agentJar == null) {
-            agentJar = project.zipTree(getAgentConfConventionValue().getSingleFile()).filter(new Spec<File>() {
+            agentJar = project.zipTree(getAgentConf().getSingleFile()).filter(new Spec<File>() {
                 @Override
                 public boolean isSatisfiedBy(File file) {
                     return file.getName().equals("jacocoagent.jar");
@@ -76,7 +74,7 @@ public class JacocoAgentJar {
     }
 
     public boolean supportsJmx() {
-        boolean pre062 = Iterables.any(getAgentConfConventionValue(), new Predicate<File>() {
+        boolean pre062 = Iterables.any(getAgentConf(), new Predicate<File>() {
             @Override
             public boolean apply(File file) {
                 return V_0_6_2_0.compareTo(extractVersion(file.getName())) > 0;
@@ -86,17 +84,13 @@ public class JacocoAgentJar {
     }
 
     public boolean supportsInclNoLocationClasses() {
-        boolean pre076 = Iterables.any(getAgentConfConventionValue(), new Predicate<File>() {
+        boolean pre076 = Iterables.any(getAgentConf(), new Predicate<File>() {
             @Override
             public boolean apply(File file) {
                 return V_0_7_6_0.compareTo(extractVersion(file.getName())) > 0;
             }
         });
         return !pre076;
-    }
-
-    private FileCollection getAgentConfConventionValue() {
-        return getAgentConf();
     }
 
     public static VersionNumber extractVersion(String jarName) {
