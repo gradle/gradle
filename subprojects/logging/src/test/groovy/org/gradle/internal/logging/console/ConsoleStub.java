@@ -91,6 +91,7 @@ public class ConsoleStub implements Console {
 
     protected class TestableBuildProgressTextArea extends TestStyledTextOutput implements BuildProgressArea {
         boolean visible;
+        int buildProgressLabelCount;
         private final List<TestableRedrawableLabel> testableLabels;
         private final List<StyledLabel> buildProgressLabels;
 
@@ -122,6 +123,11 @@ public class ConsoleStub implements Console {
 
         public boolean getVisible() {
             return visible;
+        }
+
+        @Override
+        public void resizeBuildProgressTo(int buildProgressLabelCount) {
+            this.buildProgressLabelCount = buildProgressLabelCount;
         }
 
         public List<String> getDisplay() {

@@ -19,7 +19,6 @@ package org.gradle.internal.logging.sink;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.Console;
-import org.gradle.internal.logging.console.ConsoleLayoutCalculator;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
@@ -48,17 +47,16 @@ public class ConsoleConfigureAction {
 
         boolean stdOutIsTerminal = consoleMetaData.isStdOut();
         boolean stdErrIsTerminal = consoleMetaData.isStdErr();
-        int numWorkersToDisplay = ConsoleLayoutCalculator.calculateNumWorkersForConsoleDisplay(consoleMetaData);
         if (stdOutIsTerminal) {
             OutputStream originalStdOut = renderer.getOriginalStdOut();
             OutputStreamWriter outStr = new OutputStreamWriter(force ? originalStdOut : AnsiConsoleUtil.wrapOutputStream(originalStdOut));
-            Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap(), consoleMetaData, numWorkersToDisplay, force);
+            Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap(), consoleMetaData, force);
             renderer.addConsole(console, true, stdErrIsTerminal, consoleMetaData);
         } else if (stdErrIsTerminal) {
             // Only stderr is connected to a terminal
             OutputStream originalStdErr = renderer.getOriginalStdErr();
             OutputStreamWriter errStr = new OutputStreamWriter(force ? originalStdErr : AnsiConsoleUtil.wrapOutputStream(originalStdErr));
-            Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), consoleMetaData, numWorkersToDisplay, force);
+            Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), consoleMetaData, force);
             renderer.addConsole(console, false, true, consoleMetaData);
         }
     }
