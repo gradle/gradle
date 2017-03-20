@@ -1197,6 +1197,7 @@ dependencies {
         then:
         fails "checkDeps"
         failure.assertHasCause "Could not resolve all dependencies for configuration ':compile'."
+        failure.assertHasCause "Could not resolve group:projectA:1.+."
         failure.assertHasCause "No cached version listing for group:projectA:1.+ available for offline mode."
     }
 

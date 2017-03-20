@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
@@ -24,6 +25,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
+import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
@@ -61,6 +63,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             return null;
         }
     };
+    private static final Object[] NO_PARAMS = new Object[0];
 
     private Object baseUrl;
     private AbstractRepositoryLayout layout;
@@ -76,6 +79,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final DependencyInjectingInstantiator.ConstructorCache constructorCache;
     private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierClass;
+    private Object[] componentMetadataSupplierParams;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
@@ -166,7 +170,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new Factory<ComponentMetadataSupplier>() {
             @Override
             public ComponentMetadataSupplier create() {
-                return instantiator.newInstance(componentMetadataSupplierClass);
+                return instantiator.newInstance(componentMetadataSupplierClass, componentMetadataSupplierParams);
             }
         };
     }
@@ -214,6 +218,15 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     public void metadataSupplier(Class<? extends ComponentMetadataSupplier> ruleClass) {
         this.componentMetadataSupplierClass = ruleClass;
+        this.componentMetadataSupplierParams = NO_PARAMS;
+    }
+
+    @Override
+    public void metadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction) {
+        DefaultActionConfiguration configuration = new DefaultActionConfiguration();
+        configureAction.execute(configuration);
+        this.componentMetadataSupplierClass = rule;
+        this.componentMetadataSupplierParams = configuration.getParams();
     }
 
     /**

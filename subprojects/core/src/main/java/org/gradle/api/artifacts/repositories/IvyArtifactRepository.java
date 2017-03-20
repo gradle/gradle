@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 
@@ -181,4 +182,15 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      */
     @Incubating
     void metadataSupplier(Class<? extends ComponentMetadataSupplier> rule);
+
+    /**
+     * Sets a custom metadata rule, possibly configuring the rule.
+     *
+     * @param rule the class of the rule. Gradle will instantiate a new rule for each dependency which requires metadata.
+     * @param configureAction the action to use to configure the rule.
+     *
+     * @since 3.6
+     */
+    @Incubating
+    void metadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
 }

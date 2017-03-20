@@ -31,7 +31,31 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
-        withMetadataSupplier()
+        buildFile << """
+          import javax.inject.Inject
+     
+          repositories {
+              ivy {
+                  name 'repo'
+                  url '${ivyHttpRepo.uri}'
+              }
+          }
+          
+          if (project.hasProperty('refreshDynamicVersions')) {
+                configurations.all {
+                    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+                }
+          }
+          
+          configurations {
+             compile
+          }
+
+          dependencies {
+              compile group: "group", name: "projectA", version: "1.+"
+              compile group: "group", name: "projectB", version: "latest.release"
+          }
+          """
 
         ivyHttpRepo.module("group", "projectA", "1.1").publish()
         projectA2 = ivyHttpRepo.module("group", "projectA", "1.2").publish()
@@ -167,6 +191,10 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
         then:
         fails 'checkDeps'
+        failure.assertHasCause("Could not resolve group:projectA:1.+.")
+        failure.assertHasCause("No cached version listing for group:projectA:1.+ available for offline mode.")
+        failure.assertHasCause("Could not resolve group:projectB:latest.release.")
+        failure.assertHasCause("No cached version listing for group:projectB:latest.release available for offline mode.")
 
         when:
         expectGetStatusOf(projectB1, 'release')
@@ -200,6 +228,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
                 }
             }
           }
+          repositories.repo { metadataSupplier(MP) }
 """
         when: "Resolves when online"
         expectGetStatusOf(projectB1, 'release')
@@ -220,7 +249,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         failure.assertHasCause("No cached resource '${ivyHttpRepo.uri}/group/projectB/2.2/status-offline.txt' available for offline mode.")
     }
 
-    def "can recover from remote failure"() {
+    def "reports and recovers from remote failure"() {
         given:
         withPerVersionStatusSupplier()
         when:
@@ -231,6 +260,8 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
 
         then:
         fails 'checkDeps'
+        failure.assertHasCause("Could not resolve group:projectB:latest.release.")
+        failure.assertHasCause("Could not GET '${server.uri}/repo/group/projectB/2.2/status.txt'. Received status code 500 from server: broken")
 
         when:
         server.resetExpectations()
@@ -244,14 +275,26 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
     }
 
-    def "handles errors in a custom metadata provider"() {
+    def "can inject configuration into metadata provider"() {
         given:
         buildFile << """
           class MP implements ComponentMetadataSupplier {
-          
+            String status
+
+            @Inject
+            MP(String status) { this.status = status }
+            
             void execute(ComponentMetadataSupplierDetails details) {
-                throw new NullPointerException("meh: error from custom rule")
+                if (details.id.version == "2.2") {
+                    details.result.status = status
+                } else {
+                    details.result.status = "release"
+                }
             }
+          }
+          def status = project.findProperty("status") ?: "release"
+          repositories.repo { 
+            metadataSupplier(MP) { params(status) }
           }
 """
 
@@ -259,12 +302,57 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
         expectListVersions(projectA2)
         projectA2.ivy.expectGet()
         expectListVersions(projectB1)
+        projectB2.ivy.expectGet()
+        projectA2.jar.expectGet()
+        projectB2.jar.expectGet()
+
+        then:
+        succeeds 'checkDeps'
+
+        when:
+        server.resetExpectations()
+        projectB1.ivy.expectGet()
+        projectB1.jar.expectGet()
+
+        then:
+        executer.withArgument("-Pstatus=integration")
+        succeeds 'checkDeps'
+    }
+
+    def "handles and recovers from errors in a custom metadata provider"() {
+        given:
+        buildFile << """
+          class MP implements ComponentMetadataSupplier {
+            void execute(ComponentMetadataSupplierDetails details) {
+                if (System.getProperty("broken")) {
+                    throw new NullPointerException("meh: error from custom rule")
+                }
+                details.result.status = 'release'
+            }
+          }
+          repositories.repo { metadataSupplier(MP) }
+"""
+
+        when:
+        expectListVersions(projectA2)
+        projectA2.ivy.expectGet()
+        expectListVersions(projectB1)
+        executer.withArgument("-Dbroken=true")
 
         then:
         fails 'checkDeps'
 
         failure.assertHasCause('Could not resolve group:projectB:latest.release')
         failure.assertHasCause('meh: error from custom rule')
+
+        when:
+        server.resetExpectations()
+        projectB2.ivy.expectGet()
+        projectA2.jar.expectGet()
+        projectB2.jar.expectGet()
+
+        then:
+        succeeds 'checkDeps'
     }
 
     def "handles failure to create custom metadata provider"() {
@@ -278,6 +366,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
             void execute(ComponentMetadataSupplierDetails details) {
             }
           }
+          repositories.repo { metadataSupplier(MP) }
 """
 
         when:
@@ -302,6 +391,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
                 // does nothing
             }
           }
+          repositories.repo { metadataSupplier(MP) }
 """
         def projectB3 = ivyHttpRepo.module("group", "projectB", "3.3").withStatus('release').publish()
 
@@ -347,6 +437,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
                 details.result.status = status[id.toString()]
             }
           }
+          repositories.repo { metadataSupplier(MP) }
 """
         when:
         def statusFile = temporaryFolder.createFile("versions.status")
@@ -442,44 +533,20 @@ group:projectB:2.2;release
             int count
           
             void execute(ComponentMetadataSupplierDetails details) {
+                assert count == 0
                 def id = details.id
                 println "Providing metadata for \$id"
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
                     details.result.status = new String(it.bytes)
                 }
-                println "Metadata rule call count: \${++count}"
+                count++
             }
           }
+
+        repositories.repo {
+            metadataSupplier(MP)
+        }
 """
-    }
-
-    private void withMetadataSupplier() {
-        buildFile << """
-          import javax.inject.Inject
-     
-          repositories {
-              ivy {
-                  name 'repo'
-                  url '${ivyHttpRepo.uri}'
-                  metadataSupplier(MP)
-              }
-          }
-          
-          if (project.hasProperty('refreshDynamicVersions')) {
-                configurations.all {
-                    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
-                }
-          }
-          
-          configurations {
-             compile
-          }
-
-          dependencies {
-              compile group: "group", name: "projectA", version: "1.+"
-              compile group: "group", name: "projectB", version: "latest.release"
-          }
-          """
     }
 
     def checkResolve(Map edges) {

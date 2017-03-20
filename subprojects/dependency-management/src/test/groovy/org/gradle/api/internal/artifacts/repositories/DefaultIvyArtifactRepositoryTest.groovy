@@ -34,6 +34,8 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 
+import javax.inject.Inject
+
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
@@ -298,11 +300,44 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         resolver.createMetadataSupplier() instanceof CustomMetadataSupplier
     }
 
+    def "can inject configuration into a custom metadata rule"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+
+        given:
+        repository.metadataSupplier(CustomMetadataSupplierWithParams) { it.params("a", 12, [1, 2, 3]) }
+
+        when:
+        def resolver = repository.createResolver()
+        def supplier = resolver.createMetadataSupplier()
+
+        then:
+        supplier instanceof CustomMetadataSupplierWithParams
+        supplier.s == "a"
+    }
+
     static class CustomMetadataSupplier implements ComponentMetadataSupplier {
+        @Override
+        void execute(ComponentMetadataSupplierDetails details) {
+        }
+    }
+
+    static class CustomMetadataSupplierWithParams implements ComponentMetadataSupplier {
+        String s
+        Number n
+        List<Integer> v
+
+        @Inject
+        CustomMetadataSupplierWithParams(String s, Number n, List<Integer> v) {
+            this.s = s
+            this.n = n
+            this.v = v
+        }
 
         @Override
         void execute(ComponentMetadataSupplierDetails details) {
-
         }
     }
 
