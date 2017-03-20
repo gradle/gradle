@@ -31,12 +31,40 @@ class DefaultDisambiguationRuleChainTest extends Specification {
             details.closestMatch("value1")
         }
     }
+    static class SelectionRuleWithParams implements AttributeDisambiguationRule<String> {
+        String p1
+
+        SelectionRuleWithParams(String p1) {
+            this.p1 = p1
+        }
+
+        @Override
+        void execute(MultipleCandidatesDetails<String> details) {
+            assert p1 == "p1"
+            assert details.candidateValues == ["value1", "value2"] as Set
+            details.closestMatch("value1")
+        }
+    }
 
     def "creates instance of rule implementation and delegates to it"() {
         def details = Mock(MultipleCandidatesDetails)
 
         given:
         ruleChain.add(SelectionRule)
+
+        when:
+        ruleChain.execute(details)
+
+        then:
+        1 * details.candidateValues >> (["value1", "value2"] as Set)
+        1 * details.closestMatch("value1")
+    }
+
+    def "can inject parameters into rule instance"() {
+        def details = Mock(MultipleCandidatesDetails)
+
+        given:
+        ruleChain.add(SelectionRuleWithParams) { it.params("p1") }
 
         when:
         ruleChain.execute(details)

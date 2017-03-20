@@ -33,11 +33,42 @@ class DefaultCompatibilityRuleChainTest extends Specification {
         }
     }
 
+    static class CompatibilityRuleWithParams implements AttributeCompatibilityRule<String> {
+        String p1
+
+        CompatibilityRuleWithParams(String p1) {
+            this.p1 = p1
+        }
+
+        @Override
+        void execute(CompatibilityCheckDetails<String> details) {
+            assert p1 == "p1"
+            assert details.consumerValue == "value1"
+            assert details.producerValue == "value2"
+            details.compatible()
+        }
+    }
+
     def "creates instance of rule implementation and delegates to it"() {
         def details = Mock(CompatibilityCheckDetails)
 
         given:
         ruleChain.add(CompatibilityRule)
+
+        when:
+        ruleChain.execute(details)
+
+        then:
+        1 * details.consumerValue >> "value1"
+        1 * details.producerValue >> "value2"
+        1 * details.compatible()
+    }
+
+    def "can inject configuration into rule instance"() {
+        def details = Mock(CompatibilityCheckDetails)
+
+        given:
+        ruleChain.add(CompatibilityRuleWithParams) { it.params("p1") }
 
         when:
         ruleChain.execute(details)
