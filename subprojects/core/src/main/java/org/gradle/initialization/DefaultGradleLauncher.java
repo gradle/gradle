@@ -94,17 +94,21 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     @Override
     public BuildResult run() {
-        return buildOperationExecutor.run("Run build", new RunBuildAction(Stage.Build));
+        return doBuild(Stage.Build);
     }
 
     @Override
     public BuildResult getBuildAnalysis() {
-        return buildOperationExecutor.run("Run build", new RunBuildAction(Stage.Configure));
+        return doBuild(Stage.Configure);
     }
 
     @Override
     public BuildResult load() throws ReportedException {
-        return buildOperationExecutor.run("Run build", new RunBuildAction(Stage.Load));
+        return doBuild(Stage.Load);
+    }
+
+    private BuildResult doBuild(Stage upTo) {
+        return buildOperationExecutor.run("Run build", new RunBuildAction(upTo));
     }
 
     /**
