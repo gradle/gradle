@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testing.internal.util.RetryRule
@@ -31,7 +32,7 @@ class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuo
     RetryRule retryRule = RetryRule.retryIf(this) {
         if (TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER) {
             // possibly hit JDK-8145981
-            return true
+            return RetryRuleUtil.retryWithCleanProjectDir(this)
         }
         false
     }
