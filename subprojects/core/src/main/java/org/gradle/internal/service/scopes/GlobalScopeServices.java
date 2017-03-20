@@ -24,9 +24,9 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
@@ -356,8 +356,8 @@ public class GlobalScopeServices {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
-    DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
-        return new DependencyInjectingInstantiator.ConstructorCache();
+    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator) {
+        return new InstantiatorFactory(classGenerator);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {

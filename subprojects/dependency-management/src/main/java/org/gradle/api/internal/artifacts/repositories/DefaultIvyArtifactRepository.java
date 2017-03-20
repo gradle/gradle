@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvid
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -77,7 +77,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final FileStore<String> externalResourcesFileStore;
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final DependencyInjectingInstantiator.ConstructorCache constructorCache;
+    private final InstantiatorFactory instantiatorFactory;
     private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierClass;
     private Object[] componentMetadataSupplierParams;
 
@@ -88,7 +88,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         AuthenticationContainer authenticationContainer,
                                         IvyContextManager ivyContextManager,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                        DependencyInjectingInstantiator.ConstructorCache constructorCache) {
+                                        InstantiatorFactory instantiatorFactory) {
         super(instantiator, authenticationContainer);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -97,11 +97,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.externalResourcesFileStore = externalResourcesFileStore;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.instantiatorFactory = instantiatorFactory;
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
         this.ivyContextManager = ivyContextManager;
-        this.constructorCache = constructorCache;
     }
 
     public ModuleVersionPublisher createPublisher() {
@@ -155,7 +155,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                 return createRepositoryAccessor(transport);
             }
         });
-        return new DependencyInjectingInstantiator(registry, constructorCache);
+        return instantiatorFactory.inject(registry);
     }
 
     private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport) {

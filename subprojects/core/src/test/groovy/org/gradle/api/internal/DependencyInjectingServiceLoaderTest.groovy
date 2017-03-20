@@ -36,7 +36,7 @@ class DependencyInjectingServiceLoaderTest extends Specification {
         def dependency = Mock(ServiceDependency)
         def serviceRegistry = Mock(ServiceRegistry)
         1 * serviceRegistry.get(ServiceDependency) >> dependency
-        1 * serviceRegistry.get(DependencyInjectingInstantiator.ConstructorCache) >> constructorCache()
+        1 * serviceRegistry.get(InstantiatorFactory) >> instantiatorFactory()
 
         def subject = new DependencyInjectingServiceLoader(serviceRegistry)
 
@@ -47,8 +47,8 @@ class DependencyInjectingServiceLoaderTest extends Specification {
         dependency == service.dependency
     }
 
-    private DependencyInjectingInstantiator.ConstructorCache constructorCache() {
-        new DependencyInjectingInstantiator.ConstructorCache()
+    private InstantiatorFactory instantiatorFactory() {
+        new InstantiatorFactory(new AsmBackedClassGenerator())
     }
 
     def resources(byte[] content) {

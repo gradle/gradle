@@ -20,10 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
@@ -154,13 +152,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry(buildScopedToolingModelBuilders);
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, DependencyInjectingInstantiator.ConstructorCache cachedConstructors) {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory) {
         PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, get(ModelRuleExtractor.class), get(ModelRuleSourceDetector.class));
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new DependencyInjectingInstantiator(this, cachedConstructors), applicator);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), applicator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
-        return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this, get(DependencyInjectingInstantiator.ConstructorCache.class))));
+        return parentFactory.createChild(project, get(InstantiatorFactory.class).injectAndDecorate(this));
     }
 
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {

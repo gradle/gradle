@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
-import org.gradle.api.internal.DependencyInjectingInstantiator
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
@@ -50,7 +50,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
         fileResolver, transportFactory, locallyAvailableResourceFinder,
-        DirectInstantiator.INSTANCE, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, new DependencyInjectingInstantiator.ConstructorCache()
+        DirectInstantiator.INSTANCE, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, new InstantiatorFactory()
     )
 
     def "default values"() {
@@ -68,7 +68,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
 
         when:
@@ -94,7 +94,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('repo/') >> fileUri
-        transportFactory.createTransport({ it == ['file'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['file'] as Set }, 'name', _) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -116,7 +116,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -137,7 +137,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -159,7 +159,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -185,7 +185,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -212,7 +212,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -236,7 +236,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -258,7 +258,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             artifact '[layoutPattern]'
         }
         repository.artifactPattern 'http://other/[additionalPattern]'
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host')
@@ -288,7 +288,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         given:
         repository.metadataSupplier(CustomMetadataSupplier)
@@ -304,7 +304,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.name = 'name'
         repository.url = 'http://host'
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createTransport({ it == ['http'] as Set}, 'name', _) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
 
         given:
         repository.metadataSupplier(CustomMetadataSupplierWithParams) { it.params("a", 12, [1, 2, 3]) }
