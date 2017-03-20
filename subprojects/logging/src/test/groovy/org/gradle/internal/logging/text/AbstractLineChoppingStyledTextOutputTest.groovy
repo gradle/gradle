@@ -185,6 +185,18 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "{eol}"
     }
 
+    def "can correctly detect Mac OS 9 eol on Windows eol default"() {
+        System.setProperty("line.separator", "\r\n");
+        def output = output()
+
+        when:
+        output.text(MACOS9_EOL)
+        output.text("${MACOS9_EOL}a")
+
+        then:
+        result.toString() == "{eol}{start}{eol}{start}[a]"
+    }
+
     def output() {
         final AbstractLineChoppingStyledTextOutput output = new AbstractLineChoppingStyledTextOutput() {
             @Override
