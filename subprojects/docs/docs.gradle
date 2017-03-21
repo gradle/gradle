@@ -14,6 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'org.asciidoctor.convert' version '1.5.3'
+}
+
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.stream.StreamSource
+
+import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.build.docs.UserGuideSectionVerifier
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
@@ -93,6 +102,8 @@ dependencies {
 ext {
     srcDocsDir = file('src/docs')
     userguideSrcDir = new File(srcDocsDir, 'userguide')
+    userguideAsciidocGeneratedDir = file("$buildDir/asciidoc/userguide")
+    asciidocSanitizeStylesheet = file("$srcDocsDir/stylesheets/asciidocSanitize.xsl")
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
     userguideDir = new File(docsDir, 'userguide')
@@ -111,6 +122,33 @@ outputs.distDocs = files(distDocsDir) {
 }
 outputs.docs = files(docsDir) {
     builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+}
+
+tasks.withType(AsciidoctorTask) {
+    backends = ['docbook']
+    separateOutputDirs = false
+    options doctype: 'book'
+    inputs.file asciidocSanitizeStylesheet withPropertyName "sanitizerStylesheet"
+
+    extensions {
+        inlinemacro (name: "api") {
+            parent, target, attributes ->
+            def (className, method) = target.split('#') as List
+            def content = "<apilink class=\"$className\""
+            if (method) {
+                content += " method=\"${method.replaceAll(/,\s*/, ', ')}\""
+            }
+            content += " />"
+            return content
+        }
+    }
+
+    doLast {
+        outputDir.eachFile { File file ->
+            def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(asciidocSanitizeStylesheet))
+            transformer.transform(new StreamSource(new StringReader(file.getText("utf-8"))), new StreamResult(file))
+        }
+    }
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -206,6 +244,14 @@ task userguideStyleSheets(type: Copy) {
     }
 }
 
+tasks.remove(asciidoctor)
+
+task userguideAsciidoc(type: AsciidoctorTask) {
+    sourceDir = userguideSrcDir
+    sources { include '*.adoc' }
+    outputDir = userguideAsciidocGeneratedDir    
+}
+
 task samplesDocbook(type: AssembleSamplesDocTask) {
     source samplesSrcDir
     include '**/readme.xml'
@@ -272,7 +318,11 @@ task dslHtml(type: Docbook2Xhtml) {
 }
 
 task checkSectionIds(type: UserGuideSectionVerifier) {
-    docbookFiles = fileTree(userguideSrcDir) { include "**/*.xml" }
+    dependsOn userguideAsciidoc
+    docbookFiles = files(
+        fileTree(userguideSrcDir) { include "**/*.xml" },
+        fileTree(userguideAsciidocGeneratedDir) { include "**/*.xml" }
+    )
 }
 
 [configureCss, samples, samplesDocbook, defaultImports]*.mustRunAfter(checkSectionIds)
@@ -301,7 +351,9 @@ configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
     includes = files(samplesDocbook,
         defaultImports.importsDestFile,
-        fileTree(dir: userguideSrcDir, includes: ['*.xml']))
+        fileTree(dir: userguideSrcDir, includes: ['*.xml']),
+        fileTree(dir: userguideAsciidocGeneratedDir, includes: ['*.xml'])
+    )
 
     dependsOn samples, samplesDocbook, defaultImports
 
