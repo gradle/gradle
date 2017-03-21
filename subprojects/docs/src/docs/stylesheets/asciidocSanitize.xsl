@@ -23,6 +23,17 @@
         </ulink>
     </xsl:template>
 
+    <!-- Use <xref linkend="..."/> instead of <link linkend="..."/> -->
+
+    <xsl:template match="docbook:link[@linkend]">
+        <xref>
+            <xsl:attribute name="linkend">
+                <xsl:value-of select="@linkend"/>
+            </xsl:attribute>
+            <xsl:apply-templates select="node()"/>
+        </xref>
+    </xsl:template>
+
     <!-- Rewrite Docbook tables as HTML tables -->
 
     <xsl:template match="//docbook:table//docbook:row">
