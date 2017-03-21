@@ -178,10 +178,10 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *
      * @param rule the class of the rule. Gradle will instantiate a new rule for each dependency which requires metadata.
      *
-     * @since 3.5
+     * @since 3.6
      */
     @Incubating
-    void metadataSupplier(Class<? extends ComponentMetadataSupplier> rule);
+    void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule);
 
     /**
      * Sets a custom metadata rule, possibly configuring the rule.
@@ -192,5 +192,5 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * @since 3.6
      */
     @Incubating
-    void metadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
+    void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
 }

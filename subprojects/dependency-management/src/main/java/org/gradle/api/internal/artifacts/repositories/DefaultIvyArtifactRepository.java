@@ -216,13 +216,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return metaDataProvider;
     }
 
-    public void metadataSupplier(Class<? extends ComponentMetadataSupplier> ruleClass) {
+    public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> ruleClass) {
         this.componentMetadataSupplierClass = ruleClass;
         this.componentMetadataSupplierParams = NO_PARAMS;
     }
 
     @Override
-    public void metadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction) {
+    public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction) {
         DefaultActionConfiguration configuration = new DefaultActionConfiguration();
         configureAction.execute(configuration);
         this.componentMetadataSupplierClass = rule;

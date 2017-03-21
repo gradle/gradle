@@ -228,7 +228,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
                 }
             }
           }
-          repositories.repo { metadataSupplier(MP) }
+          repositories.repo { metadataSupplier = MP }
 """
         when: "Resolves when online"
         expectGetStatusOf(projectB1, 'release')
@@ -294,7 +294,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
           }
           def status = project.findProperty("status") ?: "release"
           repositories.repo { 
-            metadataSupplier(MP) { params(status) }
+            setMetadataSupplier(MP) { params(status) }
           }
 """
 
@@ -330,7 +330,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
                 details.result.status = 'release'
             }
           }
-          repositories.repo { metadataSupplier(MP) }
+          repositories.repo { metadataSupplier = MP }
 """
 
         when:
@@ -366,7 +366,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
             void execute(ComponentMetadataSupplierDetails details) {
             }
           }
-          repositories.repo { metadataSupplier(MP) }
+          repositories.repo { metadataSupplier = MP }
 """
 
         when:
@@ -391,7 +391,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
                 // does nothing
             }
           }
-          repositories.repo { metadataSupplier(MP) }
+          repositories.repo { metadataSupplier = MP }
 """
         def projectB3 = ivyHttpRepo.module("group", "projectB", "3.3").withStatus('release').publish()
 
@@ -437,7 +437,7 @@ class IvyDynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends
                 details.result.status = status[id.toString()]
             }
           }
-          repositories.repo { metadataSupplier(MP) }
+          repositories.repo { metadataSupplier = MP }
 """
         when:
         def statusFile = temporaryFolder.createFile("versions.status")
@@ -544,7 +544,7 @@ group:projectB:2.2;release
           }
 
         repositories.repo {
-            metadataSupplier(MP)
+            metadataSupplier = MP
         }
 """
     }
