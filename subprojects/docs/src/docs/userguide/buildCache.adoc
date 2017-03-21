@@ -26,7 +26,7 @@ The Gradle _build cache_ is a cache mechanism that aims to save time by reusing 
 The build cache works by storing (locally or remotely) build outputs and allowing builds to fetch these outputs from the cache when it is determined that inputs have not changed, avoiding the expensive work of regenerating them.
 
 A first feature using the build cache is _task output caching_.
-Essentially, task output caching leverages the same intelligence as <<sec:up_to_date_checks,UP-TO-DATE checks>> that Gradle uses to avoid work when a previous local build has already produced a set of task outputs.
+Essentially, task output caching leverages the same intelligence as <<sec:up_to_date_checks,up-to-date checks>> that Gradle uses to avoid work when a previous local build has already produced a set of task outputs.
 But instead of being limited to the previous build in the same workspace, task output caching allows Gradle to reuse task outputs from any earlier build in any location on the local machine.
 When using a shared build cache for task output caching this even works across developer machines and build agents.
 
@@ -51,20 +51,20 @@ For configuring this directory or different kinds of build caches see <<sec:buil
 Beyond incremental builds described in <<sec:up_to_date_checks>>, Gradle can save time by reusing outputs from previous executions of a task by matching inputs to the task.
 Task outputs can be reused between builds on one computer or even between builds running on different computers via a build cache.
 
-For an initial release, we have focused on on the use case where users have an organization wide remote build cache that is populated regularly by continuous integration builds.
+For an initial release, we have focused on on the use case where users have an organization-wide remote build cache that is populated regularly by continuous integration builds.
 Developers and other continuous integration agents should pull cache entries from the remote build cache.
-We expect that developers are not allowed to populate the remote build cache and all continuous integration builds are populating the cache while running the `clean` task.
+We expect that developers will not be allowed to populate the remote build cache, and all continuous integration builds populate the build cache after running the `clean` task.
 
-For your build to play well with task output caching it is required to work well with the <<sec:up_to_date_checks,incremental build>> feature.
+For your build to play well with task output caching it must work well with the <<sec:up_to_date_checks,incremental build>> feature.
 For example, when running your build twice in a row all tasks with outputs should be `UP-TO-DATE`.
 You cannot expect faster builds or correct builds when enabling task output caching when this prerequisite is not met.
 
 NOTE: This feature is a work in progress and is automatically enabled when you enable the build cache, see <<sec:build_cache_enable>>.
 
 [[sec:task_output_caching_example]]
-=== What does it look like
+==== What does it look like
 
-Let us start with a project using the Java plugin which has a few java source files. We run the build the first time.
+Let us start with a project using the Java plugin which has a few Java source files. We run the build the first time.
 
 ----
 $> gradle --build-cache compileJava
@@ -105,16 +105,16 @@ BUILD SUCCESSFUL
 Now we see that, instead of executing the `:compileJava` task, the outputs of the task have been loaded from the build cache.
 The other tasks have not been loaded from the build cache since they are not cacheable. This is due to
 `:classes` and `:assemble` being <<sec:lifecycle_tasks,lifecycle tasks>> and `:processResources`
-and `jar` being Copy-like tasks which are not cacheable since it is mostly faster to execute them.
+and `jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
 
 [[sec:task_output_caching_details]]
-=== Task output caching in detail
+==== Task output caching in detail
 
 Since a task describes all of its inputs and outputs, Gradle can compute a _build cache key_ that uniquely defines the task's outputs based on its inputs.
 That build cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
-_continuous integration_ server or other developers, you can avoid executing most tasks locally.
+continuous integration server or other developers, you can avoid executing most tasks locally.
 
-The following inputs contribute to the build cache key for a task in the same way as they do for <<sec:how_does_it_work,up to date checks>>:
+The following inputs contribute to the build cache key for a task in the same way that they do for <<sec:how_does_it_work,up-to-date checks>>:
 
 * The task type and its classpath
 * The names of the output properties
@@ -124,7 +124,7 @@ The following inputs contribute to the build cache key for a task in the same wa
 * The content of the build script when it affects execution of the task
 
 Task types need to opt-in to task output caching using the `@api:org.gradle.api.tasks.CacheableTask[]` annotation.
-Note that `@api:org.gradle.api.tasks.CacheableTask[]` is, like `@api:org.gradle.api.tasks.ParallelizableTask[]`, not inherited to subclasses.
+Note that `@api:org.gradle.api.tasks.CacheableTask[]` is, like `@api:org.gradle.api.tasks.ParallelizableTask[]`, not inherited by subclasses.
 Custom task types are _not_ cacheable by default.
 Currently, the following built-in Gradle tasks are cacheable:
 
@@ -146,28 +146,32 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.testing.jacoco.tasks.JacocoReport[]
 * api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[]
 
-NOTE: It's very important that a cacheable task has a complete picture of its inputs so that the results from one build can be safely re-used somewhere else.
+[NOTE]
+============================================
+It is very important that a cacheable task has a complete picture of its inputs so that the results from one build can be safely re-used somewhere else.
 
 Missing task inputs can cause incorrect cache hits, where different results are treated as identical because the same cache key is used by both executions. Missing task outputs can cause build failures if Gradle does not completely capture all outputs for a given task.
 
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
 We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see @api:org.gradle.api.tasks.PathSensitive[]).
+============================================
 
 [[sec:task_output_caching_known_issues]]
-=== Feedback and Known issues
+==== Feedback and Known issues
 
 The task output caching feature has known issues that may impact the correctness, usability and performance of your build when using the build cache.
 These issues will be corrected as this feature becomes stable.
 
 Note that task output caching relies on <<sec:up_to_date_checks,incremental build>>.
-Problems which affect incremental build can also affect task output caching even if the affected tasks are not cacheable.
-Most issues can only cause problems if your build cache is populated by non-clean builds or caching has been enabled for unsupported tasks.
+Problems that affect incremental builds can also affect task output caching even if the affected tasks are not cacheable.
+Most issues only cause problems if your build cache is populated by non-clean builds or if caching has been enabled for unsupported tasks.
 For a current list of open problems with incremental builds see these
 https://github.com/gradle/gradle/issues?utf8=%E2%9C%93&amp;q=is%3Aopen%20label%3Aa%3Abug%20label%3Ain%3Aincremental-build%20[Github issues].
 
 NOTE: When https://github.com/gradle/gradle/issues/new?labels=in:build-cache[reporting issues with the build cache], please check if your issue is a known issue or related to a known issue.
 
-==== Correctness issues
+[[sec:task_output_caching_known_issues_correctness]]
+===== Correctness issues
 
 These issues may affect the correctness of your build when using the build cache. Please consider these issues carefully.
 
@@ -187,7 +191,7 @@ This causes Gradle to mix the result of one task into another. Depending on the 
 
 | Overlapping outputs.
 | If two cacheable tasks share an output directory, Gradle does not reliably cache the results from either task.
-More precisely, Gradle is not able to determine which outputs belong to which task and will possible store the combined output of both tasks in the build cache.
+More precisely, Gradle is not able to determine which outputs belong to which task and will possibly store the combined output of both tasks in the build cache.
 When loading from the build cache you can get the combined output when you expect a single output and vice versa.
 | Disable caching for both tasks. You can detect this situation by using https://github.com/gradle/gradle/blob/master/gradle/overlappingTaskOutputsStatsInit.gradle[this init script].
 
@@ -199,7 +203,7 @@ When loading from the build cache you can get the combined output when you expec
 | Gradle currently tracks the major version of Java (6 vs 7 vs 8) that is used for compilation and test execution. If your build expects to use several minor releases (1.8.0_102 vs 1.8.0_25), Gradle will treat all of these as equivalent and re-use outputs from any minor version. In our experience, bytecode produced by each major version is functionally equivalent.
 | Manually add the full Java version as an input to compilation and test execution tasks.
 
-| Changes in Gradle's file encoding that affects the build script
+| Changes in Gradle's file encoding that affect the build script
 | Gradle can produce different task output based on the file encoding used by the JVM. Gradle will use a default file encoding based on the operating system if `file.encoding` is not explicitly set.
 | Set the UTF-8 file encoding on all tasks which allow setting the encoding. Use UTF-8 file encoding everywhere by setting `file.encoding` to `UTF-8` for the Gradle JVM.
 
@@ -208,7 +212,8 @@ When loading from the build cache you can get the combined output when you expec
 | You can add your custom options as input properties or disable caching of Javadoc.
 |===
 
-==== Caveats
+[[sec:task_output_caching_known_issues_caveats]]
+===== Caveats
 
 These issues may affect the number of cache hits you may get between machines.
 
@@ -338,6 +343,7 @@ For automatic cleanup tools like http://manpages.ubuntu.com/manpages/precise/man
 .api:org.gradle.caching.http.HttpBuildCache[]
 |===
 | Description | Impact | Workaround
+
 | `--offline` is not honored for the remote build cache.
 | The built-in HTTP build cache ignores the offline flag.
 | To completely disable task output caching, use `--no-build-cache`.
