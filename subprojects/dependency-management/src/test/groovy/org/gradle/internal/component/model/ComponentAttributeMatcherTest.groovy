@@ -24,12 +24,12 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ComponentAttributeMatcherTest extends Specification {
 
-    AttributesSchema schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), DirectInstantiator.INSTANCE)
+    AttributesSchema schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
     ImmutableAttributesFactory factory = new DefaultImmutableAttributesFactory()
 
     def "Matching two exactly similar attributes gives a full match" () {

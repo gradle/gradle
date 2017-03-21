@@ -21,7 +21,7 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Comparator;
@@ -30,8 +30,13 @@ import java.util.List;
 public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainInternal<T> {
     private static final Object[] NO_PARAMS = new Object[0];
     private final List<Action<? super CompatibilityCheckDetails<T>>> rules = Lists.newArrayList();
+    private final Instantiator instantiator;
 
     private boolean assumeCompatibleWhenMissing;
+
+    public DefaultCompatibilityRuleChain(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     @Override
     public void ordered(Comparator<? super T> comparator) {
@@ -49,12 +54,12 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     public void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
         DefaultActionConfiguration configuration = new DefaultActionConfiguration();
         configureAction.execute(configuration);
-        rules.add(new InstantiatingAction<T>(rule, configuration.getParams()));
+        rules.add(new InstantiatingAction<T>(rule, configuration.getParams(), instantiator));
     }
 
     @Override
     public void add(final Class<? extends AttributeCompatibilityRule<T>> rule) {
-        rules.add(new InstantiatingAction<T>(rule, NO_PARAMS));
+        rules.add(new InstantiatingAction<T>(rule, NO_PARAMS, instantiator));
     }
 
     @Override
@@ -120,16 +125,18 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     private static class InstantiatingAction<T> implements Action<CompatibilityCheckDetails<T>> {
         private final Class<? extends AttributeCompatibilityRule<T>> rule;
         private final Object[] params;
+        private final Instantiator instantiator;
 
-        InstantiatingAction(Class<? extends AttributeCompatibilityRule<T>> rule, Object[] params) {
+        InstantiatingAction(Class<? extends AttributeCompatibilityRule<T>> rule, Object[] params, Instantiator instantiator) {
             this.rule = rule;
             this.params = params;
+            this.instantiator = instantiator;
         }
 
         @Override
         public void execute(CompatibilityCheckDetails<T> details) {
             try {
-                AttributeCompatibilityRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule, params);
+                AttributeCompatibilityRule<T> instance = instantiator.newInstance(rule, params);
                 instance.execute(details);
             } catch (Throwable t) {
                 throw new AttributeMatchException(String.format("Could not determine whether value %s is compatible with value %s using %s.", details.getProducerValue(), details.getConsumerValue(), ModelType.of(rule).getDisplayName()), t);

@@ -27,12 +27,12 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.internal.component.model.ComponentAttributeMatcher
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class VariantAttributeMatchingCacheTest extends Specification {
     def matcher = Mock(ComponentAttributeMatcher)
-    def schema = new DefaultAttributesSchema(matcher, DirectInstantiator.INSTANCE)
+    def schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory())
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
     def transformRegistrations = Mock(VariantTransformRegistry)
     def matchingCache = new VariantAttributeMatchingCache(transformRegistrations, schema, new DefaultImmutableAttributesFactory())

@@ -611,6 +611,7 @@ All of them match the consumer attributes:
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
                 String value
             
+                @javax.inject.Inject
                 FlavorCompatibilityRule(String value) { this.value = value }
 
                 void execute(CompatibilityCheckDetails<Flavor> details) {
@@ -625,6 +626,7 @@ All of them match the consumer attributes:
             class BuildTypeSelectionRule implements AttributeDisambiguationRule<BuildType> {
                 BuildType value
 
+                @javax.inject.Inject
                 BuildTypeSelectionRule(BuildType value) { this.value = value }
                 void execute(MultipleCandidatesDetails<BuildType> details) {
                     if (details.candidateValues.contains(value)) {
@@ -751,7 +753,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
-        failure.assertHasCause("Could not find any public constructor for class FlavorCompatibilityRule which accepts parameters [].")
+        failure.assertHasCause("Class FlavorCompatibilityRule has no constructor that is annotated with @Inject.")
     }
 
     def "user receives reasonable error message when compatibility rule fails"() {
@@ -879,7 +881,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
-        failure.assertHasCause("Could not find any public constructor for class FlavorSelectionRule which accepts parameters [].")
+        failure.assertHasCause("Class FlavorSelectionRule has no constructor that is annotated with @Inject.")
     }
 
     def "user receives reasonable error message when disambiguation rule fails"() {

@@ -22,7 +22,7 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Comparator;
@@ -32,17 +32,22 @@ import java.util.Set;
 public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChainInternal<T> {
     private static final Object[] NO_PARAMS = new Object[0];
     private final List<Action<? super MultipleCandidatesDetails<T>>> rules = Lists.newArrayList();
+    private final Instantiator instantiator;
+
+    public DefaultDisambiguationRuleChain(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     @Override
     public void add(Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
         DefaultActionConfiguration configuration = new DefaultActionConfiguration();
         configureAction.execute(configuration);
-        this.rules.add(new InstantiatingAction<T>(rule, configuration.getParams()));
+        this.rules.add(new InstantiatingAction<T>(rule, configuration.getParams(), instantiator));
     }
 
     @Override
     public void add(final Class<? extends AttributeDisambiguationRule<T>> rule) {
-        this.rules.add(new InstantiatingAction<T>(rule, NO_PARAMS));
+        this.rules.add(new InstantiatingAction<T>(rule, NO_PARAMS, instantiator));
     }
 
     @Override
@@ -94,16 +99,18 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     private static class InstantiatingAction<T> implements Action<MultipleCandidatesDetails<T>> {
         private final Class<? extends AttributeDisambiguationRule<T>> rule;
         private final Object[] params;
+        private final Instantiator instantiator;
 
-        InstantiatingAction(Class<? extends AttributeDisambiguationRule<T>> rule, Object[] params) {
+        InstantiatingAction(Class<? extends AttributeDisambiguationRule<T>> rule, Object[] params, Instantiator instantiator) {
             this.rule = rule;
             this.params = params;
+            this.instantiator = instantiator;
         }
 
         @Override
         public void execute(MultipleCandidatesDetails<T> details) {
             try {
-                AttributeDisambiguationRule<T> instance = DirectInstantiator.INSTANCE.newInstance(rule, params);
+                AttributeDisambiguationRule<T> instance = instantiator.newInstance(rule, params);
                 instance.execute(details);
             } catch (Throwable t) {
                 throw new AttributeMatchException(String.format("Could not select value from candidates %s using %s.", details.getCandidateValues(), ModelType.of(rule).getDisplayName()), t);

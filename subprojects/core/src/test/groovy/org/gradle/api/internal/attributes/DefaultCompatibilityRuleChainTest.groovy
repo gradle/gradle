@@ -19,10 +19,13 @@ package org.gradle.api.internal.attributes
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import javax.inject.Inject
+
 class DefaultCompatibilityRuleChainTest extends Specification {
-    def ruleChain = new DefaultCompatibilityRuleChain()
+    def ruleChain = new DefaultCompatibilityRuleChain(TestUtil.instantiatorFactory().inject())
 
     static class CompatibilityRule implements AttributeCompatibilityRule<String> {
         @Override
@@ -36,6 +39,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
     static class CompatibilityRuleWithParams implements AttributeCompatibilityRule<String> {
         String p1
 
+        @Inject
         CompatibilityRuleWithParams(String p1) {
             this.p1 = p1
         }

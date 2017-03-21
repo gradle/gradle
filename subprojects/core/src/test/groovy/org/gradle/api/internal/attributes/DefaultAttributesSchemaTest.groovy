@@ -22,11 +22,11 @@ import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.internal.component.model.ComponentAttributeMatcher
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultAttributesSchemaTest extends Specification {
-    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), DirectInstantiator.INSTANCE)
+    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
     def factory = new DefaultImmutableAttributesFactory()
 
     def "fails if no strategy is declared for custom type"() {
@@ -177,7 +177,7 @@ class DefaultAttributesSchemaTest extends Specification {
     def "Match with similar input is only performed once"() {
         given:
         def matcher = Mock(ComponentAttributeMatcher)
-        schema = new DefaultAttributesSchema(matcher, DirectInstantiator.INSTANCE)
+        schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory())
 
         def a1 = Attribute.of("a1", String)
         def a2 = Attribute.of("a2", Integer)

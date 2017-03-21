@@ -25,10 +25,10 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
-import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,13 +38,13 @@ import java.util.Set;
 public class DefaultAttributesSchema implements AttributesSchemaInternal {
 
     private final ComponentAttributeMatcher componentAttributeMatcher;
-    private final Instantiator instantiator;
+    private final InstantiatorFactory instantiatorFactory;
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
     private final Map<Key, List<? extends HasAttributes>> matchesCache = Maps.newHashMap();
 
-    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, Instantiator instantiator) {
+    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
-        this.instantiator = instantiator;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
-            strategy = Cast.uncheckedCast(instantiator.newInstance(DefaultAttributeMatchingStrategy.class, instantiator));
+            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory));
             strategies.put(attribute, strategy);
         }
         if (configureAction != null) {
