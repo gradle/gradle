@@ -46,7 +46,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     @Override
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
-        Worker worker = workerFactory.getWorker(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
+        Worker<WorkerCompileSpec<?>> worker = workerFactory.getWorker(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
         DefaultWorkResult result = worker.execute(new WorkerCompileSpec<T>(delegate, spec));
         if (result.isSuccess()) {
             return result;
@@ -75,12 +75,11 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         }
     }
 
-    public static class CompilerDaemonServer implements WorkerProtocol {
+    public static class CompilerDaemonServer implements WorkerProtocol<WorkerCompileSpec<?>> {
         @Override
-        public <T extends WorkSpec> DefaultWorkResult execute(T spec) {
+        public DefaultWorkResult execute(WorkerCompileSpec<?> spec) {
             try {
-                WorkerCompileSpec<?> workerCompileSpec = (WorkerCompileSpec<?>) spec;
-                return workerCompileSpec.compile();
+                return spec.compile();
             } catch (Throwable t) {
                 return new DefaultWorkResult(true, t);
             }

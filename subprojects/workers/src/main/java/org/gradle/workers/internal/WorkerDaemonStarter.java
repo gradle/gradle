@@ -41,7 +41,7 @@ public class WorkerDaemonStarter {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public WorkerDaemonClient startDaemon(Class<? extends WorkerProtocol> workerProtocolImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> WorkerDaemonClient<T> startDaemon(Class<? extends WorkerProtocol<T>> workerProtocolImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Timers.startTimer();
         MultiRequestWorkerProcessBuilder<WorkerDaemonProcess> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonProcess.class, WorkerProtocol.class, workerProtocolImplementationClass);
@@ -57,7 +57,7 @@ public class WorkerDaemonStarter {
         WorkerDaemonProcess workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
 
-        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, workerDaemonProcess, workerProcess, buildOperationExecutor);
+        WorkerDaemonClient<T> client = new WorkerDaemonClient<T>(forkOptions, workerDaemonProcess, workerProcess, buildOperationExecutor);
 
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 

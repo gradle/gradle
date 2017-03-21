@@ -26,14 +26,14 @@ import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
-class WorkerDaemonClient implements Worker, Stoppable {
+class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     private final DaemonForkOptions forkOptions;
-    private final WorkerDaemonProcess workerDaemonProcess;
+    private final WorkerDaemonProcess<T> workerDaemonProcess;
     private final WorkerProcess workerProcess;
     private final BuildOperationExecutor buildOperationExecutor;
     private int uses;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<T> workerDaemonProcess, WorkerProcess workerProcess, BuildOperationExecutor buildOperationExecutor) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
@@ -41,7 +41,7 @@ class WorkerDaemonClient implements Worker, Stoppable {
     }
 
     @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
+    public DefaultWorkResult execute(final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
         Completion workerLease = parentWorkerOperation.operationStart();
         BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
         try {
@@ -58,7 +58,7 @@ class WorkerDaemonClient implements Worker, Stoppable {
     }
 
     @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(T spec) {
+    public DefaultWorkResult execute(T spec) {
         throw new UnsupportedOperationException();
     }
 

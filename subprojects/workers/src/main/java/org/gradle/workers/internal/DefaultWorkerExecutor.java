@@ -91,7 +91,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = fork == ForkMode.ALWAYS ? workerDaemonFactory : workerInProcessFactory;
-                    Worker worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
+                    Worker<ParamSpec> worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
                     return worker.execute(spec, currentWorkerOperation, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);

@@ -20,5 +20,5 @@ import java.io.File;
 
 public interface WorkerFactory {
     // TODO - workingDir should be injected into the implementation
-    Worker getWorker(Class<? extends WorkerProtocol> workerImplementationClass, File workingDir, DaemonForkOptions forkOptions);
+    <T extends WorkSpec> Worker<T> getWorker(Class<? extends WorkerProtocol<T>> workerImplementationClass, File workingDir, DaemonForkOptions forkOptions);
 }

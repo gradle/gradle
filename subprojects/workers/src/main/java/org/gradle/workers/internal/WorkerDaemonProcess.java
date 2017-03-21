@@ -18,5 +18,5 @@ package org.gradle.workers.internal;
 
 import org.gradle.process.internal.worker.WorkerControl;
 
-public interface WorkerDaemonProcess extends WorkerProtocol, WorkerControl {
+public interface WorkerDaemonProcess<T extends WorkSpec> extends WorkerProtocol<T>, WorkerControl {
 }

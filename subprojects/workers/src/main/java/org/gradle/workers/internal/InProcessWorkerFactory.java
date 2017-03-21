@@ -63,15 +63,15 @@ public class InProcessWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public Worker getWorker(final Class<? extends WorkerProtocol> workerImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
-        return new Worker() {
+    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, File workingDir, final DaemonForkOptions forkOptions) {
+        return new Worker<T>() {
             @Override
-            public <T extends WorkSpec> DefaultWorkResult execute(T spec) {
+            public DefaultWorkResult execute(T spec) {
                 return execute(spec, buildOperationWorkerRegistry.getCurrent(), buildOperationExecutor.getCurrentOperation());
             }
 
             @Override
-            public <T extends WorkSpec> DefaultWorkResult execute(final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
+            public DefaultWorkResult execute(final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
                 BuildOperationWorkerRegistry.Completion workerLease = parentWorkerOperation.operationStart();
                 BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
                 try {
@@ -88,7 +88,7 @@ public class InProcessWorkerFactory implements WorkerFactory {
         };
     }
 
-    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(Class<? extends WorkerProtocol> workerImplementationClass, T spec, DaemonForkOptions forkOptions) {
+    private <T extends WorkSpec> DefaultWorkResult executeInWorkerClassLoader(Class<? extends WorkerProtocol<T>> workerImplementationClass, T spec, DaemonForkOptions forkOptions) {
         ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
         GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
 
@@ -137,7 +137,7 @@ public class InProcessWorkerFactory implements WorkerFactory {
         return new VisitableURLClassLoader(actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
     }
 
-    private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(Class<? extends WorkerProtocol> workerImplementationClass, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
+    private <T extends WorkSpec> Callable<?> transferWorkerIntoWorkerClassloader(Class<? extends WorkerProtocol<T>> workerImplementationClass, T spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
         byte[] serializedWorker = GUtil.serialize(new WorkerCallable<T>(workerImplementationClass, spec));
         ObjectInputStream ois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), workerClassLoader);
         return (Callable<?>) ois.readObject();
@@ -156,10 +156,10 @@ public class InProcessWorkerFactory implements WorkerFactory {
     }
 
     private static class WorkerCallable<T extends WorkSpec> implements Callable<Object>, Serializable {
-        private final Class<? extends WorkerProtocol> workerImplementationClass;
+        private final Class<? extends WorkerProtocol<T>> workerImplementationClass;
         private final T spec;
 
-        private WorkerCallable(Class<? extends WorkerProtocol> workerImplementationClass, T spec) {
+        private WorkerCallable(Class<? extends WorkerProtocol<T>> workerImplementationClass, T spec) {
             this.workerImplementationClass = workerImplementationClass;
             this.spec = spec;
         }
