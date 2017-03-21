@@ -201,7 +201,7 @@ When loading from the build cache you can get the combined output when you expec
 
 | Tracking the Java version
 | Gradle currently tracks the major version of Java (6 vs 7 vs 8) that is used for compilation and test execution. If your build expects to use several minor releases (1.8.0_102 vs 1.8.0_25), Gradle will treat all of these as equivalent and re-use outputs from any minor version. In our experience, bytecode produced by each major version is functionally equivalent.
-| Manually add the full Java version as an input to compilation and test execution tasks.
+| Manually add the full Java version as an input to compilation and test execution tasks by using <<sec:task_input_output_runtime_api,the runtime api>> for adding task inputs.
 
 | Changes in Gradle's file encoding that affect the build script
 | Gradle can produce different task output based on the file encoding used by the JVM. Gradle will use a default file encoding based on the operating system if `file.encoding` is not explicitly set.
@@ -215,7 +215,7 @@ When loading from the build cache you can get the combined output when you expec
 [[sec:task_output_caching_known_issues_caveats]]
 ===== Caveats
 
-These issues may affect the number of cache hits you may get between machines.
+These issues may affect the number of cache hits you get between machines.
 
 .Caveats
 |===
@@ -320,7 +320,7 @@ the credentials the api:org.gradle.caching.http.HttpBuildCache[] uses to access 
 Using a different build cache backend to store build outputs which is not covered by the built-in support for connecting to an HTTP backend requires implementing
 your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via api:org.gradle.caching.configuration.BuildCacheConfiguration#registerBuildCacheService(java.lang.Class,java.lang.Class)[].
-For an example on what this could look like see the https://github.com/gradle/gradle-hazelcast-plugin[Gradle Hazelcast plugin].
+For an example of what this could look like see the https://github.com/gradle/gradle-hazelcast-plugin[Gradle Hazelcast plugin].
 
 
 [[sec:build_cache_known_issues]]
