@@ -14,7 +14,7 @@
 
     <!-- Use <ulink url="..."/> instead of <link href="..."/> -->
 
-    <xsl:template match="docbook:link">
+    <xsl:template match="docbook:link[@xlink:href]">
         <ulink>
             <xsl:attribute name="url">
                 <xsl:value-of select="@xlink:href"/>
