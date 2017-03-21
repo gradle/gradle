@@ -34,8 +34,8 @@
         </para>
         <para>
             A first feature using the build cache is <firstterm>task output caching</firstterm>.
-            Essentially, task output caching leverages the same intelligence as <link linkend="sec:up_to_date_checks">UP-TO-DATE checks</link> that Gradle uses to avoid work when a previous local build has already produced a set of outputs.
-            But instead of being limited to the previous build in the same workspace, task output caching allows Gradle to reuse build outputs from any earlier build in any location.
+            Essentially, task output caching leverages the same intelligence as <link linkend="sec:up_to_date_checks">UP-TO-DATE checks</link> that Gradle uses to avoid work when a previous local build has already produced a set of task outputs.
+            But instead of being limited to the previous build in the same workspace, task output caching allows Gradle to reuse task outputs from any earlier build in any location.
             When using a shared build cache for task output caching this even works across developer machines and build agents.
         </para>
         <para>
@@ -62,6 +62,10 @@
                     </para>
                 </listitem>
             </varlistentry>
+        </para>
+        <para>
+            When the build cache is enabled, it will store build outputs in the Gradle user home in the directory <literal>caches/build-cache-1</literal>.
+            For configuring this directory or different kinds of build caches see <xref linkend="sec:build_cache_configure" />.
         </para>
     </section>
     <section id="sec:task_output_caching">
@@ -177,12 +181,6 @@
     </section>
     <section id="sec:build_cache_configure">
         <title>Configure the Build Cache</title>
-        <note>
-            <para>
-                If you use a <literal>buildSrc</literal> directory make sure to apply the same <link linkend="sec:build_cache_configure">build cache configuration</link> to <literal>buildSrc</literal>
-                and the main build. This can be achieved by applying the same script to <literal>buildSrc/settings.gradle</literal> and <literal>settings.gradle</literal>.
-            </para>
-        </note>
         <para>
             You can configure the build cache by using the <apilink class='org.gradle.api.initialization.Settings' method="buildCache(org.gradle.api.Action)"/> block in <literal>settings.gradle</literal>.
         </para>
@@ -214,6 +212,15 @@
             <sourcefile file="settings.gradle" snippet="developer-ci-setup"/>
         </sample>
         <para>
+            If you use a <literal>buildSrc</literal> directory, you should make sure that it uses the same build cache configuration as the main build.
+            This can be achieved by applying the same script to <literal>buildSrc/settings.gradle</literal> and <literal>settings.gradle</literal> as shown in the following example.
+        </para>
+        <sample id="buildCacheBuildSrc" dir="buildCache/build-src" title="Consistent setup for buildSrc and main build">
+            <sourcefile file="settings.gradle" snippet="configure-build-src-build-cache"/>
+            <sourcefile file="buildSrc/settings.gradle" snippet="configure-build-src-build-cache"/>
+            <sourcefile file="gradle/buildCacheSettings.gradle" snippet="configure-build-src-build-cache"/>
+        </sample>
+        <para>
             You can configure the directory the <apilink class='org.gradle.caching.local.DirectoryBuildCache'/> uses to store the build outputs and
             the credentials the <apilink class='org.gradle.caching.http.HttpBuildCache'/> uses to access the build cache server as shown in the following example.
             <sample id="directoryAndHttpBuildCacheConfiguration" dir="buildCache/configure-built-in-caches" title="Configure built-in build caches">
@@ -222,7 +229,7 @@
         </para>
     </section>
     <section id="sec:build_cache_implement">
-        <title>Implement your own build cache</title>
+        <title>Implement your own Build Cache</title>
         <para>
             Using a different build cache backend to store build outputs which is not covered by the built-in support for connecting to an HTTP backend requires implementing
             your own logic for connecting to your custom build cache backend.
