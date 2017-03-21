@@ -2,7 +2,7 @@ The Gradle team is pleased to announce Gradle 3.5.
 
 First and foremost, we're excited to announce a new [Build Cache](userguide/build_cache.html)!
 Beyond [incremental builds](https://blog.gradle.org/introducing-incremental-build-support), Gradle can save time by reusing outputs from previous executions of a task, resolving them _locally_ or _remotely_.
-We’ve worked hard to ensure many built-in tasks are cacheable and safe to try; however, this feature should not be used in production without fully understanding [its current limitations](userguide/build_cache.html#sec:build_cache_known_issues), so it is not enabled by default.
+We’ve worked hard to ensure many built-in tasks are cacheable and safe to try; however, this feature should not be used in production without fully understanding [its current limitations](userguide/build_cache.html#sec:task_output_caching_known_issues), so it is not enabled by default.
 
 We have been testing this feature at scale for quite some time on the Gradle build itself and with enterprise partners, and the feedback has been very positive.
 While this feature is incubating, we are improving the user experience, documentation, and debuggability so that everyone can enable the Build Cache eventually.
@@ -56,7 +56,7 @@ We provide a [recommended configuration](userguide/build_cache.html#sec:build_ca
 Our recommended configuration does not directly share task outputs among developer builds.
 
 The Gradle Build Cache is an opt-in feature for tasks, so not every task will be cacheable yet. For example, tasks from the Gradle Android and Kotlin plugins are not cacheable _yet_. Further, some tasks like a simple `Copy` task are not and _should not_ be cached.  
-Look at [the build cache user guide chapter](userguide/build_cache.html#sec:build_cache_known_issues) to see all of the current limitations with using the build cache.
+Look at [the build cache user guide chapter](userguide/build_cache.html#sec:task_output_caching_known_issues) to see all of the current limitations with using the build cache.
 
 ### Plugin resolution rules
 
