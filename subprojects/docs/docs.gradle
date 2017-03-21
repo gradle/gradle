@@ -22,6 +22,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 
+import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.build.docs.UserGuideSectionVerifier
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
@@ -101,7 +102,8 @@ dependencies {
 ext {
     srcDocsDir = file('src/docs')
     userguideSrcDir = new File(srcDocsDir, 'userguide')
-    userguideAsciidocGeneratedDir = new File(buildDir, 'asciidoc/userguide')
+    userguideAsciidocGeneratedDir = file("$buildDir/asciidoc/userguide")
+    asciidocSanitizeStylesheet = file("$srcDocsDir/stylesheets/asciidocSanitize.xsl")
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
     userguideDir = new File(docsDir, 'userguide')
@@ -120,6 +122,33 @@ outputs.distDocs = files(distDocsDir) {
 }
 outputs.docs = files(docsDir) {
     builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+}
+
+tasks.withType(AsciidoctorTask) {
+    backends = ['docbook']
+    separateOutputDirs = false
+    options doctype: 'book'
+    inputs.file asciidocSanitizeStylesheet withPropertyName "sanitizerStylesheet"
+
+    extensions {
+        inlinemacro (name: "api") {
+            parent, target, attributes ->
+            def (className, method) = target.split('#') as List
+            def content = "<apilink class=\"$className\""
+            if (method) {
+                content += " method=\"${method.replaceAll(/,\s*/, ', ')}\""
+            }
+            content += " />"
+            return content
+        }
+    }
+
+    doLast {
+        outputDir.eachFile { File file ->
+            def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(asciidocSanitizeStylesheet))
+            transformer.transform(new StreamSource(new StringReader(file.getText("utf-8"))), new StreamResult(file))
+        }
+    }
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -215,104 +244,12 @@ task userguideStyleSheets(type: Copy) {
     }
 }
 
-asciidoctor {
-    backends = ['docbook']
-    sourceDir = file("src/docs/userguide-asciidoc")
-    outputDir = userguideAsciidocGeneratedDir
-    separateOutputDirs = false
-    options doctype: 'book'
+tasks.remove(asciidoctor)
 
-    extensions {
-        inlinemacro (name: "api") {
-            parent, target, attributes ->
-            def (className, method) = target.split('#') as List
-            def content = "<apilink class=\"$className\""
-            if (method) {
-                content += " method=\"$method\""
-            }
-            content += " />"
-            return content
-        }
-    }
-
-    doLast {
-        outputDir.eachFile { File file ->
-            project.file("$outputDir/../$file.name").text = file.text
-            // Load xslt
-            def xslt = """<?xml version="1.0"?>
-<xsl:stylesheet
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:docbook="http://docbook.org/ns/docbook"
-    xmlns:xml="http://www.w3.org/XML/1998/namespace"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    exclude-result-prefixes="docbook xlink xml"
-    version="1.0">
-    <xsl:output method="xml" />
-
-    <xsl:template match="/docbook:book">
-        <xsl:apply-templates select="docbook:chapter"/>
-    </xsl:template>
-
-    <xsl:template match="docbook:link">
-        <ulink>
-            <xsl:attribute name="url">
-                <xsl:value-of select="@xlink:href"/>
-            </xsl:attribute>
-            <xsl:apply-templates select="node()"/>
-        </ulink>
-    </xsl:template>
-
-    <xsl:template match="//docbook:table//docbook:row">
-        <tr>
-            <xsl:apply-templates select="node()"/>
-        </tr>
-    </xsl:template>
-
-    <xsl:template match="//docbook:table//docbook:thead//docbook:entry">
-        <th>
-            <xsl:apply-templates select="node()"/>
-        </th>
-    </xsl:template>
-
-    <xsl:template match="//docbook:table//docbook:entry">
-        <td>
-            <xsl:apply-templates select="node()"/>
-        </td>
-    </xsl:template>
-
-    <xsl:template match="//docbook:table/docbook:tgroup">
-        <xsl:apply-templates select="node()"/>
-    </xsl:template>
-
-    <xsl:template match="//docbook:colspec"/>
-
-    <xsl:template match="*">
-        <xsl:element name="{local-name()}">
-            <xsl:apply-templates select="node()|@*"/>
-        </xsl:element>
-    </xsl:template>
-
-    <xsl:template match="@*">
-        <xsl:attribute name="{local-name()}">
-            <xsl:value-of select="."/>
-        </xsl:attribute>
-    </xsl:template>
-</xsl:stylesheet>
-            """
-
-            // Create transformer
-            def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(new StringReader(xslt)))
-
-            // Load xml
-            def input = file.text
-
-            // Set output file
-            def output = new FileOutputStream(file)
-
-            // Perform transformation
-            transformer.transform(new StreamSource(new StringReader(input)), new StreamResult(output))
-        }
-    }
+task userguideAsciidoc(type: AsciidoctorTask) {
+    sourceDir = userguideSrcDir
+    sources { include '*.adoc' }
+    outputDir = userguideAsciidocGeneratedDir    
 }
 
 task samplesDocbook(type: AssembleSamplesDocTask) {
@@ -381,7 +318,7 @@ task dslHtml(type: Docbook2Xhtml) {
 }
 
 task checkSectionIds(type: UserGuideSectionVerifier) {
-    dependsOn asciidoctor
+    dependsOn userguideAsciidoc
     docbookFiles = files(
         fileTree(userguideSrcDir) { include "**/*.xml" },
         fileTree(userguideAsciidocGeneratedDir) { include "**/*.xml" }
@@ -414,7 +351,9 @@ configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
     includes = files(samplesDocbook,
         defaultImports.importsDestFile,
-        fileTree(dir: userguideSrcDir, includes: ['*.xml']))
+        fileTree(dir: userguideSrcDir, includes: ['*.xml']),
+        fileTree(dir: userguideAsciidocGeneratedDir, includes: ['*.xml'])
+    )
 
     dependsOn samples, samplesDocbook, defaultImports
 
