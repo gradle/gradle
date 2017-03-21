@@ -138,6 +138,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private String target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets(String target) {
                     this.target = target
                 }
@@ -252,6 +253,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private CustomType target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets(CustomType target) {
                     this.target = target
                 }
@@ -355,6 +357,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private $type target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets($type target) {
                     this.target = target
                 }
@@ -443,6 +446,7 @@ allprojects {
         given:
         buildFile << """
             class Sizer extends ArtifactTransform {
+                @javax.inject.Inject
                 Sizer(String target) {
                     // ignore config
                 }
@@ -458,6 +462,7 @@ allprojects {
             class Hasher extends ArtifactTransform {
                 private String target
                 
+                @javax.inject.Inject
                 Hasher(String target) {
                     // ignore config
                 }
@@ -962,6 +967,7 @@ allprojects {
             }
 
             class FileSizer extends ArtifactTransform {
+                @javax.inject.Inject
                 FileSizer(Number n) { }
                 
                 List<File> transform(File input) {

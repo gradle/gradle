@@ -19,7 +19,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
-import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
@@ -28,10 +27,10 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.cached.ExternalResourceFileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -48,9 +47,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ivyContextManager = Mock(IvyContextManager)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
-        fileResolver, transportFactory, locallyAvailableResourceFinder,
-        DirectInstantiator.INSTANCE, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, new InstantiatorFactory()
+    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory()
     )
 
     def "default values"() {

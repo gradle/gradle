@@ -59,7 +59,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
-                                        Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
@@ -71,7 +70,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         InstantiatorFactory instantiatorFactory) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
-        this.instantiator = instantiator;
+        this.instantiator = instantiatorFactory.decorate();
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
@@ -110,7 +109,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, instantiator, artifactFileStore, externalResourcesFileStore, createAuthenticationContainer(), ivyContextManager, moduleIdentifierFactory, instantiatorFactory);
+                locallyAvailableResourceFinder, artifactFileStore, externalResourcesFileStore, createAuthenticationContainer(), ivyContextManager, moduleIdentifierFactory, instantiatorFactory);
     }
 
     public MavenArtifactRepository createMavenRepository() {

@@ -29,6 +29,7 @@ def color = Attribute.of("color", Color)
 class ToColor extends ArtifactTransform {
     Color color
 
+    @javax.inject.Inject
     ToColor(Color color) { this.color = color }
 
     List<File> transform(File input) {

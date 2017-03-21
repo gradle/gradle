@@ -82,14 +82,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private Object[] componentMetadataSupplierParams;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
+                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                         FileStore<String> externalResourcesFileStore,
                                         AuthenticationContainer authenticationContainer,
                                         IvyContextManager ivyContextManager,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                         InstantiatorFactory instantiatorFactory) {
-        super(instantiator, authenticationContainer);
+        super(instantiatorFactory.decorate(), authenticationContainer);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -100,7 +100,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.instantiatorFactory = instantiatorFactory;
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
-        this.instantiator = instantiator;
+        this.instantiator = instantiatorFactory.decorate();
         this.ivyContextManager = ivyContextManager;
     }
 

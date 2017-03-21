@@ -782,6 +782,8 @@ class FileSizer extends ArtifactTransform {
 
             class ViewTransform extends ArtifactTransform {
                 private String outputName
+
+                @javax.inject.Inject
                 ViewTransform(String outputName) {
                     this.outputName = outputName
                 }
@@ -848,6 +850,8 @@ class FileSizer extends ArtifactTransform {
 
             class ArtifactFilter extends ArtifactTransform {
                 boolean enableFilter
+                
+                @javax.inject.Inject
                 ArtifactFilter(boolean enableFilter) {
                     this.enableFilter = enableFilter
                 }

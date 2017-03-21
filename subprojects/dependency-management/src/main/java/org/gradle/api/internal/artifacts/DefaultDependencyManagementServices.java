@@ -116,12 +116,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiator);
         }
 
-        VariantTransformRegistry createVariantTransforms(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-            return instantiator.newInstance(DefaultVariantTransformRegistry.class, instantiator, attributesFactory, transformedFileCache, fileCollectionSnapshotter, valueSnapshotter, classLoaderHierarchyHasher);
+        VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, fileCollectionSnapshotter, valueSnapshotter, classLoaderHierarchyHasher);
         }
 
-        BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
-                                                          RepositoryTransportFactory repositoryTransportFactory, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
+                                                          FileResolver fileResolver,
+                                                          RepositoryTransportFactory repositoryTransportFactory,
+                                                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
                                                           ExternalResourceFileStore externalResourceFileStore,
                                                           VersionSelectorScheme versionSelectorScheme,
@@ -133,7 +135,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
-                    instantiator,
                     repositoryTransportFactory,
                     locallyAvailableResourceFinder,
                     artifactIdentifierFileStore,
