@@ -36,13 +36,11 @@ public interface ArtifactView extends HasAttributes {
     /**
      * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
      */
-    @Incubating
     ArtifactCollection getArtifacts();
 
     /**
      * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
      */
-    @Incubating
     FileCollection getFiles();
 
     /**
@@ -55,7 +53,6 @@ public interface ArtifactView extends HasAttributes {
          *
          * This method cannot be called a multiple times for a view.
          */
-        @Incubating
         ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter);
     }
 }

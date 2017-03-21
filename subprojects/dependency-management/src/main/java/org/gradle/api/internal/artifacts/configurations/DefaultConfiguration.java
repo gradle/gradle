@@ -983,6 +983,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return new ConfigurationArtifactView(config.lockViewAttributes(), config.lockComponentFilter());
         }
 
+        @Override
+        public AttributeContainer getAttributes() {
+            return configurationAttributes;
+        }
+
         private class ConfigurationArtifactView implements ArtifactView {
             private final ImmutableAttributes viewAttributes;
             private final Spec<? super ComponentIdentifier> componentFilter;
