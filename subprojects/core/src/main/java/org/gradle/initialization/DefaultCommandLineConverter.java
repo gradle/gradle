@@ -49,9 +49,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
     private static final String RECOMPILE_SCRIPTS = "recompile-scripts";
 
-    private static final String PARALLEL = "parallel";
-    private static final String MAX_WORKERS = "max-workers";
-
     private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
 
     private static final String CONTINUOUS = "continuous";
@@ -66,6 +63,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String INCLUDE_BUILD = "include-build";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
+    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
@@ -76,6 +74,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     public void configure(CommandLineParser parser) {
         loggingConfigurationCommandLineConverter.configure(parser);
+        parallelConfigurationCommandLineConverter.configure(parser);
         systemPropertiesCommandLineConverter.configure(parser);
         projectPropertiesCommandLineConverter.configure(parser);
         layoutCommandLineConverter.configure(parser);
@@ -94,8 +93,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(CONTINUE).hasDescription("Continue task execution after a task failure.");
         parser.option(OFFLINE).hasDescription("Execute the build without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
-        parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
-        parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating();
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
 
@@ -111,6 +108,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
         loggingConfigurationCommandLineConverter.convert(options, startParameter);
+        parallelConfigurationCommandLineConverter.convert(options, startParameter);
         Transformer<File, String> resolver = new BasicFileResolver(startParameter.getCurrentDir());
 
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
@@ -185,23 +183,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setRefreshDependencies(true);
         }
 
-        if (options.hasOption(PARALLEL)) {
-            startParameter.setParallelProjectExecutionEnabled(true);
-        }
-
-        if (options.hasOption(MAX_WORKERS)) {
-            String value = options.option(MAX_WORKERS).getValue();
-            try {
-                int workerCount = Integer.parseInt(value);
-                if (workerCount < 1) {
-                    invalidMaxWorkersSwitchValue(value);
-                }
-                startParameter.setMaxWorkerCount(workerCount);
-            } catch (NumberFormatException e) {
-                invalidMaxWorkersSwitchValue(value);
-            }
-        }
-
         if (options.hasOption(CONFIGURE_ON_DEMAND)) {
             startParameter.setConfigureOnDemand(true);
         }
@@ -234,10 +215,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         return startParameter;
-    }
-
-    private StartParameter invalidMaxWorkersSwitchValue(String value) {
-        throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS));
     }
 
     void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, Transformer<File, String> resolver) {

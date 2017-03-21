@@ -128,6 +128,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.setLevelInternal(startParameter.getLogLevel());
+        if (startParameter.isParallelProjectExecutionEnabled()) {
+            loggingManager.setMaxWorkerCount(startParameter.getMaxWorkerCount());
+        } else {
+            loggingManager.setMaxWorkerCount(1);
+        }
 
         //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
         loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));

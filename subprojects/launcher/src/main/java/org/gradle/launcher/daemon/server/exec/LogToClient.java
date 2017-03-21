@@ -76,7 +76,7 @@ public class LogToClient extends BuildCommandOnly {
             this.connection = conn;
             this.listener = new OutputEventListener() {
                 public void onOutput(OutputEvent event) {
-                    if (event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
+                    if (dispatcher != null && event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
                         dispatcher.submit(event);
                     }
                 }

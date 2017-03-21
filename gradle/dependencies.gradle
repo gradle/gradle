@@ -21,7 +21,7 @@ ext {
 
 versions.commons_io = 'commons-io:commons-io:2.2'
 
-versions.groovy = "2.4.9"
+versions.groovy = "2.4.10"
 
 versions.bouncycastle = "1.51"
 
@@ -37,7 +37,7 @@ libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)
 libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
 libraries.commons_collections = 'commons-collections:commons-collections:3.2.2@jar'
-libraries.jsch = "com.jcraft:jsch:0.1.53"
+libraries.jsch = "com.jcraft:jsch:0.1.54"
 libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0'){
     dependency libraries.jsch
 }

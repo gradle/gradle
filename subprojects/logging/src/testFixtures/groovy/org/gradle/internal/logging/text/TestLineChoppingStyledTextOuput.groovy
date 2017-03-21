@@ -14,14 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console;
+package org.gradle.internal.logging.text
 
-import java.util.List;
+class TestLineChoppingStyledTextOuput extends AbstractLineChoppingStyledTextOutput {
+    TestStyledTextOutput delegate = new TestStyledTextOutput()
 
-public interface BuildProgressArea {
-    // TODO(ew): Consider whether this belongs in Console or here
-    StyledLabel getProgressBar();
-    List<StyledLabel> getBuildProgressLabels();
-    void resizeBuildProgressTo(int numberOfLabels);
-    void setVisible(boolean isVisible);
+    @Override
+    String toString() {
+        delegate.toString()
+    }
+
+    /**
+     * @see TestStyledTextOutput#getValue()
+     */
+    String getValue() {
+        return delegate.getValue()
+    }
+
+    @Override
+    protected void doLineText(CharSequence text) {
+        delegate.text(text)
+    }
+
+    @Override
+    protected void doEndLine(CharSequence endOfLine) {
+        delegate.text("\n")
+    }
 }
