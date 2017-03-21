@@ -95,8 +95,6 @@ public interface Report extends Serializable, Configurable<Report> {
     @Internal
     File getDestination();
 
-    void setDestination(Object file);
-
     /**
      * The type of output the report produces
      */
