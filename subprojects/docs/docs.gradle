@@ -144,7 +144,6 @@ tasks.withType(AsciidoctorTask) {
 
     doLast {
         outputDir.eachFile { File file ->
-            project.file("${outputDir.parent}/${file.name}").text = file.text
             def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(asciidocSanitizeStylesheet))
             transformer.transform(new StreamSource(new StringReader(file.getText("utf-8"))), new StreamResult(file))
         }
