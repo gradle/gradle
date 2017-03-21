@@ -29,13 +29,26 @@ import java.io.ObjectOutputStream;
  * Represents a {@link WorkSpec} that contains constructor parameters.
  */
 public class ParamSpec implements WorkSpec {
+    private final String displayName;
+    private final Class<? extends Runnable> implementationClass;
     private final byte[] params;
 
-    ParamSpec(Object[] params) {
+    ParamSpec(Class<? extends Runnable> implementationClass, String displayName, Object[] params) {
+        this.implementationClass = implementationClass;
+        this.displayName = displayName;
         this.params = serialize(params);
     }
 
-    Object[] getParams(ClassLoader classLoader) {
+    public Class<? extends Runnable> getImplementationClass() {
+        return implementationClass;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public Object[] getParams(ClassLoader classLoader) {
         return deserialize(classLoader);
     }
 
@@ -63,8 +76,8 @@ public class ParamSpec implements WorkSpec {
     }
 
     @Contextual
-    class ParameterSerializationException extends RuntimeException {
-        public ParameterSerializationException(String message, Throwable cause) {
+    static class ParameterSerializationException extends RuntimeException {
+        ParameterSerializationException(String message, Throwable cause) {
             super(message, cause);
         }
     }

@@ -51,17 +51,15 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ListeningExecutorService executor;
     private final WorkerFactory workerDaemonFactory;
     private final WorkerFactory workerInProcessFactory;
-    private final Class<? extends WorkerProtocol> workerProtocolImplementationClass;
     private final FileResolver fileResolver;
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
 
-    public DefaultWorkerExecutor(WorkerFactory workerDaemonFactory, WorkerFactory workerInProcessFactory, FileResolver fileResolver, Class<? extends WorkerProtocol> workerProtocolImplementationClass, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+    public DefaultWorkerExecutor(WorkerFactory workerDaemonFactory, WorkerFactory workerInProcessFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
         this.workerDaemonFactory = workerDaemonFactory;
         this.workerInProcessFactory = workerInProcessFactory;
         this.fileResolver = fileResolver;
-        this.workerProtocolImplementationClass = workerProtocolImplementationClass;
         this.executor = MoreExecutors.listeningDecorator(executorFactory.create("Worker Daemon Execution"));
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -73,27 +71,34 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
         configAction.execute(configuration);
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
-        WorkerAction action = new WorkerRunnableAction(description, actionClass);
-        submit(action, configuration.getParams(), configuration.getForkOptions().getWorkingDir(), configuration.getForkMode(), getDaemonForkOptions(actionClass, configuration));
+
+        // Serialize parameters in this thread prior to starting work in a separate thread
+        ParamSpec spec;
+        try {
+            spec = new ParamSpec(actionClass, description, configuration.getParams());
+        } catch (Throwable t) {
+            throw new WorkExecutionException(description, t);
+        }
+
+        submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getForkMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final WorkerAction action, final Object[] params, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
+    private void submit(final ParamSpec spec, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
         final Operation currentWorkerOperation = buildOperationWorkerRegistry.getCurrent();
         final BuildOperationExecutor.Operation currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
-                    WorkSpec spec = new ParamSpec(params);
                     WorkerFactory workerFactory = fork == ForkMode.ALWAYS ? workerDaemonFactory : workerInProcessFactory;
-                    Worker worker = workerFactory.getWorker(workerProtocolImplementationClass, workingDir, daemonForkOptions);
-                    return worker.execute(action, spec, currentWorkerOperation, currentBuildOperation);
+                    Worker worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
+                    return worker.execute(spec, currentWorkerOperation, currentBuildOperation);
                 } catch (Throwable t) {
-                    throw new WorkExecutionException(action.getDisplayName(), t);
+                    throw new WorkExecutionException(spec.getDisplayName(), t);
                 }
             }
         });
-        registerAsyncWork(action.getDisplayName(), workerDaemonResult);
+        registerAsyncWork(spec.getDisplayName(), workerDaemonResult);
     }
 
     void registerAsyncWork(final String description, final Future<DefaultWorkResult> workItem) {
@@ -182,11 +187,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Contextual
     private static class WorkExecutionException extends RuntimeException {
-        public WorkExecutionException(String description) {
-            this(description, null);
-        }
-
-        public WorkExecutionException(String description, Throwable cause) {
+        WorkExecutionException(String description, Throwable cause) {
             super("A failure occurred while executing " + description, cause);
         }
     }

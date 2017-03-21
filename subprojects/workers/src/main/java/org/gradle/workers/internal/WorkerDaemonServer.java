@@ -16,12 +16,18 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.reflect.DirectInstantiator;
+
 public class WorkerDaemonServer implements WorkerProtocol {
 
     @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec) {
+    public <T extends WorkSpec> DefaultWorkResult execute(T spec) {
         try {
-            return action.execute(spec);
+            ParamSpec paramSpec = (ParamSpec) spec;
+            Class<? extends Runnable> implementationClass = paramSpec.getImplementationClass();
+            Runnable runnable = DirectInstantiator.instantiate(implementationClass, paramSpec.getParams(implementationClass.getClassLoader()));
+            runnable.run();
+            return new DefaultWorkResult(true, null);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }

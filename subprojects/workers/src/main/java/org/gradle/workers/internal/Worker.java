@@ -23,6 +23,6 @@ import org.gradle.internal.progress.BuildOperationExecutor;
  * A service that executes work in a (potentially) long-lived process or in-process.
  */
 public interface Worker {
-    <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec);
-    <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation);
+    <T extends WorkSpec> DefaultWorkResult execute(T spec);
+    <T extends WorkSpec> DefaultWorkResult execute(T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation);
 }

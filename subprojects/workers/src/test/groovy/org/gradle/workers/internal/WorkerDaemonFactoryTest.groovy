@@ -36,7 +36,6 @@ class WorkerDaemonFactoryTest extends Specification {
     @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
 
     def workingDir = new File("some-dir")
-    def workerAction = Stub(WorkerAction)
     def options = Stub(DaemonForkOptions)
     def spec = Stub(WorkSpec)
     def workerProtocolImplementation = Stub(WorkerProtocol)
@@ -51,7 +50,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -64,7 +63,7 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveNewClient(workerProtocolImplementation.class, workingDir, options) >> client
 
         then:
-        1 * client.execute(workerAction, spec, workerOperation, buildOperation)
+        1 * client.execute(spec, workerOperation, buildOperation)
 
         then:
         1 * clientsManager.release(client)
@@ -73,7 +72,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "idle client is reused when daemon is executed"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -83,7 +82,7 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * client.execute(workerAction, spec, workerOperation, buildOperation)
+        1 * client.execute(spec, workerOperation, buildOperation)
 
         then:
         1 * clientsManager.release(client)
@@ -92,7 +91,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "client is released even if execution fails"() {
         when:
-        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(workerAction, spec)
+        factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
 
         then:
         1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
@@ -102,7 +101,7 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * client.execute(workerAction, spec, workerOperation, buildOperation) >> { throw new RuntimeException("Boo!") }
+        1 * client.execute(spec, workerOperation, buildOperation) >> { throw new RuntimeException("Boo!") }
 
         then:
         thrown(RuntimeException)

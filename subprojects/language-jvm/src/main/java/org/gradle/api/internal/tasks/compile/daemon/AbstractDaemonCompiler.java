@@ -20,12 +20,11 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.DaemonForkOptions;
-import org.gradle.workers.internal.WorkSpec;
-import org.gradle.workers.internal.WorkerAction;
 import org.gradle.workers.internal.DefaultWorkResult;
+import org.gradle.workers.internal.WorkSpec;
 import org.gradle.workers.internal.Worker;
-import org.gradle.workers.internal.WorkerDaemonServer;
 import org.gradle.workers.internal.WorkerFactory;
+import org.gradle.workers.internal.WorkerProtocol;
 
 import java.io.File;
 
@@ -48,47 +47,43 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
         Worker worker = workerFactory.getWorker(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
-        DefaultWorkResult result = worker.execute(adapter(delegate), spec);
+        DefaultWorkResult result = worker.execute(new WorkerCompileSpec<T>(delegate, spec));
         if (result.isSuccess()) {
             return result;
         }
         throw UncheckedException.throwAsUncheckedException(result.getException());
     }
 
-    private CompilerWorkerAdapter<T> adapter(Compiler<T> compiler) {
-        return new CompilerWorkerAdapter<T>(compiler);
-    }
-
     protected abstract DaemonForkOptions toDaemonOptions(T spec);
 
-    private static class CompilerWorkerAdapter<T extends CompileSpec> implements WorkerAction<T> {
+    private static class WorkerCompileSpec<T extends CompileSpec> implements WorkSpec {
         private final Compiler<T> compiler;
+        private final T spec;
 
-        CompilerWorkerAdapter(Compiler<T> compiler) {
+        WorkerCompileSpec(Compiler<T> compiler, T spec) {
             this.compiler = compiler;
-        }
-
-        @Override
-        public DefaultWorkResult execute(T spec) {
-            return new DefaultWorkResult(compiler.execute(spec).getDidWork(), null);
+            this.spec = spec;
         }
 
         @Override
         public String getDisplayName() {
             return compiler.getClass().getName();
         }
+
+        public DefaultWorkResult compile() {
+            return new DefaultWorkResult(compiler.execute(spec).getDidWork(), null);
+        }
     }
 
-    // TODO Come up with a better way to set up the worker implementation classpath
-    // This is a hack to get the appropriate classpath on the worker implementation classpath for compiler daemons.
-    // The classpath is derived from the implementation class and when this is WorkerDaemonServer, we get the classpath
-    // from the classloader in the Gradle Core API classloader scope (which only contains certain jars).  Using this
-    // class causes the classpath to be inferred from the Gradle API scope classloader instead so that we get the necessary
-    // jars for a compiler daemon.
-    public static class CompilerDaemonServer extends WorkerDaemonServer {
+    public static class CompilerDaemonServer implements WorkerProtocol {
         @Override
-        public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec) {
-            return super.execute(action, spec);
+        public <T extends WorkSpec> DefaultWorkResult execute(T spec) {
+            try {
+                WorkerCompileSpec<?> workerCompileSpec = (WorkerCompileSpec<?>) spec;
+                return workerCompileSpec.compile();
+            } catch (Throwable t) {
+                return new DefaultWorkResult(true, t);
+            }
         }
     }
 }

@@ -44,7 +44,6 @@ class DefaultWorkerExecutorTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def factory = Mock(Factory)
     def runnable = Mock(Runnable)
-    def workerProtocolImplementation = Mock(WorkerProtocol)
     def executor = Mock(StoppableExecutor)
     def worker = Mock(Worker)
     ListenableFutureTask task
@@ -54,7 +53,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * fileResolver.resolveLater(_) >> factory
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * executorFactory.create(_ as String) >> executor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, fileResolver, workerProtocolImplementation.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
@@ -137,13 +136,10 @@ class DefaultWorkerExecutorTest extends Specification {
 
         then:
         1 * workerDaemonFactory.getWorker(_, _, _) >> worker
-        1 * worker.execute(_, _, _, _) >> { action, spec, workOperation, buildOperation ->
-            action.execute(spec)
+        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+            assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }
-
-        and:
-        output.stdOut.contains("executing")
     }
 
     def "executor executes a given runnable in-process"() {
@@ -162,13 +158,10 @@ class DefaultWorkerExecutorTest extends Specification {
 
         then:
         1 * inProcessWorkerFactory.getWorker(_, _, _) >> worker
-        1 * worker.execute(_, _, _, _) >> { action, spec, workOperation, buildOperation ->
-            action.execute(spec)
+        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+            assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }
-
-        and:
-        output.stdOut.contains("executing")
     }
 
     static class TestRunnable implements Runnable {

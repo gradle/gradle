@@ -44,13 +44,13 @@ class WorkerDaemonClientTest extends Specification {
         client = client(workerDaemonProcess)
 
         when:
-        client.execute(Stub(WorkerAction), Stub(WorkSpec), workerOperation, buildOperation)
+        client.execute(Stub(WorkSpec), workerOperation, buildOperation)
 
         then:
         1 * buildOperationExecutor.run(_ as BuildOperationDetails, _ as Transformer) >> { args -> args[1].transform(Mock(BuildOperationContext)) }
 
         and:
-        1 * workerDaemonProcess.execute(_, _)
+        1 * workerDaemonProcess.execute(_)
     }
 
     def "use count is incremented when client is executed"() {
@@ -59,7 +59,7 @@ class WorkerDaemonClientTest extends Specification {
         assert client.uses == 0
 
         when:
-        5.times { client.execute(Stub(WorkerAction), Stub(WorkSpec), workerOperation, buildOperation) }
+        5.times { client.execute(Stub(WorkSpec), workerOperation, buildOperation) }
 
         then:
         5 * buildOperationExecutor.run(_ as BuildOperationDetails, _ as Transformer) >> { args -> args[1].transform(Mock(BuildOperationContext)) }
@@ -76,7 +76,7 @@ class WorkerDaemonClientTest extends Specification {
         client = client()
 
         when:
-        client.execute(Stub(WorkerAction), Stub(WorkSpec), operation, buildOperation)
+        client.execute(Stub(WorkSpec), operation, buildOperation)
 
         then:
         1 * operation.operationStart() >> completion
@@ -92,7 +92,7 @@ class WorkerDaemonClientTest extends Specification {
         client = client(workerDaemonProcess)
 
         when:
-        client.execute(Stub(WorkerAction), Stub(WorkSpec), operation, buildOperation)
+        client.execute(Stub(WorkSpec), operation, buildOperation)
 
         then:
         1 * operation.operationStart() >> completion
@@ -100,7 +100,7 @@ class WorkerDaemonClientTest extends Specification {
 
         then:
         thrown(RuntimeException)
-        1 * workerDaemonProcess.execute(_, _) >> { throw new RuntimeException() }
+        1 * workerDaemonProcess.execute(_) >> { throw new RuntimeException() }
         1 * completion.operationFinish()
     }
 

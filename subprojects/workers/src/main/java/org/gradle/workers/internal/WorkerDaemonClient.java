@@ -41,15 +41,15 @@ class WorkerDaemonClient implements Worker, Stoppable {
     }
 
     @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(final WorkerAction<T> action, final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
+    public <T extends WorkSpec> DefaultWorkResult execute(final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
         Completion workerLease = parentWorkerOperation.operationStart();
-        BuildOperationDetails buildOperation = BuildOperationDetails.displayName(action.getDisplayName()).parent(parentBuildOperation).build();
+        BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
         try {
             return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
                 @Override
                 public DefaultWorkResult transform(BuildOperationContext buildOperationContext) {
                     uses++;
-                    return workerDaemonProcess.execute(action, spec);
+                    return workerDaemonProcess.execute(spec);
                 }
             });
         } finally {
@@ -58,7 +58,7 @@ class WorkerDaemonClient implements Worker, Stoppable {
     }
 
     @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec) {
+    public <T extends WorkSpec> DefaultWorkResult execute(T spec) {
         throw new UnsupportedOperationException();
     }
 

@@ -49,21 +49,21 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     @Override
     public Worker getWorker(final Class<? extends WorkerProtocol> workerImplementationClass, final File workingDir, final DaemonForkOptions forkOptions) {
         return new Worker() {
-            public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
+            public <T extends WorkSpec> DefaultWorkResult execute(T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
                 WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
                     client = clientsManager.reserveNewClient(workerImplementationClass, workingDir, forkOptions);
                 }
                 try {
-                    return client.execute(action, spec, parentWorkerOperation, parentBuildOperation);
+                    return client.execute(spec, parentWorkerOperation, parentBuildOperation);
                 } finally {
                     clientsManager.release(client);
                 }
             }
 
             @Override
-            public <T extends WorkSpec> DefaultWorkResult execute(WorkerAction<T> action, T spec) {
-                return execute(action, spec, buildOperationWorkerRegistry.getCurrent(), buildOperationExecutor.getCurrentOperation());
+            public <T extends WorkSpec> DefaultWorkResult execute(T spec) {
+                return execute(spec, buildOperationWorkerRegistry.getCurrent(), buildOperationExecutor.getCurrentOperation());
             }
         };
     }
