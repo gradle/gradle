@@ -19,31 +19,42 @@ package org.gradle.api.internal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 
-public class InstantiatorFactory {
-    private final DependencyInjectingInstantiator.ConstructorCache constructorCache = new DependencyInjectingInstantiator.ConstructorCache();
-    private final ClassGenerator classGenerator;
-
-    public InstantiatorFactory(ClassGenerator classGenerator) {
-        this.classGenerator = classGenerator;
-    }
-
+public interface InstantiatorFactory {
     /**
-     * Creates an {@link Instantiator} that can inject services into the instances it creates, but does not decorate the instances.
+     * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates, but does not decorate the instances.
+     *
+     * <p>Use for any public types for which services or user provided values need to injected.
      *
      * @param registry The registry of services to make available to instances.
      * @return The instantiator
      */
-    public Instantiator inject(ServiceRegistry registry) {
-        return new DependencyInjectingInstantiator(registry, constructorCache);
-    }
+    Instantiator inject(ServiceRegistry registry);
 
     /**
-     * Creates an {@link Instantiator} that can inject services into the instances it creates and also decorates the instances.
+     * Creates an {@link Instantiator} that can inject user provided values into the instances it creates, but does not decorate the instances.
+     *
+     * <p>Use for any public types for which user provided values need to injected.
+     *
+     * @return The instantiator
+     */
+    Instantiator inject();
+
+    /**
+     * Creates an {@link Instantiator} that decorates the instances created.
+     *
+     * <p>Use for any public model types for which no user provided values need to injected.
+     *
+     * @return The instantiator
+     */
+    Instantiator decorate();
+
+    /**
+     * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates and also decorates the instances.
+     *
+     * <p>Use for any public model types for which services or user provided values need to injected.
      *
      * @param registry The registry of services to make available to instances.
      * @return The instantiator
      */
-    public Instantiator injectAndDecorate(ServiceRegistry registry) {
-        return new ClassGeneratorBackedInstantiator(classGenerator, new DependencyInjectingInstantiator(registry, constructorCache));
-    }
+    Instantiator injectAndDecorate(ServiceRegistry registry);
 }

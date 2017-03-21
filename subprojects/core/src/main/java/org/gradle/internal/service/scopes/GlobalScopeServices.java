@@ -24,6 +24,7 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -356,8 +357,8 @@ public class GlobalScopeServices {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
-    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator) {
-        return new InstantiatorFactory(classGenerator);
+    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator, Instantiator instantiator) {
+        return new DefaultInstantiatorFactory(classGenerator, instantiator);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
