@@ -252,8 +252,9 @@ Declaring a dependency on the Gradle core public and internal API:
 * The method `gradlePublicApi()` only exposes Gradle's public API and no internal API.
     * Optimally `gradlePublicApi()` should only use Gradle's API or the Java API but does not have any external dependencies.
     * The dependency includes the public API of Gradle core plugins.
-    * Reuse existing public API mapping file `api-mapping.txt` to identify classes that need to be packaged.
+    * Reuse existing public API mapping file `api-mapping.txt` to identify classes that need to be packaged. If a classes to be included declares an internal class then it should also be included e.g. `AntBuilder.AntMessagePriority`.
     * The JAR file containing the public API is generated at runtime upon first usage similar to `gradleApi()` and `gradleTestKit()`.
+    * The target output directory is locked while creating the JAR files.
 * The method `gradleInternalApi()` only exposes Gradle's internal API and no public API.
     * Include any other class that was included in the public API JAR.
     * Apply shading for classes referred to by the internal API.
@@ -321,8 +322,11 @@ Declaring a dependency on the Gradle core public API and the public API of the J
 
 * Remove any plugin-related classes from the dependency `gradlePublicApi()`.
 * Introduce a new method for declaring a dependency on the public API of a core plugin.
+    * Identify _what_ the public API of a plugin really is.
     * The identifier parameter indicates the plugin which is the same that is used for applying a plugin.
     * The dependency on a plugin does not include the internal API of a plugin.
+    * External dependencies of a plugin need to be shaded but included in the JAR.
+    * 
 * Indicate the breaking change in Javadocs and release notes.
 * Add sample project using both Gradle public API and the public API of a core plugin.
 * Update user guide, sample projects and guide.
@@ -337,3 +341,5 @@ Declaring a dependency on the Gradle core public API and the public API of the J
 ## Open issues
 
 * In the light of modularizing Gradle core plugins should we think about how to resolve external plugins as well? What exactly does that mean for plugin developers of external plugins? Do they publish two artifacts - one containing the public API and another one for the internal API of a plugin? We'd definitely need guidelines for plugin developers. What exactly does this mean to the process and tooling of publishing to the plugin portal?
+* If you apply the public API of a plugin does the dependency automatically pull in the a composite plugin e.g. Java plugin  _\<\<applies\>\>_ Java Base Plugin _\<\<applies\>\>_ Base Plugin.
+* Do classes of a shaded dependencies have to live in their own shading namespace per plugin or do they all use the same?
