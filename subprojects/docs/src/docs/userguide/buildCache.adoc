@@ -108,7 +108,7 @@ The other tasks have not been loaded from the build cache since they are not cac
 and `jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
 
 [[sec:task_output_caching_details]]
-==== Task output caching in detail
+==== Task Output Caching in Detail
 
 Since a task describes all of its inputs and outputs, Gradle can compute a _build cache key_ that uniquely defines the task's outputs based on its inputs.
 That build cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
@@ -157,7 +157,7 @@ We suggest adding tests to ensure that the task inputs are relocatable, i.e. tha
 ============================================
 
 [[sec:task_output_caching_known_issues]]
-==== Feedback and Known issues
+==== Feedback and known Issues
 
 The task output caching feature has known issues that may impact the correctness, usability and performance of your build when using the build cache.
 These issues will be corrected as this feature becomes stable.
@@ -171,7 +171,7 @@ https://github.com/gradle/gradle/issues?utf8=%E2%9C%93&amp;q=is%3Aopen%20label%3
 NOTE: When https://github.com/gradle/gradle/issues/new?labels=in:build-cache[reporting issues with the build cache], please check if your issue is a known issue or related to a known issue.
 
 [[sec:task_output_caching_known_issues_correctness]]
-===== Correctness issues
+===== Correctness Issues
 
 These issues may affect the correctness of your build when using the build cache. Please consider these issues carefully.
 
