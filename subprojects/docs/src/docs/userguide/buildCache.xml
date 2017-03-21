@@ -146,6 +146,7 @@
             </itemizedlist>
             <para>
                 Task types need to opt-in to task output caching using the <literal>@<apilink class="org.gradle.api.tasks.CacheableTask"/></literal> annotation.
+                Note that <literal>@<apilink class="org.gradle.api.tasks.CacheableTask"/></literal> is, like <literal>@<apilink class="org.gradle.api.tasks.ParallelizableTask"/></literal>, not inherited to subclasses.
                 Custom task types are <emphasis>not</emphasis> cacheable by default.
                 Currently, the following built-in Gradle tasks are cacheable:
             </para>
