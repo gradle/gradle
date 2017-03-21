@@ -86,8 +86,8 @@ task show {
         println "files 2: " + configurations.compile.incoming.files.collect { it.name }
         println "files 3: " + configurations.compile.files.collect { it.name }
         println "files 4: " + configurations.compile.resolve().collect { it.name }
-        println "files 5: " + configurations.compile.incoming.artifactView().files.collect { it.name }
-        println "files 6: " + configurations.compile.incoming.artifactView().componentFilter { true }.files.collect { it.name }
+        println "files 5: " + configurations.compile.incoming.artifactView({}).files.collect { it.name }
+        println "files 6: " + configurations.compile.incoming.artifactView({componentFilter { true }}).files.collect { it.name }
         println "files 7: " + configurations.compile.files { true }.collect { it.name }
         println "files 8: " + configurations.compile.fileCollection { true }.collect { it.name }
         println "files 9: " + configurations.compile.fileCollection { true }.files.collect { it.name }
@@ -148,16 +148,16 @@ task show {
         failure.assertHasCause("Could not resolve org:test2:2.0.")
 
         where:
-        expression                                                                      | _
-        "configurations.compile"                                                        | _
-        "configurations.compile.incoming.files"                                         | _
-        "configurations.compile.files"                                                  | _
-        "configurations.compile.resolve()"                                              | _
-        "configurations.compile.files { true }"                                         | _
-        "configurations.compile.fileCollection { true }"                                | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
-        "configurations.compile.incoming.artifactView().files"                          | _
-        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
+        expression                                                                       | _
+        "configurations.compile"                                                         | _
+        "configurations.compile.incoming.files"                                          | _
+        "configurations.compile.files"                                                   | _
+        "configurations.compile.resolve()"                                               | _
+        "configurations.compile.files { true }"                                          | _
+        "configurations.compile.fileCollection { true }"                                 | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                 | _
+        "configurations.compile.incoming.artifactView({}).files"                         | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files" | _
     }
 
     @Unroll
@@ -194,16 +194,16 @@ task show {
         failure.assertHasCause("Could not find test.jar (org:test:1.0).")
 
         where:
-        expression                                                                      | _
-        "configurations.compile"                                                        | _
-        "configurations.compile.incoming.files"                                         | _
-        "configurations.compile.files"                                                  | _
-        "configurations.compile.resolve()"                                              | _
-        "configurations.compile.files { true }"                                         | _
-        "configurations.compile.fileCollection { true }"                                | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
-        "configurations.compile.incoming.artifactView().files"                          | _
-        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
+        expression                                                                       | _
+        "configurations.compile"                                                         | _
+        "configurations.compile.incoming.files"                                          | _
+        "configurations.compile.files"                                                   | _
+        "configurations.compile.resolve()"                                               | _
+        "configurations.compile.files { true }"                                          | _
+        "configurations.compile.fileCollection { true }"                                 | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                 | _
+        "configurations.compile.incoming.artifactView({}).files"                         | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files" | _
     }
 
     @Unroll
@@ -228,16 +228,16 @@ task show {
         failure.assertHasCause("broken")
 
         where:
-        expression                                                                      | _
-        "configurations.compile"                                                        | _
-        "configurations.compile.incoming.files"                                         | _
-        "configurations.compile.files"                                                  | _
-        "configurations.compile.resolve()"                                              | _
-        "configurations.compile.files { true }"                                         | _
-        "configurations.compile.fileCollection { true }"                                | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
-        "configurations.compile.incoming.artifactView().files"                          | _
-        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
+        expression                                                                       | _
+        "configurations.compile"                                                         | _
+        "configurations.compile.incoming.files"                                          | _
+        "configurations.compile.files"                                                   | _
+        "configurations.compile.resolve()"                                               | _
+        "configurations.compile.files { true }"                                          | _
+        "configurations.compile.fileCollection { true }"                                 | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                 | _
+        "configurations.compile.incoming.artifactView({}).files"                         | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files" | _
     }
 
     @Unroll
@@ -279,15 +279,15 @@ task show {
         failure.assertHasCause("broken 2")
 
         where:
-        expression                                                                      | _
-        "configurations.compile"                                                        | _
-        "configurations.compile.incoming.files"                                         | _
-        "configurations.compile.files"                                                  | _
-        "configurations.compile.resolve()"                                              | _
-        "configurations.compile.files { true }"                                         | _
-        "configurations.compile.fileCollection { true }"                                | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
-        "configurations.compile.incoming.artifactView().files"                          | _
-        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
+        expression                                                                       | _
+        "configurations.compile"                                                         | _
+        "configurations.compile.incoming.files"                                          | _
+        "configurations.compile.files"                                                   | _
+        "configurations.compile.resolve()"                                               | _
+        "configurations.compile.files { true }"                                          | _
+        "configurations.compile.fileCollection { true }"                                 | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                 | _
+        "configurations.compile.incoming.artifactView({}).files"                         | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files" | _
     }
 }

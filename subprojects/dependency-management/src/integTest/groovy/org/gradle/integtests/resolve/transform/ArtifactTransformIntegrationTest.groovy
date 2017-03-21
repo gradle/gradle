@@ -415,10 +415,12 @@ class FileSizer extends ArtifactTransform {
                 }
 
                 task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { 
-                        it.attribute(artifactType, 'jar') 
-                        it.attribute(Attribute.of('javaVersion', String), '7') 
-                        it.attribute(Attribute.of('color', String), 'red') 
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { 
+                            it.attribute(artifactType, 'jar') 
+                            it.attribute(Attribute.of('javaVersion', String), '7') 
+                            it.attribute(Attribute.of('color', String), 'red')
+                        } 
                     }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
@@ -520,10 +522,12 @@ class FileSizer extends ArtifactTransform {
                 }
         
                 task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { 
-                        it.attribute(artifactType, 'jar') 
-                        it.attribute(Attribute.of('javaVersion', String), '7') 
-                        it.attribute(Attribute.of('color', String), 'red') 
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { 
+                            it.attribute(artifactType, 'jar') 
+                            it.attribute(Attribute.of('javaVersion', String), '7') 
+                            it.attribute(Attribute.of('color', String), 'red')
+                        } 
                     }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
@@ -611,7 +615,9 @@ class FileSizer extends ArtifactTransform {
             }
 
             task resolve {
-                def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
                 inputs.files artifacts.artifactFiles
                 doLast {
                     println "files: " + artifacts.collect { it.file.name }
@@ -771,10 +777,14 @@ class FileSizer extends ArtifactTransform {
             task checkFiles {
                 doLast {
                     assert configurations.compile.collect { it.name } == ['test-1.3.jar']
-                    def transformed = configurations.compile.incoming.artifactView().attributes{ it.attribute(viewType, 'transformed') }.artifacts
+                    def transformed = configurations.compile.incoming.artifactView {
+                        attributes{ it.attribute(viewType, 'transformed') }
+                    }.artifacts
                     assert transformed.collect { it.file.name } == ['transformed.txt']
                     assert transformed.collect { it.variant.attributes.toString() } == ['{artifactType=txt, viewType=transformed}']
-                    def modified = configurations.compile.incoming.artifactView().attributes{ it.attribute(viewType, 'modified') }.artifacts
+                    def modified = configurations.compile.incoming.artifactView {
+                        attributes{ it.attribute(viewType, 'modified') }
+                    }.artifacts
                     assert modified.collect { it.file.name } == ['modified.txt']
                     assert modified.collect { it.variant.attributes.toString() } == ['{artifactType=txt, viewType=modified}']
                 }
@@ -837,8 +847,12 @@ class FileSizer extends ArtifactTransform {
                 }
             }
 
-            def filteredView = configurations.selection.incoming.artifactView().attributes { it.attribute(viewType, 'filtered') }.files
-            def unfilteredView = configurations.selection.incoming.artifactView().attributes { it.attribute(viewType, 'unfiltered') }.files
+            def filteredView = configurations.selection.incoming.artifactView {
+                attributes { it.attribute(viewType, 'filtered') }
+            }.files
+            def unfilteredView = configurations.selection.incoming.artifactView {
+                attributes { it.attribute(viewType, 'unfiltered') }
+            }.files
 
             task checkFiles {
                 doLast {
@@ -908,7 +922,9 @@ class FileSizer extends ArtifactTransform {
                 }
     
                 task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute (artifactType, 'transformed') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute (artifactType, 'transformed') }
+                    }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
                 }
@@ -990,7 +1006,9 @@ Found the following transforms:
                 }
     
                 task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute (artifactType, 'transformed') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute (artifactType, 'transformed') }
+                    }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
                 }
@@ -1120,7 +1138,9 @@ Found the following transforms:
             ${configurationAndTransform('FileSizer')}
 
             def configFiles = configurations.config1.incoming.files
-            def configView = configurations.config2.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.files
+            def configView = configurations.config2.incoming.artifactView {
+                attributes { it.attribute(artifactType, 'size') }
+            }.files
 
             task queryFiles {
                 doLast {
@@ -1207,7 +1227,9 @@ Found the following transforms:
             ${configurationAndTransform('Hasher')}
 
             def configFiles = configurations.compile.incoming.files
-            def configView = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.files
+            def configView = configurations.compile.incoming.artifactView {
+                attributes { it.attribute(artifactType, 'size') }
+            }.files
 
             task queryFiles {
                 doLast {
@@ -1596,7 +1618,9 @@ Found the following transforms:
             }
 
             task resolve(type: Copy) {
-                def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
                 from artifacts.artifactFiles
                 into "\${buildDir}/libs"
                 doLast {

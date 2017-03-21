@@ -60,6 +60,7 @@ import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.Path
 import spock.lang.Issue
@@ -71,6 +72,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
+    Instantiator instantiator = DirectInstantiator.INSTANCE
 
     def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
@@ -1515,11 +1517,12 @@ class DefaultConfigurationSpec extends Specification {
     def "the component filter of an artifact view can only be set once"() {
         given:
         def conf = conf()
-        def artifactView = conf.incoming.artifactView()
 
         when:
-        artifactView.componentFilter { true }
-        artifactView.componentFilter { true }
+        conf.incoming.artifactView {
+            componentFilter { true }
+            componentFilter { true }
+        }
 
         then:
         IllegalStateException t = thrown()
@@ -1530,12 +1533,13 @@ class DefaultConfigurationSpec extends Specification {
         def conf = conf()
         def a1 = Attribute.of('a1', Integer)
         def a2 = Attribute.of('a2', String)
-        def artifactView = conf.incoming.artifactView()
 
         when:
-        artifactView.attributes.attribute(a1, 1)
-        artifactView.attributes { it.attribute(a2, "A") }
-        artifactView.attributes.attribute(a1, 10)
+        def artifactView = conf.incoming.artifactView {
+            attributes.attribute(a1, 1)
+            attributes { it.attribute(a2, "A") }
+            attributes.attribute(a1, 10)
+        }
 
         then:
         artifactView.attributes.keySet() == [a1, a2] as Set
@@ -1543,62 +1547,18 @@ class DefaultConfigurationSpec extends Specification {
         artifactView.attributes.getAttribute(a2) == "A"
     }
 
-    def "accessing the artifacts in an artifact view makes the view attributes immutable"() {
+    def "attributes of view are immutable"() {
         given:
         def conf = conf()
         def a1 = Attribute.of('a1', String)
-        def artifactView = conf.incoming.artifactView()
+        def artifactView = conf.incoming.artifactView {}
 
         when:
-        artifactView.artifacts
-        artifactView.attributes { it.attribute(a1, "A") }
+        artifactView.attributes.attribute(a1, "A")
 
         then:
         UnsupportedOperationException t = thrown()
         t.message == "Mutation of attributes is not allowed"
-    }
-
-    def "accessing the files in an artifact view makes the view attributes immutable"() {
-        given:
-        def conf = conf()
-        def a1 = Attribute.of('a1', String)
-        def artifactView = conf.incoming.artifactView()
-
-        when:
-        artifactView.files
-        artifactView.attributes { it.attribute(a1, "A") }
-
-        then:
-        UnsupportedOperationException t = thrown()
-        t.message == "Mutation of attributes is not allowed"
-    }
-
-    def "the component filter of an artifact view can not be set after artifacts where accessed"() {
-        given:
-        def conf = conf()
-        def artifactView = conf.incoming.artifactView()
-
-        when:
-        artifactView.artifacts
-        artifactView.componentFilter { true }
-
-        then:
-        IllegalStateException t = thrown()
-        t.message == "The component filter can only be set once before the view was computed"
-    }
-
-    def "the component filter of an artifact view can not be set after files where accessed"() {
-        given:
-        def conf = conf()
-        def artifactView = conf.incoming.artifactView()
-
-        when:
-        artifactView.files
-        artifactView.componentFilter { true }
-
-        then:
-        IllegalStateException t = thrown()
-        t.message == "The component filter can only be set once before the view was computed"
     }
 
     def dumpString() {
@@ -1673,7 +1633,7 @@ All Artifacts:
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
-            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory, moduleIdentifierFactory)
+            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, moduleIdentifierFactory)
     }
 
     private DefaultPublishArtifact artifact(String name) {

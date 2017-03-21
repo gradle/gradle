@@ -67,13 +67,17 @@ dependencies {
 
 task redThings {
     doLast {
-        configurations.compile.incoming.artifactView().attributes { it.attribute(color, Color.Red) }.files.files
+        configurations.compile.incoming.artifactView {
+            attributes { it.attribute(color, Color.Red) }
+        }.files.files
     }
 }
 
 task blueThings {
     doLast {
-        configurations.compile.incoming.artifactView().attributes { it.attribute(color, Color.Blue) }.files.files
+        configurations.compile.incoming.artifactView {
+            attributes { it.attribute(color, Color.Blue) }
+        }.files.files
     }
 }
 

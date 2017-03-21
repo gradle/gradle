@@ -45,6 +45,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -970,66 +971,94 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return new ConfigurationArtifactCollection();
         }
 
-        public ArtifactView artifactView() {
-            return new ConfigurationViewBuilder();
+        @Override
+        public ArtifactView artifactView(Closure configAction) {
+            return artifactView(new ClosureBackedAction<ArtifactView.ViewConfiguration>(configAction));
         }
 
-        private class ConfigurationViewBuilder implements ArtifactView {
-            private AttributeContainerInternal viewAttributes;
-            private Spec<? super ComponentIdentifier> componentFilter;
+        @Override
+        public ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction) {
+            ArtifactViewConfiguration config = new ArtifactViewConfiguration(attributesFactory);
+            configAction.execute(config);
+            return new ConfigurationArtifactView(config.lockViewAttributes(), config.lockComponentFilter());
+        }
+
+        private class ConfigurationArtifactView implements ArtifactView {
+            private final ImmutableAttributes viewAttributes;
+            private final Spec<? super ComponentIdentifier> componentFilter;
+
+            public ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter) {
+                this.viewAttributes = viewAttributes;
+                this.componentFilter = componentFilter;
+            }
 
             @Override
             public AttributeContainer getAttributes() {
-                if (viewAttributes == null) {
-                    viewAttributes = new DefaultMutableAttributeContainer(attributesFactory);
-                }
                 return viewAttributes;
-            }
-
-            @Override
-            public ArtifactView attributes(Action<? super AttributeContainer> action) {
-                action.execute(getAttributes());
-                return this;
-            }
-
-            @Override
-            public ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
-                assertComponentFilterUnset();
-                this.componentFilter = componentFilter;
-                return this;
-            }
-
-            private void assertComponentFilterUnset() {
-                if (componentFilter != null) {
-                    throw new IllegalStateException("The component filter can only be set once before the view was computed");
-                }
             }
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return new ConfigurationArtifactCollection(lockViewAttributes(), lockComponentFilter());
+                return new ConfigurationArtifactCollection(viewAttributes, componentFilter);
             }
 
             @Override
             public FileCollection getFiles() {
-                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), lockViewAttributes(), lockComponentFilter());
+                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter);
             }
+        }
+    }
 
-            private Spec<? super ComponentIdentifier> lockComponentFilter() {
-                if (componentFilter == null) {
-                    componentFilter = Specs.satisfyAll();
-                }
-                return componentFilter;
-            }
+    public static class ArtifactViewConfiguration implements ArtifactView.ViewConfiguration {
+        private final ImmutableAttributesFactory attributesFactory;
+        private AttributeContainerInternal viewAttributes;
+        private Spec<? super ComponentIdentifier> componentFilter;
 
-            private AttributeContainerInternal lockViewAttributes() {
-                if (viewAttributes == null) {
-                    viewAttributes = ImmutableAttributes.EMPTY;
-                } else {
-                    viewAttributes = viewAttributes.asImmutable();
-                }
-                return viewAttributes;
+        ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory) {
+            this.attributesFactory = attributesFactory;
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            if (viewAttributes == null) {
+                viewAttributes = new DefaultMutableAttributeContainer(attributesFactory);
             }
+            return viewAttributes;
+        }
+
+        @Override
+        public ArtifactViewConfiguration attributes(Action<? super AttributeContainer> action) {
+            action.execute(getAttributes());
+            return this;
+        }
+
+        @Override
+        public ArtifactViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
+            assertComponentFilterUnset();
+            this.componentFilter = componentFilter;
+            return this;
+        }
+
+        private void assertComponentFilterUnset() {
+            if (componentFilter != null) {
+                throw new IllegalStateException("The component filter can only be set once before the view was computed");
+            }
+        }
+
+        private Spec<? super ComponentIdentifier> lockComponentFilter() {
+            if (componentFilter == null) {
+                componentFilter = Specs.satisfyAll();
+            }
+            return componentFilter;
+        }
+
+        private ImmutableAttributes lockViewAttributes() {
+            if (viewAttributes == null) {
+                viewAttributes = ImmutableAttributes.EMPTY;
+            } else {
+                viewAttributes = viewAttributes.asImmutable();
+            }
+            return viewAttributes.asImmutable();
         }
     }
 

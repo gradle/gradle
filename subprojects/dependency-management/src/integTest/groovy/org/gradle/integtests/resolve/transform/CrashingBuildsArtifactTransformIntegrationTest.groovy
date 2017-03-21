@@ -66,7 +66,9 @@ dependencies {
 
 task redThings {
     doLast {
-        configurations.compile.incoming.artifactView().attributes { it.attribute(color, Color.Red) }.files.files
+        configurations.compile.incoming.artifactView {
+            attributes { it.attribute(color, Color.Red) }
+        }.files.files
     }
 }
 """

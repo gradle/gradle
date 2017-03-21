@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -30,15 +31,7 @@ import org.gradle.api.specs.Spec;
  * @since 3.4
  */
 @Incubating
-public interface ArtifactView extends HasConfigurableAttributes<ArtifactView> {
-    /**
-     * Specify a filter for the components that should be included in this view.
-     * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
-     *
-     * This method cannot be called a multiple times for a view.
-     */
-    @Incubating
-    ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter);
+public interface ArtifactView extends HasAttributes {
 
     /**
      * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
@@ -51,4 +44,18 @@ public interface ArtifactView extends HasConfigurableAttributes<ArtifactView> {
      */
     @Incubating
     FileCollection getFiles();
+
+    /**
+     * Configuration for a defined artifact view.
+     */
+    interface ViewConfiguration extends HasConfigurableAttributes<ViewConfiguration> {
+        /**
+         * Specify a filter for the components that should be included in this view.
+         * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
+         *
+         * This method cannot be called a multiple times for a view.
+         */
+        @Incubating
+        ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter);
+    }
 }

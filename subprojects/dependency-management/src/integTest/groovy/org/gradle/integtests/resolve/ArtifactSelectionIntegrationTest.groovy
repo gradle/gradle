@@ -134,19 +134,38 @@ allprojects {
                 }
 
                 task resolve {
-                    inputs.files configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar') }.files
+                    inputs.files configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'jar') }
+                    }.files
                     doLast {
                         // Get a view specifying the default type
-                        assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar') }.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar') }.artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
+                        def defaultView = configurations.compile.incoming.artifactView {
+                            attributes { 
+                                it.attribute(artifactType, 'jar') 
+                            }
+                        }
+                        assert defaultView.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert defaultView.artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
 
                         // Get a view with additional optional attribute
-                        assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar'); it.attribute(otherAttributeOptional, 'anything') }.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar'); it.attribute(otherAttributeOptional, 'anything') }.artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
+                        def optionalAttributeView =  configurations.compile.incoming.artifactView {
+                            attributes { 
+                                it.attribute(artifactType, 'jar')
+                                it.attribute(otherAttributeOptional, 'anything') 
+                            }
+                        }
+                        assert optionalAttributeView.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert optionalAttributeView.artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
                     
                         // Get a view with additional required attribute
-                        assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar'); it.attribute(otherAttributeRequired, 'anything') }.files.collect { it.name } == []
-                        assert configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'jar'); it.attribute(otherAttributeRequired, 'anything') }.artifacts.collect { it.id.displayName }  == []
+                        def requiredAttributeView =  configurations.compile.incoming.artifactView {
+                            attributes { 
+                                it.attribute(artifactType, 'jar')
+                                it.attribute(otherAttributeRequired, 'anything') 
+                            }
+                        }
+                        assert requiredAttributeView.files.collect { it.name } == []
+                        assert requiredAttributeView.artifacts.collect { it.id.displayName }  == []
                     }
                 }
             }
@@ -216,7 +235,9 @@ allprojects {
                 }
 
                 task resolve {
-                    def view = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'classes') }
+                    def view = configurations.compile.incoming.artifactView { 
+                        attributes { it.attribute(artifactType, 'classes') } 
+                    }
                     inputs.files view.files
                     doLast {
                         assert view.files.collect { it.name } == ['lib-util.classes', 'lib.classes', 'ui.classes', 'some-classes-1.0.classes']
@@ -298,8 +319,8 @@ project(':lib') {
 task show {
     inputs.files configurations.compile
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView().attributes {
-            it.attribute(buildType, 'debug')
+        def artifacts = configurations.compile.incoming.artifactView {
+            attributes { it.attribute(buildType, 'debug') }
         }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "variants: " + artifacts.collect { it.variant.attributes }
@@ -368,8 +389,8 @@ project(':ui') {
 task show {
     inputs.files configurations.compile
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView().attributes {
-            it.attribute(buildType, 'debug')
+        def artifacts = configurations.compile.incoming.artifactView {
+            attributes { it.attribute(buildType, 'debug') }
         }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "variants: " + artifacts.collect { it.variant.attributes }
@@ -437,7 +458,9 @@ project(':ui') {
 task show {
     inputs.files configurations.compile
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView().attributes({it.attribute(Attribute.of('usage', String), 'transformed')}).artifacts
+        def artifacts = configurations.compile.incoming.artifactView {
+            attributes {it.attribute(Attribute.of('usage', String), 'transformed')}
+        }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
         println "variants: " + artifacts.collect { it.variant.attributes }
@@ -510,7 +533,9 @@ task show {
                 }
 
                 task resolve {
-                    def files = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'classes') }.files
+                    def files = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'classes') }
+                    }.files
                     files.each { println it.name }
                     inputs.files files
                     doLast {
@@ -563,7 +588,9 @@ task show {
                 }
 
                 task resolve {
-                    def files = configurations.noAttributes.incoming.artifactView().attributes { it.attribute(artifactType, 'classes') }.files
+                    def files = configurations.noAttributes.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'classes') }
+                    }.files
                     inputs.files files
                     doLast {
                         assert files.collect { it.name } == ['lib.classes']
