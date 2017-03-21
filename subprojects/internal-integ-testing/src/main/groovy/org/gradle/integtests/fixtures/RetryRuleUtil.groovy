@@ -123,7 +123,8 @@ class RetryRuleUtil {
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): gradle/gradle#1111
         if (runsOnWindowsAndJava7or8() && daemonFixture != null) {
             if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
-                getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
+                getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine" ||
+                getRootCauseMessage(failure) == "Connection refused: no further information") {
 
                 for (def daemon : daemonFixture.daemons) {
                     if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
