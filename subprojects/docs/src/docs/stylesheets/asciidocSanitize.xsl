@@ -4,7 +4,7 @@
     xmlns:docbook="http://docbook.org/ns/docbook"
     xmlns:xml="http://www.w3.org/XML/1998/namespace"
     xmlns:xlink="http://www.w3.org/1999/xlink"
-    exclude-result-prefixes="docbook xlink xml"
+    exclude-result-prefixes="docbook xlink"
     version="1.0">
     <xsl:output method="xml" />
 
