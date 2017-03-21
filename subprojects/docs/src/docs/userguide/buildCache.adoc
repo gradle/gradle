@@ -301,7 +301,7 @@ the credentials the api:org.gradle.caching.http.HttpBuildCache[] uses to access 
 Using a different build cache backend to store build outputs which is not covered by the built-in support for connecting to an HTTP backend requires implementing
 your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via api:org.gradle.caching.configuration.BuildCacheConfiguration#registerBuildCacheService(java.lang.Class,java.lang.Class)[].
-For an example on what this could look like see the <<https://github.com/gradle/gradle-hazelcast-plugin,Gradle Hazelcast plugin>>.
+For an example on what this could look like see the https://github.com/gradle/gradle-hazelcast-plugin[Gradle Hazelcast plugin].
 
 
 [[sec:build_cache_known_issues]]
