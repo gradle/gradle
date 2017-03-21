@@ -314,7 +314,7 @@ The built-in build caches have some known issues which will be addressed in futu
 | Description | Impact | Workaround
 
 | No limit on the size of the directory build cache.
-| Currently, the directory build cache uses a Gradle-version specific directory that can grow unbounded.
+| Currently, the directory the build cache uses can grow unbounded.
 |
 Periodically delete the directory of the build cache if it grows too large.
 The default directory for storing build outputs is `caches/build-cache-1` in the Gradle user home.
