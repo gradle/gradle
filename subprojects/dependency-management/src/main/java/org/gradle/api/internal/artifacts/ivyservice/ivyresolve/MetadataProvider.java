@@ -111,16 +111,9 @@ public class MetadataProvider {
 
         private String status;
         private List<String> statusScheme = ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
-        private boolean changing;
 
         private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id) {
             this.id = id;
-        }
-
-        @Override
-        public void setChanging(boolean changing) {
-            this.changing = changing;
-            mutated = true;
         }
 
         @Override
@@ -136,20 +129,18 @@ public class MetadataProvider {
         }
 
         ComponentMetadata build() {
-            return new UserProvidedMetadata(id, status, statusScheme, changing);
+            return new UserProvidedMetadata(id, status, statusScheme);
         }
 
         private static class UserProvidedMetadata implements ComponentMetadata {
             private final ModuleVersionIdentifier id;
             private final String status;
             private final List<String> statusScheme;
-            private final boolean changing;
 
-            private UserProvidedMetadata(ModuleVersionIdentifier id, String status, List<String> statusScheme, boolean changing) {
+            private UserProvidedMetadata(ModuleVersionIdentifier id, String status, List<String> statusScheme) {
                 this.id = id;
                 this.status = status;
                 this.statusScheme = statusScheme;
-                this.changing = changing;
             }
 
             @Override
@@ -159,7 +150,7 @@ public class MetadataProvider {
 
             @Override
             public boolean isChanging() {
-                return changing;
+                throw new UnsupportedOperationException();
             }
 
             @Override

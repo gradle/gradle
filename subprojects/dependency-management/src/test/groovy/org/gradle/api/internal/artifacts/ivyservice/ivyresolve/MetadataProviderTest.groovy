@@ -137,7 +137,6 @@ class MetadataProviderTest extends Specification {
                 def builder = args[0].result
                 builder.status = 'foo'
                 builder.statusScheme = ['foo', 'bar']
-                builder.changing = true
             }
         }
 
@@ -148,6 +147,5 @@ class MetadataProviderTest extends Specification {
         0 * resolveState.resolve()
         componentMetadata.status == 'foo'
         componentMetadata.statusScheme == ['foo', 'bar']
-        componentMetadata.changing
     }
 }

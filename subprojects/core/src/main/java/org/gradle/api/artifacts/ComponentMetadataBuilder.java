@@ -28,12 +28,6 @@ import java.util.List;
 @Incubating
 public interface ComponentMetadataBuilder {
     /**
-     * Sets the changing flag of this component
-     * @param changing true if the component represents a changing component
-     */
-    void setChanging(boolean changing);
-
-    /**
      * Sets the status of this component
      * @param status the component status
      */
