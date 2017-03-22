@@ -29,7 +29,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
-import org.gradle.plugin.use.internal.PluginRequests
+import org.gradle.plugin.management.internal.PluginRequests
 
 import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
 import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf

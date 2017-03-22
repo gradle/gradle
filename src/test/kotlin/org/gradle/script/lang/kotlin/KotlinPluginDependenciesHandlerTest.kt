@@ -45,7 +45,7 @@ class KotlinPluginDependenciesHandlerTest {
 
     fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit) {
         assertThat(
-            plugins(block).map { Plugin(it.id.asString(), it.version, it.isApply) },
+            plugins(block).map { Plugin(it.id.id, it.version, it.isApply) },
             equalTo(expected.asList()))
     }
 
