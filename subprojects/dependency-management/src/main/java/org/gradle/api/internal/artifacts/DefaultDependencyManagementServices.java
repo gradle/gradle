@@ -223,8 +223,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        BuildOperationProcessor buildOperationProcessor,
                                                        VariantTransformRegistry variantTransforms,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                       ImmutableAttributesFactory attributesFactory,
-                                                       ModuleExclusions moduleExclusions) {
+                                                       ImmutableAttributesFactory attributesFactory) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -241,8 +240,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     attributesSchema,
                                     attributesFactory)),
                             attributesFactory,
-                            moduleIdentifierFactory,
-                            moduleExclusions),
+                            moduleIdentifierFactory),
                         componentIdentifierFactory,
                         moduleIdentifierFactory));
         }

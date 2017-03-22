@@ -270,13 +270,17 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
                                                                 ServiceRegistry serviceRegistry,
-                                                                ImmutableAttributesFactory cache) {
-        return new DefaultArtifactDependencyResolver(
+                                                                ImmutableAttributesFactory cache,
+                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                ModuleExclusions moduleExclusions) {
+        ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
             serviceRegistry,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,
-            cache
+            cache,
+            moduleIdentifierFactory,
+            moduleExclusions
         );
     }
 
