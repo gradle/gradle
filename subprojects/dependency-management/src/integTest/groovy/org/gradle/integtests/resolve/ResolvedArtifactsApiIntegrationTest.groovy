@@ -468,7 +468,7 @@ ${showFailuresTask(expression)}
     }
 
     def "lenient artifact view includes only artifacts that are successfully resolved"() {
-        def failureMessage = TextUtil.toPlatformLineSeparators("""Could not find missing-artifact.jar (org:missing-artifact:1.0).
+        def failureMessage = TextUtil.normaliseLineSeparators("""Could not find missing-artifact.jar (org:missing-artifact:1.0).
 Searched in the following locations:
     ${mavenHttpRepo.uri}/org/missing-artifact/1.0/missing-artifact-1.0.jar""")
 
@@ -491,7 +491,7 @@ task resolveLenient {
         assert lenientView.files.collect { it.name } == resolvedFiles
         assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
         assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
-        assert lenientView.artifacts.failures.collect { it.message } == [
+        assert lenientView.artifacts.failures.collect { it.message.replaceAll('\\r\\n', '\\n') } == [
             "Could not resolve all dependencies for configuration ':compile'.",
             "broken",
             '''$failureMessage'''
@@ -518,7 +518,7 @@ task resolveLenient {
     }
 
     def "lenient view includes successfully resolved artifacts and collects failures"() {
-        def failureMessage = TextUtil.toPlatformLineSeparators("""Could not find test-missing.jar (org:test-missing:1.0).
+        def failureMessage = TextUtil.normaliseLineSeparators("""Could not find test-missing.jar (org:test-missing:1.0).
 Searched in the following locations:
     ${mavenHttpRepo.uri}/org/test-missing/1.0/test-missing-1.0.jar""")
 
@@ -540,7 +540,7 @@ task resolve {
         assert view.files.collect { it.name } == ['test-1.0.jar']
         def artifactCollection = view.artifacts
         assert artifactCollection.artifacts.collect { it.id.displayName } == ['test.jar (org:test:1.0)']
-        assert artifactCollection.failures.collect { it.message } == [
+        assert artifactCollection.failures.collect { it.message.replaceAll('\\r\\n', '\\n') } == [
             'broken 1',
             'broken 2',
             '''$failureMessage''',
