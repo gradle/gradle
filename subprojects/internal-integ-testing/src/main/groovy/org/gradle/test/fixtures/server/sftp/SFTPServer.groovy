@@ -506,7 +506,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         KeyPair keyPair
 
         GeneratingKeyPairProvider() {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA")
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA")
             generator.initialize(1024, SecureRandom.getInstance("SHA1PRNG"))
             keyPair = generator.generateKeyPair()
         }
