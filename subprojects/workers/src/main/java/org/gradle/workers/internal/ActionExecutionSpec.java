@@ -28,12 +28,12 @@ import java.io.ObjectOutputStream;
 /**
  * Represents a {@link WorkSpec} that contains constructor parameters.
  */
-public class ParamSpec implements WorkSpec {
+public class ActionExecutionSpec implements WorkSpec {
     private final String displayName;
     private final Class<? extends Runnable> implementationClass;
     private final byte[] params;
 
-    ParamSpec(Class<? extends Runnable> implementationClass, String displayName, Object[] params) {
+    ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, Object[] params) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.params = serialize(params);

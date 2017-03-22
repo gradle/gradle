@@ -20,11 +20,11 @@ import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.InstantiatorFactory;
 
-public class WorkerDaemonServer implements WorkerProtocol<ParamSpec> {
+public class WorkerDaemonServer implements WorkerProtocol<ActionExecutionSpec> {
     private final InstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator());
 
     @Override
-    public DefaultWorkResult execute(ParamSpec spec) {
+    public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
             Class<? extends Runnable> implementationClass = spec.getImplementationClass();
             Runnable runnable = instantiatorFactory.inject().newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));

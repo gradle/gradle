@@ -73,9 +73,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
 
         // Serialize parameters in this thread prior to starting work in a separate thread
-        ParamSpec spec;
+        ActionExecutionSpec spec;
         try {
-            spec = new ParamSpec(actionClass, description, configuration.getParams());
+            spec = new ActionExecutionSpec(actionClass, description, configuration.getParams());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -83,7 +83,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getForkMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final ParamSpec spec, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
+    private void submit(final ActionExecutionSpec spec, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
         final Operation currentWorkerOperation = buildOperationWorkerRegistry.getCurrent();
         final BuildOperationExecutor.Operation currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
@@ -91,7 +91,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = fork == ForkMode.ALWAYS ? workerDaemonFactory : workerInProcessFactory;
-                    Worker<ParamSpec> worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
+                    Worker<ActionExecutionSpec> worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
                     return worker.execute(spec, currentWorkerOperation, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
