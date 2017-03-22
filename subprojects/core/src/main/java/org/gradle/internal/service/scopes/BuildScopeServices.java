@@ -287,8 +287,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             classLoaderHierarchyHasher);
     }
 
-    protected ScriptPluginFactory createScriptPluginFactory() {
-        return new ScriptPluginFactorySelector(defaultScriptPluginFactory(), this);
+    protected ScriptPluginFactory createScriptPluginFactory(BuildOperationExecutor buildOperationExecutor) {
+        return new ScriptPluginFactorySelector(defaultScriptPluginFactory(), this, buildOperationExecutor);
     }
 
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {

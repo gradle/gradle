@@ -126,6 +126,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureBuild.children == [configureRoot, configureA]
     }
 
+    @TargetGradleVersion(">=3.3 <3.6")
     def "generates events for project configuration where project configuration is nested"() {
         given:
         settingsFile << """
