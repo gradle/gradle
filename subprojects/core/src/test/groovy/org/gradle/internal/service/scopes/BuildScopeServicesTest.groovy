@@ -124,6 +124,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(InjectedPluginClasspath) >> Mock(InjectedPluginClasspath)
         sessionServices.get(PluginRepositoryRegistry) >> Mock(PluginRepositoryRegistry)
         sessionServices.get(PluginRepositoryFactory) >> Mock(PluginRepositoryFactory)
+        sessionServices.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
         sessionServices.getAll(_) >> []
 
         registry = new BuildScopeServices(sessionServices, startParameter)

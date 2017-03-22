@@ -80,7 +80,7 @@ class ProgressEvents implements ProgressListener {
                         } else {
                             def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
                             if (duplicateName != null) {
-                                throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events: " + events)
+                                throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events:\n${describeList(events)}")
                             }
                         }
                     }
@@ -235,7 +235,7 @@ class ProgressEvents implements ProgressListener {
         assertHasZeroOrMoreTrees()
         def operation = operations.find { it.descriptor.displayName in displayNames }
         if (operation == null) {
-            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in: $operations")
+            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in:\n${describeList(operations)}")
         }
         return operation
     }
@@ -249,7 +249,7 @@ class ProgressEvents implements ProgressListener {
         assertHasZeroOrMoreTrees()
         def operation = operations.find { it.parent == parent && it.descriptor.displayName in displayNames }
         if (operation == null) {
-            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' and parent '$parent' found in: $operations")
+            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' and parent '$parent' found in:\n${describeList(operations)}")
         }
         return operation
     }
@@ -308,22 +308,20 @@ class ProgressEvents implements ProgressListener {
         Operation child(String displayName) {
             def child = children.find { it.descriptor.displayName == displayName }
             if (child == null) {
-                throw new AssertionFailedError("No operation with display name '$displayName' found in children of '$descriptor.displayName': $children")
+                throw new AssertionFailedError("No operation with display name '$displayName' found in children of '$descriptor.displayName':\n${describeList(children)}")
             }
             return child
         }
 
         Operation descendant(String displayName) {
             def found = [] as List<Operation>
-            def descendantsText = ''
             def recurse
-            recurse = { List<Operation> children, int level = 0 ->
+            recurse = { List<Operation> children ->
                 children.each { child ->
                     if (child.descriptor.displayName == displayName) {
                         found += child
                     }
-                    descendantsText += "\t${' ' * level}${child.descriptor.displayName}\n"
-                    recurse child.children, level + 1
+                    recurse child.children
                 }
             }
             recurse children
@@ -331,9 +329,30 @@ class ProgressEvents implements ProgressListener {
                 return found[0]
             }
             if (found.empty) {
-                throw new AssertionFailedError("No operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n$descendantsText")
+                throw new AssertionFailedError("No operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n${describeOperationsTree(children)}")
             }
-            throw new AssertionFailedError("More than one operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n$descendantsText")
+            throw new AssertionFailedError("More than one operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n${describeOperationsTree(children)}")
         }
+    }
+
+    private static String describeList(List/*<ProgressEvent OR Operation>*/ haveDescriptor) {
+        return '\t' + haveDescriptor.collect { it.descriptor.displayName }.join('\n\t')
+    }
+
+    String describeOperationsTree() {
+        return describeOperationsTree(operations.findAll { !it.parent })
+    }
+
+    static String describeOperationsTree(List<Operation> operations) {
+        def description = ''
+        def recurse
+        recurse = { List<Operation> children, int level = 0 ->
+            children.each { child ->
+                description += "\t${' ' * level}${child.descriptor.displayName}\n"
+                recurse child.children, level + 1
+            }
+        }
+        recurse operations
+        return description
     }
 }
