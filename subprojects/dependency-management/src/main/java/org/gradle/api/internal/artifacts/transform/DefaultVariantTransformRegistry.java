@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
@@ -74,11 +74,11 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return transforms;
     }
 
-    private Object[] getTransformParameters(Action<? super ArtifactTransformConfiguration> configAction) {
+    private Object[] getTransformParameters(Action<? super ActionConfiguration> configAction) {
         if (configAction == null) {
             return NO_PARAMETERS;
         }
-        ArtifactTransformConfiguration config = new DefaultArtifactTransformConfiguration();
+        ActionConfiguration config = new DefaultActionConfiguration();
         configAction.execute(config);
         return config.getParams();
     }
@@ -87,7 +87,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
         private Class<? extends ArtifactTransform> type;
-        private Action<? super ArtifactTransformConfiguration> config;
+        private Action<? super ActionConfiguration> config;
 
         public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
             from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
@@ -110,7 +110,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ArtifactTransformConfiguration> config) {
+        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ActionConfiguration> config) {
             if (this.type != null) {
                 throw new VariantTransformConfigurationException("Could not register transform: only one ArtifactTransform may be provided for registration.");
             }
@@ -118,8 +118,4 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             this.config = config;
         }
     }
-
-    private static class DefaultArtifactTransformConfiguration extends DefaultActionConfiguration implements ArtifactTransformConfiguration {
-    }
-
 }
