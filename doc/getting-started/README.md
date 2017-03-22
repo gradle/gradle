@@ -6,4 +6,4 @@ The fastest way to get up and running with a Kotlin-based Gradle build is to wor
 Please check out these additional notes if you want to know more about:
 
   * [Using Groovy closures in Kotlin](./Closures.md)
-  * [Configuring plugins in Kotlin](./Configuring\ Plugins.md)
+  * [Configuring plugins in Kotlin](./Configuring-Plugins.md)
