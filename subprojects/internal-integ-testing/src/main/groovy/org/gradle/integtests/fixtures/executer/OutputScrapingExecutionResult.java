@@ -36,8 +36,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
@@ -118,9 +117,23 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return grepTasks(taskPattern);
     }
 
+    public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
+        Set<String> allTasks = TaskOrderSpecs.exact(taskPaths).getTasks();
+        assertTasksExecuted(allTasks.toArray(new String[]{}));
+        assertTaskOrder(taskPaths);
+        return this;
+    }
+
+    @Override
     public ExecutionResult assertTasksExecuted(String... taskPaths) {
         List<String> expectedTasks = Arrays.asList(taskPaths);
-        assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), equalTo(expectedTasks));
+        assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), containsInAnyOrder(taskPaths));
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTaskOrder(Object... taskPaths) {
+        TaskOrderSpecs.exact(taskPaths).assertMatches(-1, getExecutedTasks());
         return this;
     }
 

@@ -426,10 +426,24 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return new ArrayList<String>(plannedTasks);
         }
 
+        public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
+            Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
+            assertThat(plannedTasks, containsInAnyOrder(expected.toArray()));
+            outputResult.assertTasksExecutedInOrder(taskPaths);
+            return this;
+        }
+
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
-            List<String> expected = Arrays.asList(taskPaths);
-            assertThat(plannedTasks, equalTo(expected));
+            assertThat(plannedTasks, containsInAnyOrder(taskPaths));
             outputResult.assertTasksExecuted(taskPaths);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertTaskOrder(Object... taskPaths) {
+            Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
+            assertThat(plannedTasks, hasItems(expected.toArray(new String[]{})));
+            outputResult.assertTaskOrder(taskPaths);
             return this;
         }
 

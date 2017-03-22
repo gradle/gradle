@@ -353,7 +353,7 @@ task checkArtifacts {
 
         expect:
         succeeds("checkArtifacts")
-        result.assertTasksExecuted(":a:checkArtifacts", ":a:jar", ":b:checkArtifacts")
+        result.assertTasksExecutedInOrder(":a:checkArtifacts", ":a:jar", ":b:checkArtifacts")
     }
 
 }

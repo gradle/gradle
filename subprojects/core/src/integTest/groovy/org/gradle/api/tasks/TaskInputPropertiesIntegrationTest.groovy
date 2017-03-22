@@ -318,7 +318,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "b" assertTasksExecuted ":a", ":b"
+        succeeds "b" assertTasksExecutedInOrder ":a", ":b"
     }
 
     def "task is out of date when property added"() {

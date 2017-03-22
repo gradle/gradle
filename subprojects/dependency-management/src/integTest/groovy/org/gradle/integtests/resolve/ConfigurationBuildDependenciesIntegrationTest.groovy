@@ -70,7 +70,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run taskName
 
         then:
-        result.assertTasksExecuted(":lib", ":child:jar", ":child:lib", ":$taskName");
+        executed ":lib", ":child:jar", ":child:lib", ":$taskName"
 
         where:
         taskName               | _
@@ -115,7 +115,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run("useCompileConfiguration")
 
         then:
-        result.assertTasksExecuted(":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration")
+        executed ":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration"
 
         where:
         fluid << [true, false]
@@ -152,7 +152,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run("useCompileConfiguration")
 
         then:
-        result.assertTasksExecuted(":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration")
+        executed ":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration"
 
         where:
         fluid << [true, false]
@@ -272,7 +272,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run 'useCompileConfiguration'
 
         then:
-        result.assertTasksExecuted(":child:jar", ":useCompileConfiguration")
+        executed ":child:jar", ":useCompileConfiguration"
     }
 
     def "does not download artifacts when task dependencies are calculated for configuration that is used as a task input when using fluid dependencies"() {
@@ -315,7 +315,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run 'useCompileConfiguration'
 
         then:
-        result.assertTasksExecuted(":child:jar", ":useCompileConfiguration")
+        executed ":child:jar", ":useCompileConfiguration"
     }
 
     void makeFluid(boolean fluid) {
