@@ -38,7 +38,7 @@
                 </tr>
             </thead>
             <tr>
-                <td><literal>(no label) or EXECUTED</literal></td>
+                <td><literal>(no label)</literal> or <literal>EXECUTED</literal></td>
                 <td>Task executed its actions.</td>
                 <td>
                     <itemizedlist>
@@ -1175,8 +1175,8 @@
                 If this is not the behaviour you want for some reason, consider using <apilink class="org.gradle.api.tasks.TaskOutputs" method="upToDateWhen(groovy.lang.Closure)" />
             </para>
             <para>
-                The inputs for the task are also used to calculate the <link linked="build_cache">build cache</link> key used to load task outputs when enabled.
-                For more details see <xref linked="sec:task_output_caching_faster"/>.
+                The inputs for the task are also used to calculate the <link linkend="build_cache">build cache</link> key used to load task outputs when enabled.
+                For more details see <xref linkend="sec:task_output_caching_faster"/>.
             </para>
         </section>
     </section>
