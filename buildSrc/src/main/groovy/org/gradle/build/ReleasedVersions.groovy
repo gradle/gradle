@@ -35,6 +35,7 @@ class ReleasedVersions {
     File destFile
     String url = "https://services.gradle.org/versions/all"
     boolean offline
+    boolean alwaysDownload
 
     void prepare() {
         download()
@@ -53,7 +54,7 @@ class ReleasedVersions {
                 + "Without the version information certain integration tests may fail or use outdated version details.")
             return
         }
-        if (destFile.isFile() && destFile.lastModified() > System.currentTimeMillis() - MILLIS_PER_DAY) {
+        if (!alwaysDownload && destFile.isFile() && destFile.lastModified() > System.currentTimeMillis() - MILLIS_PER_DAY) {
             LOGGER.info("Don't download released versions from $url as the output file already exists and is not out-of-date.")
             return
         }
