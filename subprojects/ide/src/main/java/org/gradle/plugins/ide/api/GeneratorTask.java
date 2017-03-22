@@ -23,8 +23,8 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
 
 import javax.inject.Inject;
@@ -104,14 +104,7 @@ public class GeneratorTask<T> extends ConventionTask {
     @Optional @InputFile
     protected File getInputFileIfExists() {
         File inputFile = getInputFile();
-        if (inputFile == null) {
-            File outputFile = getOutputFile();
-            if (outputFile != null && outputFile.exists()) {
-                return outputFile;
-            } else {
-                return null;
-            }
-        } else if (inputFile.exists()) {
+        if (inputFile != null && inputFile.exists()) {
             return inputFile;
         } else {
             return null;
