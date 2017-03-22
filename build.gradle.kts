@@ -52,7 +52,7 @@ version = "0.9.0-SNAPSHOT"
 dependencies {
     compileOnly(gradleApi())
 
-    compile("org.codehaus.groovy:groovy-all:2.4.7")
+    compile("org.codehaus.groovy:groovy-all:2.4.10")
     compile("org.slf4j:slf4j-api:1.7.10")
     compile("javax.inject:javax.inject:1")
 
