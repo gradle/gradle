@@ -288,7 +288,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ScriptPluginFactory createScriptPluginFactory(BuildOperationExecutor buildOperationExecutor) {
-        return new ScriptPluginFactorySelector(defaultScriptPluginFactory(), this, buildOperationExecutor);
+        DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, this, buildOperationExecutor);
+        defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
+        return scriptPluginFactorySelector;
     }
 
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {
