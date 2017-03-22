@@ -64,11 +64,11 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("gradle/gradle#1090")
     @Unroll
-    def "escape single quote in options enclosed with #quote"() {
+    def "allow single quote characters in options when string delimited with #delimiter"() {
         given:
         buildFile << """
             apply plugin: "java"
-            javadoc.options.header = $optionIn
+            javadoc.options.header = ${delimiter}${header}${delimiter}
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -77,14 +77,13 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'javadoc'
 
         then:
-        file("build/docs/javadoc/Foo.html").text.contains(optionOut)
+        file("build/docs/javadoc/Foo.html").text.contains('"\'header\'"')
 
         where:
-        quote    | optionIn                                   | optionOut
-        "\'"     | """'\\\'single quoted\\\''"""              | """'single quoted'"""
-        "\""     | """\"'double quoted' \' \\\'\""""          | """'double quoted' ' '"""
-        "\"\"\"" | """\"\"\""'triple quoted' \' \\\'\"\"\"""" | """'triple quoted' ' '"""
-        "/"      |"""/'slash quoted' \'/"""                   | """'slash quoted' '"""
+        delimiter | header
+        "'"       | /"\'header\'"/
+        '"'       | /\"'header'\"/
+        "/"       | /"'header'"/
     }
 
     def "can configure options with an Action"() {
