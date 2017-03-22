@@ -102,6 +102,7 @@ import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -1108,6 +1109,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final AttributeContainerInternal viewAttributes;
         private final Spec<? super ComponentIdentifier> componentFilter;
         private final boolean lenient;
+        private Set<ResolvedArtifactResult> artifactResults;
+        private Set<Throwable> failures;
 
         ConfigurationArtifactCollection() {
             this(ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll(), false);
@@ -1128,7 +1131,28 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
-            LinkedHashSet<ResolvedArtifactResult> artifactResults = new LinkedHashSet<ResolvedArtifactResult>();
+            ensureResolved();
+            return artifactResults;
+        }
+
+        @Override
+        public Iterator<ResolvedArtifactResult> iterator() {
+            ensureResolved();
+            return artifactResults.iterator();
+        }
+
+        @Override
+        public Collection<Throwable> getFailures() {
+            ensureResolved();
+            return failures;
+        }
+
+        private synchronized void ensureResolved() {
+            if (artifactResults != null) {
+                return;
+            }
+            artifactResults = Sets.newLinkedHashSet();
+            failures = Sets.newLinkedHashSet();
 
             ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(artifactResults);
             fileCollection.getSelectedArtifacts().visitArtifacts(visitor);
@@ -1136,12 +1160,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (!lenient) {
                 rethrowFailure("artifacts", visitor.failures);
             }
-            return artifactResults;
-        }
-
-        @Override
-        public Iterator<ResolvedArtifactResult> iterator() {
-            return getArtifacts().iterator();
+            failures.addAll(visitor.failures);
         }
     }
 

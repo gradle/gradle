@@ -1364,8 +1364,8 @@ Found the following transforms:
         outputContains("Transforming test-2-0.1.jar to test-2-0.1.jar.txt")
 
         when:
-        // We attempt to get the artifact each time we query the lenient view
-        7.times { m1.getArtifact(name: 'test-impl').expectGetBroken() }
+        // We attempt to get the broken artifact each time we query the lenient view
+        4.times { m1.getArtifact(name: 'test-impl').expectGetBroken() }
 
         executer.withArguments("-Plenient=true")
         succeeds("resolve")
@@ -1593,7 +1593,7 @@ Found the following transforms:
         outputContains("Transforming c-2.0.jar")
 
         when:
-        7.times { m1.artifact.expectGetBroken() }
+        4.times { m1.artifact.expectGetBroken() }
 
         executer.withArguments("-Plenient=true")
         succeeds("resolve")

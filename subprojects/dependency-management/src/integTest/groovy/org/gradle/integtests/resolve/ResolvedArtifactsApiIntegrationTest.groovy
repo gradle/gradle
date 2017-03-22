@@ -99,6 +99,7 @@ task show {
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
         println "unique components: " + artifacts.collect { it.id.componentIdentifier }.unique()
         println "variants: " + artifacts.collect { it.variant.attributes }
+        assert artifacts.failures.empty
     }
 }
 """
@@ -171,6 +172,7 @@ task show {
         println "ids: " + artifacts.collect { it.id.displayName }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
         println "variants: " + artifacts.collect { it.variant.attributes }
+        assert artifacts.failures.empty
     }
 }
 """
@@ -251,6 +253,7 @@ task show {
         println "files: " + artifacts.collect { it.file.name }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
         println "variants: " + artifacts.collect { it.variant.attributes }
+        assert artifacts.failures.empty
     }
 }
 """
@@ -304,6 +307,7 @@ task show {
         println "unique ids: " + artifacts.collect { it.id }.unique()
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
         println "unique components: " + artifacts.collect { it.id.componentIdentifier }.unique()
+        assert artifacts.failures.empty
     }
 }
 """
@@ -323,6 +327,7 @@ task show {
         "incoming.artifacts"                                          | _
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
+        "incoming.artifactView({lenient(true)}).artifacts"            | _
     }
 
     def "reports failure to resolve components when artifacts are queried"() {
@@ -335,12 +340,7 @@ dependencies {
     compile 'org:test2:2.0'
 }
 
-task show {
-    inputs.files configurations.compile
-    doLast {
-        configurations.compile.${expression}.collect { true }
-    }
-}
+${showFailuresTask(expression)}
 """
 
         given:
@@ -362,6 +362,7 @@ task show {
         "incoming.artifacts"                                          | _
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
+        "incoming.artifactView({lenient(true)}).artifacts"            | _
     }
 
     def "reports failure to download artifact when artifacts are queried"() {
@@ -374,12 +375,7 @@ dependencies {
     compile 'org:test2:2.0'
 }
 
-task show {
-    inputs.files configurations.compile
-    doLast {
-        configurations.compile.${expression}.collect { true }
-    }
-}
+${showFailuresTask(expression)}
 """
 
         given:
@@ -402,6 +398,7 @@ task show {
         "incoming.artifacts"                                          | _
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
+        "incoming.artifactView({lenient(true)}).artifacts"            | _
     }
 
     def "reports failure to query file dependency when artifacts are queried"() {
@@ -411,11 +408,7 @@ dependencies {
     compile files('lib.jar')
 }
 
-task show {
-    doLast {
-        configurations.compile.${expression}.collect { true }
-    }
-}
+${showFailuresTask(expression)}
 """
         when:
         fails 'show'
@@ -429,6 +422,7 @@ task show {
         "incoming.artifacts"                                          | _
         "incoming.artifactView({}).artifacts"                         | _
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
+        "incoming.artifactView({lenient(true)}).artifacts"            | _
     }
 
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
@@ -443,11 +437,7 @@ dependencies {
     compile files { throw new RuntimeException('broken 2') }
 }
 
-task show {
-    doLast {
-        configurations.compile.${expression}.collect { true }
-    }
-}
+${showFailuresTask(expression)}
 """
 
         given:
@@ -469,10 +459,11 @@ task show {
         failure.assertHasCause("broken 2")
 
         where:
-        expression                                                    | _
-        "incoming.artifacts"                                          | _
-        "incoming.artifactView({}).artifacts"                         | _
-        "incoming.artifactView({componentFilter { true }}).artifacts" | _
+        expression                                                    | lenient
+        "incoming.artifacts"                                          | false
+        "incoming.artifactView({}).artifacts"                         | false
+        "incoming.artifactView({componentFilter { true }}).artifacts" | false
+        "incoming.artifactView({lenient(true)}).artifacts"            | true
     }
 
     def "lenient artifact view includes only artifacts that are successfully resolved"() {
@@ -495,6 +486,13 @@ task resolveLenient {
         assert lenientView.files.collect { it.name } == resolvedFiles
         assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
         assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
+        assert lenientView.artifacts.failures.collect { it.message } == [
+            "Could not resolve all dependencies for configuration ':compile'.",
+            "broken",
+            '''Could not find missing-artifact.jar (org:missing-artifact:1.0).
+Searched in the following locations:
+    $mavenHttpRepo.uri/org/missing-artifact/1.0/missing-artifact-1.0.jar'''
+        ]
     }
 }
 """
@@ -514,5 +512,66 @@ task resolveLenient {
 
         expect:
         succeeds 'resolveLenient'
+    }
+
+    def "lenient view includes successfully resolved artifacts and collects failures"() {
+        buildFile << """
+allprojects {
+    repositories { maven { url '$mavenHttpRepo.uri' } }
+}
+dependencies {
+    compile 'org:test:1.0'
+    compile 'org:test-missing:1.0'
+    compile 'org:test-bad:2.0'
+    compile files { throw new RuntimeException('broken 1') }
+    compile files { throw new RuntimeException('broken 2') }
+}
+
+task resolve {
+    doLast {
+        def view = configurations.compile.incoming.artifactView({lenient(true)})
+        assert view.files.collect { it.name } == ['test-1.0.jar']
+        def artifactCollection = view.artifacts
+        assert artifactCollection.artifacts.collect { it.id.displayName } == ['test.jar (org:test:1.0)']
+        assert artifactCollection.failures.collect { it.message } == [
+            'broken 1',
+            'broken 2',
+            '''Could not find test-missing.jar (org:test-missing:1.0).
+Searched in the following locations:
+    $mavenHttpRepo.uri/org/test-missing/1.0/test-missing-1.0.jar''',
+            '''Could not download test-bad.jar (org:test-bad:2.0)'''
+        ]
+    }
+}
+"""
+
+        when:
+        def ok = mavenHttpRepo.module("org", "test", "1.0").publish()
+        ok.pom.expectGet()
+        ok.artifact.expectGet()
+        def missing = mavenHttpRepo.module('org', 'test-missing', '1.0').publish()
+        missing.pom.expectGet()
+        missing.artifact.expectGetMissing()
+        def bad = mavenHttpRepo.module('org', 'test-bad', '2.0').publish()
+        bad.pom.expectGet()
+        2.times {
+            bad.artifact.expectGetBroken()
+        }
+
+        then:
+        succeeds 'resolve'
+    }
+
+    def showFailuresTask(expression) {
+        """
+task show {
+    doLast {
+        def artifacts = configurations.compile.${expression}
+        artifacts.collect { true }
+        // If lenient, need to rethrow
+        throw new org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration.ArtifactResolveException('artifacts', 'artifacts', "configuration ':compile'", artifacts.failures as List)
+    }
+}
+"""
     }
 }
