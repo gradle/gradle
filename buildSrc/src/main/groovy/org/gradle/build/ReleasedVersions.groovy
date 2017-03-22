@@ -21,9 +21,10 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.util.GradleVersion
 
+import java.util.concurrent.TimeUnit
+
 class ReleasedVersions {
     private static final Logger LOGGER = Logging.getLogger(ReleasedVersions.class)
-    private static final int MILLIS_PER_DAY = 24 * 60 * 60 * 1000
 
     private lowestInterestingVersion = GradleVersion.version("0.8")
     private lowestTestedVersion = GradleVersion.version("1.0")
@@ -54,7 +55,7 @@ class ReleasedVersions {
                 + "Without the version information certain integration tests may fail or use outdated version details.")
             return
         }
-        if (!alwaysDownload && destFile.isFile() && destFile.lastModified() > System.currentTimeMillis() - MILLIS_PER_DAY) {
+        if (!alwaysDownload && destFile.isFile() && destFile.lastModified() > System.currentTimeMillis() - TimeUnit.HOURS.toMillis(4)) {
             LOGGER.info("Don't download released versions from $url as the output file already exists and is not out-of-date.")
             return
         }
