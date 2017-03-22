@@ -32,7 +32,8 @@ Add-->
 
 ### Console upgrade
 
-When attached to a terminal, Gradle will now show you a _build summary_ and more detailed _work-in-progress_. The build summary tells you how much of the task graph has been completed, and a measure of how much of the graph could be avoided. The work-in-progress section tells you which tasks are being processed. It gets much more interesting when you turn on `--parallel`.
+When attached to a terminal, Gradle will now show you a _build summary_ and more detailed _work-in-progress_. The build summary tells you how much of the task graph has been completed. 
+The work-in-progress section tells you which tasks are being processed. It gets much more interesting when you turn on `--parallel`.
 
 If you encounter any problems, use the `--console plain` option and please file an issue with your environment and terminal information.
 
@@ -60,7 +61,7 @@ Look at [the build cache user guide chapter](userguide/build_cache.html#sec:task
 
 ### Plugin resolution rules
 
-Gradle now allows you to adjust how plugins are resolved by providing plugin resolution rules. For instance, you could
+Gradle now allows you to [adjust how plugins are resolved](userguide/plugins.html#sec:plugin_management) by providing plugin resolution rules. For instance, you could
 specify a default version for a plugin so you don't have to repeat it in every project. Or you could tell Gradle what implementation artifact it should
 look for in case the plugin is not published with plugin markers.
 
@@ -125,7 +126,7 @@ For example, if you have a `FancyExtension` type, implemented by some `DefaultFa
 
 #### BuildActionExecutor supports running tasks
 
-Tooling API clients can now run tasks before running a build action. This allows them to fetch tooling models which depend on the result of
+[Tooling API](userguide/embedded.html) clients like IDEs can now run tasks before running a build action. This allows them to fetch tooling models which depend on the result of
 executing some task. This mirrors the existing `ModelBuilder.forTasks()` API.
 
 #### Specify environment variables
