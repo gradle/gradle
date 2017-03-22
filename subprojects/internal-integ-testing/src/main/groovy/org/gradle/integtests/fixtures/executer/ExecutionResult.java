@@ -52,8 +52,22 @@ public interface ExecutionResult {
 
     /**
      * Asserts that exactly the given set of tasks have been executed in the given order. Note: ignores buildSrc tasks.
+     * Each task path can be either a String or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions
+     * and an explanation of their usage.  Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
+     */
+    ExecutionResult assertTasksExecutedInOrder(Object... taskPaths);
+
+    /**
+     * Asserts that exactly the given set of tasks have been executed in any order. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTasksExecuted(String... taskPaths);
+
+    /**
+     * Asserts that the provided tasks were executed in the given order.  Each task path can be either a String
+     * or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions and an explanation of their usage.
+     * Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
+     */
+    ExecutionResult assertTaskOrder(Object... taskPaths);
 
     /**
      * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.

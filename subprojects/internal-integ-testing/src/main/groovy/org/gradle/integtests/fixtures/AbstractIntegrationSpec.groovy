@@ -205,6 +205,11 @@ class AbstractIntegrationSpec extends Specification {
         }
     }
 
+    protected void assertTaskOrder(Object... tasks) {
+        assertHasResult()
+        result.assertTaskOrder(tasks)
+    }
+
     protected void failureHasCause(String cause) {
         failure.assertHasCause(cause)
     }

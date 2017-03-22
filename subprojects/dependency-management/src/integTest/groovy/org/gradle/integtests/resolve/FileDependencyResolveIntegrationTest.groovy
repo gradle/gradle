@@ -56,7 +56,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         run ":checkDeps"
 
         then:
-        result.assertTasksExecuted(":jar", ":sub:jar", ":checkDeps");
+        executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
                 files << "main.jar"
@@ -101,7 +101,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         run ":checkDeps"
 
         then:
-        result.assertTasksExecuted(":jar", ":sub:jar", ":checkDeps");
+        executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
                 files << "main-1.jar"
@@ -176,7 +176,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         run ":checkDeps"
 
         then:
-        result.assertTasksExecuted(":jar", ":sub:jar", ":checkDeps");
+        executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
                 files << "main.jar"
@@ -222,7 +222,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         run ":checkDeps"
 
         then:
-        result.assertTasksExecuted(":jar", ":checkDeps");
+        executed ":jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
                 files << "main.jar"
