@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
@@ -76,8 +75,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
@@ -274,7 +273,7 @@ class DependencyManagementBuildScopeServices {
                                                                 VersionComparator versionComparator,
                                                                 ServiceRegistry serviceRegistry,
                                                                 ImmutableAttributesFactory cache) {
-        ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
+        return new DefaultArtifactDependencyResolver(
             serviceRegistry,
             resolveIvyFactory,
             dependencyDescriptorFactory,
@@ -282,7 +281,6 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             cache
         );
-        return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
     }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
