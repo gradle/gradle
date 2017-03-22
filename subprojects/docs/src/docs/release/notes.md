@@ -1,6 +1,6 @@
 The Gradle team is pleased to announce Gradle 3.5.
 
-First and foremost, we're excited to announce a new [Build Cache](userguide/build_cache.html)!
+First and foremost, we're excited to announce the new [Build Cache](userguide/build_cache.html)!
 Beyond [incremental builds](https://blog.gradle.org/introducing-incremental-build-support), Gradle can save time by reusing outputs from previous executions of a task, resolving them _locally_ or _remotely_.
 We’ve worked hard to ensure many built-in tasks are cacheable and safe to try; however, this feature should not be used in production without fully understanding [its current limitations](userguide/build_cache.html#sec:task_output_caching_known_issues), so it is not enabled by default.
 
