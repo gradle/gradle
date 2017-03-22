@@ -96,6 +96,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
             import java.io.BufferedWriter;
             import java.io.FileWriter;
             import java.util.UUID;
+            import javax.inject.Inject;
 
             public class TestRunnable implements Runnable {
                 private final List<String> files;
@@ -103,6 +104,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 private final Foo foo;
                 private static final String id = UUID.randomUUID().toString();
 
+                @Inject
                 public TestRunnable(List<String> files, File outputDir, Foo foo) {
                     this.files = files;
                     this.outputDir = outputDir;
@@ -198,8 +200,10 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
             import java.util.List;
             import org.gradle.other.Foo;
             import java.net.URL;
+            import javax.inject.Inject;
 
             public class AlternateRunnable extends TestRunnable {
+                @Inject
                 public AlternateRunnable(List<String> files, File outputDir, Foo foo) {
                     super(files, outputDir, foo);
                 }

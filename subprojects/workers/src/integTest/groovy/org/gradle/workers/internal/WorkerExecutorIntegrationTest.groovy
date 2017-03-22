@@ -387,8 +387,10 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             import java.util.List;
             import org.gradle.other.Foo;
             import java.net.URL;
+            import javax.inject.Inject;
 
             public class BlockingRunnable extends TestRunnable {
+                @Inject
                 public BlockingRunnable(List<String> files, File outputDir, Foo foo) {
                     super(files, outputDir, foo);
                 }
@@ -411,8 +413,10 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             import java.util.List;
             import org.gradle.other.Foo;
             import java.net.URL;
+            import javax.inject.Inject;
 
             public class AlternateRunnable extends TestRunnable {
+                @Inject
                 public AlternateRunnable(List<String> files, File outputDir, Foo foo) {
                     super(files, outputDir, foo);
                 }
@@ -428,8 +432,10 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             import org.gradle.other.Foo;
             import java.lang.management.ManagementFactory;
             import java.lang.management.RuntimeMXBean;
+            import javax.inject.Inject;
 
             public class OptionVerifyingRunnable extends TestRunnable {
+                @Inject
                 public OptionVerifyingRunnable(List<String> files, File outputDir, Foo foo) {
                     super(files, outputDir, foo);
                 }

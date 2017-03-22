@@ -226,7 +226,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         then:
         failureHasCause("A failure occurred while executing RunnableWithDifferentConstructor")
         failureHasCause("Could not create an instance of type RunnableWithDifferentConstructor.")
-        failureHasCause("Could not find any public constructor for class RunnableWithDifferentConstructor which accepts parameters")
+        failureHasCause("Too many parameters provided for constructor for class RunnableWithDifferentConstructor. Expected 2, received 3.")
 
         where:
         forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
@@ -244,6 +244,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getRunnableThatFails() {
         return """
             public class RunnableThatFails implements Runnable {
+                @javax.inject.Inject
                 public RunnableThatFails(List<String> files, File outputDir, Foo foo) { }
 
                 public void run() {
@@ -256,6 +257,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getRunnableThatThrowsUnserializableMemberException() {
         return """
             public class RunnableThatFails implements Runnable {
+                @javax.inject.Inject
                 public RunnableThatFails(List<String> files, File outputDir, Foo foo) { }
 
                 public void run() {
@@ -320,6 +322,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getRunnableThatFailsInstantiation() {
         return """
             public class RunnableThatFails implements Runnable {
+                @javax.inject.Inject
                 public RunnableThatFails(List<String> files, File outputDir, Foo foo) { 
                     throw new IllegalArgumentException("You shall not pass!")
                 }
@@ -361,6 +364,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getRunnableWithDifferentConstructor() {
         return """
             public class RunnableWithDifferentConstructor implements Runnable {
+                @javax.inject.Inject
                 public RunnableWithDifferentConstructor(List<String> files, File outputDir) { 
                 }
 

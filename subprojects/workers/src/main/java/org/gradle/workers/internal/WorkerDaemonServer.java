@@ -16,14 +16,18 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
+import org.gradle.api.internal.InstantiatorFactory;
 
 public class WorkerDaemonServer implements WorkerProtocol<ParamSpec> {
+    private final InstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator());
+
     @Override
     public DefaultWorkResult execute(ParamSpec spec) {
         try {
             Class<? extends Runnable> implementationClass = spec.getImplementationClass();
-            Runnable runnable = DirectInstantiator.instantiate(implementationClass, spec.getParams(implementationClass.getClassLoader()));
+            Runnable runnable = instantiatorFactory.inject().newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));
             runnable.run();
             return new DefaultWorkResult(true, null);
         } catch (Throwable t) {

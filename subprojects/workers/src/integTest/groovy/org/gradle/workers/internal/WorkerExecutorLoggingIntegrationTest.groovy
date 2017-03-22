@@ -90,8 +90,10 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
             import org.gradle.other.Foo;
             import java.util.UUID;
             import org.gradle.api.logging.Logging;
+            import javax.inject.Inject;
 
             public class TestRunnable implements Runnable {
+                @Inject
                 public TestRunnable(List<String> files, File outputDir, Foo foo) {
                 }
 

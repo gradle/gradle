@@ -151,6 +151,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
 
+        sharedPackagesBuilder.add("javax.inject");
+
         if (classpath != null) {
             classpathBuilder.addAll(classpath);
         }

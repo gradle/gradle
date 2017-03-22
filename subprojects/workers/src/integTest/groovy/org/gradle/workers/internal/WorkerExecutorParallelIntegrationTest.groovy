@@ -391,10 +391,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
     def getParallelRunnable() {
         return """
             import java.net.URI
+            import javax.inject.Inject
 
             public class TestParallelRunnable implements Runnable {
                 final String itemName 
 
+                @Inject
                 public TestParallelRunnable(String itemName) {
                     this.itemName = itemName
                 }
@@ -416,10 +418,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
     def getAlternateParallelRunnable() {
         return """
             import java.net.URI
+            import javax.inject.Inject
 
             public class AlternateParallelRunnable implements Runnable {
                 final String itemName 
 
+                @Inject
                 public AlternateParallelRunnable(String itemName) {
                     this.itemName = itemName
                 }
@@ -484,9 +488,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
     String getRunnableThatFails() {
         return """
+            import javax.inject.Inject
+            
             public class RunnableThatFails implements Runnable {
                 private final String itemName
                 
+                @Inject
                 public RunnableThatFails(String itemName) { 
                     this.itemName = itemName
                 }

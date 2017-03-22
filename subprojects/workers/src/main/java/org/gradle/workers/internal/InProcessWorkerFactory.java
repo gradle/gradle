@@ -73,8 +73,8 @@ public class InProcessWorkerFactory implements WorkerFactory {
             @Override
             public DefaultWorkResult execute(final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
                 BuildOperationWorkerRegistry.Completion workerLease = parentWorkerOperation.operationStart();
-                BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
                 try {
+                    BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
                     return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
                         @Override
                         public DefaultWorkResult transform(BuildOperationContext buildOperationContext) {

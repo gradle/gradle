@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -26,9 +27,9 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final ClassGenerator classGenerator;
     private final Instantiator decoratingInstantiator;
 
-    public DefaultInstantiatorFactory(ClassGenerator classGenerator, Instantiator decoratingInstantiator) {
+    public DefaultInstantiatorFactory(ClassGenerator classGenerator) {
         this.classGenerator = classGenerator;
-        this.decoratingInstantiator = decoratingInstantiator;
+        this.decoratingInstantiator = new ClassGeneratorBackedInstantiator(classGenerator, DirectInstantiator.INSTANCE);
     }
 
     @Override

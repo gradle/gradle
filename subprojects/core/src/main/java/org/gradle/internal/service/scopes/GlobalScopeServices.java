@@ -257,8 +257,8 @@ public class GlobalScopeServices {
         return new AsmBackedClassGenerator();
     }
 
-    Instantiator createInstantiator(ClassGenerator classGenerator) {
-        return new ClassGeneratorBackedInstantiator(classGenerator, DirectInstantiator.INSTANCE);
+    Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
+        return instantiatorFactory.decorate();
     }
 
     ExecutorFactory createExecutorFactory() {
@@ -357,8 +357,8 @@ public class GlobalScopeServices {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
-    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator, Instantiator instantiator) {
-        return new DefaultInstantiatorFactory(classGenerator, instantiator);
+    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator) {
+        return new DefaultInstantiatorFactory(classGenerator);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
