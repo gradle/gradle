@@ -1,4 +1,4 @@
-// Copyright 2010 the original author or authors.
+// Copyright 2017 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ For configuring this directory or different kinds of build caches see <<sec:buil
 Beyond incremental builds described in <<sec:up_to_date_checks>>, Gradle can save time by reusing outputs from previous executions of a task by matching inputs to the task.
 Task outputs can be reused between builds on one computer or even between builds running on different computers via a build cache.
 
-For an initial release, we have focused on on the use case where users have an organization-wide remote build cache that is populated regularly by continuous integration builds.
+For an initial release, we have focused on the use case where users have an organization-wide remote build cache that is populated regularly by continuous integration builds.
 Developers and other continuous integration agents should pull cache entries from the remote build cache.
 We expect that developers will not be allowed to populate the remote build cache, and all continuous integration builds populate the build cache after running the `clean` task.
 
@@ -105,10 +105,10 @@ BUILD SUCCESSFUL
 Now we see that, instead of executing the `:compileJava` task, the outputs of the task have been loaded from the build cache.
 The other tasks have not been loaded from the build cache since they are not cacheable. This is due to
 `:classes` and `:assemble` being <<sec:lifecycle_tasks,lifecycle tasks>> and `:processResources`
-and `jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
+and `:jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
 
 [[sec:task_output_caching_details]]
-==== Task output caching in detail
+==== Task Output Caching in detail
 
 Since a task describes all of its inputs and outputs, Gradle can compute a _build cache key_ that uniquely defines the task's outputs based on its inputs.
 That build cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
@@ -157,9 +157,10 @@ We suggest adding tests to ensure that the task inputs are relocatable, i.e. tha
 ============================================
 
 [[sec:task_output_caching_known_issues]]
-==== Feedback and Known issues
+==== Feedback and known issues
 
-The task output caching feature has known issues that may impact the correctness, usability and performance of your build when using the build cache.
+The task output caching feature has known issues that may impact the correctness of your build when using the build cache,
+and there are some caveats to keep in mind which may reduce the number of cache hits you get between machines.
 These issues will be corrected as this feature becomes stable.
 
 Note that task output caching relies on <<sec:up_to_date_checks,incremental build>>.
@@ -175,7 +176,7 @@ NOTE: When https://github.com/gradle/gradle/issues/new?labels=in:build-cache[rep
 
 These issues may affect the correctness of your build when using the build cache. Please consider these issues carefully.
 
-.Correctness Issues
+.Correctness issues
 
 |===
 | Description | Impact | Workaround
@@ -197,7 +198,7 @@ When loading from the build cache you can get the combined output when you expec
 
 | Tracking the Java vendor implementation
 | Gradle currently tracks the major version of Java that is used for compilation and test execution. If your build uses several Java implementations (IBM, OpenJDK, Oracle, etc) that are the same major version, Gradle will treat them all as equivalent and re-use outputs from any implementation.
-| Only enable caching for builds that all use the same Java implementation or manually add the Java vendor as an input to compilation and test execution tasks.
+| Only enable caching for builds that all use the same Java implementation or manually add the Java vendor as an input to compilation and test execution tasks by using <<sec:task_input_output_runtime_api,the runtime api>> for adding task inputs.
 
 | Tracking the Java version
 | Gradle currently tracks the major version of Java (6 vs 7 vs 8) that is used for compilation and test execution. If your build expects to use several minor releases (1.8.0_102 vs 1.8.0_25), Gradle will treat all of these as equivalent and re-use outputs from any minor version. In our experience, bytecode produced by each major version is functionally equivalent.
@@ -324,7 +325,7 @@ For an example of what this could look like see the https://github.com/gradle/gr
 
 
 [[sec:build_cache_known_issues]]
-=== Known Issues with built-in Build Caches
+=== Known issues with built-in Build Caches
 
 The built-in build caches have some known issues which will be addressed in future releases.
 

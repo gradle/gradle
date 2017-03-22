@@ -166,9 +166,12 @@ libraries.findbugs = dependencies.module("com.google.code.findbugs:findbugs:${ve
 libraries.bcel = "com.google.code.findbugs:bcel:${versions.findbugs}@jar"
 
 libraries.gson = "com.google.code.gson:gson:2.7"
-libraries.sshd = dependencies.module("org.apache.sshd:sshd-core:0.13.0") {
+libraries.mina = dependencies.module("org.apache.mina:mina-core:2.0.10") {
     dependency libraries.slf4j_api
-    dependency "org.apache.mina:mina-core:2.0.8"
+}
+libraries.sshd = dependencies.module("org.apache.sshd:sshd-core:1.2.0") {
+    dependency libraries.slf4j_api
+    dependency libraries.mina
 }
 
 libraries.bouncycastle_provider = "org.bouncycastle:bcprov-jdk15on:${versions.bouncycastle}@jar"

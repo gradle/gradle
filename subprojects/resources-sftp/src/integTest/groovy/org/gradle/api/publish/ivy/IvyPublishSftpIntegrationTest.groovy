@@ -205,5 +205,8 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
             .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
             .assertHasCause("Could not write to resource '${module.jar.uri}'.")
+
+        cleanup:
+        server.clearSessions()
     }
 }
