@@ -22,6 +22,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -62,8 +63,8 @@ public class WorkersServices implements PluginServiceRegistry {
             return new WorkerDaemonFactory(workerDaemonClientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor);
         }
 
-        WorkerExecutor createWorkerExecutor(WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
-            return new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker);
+        WorkerExecutor createWorkerExecutor(Instantiator instantiator, WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+            return instantiator.newInstance(DefaultWorkerExecutor.class, workerDaemonFactory, inProcessWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker);
         }
 
         InProcessWorkerFactory createInProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {

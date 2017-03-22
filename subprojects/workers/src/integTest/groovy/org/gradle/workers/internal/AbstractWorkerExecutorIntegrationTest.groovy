@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
 
-class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
     def outputFileDir = file("build/workers")
     def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
     def list = [ 1, 2, 3 ]
@@ -75,12 +75,12 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void executeTask() {
-                    workerExecutor.submit(runnableClass) { config ->
-                        config.forkMode = forkMode
-                        config.displayName = displayName
-                        config.forkOptions(additionalForkOptions)
-                        config.classpath(additionalClasspath)
-                        config.params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
+                    workerExecutor.submit(runnableClass) {
+                        forkMode = this.forkMode
+                        displayName = this.displayName
+                        forkOptions(additionalForkOptions)
+                        classpath(additionalClasspath)
+                        params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
                     }
                 }
             }
