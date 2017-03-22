@@ -70,14 +70,18 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         then:
         gradle.standardOutput.contains("stdout message")
         gradle.standardOutput.contains("warn message")
+        gradle.standardOutput.contains("slf4j warn")
+        gradle.standardOutput.contains("jul warn")
 
         and:
         gradle.errorOutput.contains("stderr message")
         gradle.errorOutput.contains("error message")
+        gradle.errorOutput.contains("slf4j error")
+        gradle.errorOutput.contains("jul error")
 
         and:
-        !gradle.standardOutput.contains("debug message")
-        !gradle.errorOutput.contains("debug message")
+        !gradle.standardOutput.contains("debug")
+        !gradle.errorOutput.contains("debug")
 
         where:
         forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
@@ -90,6 +94,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
             import org.gradle.other.Foo;
             import java.util.UUID;
             import org.gradle.api.logging.Logging;
+            import org.slf4j.LoggerFactory;
             import javax.inject.Inject;
 
             public class TestRunnable implements Runnable {
@@ -101,6 +106,12 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
                     Logging.getLogger(getClass()).warn("warn message");
                     Logging.getLogger(getClass()).debug("debug message");
                     Logging.getLogger(getClass()).error("error message");
+                    LoggerFactory.getLogger(getClass()).warn("slf4j warn");
+                    LoggerFactory.getLogger(getClass()).debug("slf4j debug");
+                    LoggerFactory.getLogger(getClass()).error("slf4j error");
+                    java.util.logging.Logger.getLogger("worker").warning("jul warn");
+                    java.util.logging.Logger.getLogger("worker").fine("jul debug");
+                    java.util.logging.Logger.getLogger("worker").severe("jul error");
                     System.out.println("stdout message");
                     System.err.println("stderr message");
                 }
