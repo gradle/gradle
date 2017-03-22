@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.util.TextUtil
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -467,6 +468,10 @@ ${showFailuresTask(expression)}
     }
 
     def "lenient artifact view includes only artifacts that are successfully resolved"() {
+        def failureMessage = TextUtil.toPlatformLineSeparators("""Could not find missing-artifact.jar (org:missing-artifact:1.0).
+Searched in the following locations:
+    ${mavenHttpRepo.uri}/org/missing-artifact/1.0/missing-artifact-1.0.jar""")
+
         buildFile << """
 allprojects {
     repositories { maven { url '$mavenHttpRepo.uri' } }
@@ -489,9 +494,7 @@ task resolveLenient {
         assert lenientView.artifacts.failures.collect { it.message } == [
             "Could not resolve all dependencies for configuration ':compile'.",
             "broken",
-            '''Could not find missing-artifact.jar (org:missing-artifact:1.0).
-Searched in the following locations:
-    $mavenHttpRepo.uri/org/missing-artifact/1.0/missing-artifact-1.0.jar'''
+            '''$failureMessage'''
         ]
     }
 }
@@ -515,6 +518,10 @@ Searched in the following locations:
     }
 
     def "lenient view includes successfully resolved artifacts and collects failures"() {
+        def failureMessage = TextUtil.toPlatformLineSeparators("""Could not find test-missing.jar (org:test-missing:1.0).
+Searched in the following locations:
+    ${mavenHttpRepo.uri}/org/test-missing/1.0/test-missing-1.0.jar""")
+
         buildFile << """
 allprojects {
     repositories { maven { url '$mavenHttpRepo.uri' } }
@@ -536,9 +543,7 @@ task resolve {
         assert artifactCollection.failures.collect { it.message } == [
             'broken 1',
             'broken 2',
-            '''Could not find test-missing.jar (org:test-missing:1.0).
-Searched in the following locations:
-    $mavenHttpRepo.uri/org/test-missing/1.0/test-missing-1.0.jar''',
+            '''$failureMessage''',
             '''Could not download test-bad.jar (org:test-bad:2.0)'''
         ]
     }
