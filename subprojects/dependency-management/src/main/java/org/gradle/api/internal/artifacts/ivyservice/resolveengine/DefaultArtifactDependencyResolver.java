@@ -23,8 +23,6 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -64,16 +62,14 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ServiceRegistry serviceRegistry;
     private final DependencyDescriptorFactory dependencyDescriptorFactory;
     private final ResolveIvyFactory ivyFactory;
-    private final CacheLockingManager cacheLockingManager;
     private final VersionComparator versionComparator;
     private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultArtifactDependencyResolver(ServiceRegistry serviceRegistry, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
-                                             CacheLockingManager cacheLockingManager, VersionComparator versionComparator, ImmutableAttributesFactory attributesFactory) {
+                                             VersionComparator versionComparator, ImmutableAttributesFactory attributesFactory) {
         this.serviceRegistry = serviceRegistry;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
-        this.cacheLockingManager = cacheLockingManager;
         this.versionComparator = versionComparator;
         this.attributesFactory = attributesFactory;
     }
@@ -84,7 +80,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         ComponentResolvers resolvers = createResolvers(resolveContext, repositories, metadataHandler);
         DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions);
 
-        ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(new CacheLockingArtifactResolver(cacheLockingManager, resolvers.getArtifactResolver()));
+        ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(resolvers.getArtifactResolver());
         BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
         DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, artifactResolver, attributesFactory, buildOperationExecutor, moduleExclusions);
 

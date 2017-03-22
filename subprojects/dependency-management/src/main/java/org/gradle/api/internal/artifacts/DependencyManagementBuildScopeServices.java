@@ -269,7 +269,6 @@ class DependencyManagementBuildScopeServices {
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                                CacheLockingManager cacheLockingManager,
                                                                 VersionComparator versionComparator,
                                                                 ServiceRegistry serviceRegistry,
                                                                 ImmutableAttributesFactory cache) {
@@ -277,7 +276,6 @@ class DependencyManagementBuildScopeServices {
             serviceRegistry,
             resolveIvyFactory,
             dependencyDescriptorFactory,
-            cacheLockingManager,
             versionComparator,
             cache
         );
