@@ -121,7 +121,6 @@ public class BuildOperationExternalResource implements ExternalResource {
     private BuildOperationDetails createBuildOperationDetails() {
         ExternalResourceMetaData metaData = getMetaData();
         DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
-        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Download " + metaData.getLocation().toString()).parent(buildOperationExecutor.getCurrentOperation()).operationDescriptor(downloadBuildOperationDescriptor).build();
-        return buildOperationDetails;
+        return BuildOperationDetails.displayName("Download " + metaData.getLocation().toString()).operationDescriptor(downloadBuildOperationDescriptor).build();
     }
 }
