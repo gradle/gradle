@@ -185,12 +185,6 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0"                     | "1.1-20150201.121010-12"
     }
 
-    def "can compare version strings"() {
-        expect:
-        def stringComparator = comparator.asStringComparator()
-        stringComparator.compare("1.2", "1.3") < 0
-    }
-
     def "can compare Version objects"() {
         def v1 = Stub(Version) {
             getParts() >> ["1", "2"]

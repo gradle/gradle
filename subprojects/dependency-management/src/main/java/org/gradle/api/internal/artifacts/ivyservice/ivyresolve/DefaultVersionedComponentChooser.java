@@ -80,8 +80,9 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 applyTo(metadataProvider, result);
                 return;
             }
+            String version = candidate.getVersion().getSource();
             if (!versionMatches) {
-                result.notMatched(candidate.getVersion());
+                result.notMatched(version);
                 continue;
             }
 
@@ -97,7 +98,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 return;
             }
 
-            result.rejected(candidate.getVersion());
+            result.rejected(version);
             if (requestedVersion.matchesUniqueVersion()) {
                 // Only consider one candidate
                 break;

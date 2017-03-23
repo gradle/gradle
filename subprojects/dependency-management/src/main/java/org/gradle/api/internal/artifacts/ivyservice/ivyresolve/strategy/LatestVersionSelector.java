@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
-public class LatestVersionSelector extends AbstractVersionSelector {
+public class LatestVersionSelector extends AbstractStringVersionSelector {
     private final String selectorStatus;
 
     public LatestVersionSelector(String selector) {

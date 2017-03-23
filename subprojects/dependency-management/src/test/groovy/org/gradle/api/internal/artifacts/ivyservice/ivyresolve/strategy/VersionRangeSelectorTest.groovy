@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 
-public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
+public class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
     def "all handled selectors are dynamic"() {
         expect:
         isDynamic("[1.0,2.0]")
@@ -163,6 +163,6 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
 
     @Override
     VersionSelector getSelector(String selector) {
-        return new VersionRangeSelector(selector, new DefaultVersionComparator().asStringComparator())
+        return new VersionRangeSelector(selector, new DefaultVersionComparator().asVersionComparator())
     }
 }

@@ -23,6 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VersionParser implements Transformer<Version, String> {
+    public static final VersionParser INSTANCE = new VersionParser();
+
+    private VersionParser() {
+    }
+
     @Override
     public Version transform(String original) {
         List<String> parts = new ArrayList<String>();
@@ -128,6 +133,11 @@ public class VersionParser implements Transformer<Version, String> {
         @Override
         public Long[] getNumericParts() {
             return numericParts;
+        }
+
+        @Override
+        public String getSource() {
+            return source;
         }
     }
 }
