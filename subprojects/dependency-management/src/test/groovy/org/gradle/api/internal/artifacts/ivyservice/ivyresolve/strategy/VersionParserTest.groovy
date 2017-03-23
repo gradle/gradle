@@ -97,6 +97,26 @@ class VersionParserTest extends Specification {
         '-a b c-  ' | ['', 'a b c', '  ']
     }
 
+    def "numeric parts are parsed"() {
+        expect:
+        def version = parse(versionStr)
+        version.numericParts == numericParts.collect { it == null ? null : it.toLong() }.toArray()
+
+        where:
+        versionStr        | numericParts
+        "1.2.3"           | [1, 2, 3]
+        "1.2-3"           | [1, 2, 3]
+        "1.2-beta_3+0000" | [1, 2, null, 3, 0]
+        "1.2b3"           | [1, 2, null, 3]
+        "1-alpha"         | [1, null]
+        "abc.1-3"         | [null, 1, 3]
+        "123"             | [123]
+        "abc"             | [null]
+        "a.b.c.1.2"       | [null, null, null, 1, 2]
+        "1b2.1.2.3"       | [1, null, 2, 1, 2, 3]
+        "b1-2-3.3"        | [null, 1, 2, 3 ,3]
+    }
+
     def parse(String v) {
         return versionParser.transform(v)
     }
