@@ -63,20 +63,24 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
     }
 
+    @Unroll
     @Issue("gradle/gradle#1090")
-    def "allow single quote characters in options"() {
+    def "can use single quote character in #option"() {
         buildFile << """
-            apply plugin: "java"
-            javadoc.options.header = "\\"'header text'\\""
+            apply plugin: 'java'
+            javadoc.options.$option = "'some text'"
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        file('src/main/java/Foo.java') << 'public class Foo {}'
 
         when:
         succeeds 'javadoc'
 
         then:
-        file("build/docs/javadoc/Foo.html").text.contains("\"'header text'\"")
+        file('build/docs/javadoc/Foo.html').text.contains("'some text'")
+
+        where:
+        option << ['header', 'footer']
     }
 
     def "can configure options with an Action"() {
