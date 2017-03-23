@@ -63,11 +63,9 @@ class BuildOperationExternalResourceTest extends Specification {
         def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
 
         1 * delegate.getMetaData() >> metaData
-        1 * buildOperationExecuter.getCurrentOperation() >> operation
         1 * buildOperationExecuter.run(_, _) >> { details, action ->
             invokeAction(action, Mock(BuildOperationContext))
 
-            assert details.parent == operation
             assert details.name == "Download http://some/uri"
             assert details.displayName == "Download http://some/uri"
 
@@ -99,12 +97,10 @@ class BuildOperationExternalResourceTest extends Specification {
         def buildOperationExecuter = Mock(BuildOperationExecutor)
         def uri = new URI("http://some/uri")
         def metaData = new DefaultExternalResourceMetaData(uri, 0, 1024)
-        def operation = Mock(BuildOperationExecutor.Operation)
         def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
         def buildOperationContext = Mock(BuildOperationContext)
 
         1 * delegate.getMetaData() >> metaData
-        1 * buildOperationExecuter.getCurrentOperation() >> operation
         1 * buildOperationExecuter.run(_, _) >> { details, action ->
             invokeAction(action, buildOperationContext)
         }
