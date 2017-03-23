@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r36
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -294,8 +295,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def bBuildFile = file('b/build.gradle')
         [initScript, buildSrcScript, settingsFile, buildFile, aBuildFile, bBuildFile].each {
             it << """
-                apply from: '${scriptPlugin1.absolutePath}'
-                apply from: '${scriptPlugin2.absolutePath}'
+                apply from: '${TextUtil.normaliseFileSeparators(scriptPlugin1.absolutePath)}'
+                apply from: '${TextUtil.normaliseFileSeparators(scriptPlugin2.absolutePath)}'
             """.stripIndent()
         }
 
@@ -355,9 +356,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         settingsFile << "rootProject.name = 'root'"
 
-        buildFile << "apply from: '${scriptPluginGroovy1}'"
-        scriptPluginGroovy1 << "apply from: '${scriptPluginKotlin}'"
-        scriptPluginKotlin << "apply { from(\"$scriptPluginGroovy2\") }"
+        buildFile << "apply from: '${scriptPluginGroovy1.name}'"
+        scriptPluginGroovy1 << "apply from: '${scriptPluginKotlin.name}'"
+        scriptPluginKotlin << "apply { from(\"$scriptPluginGroovy2.name\") }"
         scriptPluginGroovy2 << ""
 
         when:
