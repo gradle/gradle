@@ -34,7 +34,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
-    @ToolingApiVersion(">=2.5 <3.6")
+    @TargetGradleVersion(">=3.5 <3.6")
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
@@ -95,7 +95,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
-    @ToolingApiVersion(">=2.5 <3.6")
+    @TargetGradleVersion(">=3.5 <3.6")
     @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
