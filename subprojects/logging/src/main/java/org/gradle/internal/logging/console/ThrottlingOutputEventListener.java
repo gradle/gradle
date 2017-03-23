@@ -79,6 +79,15 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             }
 
             // This is the first queued event - schedule a thread to flush later
+            executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (lock) {
+                        renderNow(timeProvider.getCurrentTime());
+                    }
+                }
+            }, throttleMs, TimeUnit.MILLISECONDS);
+
             if (future == null || future.isCancelled()) {
                 future = executor.scheduleAtFixedRate(new Runnable() {
                     @Override
@@ -87,7 +96,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
                             renderNow(timeProvider.getCurrentTime());
                         }
                     }
-                }, throttleMs, throttleMs, TimeUnit.MILLISECONDS);
+                }, 500*2, 500, TimeUnit.MILLISECONDS);
             }
         }
     }
