@@ -20,10 +20,12 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeSelectionSchema;
 
 import java.util.List;
 
-public interface AttributesSchemaInternal extends AttributesSchema {
+public interface AttributesSchemaInternal extends AttributesSchema, AttributeSelectionSchema {
+
     /**
      * Creates a copy of this schema, that will ignore all attributes for which the producer has provided a value but the consumer has not.
      */
@@ -34,5 +36,5 @@ public interface AttributesSchemaInternal extends AttributesSchema {
      */
     AttributeMatcher ignoreAdditionalConsumerAttributes();
 
-    <T extends HasAttributes> List<T> getMatches(AttributesSchema producerAttributeSchema, List<T> candidates, AttributeContainer consumer);
+    <T extends HasAttributes> List<T> getMatches(AttributeSelectionSchema producerAttributeSchema, List<T> candidates, AttributeContainer consumer);
 }

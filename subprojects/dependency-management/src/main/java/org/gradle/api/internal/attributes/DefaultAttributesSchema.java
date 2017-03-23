@@ -28,6 +28,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 
 import java.util.Collections;
@@ -35,8 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultAttributesSchema implements AttributesSchemaInternal {
-
+public class DefaultAttributesSchema implements AttributesSchemaInternal, AttributesSchema {
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
@@ -86,17 +86,27 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public <T extends HasAttributes> List<T> getMatches(AttributesSchema producerAttributeSchema, List<T> candidates, AttributeContainer consumer) {
+    public <T extends HasAttributes> List<T> getMatches(AttributeSelectionSchema producerAttributeSchema, List<T> candidates, AttributeContainer consumer) {
         if (candidates.isEmpty()) {
             return Collections.emptyList();
         }
         Key key = new Key(producerAttributeSchema, ImmutableList.copyOf(candidates), consumer);
         List<? extends HasAttributes> match = this.matchesCache.get(key);
         if (match == null) {
-            match = componentAttributeMatcher.match(this, (AttributesSchemaInternal) producerAttributeSchema, candidates, consumer);
+            match = componentAttributeMatcher.match(this, producerAttributeSchema, candidates, consumer);
             matchesCache.put(key, match);
         }
         return Cast.uncheckedCast(match);
+    }
+
+    @Override
+    public DisambiguationRuleChainInternal<Object> getDisambiguationRules(Attribute<?> attribute) {
+        return Cast.uncheckedCast(getMatchingStrategy(attribute).getDisambiguationRules());
+    }
+
+    @Override
+    public CompatibilityRuleChainInternal<Object> getCompatibilityRules(Attribute<?> attribute) {
+        return Cast.uncheckedCast(getMatchingStrategy(attribute).getCompatibilityRules());
     }
 
     @Override
@@ -110,12 +120,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     private static class Key {
-        final private AttributesSchema producerAttributeSchema;
+        final private AttributeSelectionSchema producerAttributeSchema;
         final private List<?> candidates;
         final private AttributeContainer consumer;
         private final int hashCode;
 
-        public Key(AttributesSchema producerAttributeSchema, List<?> candidates, AttributeContainer consumer) {
+        public Key(AttributeSelectionSchema producerAttributeSchema, List<?> candidates, AttributeContainer consumer) {
             this.producerAttributeSchema = producerAttributeSchema;
             this.candidates = candidates;
             this.consumer = consumer;
