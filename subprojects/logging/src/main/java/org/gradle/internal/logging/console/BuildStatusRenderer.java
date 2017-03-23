@@ -38,6 +38,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final DefaultScalableElapsedTimeFormatter elapsedTimeFormatter = new DefaultScalableElapsedTimeFormatter();
     private String currentBuildStatus;
     private OperationIdentifier rootOperationId;
+    private boolean started = false;
     private long startTimestamp;
 
     public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
@@ -66,7 +67,10 @@ public class BuildStatusRenderer implements OutputEventListener {
             // if it has no parent ID, assign this operation as the root operation
             if (startEvent.getParentId() == null && BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
                 rootOperationId = startEvent.getOperationId();
-                startTimestamp = startEvent.getTimestamp();
+                if (!started) {
+                    started = true;
+                    startTimestamp = startEvent.getTimestamp();
+                }
                 buildStarted(startEvent);
             }
         } else if (event instanceof ProgressCompleteEvent) {
