@@ -134,6 +134,6 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         output.value == "$headerLine\n$firstLine\n$secondLine\n$thirdLine\n$fourthLine\n$fifthLine\n$footerLine"
 
         where:
-        eol << [SystemProperties.instance.lineSeparator, "\n", "\r\n", "\r"]
+        eol << [SystemProperties.instance.lineSeparator, "\n", "\r\n"]
     }
 }
