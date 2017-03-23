@@ -32,7 +32,7 @@ import org.junit.Rule
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
 
-    @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+    @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
