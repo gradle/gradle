@@ -30,10 +30,10 @@ import org.junit.Rule
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.6")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
-    public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
+    public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services"
 
     @Rule
-    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
     def "generates events for worker actions executed in-process and forked"() {
         given:
@@ -343,6 +343,41 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operation("Apply build file '${bBuildFile}' to project ':b'").with { applyProjectB ->
             applyProjectB.child "Apply script '${scriptPlugin1}' to project ':b'"
             applyProjectB.child "Apply script '${scriptPlugin2}' to project ':b'"
+        }
+    }
+
+    @ToolingApiVersion(">=3.6")
+    def "generates events for nested script plugin applications of different types"() {
+        given:
+        def scriptPluginGroovy1 = file('scriptPluginGroovy1.gradle')
+        def scriptPluginKotlin = file('scriptPluginKotlin.gradle.kts')
+        def scriptPluginGroovy2 = file('scriptPluginGroovy2.build') //defaults to Groovy script plugin factory
+
+        settingsFile << "rootProject.name = 'root'"
+
+        buildFile << "apply from: '${scriptPluginGroovy1}'"
+        scriptPluginGroovy1 << "apply from: '${scriptPluginKotlin}'"
+        scriptPluginKotlin << "apply { from(\"$scriptPluginGroovy2\") }"
+        scriptPluginGroovy2 << ""
+
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events)
+                    .run()
+        }
+
+        then:
+        events.assertIsABuild()
+
+        events.operation("Apply build file '${buildFile.absolutePath}' to root project 'root'").with { applyRoot ->
+            applyRoot.child("Apply script '${scriptPluginGroovy1.absolutePath}' to root project 'root'").with { applyGroovy1 ->
+                applyGroovy1.child("Apply script '${scriptPluginKotlin.absolutePath}' to root project 'root'").with { applyKotlin ->
+                    applyKotlin.child("Apply script '${scriptPluginGroovy2.absolutePath}' to root project 'root'")
+                }
+            }
         }
     }
 
