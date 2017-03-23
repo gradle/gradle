@@ -49,7 +49,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
 
     @Override
     public void longRunningOperation(final Runnable action) {
-        action.run();
+        cache.longRunningOperation(action);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
 
     @Override
     public <T> T longRunningOperation(Factory<? extends T> action) {
-        return action.create();
+        return cache.longRunningOperation(action);
     }
 
     @Override
