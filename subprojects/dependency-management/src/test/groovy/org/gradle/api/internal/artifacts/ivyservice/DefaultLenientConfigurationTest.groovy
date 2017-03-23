@@ -47,7 +47,7 @@ class DefaultLenientConfigurationTest extends Specification {
         rootNode.children.add(child)
         def expectedResults = [child] as Set
 
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
 
         when:
         def results = lenientConfiguration.getFirstLevelModuleDependencies()
@@ -70,7 +70,7 @@ class DefaultLenientConfigurationTest extends Specification {
         def firstLevelDependencies = [(Mock(ModuleDependency)): node1, (Mock(ModuleDependency)): node2, (Mock(ModuleDependency)): node3]
         def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
 
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
 
         when:
         def result = lenientConfiguration.getFirstLevelModuleDependencies(spec)
@@ -88,7 +88,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     def "should flatten all resolved dependencies in dependency tree"() {
         given:
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
 
         def (expected, root) = generateDependenciesWithChildren(treeStructure)
 

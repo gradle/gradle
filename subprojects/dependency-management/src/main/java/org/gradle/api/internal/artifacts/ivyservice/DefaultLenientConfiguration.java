@@ -48,7 +48,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Factory;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.util.CollectionUtils;
@@ -64,7 +63,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
-    private final CacheLockingManager cacheLockingManager;
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final VisitedArtifactsResults artifactResults;
@@ -76,9 +74,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private SelectedArtifactResults artifactsForThisConfiguration;
     private SelectedFileDependencyResults filesForThisConfiguration;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms) {
         this.configuration = configuration;
-        this.cacheLockingManager = cacheLockingManager;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
@@ -268,25 +265,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private Set<ResolvedArtifact> filterUnresolved(final Set<ResolvedArtifact> artifacts) {
-        return cacheLockingManager.useCache(new Factory<Set<ResolvedArtifact>>() {
-            public Set<ResolvedArtifact> create() {
-                return CollectionUtils.filter(artifacts, new IgnoreMissingExternalArtifacts());
-            }
-        });
+        return CollectionUtils.filter(artifacts, IgnoreMissingExternalArtifacts.INSTANCE);
     }
 
     private Set<File> getFiles(final Set<ResolvedArtifact> artifacts) {
         final Set<File> files = new LinkedHashSet<File>();
-        cacheLockingManager.useCache(new Runnable() {
-            public void run() {
-                for (ResolvedArtifact artifact : artifacts) {
-                    File depFile = artifact.getFile();
-                    if (depFile != null) {
-                        files.add(depFile);
-                    }
-                }
+        for (ResolvedArtifact artifact : artifacts) {
+            File depFile = artifact.getFile();
+            if (depFile != null) {
+                files.add(depFile);
             }
-        });
+        }
         return files;
     }
 
@@ -391,6 +380,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private static class IgnoreMissingExternalArtifacts implements Spec<ResolvedArtifact> {
+        private static final IgnoreMissingExternalArtifacts INSTANCE = new IgnoreMissingExternalArtifacts();
+
         public boolean isSatisfiedBy(ResolvedArtifact element) {
             if (isExternalModuleArtifact(element)) {
                 try {
