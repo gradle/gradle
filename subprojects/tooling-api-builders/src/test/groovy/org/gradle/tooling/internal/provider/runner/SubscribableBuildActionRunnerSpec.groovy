@@ -24,6 +24,7 @@ import org.gradle.internal.progress.BuildOperationService
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions
 import org.gradle.tooling.internal.provider.SubscribableBuildAction
+import org.gradle.tooling.internal.provider.SubscribableBuildActionRunner
 import spock.lang.Specification
 
 class SubscribableBuildActionRunnerSpec extends Specification {
@@ -36,7 +37,7 @@ class SubscribableBuildActionRunnerSpec extends Specification {
         SubscribableBuildAction buildAction = subscribableBuildAction() //Mock(SubscribableBuildAction)
         BuildController buildController = buildController() //Mock(BuildController)
 
-        def runner = new SubscribableBuildActionRunner(buildActionRunner, buildOperationService);
+        def runner = new SubscribableBuildActionRunner(buildActionRunner, buildOperationService, { [new ToolingApiSubscribableBuildActionRunnerRegistration()] });
 
         when:
         runner.run(buildAction, buildController)

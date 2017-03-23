@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -108,7 +107,64 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private BuildResult doBuild(Stage upTo) {
-        return buildOperationExecutor.run("Run build", new RunBuildAction(upTo));
+        BuildOperationWorkerRegistry.Completion workerLease = buildServices.get(BuildOperationWorkerRegistry.class).operationStart();
+        try {
+            Throwable failure = null;
+            try {
+                buildListener.buildStarted(gradle);
+                doBuildStages(upTo);
+            } catch (Throwable t) {
+                failure = exceptionAnalyser.transform(t);
+            }
+            BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
+            buildListener.buildFinished(buildResult);
+            if (failure != null) {
+                throw new ReportedException(failure);
+            }
+            return buildResult;
+        } finally {
+            workerLease.operationFinish();
+        }
+    }
+
+
+    private void doBuildStages(Stage upTo) {
+        if (stage == Stage.Build) {
+            throw new IllegalStateException("Cannot build with GradleLauncher multiple times");
+        }
+
+        if (stage == null) {
+            // Evaluate init scripts
+            initScriptHandler.executeScripts(gradle);
+
+            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+            settings = settingsLoader.findAndLoadSettings(gradle);
+
+            stage = Stage.Load;
+        }
+
+        if (upTo == Stage.Load) {
+            return;
+        }
+
+        if (stage == Stage.Load) {
+            // Configure build
+            buildOperationExecutor.run("Configure build", new ConfigureBuildAction());
+            stage = Stage.Configure;
+        }
+
+        if (upTo == Stage.Configure) {
+            return;
+        }
+
+        // After this point, the GradleLauncher cannot be reused
+        stage = Stage.Build;
+
+        // Populate task graph
+        buildOperationExecutor.run("Calculate task graph", new CalculateTaskGraphAction());
+
+        // Execute build
+        buildOperationExecutor.run("Run tasks", new RunTasksAction());
     }
 
     /**
@@ -148,75 +204,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
-        }
-    }
-
-    private class RunBuildAction implements Transformer<BuildResult, BuildOperationContext> {
-        private final Stage upTo;
-
-        private RunBuildAction(Stage upTo) {
-            this.upTo = upTo;
-        }
-
-        @Override
-        public BuildResult transform(BuildOperationContext buildOperationContext) {
-            BuildOperationWorkerRegistry.Completion workerLease = buildServices.get(BuildOperationWorkerRegistry.class).operationStart();
-            try {
-                Throwable failure = null;
-                try {
-                    buildListener.buildStarted(gradle);
-                    doBuildStages(upTo);
-                } catch (Throwable t) {
-                    failure = exceptionAnalyser.transform(t);
-                }
-                BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
-                buildListener.buildFinished(buildResult);
-                if (failure != null) {
-                    throw new ReportedException(failure);
-                }
-                return buildResult;
-            } finally {
-                workerLease.operationFinish();
-            }
-        }
-
-        private void doBuildStages(Stage upTo) {
-            if (stage == Stage.Build) {
-                throw new IllegalStateException("Cannot build with GradleLauncher multiple times");
-            }
-
-            if (stage == null) {
-                // Evaluate init scripts
-                initScriptHandler.executeScripts(gradle);
-
-                // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-                settings = settingsLoader.findAndLoadSettings(gradle);
-
-                stage = Stage.Load;
-            }
-
-            if (upTo == Stage.Load) {
-                return;
-            }
-
-            if (stage == Stage.Load) {
-                // Configure build
-                buildOperationExecutor.run("Configure build", new ConfigureBuildAction());
-                stage = Stage.Configure;
-            }
-
-            if (upTo == Stage.Configure) {
-                return;
-            }
-
-            // After this point, the GradleLauncher cannot be reused
-            stage = Stage.Build;
-
-            // Populate task graph
-            buildOperationExecutor.run("Calculate task graph", new CalculateTaskGraphAction());
-
-            // Execute build
-            buildOperationExecutor.run("Run tasks", new RunTasksAction());
         }
     }
 

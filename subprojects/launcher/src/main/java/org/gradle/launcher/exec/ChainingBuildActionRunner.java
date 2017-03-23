@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.internal.Factory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -23,20 +24,33 @@ import org.gradle.internal.invocation.BuildController;
 import java.util.List;
 
 public class ChainingBuildActionRunner implements BuildActionRunner {
-    private final List<? extends BuildActionRunner> runners;
+    private final Factory<List<? extends BuildActionRunner>> runnersFactory;
+    private List<? extends BuildActionRunner> runners;
+
+    public ChainingBuildActionRunner(Factory<List<? extends BuildActionRunner>> runnersFactory) {
+        this.runnersFactory = runnersFactory;
+    }
 
     public ChainingBuildActionRunner(List<? extends BuildActionRunner> runners) {
+        this.runnersFactory = null;
         this.runners = runners;
     }
 
     @Override
     public void run(BuildAction action, BuildController buildController) {
-        for (BuildActionRunner runner : runners) {
+        for (BuildActionRunner runner : getRunners()) {
             runner.run(action, buildController);
             if (buildController.hasResult()) {
                 return;
             }
         }
         throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
+    }
+
+    private List<? extends BuildActionRunner> getRunners() {
+        if (runners == null) {
+            runners = runnersFactory.create();
+        }
+        return runners;
     }
 }
