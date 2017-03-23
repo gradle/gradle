@@ -28,6 +28,11 @@ public interface Version {
     String[] getParts();
 
     /**
+     * Returns all the numeric parts of this version as {@link Long}, with nulls in non-numeric positions. eg. 1.2.3 returns [1,2,3] or 1.2-beta4 returns [1,2,null,4].
+     */
+    Long[] getNumericParts();
+
+    /**
      * Returns the base version for this version, which removes any qualifiers. Generally this is the first '.' separated parts of this version.
      * e.g. 1.2.3-beta-4 returns 1.2.3, or 7.0.12beta5 returns 7.0.12.
      */

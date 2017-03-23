@@ -194,9 +194,11 @@ class DefaultVersionComparatorTest extends Specification {
     def "can compare Version objects"() {
         def v1 = Stub(Version) {
             getParts() >> ["1", "2"]
+            getNumericParts() >> [1, 2]
         }
         def v2 = Stub(Version) {
             getParts() >> ["1", "3"]
+            getNumericParts() >> [1, 3]
         }
 
         expect:
