@@ -44,6 +44,14 @@ public interface VersionSelector {
     public boolean accept(String candidate);
 
     /**
+     * Indicates if the selector matches the given candidate version.
+     * Only called if {@link #requiresMetadata()} returned {@code false}.
+     *
+     * @param candidate the candidate version
+     */
+    public boolean accept(Version candidate);
+
+    /**
      * Indicates if the selector matches the given candidate version
      * (whose metadata is provided). May also be called if {@link #isDynamic} returned
      * {@code false}, in which case it should return the same result as

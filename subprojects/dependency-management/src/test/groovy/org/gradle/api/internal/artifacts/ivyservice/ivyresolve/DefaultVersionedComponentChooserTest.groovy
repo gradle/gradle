@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
@@ -108,10 +109,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * dependency.requested >> selector
-        _ * a.version >> "1.2"
-        _ * b.version >> "1.3"
+        _ * a.version >> version("1.2")
+        _ * b.version >> version("1.3")
         _ * b.id >> selected
-        _ * c.version >> "2.0"
+        _ * c.version >> version("2.0")
         _ * componentSelectionRules.rules >> []
         0 * _
 
@@ -135,10 +136,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         _ * dependency.requested >> selector
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetadata)
-        _ * a.version >> "1.2"
-        _ * b.version >> "1.3"
+        _ * a.version >> version("1.2")
+        _ * b.version >> version("1.3")
         _ * b.id >> selected
-        _ * c.version >> "2.0"
+        _ * c.version >> version("2.0")
         1 * c.resolve() >> resolvedWithStatus("integration")
         1 * c.getComponentMetadataSupplier()
         1 * b.resolve() >> resolvedWithStatus("milestone")
@@ -165,10 +166,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * dependency.getRequested() >> selector
-        _ * a.version >> "1.2"
-        _ * b.version >> "1.3"
+        _ * a.version >> version("1.2")
+        _ * b.version >> version("1.3")
         _ * b.id >> selected
-        _ * c.version >> "2.0"
+        _ * c.version >> version("2.0")
         _ * componentSelectionRules.rules >> rules({ComponentSelection selection ->
             if (selection.candidate.version != '1.3') {
                 selection.reject("rejected")
@@ -196,10 +197,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         _ * dependency.requested >> selector
         _ * dependency.withRequestedVersion(_) >> Stub(DependencyMetadata)
-        _ * a.version >> "1.2"
-        _ * b.version >> "1.3"
+        _ * a.version >> version("1.2")
+        _ * b.version >> version("1.3")
         _ * b.id >> selected
-        _ * c.version >> "2.0"
+        _ * c.version >> version("2.0")
         1 * c.resolve() >> resolvedWithStatus("milestone")
         1 * c.getComponentMetadataSupplier()
         1 * b.resolve() >> resolvedWithStatus("release")
@@ -231,9 +232,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         _ * dependency.requested >> selector
         _ * componentSelectionRules.rules >> []
-        _ * a.version >> "1.2"
-        _ * b.version >> "1.3"
-        _ * c.version >> "2.0"
+        _ * a.version >> version("1.2")
+        _ * b.version >> version("1.3")
+        _ * c.version >> version("2.0")
         0 * _
 
         and:
@@ -254,9 +255,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * dependency.getRequested() >> selector
-        _ * a.version >> "1.2"
-        _ * b.version >> "1.3"
-        _ * c.version >> "2.0"
+        _ * a.version >> version("1.2")
+        _ * b.version >> version("1.3")
+        _ * c.version >> version("2.0")
         1 * a.resolve() >> resolvedWithStatus("integration")
         1 * a.getComponentMetadataSupplier()
         1 * b.resolve() >> resolvedWithStatus("integration")
@@ -284,11 +285,11 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * dependency.getRequested() >> selector
-        _ * a.version >> "1.2"
+        _ * a.version >> version("1.2")
         _ * a.id >> Stub(ModuleComponentIdentifier)
-        _ * b.version >> "1.3"
+        _ * b.version >> version("1.3")
         _ * b.id >> Stub(ModuleComponentIdentifier)
-        _ * c.version >> "2.0"
+        _ * c.version >> version("2.0")
         _ * c.id >> Stub(ModuleComponentIdentifier)
         _ * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             selection.reject("Rejecting everything")
@@ -313,9 +314,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * dependency.getRequested() >> selector
-        _ * a.version >> "1.2"
-        _ * b.version >> "1.3"
-        _ * c.version >> "2.0"
+        _ * a.version >> version("1.2")
+        _ * b.version >> version("1.3")
+        _ * c.version >> version("2.0")
         1 * c.resolve() >> resolvedWithStatus("integration")
         1 * c.getComponentMetadataSupplier()
         1 * b.resolve() >> resolvedWithFailure()
@@ -350,5 +351,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
                     Specs.<ComponentSelection>satisfyAll()
             )
         ]
+    }
+
+    def version(String version) {
+        return VersionParser.INSTANCE.transform(version)
     }
 }

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
-
-public interface Versioned {
-    Version getVersion();
+public interface StringVersioned {
+    String getVersion();
 }

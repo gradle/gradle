@@ -21,8 +21,6 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.strictlyEqual
 
 class VersionParserTest extends Specification {
-    def versionParser = new VersionParser()
-
     def "parsed version is equal when source string is equal"() {
         def v = parse("1.2.b")
         def equal = parse("1.2.b")
@@ -118,6 +116,6 @@ class VersionParserTest extends Specification {
     }
 
     def parse(String v) {
-        return versionParser.transform(v)
+        return VersionParser.INSTANCE.transform(v)
     }
 }
