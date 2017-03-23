@@ -17,14 +17,14 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.jvm.toolchain.JavaToolChain
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
-import spock.lang.Specification
 
-class JavaCompileTest extends Specification {
+class JavaCompileTest extends AbstractProjectBuilderSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/1645")
     def "can set the Java tool chain"() {
-        def javaCompile = new JavaCompile()
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
         def toolChain = Mock(JavaToolChain)
         when:
         javaCompile.setToolChain(toolChain)
