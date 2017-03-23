@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Set;
 
 public class EmptySchema implements AttributesSchemaInternal {
+    public static final EmptySchema INSTANCE = new EmptySchema();
+
     @Override
     public AttributeMatcher ignoreAdditionalProducerAttributes() {
         throw new UnsupportedOperationException();

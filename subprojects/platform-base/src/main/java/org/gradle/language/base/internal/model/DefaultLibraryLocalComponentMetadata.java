@@ -99,7 +99,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
     }
 
     private DefaultLibraryLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
-        super(id, componentIdentifier, Project.DEFAULT_STATUS, new EmptySchema());
+        super(id, componentIdentifier, Project.DEFAULT_STATUS, EmptySchema.INSTANCE);
     }
 
     private void addDependencies(Iterable<DependencySpec> dependencies, String projectPath, String usageConfigurationName) {
