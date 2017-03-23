@@ -132,7 +132,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         @Override
         public void execute(StateContext context) {
             if (context.seenCharsFromEol < context.eolChars.length) {
-                if (!context.eol.equals("\r\n") && context.isCurrentCharEquals(context.eolChars[context.seenCharsFromEol])) {
+                if (context.isCurrentCharEquals(context.eolChars[context.seenCharsFromEol])) {
                     context.seenCharsFromEol++;
                     if (context.seenCharsFromEol == context.eolChars.length) {
                         context.flushLineText();
@@ -161,26 +161,8 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         @Override
         public void execute(StateContext context) {
             if (context.isCurrentCharEquals('\r')) {
-                context.flushLineText();
-                context.next();
-                context.reset();
-
-                // We try our best to detect the right eol
-                if (context.hasChar()) {
-                    if (context.isCurrentCharEquals('\n')) {
-                        context.flushEndLine("\r\n");
-                        context.next();
-                        context.reset();
-                    } else {
-                        context.flushEndLine("\r");
-                    }
-                    context.setState(START_LINE_STATE);
-                } else {
-                    // We print the eol now even if incorrect eol type
-                    context.flushEndLine("\r");
-                    context.setState(WINDOWS_EOL_PARSING_ODDITY_STATE);
-                }
-
+                context.seenCharsFromEol++;
+                context.setState(WINDOWS_EOL_PARSING_ODDITY_STATE);
             } else if (context.isCurrentCharEquals('\n')) {
                 context.flushLineText();
                 context.flushEndLine("\n");
@@ -198,10 +180,16 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         @Override
         public void execute(StateContext context) {
             if (context.isCurrentCharEquals('\n')) {
-                context.next();
+                context.flushLineText();
+                context.flushEndLine("\r\n");
+                context.next(2);
                 context.reset();
+                context.setState(START_LINE_STATE);
+            } else {
+                context.seenCharsFromEol = 0;
+                context.next(2);
+                context.setState(INITIAL_STATE);
             }
-            context.setState(START_LINE_STATE);
         }
     };
 
