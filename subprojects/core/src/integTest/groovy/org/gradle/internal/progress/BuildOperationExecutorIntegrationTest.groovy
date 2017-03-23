@@ -17,21 +17,29 @@
 package org.gradle.internal.progress
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.junit.Rule
 
 class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
 
-    def "current operation is present at build initialization time"() {
+    @Rule
+    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def "can use as soon as in settingsEvaluated"() {
         given:
         settingsFile << """
             gradle.addListener(new BuildAdapter() {
                 @Override
                 void settingsEvaluated(Settings settings) {
-                    assert gradle.services.get(${BuildOperationExecutor.name}).currentOperation != null
+                    gradle.services.get(${BuildOperationExecutor.name}).run('Anything', {} as Action)
                 }
             })
         """.stripIndent()
 
-        expect:
+        when:
         succeeds 'help'
+
+        then:
+        buildOperations.hasOperation 'Anything'
     }
 }

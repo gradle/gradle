@@ -20,13 +20,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildOperationWorkerRegistryIntegrationTest extends AbstractIntegrationSpec {
 
-    def "current operation is present at build initialization time"() {
+    def "can use as soon as in settingsEvaluated"() {
         given:
         settingsFile << """
             gradle.addListener(new BuildAdapter() {
                 @Override
                 void settingsEvaluated(Settings settings) {
-                    assert gradle.services.get(${BuildOperationWorkerRegistry.name}).current != null
+                    gradle.services.get(${BuildOperationWorkerRegistry.name}).operationStart().operationFinish()
                 }
             })
         """.stripIndent()
