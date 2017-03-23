@@ -70,6 +70,14 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
         assertTestPassed("application has a greeting")
     }
 
+    def "specifying TestNG is not supported"() {
+        when:
+        fails('init', '--type', 'groovy-application', '--test-framework', 'testng')
+
+        then:
+        errorOutput.contains("The requested test framework 'testng' is not supported in 'groovy-application' setup type")
+    }
+
     def "setupProjectLayout is skipped when groovy sources detected"() {
         setup:
         file("src/main/groovy/org/acme/SampleMain.groovy") << """
