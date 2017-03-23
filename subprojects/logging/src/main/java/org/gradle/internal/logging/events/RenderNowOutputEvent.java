@@ -13,12 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.logging.events;
 
-public abstract class BatchOutputEventListener implements OutputEventListener {
-    public void onOutput(Iterable<OutputEvent> events) {
-        for (OutputEvent event : events) {
-            onOutput(event);
-        }
+import org.gradle.api.logging.LogLevel;
+
+public class RenderNowOutputEvent extends OutputEvent {
+    private final long now;
+
+    public RenderNowOutputEvent(long now) {
+        this.now = now;
+    }
+
+    public long getNow() {
+        return now;
+    }
+
+    @Override
+    public String toString() {
+        return RenderNowOutputEvent.class.getSimpleName();
+    }
+
+    @Override
+    public LogLevel getLogLevel() {
+        return null;
     }
 }

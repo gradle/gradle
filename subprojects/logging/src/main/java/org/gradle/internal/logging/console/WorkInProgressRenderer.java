@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -25,6 +24,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.RenderNowOutputEvent;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class WorkInProgressRenderer extends BatchOutputEventListener {
+public class WorkInProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
     private final ProgressOperations operations = new ProgressOperations();
     private final BuildProgressArea progressArea;
@@ -82,12 +82,10 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
         }
 
         listener.onOutput(event);
-    }
 
-    @Override
-    public void onOutput(Iterable<OutputEvent> events) {
-        super.onOutput(events);
-        renderNow();
+        if (event instanceof RenderNowOutputEvent) {
+            renderNow();
+        }
     }
 
     private void resizeTo(int newBuildProgressLabelCount) {

@@ -16,28 +16,31 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.RenderNowOutputEvent;
 import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.util.Arrays;
 
-public class BuildStatusRenderer extends BatchOutputEventListener {
+public class BuildStatusRenderer implements OutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
-    private final BatchOutputEventListener listener;
+    private final OutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
+    private final DefaultScalableElapsedTimeFormatter elapsedTimeFormatter = new DefaultScalableElapsedTimeFormatter();
     private String currentBuildStatus;
     private OperationIdentifier rootOperationId;
+    private long startTimestamp;
 
-    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
@@ -63,6 +66,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
             // if it has no parent ID, assign this operation as the root operation
             if (startEvent.getParentId() == null && BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
                 rootOperationId = startEvent.getOperationId();
+                startTimestamp = startEvent.getTimestamp();
                 buildStarted(startEvent);
             }
         } else if (event instanceof ProgressCompleteEvent) {
@@ -77,13 +81,12 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
                 buildProgressed(progressEvent);
             }
         }
-    }
 
-    @Override
-    public void onOutput(Iterable<OutputEvent> events) {
-        super.onOutput(events);
-        listener.onOutput(events);
-        renderNow();
+        listener.onOutput(event);
+
+        if (event instanceof RenderNowOutputEvent) {
+            renderNow(((RenderNowOutputEvent)event).getNow());
+        }
     }
 
     private String trimToConsole(String str) {
@@ -94,9 +97,10 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         return str;
     }
 
-    private void renderNow() {
-        if (currentBuildStatus != null) {
-            buildStatusLabel.setText(Arrays.asList(new Span(Style.of(Style.Emphasis.BOLD), trimToConsole(currentBuildStatus))));
+    private void renderNow(long now) {
+        if (currentBuildStatus != null && !currentBuildStatus.isEmpty()) {
+            String elapsedTime = elapsedTimeFormatter.format(now - startTimestamp);
+            buildStatusLabel.setText(Arrays.asList(new Span(Style.of(Style.Emphasis.BOLD), trimToConsole(currentBuildStatus + " [" + elapsedTime + "]"))));
         }
         console.flush();
     }
