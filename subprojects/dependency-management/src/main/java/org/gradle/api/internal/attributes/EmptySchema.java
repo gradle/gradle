@@ -18,17 +18,17 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.model.AttributeSelectionSchema;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Set;
 
 public class EmptySchema implements AttributesSchemaInternal {
     public static final EmptySchema INSTANCE = new EmptySchema();
+
+    private EmptySchema() {
+    }
 
     @Override
     public AttributeMatcher ignoreAdditionalProducerAttributes() {
@@ -46,17 +46,7 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public <T extends HasAttributes> List<T> getMatches(AttributeSelectionSchema producerAttributeSchema, List<T> candidates, AttributeContainer consumer) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public DisambiguationRuleChainInternal<Object> getDisambiguationRules(Attribute<?> attribute) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public CompatibilityRuleChainInternal<Object> getCompatibilityRules(Attribute<?> attribute) {
+    public AttributeMatcher withProducer(AttributesSchemaInternal producerSchema) {
         throw new UnsupportedOperationException();
     }
 
@@ -72,7 +62,7 @@ public class EmptySchema implements AttributesSchemaInternal {
 
     @Override
     public Set<Attribute<?>> getAttributes() {
-        throw new UnsupportedOperationException();
+        return Collections.emptySet();
     }
 
     @Override

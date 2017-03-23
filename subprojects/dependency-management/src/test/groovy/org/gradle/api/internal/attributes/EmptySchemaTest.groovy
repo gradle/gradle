@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.api.internal.attributes
 
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
-import org.gradle.api.internal.attributes.DisambiguationRuleChainInternal;
+import spock.lang.Specification
 
-public interface AttributeSelectionSchema {
-    boolean hasAttribute(Attribute<?> attribute);
-
-    DisambiguationRuleChainInternal<Object> getDisambiguationRules(Attribute<?> attribute);
-
-    CompatibilityRuleChainInternal<Object> getCompatibilityRules(Attribute<?> attribute);
-
-    boolean isCompatibleWhenMissing(Attribute<?> attribute);
+class EmptySchemaTest extends Specification {
+    def "has no attributes"() {
+        expect:
+        EmptySchema.INSTANCE.attributes.empty
+    }
 }

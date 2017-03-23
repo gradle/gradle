@@ -67,7 +67,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
         then:
         result == [variant1]
         1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        1 * matcher.match(schema, schema, [c1, c2], c1) >> [c1]
+        1 * matcher.match(schema, [c1, c2], c1) >> [c1]
         0 * matcher._
 
         when:
@@ -367,7 +367,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
         then:
         result1 == [c1]
         matcher.ignoreAdditionalProducerAttributes() >> matcher
-        matcher.match(schema, schema, [c1, c2], empty) >> [c1]
+        matcher.match(schema, [c1, c2], empty) >> [c1]
     }
 
     private DefaultMutableAttributeContainer attributes() {

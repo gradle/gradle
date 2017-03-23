@@ -109,7 +109,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
         if (useConfigurationAttributes) {
             List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
-            List<? extends ConfigurationMetadata> matches = consumerSchema.getMatches(producerAttributeSchema, consumableConfigurations, fromConfigurationAttributes);
+            List<? extends ConfigurationMetadata> matches = consumerSchema.withProducer(producerAttributeSchema).matches(consumableConfigurations, fromConfigurationAttributes);
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
@@ -136,8 +136,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (consumerHasAttributes) {
             if (!delegate.getAttributes().isEmpty()) {
                 // need to validate that the selected configuration still matches the consumer attributes
-                List<ConfigurationMetadata> matches = consumerSchema.getMatches(producerAttributeSchema, Collections.singletonList(delegate), fromConfigurationAttributes);
-                if (matches.isEmpty()) {
+                if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(delegate.getAttributes(), fromConfigurationAttributes)) {
                     throw new IncompatibleConfigurationSelectionException(fromConfigurationAttributes, consumerSchema, targetComponent, targetConfiguration);
                 }
             }

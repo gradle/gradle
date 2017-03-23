@@ -18,19 +18,17 @@ package org.gradle.internal.component.model
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeDisambiguationRule
-import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ComponentAttributeMatcherTest extends Specification {
 
-    AttributesSchema schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-    ImmutableAttributesFactory factory = new DefaultImmutableAttributesFactory()
+    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+    def factory = new DefaultImmutableAttributesFactory()
 
     def "Matching two exactly similar attributes gives a full match" () {
         def key = Attribute.of(String)
@@ -43,7 +41,7 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key, "value1")
 
         when:
-        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
+        def matches = new ComponentAttributeMatcher().match(schema, [candidate], requested)
 
         then:
         matches == [candidate]
@@ -65,7 +63,7 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key2, "value2")
 
         when:
-        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
+        def matches = new ComponentAttributeMatcher().match(schema, [candidate], requested)
 
         then:
         matches == [candidate]
@@ -84,7 +82,7 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key2, "value1")
 
         when:
-        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
+        def matches = new ComponentAttributeMatcher().match(schema, [candidate], requested)
 
         then:
         matches == []
@@ -101,7 +99,7 @@ class ComponentAttributeMatcherTest extends Specification {
         requested.attribute(key, "value2")
 
         when:
-        def matches = new ComponentAttributeMatcher().match(schema, schema, [candidate], requested)
+        def matches = new ComponentAttributeMatcher().match(schema, [candidate], requested)
 
         then:
         matches == []
@@ -123,10 +121,10 @@ class ComponentAttributeMatcherTest extends Specification {
         expect:
         def matcher = new ComponentAttributeMatcher()
 
-        def matches1 = matcher.match(schema, schema, [candidate], requested)
+        def matches1 = matcher.match(schema, [candidate], requested)
         matches1.empty
 
-        def matches2 = matcher.ignoreAdditionalProducerAttributes().match(schema, schema, [candidate], requested)
+        def matches2 = matcher.ignoreAdditionalProducerAttributes().match(schema, [candidate], requested)
         matches2 == [candidate]
     }
 
@@ -158,7 +156,7 @@ class ComponentAttributeMatcherTest extends Specification {
         expect:
         def matcher = new ComponentAttributeMatcher()
 
-        def matches = matcher.ignoreAdditionalProducerAttributes().match(schema, schema, [candidate1, candidate2], requested)
+        def matches = matcher.ignoreAdditionalProducerAttributes().match(schema, [candidate1, candidate2], requested)
         matches == [candidate2]
     }
 
@@ -178,10 +176,10 @@ class ComponentAttributeMatcherTest extends Specification {
         expect:
         def matcher = new ComponentAttributeMatcher()
 
-        def matches1 = matcher.match(schema, schema, [candidate], requested)
+        def matches1 = matcher.match(schema, [candidate], requested)
         matches1.empty
 
-        def matches2 = matcher.ignoreAdditionalConsumerAttributes().match(schema, schema, [candidate], requested)
+        def matches2 = matcher.ignoreAdditionalConsumerAttributes().match(schema, [candidate], requested)
         matches2 == [candidate]
     }
 

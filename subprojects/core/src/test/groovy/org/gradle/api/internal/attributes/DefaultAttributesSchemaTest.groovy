@@ -174,10 +174,89 @@ class DefaultAttributesSchemaTest extends Specification {
 
     }
 
+    def "returns rules from this when merging with a producer that contains subset of attribute definitions and same compatible-when-missing flags"() {
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+
+        def attr1 = Attribute.of("a", String)
+        def attr2 = Attribute.of("b", Integer)
+
+        schema.attribute(attr1)
+        schema.attribute(attr2).compatibilityRules.assumeCompatibleWhenMissing()
+
+        expect:
+        def merged = schema.mergeFrom(producer)
+        merged.hasAttribute(attr1)
+        merged.hasAttribute(attr2)
+        merged.getCompatibilityRules(attr1).is(schema.getMatchingStrategy(attr1).compatibilityRules)
+        merged.getDisambiguationRules(attr1).is(schema.getMatchingStrategy(attr1).disambiguationRules)
+
+        producer.attribute(attr1)
+        producer.attribute(attr2).compatibilityRules.assumeCompatibleWhenMissing()
+
+        def merged2 = schema.mergeFrom(producer)
+        merged2.is(merged)
+
+        producer.attribute(attr1).compatibilityRules.assumeCompatibleWhenMissing()
+
+        def merged3 = schema.mergeFrom(producer)
+        merged3 != merged
+    }
+
+    def "mreges compatible-when-missing flags"() {
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+
+        def attr1 = Attribute.of("a", String)
+        def attr2 = Attribute.of("b", Integer)
+
+        schema.attribute(attr1)
+        schema.attribute(attr2).compatibilityRules.assumeCompatibleWhenMissing()
+
+        producer.attribute(attr1)
+        producer.attribute(attr2)
+
+        expect:
+        def merged = schema.mergeFrom(producer)
+        merged.hasAttribute(attr1)
+        merged.hasAttribute(attr2)
+        !merged.isCompatibleWhenMissing(attr1)
+        merged.isCompatibleWhenMissing(attr2)
+
+        producer.attribute(attr1).compatibilityRules.assumeCompatibleWhenMissing()
+
+        def merged2 = schema.mergeFrom(producer)
+        merged2.isCompatibleWhenMissing(attr1)
+        merged2.isCompatibleWhenMissing(attr2)
+    }
+
+    def "merging creates schema with additional attributes defined by producer"() {
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+
+        def attr1 = Attribute.of("a", String)
+        def attr2 = Attribute.of("b", Integer)
+        def attr3 = Attribute.of("c", Boolean)
+
+        schema.attribute(attr1)
+        schema.attribute(attr2)
+        producer.attribute(attr2)
+        producer.attribute(attr3)
+
+        expect:
+        def merged = schema.mergeFrom(producer)
+        merged.hasAttribute(attr1)
+        merged.hasAttribute(attr2)
+        merged.hasAttribute(attr3)
+        merged.getCompatibilityRules(attr1).is(schema.getMatchingStrategy(attr1).compatibilityRules)
+        merged.getDisambiguationRules(attr1).is(schema.getMatchingStrategy(attr1).disambiguationRules)
+
+        merged.getCompatibilityRules(attr3).is(producer.getMatchingStrategy(attr3).compatibilityRules)
+        merged.getDisambiguationRules(attr3).is(producer.getMatchingStrategy(attr3).disambiguationRules)
+    }
+
     def "Match with similar input is only performed once"() {
         given:
         def matcher = Mock(ComponentAttributeMatcher)
         schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory())
+        def producer = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory())
 
         def a1 = Attribute.of("a1", String)
         def a2 = Attribute.of("a2", Integer)
@@ -187,8 +266,8 @@ class DefaultAttributesSchemaTest extends Specification {
         def consumer = attributes().attribute(a1, "A").attribute(a2, 1)
 
         when:
-        schema.getMatches(schema, candidates, consumer)
-        schema.getMatches(schema, candidates, consumer)
+        schema.withProducer(producer).matches(candidates, consumer)
+        schema.withProducer(producer).matches(candidates, consumer)
 
         then:
         1 * matcher.match(schema, schema, candidates, consumer) >> []

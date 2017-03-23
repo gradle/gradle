@@ -62,26 +62,25 @@ public class ComponentAttributeMatcher {
      */
     public boolean isMatching(AttributeSelectionSchema schema, AttributeContainer candidate, AttributeContainer requested) {
         MatchDetails details = new MatchDetails();
-        doMatchCandidate(schema, schema, candidate, requested, details);
+        doMatchCandidate(schema, candidate, requested, details);
         return details.compatible;
     }
 
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
      */
-    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema consumerAttributeSchema, AttributeSelectionSchema producerAttributeSchema, List<T> candidates, AttributeContainer requested) {
-        return new Matcher<T>(consumerAttributeSchema, producerAttributeSchema, candidates, requested).getMatches();
+    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, List<T> candidates, AttributeContainer requested) {
+        return new Matcher<T>(schema, candidates, requested).getMatches();
     }
 
-    private void doMatchCandidate(AttributeSelectionSchema consumerAttributeSchema, AttributeSelectionSchema producerAttributeSchema,
-                                  HasAttributes candidate, AttributeContainer requested, MatchDetails details) {
+    private void doMatchCandidate(AttributeSelectionSchema schema, HasAttributes candidate, AttributeContainer requested, MatchDetails details) {
         Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requested.keySet());
         AttributeContainer candidateAttributesContainer = candidate.getAttributes();
         Set<Attribute<Object>> candidateAttributes = Cast.uncheckedCast(candidateAttributesContainer.keySet());
         Set<Attribute<Object>> allAttributes = Sets.union(requestedAttributes, candidateAttributes);
         for (Attribute<Object> attribute : allAttributes) {
-            AttributeValue<Object> requestedValue = attributeValue(attribute, consumerAttributeSchema, requested);
-            AttributeValue<Object> actualValue = attributeValue(attribute, producerAttributeSchema, candidateAttributesContainer);
+            AttributeValue<Object> requestedValue = attributeValue(attribute, schema, requested);
+            AttributeValue<Object> actualValue = attributeValue(attribute, schema, candidateAttributesContainer);
             if (!requestedValue.isPresent() && ignoreAdditionalProducerAttributes) {
                 details.matchesByAttribute.put(attribute, actualValue.get());
                 continue;
@@ -89,7 +88,7 @@ public class ComponentAttributeMatcher {
             if (!actualValue.isPresent() && ignoreAdditionalConsumerAttributes) {
                 continue;
             }
-            details.update(attribute, consumerAttributeSchema, producerAttributeSchema, requestedValue, actualValue);
+            details.update(attribute, schema, requestedValue, actualValue);
         }
     }
 
@@ -105,17 +104,14 @@ public class ComponentAttributeMatcher {
     }
 
     private class Matcher<T extends HasAttributes> {
-        private final AttributeSelectionSchema consumerAttributeSchema;
-        private final AttributeSelectionSchema producerAttributeSchema;
+        private final AttributeSelectionSchema schema;
         private final Map<T, MatchDetails> matchDetails = Maps.newLinkedHashMap();
         private final AttributeContainer requested;
 
-        public Matcher(AttributeSelectionSchema consumerAttributeSchema,
-                       AttributeSelectionSchema producerAttributeSchema,
+        public Matcher(AttributeSelectionSchema schema,
                        Iterable<T> candidates,
                        AttributeContainer requested) {
-            this.consumerAttributeSchema = consumerAttributeSchema;
-            this.producerAttributeSchema = producerAttributeSchema;
+            this.schema = schema;
             for (T cand : candidates) {
                 if (!cand.getAttributes().isEmpty()) {
                     matchDetails.put(cand, new MatchDetails());
@@ -127,7 +123,7 @@ public class ComponentAttributeMatcher {
 
         private void doMatch() {
             for (Map.Entry<T, MatchDetails> entry : matchDetails.entrySet()) {
-                doMatchCandidate(consumerAttributeSchema, producerAttributeSchema, entry.getKey(), requested, entry.getValue());
+                doMatchCandidate(schema, entry.getKey(), requested, entry.getValue());
             }
         }
 
@@ -166,8 +162,7 @@ public class ComponentAttributeMatcher {
                     Object val = matchedAttributes.get(attribute);
                     candidatesByValue.put(val, match);
                 }
-                AttributeSelectionSchema schemaToUse = consumerAttributeSchema.hasAttribute(attribute) ? consumerAttributeSchema : producerAttributeSchema;
-                disambiguate(remainingMatches, candidatesByValue, schemaToUse.getDisambiguationRules(attribute), best);
+                disambiguate(remainingMatches, candidatesByValue, schema.getDisambiguationRules(attribute), best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
                     return matches;
@@ -201,19 +196,17 @@ public class ComponentAttributeMatcher {
 
         private boolean compatible = true;
 
-        private void update(final Attribute<Object> attribute, final AttributeSelectionSchema consumerSchema, final AttributeSelectionSchema producerSchema, final AttributeValue<Object> consumerValue, final AttributeValue<Object> producerValue) {
-            AttributeSelectionSchema schemaToUse = consumerSchema;
+        private void update(final Attribute<Object> attribute, final AttributeSelectionSchema schema, final AttributeValue<Object> consumerValue, final AttributeValue<Object> producerValue) {
             boolean missingOrUnknown = false;
             if (consumerValue.isUnknown() || consumerValue.isMissing()) {
                 // We need to use the producer schema in this case
-                schemaToUse = producerSchema;
                 missingOrUnknown = true;
             } else if (producerValue.isUnknown() || producerValue.isMissing()) {
                 missingOrUnknown = true;
             }
-            CompatibilityRuleChainInternal<Object> compatibilityRules = schemaToUse.getCompatibilityRules(attribute);
+            CompatibilityRuleChainInternal<Object> compatibilityRules = schema.getCompatibilityRules(attribute);
             if (missingOrUnknown) {
-                if (compatibilityRules.isCompatibleWhenMissing()) {
+                if (schema.isCompatibleWhenMissing(attribute)) {
                     if (producerValue.isPresent()) {
                         matchesByAttribute.put(attribute, producerValue.get());
                     }
