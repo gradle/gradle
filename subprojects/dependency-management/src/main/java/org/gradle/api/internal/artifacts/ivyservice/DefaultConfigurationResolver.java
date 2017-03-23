@@ -73,7 +73,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ArtifactDependencyResolver resolver;
     private final RepositoryHandler repositories;
     private final GlobalDependencyResolutionRules metadataHandler;
-    private final CacheLockingManager cacheLockingManager;
     private final ResolutionResultsStoreFactory storeFactory;
     private final boolean buildProjectDependencies;
     private final AttributesSchema attributesSchema;
@@ -84,7 +83,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final BuildOperationProcessor buildOperationProcessor;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
-                                        GlobalDependencyResolutionRules metadataHandler, CacheLockingManager cacheLockingManager,
+                                        GlobalDependencyResolutionRules metadataHandler,
                                         ResolutionResultsStoreFactory storeFactory, boolean buildProjectDependencies,
                                         AttributesSchema attributesSchema, BuildOperationProcessor buildOperationProcessor, ArtifactTransforms artifactTransforms,
                                         ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -92,7 +91,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.resolver = resolver;
         this.repositories = repositories;
         this.metadataHandler = metadataHandler;
-        this.cacheLockingManager = cacheLockingManager;
         this.storeFactory = storeFactory;
         this.buildProjectDependencies = buildProjectDependencies;
         this.attributesSchema = attributesSchema;
@@ -151,7 +149,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms);
         results.artifactsResolved(new DefaultResolvedConfiguration(result, configuration.getAttributes()), result);
     }
 
