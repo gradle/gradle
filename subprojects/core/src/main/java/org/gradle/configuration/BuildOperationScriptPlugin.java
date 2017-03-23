@@ -28,17 +28,17 @@ import org.gradle.internal.progress.BuildOperationExecutor;
  */
 public class BuildOperationScriptPlugin implements ScriptPlugin {
 
-    private ScriptPlugin delegatee;
+    private ScriptPlugin decorated;
     private BuildOperationExecutor buildOperationExecutor;
 
-    public BuildOperationScriptPlugin(ScriptPlugin delegatee, BuildOperationExecutor buildOperationExecutor) {
-        this.delegatee = delegatee;
+    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationExecutor buildOperationExecutor) {
+        this.decorated = decorated;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public ScriptSource getSource() {
-        return delegatee.getSource();
+        return decorated.getSource();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
         buildOperationExecutor.run(operationDisplayNamePrefix, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
-                delegatee.apply(target);
+                decorated.apply(target);
             }
         });
     }
