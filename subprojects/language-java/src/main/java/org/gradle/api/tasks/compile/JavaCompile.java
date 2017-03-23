@@ -26,8 +26,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
 import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
+import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -88,6 +88,7 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
+    private JavaToolChain toolChain;
 
     public JavaCompile() {
         getOutputs().doNotCacheIf("Use depend is enabled", new Spec<Task>() {
@@ -121,6 +122,9 @@ public class JavaCompile extends AbstractCompile {
     @Nested
     @Incubating
     public JavaToolChain getToolChain() {
+        if (toolChain != null) {
+            return toolChain;
+        }
         if (getOptions().isFork()) {
             ForkOptions forkOptions = getOptions().getForkOptions();
             File javaHome = forkOptions.getJavaHome();
@@ -138,7 +142,7 @@ public class JavaCompile extends AbstractCompile {
      */
     @Incubating
     public void setToolChain(JavaToolChain toolChain) {
-        throw new UnsupportedOperationException();
+        this.toolChain = toolChain;
     }
 
     @TaskAction

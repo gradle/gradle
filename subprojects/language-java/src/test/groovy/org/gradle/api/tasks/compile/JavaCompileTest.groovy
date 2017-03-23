@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.language.java.tasks;
+package org.gradle.api.tasks.compile
 
-import org.gradle.api.Incubating;
-import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.JavaToolChain
+import spock.lang.Issue
+import spock.lang.Specification
 
-/**
- * A platform-aware Java compile task.
- */
-@Incubating
-public class PlatformJavaCompile extends JavaCompile {
-    private JavaPlatform platform;
+class JavaCompileTest extends Specification {
 
-    @Override
-    public JavaPlatform getPlatform() {
-        return platform;
-    }
-
-    public void setPlatform(JavaPlatform platform) {
-        this.platform = platform;
+    @Issue("https://github.com/gradle/gradle/issues/1645")
+    def "can set the Java tool chain"() {
+        def javaCompile = new JavaCompile()
+        def toolChain = Mock(JavaToolChain)
+        when:
+        javaCompile.setToolChain(toolChain)
+        then:
+        javaCompile.toolChain == toolChain
     }
 }
