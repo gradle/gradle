@@ -41,17 +41,10 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             ':compileIntegTestGroovy',
         ]
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
-            ':dependencyManagement:generateGradleApiPackageList',
-            ':launcher:integTest',
             ':baseServices:classpathManifest',
-            ':baseServices:integTest',
-            ':compileGroovy'
         ]
         ext.taskPropertiesWithFullFileSnapshot = [
             ':baseServices:compileJava': ['classpath'],
-            ':toolingApi:shadedJarWithoutVersion': ['sourceFiles'],
-            ':baseServices:integTest': ['distribution.core', 'distribution.plugins','distribution.staticContent'],
-            ':compileGroovy': ['classpath']
         ]
 
         def cacheConfiguration = gradle.services.get(org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal)
