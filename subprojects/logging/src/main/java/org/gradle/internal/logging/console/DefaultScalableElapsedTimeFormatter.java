@@ -21,7 +21,7 @@ public class DefaultScalableElapsedTimeFormatter {
         double elapsedTime = elapsedTimeMs / 1000.0;
 
         if (elapsedTime < 60.0) {
-            return format(elapsedTime, 1, "s");
+            return format(elapsedTime, 0, "s");
         }
 
         elapsedTime /= 60.0;

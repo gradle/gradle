@@ -32,8 +32,8 @@ class DefaultScalableElapsedTimeFormatterTest extends Specification {
 
         where:
         lowerBoundInclusive | upperBoundExclusive | input            | output
-        "None"              | "10 seconds"        | seconds(4.21345) | "4.2s"
-        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42.1s"
+        "None"              | "10 seconds"        | seconds(4.21345) | "4s"
+        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42s"
         "1 minute"          | "10 minutes"        | minutes(4.21234) | "4.21m"
         "10 minutes"        | "1 hour"            | minutes(42.1234) | "42.1m"
         "1 hour"            | "10 hours"          | hours(4.2123456) | "4.21h"
