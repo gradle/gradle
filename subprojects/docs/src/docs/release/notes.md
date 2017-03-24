@@ -39,9 +39,13 @@ If you encounter any problems, use the `--console plain` option and please file 
 
 ### Faster builds with the Gradle Build Cache
 
-Gradle has always had intelligent up-to-date checks to avoid doing work that was already done, but this feature has relied on running `clean` infrequently and never deleting your build directory.
-This release adds a [build cache](userguide/build_cache.html) that speeds up builds by reusing task outputs from other builds that happened in the past, or even on other computers. Your local build can avoid doing work by just copying the task outputs from somewhere else.
-Gradle achieves this by uniquely identifying task outputs by all of the inputs to a task (its implementation, source files, configuration properties) and searching for a matching cache entry in a build cache.
+This release adds the Gradle [build cache](userguide/build_cache.html) that speeds up builds by reusing outputs produced by other builds.
+The build cache works by storing (locally or remotely) build outputs and allowing builds to fetch these outputs from the cache when it is determined that inputs have not changed, avoiding the expensive work of regenerating them.
+
+A first feature using the build cache is [task output caching](userguide/build_cache.html#sec:task_output_caching).
+Task output caching leverages the same intelligence as [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) that Gradle uses to avoid work when a previous local build has already produced a set of task outputs.
+But instead of being limited to the previous build in the same workspace, task output caching allows Gradle to reuse task outputs from any earlier build in any location on the local machine.
+When using a shared build cache for task output caching this even works across developer machines and build agents.
 
 After upgrading to 3.5, try out the Gradle Build Cache straightaway on a project that uses the Java plugin by running:
 
@@ -51,12 +55,14 @@ After upgrading to 3.5, try out the Gradle Build Cache straightaway on a project
 Your second build should be faster because some task outputs, like Java classes, can be reused from the first build.
 These outputs are pulled from the Gradle build cache.
 
+In this simple example it was the same build in the same workspace which produced the outputs, but these could have also been produced by an earlier build in a different workspace, when having worked on the same branch earlier while switching branches in between or even by another developer or build agent.
+
 Without any extra configuration, your build will use a local directory in your `GRADLE_USER_HOME` to store task outputs.
 To take this to another level, you can configure your build to pull task outputs from a build cache _shared with your team_.
-We provide a [recommended configuration](userguide/build_cache.html#sec:build_cache_configure) that uses your continuous integration builds to populate a distributed build cache and allows all developers to pull from that build cache.
+We provide a [recommended configuration](userguide/build_cache.html#sec:build_cache_configure) that uses your continuous integration builds to populate a shared build cache and allows all developers to pull from that build cache.
 Our recommended configuration does not directly share task outputs among developer builds.
 
-The Gradle Build Cache is an opt-in feature for tasks, so not every task will be cacheable yet. For example, tasks from the Gradle Android and Kotlin plugins are not cacheable _yet_. Further, some tasks like a simple `Copy` task are not and _should not_ be cached.  
+Task output caching is an opt-in feature for tasks, so not every task will be cacheable yet. For example, tasks from the Gradle Android and Kotlin plugins are not cacheable _yet_. Further, some tasks like a simple `Copy` task are not and _should not_ be cached. 
 Look at [the build cache user guide chapter](userguide/build_cache.html#sec:task_output_caching_known_issues) to see all of the current limitations with using the build cache.
 
 ### Plugin resolution rules
