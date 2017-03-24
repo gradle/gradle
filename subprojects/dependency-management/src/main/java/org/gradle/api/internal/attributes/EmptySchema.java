@@ -31,17 +31,12 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public AttributeMatcher ignoreAdditionalProducerAttributes() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public AttributeMatcher ignoreAdditionalConsumerAttributes() {
+    public AttributeMatcher matcher() {
         throw new UnsupportedOperationException();
     }
 

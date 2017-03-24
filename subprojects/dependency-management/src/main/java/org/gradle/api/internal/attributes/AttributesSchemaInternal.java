@@ -26,12 +26,7 @@ public interface AttributesSchemaInternal extends AttributesSchema {
     AttributeMatcher withProducer(AttributesSchemaInternal producerSchema);
 
     /**
-     * Creates a copy of this schema, that will ignore all attributes for which the producer has provided a value but the consumer has not.
+     * Returns a matcher that uses the rules from this schema, and assumes the producer has the same rules.
      */
-    AttributeMatcher ignoreAdditionalProducerAttributes();
-
-    /**
-     * Creates a copy of this schema, that will ignore all attributes for which the consumer has provided a value but the producer has not.
-     */
-    AttributeMatcher ignoreAdditionalConsumerAttributes();
+    AttributeMatcher matcher();
 }

@@ -183,6 +183,65 @@ class ComponentAttributeMatcherTest extends Specification {
         matches2 == [candidate]
     }
 
+    def "empty producer attributes match empty consumer attributes"() {
+        given:
+        def key1 = Attribute.of("a1", String)
+        schema.attribute(key1)
+
+        def requested = attributes()
+        def candidate = attributes()
+        def candidate2 = attributes().attribute(key1, "1")
+
+        expect:
+        def matcher = new ComponentAttributeMatcher()
+
+        matcher.match(schema, [candidate], requested) == [candidate]
+        matcher.isMatching(schema, candidate, requested)
+
+        matcher.ignoreAdditionalProducerAttributes().match(schema, [candidate], requested) == [candidate]
+        matcher.ignoreAdditionalProducerAttributes().isMatching(schema, candidate, requested)
+
+        matcher.match(schema, [candidate2], requested) == []
+        !matcher.isMatching(schema, candidate2, requested)
+    }
+
+    def "non-empty producer attributes match empty consumer attributes when ignoring additional producer attributes"() {
+        def key1 = Attribute.of("a1", String)
+        def key2 = Attribute.of("a2", String)
+
+        given:
+        def requested = attributes()
+        def candidate = attributes().attribute(key1, "1").attribute(key2, "2")
+
+        expect:
+        def matcher = new ComponentAttributeMatcher().ignoreAdditionalProducerAttributes()
+
+        matcher.match(schema, [candidate], requested) == [candidate]
+        matcher.isMatching(schema, candidate, requested)
+    }
+
+    def "non-empty producer attributes match empty consumer attributes when extra attributes are compatible when missing"() {
+        def key1 = Attribute.of("a1", String)
+        def key2 = Attribute.of("a2", String)
+
+        given:
+        schema.attribute(key1).compatibilityRules.assumeCompatibleWhenMissing()
+        schema.attribute(key2)
+
+        def requested = attributes()
+        def candidate = attributes().attribute(key1, "1")
+        def candidate2 = attributes().attribute(key1, "1").attribute(key2, "2")
+
+        expect:
+        def matcher = new ComponentAttributeMatcher()
+
+        matcher.match(schema, [candidate], requested) == [candidate]
+        matcher.isMatching(schema, candidate, requested)
+
+        matcher.match(schema, [candidate2], requested) == []
+        !matcher.isMatching(schema, candidate2, requested)
+    }
+
     private DefaultMutableAttributeContainer attributes() {
         new DefaultMutableAttributeContainer(factory)
     }

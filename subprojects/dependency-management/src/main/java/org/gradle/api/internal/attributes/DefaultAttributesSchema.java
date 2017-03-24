@@ -29,6 +29,7 @@ import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,10 +38,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
+    private final DefaultAttributeMatcher matcher;
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
         this.instantiatorFactory = instantiatorFactory;
+        matcher = new DefaultAttributeMatcher(componentAttributeMatcher, this);
     }
 
     @Override
@@ -108,7 +111,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
     @Override
     public AttributeMatcher withProducer(AttributesSchemaInternal producerSchema) {
-        return new DefaultAttributeMatcher(componentAttributeMatcher, mergeFrom(producerSchema));
+        AttributeSelectionSchema effectiveSchema = mergeFrom(producerSchema);
+        if (effectiveSchema == this) {
+            return matcher;
+        }
+        return new DefaultAttributeMatcher(componentAttributeMatcher, effectiveSchema);
+    }
+
+    @Override
+    public AttributeMatcher matcher() {
+        return matcher;
     }
 
     @Override
@@ -121,16 +133,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         return Cast.uncheckedCast(getMatchingStrategy(attribute).getCompatibilityRules());
     }
 
-    @Override
-    public AttributeMatcher ignoreAdditionalProducerAttributes() {
-        return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalProducerAttributes(), this);
-    }
-
-    @Override
-    public AttributeMatcher ignoreAdditionalConsumerAttributes() {
-        return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalConsumerAttributes(), this);
-    }
-
     private static class DefaultAttributeMatcher implements AttributeMatcher {
         private final ComponentAttributeMatcher componentAttributeMatcher;
         private final AttributeSelectionSchema effectiveSchema;
@@ -141,12 +143,22 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
+        public AttributeMatcher ignoreAdditionalConsumerAttributes() {
+            return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalConsumerAttributes(), effectiveSchema);
+        }
+
+        @Override
+        public AttributeMatcher ignoreAdditionalProducerAttributes() {
+            return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalProducerAttributes(), effectiveSchema);
+        }
+
+        @Override
         public boolean isMatching(AttributeContainer candidate, AttributeContainer requested) {
             return componentAttributeMatcher.isMatching(effectiveSchema, candidate, requested);
         }
 
         @Override
-        public <T extends HasAttributes> List<T> matches(List<T> candidates, AttributeContainerInternal requested) {
+        public <T extends HasAttributes> List<T> matches(Collection<T> candidates, AttributeContainerInternal requested) {
             return componentAttributeMatcher.match(effectiveSchema, candidates, requested);
         }
     }

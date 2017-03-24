@@ -335,6 +335,152 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=compile}]")
     }
 
+    def "applies producer's disambiguation rules when selecting variant"() {
+        buildFile << """
+class FlavorCompatibilityRule implements AttributeCompatibilityRule<String> {
+    void execute(CompatibilityCheckDetails<String> details) {
+        details.compatible()
+    }
+}
+class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
+    void execute(MultipleCandidatesDetails<String> details) {
+        if (details.candidateValues.contains('tasty')) { 
+            details.closestMatch('tasty')
+        }
+    }
+}
+
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+    dependencies.attributesSchema {
+        attribute(flavor) {
+            compatibilityRules.add(FlavorCompatibilityRule)
+            disambiguationRules.add(FlavorSelectionRule)
+        }
+    }
+}
+
+dependencies {
+    compile project(':lib')
+}
+
+project(':lib') {
+    configurations {
+        compile {
+            outgoing {
+                variants {
+                    var1 {
+                        artifact file('a1.jar')
+                        attributes.attribute(buildType, 'release')
+                        attributes.attribute(flavor, 'bland')
+                    }
+                    var2 {
+                        artifact file('a2.jar')
+                        attributes.attribute(buildType, 'debug')
+                        attributes.attribute(flavor, 'bland')
+                    }
+                    var3 {
+                        artifact file('a3.jar')
+                        attributes.attribute(buildType, 'debug')
+                        attributes.attribute(flavor, 'tasty')
+                    }
+                }
+            }
+        }
+    }
+}
+
+task show {
+    inputs.files configurations.compile
+    doLast {
+        def artifacts = configurations.compile.incoming.artifactView {
+            attributes { it.attribute(buildType, 'debug'); it.attribute(flavor, 'anything') }
+        }.artifacts
+        println "files: " + artifacts.collect { it.file.name }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+    }
+}
+"""
+        when:
+        run 'show'
+
+        then:
+        outputContains("files: [a3.jar]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=tasty, usage=compile}]")
+    }
+
+    def "applies producer's disambiguation rules for additional producer attributes when selecting variant"() {
+        buildFile << """
+class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
+    void execute(MultipleCandidatesDetails<String> details) {
+        if (details.candidateValues.contains('tasty')) { 
+            details.closestMatch('tasty')
+        }
+    }
+}
+
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+    dependencies.attributesSchema {
+        attribute(buildType)
+    }
+}
+
+dependencies {
+    compile project(':lib')
+}
+
+project(':lib') {
+    dependencies.attributesSchema {
+        attribute(flavor) {
+            disambiguationRules.add(FlavorSelectionRule)
+        }
+    }
+    
+    configurations {
+        compile {
+            outgoing {
+                variants {
+                    var1 {
+                        artifact file('a1.jar')
+                        attributes.attribute(buildType, 'release')
+                        attributes.attribute(flavor, 'bland')
+                    }
+                    var2 {
+                        artifact file('a2.jar')
+                        attributes.attribute(buildType, 'debug')
+                        attributes.attribute(flavor, 'bland')
+                    }
+                    var3 {
+                        artifact file('a3.jar')
+                        attributes.attribute(buildType, 'debug')
+                        attributes.attribute(flavor, 'tasty')
+                    }
+                }
+            }
+        }
+    }
+}
+
+task show {
+    inputs.files configurations.compile
+    doLast {
+        def artifacts = configurations.compile.incoming.artifactView {
+            attributes { it.attribute(buildType, 'debug') }
+        }.artifacts
+        println "files: " + artifacts.collect { it.file.name }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+    }
+}
+"""
+        when:
+        run 'show'
+
+        then:
+        outputContains("files: [a3.jar]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=tasty, usage=compile}]")
+    }
+
     def "can select the implicit variant of a configuration"() {
         buildFile << """
 

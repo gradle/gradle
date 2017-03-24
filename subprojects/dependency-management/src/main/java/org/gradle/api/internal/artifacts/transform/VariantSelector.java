@@ -17,9 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.util.Collection;
 
 public interface VariantSelector {
-    ResolvedVariant select(Collection<? extends ResolvedVariant> candidates);
+    ResolvedVariant select(Collection<? extends ResolvedVariant> candidates, AttributesSchemaInternal producerSchema);
 }

@@ -20,10 +20,21 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface AttributeMatcher {
+    /**
+     * Creates a copy of this matcher, that will ignore all attributes for which the producer has provided a value but the consumer has not.
+     */
+    AttributeMatcher ignoreAdditionalProducerAttributes();
+
+    /**
+     * Creates a copy of this matcher, that will ignore all attributes for which the consumer has provided a value but the producer has not.
+     */
+    AttributeMatcher ignoreAdditionalConsumerAttributes();
+
     boolean isMatching(AttributeContainer candidate, AttributeContainer requested);
 
-    <T extends HasAttributes> List<T> matches(List<T> candidates, AttributeContainerInternal requested);
+    <T extends HasAttributes> List<T> matches(Collection<T> candidates, AttributeContainerInternal requested);
 }

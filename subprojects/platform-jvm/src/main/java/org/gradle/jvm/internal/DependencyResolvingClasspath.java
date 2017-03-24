@@ -192,7 +192,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         public void finishArtifacts() {
             artifactsResults = artifactsBuilder.complete().select(Specs.<ComponentIdentifier>satisfyAll(), new VariantSelector() {
                 @Override
-                public ResolvedVariant select(Collection<? extends ResolvedVariant> variants) {
+                public ResolvedVariant select(Collection<? extends ResolvedVariant> variants, AttributesSchemaInternal producerSchema) {
                     // Select the first variant
                     return variants.iterator().next();
                 }

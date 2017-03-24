@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
@@ -51,18 +52,20 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final ModuleSource moduleSource;
     private final ModuleExclusion exclusions;
     private final Set<? extends VariantMetadata> variants;
+    private final AttributesSchemaInternal schema;
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
     private final ImmutableAttributesFactory attributesFactory;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema,  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
         this.exclusions = exclusions;
         this.variants = variants;
+        this.schema = schema;
         this.artifactResolver = artifactResolver;
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
@@ -121,18 +124,20 @@ public class DefaultArtifactSet implements ArtifactSet {
             }
             result.add(ArtifactBackedResolvedVariant.create(attributes, resolvedArtifacts));
         }
-        return new ArtifactSetSnapshot(id, componentIdentifier, result.build());
+        return new ArtifactSetSnapshot(id, componentIdentifier, result.build(), schema);
     }
 
     private static class ArtifactSetSnapshot implements ArtifactSet {
         private final long id;
         private final ComponentIdentifier componentIdentifier;
         private final Set<ResolvedVariant> variants;
+        private final AttributesSchemaInternal schema;
 
-        ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
+        ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants, AttributesSchemaInternal schema) {
             this.id = id;
             this.componentIdentifier = componentIdentifier;
             this.variants = variants;
+            this.schema = schema;
         }
 
         @Override
@@ -150,7 +155,7 @@ public class DefaultArtifactSet implements ArtifactSet {
             if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
                 return ResolvedArtifactSet.EMPTY;
             } else {
-                return new SingleVariantResolvedArtifactSet(selector.select(variants));
+                return new SingleVariantResolvedArtifactSet(selector.select(variants, schema));
             }
         }
     }

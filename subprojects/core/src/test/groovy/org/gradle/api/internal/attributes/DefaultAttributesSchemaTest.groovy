@@ -252,7 +252,7 @@ class DefaultAttributesSchemaTest extends Specification {
         merged.getDisambiguationRules(attr3).is(producer.getMatchingStrategy(attr3).disambiguationRules)
     }
 
-    def "Match with similar input is only performed once"() {
+    def "reuses matches when producer contains subset of rules"() {
         given:
         def matcher = Mock(ComponentAttributeMatcher)
         schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory())
@@ -260,18 +260,37 @@ class DefaultAttributesSchemaTest extends Specification {
 
         def a1 = Attribute.of("a1", String)
         def a2 = Attribute.of("a2", Integer)
-        def candidates = [
-            attributes().attribute(a1, "A").attribute(a2, 1),
-            attributes().attribute(a1, "B").attribute(a2, 1)]
-        def consumer = attributes().attribute(a1, "A").attribute(a2, 1)
+        def item1 = attributes().attribute(a1, "A").attribute(a2, 1)
+        def item2 = attributes().attribute(a1, "B").attribute(a2, 1)
+        def candidates = [item1, item2]
+        def consumer = attributes().attribute(a1, "a-or-similar")
 
         when:
-        schema.withProducer(producer).matches(candidates, consumer)
-        schema.withProducer(producer).matches(candidates, consumer)
+        def result1 = schema.withProducer(producer).matches(candidates, consumer)
+        def result2 = schema.withProducer(producer).matches(candidates, consumer)
 
         then:
-        1 * matcher.match(schema, schema, candidates, consumer) >> []
+        result1 == [item1]
+        result2 == result1
+
+        and:
+        1 * matcher.match(schema, candidates, consumer) >> [item1]
         0 * matcher._
+
+        when:
+        def matches1 = schema.withProducer(producer).isMatching(item1, consumer)
+        def matches2 = schema.withProducer(producer).isMatching(item1, consumer)
+
+        then:
+        matches1 && matches2
+
+        and:
+        1 * matcher.isMatching(schema, item1, consumer) >> [item1]
+        0 * matcher._
+    }
+
+    def "reuses matches when producer defines additional rules"() {
+        expect: false
     }
 
     private DefaultMutableAttributeContainer attributes() {

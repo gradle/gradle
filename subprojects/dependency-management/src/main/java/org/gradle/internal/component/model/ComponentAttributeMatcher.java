@@ -32,6 +32,7 @@ import org.gradle.internal.Cast;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +62,12 @@ public class ComponentAttributeMatcher {
      * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
      */
     public boolean isMatching(AttributeSelectionSchema schema, AttributeContainer candidate, AttributeContainer requested) {
+        if (requested.isEmpty()) {
+            if (candidate.isEmpty() || ignoreAdditionalProducerAttributes) {
+                return true;
+            }
+        }
+
         MatchDetails details = new MatchDetails();
         doMatchCandidate(schema, candidate, requested, details);
         return details.compatible;
@@ -69,7 +76,13 @@ public class ComponentAttributeMatcher {
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
      */
-    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, List<T> candidates, AttributeContainer requested) {
+    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<T> candidates, AttributeContainer requested) {
+        if (candidates.size() == 1) {
+            T candidate = candidates.iterator().next();
+            if (isMatching(schema, candidate.getAttributes(), requested)) {
+                return Collections.singletonList(candidate);
+            }
+        }
         return new Matcher<T>(schema, candidates, requested).getMatches();
     }
 

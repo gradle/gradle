@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -78,7 +79,7 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
 
             AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
             ResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes);
-            variants.add(selector.select(Collections.singleton(variant)));
+            variants.add(selector.select(Collections.singleton(variant), EmptySchema.INSTANCE));
         }
 
         return new ResolvedVariantBackedArtifactSetSnapshot(variants, dependencyMetadata);
