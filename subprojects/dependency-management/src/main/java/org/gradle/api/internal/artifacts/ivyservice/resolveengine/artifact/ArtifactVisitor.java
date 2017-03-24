@@ -32,9 +32,9 @@ public interface ArtifactVisitor {
     void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
 
     /**
-     * Does the visitor require the downloaded artifact files?
+     * May the visitor preemptively download artifacts?
      */
-    boolean requiresDownloadedArtifactFiles();
+    boolean canPerformPreemptiveDownload();
 
     /**
      * Should {@link #visitFile(ComponentArtifactIdentifier, AttributeContainer, File)} be called?
