@@ -320,12 +320,10 @@ the credentials the api:org.gradle.caching.http.HttpBuildCache[] uses to access 
 </sample>
 ++++
 
-[[sec:build_cache_http_backend]]
+[[sec:build_cache_setup_http_backend]]
 === How to set up an HTTP build cache backend
 
-If you are using Gradle Enterprise, you should use the included https://docs.gradle.com/enterprise/build-cache/[HTTP build cache backend].
-
-One way to set up an HTTP build cache backend is to configure https://www.nginx.com/[nginx] accordingly.
+It is possible to configure https://www.nginx.com/[nginx] to act as an HTTP build cache backend.
 Instructions on how to do so can be found https://github.com/gradle/task-output-cache-demos/tree/master/samples/03-use-http-backend[here].
 
 [[sec:build_cache_implement]]
