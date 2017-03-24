@@ -183,7 +183,9 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "{eol}"
     }
 
-    def "Mac OS 9 eol aren't detected as new line"() {
+    @Unroll
+    def "Mac OS 9 eol aren't detected as new line [#type]"() {
+        System.setProperty("line.separator", eol)
         def output = output()
 
         when:
@@ -191,6 +193,9 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         then:
         result.toString() == "[some\rtext]"
+
+        where:
+        [type, eol] << EOLS
     }
 
     def output() {

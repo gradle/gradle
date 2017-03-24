@@ -132,7 +132,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         @Override
         public void execute(StateContext context) {
             if (context.seenCharsFromEol < context.eolChars.length) {
-                if (context.isCurrentCharEquals(context.eolChars[context.seenCharsFromEol])) {
+                if (!context.eol.equals("\r\n") && context.isCurrentCharEquals(context.eolChars[context.seenCharsFromEol])) {
                     context.seenCharsFromEol++;
                     if (context.seenCharsFromEol == context.eolChars.length) {
                         context.flushLineText();
