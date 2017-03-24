@@ -35,7 +35,8 @@ class CacheAccessOperationsStackTest extends ConcurrentSpecification {
             stack.pushCacheAction()
             stack.pushCacheAction()
             assert stack.inCacheAction
-            stack.pushLongRunningOperation()
+            stack.popCacheAction()
+            stack.popCacheAction()
             assert !stack.inCacheAction
         }
         finished()
