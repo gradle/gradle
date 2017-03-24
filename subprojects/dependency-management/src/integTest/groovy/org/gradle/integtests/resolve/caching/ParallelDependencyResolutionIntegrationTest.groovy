@@ -16,29 +16,14 @@
 
 package org.gradle.integtests.resolve.caching
 
-import com.google.common.hash.Hashing
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.junit.Rule
 import spock.lang.IgnoreIf
-
-import java.text.SimpleDateFormat
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
-class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    String lastVersion
-
-    File mavenMetadata
-    File pomFile, pomFileSha1
-    File jarFile, jarFileSha1
-    File ivyFile, ivyFileSha1
-
-    int buildNumber
 
     def setup() {
         executer.withArgument('--parallel')
@@ -49,82 +34,11 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
 
     }
 
-    private void createJarFile() {
-        jarFile = temporaryFolder.createFile('dummy-1.0-SNAPSHOT.jar')
-        jarFileSha1 = temporaryFolder.createFile('dummy-1.0-SNAPSHOT.jar.sha1')
-        jarFileSha1.text = Hashing.sha1().hashBytes(jarFile.bytes).toString()
-    }
-
-    private void createPomFile() {
-        pomFile = temporaryFolder.createFile('dummy-1.0-SNAPSHOT.pom')
-        pomFile.setText("""<?xml version="1.0" encoding="UTF-8"?>
-<project
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.acme</groupId>
-  <artifactId>dummy</artifactId>
-  <version>1.0-SNAPSHOT</version>
-</project>""", "utf-8")
-        pomFileSha1 = temporaryFolder.createFile('dummy-1.0-SNAPSHOT.pom.sha1')
-        pomFileSha1.text = Hashing.sha1().hashBytes(pomFile.bytes).toString()
-    }
-
-    private void mavenMetadataFile() {
-        mavenMetadata = temporaryFolder.createFile('maven-metadata.xml')
-        def now = new Date()
-        lastVersion = new SimpleDateFormat("yyyyMMdd.HHmmss").format(now)
-        mavenMetadata.setText("""<?xml version="1.0" encoding="UTF-8"?>
-<metadata>
-  <groupId>com.acme</groupId>
-  <artifactId>dummy</artifactId>
-  <versioning>
-    <snapshot>
-      <timestamp>${lastVersion}</timestamp>
-      <buildNumber>${buildNumber++}</buildNumber>
-    </snapshot>
-    <lastUpdated>${new SimpleDateFormat("yyyyMMddHHmmss").format(now)}</lastUpdated>
-  </versioning>
-</metadata>
-""", "UTF-8")
-    }
-
-    private void createIvyFile() {
-        def now = new Date()
-        lastVersion = new SimpleDateFormat("yyyyMMddHHmmss").format(now)
-        ivyFile = temporaryFolder.createFile('ivy-1.0-SNAPSHOT.xml')
-        ivyFile.setText("""<?xml version="1.0" encoding="UTF-8"?>
-<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
-  <info organisation="com.acme" module="dummy" revision="1.0-SNAPSHOT" status="integration" publication="$lastVersion">
-    <description/>
-  </info>
-  <configurations>
-    <conf name="default" visibility="public" description="Configuration for default artifacts." extends="runtime"/>
-    <conf name="archives" visibility="public" description="Configuration for archive artifacts."/>
-    <conf name="compile" visibility="private" description="Compile classpath for source set 'main'."/>
-    <conf name="testRuntime" visibility="private" description="Runtime classpath for source set 'test'." extends="runtime,testCompile"/>
-    <conf name="runtime" visibility="private" description="Runtime classpath for source set 'main'." extends="compile"/>
-    <conf name="testCompile" visibility="private" description="Compile classpath for source set 'test'." extends="compile"/>
-  </configurations>
-  <publications>
-    <artifact name="dummy" type="jar" ext="jar" conf="archives,runtime"/>
-  </publications>
-  <dependencies>
-  </dependencies>
-</ivy-module>
-""", "utf-8")
-        ivyFileSha1 = temporaryFolder.createFile('dummy-1.0-SNAPSHOT.pom.sha1')
-        ivyFileSha1.text = Hashing.sha1().hashBytes(ivyFile.bytes).toString()
-    }
-
     def "dependency is only downloaded at most once per build using Maven"() {
-        mavenMetadataFile()
-        createPomFile()
-        createJarFile()
+        def module = mavenHttpRepo.module("com.acme", "dummy", "1.0-SNAPSHOT").publish()
 
         given:
-        server.expectGet('/com/acme/dummy/1.0-SNAPSHOT/maven-metadata.xml', mavenMetadata)
+        module.metaData.expectGet()
         ('a'..'z').each {
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
@@ -132,7 +46,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
                 
                 repositories {
                     maven {
-                        url '${server.address}'
+                        url '${mavenHttpRepo.uri}'
                     }
                 }
 
@@ -147,10 +61,9 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
                 }
             """
         }
-        println "Last version : $lastVersion"
 
-        server.expectGet("/com/acme/dummy/1.0-SNAPSHOT/dummy-1.0-${lastVersion}-0.pom", pomFile)
-        server.expectGet("/com/acme/dummy/1.0-SNAPSHOT/dummy-1.0-${lastVersion}-0.jar", jarFile)
+        module.pom.expectGet()
+        module.artifact.expectGet()
 
         when:
         run 'resolveDependencies'
@@ -160,8 +73,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "dependency is only downloaded at most once per build using Ivy"() {
-        createIvyFile()
-        createJarFile()
+        def module = ivyHttpRepo.module('com.acme', 'dummy', '1.0-SNAPSHOT').publish()
 
         given:
         ('a'..'z').each {
@@ -171,7 +83,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
                 
                 repositories {
                     ivy {
-                        url '${server.address}'
+                        url '${ivyHttpRepo.uri}'
                     }
                 }
 
@@ -186,10 +98,9 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractIntegrationSpe
                 }
             """
         }
-        println "Last version : $lastVersion"
 
-        server.expectGet("/com.acme/dummy/1.0-SNAPSHOT/ivy-1.0-SNAPSHOT.xml", ivyFile)
-        server.expectGet("/com.acme/dummy/1.0-SNAPSHOT/dummy-1.0-SNAPSHOT.jar", jarFile)
+        module.ivy.expectGet()
+        module.artifact.expectGet()
 
         when:
         run 'resolveDependencies'
