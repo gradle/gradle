@@ -122,16 +122,5 @@ public class InMemoryCacheFactory implements CacheFactory {
             action.run();
         }
 
-        @Override
-        public <T> T longRunningOperation(Factory<? extends T> action) {
-            assertNotClosed();
-            return action.create();
-        }
-
-        @Override
-        public void longRunningOperation(Runnable action) {
-            assertNotClosed();
-            action.run();
-        }
     }
 }

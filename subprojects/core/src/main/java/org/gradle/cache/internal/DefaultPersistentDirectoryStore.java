@@ -134,13 +134,4 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         cacheAccess.useCache(action);
     }
 
-    @Override
-    public <T> T longRunningOperation(Factory<? extends T> action) {
-        return cacheAccess.longRunningOperation(action);
-    }
-
-    @Override
-    public void longRunningOperation(Runnable action) {
-        cacheAccess.longRunningOperation(action);
-    }
 }

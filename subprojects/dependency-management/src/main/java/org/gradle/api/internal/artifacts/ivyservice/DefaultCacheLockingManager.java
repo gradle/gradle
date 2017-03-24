@@ -48,11 +48,6 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     }
 
     @Override
-    public void longRunningOperation(final Runnable action) {
-        cache.longRunningOperation(action);
-    }
-
-    @Override
     public <T> T withFileLock(Factory<? extends T> action) {
         return cache.withFileLock(action);
     }
@@ -65,11 +60,6 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     @Override
     public void useCache(Runnable action) {
         cache.useCache(action);
-    }
-
-    @Override
-    public <T> T longRunningOperation(Factory<? extends T> action) {
-        return cache.longRunningOperation(action);
     }
 
     @Override
