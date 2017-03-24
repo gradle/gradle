@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -42,8 +41,6 @@ import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactor
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
-
-import java.util.List;
 
 public class LauncherServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
     @Override
@@ -73,46 +70,30 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
     }
 
     static class ToolingGlobalScopeServices {
-        // Can't expose SubscribableBuildActionRunner directly as the call to globalServices.getAll(BuildActionRunner.class)
-        // then fail with a StackOverflowError
-        SubscribableBuildActionRunnerProvider createSubscribableBuildActionRunnerProvider(final ServiceRegistry globalServices) {
-            BuildOperationExecutor buildOperationExecutor = globalServices.get(BuildOperationExecutor.class);
-            BuildOperationService buildOperationService = globalServices.get(BuildOperationService.class);
-            Factory<List<? extends BuildActionRunner>> runnersFactory = new Factory<List<? extends BuildActionRunner>>() {
-                @Override
-                public List<? extends BuildActionRunner> create() {
-                    return globalServices.getAll(BuildActionRunner.class);
-                }
-            };
-            Factory<List<? extends SubscribableBuildActionRunnerRegistration>> registrationsFactory = new Factory<List<? extends SubscribableBuildActionRunnerRegistration>>() {
-                @Override
-                public List<? extends SubscribableBuildActionRunnerRegistration> create() {
-                    return globalServices.getAll(SubscribableBuildActionRunnerRegistration.class);
-                }
-            };
-            SubscribableBuildActionRunner buildActionRunner = new SubscribableBuildActionRunner(
-                new RunAsBuildOperationBuildActionRunner(
-                    new ValidatingBuildActionRunner(
-                        new ChainingBuildActionRunner(runnersFactory)),
-                    buildOperationExecutor),
-                buildOperationService, registrationsFactory);
-            return new SubscribableBuildActionRunnerProvider(buildActionRunner);
-        }
-
-        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, SubscribableBuildActionRunnerProvider subscribableBuildActionRunnerProvider, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
+        BuildExecuter createBuildExecuter(ServiceRegistry globalServices,
+                                          GradleLauncherFactory gradleLauncherFactory,
+                                          BuildOperationExecutor buildOperationExecutor,
+                                          BuildOperationService buildOperationService,
+                                          FileWatcherFactory fileWatcherFactory,
+                                          ListenerManager listenerManager,
+                                          StyledTextOutputFactory styledTextOutputFactory,
+                                          ExecutorFactory executorFactory,
+                                          GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
             return new GradleThreadBuildActionExecuter(
                 new ServicesSetupBuildActionExecuter(
                     new ContinuousBuildActionExecuter(
-                        new InProcessBuildActionExecuter(gradleLauncherFactory, subscribableBuildActionRunnerProvider.getBuildActionRunner()),
+                        new InProcessBuildActionExecuter(gradleLauncherFactory,
+                            new SubscribableBuildActionRunner(
+                                new RunAsBuildOperationBuildActionRunner(
+                                    new ValidatingBuildActionRunner(
+                                        new ChainingBuildActionRunner(globalServices.getAll(BuildActionRunner.class))),
+                                    buildOperationExecutor),
+                                buildOperationService, globalServices.getAll(SubscribableBuildActionRunnerRegistration.class))),
                         fileWatcherFactory,
                         listenerManager,
                         styledTextOutputFactory,
                         executorFactory),
                     userHomeServiceRegistry));
-        }
-
-        EmptySubscribableBuildActionRunnerRegistration createNoOpSubscribableBuildActionRunnerRegistration() {
-            return new EmptySubscribableBuildActionRunnerRegistration();
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

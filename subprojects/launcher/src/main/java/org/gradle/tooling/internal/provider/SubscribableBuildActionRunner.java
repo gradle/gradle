@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.Factory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -32,12 +31,12 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
     private final BuildOperationService buildOperationService;
     private final List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>();
-    private final Factory<List<? extends SubscribableBuildActionRunnerRegistration>> registrationsFactory;
+    private final List<? extends SubscribableBuildActionRunnerRegistration> registrations;
 
-    public SubscribableBuildActionRunner(BuildActionRunner delegate, BuildOperationService buildOperationService, Factory<List<? extends SubscribableBuildActionRunnerRegistration>> registrationsFactory) {
+    public SubscribableBuildActionRunner(BuildActionRunner delegate, BuildOperationService buildOperationService, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
         this.delegate = delegate;
         this.buildOperationService = buildOperationService;
-        this.registrationsFactory = registrationsFactory;
+        this.registrations = registrations;
     }
 
     @Override
@@ -61,7 +60,7 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
 
     private void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle) {
         BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
-        for (SubscribableBuildActionRunnerRegistration registration : registrationsFactory.create()) {
+        for (SubscribableBuildActionRunnerRegistration registration : registrations) {
             for (BuildOperationListener listener : registration.createListeners(clientSubscriptions, eventConsumer)) {
                 registerListener(listener);
             }

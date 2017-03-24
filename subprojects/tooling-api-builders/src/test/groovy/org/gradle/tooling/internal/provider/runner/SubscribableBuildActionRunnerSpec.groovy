@@ -37,7 +37,7 @@ class SubscribableBuildActionRunnerSpec extends Specification {
         SubscribableBuildAction buildAction = subscribableBuildAction() //Mock(SubscribableBuildAction)
         BuildController buildController = buildController() //Mock(BuildController)
 
-        def runner = new SubscribableBuildActionRunner(buildActionRunner, buildOperationService, { [new ToolingApiSubscribableBuildActionRunnerRegistration()] });
+        def runner = new SubscribableBuildActionRunner(buildActionRunner, buildOperationService, [new ToolingApiSubscribableBuildActionRunnerRegistration()]);
 
         when:
         runner.run(buildAction, buildController)
