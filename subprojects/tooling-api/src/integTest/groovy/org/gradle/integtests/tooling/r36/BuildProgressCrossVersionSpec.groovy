@@ -84,7 +84,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operation('Task :runForked').descendant('My forked worker action')
     }
 
-    @ToolingApiVersion(">=3.6")
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
@@ -134,7 +133,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @LeaksFileHandles
-    @ToolingApiVersion(">=3.6")
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -219,7 +217,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     }
 
-    @ToolingApiVersion(">=3.6")
     def "generates events for applied init-scripts"() {
         given:
         def initScript1 = file('init1.gradle')
@@ -246,7 +243,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @ToolingApiVersion(">=3.6")
     def "generates events for applied build scripts"() {
         given:
         settingsFile << '''
@@ -277,7 +273,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operation('Configure project :b').child "Apply build file '${bBuildFile}' to project ':b'"
     }
 
-    @ToolingApiVersion(">=3.6")
     def "generates events for applied script plugins"() {
         given:
         def scriptPlugin1 = file('scriptPlugin1.gradle')
@@ -347,7 +342,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @ToolingApiVersion(">=3.6")
     def "generates events for nested script plugin applications of different types"() {
         given:
         def scriptPluginGroovy1 = file('scriptPluginGroovy1.gradle')
