@@ -76,6 +76,7 @@ class Greeting extends DefaultTask {
     @TaskAction
     void printMessage() {
         getOutputFiles().each {
+            logger.quiet "Writing message 'Hi from Gradle' to file"
             it.text = getMessage()
         }
     }
