@@ -1,8 +1,9 @@
-import org.gradle.api.provider.Provider
-
 apply plugin: GreetingPlugin
 
-greeting.message = 'Hi from Gradle'
+greeting {
+    message = 'Hi from Gradle'
+    outputFiles = files('a.txt', 'b.txt')
+}
 
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
@@ -11,16 +12,19 @@ class GreetingPlugin implements Plugin<Project> {
         // Add a task that uses the configuration
         project.tasks.create('hello', Greeting) {
             message = extension.messageProvider
+            outputFiles = extension.outputFiles
         }
     }
 }
 
 class GreetingPluginExtension {
     final PropertyState<String> message
+    final ConfigurableFileCollection outputFiles
 
     GreetingPluginExtension(Project project) {
         message = project.property(String)
         setMessage('Hello from GreetingPlugin')
+        outputFiles = project.files()
     }
 
     String getMessage() {
@@ -34,10 +38,19 @@ class GreetingPluginExtension {
     void setMessage(String message) {
         this.message.set(message)
     }
+
+    FileCollection getOutputFiles() {
+        outputFiles
+    }
+
+    void setOutputFiles(FileCollection outputFiles) {
+        this.outputFiles.setFrom(outputFiles)
+    }
 }
 
 class Greeting extends DefaultTask {
     final PropertyState<String> message = project.property(String)
+    final ConfigurableFileCollection outputFiles = project.files()
 
     @Input
     String getMessage() {
@@ -52,8 +65,18 @@ class Greeting extends DefaultTask {
         this.message.set(message)
     }
 
+    FileCollection getOutputFiles() {
+        outputFiles
+    }
+
+    void setOutputFiles(FileCollection outputFiles) {
+        this.outputFiles.setFrom(outputFiles)
+    }
+
     @TaskAction
     void printMessage() {
-        println getMessage()
+        getOutputFiles().each {
+            it.text = getMessage()
+        }
     }
 }

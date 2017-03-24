@@ -40,25 +40,32 @@ The following example demonstrates how to use the property state API to map an e
 running into evaluation ordering issues:
 
     apply plugin: GreetingPlugin
-
-    greeting.message = 'Hi from Gradle'
-
+    
+    greeting {
+        message = 'Hi from Gradle'
+        outputFiles = files('a.txt', 'b.txt')
+    }
+    
     class GreetingPlugin implements Plugin<Project> {
         void apply(Project project) {
+            // Add the 'greeting' extension object
             def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
-
+            // Add a task that uses the configuration
             project.tasks.create('hello', Greeting) {
                 message = extension.messageProvider
+                outputFiles = extension.outputFiles
             }
         }
     }
-
+    
     class GreetingPluginExtension {
         final PropertyState<String> message
+        final ConfigurableFileCollection outputFiles
     
         GreetingPluginExtension(Project project) {
             message = project.property(String)
             setMessage('Hello from GreetingPlugin')
+            outputFiles = project.files()
         }
     
         String getMessage() {
@@ -72,10 +79,19 @@ running into evaluation ordering issues:
         void setMessage(String message) {
             this.message.set(message)
         }
+    
+        FileCollection getOutputFiles() {
+            outputFiles
+        }
+    
+        void setOutputFiles(FileCollection outputFiles) {
+            this.outputFiles.setFrom(outputFiles)
+        }
     }
-
+    
     class Greeting extends DefaultTask {
         final PropertyState<String> message = project.property(String)
+        final ConfigurableFileCollection outputFiles = project.files()
     
         @Input
         String getMessage() {
@@ -90,9 +106,19 @@ running into evaluation ordering issues:
             this.message.set(message)
         }
     
+        FileCollection getOutputFiles() {
+            outputFiles
+        }
+    
+        void setOutputFiles(FileCollection outputFiles) {
+            this.outputFiles.setFrom(outputFiles)
+        }
+    
         @TaskAction
         void printMessage() {
-            println getMessage()
+            getOutputFiles().each {
+                it.text = getMessage()
+            }
         }
     }
 
