@@ -187,6 +187,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @Issue("gradle/gradle#1641")
+    @LeaksFileHandles
     def "generates download events during maven publish"() {
         given:
         toolingApi.requireIsolatedUserHome()
