@@ -71,6 +71,7 @@ class PropertyStateProjectUnderTest {
     String writeCustomGroovyBasedTaskTypeToBuildSrc() {
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.DefaultTask
+            import org.gradle.api.file.FileCollection
             import org.gradle.api.file.ConfigurableFileCollection
             import org.gradle.api.provider.PropertyState
             import org.gradle.api.provider.Provider
@@ -80,7 +81,7 @@ class PropertyStateProjectUnderTest {
 
             class MyTask extends DefaultTask {
                 private final PropertyState<Boolean> enabled = project.property(Boolean)
-                private final PropertyState<ConfigurableFileCollection> outputFiles = project.property(ConfigurableFileCollection)
+                private final ConfigurableFileCollection outputFiles = project.files()
 
                 @Input
                 boolean getEnabled() {
@@ -96,16 +97,12 @@ class PropertyStateProjectUnderTest {
                 }
                 
                 @OutputFiles
-                ConfigurableFileCollection getOutputFiles() {
-                    outputFiles.get()
-                }
-
-                void setOutputFiles(Provider<ConfigurableFileCollection> outputFiles) {
-                    this.outputFiles.set(outputFiles)
+                FileCollection getOutputFiles() {
+                    outputFiles
                 }
                 
-                void setOutputFiles(ConfigurableFileCollection outputFiles) {
-                    this.outputFiles.set(outputFiles)
+                void setOutputFiles(FileCollection outputFiles) {
+                    this.outputFiles.setFrom(outputFiles)
                 }
 
                 @TaskAction
@@ -123,6 +120,7 @@ class PropertyStateProjectUnderTest {
     void writeCustomJavaBasedTaskTypeToBuildSrc() {
         file("buildSrc/src/main/java/MyTask.java") << """
             import org.gradle.api.DefaultTask;
+            import org.gradle.api.file.FileCollection;
             import org.gradle.api.file.ConfigurableFileCollection;
             import org.gradle.api.provider.PropertyState;
             import org.gradle.api.provider.Provider;
@@ -137,11 +135,11 @@ class PropertyStateProjectUnderTest {
         
             public class MyTask extends DefaultTask {
                 private final PropertyState<Boolean> enabled;
-                private final PropertyState<ConfigurableFileCollection> outputFiles;
+                private final ConfigurableFileCollection outputFiles;
 
                 public MyTask() {
                     enabled = getProject().property(Boolean.class);
-                    outputFiles = getProject().property(ConfigurableFileCollection.class);
+                    outputFiles = getProject().files();
                 }
 
                 @Input
@@ -158,16 +156,12 @@ class PropertyStateProjectUnderTest {
                 }
 
                 @OutputFiles
-                public ConfigurableFileCollection getOutputFiles() {
-                    return outputFiles.get();
+                public FileCollection getOutputFiles() {
+                    return outputFiles;
                 }
 
-                public void setOutputFiles(Provider<ConfigurableFileCollection> outputFiles) {
-                    this.outputFiles.set(outputFiles);
-                }
-
-                public void setOutputFiles(ConfigurableFileCollection outputFiles) {
-                    this.outputFiles.set(outputFiles);
+                public void setOutputFiles(FileCollection outputFiles) {
+                    this.outputFiles.setFrom(outputFiles);
                 }
                 
                 @TaskAction
@@ -221,11 +215,11 @@ class PropertyStateProjectUnderTest {
 
             class MyExtension {
                 private final PropertyState<Boolean> enabled
-                private final PropertyState<FileCollection> outputFiles
+                private final ConfigurableFileCollection outputFiles
 
                 MyExtension(Project project) {
                     enabled = project.property(Boolean)
-                    outputFiles = project.property(FileCollection)
+                    outputFiles = project.files()
                 }
 
                 Boolean getEnabled() {
@@ -241,15 +235,11 @@ class PropertyStateProjectUnderTest {
                 }
 
                 FileCollection getOutputFiles() {
-                    outputFiles.get()
-                }
-
-                Provider<FileCollection> getOutputFilesProvider() {
                     outputFiles
                 }
 
                 void setOutputFiles(FileCollection outputFiles) {
-                    this.outputFiles.set(outputFiles)
+                    this.outputFiles.setFrom(outputFiles)
                 }
             }
         """
@@ -268,7 +258,7 @@ class PropertyStateProjectUnderTest {
         """
             project.tasks.create('myTask', MyTask) {
                 enabled = extension.enabledProvider
-                outputFiles = extension.outputFilesProvider
+                outputFiles = extension.outputFiles
             }
         """
     }

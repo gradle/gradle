@@ -35,6 +35,7 @@ class PropertyStateKotlinScriptIntegrationTest extends KotlinScriptIntegrationTe
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/MyTask.kt") << """
             import org.gradle.api.DefaultTask
+            import org.gradle.api.file.FileCollection
             import org.gradle.api.file.ConfigurableFileCollection
             import org.gradle.api.provider.PropertyState
             import org.gradle.api.tasks.TaskAction
@@ -43,7 +44,7 @@ class PropertyStateKotlinScriptIntegrationTest extends KotlinScriptIntegrationTe
 
             open class MyTask : DefaultTask() {
                 val enabled: PropertyState<Boolean> = project.property(Boolean::class.java)
-                val outputFiles: PropertyState<ConfigurableFileCollection> = project.property(ConfigurableFileCollection::class.java)
+                val outputFiles: ConfigurableFileCollection = project.files()
 
                 init {
                     enabled.set(false)
@@ -57,12 +58,12 @@ class PropertyStateKotlinScriptIntegrationTest extends KotlinScriptIntegrationTe
                     this.enabled.set(enabled)
                 }
 
-                @OutputFiles fun getOutputFiles(): ConfigurableFileCollection {
-                    return outputFiles.get()
+                @OutputFiles fun getOutputFiles(): FileCollection {
+                    return outputFiles
                 }
 
-                fun setOutputFiles(outputFiles: ConfigurableFileCollection) {
-                    this.outputFiles.set(outputFiles)
+                fun setOutputFiles(outputFiles: FileCollection) {
+                    this.outputFiles.setFrom(outputFiles)
                 }
 
                 @TaskAction fun resolveValue() {

@@ -88,7 +88,7 @@ public abstract class DefaultScript extends BasicScript {
         }
 
         processOperations = (ProcessOperations) fileOperations;
-        providerFactory = new DefaultProviderFactory(fileOperations);
+        providerFactory = new DefaultProviderFactory();
     }
 
     @Override

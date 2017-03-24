@@ -57,6 +57,8 @@ public interface ProviderFactory {
      * Creates a {@code PropertyState} implementation based on the provided class.
      * The value returned by the property state is the default value of the standard Java data type.
      * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
+     * <p>
+     * Any other data type than the standard Java data types returns null as default value.
      *
      * @param clazz The class to be used for property state.
      * @return The property state. Never returns null.

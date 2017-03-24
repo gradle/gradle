@@ -17,23 +17,13 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
-
-    private final FileOperations fileOperations;
-
-    public DefaultProviderFactory(FileOperations fileOperations) {
-        this.fileOperations = fileOperations;
-    }
 
     public <T> Provider<T> provider(final Callable<T> value) {
         if (value == null) {
@@ -67,10 +57,6 @@ public class DefaultProviderFactory implements ProviderFactory {
             ((PropertyState<Double>) propertyState).set(Double.valueOf(0));
         } else if (clazz == Character.class) {
             ((PropertyState<Character>) propertyState).set(new Character('\0'));
-        } else if (clazz == ConfigurableFileCollection.class) {
-            ((PropertyState<ConfigurableFileCollection>) propertyState).set(fileOperations.files());
-        } else if (clazz == ConfigurableFileTree.class) {
-            ((PropertyState<ConfigurableFileTree>) propertyState).set(fileOperations.fileTree(Collections.emptyMap()));
         }
 
         return propertyState;

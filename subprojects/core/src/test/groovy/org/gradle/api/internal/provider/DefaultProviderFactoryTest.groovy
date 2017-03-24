@@ -17,11 +17,9 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -32,11 +30,8 @@ class DefaultProviderFactoryTest extends Specification {
 
     static final PROJECT = ProjectBuilder.builder().build()
     static final File TEST_FILE = PROJECT.file('someDir')
-    static final FileCollection TEST_FILECOLLECTION = PROJECT.files('some', 'other')
-    static final FileTree TEST_FILETREE = PROJECT.fileTree('someDir')
 
-    def fileOperations = Mock(FileOperations)
-    def providerFactory = new DefaultProviderFactory(fileOperations)
+    def providerFactory = new DefaultProviderFactory()
 
     def "cannot create provider for null value"() {
         when:
@@ -68,8 +63,6 @@ class DefaultProviderFactoryTest extends Specification {
         Character      | '\u1234'
         String         | 'hello'
         File           | TEST_FILE
-        FileCollection | TEST_FILECOLLECTION
-        FileTree       | TEST_FILETREE
     }
 
     def "cannot create property state for null value"() {
@@ -123,31 +116,9 @@ class DefaultProviderFactoryTest extends Specification {
         Character      | '\u1234'
         String         | 'hello'
         File           | TEST_FILE
-        FileCollection | TEST_FILECOLLECTION
-        FileTree       | TEST_FILETREE
     }
 
-    def "can create property type for ConfigurableFileCollection"() {
-        when:
-        def provider = providerFactory.property(ConfigurableFileCollection)
-        def evaluatedValue = provider.get()
-
-        then:
-        evaluatedValue instanceof ConfigurableFileCollection
-        1 * fileOperations.files() >> PROJECT.files()
-    }
-
-    def "can create property type for ConfigurableFileTree"() {
-        when:
-        def provider = providerFactory.property(ConfigurableFileTree)
-        def evaluatedValue = provider.get()
-
-        then:
-        evaluatedValue instanceof ConfigurableFileTree
-        1 * fileOperations.fileTree([:]) >> PROJECT.fileTree([:])
-    }
-
-    def "can create property type for #type"() {
+    def "creating property type for Gradle file type #type throws exception upon retrieval of value"() {
         when:
         def provider = providerFactory.property(type)
         provider.get()
@@ -157,6 +128,6 @@ class DefaultProviderFactoryTest extends Specification {
         t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
 
         where:
-        type << [FileCollection, FileTree]
+        type << [FileCollection, ConfigurableFileTree, FileTree, ConfigurableFileTree]
     }
 }

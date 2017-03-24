@@ -909,6 +909,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
     @Incubating
@@ -920,6 +921,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param clazz The class to be used for property state.
      * @return The property state. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
+     * @see org.gradle.api.provider.ProviderFactory#property(Class)
      * @since 4.0
      */
     @Incubating

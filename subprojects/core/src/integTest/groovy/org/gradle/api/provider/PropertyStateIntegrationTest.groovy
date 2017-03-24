@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
 import static PropertyStateProjectUnderTest.Language
-import static PropertyStateProjectUnderTest.OUTPUT_FILE_CONTENT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
@@ -82,61 +81,5 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         then:
         projectUnderTest.assertDefaultOutputFileDoesNotExist()
         projectUnderTest.assertCustomOutputFileContent()
-    }
-
-    def "can use property state type to infer task dependency"() {
-        given:
-        buildFile << """
-            task producer(type: Producer) {
-                text = '$OUTPUT_FILE_CONTENT'
-                outputFiles = files("\$buildDir/helloWorld.txt")
-            }
-
-            task consumer(type: Consumer) {
-                inputFiles = producer.outputs.files
-            }
-
-            class Producer extends DefaultTask {
-                @Input
-                String text
-
-                private final PropertyState<ConfigurableFileCollection> outputFiles = project.property(ConfigurableFileCollection)
-                
-                void setOutputFiles(ConfigurableFileCollection outputFiles) {
-                    this.outputFiles.set(outputFiles)
-                }
-                
-                @OutputFiles
-                ConfigurableFileCollection getOutputFiles() {
-                    outputFiles.get()
-                }
-
-                @TaskAction
-                void produce() {
-                    getOutputFiles().each {
-                        it << text
-                    }
-                }
-            }
-            
-            class Consumer extends DefaultTask {
-                @InputFiles
-                FileCollection inputFiles
-                
-                @TaskAction
-                void consume() {
-                    inputFiles.each {
-                        println it.text
-                    }
-                }
-            }
-        """
-
-        when:
-        succeeds('consumer')
-
-        then:
-        executedTasks.containsAll(':producer', ':consumer')
-        outputContains(OUTPUT_FILE_CONTENT)
     }
 }
