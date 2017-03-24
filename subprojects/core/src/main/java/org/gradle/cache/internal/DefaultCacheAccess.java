@@ -45,7 +45,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
-import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
@@ -241,85 +240,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
             owner = null;
             condition.signalAll();
         }
-    }
-
-    @Override
-    public <T> T longRunningOperation(Factory<? extends T> action) {
-        boolean wasEnded = startLongRunningOperation();
-        try {
-            return action.create();
-        } finally {
-            finishLongRunningOperation(wasEnded);
-        }
-    }
-
-    private boolean startLongRunningOperation() {
-        boolean wasEnded;
-        lock.lock();
-        try {
-            if (lockOptions.getMode() != None) {
-                throw new UnsupportedOperationException("Long running operation not supported for this lock mode.");
-            }
-            if (operations.isInCacheAction()) {
-                checkThreadIsOwner();
-                wasEnded = onEndWork();
-                owner = null;
-                condition.signalAll();
-            } else {
-                wasEnded = false;
-            }
-            operations.pushLongRunningOperation();
-        } finally {
-            lock.unlock();
-        }
-        return wasEnded;
-    }
-
-    private void finishLongRunningOperation(boolean wasEnded) {
-        lock.lock();
-        try {
-            operations.popLongRunningOperation();
-            if (operations.isInCacheAction()) {
-                restoreOwner();
-                if (wasEnded) {
-                    onStartWork();
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void checkThreadIsOwner() {
-        lock.lock();
-        try {
-            if (owner != Thread.currentThread()) {
-                throw new IllegalStateException(String.format("Cannot start long running operation, as the %s has not been locked.", cacheDisplayName));
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void restoreOwner() {
-        lock.lock();
-        try {
-            while (owner != null) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-            owner = Thread.currentThread();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
-    public void longRunningOperation(Runnable action) {
-        longRunningOperation(Factories.toFactory(action));
     }
 
     @Override

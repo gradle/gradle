@@ -46,17 +46,4 @@ public interface CacheAccess {
      */
     <T> T withFileLock(Factory<? extends T> action);
 
-    /**
-     * Performs some long running operation within an action invoked by {@link #useCache(org.gradle.internal.Factory)}. Releases all locks while the operation is running, and reacquires the locks at the end of the long running operation.
-     *
-     * <p>This method is re-entrant, so that an action can call back into this method.</p>
-     */
-    <T> T longRunningOperation(Factory<? extends T> action);
-
-    /**
-     * Performs some long running operation within an action invoked by {@link #useCache(org.gradle.internal.Factory)}. Releases all locks while the operation is running, and reacquires the locks at the end of the long running operation.
-     *
-     * <p>This method is re-entrant, so that an action can call back into this method.</p>
-     */
-    void longRunningOperation(Runnable action);
 }
