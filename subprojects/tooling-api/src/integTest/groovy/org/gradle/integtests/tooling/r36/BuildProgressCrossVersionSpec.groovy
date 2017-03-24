@@ -26,7 +26,12 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.Requires
 import org.junit.Rule
+
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
+import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
+import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.6")
@@ -342,6 +347,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
+    @Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM, NOT_WINDOWS])
     def "generates events for nested script plugin applications of different types"() {
         given:
         def scriptPluginGroovy1 = file('scriptPluginGroovy1.gradle')
