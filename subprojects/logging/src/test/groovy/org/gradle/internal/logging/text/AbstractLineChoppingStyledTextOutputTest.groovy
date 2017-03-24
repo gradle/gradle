@@ -112,7 +112,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can append eol in chunks"() {
-        System.setProperty("line.separator", "----");
+        System.setProperty("line.separator", "----")
         def output = output()
 
         when:
@@ -129,7 +129,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can append eol prefix"() {
-        System.setProperty("line.separator", "----");
+        System.setProperty("line.separator", "----")
         def output = output()
 
         when:
@@ -148,7 +148,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can split eol across style changes"() {
-        System.setProperty("line.separator", "----");
+        System.setProperty("line.separator", "----")
         def output = output()
 
         when:
