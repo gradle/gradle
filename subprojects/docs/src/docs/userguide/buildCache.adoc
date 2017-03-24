@@ -152,7 +152,7 @@ Currently, the following built-in Gradle tasks are cacheable:
 
 It is very important that a cacheable task has a complete picture of its inputs and outputs, so that the results from one build can be safely re-used somewhere else.
 
-Missing task inputs can cause incorrect cache hits, where different results are treated as identical because the same cache key is used by both executions. Missing task outputs can cause build failures if Gradle does not completely capture all outputs for a given task. (See <<sec:task_inputs_outputs>> on what and how should be declared as inputs and outputs.)
+Missing task inputs can cause incorrect cache hits, where different results are treated as identical because the same cache key is used by both executions. Missing task outputs can cause build failures if Gradle does not completely capture all outputs for a given task. (See <<sec:task_inputs_outputs>> on what should be declared as inputs and outputs.)
 
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
 We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see `@api:org.gradle.api.tasks.PathSensitive[]`).
