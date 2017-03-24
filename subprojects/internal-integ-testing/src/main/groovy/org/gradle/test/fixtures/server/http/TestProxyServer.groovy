@@ -19,8 +19,13 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.HttpRequest
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.rules.ExternalResource
-import org.littleshoot.proxy.*
+import org.littleshoot.proxy.HttpFilters
+import org.littleshoot.proxy.HttpFiltersSourceAdapter
+import org.littleshoot.proxy.HttpProxyServer
+import org.littleshoot.proxy.ProxyAuthenticator
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer
+
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * A Proxy Server used for testing that http proxies are correctly supported.
@@ -30,11 +35,15 @@ class TestProxyServer extends ExternalResource {
     private portFinder = FixedAvailablePortAllocator.getInstance()
 
     int port
-    int requestCount
+    AtomicInteger requestCountInternal = new AtomicInteger()
 
     @Override
     protected void after() {
         stop()
+    }
+
+    int getRequestCount() {
+        requestCountInternal.get()
     }
 
     void start(final String expectedUsername=null, final String expectedPassword=null) {
@@ -42,7 +51,7 @@ class TestProxyServer extends ExternalResource {
 
         def filters = new HttpFiltersSourceAdapter() {
             HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
-                requestCount++
+                requestCountInternal.incrementAndGet()
                 return super.filterRequest(originalRequest, ctx)
             }
         }

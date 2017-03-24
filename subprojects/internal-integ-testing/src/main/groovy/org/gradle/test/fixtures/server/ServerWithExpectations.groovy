@@ -43,7 +43,7 @@ abstract class ServerWithExpectations extends ExternalResource {
         resetExpectations()
     }
 
-    protected void onFailure(Throwable failure) {
+    protected synchronized void onFailure(Throwable failure) {
         logger.error(failure.message)
         if (this.failure == null) {
             this.failure = failure

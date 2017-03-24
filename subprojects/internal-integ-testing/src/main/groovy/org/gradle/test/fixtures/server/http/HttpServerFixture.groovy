@@ -129,9 +129,13 @@ trait HttpServerFixture {
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
             String authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
             if (authorization != null) {
-                authenticationAttempts << authorization.split(" ")[0]
+                synchronized (authenticationAttempts) {
+                    authenticationAttempts << authorization.split(" ")[0]
+                }
             } else {
-                authenticationAttempts << "None"
+                synchronized (authenticationAttempts) {
+                    authenticationAttempts << "None"
+                }
             }
             if (logRequests) {
                 println("handling http request: $request.method $target")

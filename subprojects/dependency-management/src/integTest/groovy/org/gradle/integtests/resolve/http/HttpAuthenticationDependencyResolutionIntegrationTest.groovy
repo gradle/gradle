@@ -443,9 +443,5 @@ task listJars {
 
     void setServerAuthScheme(AuthScheme authScheme) {
         server.authenticationScheme = authScheme
-        // Test server cannot handle concurrent requests with NTLM Auth
-        if (authScheme == NTLM) {
-            executer.withArguments("--max-workers", "1")
-        }
     }
 }

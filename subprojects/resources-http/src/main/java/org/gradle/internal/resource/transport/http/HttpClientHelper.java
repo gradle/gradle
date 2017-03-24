@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import com.google.common.collect.Maps;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
@@ -32,6 +33,7 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.gradle.api.UncheckedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Provides some convenience and unified logging.
@@ -47,11 +50,17 @@ public class HttpClientHelper implements Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
     private CloseableHttpClient client;
-    private final BasicHttpContext httpContext = new BasicHttpContext();
     private final HttpSettings settings;
+
+    private final HttpContext sharedContext;
 
     public HttpClientHelper(HttpSettings settings) {
         this.settings = settings;
+        if (!settings.getAuthenticationSettings().isEmpty()) {
+            sharedContext = new BasicHttpContext();
+        } else {
+            sharedContext = null;
+        }
     }
 
     public CloseableHttpResponse performRawHead(String source, boolean revalidate) {
@@ -107,6 +116,19 @@ public class HttpClientHelper implements Closeable {
     }
 
     public CloseableHttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
+        if (sharedContext == null) {
+                // There's no authentication involved, requests can be done concurrently
+                return performHttpRequest(request, new BasicHttpContext());
+        }
+        // authentication is used, we cannot guarantee thread-safety in this case so requests need
+        // to be done with blocking
+        synchronized (this) {
+            return performHttpRequest(request, sharedContext);
+        }
+    }
+
+
+    private CloseableHttpResponse performHttpRequest(HttpRequestBase request, HttpContext httpContext) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(HttpClientContext.REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
@@ -151,7 +173,7 @@ public class HttpClientHelper implements Closeable {
         public AutoClosedHttpResponse(CloseableHttpResponse httpResponse) throws IOException {
             this.httpResponse = httpResponse;
             HttpEntity entity = httpResponse.getEntity();
-            this.entity = entity !=null ? new BufferedHttpEntity(entity) : null;
+            this.entity = entity != null ? new BufferedHttpEntity(entity) : null;
         }
 
         @Override
@@ -293,6 +315,40 @@ public class HttpClientHelper implements Closeable {
         @SuppressWarnings("deprecation")
         public void setParams(org.apache.http.params.HttpParams params) {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class ClonableHttpContext implements HttpContext {
+        private final Map<String, Object> attributes = Maps.newConcurrentMap();
+
+        public ClonableHttpContext() {
+        }
+
+        private ClonableHttpContext(Map<String, Object> attributes) {
+            this.attributes.putAll(attributes);
+        }
+
+        @Override
+        public Object getAttribute(String id) {
+            return attributes.get(id);
+        }
+
+        @Override
+        public void setAttribute(String id, Object obj) {
+            if (obj == null) {
+                attributes.remove(id);
+            } else {
+                attributes.put(id, obj);
+            }
+        }
+
+        @Override
+        public Object removeAttribute(String id) {
+            return attributes.remove(id);
+        }
+
+        public ClonableHttpContext copy() {
+            return new ClonableHttpContext(attributes);
         }
     }
 }
