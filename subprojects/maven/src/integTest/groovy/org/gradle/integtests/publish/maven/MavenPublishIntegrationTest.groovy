@@ -727,4 +727,71 @@ uploadArchives {
         failure.assertHasCause "Could not publish configuration 'archives'"
         failure.assertThatCause(containsString('Cannot publish a directory'))
     }
+
+    @Issue("gradle/gradle#1641")
+    def "can publish a new version of a module already present in the target repository"() {
+        given:
+        server.start()
+        def mavenRemoteRepo = new MavenHttpRepository(server, "/repo", mavenRepo)
+        def group = 'org.gradle'
+        def name = 'publish'
+
+        and:
+        settingsFile << "rootProject.name = '$name'"
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'maven'
+            group = '$group'
+            uploadArchives {
+                repositories {
+                    mavenDeployer {
+                        repository(url: "${mavenRemoteRepo.uri}")
+                    }
+                }
+            }
+        """.stripIndent()
+
+        and:
+        def module1 = mavenRemoteRepo.module(group, name, '1')
+        module1.artifact.expectPut()
+        module1.artifact.sha1.expectPut()
+        module1.artifact.md5.expectPut()
+        module1.rootMetaData.expectGetMissing()
+        module1.rootMetaData.expectPut()
+        module1.rootMetaData.sha1.expectPut()
+        module1.rootMetaData.md5.expectPut()
+        module1.pom.expectPut()
+        module1.pom.sha1.expectPut()
+        module1.pom.md5.expectPut()
+
+        when:
+        succeeds 'uploadArchives', '-Pversion=1'
+
+        then:
+        module1.rootMetaData.verifyChecksums()
+        module1.rootMetaData.versions == ["1"]
+
+        and:
+        def module2 = mavenRemoteRepo.module(group, name, '2')
+        module2.artifact.expectPut()
+        module2.artifact.sha1.expectPut()
+        module2.artifact.md5.expectPut()
+        module2.pom.expectPut()
+        module2.pom.sha1.expectPut()
+        module2.pom.md5.expectPut()
+
+        and:
+        module2.rootMetaData.expectGet()
+        module2.rootMetaData.sha1.expectGet()
+        module2.rootMetaData.expectPut()
+        module2.rootMetaData.sha1.expectPut()
+        module2.rootMetaData.md5.expectPut()
+
+        when:
+        succeeds 'uploadArchives', '-Pversion=2'
+
+        then:
+        module2.rootMetaData.verifyChecksums()
+        module2.rootMetaData.versions == ["1", "2"]
+    }
 }
