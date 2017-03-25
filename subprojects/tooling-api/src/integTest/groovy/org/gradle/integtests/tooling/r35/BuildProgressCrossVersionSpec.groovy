@@ -186,10 +186,11 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     }
 
-    @TargetGradleVersion(">=3.5 !3.5-rc-1")
     @Issue("gradle/gradle#1641")
     @LeaksFileHandles
     def "generates download events during maven publish"() {
+        if (targetDist.version.version == "3.5-rc-1") { return }
+
         given:
         toolingApi.requireIsolatedUserHome()
         def module = mavenHttpRepo.module('group', 'publish', '1')
