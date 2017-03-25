@@ -56,10 +56,17 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 }
                 task checkArtifacts {
                     doLast {
+                        assert configurations.compile.files.collect { it.name } == ["foo", "foo.txt"]
+                        assert configurations.compile.files { true }.collect { it.name } == ["foo", "foo.txt"]
+                        assert configurations.compile.fileCollection { true }.collect { it.name } == ["foo", "foo.txt"]
                         assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["foo", "foo.txt"]
+                        assert configurations.compile.resolvedConfiguration.files.collect { it.name } == ["foo", "foo.txt"]
+                        assert configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name } == ["foo", "foo.txt"]
                         assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ["foo", "foo.txt"]
                         assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["foo::", "foo:txt:txt"]
                         assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.classifier } == [null, null]
+                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ["foo", "foo.txt"]
+                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ["foo", "foo.txt"]
                     }
                 }
             }
