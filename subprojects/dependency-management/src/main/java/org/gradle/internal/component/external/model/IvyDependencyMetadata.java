@@ -152,6 +152,10 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
                 targetPattern = targetPattern.substring(startFallback + 1, targetPattern.length() - 1);
             }
         }
+        
+        if (targetPattern.isEmpty()) {
+            return;
+        }
 
         if (targetPattern.equals("*")) {
             for (String targetName : targetComponent.getConfigurationNames()) {
