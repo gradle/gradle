@@ -40,7 +40,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
     private DefaultDependencyHandler dependencyHandler = new AsmBackedClassGenerator().newInstance(DefaultDependencyHandler,
         configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
-        Mock(AttributesSchema), Mock(VariantTransformRegistry))
+        Stub(AttributesSchema), Stub(VariantTransformRegistry))
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration
