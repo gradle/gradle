@@ -172,7 +172,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeResolved = true;
     private AttributeContainerInternal configurationAttributes;
     private final ImmutableAttributesFactory attributesFactory;
-    private final FileCollection intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+    private final FileCollection intrinsicFiles;
 
     public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -211,6 +211,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = new DefaultMutableAttributeContainer(attributesFactory);
+        this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -778,7 +779,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
-            this.viewAttributes = ImmutableAttributes.EMPTY;
+            this.viewAttributes = configurationAttributes;
             this.componentSpec = Specs.satisfyAll();
             lenient = false;
         }
@@ -1006,7 +1007,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction) {
-            ArtifactViewConfiguration config = new ArtifactViewConfiguration(attributesFactory);
+            ArtifactViewConfiguration config = new ArtifactViewConfiguration(attributesFactory, configurationAttributes);
             configAction.execute(config);
             return new ConfigurationArtifactView(config.lockViewAttributes(), config.lockComponentFilter(), config.lenient);
         }
@@ -1046,18 +1047,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public static class ArtifactViewConfiguration implements ArtifactView.ViewConfiguration {
         private final ImmutableAttributesFactory attributesFactory;
+        private final AttributeContainerInternal configurationAttributes;
         private AttributeContainerInternal viewAttributes;
         private Spec<? super ComponentIdentifier> componentFilter;
         private boolean lenient;
 
-        ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory) {
+        ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
             this.attributesFactory = attributesFactory;
+            this.configurationAttributes = configurationAttributes;
         }
 
         @Override
         public AttributeContainer getAttributes() {
             if (viewAttributes == null) {
-                viewAttributes = new DefaultMutableAttributeContainer(attributesFactory);
+                viewAttributes = new DefaultMutableAttributeContainer(attributesFactory, configurationAttributes);
             }
             return viewAttributes;
         }
@@ -1096,7 +1099,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private ImmutableAttributes lockViewAttributes() {
             if (viewAttributes == null) {
-                viewAttributes = ImmutableAttributes.EMPTY;
+                viewAttributes = configurationAttributes.asImmutable();
             } else {
                 viewAttributes = viewAttributes.asImmutable();
             }
@@ -1113,7 +1116,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private Set<Throwable> failures;
 
         ConfigurationArtifactCollection() {
-            this(ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll(), false);
+            this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll(), false);
         }
 
         ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient) {

@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
@@ -38,6 +39,10 @@ class DefaultLenientConfigurationTest extends Specification {
     def artifactsResults = Stub(VisitedArtifactsResults)
     def fileDependencyResults = Stub(VisitedFileDependencyResults)
     def configuration = Stub(ConfigurationInternal)
+
+    def setup() {
+        _ * configuration.attributes >> ImmutableAttributes.EMPTY
+    }
 
     def "should resolve first level dependencies in tree"() {
         given:

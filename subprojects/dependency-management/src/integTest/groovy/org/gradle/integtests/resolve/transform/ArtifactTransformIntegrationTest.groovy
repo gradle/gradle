@@ -35,7 +35,7 @@ allprojects {
 
     dependencies {
         attributesSchema {
-            attribute(usage)
+            attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
         }
     }
     configurations {
@@ -941,7 +941,9 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'transformed'
+        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes:
+  - artifactType 'transformed'
+  - usage 'api'
 Found the following transforms:
   - Transform from variant:
       - artifactType 'type1'
@@ -1025,7 +1027,9 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'transformed'
+        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes:
+  - artifactType 'transformed'
+  - usage 'api'
 Found the following transforms:
   - Transform from variant:
       - artifactType 'jar'
@@ -1170,8 +1174,9 @@ Found the following transforms:
         succeeds "queryFiles"
 
         then:
-        output.count("Transforming") == 0
-        output.count("Creating") == 0
+        output.count("Creating FileSizer") == 1
+        output.count("Transforming") == 1
+        output.count("Transforming test1-1.0.jar to test1-1.0.jar.txt") == 1
 
         when:
         server.resetExpectations()

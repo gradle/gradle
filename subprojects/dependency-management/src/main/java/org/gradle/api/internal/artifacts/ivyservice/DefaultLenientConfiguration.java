@@ -45,7 +45,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -69,6 +68,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
     private final ArtifactTransforms artifactTransforms;
+    private final AttributeContainerInternal implicitAttributes;
 
     // Selected for the configuration
     private SelectedArtifactResults artifactsForThisConfiguration;
@@ -76,6 +76,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms) {
         this.configuration = configuration;
+        implicitAttributes = configuration.getAttributes().asImmutable();
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
@@ -85,24 +86,24 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(ImmutableAttributes.EMPTY));
+            artifactsForThisConfiguration = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes));
         }
         return artifactsForThisConfiguration;
     }
 
     private SelectedFileDependencyResults getSelectedFiles() {
         if (filesForThisConfiguration == null) {
-            filesForThisConfiguration = fileDependencyResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(ImmutableAttributes.EMPTY));
+            filesForThisConfiguration = fileDependencyResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes));
         }
         return filesForThisConfiguration;
     }
 
     public SelectedArtifactSet select() {
-        return select(Specs.<Dependency>satisfyAll(), ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
+        return select(Specs.<Dependency>satisfyAll(), implicitAttributes, Specs.<ComponentIdentifier>satisfyAll());
     }
 
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
-        return select(dependencySpec, ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
+        return select(dependencySpec, implicitAttributes, Specs.<ComponentIdentifier>satisfyAll());
     }
 
     @Override

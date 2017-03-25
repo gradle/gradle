@@ -71,7 +71,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     // This documents the current behavior, not necessarily the one we would want. Maybe
     // we will prefer failing with an error indicating incompatible types
-    def "fails if two configurations use the same attribute name with different types"() {
+    def "selects nothing when two configurations use the same attribute name with different types"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -88,12 +88,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-default.jar']
+                       assert configurations._compileFreeDebug.collect { it.name } == []
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
                     doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-default.jar']
+                       assert configurations._compileFreeRelease.collect { it.name } == []
                     }
                 }
             }
@@ -134,13 +134,13 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         run ':a:checkDebug'
 
         then:
-        notExecuted ':b:fooJar', ':b:barJar'
+        result.assertTasksExecuted(':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        notExecuted ':b:fooJar', ':b:barJar'
+        result.assertTasksExecuted(':a:checkRelease')
     }
 
     def "selects best compatible match when multiple are possible"() {
