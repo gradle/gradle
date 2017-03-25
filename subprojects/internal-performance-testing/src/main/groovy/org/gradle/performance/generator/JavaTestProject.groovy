@@ -45,7 +45,8 @@ enum JavaTestProject {
         config.compilerMemory = compilerMemory
         config.testRunnerMemory = '256m'
         config.parallel = subProjects > 0
-        config.parallelForks = 4
+        config.maxWorkers = 4
+        config.maxParallelForks = subProjects > 0 ? 1 : 4
         config.testForkEvery = 10000
         config.useTestNG = useTestNG
     }
@@ -66,8 +67,8 @@ enum JavaTestProject {
         return config.parallel
     }
 
-    def getParallelForks() {
-        return config.parallelForks
+    def getMaxWorkers() {
+        return config.maxWorkers
     }
 
     @Override

@@ -17,6 +17,14 @@
 package org.gradle.performance.experiment.maven
 
 import org.gradle.performance.AbstractGradleVsMavenPerformanceTest
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.GradleInvocationSpec
+import org.gradle.performance.fixture.InvocationCustomizer
+import org.gradle.performance.fixture.InvocationSpec
+import org.gradle.performance.fixture.MavenInvocationSpec
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
@@ -30,58 +38,98 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 
     @Unroll
-    def "#gradleTasks on #testProject (Gradle vs Maven)"() {
+    def "#gradleCleanupTask #gradleTask on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testProject = testProject
-        runner.jvmOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.args = testProject.parallel ? ['-T', testProject.parallelForks] : []
-        runner.gradleTasks = gradleTasks
-        runner.equivalentMavenTasks = equivalentMavenTasks
+        runner.jvmOpts << "-Xms${testProject.daemonMemory}" << "-Xmx${testProject.daemonMemory}"
+        if (testProject.parallel) {
+            runner.mvnArgs << '-T' << testProject.maxWorkers
+        }
+        runner.gradleTasks = gradleTask
+        runner.equivalentMavenTasks = mavenTask
+        if (mavenTask == "package") {
+            runner.mvnArgs << "-Dmaven.test.skip=true"
+        }
+        runner.warmUpRuns = 4
+        runner.runs = 10
+
+        setupCleanupOnOddRounds(gradleCleanupTask, mavenCleanupTask)
 
         when:
         def results = runner.run()
 
         then:
-        if (enableComparison) {
-            results.assertComparesWithMaven()
-        } else {
-            true
+        if (gradleTask != "test" || testProject != MEDIUM_JAVA_MULTI_PROJECT) { //there seems to be some inefficiency when testing with --parallel
+            results.assertFasterThanMaven()
         }
 
         where:
-        testProject                    | gradleTasks       | equivalentMavenTasks | enableComparison
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'clean assemble'  | 'clean package'      | true
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'cleanTest test'  | 'test'               | true
+        testProject                    | gradleTask    | mavenTask | gradleCleanupTask | mavenCleanupTask
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'    | 'package' | 'clean'           | 'clean'
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'        | 'test'    | 'cleanTest'       | 'help'
 
-        MEDIUM_JAVA_MULTI_PROJECT      | 'clean assemble'  | 'clean package'      | true
-        MEDIUM_JAVA_MULTI_PROJECT      | 'cleanTest test'  | 'test'               | false // TODO accepted difference: this scenario spends most of the time on forking test workers,
-                                                                                          // which is more expensive in Gradle at the moment
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'    | 'package' | 'clean'           | 'clean'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'        | 'test'    | 'cleanTest'       | 'help'
     }
 
     @Unroll
-    def "#gradleTasks for non-abi change on #testProject (Gradle vs Maven)"() {
+    def "#gradleTask for non-abi change on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testProject = testProject
-        runner.jvmOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.args = testProject.parallel ? ['-T', testProject.parallelForks] : []
-        runner.gradleTasks = gradleTasks
-        runner.equivalentMavenTasks = equivalentMavenTasks
+        runner.jvmOpts  << "-Xms${testProject.daemonMemory}" << "-Xmx${testProject.daemonMemory}"
+        if (testProject.parallel) {
+            runner.mvnArgs << '-T' << testProject.maxWorkers
+        }
+        runner.gradleTasks = gradleTask
+        runner.equivalentMavenTasks = mavenTask
+        if (mavenTask == "package") {
+            runner.mvnArgs << "-Dmaven.test.skip=true"
+        }
         runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
 
         when:
         def results = runner.run()
 
         then:
-        results.assertComparesWithMaven()
+        results.assertFasterThanMaven()
 
         where:
-        testProject                    | gradleTasks | equivalentMavenTasks | fileToChange
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'      | 'test'               | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'  | 'package'            | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+        testProject                    | gradleTask     | mavenTask | fileToChange
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'         | 'test'               | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'     | 'package'            | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
 
-        MEDIUM_JAVA_MULTI_PROJECT      | 'test'      | 'test'               | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
-        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'  | 'package'            | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'         | 'test'               | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'     | 'package'            | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
+    }
+
+    void setupCleanupOnOddRounds(String gradleCleanupTask, String mavenCleanupTarget) {
+        runner.invocationCustomizer = new InvocationCustomizer() {
+            @Override
+            def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
+                if (invocationInfo.iterationNumber % 2 == 1) {
+                    if (invocationSpec instanceof GradleInvocationSpec) {
+                        invocationSpec.withBuilder()
+                        .tasksToRun([gradleCleanupTask])
+                        .build() as T
+                    } else {
+                        (invocationSpec as MavenInvocationSpec).withBuilder()
+                            .tasksToRun([mavenCleanupTarget])
+                            .build() as T
+                    }
+                } else {
+                    invocationSpec
+                }
+            }
+        }
+        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if (invocationInfo.iterationNumber % 2 == 1) {
+                    measurementCallback.omitMeasurement()
+                }
+            }
+        }
     }
 }
