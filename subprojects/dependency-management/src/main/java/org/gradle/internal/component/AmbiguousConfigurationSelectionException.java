@@ -16,7 +16,6 @@
 package org.gradle.internal.component;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -44,7 +43,6 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
             return input.getName();
         }
     };
-    private static final Joiner JOINER = Joiner.on(", ");
     static final Function<Attribute<?>, String> ATTRIBUTE_NAME = new Function<Attribute<?>, String>() {
         @Override
         public String apply(Attribute<?> input) {
