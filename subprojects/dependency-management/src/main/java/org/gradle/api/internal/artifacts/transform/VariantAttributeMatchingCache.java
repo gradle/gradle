@@ -46,7 +46,7 @@ public class VariantAttributeMatchingCache {
     }
 
     public <T extends HasAttributes> List<T> selectMatches(Collection<T> candidates, AttributesSchemaInternal producerSchema, AttributeContainerInternal requested) {
-        return schema.withProducer(producerSchema).ignoreAdditionalProducerAttributes().matches(candidates, requested);
+        return schema.withProducer(producerSchema).matches(candidates, requested);
     }
 
     public void collectConsumerVariants(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {

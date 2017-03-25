@@ -36,11 +36,9 @@ def buildType = Attribute.of('buildType', String)
 allprojects {
     dependencies {
        attributesSchema {
-          attribute(usage)
-          attribute(flavor)
-          attribute(buildType) {
-            compatibilityRules.assumeCompatibleWhenMissing()
-          }
+          attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
+          attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+          attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
        }
     }
     configurations {
@@ -218,7 +216,7 @@ dependencies {
     compile project(':b')
     compile 'org:test:1.0'
     registerTransform {
-        to.attribute(Attribute.of('usage', String), "transformed")
+        to.attribute(usage, "transformed")
         artifactTransform(VariantArtifactTransform)
     }
 }
@@ -249,7 +247,7 @@ task show {
     inputs.files configurations.compile
     doLast {
         def artifacts = configurations.compile.incoming.artifactView {
-            attributes({it.attribute(Attribute.of('usage', String), 'transformed')})
+            attributes({it.attribute(usage, 'transformed')})
         }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
@@ -263,9 +261,9 @@ task show {
         run 'show'
 
         then:
-        outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
+        outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project :a, project :b, org:test:1.0]")
-        outputContains("variants: [{artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar}]")
     }
 
     def "more than one local file can have a given base name"() {

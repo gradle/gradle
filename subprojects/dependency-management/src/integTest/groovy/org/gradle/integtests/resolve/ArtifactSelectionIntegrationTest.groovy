@@ -42,10 +42,8 @@ allprojects {
     }
     dependencies {
         attributesSchema {
-           attribute(usage)
-           attribute(buildType) { 
-               compatibilityRules.assumeCompatibleWhenMissing()
-           }
+           attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
+           attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
            attribute(flavor)
         }
     }
@@ -257,7 +255,7 @@ allprojects {
         result.assertTasksExecuted(":lib:classes", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:classes", ":app:resolve")
     }
 
-    def "applies compatibility and disambiguation rules when selecting variant"() {
+    def "applies consumers compatibility and disambiguation rules when selecting variant"() {
         buildFile << """
 class BuildTypeCompatibilityRule implements AttributeCompatibilityRule<String> {
     void execute(CompatibilityCheckDetails<String> details) {
@@ -276,13 +274,15 @@ class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
 
 allprojects {
     configurations.compile.attributes.attribute(usage, 'compile')
-    dependencies.attributesSchema {
-        attribute(buildType) {
-            compatibilityRules.add(BuildTypeCompatibilityRule)
-        }
-        attribute(flavor) {
-            disambiguationRules.add(FlavorSelectionRule)
-        }
+}
+
+dependencies.attributesSchema {
+    attribute(buildType) {
+        compatibilityRules.add(BuildTypeCompatibilityRule)
+    }
+    attribute(flavor) {
+        compatibilityRules.assumeCompatibleWhenMissing()
+        disambiguationRules.add(FlavorSelectionRule)
     }
 }
 
@@ -409,21 +409,20 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=tasty, usage=compile}]")
     }
 
-    def "applies producer's disambiguation rules for additional producer attributes when selecting variant"() {
+    def "applies producer's compatibility disambiguation rules for additional producer attributes when selecting variant"() {
         buildFile << """
-class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
+class ExtraSelectionRule implements AttributeDisambiguationRule<String> {
     void execute(MultipleCandidatesDetails<String> details) {
-        if (details.candidateValues.contains('tasty')) { 
-            details.closestMatch('tasty')
+        if (details.candidateValues.contains('good')) { 
+            details.closestMatch('good')
         }
     }
 }
 
+def extra = Attribute.of('extra', String)
+
 allprojects {
     configurations.compile.attributes.attribute(usage, 'compile')
-    dependencies.attributesSchema {
-        attribute(buildType)
-    }
 }
 
 dependencies {
@@ -432,8 +431,9 @@ dependencies {
 
 project(':lib') {
     dependencies.attributesSchema {
-        attribute(flavor) {
-            disambiguationRules.add(FlavorSelectionRule)
+        attribute(extra) {
+            compatibilityRules.assumeCompatibleWhenMissing()
+            disambiguationRules.add(ExtraSelectionRule)
         }
     }
     
@@ -444,17 +444,17 @@ project(':lib') {
                     var1 {
                         artifact file('a1.jar')
                         attributes.attribute(buildType, 'release')
-                        attributes.attribute(flavor, 'bland')
+                        attributes.attribute(extra, 'ok')
                     }
                     var2 {
                         artifact file('a2.jar')
                         attributes.attribute(buildType, 'debug')
-                        attributes.attribute(flavor, 'bland')
+                        attributes.attribute(extra, 'ok')
                     }
                     var3 {
                         artifact file('a3.jar')
                         attributes.attribute(buildType, 'debug')
-                        attributes.attribute(flavor, 'tasty')
+                        attributes.attribute(extra, 'good')
                     }
                 }
             }
@@ -478,7 +478,7 @@ task show {
 
         then:
         outputContains("files: [a3.jar]")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=tasty, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, extra=good, usage=compile}]")
     }
 
     def "can select the implicit variant of a configuration"() {
@@ -565,6 +565,7 @@ class VariantArtifactTransform extends ArtifactTransform {
 }
 
 allprojects {
+    dependencies.attributesSchema.attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
     configurations.compile.attributes.attribute(usage, 'compile')
 }
 
@@ -574,7 +575,7 @@ dependencies {
     compile project(':ui')
     compile 'org:test:1.0'
     registerTransform {
-        to.attribute(Attribute.of('usage', String), "transformed")
+        to.attribute(usage, "transformed")
         artifactTransform(VariantArtifactTransform)
     }
 }
@@ -605,7 +606,7 @@ task show {
     inputs.files configurations.compile
     doLast {
         def artifacts = configurations.compile.incoming.artifactView {
-            attributes {it.attribute(Attribute.of('usage', String), 'transformed')}
+            attributes {it.attribute(usage, 'transformed')}
         }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
@@ -620,9 +621,9 @@ task show {
         run 'show'
 
         then:
-        outputContains("files: [transformed-test-lib.jar, transformed-a1.jar, transformed-b2.jar, transformed-test-1.0.jar]")
+        outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project :lib, project :ui, org:test:1.0]")
-        outputContains("variants: [{artifactType=jar, usage=transformed}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, usage=transformed}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar}]")
     }
 
     def "can query the content of view before task graph is calculated"() {
@@ -725,6 +726,7 @@ task show {
             }
 
             project(':app') {
+                dependencies.attributesSchema.attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
                 configurations {
                     noAttributes
                 }

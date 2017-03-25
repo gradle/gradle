@@ -51,7 +51,7 @@ class VariantAttributeMatchingCacheTest extends Specification {
         }
     }
 
-    def "variants are selected using matcher ignoring additional producer attributes"() {
+    def "variants are selected using matcher"() {
         def variant1 = Stub(HasAttributes)
         def variant2 = Stub(HasAttributes)
 
@@ -61,7 +61,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         then:
         result == [variant1]
         1 * schema.withProducer(producerSchema) >> matcher
-        1 * matcher.ignoreAdditionalProducerAttributes() >> matcher
         1 * matcher.matches([variant1, variant2], c1) >> [variant1]
         0 * matcher._
     }
