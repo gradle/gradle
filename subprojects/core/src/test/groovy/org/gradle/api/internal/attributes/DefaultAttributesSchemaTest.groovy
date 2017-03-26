@@ -202,7 +202,7 @@ class DefaultAttributesSchemaTest extends Specification {
         merged3 != merged
     }
 
-    def "mreges compatible-when-missing flags"() {
+    def "merges compatible-when-missing flags"() {
         def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
 
         def attr1 = Attribute.of("a", String)
@@ -250,50 +250,5 @@ class DefaultAttributesSchemaTest extends Specification {
 
         merged.getCompatibilityRules(attr3).is(producer.getMatchingStrategy(attr3).compatibilityRules)
         merged.getDisambiguationRules(attr3).is(producer.getMatchingStrategy(attr3).disambiguationRules)
-    }
-
-    def "reuses matches when producer contains subset of rules"() {
-        given:
-        def matcher = Mock(ComponentAttributeMatcher)
-        schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory())
-        def producer = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory())
-
-        def a1 = Attribute.of("a1", String)
-        def a2 = Attribute.of("a2", Integer)
-        def item1 = attributes().attribute(a1, "A").attribute(a2, 1)
-        def item2 = attributes().attribute(a1, "B").attribute(a2, 1)
-        def candidates = [item1, item2]
-        def consumer = attributes().attribute(a1, "a-or-similar")
-
-        when:
-        def result1 = schema.withProducer(producer).matches(candidates, consumer)
-        def result2 = schema.withProducer(producer).matches(candidates, consumer)
-
-        then:
-        result1 == [item1]
-        result2 == result1
-
-        and:
-        1 * matcher.match(schema, candidates, consumer) >> [item1]
-        0 * matcher._
-
-        when:
-        def matches1 = schema.withProducer(producer).isMatching(item1, consumer)
-        def matches2 = schema.withProducer(producer).isMatching(item1, consumer)
-
-        then:
-        matches1 && matches2
-
-        and:
-        1 * matcher.isMatching(schema, item1, consumer) >> [item1]
-        0 * matcher._
-    }
-
-    def "reuses matches when producer defines additional rules"() {
-        expect: false
-    }
-
-    private DefaultMutableAttributeContainer attributes() {
-        new DefaultMutableAttributeContainer(factory)
     }
 }

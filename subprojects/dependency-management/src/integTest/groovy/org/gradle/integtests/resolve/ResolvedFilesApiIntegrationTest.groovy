@@ -29,7 +29,7 @@ def usage = Attribute.of('usage', String)
 allprojects {
     dependencies {
         attributesSchema {
-           attribute(usage)
+           attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
         }
     }
     configurations {
