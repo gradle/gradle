@@ -220,15 +220,12 @@ allprojects {
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
     }
 
-    // Force clean tasks to run before any other tasks
-    tasks.withType(Delete) { cleanTask ->
-        tasks.all { otherTask ->
-            if (cleanTask != otherTask &&
-                !(otherTask instanceof Delete) &&
-                !(otherTask.name in [ 'killExistingDaemons', 'tasks' ])) {
-                otherTask.mustRunAfter cleanTask
-            }
-        }
+    //make sure all tasks run after delete tasks
+    def deleteTasks = tasks.withType(Delete)
+    tasks.matching { task ->
+        !(task instanceof Delete) && !(task.name in [ 'killExistingDaemons', 'tasks' ])
+    }.all {
+        mustRunAfter deleteTasks
     }
 }
 
@@ -402,4 +399,3 @@ if (isCiServer) {
         }
     }
 }
-
