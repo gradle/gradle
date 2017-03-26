@@ -273,7 +273,7 @@ class DependencyManagementBuildScopeServices {
                                                                 ImmutableAttributesFactory cache,
                                                                 ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                 ModuleExclusions moduleExclusions) {
-        ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
+        return new DefaultArtifactDependencyResolver(
             serviceRegistry,
             resolveIvyFactory,
             dependencyDescriptorFactory,
