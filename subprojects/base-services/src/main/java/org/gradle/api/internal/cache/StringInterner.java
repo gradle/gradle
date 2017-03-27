@@ -15,9 +15,7 @@
  */
 
 package org.gradle.api.internal.cache;
-
 import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 
 public class StringInterner implements Interner<String> {
 
