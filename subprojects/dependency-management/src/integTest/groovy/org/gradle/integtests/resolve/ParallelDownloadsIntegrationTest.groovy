@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Unroll
 
 import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.CyclicBarrier
@@ -47,14 +48,40 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         }
     }
 
-    def "downloads artifacts in parallel"() {
+    @Unroll
+    def "downloads artifacts in parallel using #repo"() {
         countParallelArtifactDownloads()
+
         given:
-        buildFile << """
+        multipleFilesToDownloadFrom(repo)
+
+        when:
+        run 'resolve'
+
+        then:
+        noExceptionThrown()
+        println "Max concurrent requests: $maxConcurrentRequests"
+        maxConcurrentRequests > 1
+
+        where:
+        repo << ['maven', 'ivy']
+    }
+
+    private void multipleFilesToDownloadFrom(String repo, int artifacts = 8) {
+        if (repo in ['ivy', 'maven']) {
+            buildFile << """
             allprojects {
-                repositories {
+                repositories {"""
+            if (repo == 'maven') {
+                buildFile << """
                     maven { url '$mavenHttpRepo.uri' }
-                }
+        """
+            } else {
+                buildFile << """
+                    ivy { url '$ivyHttpRepo.uri' }
+        """
+            }
+            buildFile << """                }
                 configurations {
                     compile
                 }
@@ -62,14 +89,20 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             
             dependencies {
         """
-        (1..8).each {
-            def module = mavenHttpRepo.module("test", "test$it", "1.0").publish()
-            module.pom.expectGet()
-            module.artifact.expectGet()
-            buildFile << "               compile 'test:test$it:1.0'\n"
-        }
+            (1..artifacts).each {
+                if (repo == 'maven') {
+                    def module = mavenHttpRepo.module("test", "test$it", "1.0").publish()
+                    module.pom.expectGet()
+                    module.artifact.expectGet()
+                } else if (repo == 'ivy') {
+                    def module = ivyHttpRepo.module("test", "test$it", "1.0").publish()
+                    module.ivy.expectGet()
+                    module.artifact.expectGet()
+                }
+                buildFile << "               compile 'test:test$it:1.0'\n"
+            }
 
-        buildFile << """
+            buildFile << """
             }
             
             task resolve {
@@ -78,14 +111,9 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
             }
 """
-
-        when:
-        run 'resolve'
-
-        then:
-        noExceptionThrown()
-        println "Max concurrent requests: $maxConcurrentRequests"
-        maxConcurrentRequests>1
+        } else {
+            throw new IllegalArgumentException("Repository must be one of 'ivy', 'maven'")
+        }
     }
 
     private void countParallelArtifactDownloads() {
