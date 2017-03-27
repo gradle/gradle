@@ -422,7 +422,8 @@ Configuration 'bar':
         result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
-    def "fails when explicitly selected configuration has no attributes and is not compatible with requested"() {
+    // Documents existing behaviour
+    def "uses explicitly selected configuration when it has no attributes but is not compatible with requested"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -448,7 +449,6 @@ Configuration 'bar':
                     compile
                     bar {
                        extendsFrom compile
-                       attributes { $free }
                     }
                 }
                 task barJar(type: Jar) {
@@ -462,13 +462,11 @@ Configuration 'bar':
         """
 
         when:
-        fails ':a:checkDebug'
+        run ':a:checkDebug'
 
         then:
-        failure.assertHasCause '''Configuration 'bar' in project :b does not match the consumer attributes
-Configuration 'bar':
-  - Required buildType 'debug' but no value provided.
-  - Required flavor 'free' and found compatible value 'free'.'''
+        // TODO - should be selecting files as well
+        result.assertTasksExecuted(':a:checkDebug')
     }
 
     def "selects default configuration when it matches configuration attributes"() {
@@ -705,7 +703,7 @@ Configuration 'bar':
 
     }
 
-    def "gives details about failing matchs when it cannot select default configuration when no match is found and default configuration is not consumable"() {
+    def "gives details about failing matches when it cannot select default configuration when no match is found and default configuration is not consumable"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -1859,7 +1857,7 @@ All of them match the consumer attributes:
         result.assertTasksExecuted(':b:fooJar', ':c:fooJar', ':a:checkDebug')
     }
 
-    def "incompatible matches are excluded from selection"() {
+    def "selects configuration with superset of matching attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -1871,9 +1869,9 @@ All of them match the consumer attributes:
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(extra) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(extra).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
                     }
                     _compileFreeDebug project(':b')
                 }
@@ -1887,10 +1885,10 @@ All of them match the consumer attributes:
                 configurations {
                     create 'default'
                     foo {
-                       attributes { $freeDebug }
+                       attributes { $free; $debug }
                     }
                     bar {
-                       attributes { $freeRelease }
+                       attributes { $free }
                     }
                 }
                 task defaultJar(type: Jar) {

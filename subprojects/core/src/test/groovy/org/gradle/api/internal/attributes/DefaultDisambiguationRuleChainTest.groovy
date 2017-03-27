@@ -51,7 +51,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
     }
 
     def "creates instance of rule implementation and delegates to it"() {
-        def details = Mock(MultipleCandidatesDetails)
+        def details = Mock(MultipleCandidatesResult)
 
         given:
         ruleChain.add(SelectionRule)
@@ -65,7 +65,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
     }
 
     def "can inject parameters into rule instance"() {
-        def details = Mock(MultipleCandidatesDetails)
+        def details = Mock(MultipleCandidatesResult)
 
         given:
         ruleChain.add(SelectionRuleWithParams) { it.params("p1") }
@@ -88,7 +88,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
     }
 
     def "wraps failure to execute rule"() {
-        def details = Mock(MultipleCandidatesDetails)
+        def details = Mock(MultipleCandidatesResult)
 
         given:
         details.candidateValues >> (["value1", "value2"] as Set)
@@ -116,7 +116,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
     }
 
     def "wraps failure to create rule"() {
-        def details = Mock(MultipleCandidatesDetails)
+        def details = Mock(MultipleCandidatesResult)
 
         given:
         details.candidateValues >> (["value1", "value2"] as Set)

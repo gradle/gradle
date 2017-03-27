@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.attributes
 
+import com.google.common.collect.LinkedListMultimap
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.internal.component.model.ComponentAttributeMatcher
+import org.gradle.internal.component.model.DefaultCandidateResult
+import org.gradle.internal.component.model.DefaultCompatibilityCheckResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -40,56 +43,28 @@ class DefaultAttributesSchemaTest extends Specification {
 
     def "is eventually incompatible by default"() {
         given:
-        def strategy = schema.attribute(Attribute.of(Map)) {}
-        def details = Mock(CompatibilityCheckDetails)
+        def attribute = Attribute.of(String)
+        schema.attribute(attribute)
+        def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("b"))
 
         when:
-        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        details.getProducerValue() >> AttributeValue.missing()
-        strategy.compatibilityRules.execute(details)
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
 
         then:
-        1 * details.incompatible()
-        0 * details._
+        !details.isCompatible()
     }
 
     def "equality strategy takes precedence over default"() {
         given:
-        def strategy = schema.attribute(Attribute.of(Map))
-        def details = Mock(CompatibilityCheckDetails)
+        def attribute = Attribute.of(String)
+        schema.attribute(attribute)
+        def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("a"))
 
         when:
-        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
-        strategy.compatibilityRules.execute(details)
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
 
         then:
-        1 * details.incompatible()
-        0 * details._
-    }
-
-    def "can set a basic equality match strategy"() {
-        given:
-        def strategy = schema.attribute(Attribute.of(Map))
-        def details = Mock(CompatibilityCheckDetails)
-
-        when:
-        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        strategy.compatibilityRules.execute(details)
-
-        then:
-        1 * details.compatible()
-        0 * details.incompatible()
-
-        when:
-        details.getConsumerValue() >> AttributeValue.of([a: 'foo', b: 'bar'])
-        details.getProducerValue() >> AttributeValue.of([a: 'foo', b: 'baz'])
-        strategy.compatibilityRules.execute(details)
-
-        then:
-        0 * details.compatible()
-        1 * details.incompatible()
+        details.isCompatible()
     }
 
     def "strategy is per attribute"() {
@@ -130,76 +105,48 @@ class DefaultAttributesSchemaTest extends Specification {
         }
     }
 
-    @SuppressWarnings('VariableName')
-    def "can set a custom matching strategy"() {
+    def "can set a custom compatibility rule"() {
         def attr = Attribute.of(Map)
 
         given:
         schema.attribute(attr) {
             it.compatibilityRules.add(CustomCompatibilityRule)
-            it.disambiguationRules.add(CustomSelectionRule)
         }
-        def strategy = schema.getMatchingStrategy(attr)
-        def checkDetails = Mock(CompatibilityCheckDetails)
-        def candidateDetails = Mock(MultipleCandidatesDetails)
 
-        def aFoo_bBar = [a: 'foo', b: 'bar']
-        def cFoo_dBar = [c: 'foo', d: 'bar']
+        def value1 = [a: 'foo', b: 'bar']
+        def value2 = [c: 'foo', d: 'bar']
 
-        when:
-        checkDetails.getConsumerValue() >> aFoo_bBar
-        checkDetails.getProducerValue() >> aFoo_bBar
-        strategy.compatibilityRules.execute(checkDetails)
-
-        then:
-        1 * checkDetails.compatible()
-        0 * checkDetails.incompatible()
+        def checkDetails = new DefaultCompatibilityCheckResult<Map>(AttributeValue.of(value1), AttributeValue.of(value2))
 
         when:
-        checkDetails.getConsumerValue() >> aFoo_bBar
-        checkDetails.getProducerValue() >> cFoo_dBar
-        strategy.compatibilityRules.execute(checkDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, checkDetails)
 
         then:
-        1 * checkDetails.compatible()
-        0 * checkDetails.incompatible()
-
-        when:
-        candidateDetails.candidateValues >> [aFoo_bBar, cFoo_dBar]
-        strategy.disambiguationRules.execute(candidateDetails)
-
-        then:
-        1 * candidateDetails.closestMatch(aFoo_bBar)
-        0 * candidateDetails._
-
+        checkDetails.isCompatible()
     }
 
-    def "returns rules from this when merging with a producer that contains subset of attribute definitions and same compatible-when-missing flags"() {
-        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+    def "can set a custom disambiguation rule"() {
+        def attr = Attribute.of(Map)
 
-        def attr1 = Attribute.of("a", String)
-        def attr2 = Attribute.of("b", Integer)
+        given:
+        schema.attribute(attr) {
+            it.disambiguationRules.add(CustomSelectionRule)
+        }
 
-        schema.attribute(attr1)
-        schema.attribute(attr2).compatibilityRules.assumeCompatibleWhenMissing()
+        def value1 = [a: 'foo', b: 'bar']
+        def value2 = [c: 'foo', d: 'bar']
 
-        expect:
-        def merged = schema.mergeFrom(producer)
-        merged.hasAttribute(attr1)
-        merged.hasAttribute(attr2)
-        merged.getCompatibilityRules(attr1).is(schema.getMatchingStrategy(attr1).compatibilityRules)
-        merged.getDisambiguationRules(attr1).is(schema.getMatchingStrategy(attr1).disambiguationRules)
+        def best = []
+        def candidates = LinkedListMultimap.create()
+        candidates.put(value1, "item1")
+        candidates.put(value2, "item2")
+        def candidateDetails = new DefaultCandidateResult(candidates, best)
 
-        producer.attribute(attr1)
-        producer.attribute(attr2).compatibilityRules.assumeCompatibleWhenMissing()
+        when:
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
-        def merged2 = schema.mergeFrom(producer)
-        merged2.is(merged)
-
-        producer.attribute(attr1).compatibilityRules.assumeCompatibleWhenMissing()
-
-        def merged3 = schema.mergeFrom(producer)
-        merged3 != merged
+        then:
+        best == ["item1"]
     }
 
     def "merges compatible-when-missing flags"() {
@@ -215,7 +162,7 @@ class DefaultAttributesSchemaTest extends Specification {
         producer.attribute(attr2)
 
         expect:
-        def merged = schema.mergeFrom(producer)
+        def merged = schema.mergeWith(producer)
         merged.hasAttribute(attr1)
         merged.hasAttribute(attr2)
         !merged.isCompatibleWhenMissing(attr1)
@@ -223,7 +170,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
         producer.attribute(attr1).compatibilityRules.assumeCompatibleWhenMissing()
 
-        def merged2 = schema.mergeFrom(producer)
+        def merged2 = schema.mergeWith(producer)
         merged2.isCompatibleWhenMissing(attr1)
         merged2.isCompatibleWhenMissing(attr2)
     }
@@ -241,14 +188,9 @@ class DefaultAttributesSchemaTest extends Specification {
         producer.attribute(attr3)
 
         expect:
-        def merged = schema.mergeFrom(producer)
+        def merged = schema.mergeWith(producer)
         merged.hasAttribute(attr1)
         merged.hasAttribute(attr2)
         merged.hasAttribute(attr3)
-        merged.getCompatibilityRules(attr1).is(schema.getMatchingStrategy(attr1).compatibilityRules)
-        merged.getDisambiguationRules(attr1).is(schema.getMatchingStrategy(attr1).disambiguationRules)
-
-        merged.getCompatibilityRules(attr3).is(producer.getMatchingStrategy(attr3).compatibilityRules)
-        merged.getDisambiguationRules(attr3).is(producer.getMatchingStrategy(attr3).disambiguationRules)
     }
 }

@@ -17,15 +17,15 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
-import org.gradle.api.internal.attributes.DisambiguationRuleChainInternal;
+import org.gradle.api.internal.attributes.CompatibilityCheckResult;
+import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
 public interface AttributeSelectionSchema {
     boolean hasAttribute(Attribute<?> attribute);
 
-    DisambiguationRuleChainInternal<Object> getDisambiguationRules(Attribute<?> attribute);
+    void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result);
 
-    CompatibilityRuleChainInternal<Object> getCompatibilityRules(Attribute<?> attribute);
+    void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result);
 
     boolean isCompatibleWhenMissing(Attribute<?> attribute);
 }

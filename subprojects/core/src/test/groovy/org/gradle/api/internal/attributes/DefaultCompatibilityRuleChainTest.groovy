@@ -54,7 +54,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
     }
 
     def "creates instance of rule implementation and delegates to it"() {
-        def details = Mock(CompatibilityCheckDetails)
+        def details = Mock(CompatibilityCheckResult)
 
         given:
         ruleChain.add(CompatibilityRule)
@@ -69,7 +69,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
     }
 
     def "can inject configuration into rule instance"() {
-        def details = Mock(CompatibilityCheckDetails)
+        def details = Mock(CompatibilityCheckResult)
 
         given:
         ruleChain.add(CompatibilityRuleWithParams) { it.params("p1") }
@@ -93,7 +93,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
     }
 
     def "wraps failure to execute rule"() {
-        def details = Mock(CompatibilityCheckDetails)
+        def details = Mock(CompatibilityCheckResult)
 
         given:
         details.consumerValue >> "value1"
@@ -122,7 +122,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
     }
 
     def "wraps failure to create rule"() {
-        def details = Mock(CompatibilityCheckDetails)
+        def details = Mock(CompatibilityCheckResult)
 
         given:
         details.consumerValue >> "value1"

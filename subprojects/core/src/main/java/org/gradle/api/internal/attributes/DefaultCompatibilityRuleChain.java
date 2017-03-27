@@ -73,52 +73,12 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainI
     }
 
     @Override
-    public void execute(CompatibilityCheckDetails<T> details) {
-        State<T> state = new State<T>(details);
+    public void execute(CompatibilityCheckResult<T> result) {
         for (Action<? super CompatibilityCheckDetails<T>> rule : rules) {
-            rule.execute(state);
-            if (state.determined) {
+            rule.execute(result);
+            if (result.hasResult()) {
                 return;
             }
-        }
-        if (!state.determined) {
-            AttributeMatchingRules.<T>equalityCompatibility().execute(state);
-            if (state.determined) {
-                return;
-            }
-        }
-        // Eventually fail, always
-        details.incompatible();
-    }
-
-    private static class State<T> implements CompatibilityCheckDetails<T> {
-        private final CompatibilityCheckDetails<T> delegate;
-        private boolean determined;
-
-        private State(CompatibilityCheckDetails<T> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public T getConsumerValue() {
-            return delegate.getConsumerValue();
-        }
-
-        @Override
-        public T getProducerValue() {
-            return delegate.getProducerValue();
-        }
-
-        @Override
-        public void compatible() {
-            determined = true;
-            delegate.compatible();
-        }
-
-        @Override
-        public void incompatible() {
-            determined = true;
-            delegate.incompatible();
         }
     }
 

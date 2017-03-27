@@ -113,7 +113,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
-                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, consumerSchema, matches, targetComponent);
+                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, consumerSchema.mergeWith(producerAttributeSchema), matches, targetComponent);
             }
         }
 
@@ -127,7 +127,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 // this was a fallback to `default`, and `default` is not consumable
                 Set<String> configurationNames = Sets.newTreeSet();
                 configurationNames.addAll(targetComponent.getConfigurationNames());
-                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, consumerSchema, targetComponent, Lists.newArrayList(configurationNames));
+                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, consumerSchema.mergeWith(producerAttributeSchema), targetComponent, Lists.newArrayList(configurationNames));
             }
             // explicit configuration selection
             throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
@@ -137,7 +137,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (!delegate.getAttributes().isEmpty()) {
                 // need to validate that the selected configuration still matches the consumer attributes
                 if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(delegate.getAttributes(), fromConfigurationAttributes)) {
-                    throw new IncompatibleConfigurationSelectionException(fromConfigurationAttributes, consumerSchema, targetComponent, targetConfiguration);
+                    throw new IncompatibleConfigurationSelectionException(fromConfigurationAttributes, consumerSchema.mergeWith(producerAttributeSchema), targetComponent, targetConfiguration);
                 }
             }
         }

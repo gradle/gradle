@@ -27,7 +27,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChainInternal<T> {
     private static final Object[] NO_PARAMS = new Object[0];
@@ -63,36 +62,12 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     @Override
-    public void execute(MultipleCandidatesDetails<T> details) {
-        State<T> state = new State<T>(details);
+    public void execute(MultipleCandidatesResult<T> details) {
         for (Action<? super MultipleCandidatesDetails<T>> rule : rules) {
-            rule.execute(state);
-            if (state.determined) {
+            rule.execute(details);
+            if (details.hasResult()) {
                 return;
             }
-        }
-        if (!state.determined) {
-            SelectAllCompatibleRule.apply(details);
-        }
-    }
-
-    private static class State<T> implements MultipleCandidatesDetails<T> {
-        private final MultipleCandidatesDetails<T> delegate;
-        private boolean determined;
-
-        private State(MultipleCandidatesDetails<T> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Set<T> getCandidateValues() {
-            return delegate.getCandidateValues();
-        }
-
-        @Override
-        public void closestMatch(T candidate) {
-            determined = true;
-            delegate.closestMatch(candidate);
         }
     }
 

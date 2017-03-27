@@ -24,11 +24,8 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
-import org.gradle.internal.Cast;
+import org.gradle.api.internal.attributes.CompatibilityCheckResult;
+import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.text.TreeFormatter;
@@ -51,13 +48,13 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
     };
 
     public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes,
-                                                    AttributesSchema consumerSchema,
+                                                    AttributeSelectionSchema schema,
                                                     List<? extends ConfigurationMetadata> matches,
                                                     ComponentResolveMetadata targetComponent) {
-        super(generateMessage(fromConfigurationAttributes, consumerSchema, matches, targetComponent));
+        super(generateMessage(fromConfigurationAttributes, schema, matches, targetComponent));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
+    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeSelectionSchema schema, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
         Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
         Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
         TreeFormatter formatter = new TreeFormatter();
@@ -73,13 +70,13 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (final String ambiguousConf : ambiguousConfigurations) {
-            formatConfiguration(formatter, fromConfigurationAttributes, consumerSchema, matches, requestedAttributes, ambiguousConf);
+            formatConfiguration(formatter, fromConfigurationAttributes, schema, matches, requestedAttributes, ambiguousConf);
         }
         formatter.endChildren();
         return formatter.toString();
     }
 
-    static void formatConfiguration(TreeFormatter formatter, AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, List<? extends ConfigurationMetadata> matches, Set<String> requestedAttributes, final String conf) {
+    static void formatConfiguration(TreeFormatter formatter, AttributeContainer fromConfigurationAttributes, AttributeSelectionSchema schema, List<? extends ConfigurationMetadata> matches, Set<String> requestedAttributes, final String conf) {
         Optional<? extends ConfigurationMetadata> match = Iterables.tryFind(matches, new Predicate<ConfigurationMetadata>() {
             @Override
             public boolean apply(ConfigurationMetadata input) {
@@ -98,20 +95,25 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
             formatter.append("'");
             formatter.startChildren();
             List<Attribute<?>> sortedAttributes = Ordering.usingToString().sortedCopy(allAttributes);
-            formatAttributes(formatter, fromConfigurationAttributes, consumerSchema, producerAttributes, commonAttributes, consumerOnlyAttributes, sortedAttributes);
+            formatAttributes(formatter, fromConfigurationAttributes, schema, producerAttributes, commonAttributes, consumerOnlyAttributes, sortedAttributes);
             formatter.endChildren();
         }
     }
 
-    private static void formatAttributes(final TreeFormatter formatter, AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, AttributeContainer producerAttributes, Set<String> commonAttributes, Set<String> consumerOnlyAttributes, List<Attribute<?>> sortedAttributes) {
+    private static void formatAttributes(final TreeFormatter formatter, AttributeContainer fromConfigurationAttributes, AttributeSelectionSchema schema, AttributeContainer producerAttributes, Set<String> commonAttributes, Set<String> consumerOnlyAttributes, List<Attribute<?>> sortedAttributes) {
         for (Attribute<?> attribute : sortedAttributes) {
             final String attributeName = attribute.getName();
             if (commonAttributes.contains(attributeName)) {
-                AttributeMatchingStrategy<?> strategy = consumerSchema.getMatchingStrategy(attribute);
-                CompatibilityRuleChainInternal<Object> compatibilityRules = Cast.uncheckedCast(strategy.getCompatibilityRules());
                 final Object consumerValue = fromConfigurationAttributes.getAttribute(attribute);
                 final Object producerValue = producerAttributes.getAttribute(attribute);
-                compatibilityRules.execute(new CompatibilityCheckDetails<Object>() {
+                schema.matchValue(attribute, new CompatibilityCheckResult<Object>() {
+                    boolean done;
+
+                    @Override
+                    public boolean hasResult() {
+                        return done;
+                    }
+
                     @Override
                     public Object getConsumerValue() {
                         return consumerValue;
@@ -124,11 +126,13 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
 
                     @Override
                     public void compatible() {
+                        done = true;
                         formatter.node("Required " + attributeName + " '" + consumerValue + "' and found compatible value '" + producerValue + "'.");
                     }
 
                     @Override
                     public void incompatible() {
+                        done = true;
                         formatter.node("Required " + attributeName + " '" + consumerValue + "' and found incompatible value '" + producerValue + "'.");
                     }
                 });

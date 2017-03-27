@@ -19,7 +19,7 @@ package org.gradle.internal.component;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.text.TreeFormatter;
@@ -34,13 +34,13 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 public class NoMatchingConfigurationSelectionException extends IllegalArgumentException {
     public NoMatchingConfigurationSelectionException(
         AttributeContainer fromConfigurationAttributes,
-        AttributesSchema consumerSchema,
+        AttributeSelectionSchema schema,
         ComponentResolveMetadata targetComponent,
         List<String> candidateConfigurations) {
-        super(generateMessage(fromConfigurationAttributes, consumerSchema, targetComponent, candidateConfigurations));
+        super(generateMessage(fromConfigurationAttributes, schema, targetComponent, candidateConfigurations));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributesSchema consumerSchema, ComponentResolveMetadata targetComponent, List<String> configurationNames) {
+    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeSelectionSchema schema, ComponentResolveMetadata targetComponent, List<String> configurationNames) {
         List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(configurationNames.size());
         for (String name : configurationNames) {
             ConfigurationMetadata targetComponentConfiguration = targetComponent.getConfiguration(name);
@@ -58,7 +58,7 @@ public class NoMatchingConfigurationSelectionException extends IllegalArgumentEx
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (String config : configurationNames) {
-                formatConfiguration(formatter, fromConfigurationAttributes, consumerSchema, configurations, requestedAttributes, config);
+                formatConfiguration(formatter, fromConfigurationAttributes, schema, configurations, requestedAttributes, config);
             }
         }
         formatter.endChildren();

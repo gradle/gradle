@@ -22,12 +22,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.AttributeValue;
-import org.gradle.api.internal.attributes.CompatibilityRuleChainInternal;
-import org.gradle.api.internal.attributes.DisambiguationRuleChainInternal;
+import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.internal.Cast;
 
 import java.util.ArrayList;
@@ -211,10 +208,10 @@ public class ComponentAttributeMatcher {
                     Object val = matchedAttributes.get(attribute);
                     candidatesByValue.put(val, details);
                 }
-                disambiguate(remainingMatches, candidatesByValue, schema.getDisambiguationRules(attribute), best);
+                disambiguate(attribute, remainingMatches, candidatesByValue, schema, best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
-                    return remainingMatches;
+                    return compatible;
                 }
                 candidatesByValue.clear();
                 best.clear();
@@ -223,16 +220,17 @@ public class ComponentAttributeMatcher {
             return remainingMatches;
         }
 
-        private void disambiguate(List<MatchDetails<T>> remainingMatches,
+        private void disambiguate(Attribute<?> attribute,
+                                  List<MatchDetails<T>> remainingMatches,
                                   Multimap<Object, MatchDetails<T>> candidatesByValue,
-                                  DisambiguationRuleChainInternal<Object> disambiguationRules,
+                                  AttributeSelectionSchema schema,
                                   List<MatchDetails<T>> best) {
             if (candidatesByValue.isEmpty()) {
                 // missing or unknown
                 return;
             }
-            MultipleCandidatesDetails<Object> details = new CandidateDetails<MatchDetails<T>>(candidatesByValue, best);
-            disambiguationRules.execute(details);
+            MultipleCandidatesResult<Object> details = new DefaultCandidateResult<MatchDetails<T>>(candidatesByValue, best);
+            schema.disambiguate(attribute, details);
             remainingMatches.retainAll(best);
         }
     }
@@ -248,31 +246,15 @@ public class ComponentAttributeMatcher {
             this.candidate = candidate;
         }
 
-        void update(final Attribute<Object> attribute, final AttributeSelectionSchema schema, final AttributeValue<Object> consumerValue, final AttributeValue<Object> producerValue) {
-            CompatibilityRuleChainInternal<Object> compatibilityRules = schema.getCompatibilityRules(attribute);
-            CompatibilityCheckDetails<Object> details = new CompatibilityCheckDetails<Object>() {
-                @Override
-                public Object getConsumerValue() {
-                    return consumerValue.get();
-                }
-
-                @Override
-                public Object getProducerValue() {
-                    return producerValue.get();
-                }
-
-                @Override
-                public void compatible() {
-                    matched.add(attribute);
-                    matchesByAttribute.put(attribute, producerValue.get());
-                }
-
-                @Override
-                public void incompatible() {
-                    compatible = false;
-                }
-            };
-            compatibilityRules.execute(details);
+        void update(final Attribute<Object> attribute, AttributeSelectionSchema schema, AttributeValue<Object> consumerValue, AttributeValue<Object> producerValue) {
+            DefaultCompatibilityCheckResult<Object> details = new DefaultCompatibilityCheckResult<Object>(consumerValue, producerValue);
+            schema.matchValue(attribute, details);
+            if (details.isCompatible()) {
+                matched.add(attribute);
+                matchesByAttribute.put(attribute, producerValue.get());
+            } else {
+                compatible = false;
+            }
         }
 
         void updateForMissingProducerValue(Attribute<Object> attribute, AttributeSelectionSchema schema) {
@@ -287,27 +269,6 @@ public class ComponentAttributeMatcher {
                 return;
             }
             matchesByAttribute.put(attribute, producerValue.get());
-        }
-    }
-
-    private static class CandidateDetails<T> implements MultipleCandidatesDetails<Object> {
-        private final Multimap<Object, T> candidatesByValue;
-        private final List<T> best;
-
-        CandidateDetails(Multimap<Object, T> candidatesByValue, List<T> best) {
-            this.candidatesByValue = candidatesByValue;
-            this.best = best;
-        }
-
-        @Override
-        public Set<Object> getCandidateValues() {
-            return candidatesByValue.keySet();
-        }
-
-        @Override
-        public void closestMatch(Object candidate) {
-            Collection<T> t = candidatesByValue.get(candidate);
-            best.addAll(t);
         }
     }
 }

@@ -17,9 +17,11 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeSelectionSchema;
 
 import java.util.Collections;
 import java.util.Set;
@@ -30,8 +32,19 @@ public class EmptySchema implements AttributesSchemaInternal {
     private EmptySchema() {
     }
 
+    @Nullable
+    @Override
+    public <T> AttributeMatchingStrategy<T> findMatchingStrategy(Attribute<T> attribute) {
+        return null;
+    }
+
     @Override
     public <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AttributeSelectionSchema mergeWith(AttributesSchemaInternal producerSchema) {
         throw new UnsupportedOperationException();
     }
 

@@ -33,6 +33,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException
@@ -112,6 +113,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            getAttributesSchema() >> EmptySchema.INSTANCE
         }
         attributesSchema.attribute(Attribute.of('key', String), {
             if (allowMissing) {
@@ -213,6 +215,7 @@ Configuration 'default':
             getComponentId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
             }
+            getAttributesSchema() >> EmptySchema.INSTANCE
         }
 
         attributesSchema.attribute(Attribute.of('key', String))
@@ -484,6 +487,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            getAttributesSchema() >> EmptySchema.INSTANCE
         }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
