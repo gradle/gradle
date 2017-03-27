@@ -18,7 +18,6 @@ package org.gradle.script.lang.kotlin.resolver
 
 import org.gradle.api.Project
 
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classloader.ClasspathUtil
@@ -95,9 +94,6 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
     private fun cachingKotlinCompilerOf(project: Project) =
         project.serviceOf<CachingKotlinCompiler>()
-
-    private val Project.scriptClassPath get() =
-        (buildscript as ScriptHandlerInternal).scriptClassPath!!
 
     private fun scriptPluginClassPathOf(project: Project) =
         buildSrcClassPathOf(project) + gradleScriptKotlinApiOf(project)
