@@ -26,6 +26,8 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -34,9 +36,13 @@ import java.util.Set;
 public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final FileCollection files;
-    private final String displayName;
+    private final Factory<String> displayName;
 
     public DefaultPublishArtifactSet(String displayName, DomainObjectSet<PublishArtifact> backingSet, FileCollectionFactory fileCollectionFactory) {
+        this(Factories.constant(displayName), backingSet, fileCollectionFactory);
+    }
+
+    public DefaultPublishArtifactSet(Factory<String> displayName, DomainObjectSet<PublishArtifact> backingSet, FileCollectionFactory fileCollectionFactory) {
         super(backingSet);
         this.displayName = displayName;
         this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());
@@ -44,7 +50,7 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
 
     @Override
     public String toString() {
-        return displayName;
+        return displayName.create();
     }
 
     public FileCollection getFiles() {
@@ -58,7 +64,7 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
     private class ArtifactsFileCollection implements MinimalFileSet {
         @Override
         public String getDisplayName() {
-            return displayName;
+            return displayName.create();
         }
 
         @Override

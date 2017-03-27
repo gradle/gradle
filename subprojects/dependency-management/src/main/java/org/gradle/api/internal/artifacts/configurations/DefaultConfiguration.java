@@ -174,6 +174,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
 
+    String displayName;
+
     public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver,
@@ -216,17 +218,36 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
-        final String displayName = getDisplayName();
-        dependencies = new DefaultDependencySet(displayName + " dependencies", this, ownDependencies);
+        dependencies = new DefaultDependencySet(new Factory<String>() {
+            @Override
+            public String create() {
+                return getDisplayName() + " dependencies";
+            }
+        }, this, ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        allDependencies = new DefaultDependencySet(displayName + " all dependencies", this, inheritedDependencies);
+        allDependencies = new DefaultDependencySet(new Factory<String>() {
+            @Override
+            public String create() {
+                return getDisplayName() + " all dependencies";
+            }
+        }, this, inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
 
-        artifacts = new DefaultPublishArtifactSet(displayName + " artifacts", ownArtifacts, fileCollectionFactory);
+        artifacts = new DefaultPublishArtifactSet(new Factory<String>() {
+            @Override
+            public String create() {
+                return getDisplayName() + " artifacts";
+            }
+        }, ownArtifacts, fileCollectionFactory);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
-        allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
+        allArtifacts = new DefaultPublishArtifactSet(new Factory<String>() {
+            @Override
+            public String create() {
+                return getDisplayName() + " all artifacts";
+            }
+        }, inheritedArtifacts, fileCollectionFactory);
 
         outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
     }
@@ -567,11 +588,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("configuration '");
-        builder.append(identityPath);
-        builder.append("'");
-        return builder.toString();
+        if (displayName == null) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("configuration '");
+            builder.append(identityPath);
+            builder.append("'");
+            displayName = builder.toString();
+        }
+        return displayName;
     }
 
     public ResolvableDependencies getIncoming() {
