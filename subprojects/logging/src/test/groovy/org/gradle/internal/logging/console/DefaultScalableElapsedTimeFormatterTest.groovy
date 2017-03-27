@@ -32,9 +32,9 @@ class DefaultScalableElapsedTimeFormatterTest extends Specification {
 
         where:
         lowerBoundInclusive | upperBoundExclusive | input            | output
-        "None"              | "10 seconds"        | seconds(4.21345) | "4s"
-        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42s"
-        "1 minute"          | "10 minutes"        | minutes(4.21234) | "4.21m"
+        "None"              | "10 seconds"        | seconds(4.21345) | "4.2s"
+        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42.1s"
+        "1 minute"          | "10 minutes"        | minutes(4.21234) | "4.2m"
         "10 minutes"        | "1 hour"            | minutes(42.1234) | "42.1m"
         "1 hour"            | "10 hours"          | hours(4.2123456) | "4.21h"
         "10 hours"          | "100 hours"         | hours(42.123456) | "42.1h"
@@ -51,8 +51,8 @@ class DefaultScalableElapsedTimeFormatterTest extends Specification {
 
         where:
         input         | output
-        minutes(4.2)  | "4.20m"
-        minutes(42.0) | "42.0m"
+        hours(4.2)  | "4.20h"
+        hours(42.0) | "42.0h"
     }
 
     private static long hours(double value) {

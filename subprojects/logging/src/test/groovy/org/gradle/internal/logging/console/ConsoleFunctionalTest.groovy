@@ -24,7 +24,7 @@ import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
-import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
@@ -33,16 +33,19 @@ import spock.lang.Specification
 class ConsoleFunctionalTest extends Specification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
+    private final TimeProvider timeProvider = Mock(TimeProvider)
     private final ConsoleMetaData metaData = Mock(ConsoleMetaData)
     private OutputEventRenderer renderer
+    private long currentTimeMs;
     public static final String IDLE = '> IDLE'
 
     def setup() {
-        renderer = new OutputEventRenderer()
+        renderer = new OutputEventRenderer(timeProvider)
         renderer.configure(LogLevel.INFO)
         renderer.addConsole(console, true, true, metaData)
         _ * metaData.getRows() >> 10
-        _ * metaData.getCols() >> 25
+        _ * metaData.getCols() >> 30
+        _ * timeProvider.getCurrentTime() >> { currentTimeMs }
     }
 
     def "renders initial state"() {
@@ -51,7 +54,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% INITIALIZING'
+            assert statusBar.display == '<---> 0% INITIALIZING... 0.0s'
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
@@ -63,17 +66,18 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% CONFIGURING'
+            assert statusBar.display == '<---> 0% CONFIGURING... 0.0s'
             assert progressArea.display == ['> root project', IDLE, IDLE, IDLE]
         }
 
         when:
+        currentTimeMs += 200L;
         renderer.onOutput(completeEvent(2, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY))
         renderer.onOutput(progressEvent(1, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, '<=--> 33% CONFIGURING'))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<=--> 33% CONFIGURING'
+            assert statusBar.display == '<=--> 33% CONFIGURING... 0.2s'
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
@@ -125,11 +129,11 @@ class ConsoleFunctionalTest extends Specification {
         _ * metaData.getCols() >> 25
 
         when:
-        renderer.onOutput(startEvent(1, 'abcdefghijklmnopqrstuvwxyz'))
+        renderer.onOutput(startEvent(1, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJK'))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> abcdefghijklmnopqrstuv', IDLE, IDLE, IDLE]
+            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzA', IDLE, IDLE, IDLE]
         }
     }
 
@@ -247,22 +251,22 @@ class ConsoleFunctionalTest extends Specification {
     }
 
     ProgressStartEvent startEvent(Long id, Long parentId=null, category='CATEGORY', description='DESCRIPTION', shortDescription='SHORT_DESCRIPTION', loggingHeader='LOGGING_HEADER', status='STATUS') {
-        long timestamp = new TrueTimeProvider().currentTime
+        long timestamp = timeProvider.currentTime
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
         new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status)
     }
 
     ProgressStartEvent startEvent(Long id, String status) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, new TrueTimeProvider().currentTime, null, null, null, null, status)
+        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status)
     }
 
     ProgressEvent progressEvent(Long id, category='CATEGORY', status='STATUS') {
-        long timestamp = new TrueTimeProvider().currentTime
+        long timestamp = timeProvider.currentTime
         new ProgressEvent(new OperationIdentifier(id), timestamp, category, status)
     }
 
     ProgressCompleteEvent completeEvent(Long id, category='CATEGORY', description='DESCRIPTION', status='STATUS') {
-        long timestamp = new TrueTimeProvider().currentTime
+        long timestamp = timeProvider.currentTime
         new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, category, description, status)
     }
 

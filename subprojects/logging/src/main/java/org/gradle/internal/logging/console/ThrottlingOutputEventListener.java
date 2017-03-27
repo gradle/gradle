@@ -40,6 +40,15 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private final int throttleMs;
     private final Object lock = new Object();
 
+    private final Runnable scheduledRenderNow = new Runnable() {
+        @Override
+        public void run() {
+            synchronized (lock) {
+                renderNow(timeProvider.getCurrentTime());
+            }
+        }
+    };
+
     private long lastUpdate;
     private ScheduledFuture future;
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
@@ -48,7 +57,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
     }
 
-    ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, final TimeProvider timeProvider) {
+    ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
         this.throttleMs = throttleMs;
         this.listener = listener;
         this.executor = executor;
@@ -79,24 +88,10 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             }
 
             // This is the first queued event - schedule a thread to flush later
-            executor.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (lock) {
-                        renderNow(timeProvider.getCurrentTime());
-                    }
-                }
-            }, throttleMs, TimeUnit.MILLISECONDS);
+            executor.schedule(scheduledRenderNow, throttleMs, TimeUnit.MILLISECONDS);
 
             if (future == null || future.isCancelled()) {
-                future = executor.scheduleAtFixedRate(new Runnable() {
-                    @Override
-                    public void run() {
-                        synchronized (lock) {
-                            renderNow(timeProvider.getCurrentTime());
-                        }
-                    }
-                }, 500*2, 500, TimeUnit.MILLISECONDS);
+                future = executor.scheduleAtFixedRate(scheduledRenderNow, throttleMs, throttleMs, TimeUnit.MILLISECONDS);
             }
         }
     }

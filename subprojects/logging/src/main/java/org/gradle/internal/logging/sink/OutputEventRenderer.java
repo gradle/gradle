@@ -41,6 +41,7 @@ import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.OutputStream;
@@ -60,6 +61,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private int maxWorkerCount;
     private final ConsoleConfigureAction consoleConfigureAction;
+    private final TimeProvider timeProvider;
     private OutputStream originalStdOut;
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
@@ -67,11 +69,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private OutputEventListener console;
 
     public OutputEventRenderer() {
+        this(new TrueTimeProvider());
+    }
+
+    OutputEventRenderer(TimeProvider timeProvider) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
         formatters.add(stdErrChain);
         this.consoleConfigureAction = new ConsoleConfigureAction();
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -199,7 +206,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                         new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), true),
                     console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
                 console.getStatusBar(), console, consoleMetaData),
-            new TrueTimeProvider());
+            timeProvider);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;

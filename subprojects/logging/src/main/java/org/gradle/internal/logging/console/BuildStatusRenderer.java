@@ -38,8 +38,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final DefaultScalableElapsedTimeFormatter elapsedTimeFormatter = new DefaultScalableElapsedTimeFormatter();
     private String currentBuildStatus;
     private OperationIdentifier rootOperationId;
-    private boolean started = false;
-    private long startTimestamp;
+    private long buildStartTimestamp;
 
     public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
         this.listener = listener;
@@ -67,9 +66,8 @@ public class BuildStatusRenderer implements OutputEventListener {
             // if it has no parent ID, assign this operation as the root operation
             if (startEvent.getParentId() == null && BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
                 rootOperationId = startEvent.getOperationId();
-                if (!started) {
-                    started = true;
-                    startTimestamp = startEvent.getTimestamp();
+                if (buildStartTimestamp == 0) {
+                    buildStartTimestamp = startEvent.getTimestamp();
                 }
                 buildStarted(startEvent);
             }
@@ -103,9 +101,14 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     private void renderNow(long now) {
         if (currentBuildStatus != null && !currentBuildStatus.isEmpty()) {
-            String elapsedTime = elapsedTimeFormatter.format(now - startTimestamp);
-            buildStatusLabel.setText(Arrays.asList(new Span(Style.of(Style.Emphasis.BOLD), trimToConsole(currentBuildStatus + " [" + elapsedTime + "]"))));
+            String elapsedTime = elapsedTimeFormatter.format(now - buildStartTimestamp);
+            buildStatusLabel.setText(Arrays.asList(
+                new Span(Style.of(Style.Emphasis.BOLD), trimToConsole(format(currentBuildStatus, elapsedTime)))));
         }
         console.flush();
+    }
+
+    private static String format(String status, String elapsedTime) {
+        return status + "... " + elapsedTime;
     }
 }

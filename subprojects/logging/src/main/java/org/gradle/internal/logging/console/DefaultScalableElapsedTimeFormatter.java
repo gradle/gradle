@@ -21,13 +21,11 @@ public class DefaultScalableElapsedTimeFormatter {
         double elapsedTime = elapsedTimeMs / 1000.0;
 
         if (elapsedTime < 60.0) {
-            return format(elapsedTime, 0, "s");
+            return format(elapsedTime, 1, "s");
         }
 
         elapsedTime /= 60.0;
-        if (elapsedTime < 10.0) {
-            return format(elapsedTime, 2, "m");
-        } else if (elapsedTime < 60.0) {
+        if (elapsedTime < 60.0) {
             return format(elapsedTime, 1, "m");
         }
 
