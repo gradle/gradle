@@ -25,6 +25,7 @@ import org.gradle.api.logging.LogLevel
 
 @CacheableTask
 class Docbook2Xhtml extends SourceTask {
+
     @Classpath
     FileCollection classpath
 

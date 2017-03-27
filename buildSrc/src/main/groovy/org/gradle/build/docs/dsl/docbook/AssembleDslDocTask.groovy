@@ -61,6 +61,7 @@ import org.w3c.dom.Element
  */
 @CacheableTask
 class AssembleDslDocTask extends DefaultTask {
+
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
     File sourceFile

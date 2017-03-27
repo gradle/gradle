@@ -355,7 +355,8 @@ task pdfUserguideDocbook(type: UserGuideTransformTask) {
 
 configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
-    includes = files(samplesDocbook,
+    includes = files(
+        samplesDocbook,
         defaultImports.importsDestFile,
         fileTree(dir: userguideSrcDir, includes: ['*.xml']),
         userguideAsciidoc.outputs.files
@@ -366,9 +367,8 @@ configure([userguideDocbook, pdfUserguideDocbook]) {
     sourceFile new File(userguideSrcDir, 'userguide.xml')
 }
 
-def resourceFiles = fileTree(userguideSrcDir) {
-        include 'img/*.png'
-} + cssFiles
+def imageFiles = fileTree(userguideSrcDir) { include 'img/*.png' }
+def resourceFiles = imageFiles + cssFiles
 
 task userguideHtml(type: Docbook2Xhtml) {
     group = "Documentation"

@@ -30,15 +30,17 @@ import java.util.regex.Pattern
  * Produces the snippets files for a set of sample source files.
  */
 @CacheableTask
-public class ExtractSnippetsTask extends SourceTask {
+class ExtractSnippetsTask extends SourceTask {
+
     @OutputDirectory
     File destDir
+
     @OutputDirectory
     File snippetsDir
 
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getSource() {
+    FileTree getSource() {
         return super.getSource()
     }
 
@@ -51,8 +53,7 @@ public class ExtractSnippetsTask extends SourceTask {
                 destDir.mkdirs()
                 destDir = new File(snippetsDir, name)
                 destDir.mkdirs()
-            }
-            else {
+            } else {
                 File srcFile = details.file
                 File destFile = new File(destDir, name)
 

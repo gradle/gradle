@@ -36,6 +36,7 @@ import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+
 /**
  * Transforms userguide source into docbook, replacing custom XML elements.
  *
@@ -49,6 +50,7 @@ import org.w3c.dom.Element
  */
 @CacheableTask
 class UserGuideTransformTask extends DefaultTask {
+
     @Input
     String getVersion() { return project.version.toString() }
 
@@ -115,9 +117,7 @@ class UserGuideTransformTask extends DefaultTask {
     def addVersionInfo(Document doc) {
         Element releaseInfo = doc.createElement('releaseinfo')
         releaseInfo.appendChild(doc.createTextNode(version.toString()))
-        if (doc.documentElement.bookinfo[0]) {
-            doc.documentElement.bookinfo[0].appendChild(releaseInfo)
-        }
+        doc.documentElement.bookinfo[0]?.appendChild(releaseInfo)
     }
 
     def fixProgramListings(Document doc) {
@@ -127,14 +127,14 @@ class UserGuideTransformTask extends DefaultTask {
     }
 
     static String normalise(String content) {
-        return content.replace('\t', '    ').stripIndent().replace('\r\n', '\n')
+        content.replace('\t', '    ').stripIndent().replace('\r\n', '\n')
     }
 
     def transformApiLinks(Document doc) {
         ClassMetaDataRepository<ClassLinkMetaData> linkRepository = new SimpleClassMetaDataRepository<ClassLinkMetaData>()
         linkRepository.load(linksFile)
 
-        doc.documentElement.depthFirst().findAll { it.name() == 'apilink' }.each {Element element ->
+        findAll(doc, 'apilink').each { Element element ->
             String className = element.'@class'
             if (!className) {
                 throw new RuntimeException('No "class" attribute specified for <apilink> element.')
@@ -174,7 +174,7 @@ class UserGuideTransformTask extends DefaultTask {
     }
 
     def transformWebsiteLinks(Document doc) {
-        doc.documentElement.depthFirst().findAll { it.name() == 'ulink' }.each {Element element ->
+        findAll(doc, 'ulink').each { Element element ->
             String url = element.'@url'
             if (url.startsWith('website:')) {
                 url = url.substring(8)
@@ -187,24 +187,22 @@ class UserGuideTransformTask extends DefaultTask {
     }
 
     def transformSamples(Document doc) {
-        XIncludeAwareXmlProvider samplesXmlProvider = new XIncludeAwareXmlProvider()
-        samplesXmlProvider.emptyDoc() << {
-            samples()
-        }
         String lastTitle
         String lastId
         Element lastExampleElement
-        doc.documentElement.depthFirst().findAll { it.name() == 'sample' }.each { Element element ->
-            validator.validate(element)
-            String sampleId = element.'@id'
-            String srcDir = element.'@dir'
+        findAll(doc, 'sample').each { Element sampleElement ->
+
+            validator.validate(sampleElement)
+
+            String sampleId = sampleElement.'@id'
+            String srcDir = sampleElement.'@dir'
 
             // This class handles the responsibility of adding the location tips to the first child of first
             // example defined in the sample.
-            SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, element, srcDir)
+            SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, sampleElement, srcDir)
             SampleLayoutHandler layoutHandler = new SampleLayoutHandler(srcDir)
 
-            String title = element.'@title'
+            String title = sampleElement.'@title'
 
             Element exampleElement = lastExampleElement
 
@@ -219,21 +217,20 @@ class UserGuideTransformTask extends DefaultTask {
             lastTitle = title
             lastExampleElement = exampleElement
 
-            element.children().each {Element child ->
+            sampleElement.children().each { Element child ->
                 if (child.name() == 'sourcefile') {
                     String file = child.'@file'
 
-                    Element sourcefileTitle = doc.createElement("para")
+                    Element sourceFileTitle = doc.createElement("para")
                     Element commandElement = doc.createElement('filename')
                     commandElement.appendChild(doc.createTextNode(file))
-                    sourcefileTitle.appendChild(commandElement)
-                    exampleElement.appendChild(sourcefileTitle)
+                    sourceFileTitle.appendChild(commandElement)
+                    exampleElement.appendChild(sourceFileTitle)
 
                     Element programListingElement = doc.createElement('programlisting')
                     if (file.endsWith('.gradle') || file.endsWith('.groovy') || file.endsWith('.java')) {
                         programListingElement.setAttribute('language', 'java')
-                    }
-                    else if (file.endsWith('.xml')) {
+                    } else if (file.endsWith('.xml')) {
                         programListingElement.setAttribute('language', 'xml')
                     }
                     File srcFile
@@ -264,14 +261,13 @@ class UserGuideTransformTask extends DefaultTask {
                         exampleElement.appendChild(screenElement)
                     }
                 } else if (child.name() == 'layout') {
-                    String args = child.'@after'
                     layoutHandler.handle(child.text(), exampleElement)
                 }
 
                 locationHandler.processSampleLocation(exampleElement)
             }
-            element.parentNode.insertBefore(exampleElement, element)
-            element.parentNode.removeChild(element)
+            sampleElement.parentNode.insertBefore(exampleElement, sampleElement)
+            sampleElement.parentNode.removeChild(sampleElement)
         }
     }
 
@@ -281,5 +277,9 @@ class UserGuideTransformTask extends DefaultTask {
                 element.parentNode.removeChild(element)
             }
         }
+    }
+
+    static def findAll(Document doc, String byName) {
+        doc.documentElement.depthFirst().findAll { it.name() == byName }
     }
 }
