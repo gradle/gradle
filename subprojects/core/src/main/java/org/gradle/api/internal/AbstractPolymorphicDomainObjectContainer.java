@@ -24,8 +24,7 @@ import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -86,11 +85,9 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        public void getProperty(String name, GetPropertyResult result) {
+        public DynamicInvokeResult tryGetProperty(String name) {
             Object object = findByName(name);
-            if (object != null) {
-                result.result(object);
-            }
+            return object == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(object);
         }
 
         @Override
@@ -104,15 +101,16 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
                 T element = getByName(name);
                 Object lastArgument = arguments[arguments.length - 1];
                 if (lastArgument instanceof Closure) {
                     ConfigureUtil.configure((Closure) lastArgument, element);
                 }
-                result.result(element);
+                return DynamicInvokeResult.found(element);
             }
+            return DynamicInvokeResult.notFound();
         }
 
         private boolean isConfigureMethod(String name, Object... arguments) {

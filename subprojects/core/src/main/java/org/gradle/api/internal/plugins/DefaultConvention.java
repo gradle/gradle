@@ -26,10 +26,8 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
-import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -265,19 +263,19 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         @Override
-        public void getProperty(String name, GetPropertyResult result) {
+        public DynamicInvokeResult tryGetProperty(String name) {
             Object extension = extensionsStorage.findByName(name);
             if (extension != null) {
-                result.result(extension);
-                return;
+                return DynamicInvokeResult.found(extension);
             }
             for (Object object : plugins.values()) {
                 DynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
-                dynamicObject.getProperty(name, result);
+                DynamicInvokeResult result = dynamicObject.tryGetProperty(name);
                 if (result.isFound()) {
-                    return;
+                    return result;
                 }
             }
+            return DynamicInvokeResult.notFound();
         }
 
         public Object propertyMissing(String name) {
@@ -285,15 +283,16 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         @Override
-        public void setProperty(String name, Object value, SetPropertyResult result) {
+        public DynamicInvokeResult trySetProperty(String name, Object value) {
             checkExtensionIsNotReassigned(name);
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
-                dynamicObject.setProperty(name, value, result);
+                DynamicInvokeResult result = dynamicObject.trySetProperty(name, value);
                 if (result.isFound()) {
-                    return;
+                    return result;
                 }
             }
+            return DynamicInvokeResult.notFound();
         }
 
         public void propertyMissing(String name, Object value) {
@@ -301,18 +300,18 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... args) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
-                result.result(configureExtension(name, args));
-                return;
+                return DynamicInvokeResult.found(configureExtension(name, args));
             }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
-                dynamicObject.invokeMethod(name, result, args);
+                DynamicInvokeResult result = dynamicObject.tryInvokeMethod(name, args);
                 if (result.isFound()) {
-                    return;
+                    return result;
                 }
             }
+            return DynamicInvokeResult.notFound();
         }
 
         public Object methodMissing(String name, Object args) {

@@ -23,9 +23,8 @@ import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.PrintStream;
@@ -67,12 +66,11 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         if (getBinding().hasVariable(property)) {
             return super.getProperty(property);
         }
-        GetPropertyResult result = new GetPropertyResult();
-        scriptObject.getProperty(property, result);
+        DynamicInvokeResult result = scriptObject.tryGetProperty(property);
         if (result.isFound()) {
             return result.getValue();
         }
-        dynamicTarget.getProperty(property, result);
+        result = dynamicTarget.tryGetProperty(property);
         if (result.isFound()) {
             return result.getValue();
         }
@@ -101,14 +99,13 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     @Override
     public Object invokeMethod(String name, Object args) {
         Object[] arguments = (Object[]) args;
-        InvokeMethodResult result = new InvokeMethodResult();
-        scriptObject.invokeMethod(name, result, arguments);
+        DynamicInvokeResult result = scriptObject.tryInvokeMethod(name, arguments);
         if (result.isFound()) {
-            return result.getResult();
+            return result.getValue();
         }
-        dynamicTarget.invokeMethod(name, result, arguments);
+        result = dynamicTarget.tryInvokeMethod(name, arguments);
         if (result.isFound()) {
-            return result.getResult();
+            return result.getValue();
         }
         throw dynamicTarget.methodMissingException(name, arguments);
     }
