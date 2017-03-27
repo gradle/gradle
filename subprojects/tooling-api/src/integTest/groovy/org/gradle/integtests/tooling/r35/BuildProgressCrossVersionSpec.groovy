@@ -31,7 +31,6 @@ import spock.lang.Issue
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.5")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
-    public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
 
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
@@ -142,9 +141,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                    .setJvmArguments("-D${REUSE_USER_HOME_SERVICES}=false")
-                    .addProgressListener(events)
-                    .run()
+                    .addProgressListener(events).run()
         }
 
         then:
@@ -179,13 +176,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifactC.children == [downloadCArtifact]
 
         cleanup:
-        try {
-            toolingApi.getDaemons().killAll()
-        } catch (RuntimeException ex) {
-            //TODO once we figured out why pid from logfile can be null we should remove this again
-            LOGGER.warn("Unable to kill daemon(s)", ex);
-        }
-
+        toolingApi.daemons.killAll()
     }
 
     @Issue("gradle/gradle#1641")
@@ -253,6 +244,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             "Download ${module.rootMetaData.uri}",
             "Download ${module.rootMetaData.sha1.uri}"
         ]
+
+        cleanup:
+        toolingApi.daemons.killAll()
     }
 
     def "generate events for task actions"() {
