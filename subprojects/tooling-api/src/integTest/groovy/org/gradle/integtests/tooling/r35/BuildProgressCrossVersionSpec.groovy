@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
+import spock.lang.Issue
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.5")
@@ -185,6 +186,73 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             LOGGER.warn("Unable to kill daemon(s)", ex);
         }
 
+    }
+
+    @Issue("gradle/gradle#1641")
+    @LeaksFileHandles
+    def "generates download events during maven publish"() {
+        if (targetDist.version.version == "3.5-rc-1") { return }
+
+        given:
+        toolingApi.requireIsolatedUserHome()
+        def module = mavenHttpRepo.module('group', 'publish', '1')
+
+        // module is published
+        module.publish()
+
+        // module will be published a second time via 'maven-publish'
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.md5.expectPut()
+        module.pom.expectPut()
+        module.pom.sha1.expectPut()
+        module.pom.md5.expectPut()
+        module.rootMetaData.expectGet()
+        module.rootMetaData.sha1.expectGet()
+        module.rootMetaData.expectGet()
+        module.rootMetaData.sha1.expectGet()
+        module.rootMetaData.expectPut()
+        module.rootMetaData.sha1.expectPut()
+        module.rootMetaData.md5.expectPut()
+
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            version = '1'
+            group = 'group'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenHttpRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        def events = ProgressEvents.create()
+
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('publish')
+                    .addProgressListener(events).run()
+        }
+
+        then:
+        def roots = events.operations.findAll { it.parent == null }.collect { it.descriptor.name }
+
+        roots == [
+            "Run build",
+            "Download ${module.rootMetaData.uri}",
+            "Download ${module.rootMetaData.sha1.uri}",
+            "Download ${module.rootMetaData.uri}",
+            "Download ${module.rootMetaData.sha1.uri}"
+        ]
     }
 
     def "generate events for task actions"() {

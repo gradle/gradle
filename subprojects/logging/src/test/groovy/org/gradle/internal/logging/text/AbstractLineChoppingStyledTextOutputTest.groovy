@@ -29,8 +29,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     private static final def EOLS = [
         ["System", SYSTEM_EOL],
         ["*nix", NIX_EOL],
-        ["Windows", WINDOWS_EOL],
-        ["Mac OS 9", MACOS9_EOL]
+        ["Windows", WINDOWS_EOL]
     ]
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final StringBuilder result = new StringBuilder()
@@ -113,7 +112,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can append eol in chunks"() {
-        System.setProperty("line.separator", "----");
+        System.setProperty("line.separator", "----")
         def output = output()
 
         when:
@@ -130,7 +129,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can append eol prefix"() {
-        System.setProperty("line.separator", "----");
+        System.setProperty("line.separator", "----")
         def output = output()
 
         when:
@@ -149,7 +148,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can split eol across style changes"() {
-        System.setProperty("line.separator", "----");
+        System.setProperty("line.separator", "----")
         def output = output()
 
         when:
@@ -166,11 +165,10 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
         when:
         output.text(SYSTEM_EOL)
-        output.text(MACOS9_EOL)
         output.text("$WINDOWS_EOL$NIX_EOL")
 
         then:
-        result.toString() == "{eol}{start}{eol}{start}{eol}{start}{eol}"
+        result.toString() == "{eol}{start}{eol}{start}{eol}"
     }
 
     def "can split Windows eol across multiple call on non-Windows eol default"() {
@@ -185,16 +183,19 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "{eol}"
     }
 
-    def "can correctly detect Mac OS 9 eol on Windows eol default"() {
-        System.setProperty("line.separator", "\r\n");
+    @Unroll
+    def "Mac OS 9 eol aren't detected as new line [#type]"() {
+        System.setProperty("line.separator", eol)
         def output = output()
 
         when:
-        output.text(MACOS9_EOL)
-        output.text("${MACOS9_EOL}a")
+        output.text("some${MACOS9_EOL}text")
 
         then:
-        result.toString() == "{eol}{start}{eol}{start}[a]"
+        result.toString() == "[some\rtext]"
+
+        where:
+        [type, eol] << EOLS
     }
 
     def output() {
@@ -218,7 +219,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
             @Override
             protected void doEndLine(CharSequence endOfLine) {
-                assert endOfLine in [System.getProperty("line.separator"), NIX_EOL, WINDOWS_EOL, MACOS9_EOL]
+                assert endOfLine in [System.getProperty("line.separator"), NIX_EOL, WINDOWS_EOL]
                 result.append("{eol}")
             }
         }
