@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
@@ -274,8 +273,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureCompatibilityRules(ProjectInternal project) {
-        AttributeMatchingStrategy<String> matchingStrategy = project.getDependencies().getAttributesSchema().getMatchingStrategy(ArtifactAttributes.ARTIFACT_FORMAT);
-        matchingStrategy.getDisambiguationRules().add(VariantDisambiguationRule.class);
+        project.getDependencies().getAttributesSchema().attribute(ArtifactAttributes.ARTIFACT_FORMAT).getDisambiguationRules().add(VariantDisambiguationRule.class);
     }
 
     private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
