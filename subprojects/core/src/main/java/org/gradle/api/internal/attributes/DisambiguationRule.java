@@ -16,7 +16,6 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.attributes.DisambiguationRuleChain;
 
-public interface DisambiguationRuleChainInternal<T> extends DisambiguationRuleChain<T>, Action<MultipleCandidatesResult<T>> {
+public interface DisambiguationRule<T> extends Action<MultipleCandidatesResult<T>> {
 }

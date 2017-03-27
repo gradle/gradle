@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
@@ -27,7 +28,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Comparator;
 import java.util.List;
 
-public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChainInternal<T> {
+public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<T>, CompatibilityRule<T> {
     private static final Object[] NO_PARAMS = new Object[0];
     private final List<Action<? super CompatibilityCheckDetails<T>>> rules = Lists.newArrayList();
     private final Instantiator instantiator;

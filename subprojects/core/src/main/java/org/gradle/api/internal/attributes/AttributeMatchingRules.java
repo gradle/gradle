@@ -19,17 +19,10 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
-import org.gradle.internal.Cast;
 
 import java.util.Comparator;
 
 public abstract class AttributeMatchingRules {
-    private static final EqualityCompatibilityRule EQUALITY_RULE = new EqualityCompatibilityRule();
-
-    public static <T> Action<? super CompatibilityCheckDetails<T>> equalityCompatibility() {
-        return Cast.uncheckedCast(EQUALITY_RULE);
-    }
-
     public static <T> Action<? super CompatibilityCheckDetails<T>> orderedCompatibility(Comparator<? super T> comparator, boolean reverse) {
         return new DefaultOrderedCompatibilityRule<T>(comparator, reverse);
     }

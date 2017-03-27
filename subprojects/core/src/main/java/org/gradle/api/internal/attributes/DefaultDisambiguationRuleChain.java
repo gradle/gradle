@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
+import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.internal.reflect.Instantiator;
@@ -28,7 +29,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Comparator;
 import java.util.List;
 
-public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChainInternal<T> {
+public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChain<T>, DisambiguationRule<T> {
     private static final Object[] NO_PARAMS = new Object[0];
     private final List<Action<? super MultipleCandidatesDetails<T>>> rules = Lists.newArrayList();
     private final Instantiator instantiator;

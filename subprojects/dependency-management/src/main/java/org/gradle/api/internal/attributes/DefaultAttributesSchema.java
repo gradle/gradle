@@ -18,7 +18,6 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -45,12 +44,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         this.componentAttributeMatcher = componentAttributeMatcher;
         this.instantiatorFactory = instantiatorFactory;
         matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
-    }
-
-    @Nullable
-    @Override
-    public <T> AttributeMatchingStrategy<T> findMatchingStrategy(Attribute<T> attribute) {
-        return Cast.uncheckedCast(strategies.get(attribute));
     }
 
     @Override
@@ -105,6 +98,24 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         return matcher;
     }
 
+    @Override
+    public CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute) {
+        AttributeMatchingStrategy<?> matchingStrategy = strategies.get(attribute);
+        if (matchingStrategy != null) {
+            return Cast.uncheckedCast(matchingStrategy.getCompatibilityRules());
+        }
+        return EmptySchema.INSTANCE.compatibilityRules(attribute);
+    }
+
+    @Override
+    public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
+        AttributeMatchingStrategy<?> matchingStrategy = strategies.get(attribute);
+        if (matchingStrategy != null) {
+            return Cast.uncheckedCast(matchingStrategy.getDisambiguationRules());
+        }
+        return EmptySchema.INSTANCE.disambiguationRules(attribute);
+    }
+
     private static class DefaultAttributeMatcher implements AttributeMatcher {
         private final ComponentAttributeMatcher componentAttributeMatcher;
         private final AttributeSelectionSchema effectiveSchema;
@@ -149,67 +160,54 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
-            AttributeMatchingStrategy<?> matchingStrategy = strategies.get(attribute);
-            if (matchingStrategy != null) {
-                DisambiguationRuleChainInternal<Object> rules = Cast.uncheckedCast(matchingStrategy.getDisambiguationRules());
-                rules.execute(result);
-                if (result.hasResult()) {
-                    return;
-                }
+            DisambiguationRule<Object> rules = disambiguationRules(attribute);
+            rules.execute(result);
+            if (result.hasResult()) {
+                return;
             }
-            matchingStrategy = producerSchema.findMatchingStrategy(attribute);
-            if (matchingStrategy != null) {
-                DisambiguationRuleChainInternal<Object> rules = Cast.uncheckedCast(matchingStrategy.getDisambiguationRules());
-                rules.execute(result);
-                if (result.hasResult()) {
-                    return;
-                }
+
+            rules = producerSchema.disambiguationRules(attribute);
+            rules.execute(result);
+            if (result.hasResult()) {
+                return;
             }
 
             // Select all candidates
-            SelectAllCompatibleRule.apply(result);
+            for (Object candidate : result.getCandidateValues()) {
+                result.closestMatch(candidate);
+            }
         }
 
         @Override
         public void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result) {
-            AttributeMatchingStrategy<?> matchingStrategy = strategies.get(attribute);
-            if (matchingStrategy != null) {
-                CompatibilityRuleChainInternal<Object> rules = Cast.uncheckedCast(matchingStrategy.getCompatibilityRules());
-                rules.execute(result);
-                if (result.hasResult()) {
-                    return;
-                }
-            }
-            matchingStrategy = producerSchema.findMatchingStrategy(attribute);
-            if (matchingStrategy != null) {
-                CompatibilityRuleChainInternal<Object> rules = Cast.uncheckedCast(matchingStrategy.getCompatibilityRules());
-                rules.execute(result);
-                if (result.hasResult()) {
-                    return;
-                }
+            if (result.getConsumerValue().equals(result.getProducerValue())) {
+                result.compatible();
+                return;
             }
 
-            AttributeMatchingRules.equalityCompatibility().execute(result);
+            CompatibilityRule<Object> rules = compatibilityRules(attribute);
+            rules.execute(result);
             if (result.hasResult()) {
                 return;
             }
-            // Eventually fail, always
+            rules = producerSchema.compatibilityRules(attribute);
+            rules.execute(result);
+            if (result.hasResult()) {
+                return;
+            }
+
+            // If no result, check whether values are equal
             result.incompatible();
         }
 
         @Override
         public boolean isCompatibleWhenMissing(Attribute<?> attribute) {
-            AttributeMatchingStrategy<?> attributeMatchingStrategy = strategies.get(attribute);
-            if (attributeMatchingStrategy != null) {
-                if (((CompatibilityRuleChainInternal<?>) attributeMatchingStrategy.getCompatibilityRules()).isCompatibleWhenMissing()) {
-                    return true;
-                }
+            CompatibilityRule<Object> rules = compatibilityRules(attribute);
+            if (rules.isCompatibleWhenMissing()) {
+                return true;
             }
-            attributeMatchingStrategy = producerSchema.findMatchingStrategy(attribute);
-            if (attributeMatchingStrategy != null) {
-                return ((CompatibilityRuleChainInternal<?>) attributeMatchingStrategy.getCompatibilityRules()).isCompatibleWhenMissing();
-            }
-            return false;
+            rules = producerSchema.compatibilityRules(attribute);
+            return rules.isCompatibleWhenMissing();
         }
     }
 }

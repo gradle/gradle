@@ -436,15 +436,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         exclusions.is(moduleExclusions.excludeAny(dep.excludes))
     }
 
-    static class ValueIncompatibleRule implements AttributeCompatibilityRule<String> {
-        @Override
-        void execute(CompatibilityCheckDetails<String> details) {
-            def candidate = details.producerValue
-            if (candidate == 'something') {
-                details.incompatible()
-            }
-        }
-    }
     static class EqualsValuesCompatibleRule implements AttributeCompatibilityRule<String> {
         @Override
         void execute(CompatibilityCheckDetails<String> details) {
@@ -491,7 +482,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
-            it.compatibilityRules.add(ValueIncompatibleRule)
             it.compatibilityRules.add(EqualsValuesCompatibleRule)
             it.compatibilityRules.add(ValueCompatibleRule)
         })
@@ -507,7 +497,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
         where:
         scenario                     | queryAttributes                 | expected
-        'never compatible'           | [key: 'something']              | 'default'
+        'never compatible'           | [key: 'no match']               | 'default'
         'exact match'                | [key: 'something else']         | 'bar'
         'compatible value'           | [key: 'other']                  | 'bar'
         'wrong number of attributes' | [key: 'something', extra: 'no'] | 'default'

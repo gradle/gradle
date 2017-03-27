@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
@@ -39,6 +37,7 @@ public interface AttributesSchemaInternal extends AttributesSchema {
      */
     AttributeMatcher matcher();
 
-    @Nullable
-    <T> AttributeMatchingStrategy<T> findMatchingStrategy(Attribute<T> attribute);
+    CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute);
+
+    DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute);
 }

@@ -41,29 +41,58 @@ class DefaultAttributesSchemaTest extends Specification {
         e.message == 'Unable to find matching strategy for map'
     }
 
-    def "is eventually incompatible by default"() {
+    def "treats equal values as compatible when no rules defined"() {
         given:
         def attribute = Attribute.of(String)
         schema.attribute(attribute)
+
+        expect:
         def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("b"))
-
-        when:
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
-
-        then:
         !details.isCompatible()
+
+        def details2 = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("a"))
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details2)
+        details2.isCompatible()
     }
 
-    def "equality strategy takes precedence over default"() {
+    static class DoNothingRule implements AttributeCompatibilityRule<String> {
+        static int count
+
+        @Override
+        void execute(CompatibilityCheckDetails<String> stringCompatibilityCheckDetails) {
+            count++
+        }
+    }
+
+    def "is eventually incompatible by default when no rule expresses an opinion"() {
         given:
         def attribute = Attribute.of(String)
-        schema.attribute(attribute)
-        def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("a"))
+        schema.attribute(attribute).compatibilityRules.add(DoNothingRule)
 
-        when:
+        expect:
+        def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("b"))
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
+        !details.isCompatible()
 
-        then:
+        DoNothingRule.count == 1
+    }
+
+    static class BrokenRule implements AttributeCompatibilityRule<String> {
+        @Override
+        void execute(CompatibilityCheckDetails<String> stringCompatibilityCheckDetails) {
+            throw new RuntimeException()
+        }
+    }
+
+    def "short-circuits evaluation when values are equal"() {
+        given:
+        def attribute = Attribute.of(String)
+        schema.attribute(attribute).compatibilityRules.add(BrokenRule)
+
+        expect:
+        def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("a"))
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
         details.isCompatible()
     }
 

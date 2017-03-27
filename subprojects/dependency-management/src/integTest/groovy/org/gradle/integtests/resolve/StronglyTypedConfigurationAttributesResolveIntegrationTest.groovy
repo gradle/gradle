@@ -801,8 +801,6 @@ All of them match the consumer attributes:
                 void execute(CompatibilityCheckDetails<Flavor> details) {
                     if (details.producerValue.value == value) {
                         details.compatible()
-                    } else {
-                        details.incompatible()
                     }
                 }
             }
@@ -823,7 +821,7 @@ All of them match the consumer attributes:
                 dependencies {
                     attributesSchema {
                         attribute(flavor) {
-                            compatibilityRules.add(FlavorCompatibilityRule) { params("paid") }
+                            compatibilityRules.add(FlavorCompatibilityRule) { params("full") }
                         }
                         attribute(buildType) {
                             compatibilityRules.assumeCompatibleWhenMissing()
@@ -858,16 +856,16 @@ All of them match the consumer attributes:
                    baseName = 'b-bar'
                 }
                 configurations {
-                    _compileFreeDebug { attributes { $free; $debug } }
-                    _compileFreeRelease { attributes { $free; $release } }
-                    _compilePaidDebug { attributes { $paid; $debug } }
-                    _compilePaidRelease { attributes { $paid; $release } }
+                    c1 { attributes { attribute(flavor, Flavor.of('preview')); $debug } }
+                    c2 { attributes { attribute(flavor, Flavor.of('preview')); $release } }
+                    c3 { attributes { attribute(flavor, Flavor.of('full')); $debug } }
+                    c4 { attributes { attribute(flavor, Flavor.of('full')); $release } }
                 }
                 artifacts {
-                    _compileFreeDebug fooJar
-                    _compileFreeRelease fooJar
-                    _compilePaidDebug foo2Jar
-                    _compilePaidRelease barJar
+                    c1 fooJar
+                    c2 fooJar
+                    c3 foo2Jar
+                    c4 barJar
                 }
             }
 

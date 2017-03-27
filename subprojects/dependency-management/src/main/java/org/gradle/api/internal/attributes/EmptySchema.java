@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -29,13 +28,20 @@ import java.util.Set;
 public class EmptySchema implements AttributesSchemaInternal {
     public static final EmptySchema INSTANCE = new EmptySchema();
 
+    private final DoNothingCompatibilityRule compatibilityRule = new DoNothingCompatibilityRule();
+    private final DoNothingDisambiguationRule disambiguationRule = new DoNothingDisambiguationRule();
+
     private EmptySchema() {
     }
 
-    @Nullable
     @Override
-    public <T> AttributeMatchingStrategy<T> findMatchingStrategy(Attribute<T> attribute) {
-        return null;
+    public CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute) {
+        return compatibilityRule;
+    }
+
+    @Override
+    public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
+        return disambiguationRule;
     }
 
     @Override
@@ -76,5 +82,22 @@ public class EmptySchema implements AttributesSchemaInternal {
     @Override
     public boolean hasAttribute(Attribute<?> key) {
         throw new UnsupportedOperationException();
+    }
+
+    private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {
+        @Override
+        public boolean isCompatibleWhenMissing() {
+            return false;
+        }
+
+        @Override
+        public void execute(CompatibilityCheckResult<Object> result) {
+        }
+    }
+
+    private static class DoNothingDisambiguationRule implements DisambiguationRule<Object> {
+        @Override
+        public void execute(MultipleCandidatesResult<Object> objectMultipleCandidatesResult) {
+        }
     }
 }
