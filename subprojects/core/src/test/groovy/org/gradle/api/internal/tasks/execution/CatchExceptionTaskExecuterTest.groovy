@@ -27,7 +27,7 @@ class CatchExceptionTaskExecuterTest extends Specification {
     private TaskExecuter delegate = Mock(TaskExecuter)
     private CatchExceptionTaskExecuter executer = new CatchExceptionTaskExecuter(delegate)
     private TaskInternal task = Mock(TaskInternal)
-    private TaskStateInternal state = new TaskStateInternal('<task>')
+    private TaskStateInternal state = new TaskStateInternal()
     private TaskExecutionContext context = Mock(TaskExecutionContext)
 
     def 'calls delegate and does nothing'() {

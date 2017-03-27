@@ -82,9 +82,4 @@ class AbstractTaskSpec extends AbstractProjectBuilderSpec {
         then:
         task.hasCustomActions
     }
-
-    def "state's description should not be null"() {
-        expect:
-        createTask("task").state.description != null
-    }
 }

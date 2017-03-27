@@ -86,7 +86,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>();
 
-    private final Path path;
+    private Path path;
+
+    private Path identityPath;
 
     private boolean enabled = true;
 
@@ -119,14 +121,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private boolean impliesSubProjects;
     private boolean hasCustomActions;
 
-    // toString() of AbstractTask is called a lot, so precompute.
-    private final String toStringValue;
-    private final Path identityPath;
-
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final Class<? extends Task> publicType;
     private LoggingManagerInternal loggingManager;
+
+    private String toStringValue;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -146,10 +146,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.publicType = taskInfo.publicType;
         assert project != null;
         assert name != null;
-        path = project.getProjectPath().child(name);
-        identityPath = project.getIdentityPath().child(name);
-        toStringValue = "task '" + identityPath + "'";
-        state = new TaskStateInternal(toString());
+        state = new TaskStateInternal();
         TaskContainerInternal tasks = project.getTasks();
         dependencies = new DefaultTaskDependency(tasks);
         mustRunAfter = new DefaultTaskDependency(tasks);
@@ -342,11 +339,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public String getPath() {
+        if (path == null) {
+            path = project.getProjectPath().child(name);
+        }
         return path.getPath();
     }
 
     @Override
     public Path getIdentityPath() {
+        if (identityPath == null) {
+            identityPath = project.getIdentityPath().child(name);
+        }
         return identityPath;
     }
 
@@ -431,6 +434,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public String toString() {
+        if (toStringValue == null) {
+            toStringValue = "task '" + getIdentityPath() + "'";
+        }
         return toStringValue;
     }
 

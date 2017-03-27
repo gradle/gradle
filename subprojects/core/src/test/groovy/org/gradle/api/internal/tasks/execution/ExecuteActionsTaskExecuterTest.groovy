@@ -41,7 +41,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
     private final TaskInternal task = Mock(TaskInternal);
     private final ContextAwareTaskAction action1 = Mock(ContextAwareTaskAction)
     private final ContextAwareTaskAction action2 = Mock(ContextAwareTaskAction)
-    private final TaskStateInternal state = new TaskStateInternal("<task>")
+    private final TaskStateInternal state = new TaskStateInternal()
     private final TaskExecutionContext executionContext = Mock(TaskExecutionContext)
     private final ScriptSource scriptSource = Mock(ScriptSource)
     private final StandardOutputCapture standardOutputCapture = Mock(StandardOutputCapture)
