@@ -17,7 +17,6 @@ package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
-import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.RenderNowOutputEvent
 import org.gradle.util.MockExecutor
