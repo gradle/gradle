@@ -272,10 +272,6 @@ class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
     }
 }
 
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
-
 dependencies.attributesSchema {
     attribute(buildType) {
         compatibilityRules.add(BuildTypeCompatibilityRule)
@@ -332,7 +328,7 @@ task show {
 
         then:
         outputContains("files: [a2.jar]")
-        outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=api}]")
     }
 
     def "applies producer's disambiguation rules when selecting variant"() {
@@ -350,21 +346,18 @@ class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
     }
 }
 
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
+dependencies {
+    compile project(':lib')
+}
+
+project(':lib') {
     dependencies.attributesSchema {
         attribute(flavor) {
             compatibilityRules.add(FlavorCompatibilityRule)
             disambiguationRules.add(FlavorSelectionRule)
         }
     }
-}
 
-dependencies {
-    compile project(':lib')
-}
-
-project(':lib') {
     configurations {
         compile {
             outgoing {
@@ -406,7 +399,7 @@ task show {
 
         then:
         outputContains("files: [a3.jar]")
-        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=tasty, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=tasty, usage=api}]")
     }
 
     def "applies producer's compatibility disambiguation rules for additional producer attributes when selecting variant"() {
@@ -420,10 +413,6 @@ class ExtraSelectionRule implements AttributeDisambiguationRule<String> {
 }
 
 def extra = Attribute.of('extra', String)
-
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
 
 dependencies {
     compile project(':lib')
@@ -478,20 +467,11 @@ task show {
 
         then:
         outputContains("files: [a3.jar]")
-        outputContains("variants: [{artifactType=jar, buildType=debug, extra=good, usage=compile}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, extra=good, usage=api}]")
     }
 
     def "can select the implicit variant of a configuration"() {
         buildFile << """
-
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
-    dependencies.attributesSchema {
-        attribute(buildType) {
-            compatibilityRules.assumeCompatibleWhenMissing()
-        }
-    }
-}
 
 dependencies {
     compile project(':lib')
@@ -533,11 +513,11 @@ project(':ui') {
 }
 
 task show {
-    inputs.files configurations.compile
+    def artifacts = configurations.compile.incoming.artifactView {
+        attributes { it.attribute(buildType, 'debug') }
+    }.artifacts
+    inputs.files artifacts.artifactFiles
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView {
-            attributes { it.attribute(buildType, 'debug') }
-        }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "variants: " + artifacts.collect { it.variant.attributes }
     }
@@ -548,7 +528,7 @@ task show {
 
         then:
         outputContains("files: [a2.jar, a1.jar, b2.jar, b1.jar]")
-        outputContains("variants: [{artifactType=jar, buildType=debug, usage=compile}, {artifactType=jar, buildType=debug, usage=compile}, {artifactType=jar, usage=api}, {artifactType=jar, usage=api}]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, usage=api}, {artifactType=jar, buildType=debug, usage=api}, {artifactType=jar, usage=api}, {artifactType=jar, usage=api}]")
     }
 
     def "result includes consumer-provided variants"() {
@@ -562,11 +542,6 @@ class VariantArtifactTransform extends ArtifactTransform {
         output << "transformed"
         return [output]         
     }
-}
-
-allprojects {
-    dependencies.attributesSchema.attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-    configurations.compile.attributes.attribute(usage, 'compile')
 }
 
 dependencies {
@@ -726,7 +701,6 @@ task show {
             }
 
             project(':app') {
-                dependencies.attributesSchema.attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
                 configurations {
                     noAttributes
                 }
@@ -750,5 +724,91 @@ task show {
         expect:
         succeeds "resolve"
         result.assertTasksExecuted(":lib:classes", ":app:resolve")
+    }
+
+    def "fails when multiple variants match"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                debug {
+                                    attributes.attribute(buildType, 'debug')
+                                    artifact file: file('lib-debug.jar')
+                                }
+                                release {
+                                    attributes.attribute(buildType, 'release')
+                                    artifact file: file('lib-release.jar')
+                                }
+                            }
+                        }
+                    }
+                }
+                artifacts {
+                    compile file('implicit.jar')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+
+                task resolveView {
+                    def files = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'jar') }
+                    }.files
+                    inputs.files files
+                    doLast {
+                        files.collect { it.name }
+                    }
+                }
+
+                task resolveFiles {
+                    def files = configurations.compile
+                    inputs.files files
+                    doLast {
+                        files.collect { it.name }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails "resolveView"
+        failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
+        failure.assertHasCause("""More than one variant matches the consumer attributes:
+  - artifactType 'jar'
+  - usage 'api'
+Found the following matches:
+  - Variant:
+      - artifactType 'jar'
+      - usage 'api'
+  - Variant:
+      - artifactType 'jar'
+      - buildType 'debug'
+      - usage 'api'
+  - Variant:
+      - artifactType 'jar'
+      - buildType 'release'
+      - usage 'api'""")
+
+        fails "resolveFiles"
+        failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveFiles'.")
+        failure.assertHasCause("""More than one variant matches the consumer attributes: usage 'api'
+Found the following matches:
+  - Variant:
+      - artifactType 'jar'
+      - usage 'api'
+  - Variant:
+      - artifactType 'jar'
+      - buildType 'debug'
+      - usage 'api'
+  - Variant:
+      - artifactType 'jar'
+      - buildType 'release'
+      - usage 'api'""")
     }
 }

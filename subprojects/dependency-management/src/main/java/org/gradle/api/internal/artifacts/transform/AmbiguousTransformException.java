@@ -16,8 +16,31 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.Pair;
+import org.gradle.internal.text.TreeFormatter;
+
+import java.util.List;
+
+import static org.gradle.internal.component.AmbiguousVariantSelectionException.formatAttributes;
+
 public class AmbiguousTransformException extends RuntimeException {
-    public AmbiguousTransformException(String message) {
-        super(message);
+    public AmbiguousTransformException(AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
+        super(format(requested, candidates));
+    }
+
+    private static String format(AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Found multiple transforms that can produce a variant for consumer attributes");
+        formatAttributes(formatter, requested);
+        formatter.node("Found the following transforms");
+        formatter.startChildren();
+        for (Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> candidate : candidates) {
+            formatter.node("Transform from variant");
+            formatAttributes(formatter, candidate.getLeft().getAttributes());
+        }
+        formatter.endChildren();
+        return formatter.toString();
     }
 }
