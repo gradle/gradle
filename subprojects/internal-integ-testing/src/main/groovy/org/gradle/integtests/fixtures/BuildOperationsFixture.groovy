@@ -51,6 +51,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                 
                 void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
                     operations[buildOperation.id] = [
+                        id: "\${buildOperation.id}",
                         displayName: "\${buildOperation.displayName}",
                         parentId: "\${buildOperation.parentId}",
                         name: "\${buildOperation.name}",
@@ -61,6 +62,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                 void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
                     if (!operations[buildOperation.id]) {
                         operations[buildOperation.id] = [
+                            id: "\${buildOperation.id}",
                             displayName: "\${buildOperation.displayName}",
                             parentId: "\${buildOperation.parentId}",
                             name: "\${buildOperation.name}"
@@ -96,7 +98,11 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
     }
 
     boolean hasOperation(String displayName) {
-        return operations.find { it.value.displayName == displayName } != null
+        return operation(displayName) != null
+    }
+
+    Object operation(String displayName) {
+        return operations.find { it.value.displayName == displayName }.value
     }
 
     Map getOperations() {

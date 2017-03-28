@@ -25,21 +25,19 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "can use as soon as in settingsEvaluated"() {
+    def "can be used at configuration time"() {
         given:
-        settingsFile << """
-            gradle.addListener(new BuildAdapter() {
-                @Override
-                void settingsEvaluated(Settings settings) {
-                    gradle.services.get(${BuildOperationExecutor.name}).run('Anything', {} as Action)
-                }
-            })
-        """.stripIndent()
+        buildFile << '''
+            plugins { id 'java' }
+            repositories { jcenter() }
+            dependencies { compile 'org.slf4j:slf4j-api:1.7.25' }
+            configurations.compile.files // Triggers dependency resolution that uses it
+        '''.stripIndent()
 
         when:
         succeeds 'help'
 
         then:
-        buildOperations.hasOperation 'Anything'
+        buildOperations.operation('Resolve dependencies :compile').parentId == buildOperations.operation('Configure project :').id
     }
 }
