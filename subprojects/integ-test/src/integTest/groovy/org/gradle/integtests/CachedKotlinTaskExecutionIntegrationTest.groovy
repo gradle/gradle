@@ -24,12 +24,11 @@ import org.gradle.util.Requires
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
 @Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
-@Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM, NOT_WINDOWS])
+@Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
 class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
     @Override

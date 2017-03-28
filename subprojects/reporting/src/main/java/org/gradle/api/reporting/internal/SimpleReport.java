@@ -17,27 +17,36 @@
 package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
-public class SimpleReport implements Report {
+public class SimpleReport implements ConfigurableReport {
 
     private String name;
     private String displayName;
     private FileResolver fileResolver;
 
-    private Object destination;
-    private boolean enabled;
+    private final PropertyState<File> destination;
+    private final PropertyState<Boolean> enabled;
+    private final Project project;
     private OutputType outputType;
 
-    public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver) {
+    public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver, Project project) {
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
         this.outputType = outputType;
+        destination = project.property(File.class);
+        enabled = project.property(Boolean.class);
+        this.project = project;
     }
 
     public String getName() {
@@ -53,11 +62,26 @@ public class SimpleReport implements Report {
     }
 
     public File getDestination() {
-        return destination == null ? null : resolveToFile(destination);
+        return destination.getOrNull();
     }
 
-    protected void setDestination(Object destination) {
-        this.destination = destination;
+    public void setDestination(final Object destination) {
+        this.destination.set(project.provider(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return resolveToFile(destination);
+            }
+        }));
+    }
+
+    @Override
+    public void setDestination(File file) {
+        this.destination.set(file);
+    }
+
+    @Override
+    public void setDestination(Provider<File> provider) {
+        this.destination.set(provider);
     }
 
     public OutputType getOutputType() {
@@ -73,11 +97,15 @@ public class SimpleReport implements Report {
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return enabled.get();
     }
 
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        this.enabled.set(enabled);
     }
 
+    @Override
+    public void setEnabled(Provider<Boolean> enabled) {
+        this.enabled.set(enabled);
+    }
 }

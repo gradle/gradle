@@ -6,6 +6,148 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### More work avoidance when using `@Classpath` task properties
+
+For built-in and custom tasks that use the `@Classpath` annotation, Gradle now performs deeper inspection of the classpath to filter out some differences that do not affect task execution.  Gradle will ignore changes to timestamps within a jar file and the order of entries inside a jar file.
+ 
+In previous versions, for tasks like `Javadoc`, `Checkstyle` and `Test`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc). 
+
+### Extensions now have a public type
+
+Extensions can now be registered in `ExtensionContainer`s with an explicit public type.
+ This allows plugin authors to hide their implementation type from build scripts and
+ allow `ExtensionContainer`s to expose a schema of all the registered extensions.
+
+For example, if you have a `FancyExtension` type, implemented by some `DefaultFancyExtension` type, here is how
+ you should register it:
+
+    // If you want to delegate the extension instance creation to Gradle:
+    project.extensions.create FancyExtension, 'fancy', DefaultFancyExtension
+
+    // Or if you need to create the extension instance yourself:
+    FancyExtension fancyInstance = new DefaultFancyExtension(...)
+    project.extensions.add FancyExtension, 'fancy', fancyInstance
+
+### Public type for representing lazily evaluated properties
+
+Because Gradle's build lifecycle clearly distinguishes between configuration phase and execution phase the evaluation of property
+ values has to be deferred under certain conditions to properly capture end user input. A typical use case is the mapping of
+ extension properties to custom task properties as part of a plugin implementation. In the past, many plugin developers were forced to solve evaluation order problems by using the concept of convention mapping, an internal API in Gradle subject to change.
+ 
+This release of Gradle introduces a mutable type to the public API representing a property with state. The relevant interface is called [`PropertyState`](javadoc/org/gradle/api/provider/PropertyState.html). An instance of this type can be created through the method [`Project.property(Class)`](javadoc/org/gradle/api/Project.html#property-java.lang.Class-).
+
+The following example demonstrates how to use the property state API to map an extension property to a custom task property without
+running into evaluation ordering issues:
+
+    apply plugin: GreetingPlugin
+    
+    greeting {
+        message = 'Hi from Gradle'
+        outputFiles = files('a.txt', 'b.txt')
+    }
+    
+    class GreetingPlugin implements Plugin<Project> {
+        void apply(Project project) {
+            // Add the 'greeting' extension object
+            def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
+            // Add a task that uses the configuration
+            project.tasks.create('hello', Greeting) {
+                message = extension.messageProvider
+                outputFiles = extension.outputFiles
+            }
+        }
+    }
+    
+    class GreetingPluginExtension {
+        final PropertyState<String> message
+        final ConfigurableFileCollection outputFiles
+    
+        GreetingPluginExtension(Project project) {
+            message = project.property(String)
+            setMessage('Hello from GreetingPlugin')
+            outputFiles = project.files()
+        }
+    
+        String getMessage() {
+            message.get()
+        }
+    
+        Provider<String> getMessageProvider() {
+            message
+        }
+    
+        void setMessage(String message) {
+            this.message.set(message)
+        }
+    
+        FileCollection getOutputFiles() {
+            outputFiles
+        }
+    
+        void setOutputFiles(FileCollection outputFiles) {
+            this.outputFiles.setFrom(outputFiles)
+        }
+    }
+    
+    class Greeting extends DefaultTask {
+        final PropertyState<String> message = project.property(String)
+        final ConfigurableFileCollection outputFiles = project.files()
+    
+        @Input
+        String getMessage() {
+            message.get()
+        }
+    
+        void setMessage(String message) {
+            this.message.set(message)
+        }
+    
+        void setMessage(Provider<String> message) {
+            this.message.set(message)
+        }
+    
+        FileCollection getOutputFiles() {
+            outputFiles
+        }
+    
+        void setOutputFiles(FileCollection outputFiles) {
+            this.outputFiles.setFrom(outputFiles)
+        }
+    
+        @TaskAction
+        void printMessage() {
+            getOutputFiles().each {
+                it.text = getMessage()
+            }
+        }
+    }
+
+### BuildActionExecutor supports running tasks
+
+Tooling API clients can now run tasks before running a build action. This allows them to fetch tooling models which depend on the result of
+executing some task. This mirrors the existing `ModelBuilder.forTasks()` API.
+
+### Support for multi-value Javadoc options
+
+Gradle has added support for command-line options to doclets that can appear [multiple times and have multiple values](javadoc/org/gradle/external/javadoc/CoreJavadocOptions.html#addMultilineMultiValueOption-java.lang.String-).
+
+In previous versions of Gradle, it was not possible to supply command-line options like:
+
+    -myoption 'foo' 'bar'
+    -myoption 'baz'
+    
+Gradle would produce a single `-myoption` or combine the option's value into a single argument.
+
+    javadoc {
+        options {
+            def myoption = addMultilineMultiValueOption("myoption")
+            myoption.setValue([
+                [ "foo", "bar" ],
+                [ "baz" ]
+            ])
+        }
+    }
+
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases. 
 

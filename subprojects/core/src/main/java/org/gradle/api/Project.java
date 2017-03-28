@@ -36,6 +36,8 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -49,6 +51,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>,
@@ -901,6 +904,30 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
+     * Creates a {@code Provider} implementation based on the provided value.
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
+     * @since 4.0
+     */
+    @Incubating
+    <T> Provider<T> provider(Callable<T> value);
+
+    /**
+     * Creates a {@code PropertyState} implementation based on the provided class.
+     *
+     * @param clazz The class to be used for property state.
+     * @return The property state. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
+     * @see org.gradle.api.provider.ProviderFactory#property(Class)
+     * @since 4.0
+     */
+    @Incubating
+    <T> PropertyState<T> property(Class<T> clazz);
+
+    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
@@ -1606,5 +1633,4 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     SoftwareComponentContainer getComponents();
-
 }

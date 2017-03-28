@@ -15,7 +15,6 @@
  */
 package org.gradle.testing.jacoco.plugins;
 
-import com.google.common.util.concurrent.Callables;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -23,12 +22,11 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.Test;
@@ -74,12 +72,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        ((IConventionAware) extension).getConventionMapping().map("reportsDir", new Callable<File>() {
+        extension.setReportsDir(project.provider(new Callable<File>() {
             @Override
-            public File call() {
+            public File call() throws Exception {
                 return reportingExtension.file("jacoco");
             }
-        });
+        }));
 
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
@@ -110,8 +108,8 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param extension the extension that has the tool version to use
      */
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, final JacocoPluginExtension extension) {
-        Configuration config = project.getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
-        ((IConventionAware) jacocoAgentJar).getConventionMapping().map("agentConf", Callables.returning(config));
+        final Configuration config = project.getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
+        jacocoAgentJar.setAgentConf(config);
         config.defaultDependencies(new Action<DependencySet>() {
             @Override
             public void execute(DependencySet dependencies) {
@@ -131,7 +129,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         project.getTasks().withType(JacocoBase.class, new Action<JacocoBase>() {
             @Override
             public void execute(JacocoBase task) {
-                ((IConventionAware) task).getConventionMapping().map("jacocoClasspath", Callables.returning(config));
+                task.setJacocoClasspath(config);
             }
         });
         config.defaultDependencies(new Action<DependencySet>() {
@@ -160,13 +158,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         return project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
-                ConventionMapping mapping = ((IConventionAware) task).getConventionMapping();
-                mapping.map("destinationFile", new Callable<File>() {
+                task.setDestinationFile(project.provider(new Callable<File>() {
                     @Override
-                    public File call() {
+                    public File call() throws Exception {
                         return new File(project.getBuildDir(), "/jacoco/" + task.getName() + ".exec");
                     }
-                });
+                }));
             }
         });
     }
@@ -182,25 +179,29 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
-        reportTask.getReports().all(new Action<Report>() {
+        reportTask.getReports().all(new Action<ConfigurableReport>() {
             @Override
-            public void execute(final Report report) {
-                ConventionMapping mapping = ((IConventionAware) report).getConventionMapping();
-                mapping.map("enabled", Callables.returning(report.getName().equals("html")));
+            public void execute(final ConfigurableReport report) {
+                report.setEnabled(project.provider(new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return report.getName().equals("html");
+                    }
+                }));
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    mapping.map("destination", new Callable<File>() {
+                    report.setDestination(project.provider(new Callable<File>() {
                         @Override
-                        public File call() {
+                        public File call() throws Exception {
                             return new File(extension.getReportsDir(), reportTask.getName() + "/" + report.getName());
                         }
-                    });
+                    }));
                 } else {
-                    mapping.map("destination", new Callable<File>() {
+                    report.setDestination(project.provider(new Callable<File>() {
                         @Override
-                        public File call() {
+                        public File call() throws Exception {
                             return new File(extension.getReportsDir(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName());
                         }
-                    });
+                    }));
                 }
             }
         });
@@ -234,26 +235,23 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
         reportTask.executionData(task);
         reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
-        ConventionMapping taskMapping = ((IConventionAware) reportTask).getConventionMapping();
-        taskMapping.getConventionValue(reportTask.getReports(), "reports", false).all(new Action<Report>() {
+        reportTask.getReports().all(new Action<ConfigurableReport>() {
             @Override
-            public void execute(final Report report) {
-                ConventionMapping reportMapping = ((IConventionAware) report).getConventionMapping();
-                // reportMapping.map('enabled', Callables.returning(true));
+            public void execute(final ConfigurableReport report) {
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    reportMapping.map("destination", new Callable<File>() {
+                    report.setDestination(project.provider(new Callable<File>() {
                         @Override
-                        public File call() {
+                        public File call() throws Exception {
                             return new File(extension.getReportsDir(), task.getName() + "/" + report.getName());
                         }
-                    });
+                    }));
                 } else {
-                    reportMapping.map("destination", new Callable<File>() {
+                    report.setDestination(project.provider(new Callable<File>() {
                         @Override
-                        public File call() {
+                        public File call() throws Exception {
                             return new File(extension.getReportsDir(), task.getName() + "/" + reportTask.getName() + "." + report.getName());
                         }
-                    });
+                    }));
                 }
             }
         });

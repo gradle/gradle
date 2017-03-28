@@ -66,6 +66,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -117,6 +120,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -794,6 +798,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ProviderFactory getProviderFactory() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public File file(Object path) {
         return getFileOperations().file(path);
@@ -856,6 +866,16 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public FileTree tarTree(Object tarPath) {
         return getFileOperations().tarTree(tarPath);
+    }
+
+    @Override
+    public <T> Provider<T> provider(Callable<T> value) {
+        return getProviderFactory().provider(value);
+    }
+
+    @Override
+    public <T> PropertyState<T> property(Class<T> clazz) {
+        return getProviderFactory().property(clazz);
     }
 
     @Override

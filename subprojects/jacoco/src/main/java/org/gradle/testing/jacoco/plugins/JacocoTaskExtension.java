@@ -19,6 +19,9 @@ package org.gradle.testing.jacoco.plugins;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.DeprecationLogger;
@@ -56,7 +59,7 @@ public class JacocoTaskExtension {
     private final JavaForkOptions task;
 
     private boolean enabled = true;
-    private File destinationFile;
+    private final PropertyState<File> destinationFile;
     private boolean append = true;
     private List<String> includes = new ArrayList<String>();
     private List<String> excludes = new ArrayList<String>();
@@ -73,12 +76,14 @@ public class JacocoTaskExtension {
     /**
      * Creates a Jacoco task extension.
      *
+     * @param project the project
      * @param agent the agent JAR to use for analysis
      * @param task the task we extend
      */
-    public JacocoTaskExtension(JacocoAgentJar agent, JavaForkOptions task) {
+    public JacocoTaskExtension(Project project, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
+        destinationFile = project.property(File.class);
     }
 
     /**
@@ -96,11 +101,15 @@ public class JacocoTaskExtension {
      * The path for the execution data to be written to.
      */
     public File getDestinationFile() {
-        return destinationFile;
+        return destinationFile.getOrNull();
+    }
+
+    public void setDestinationFile(Provider<File> destinationFile) {
+        this.destinationFile.set(destinationFile);
     }
 
     public void setDestinationFile(File destinationFile) {
-        this.destinationFile = destinationFile;
+        this.destinationFile.set(destinationFile);
     }
 
     /**
