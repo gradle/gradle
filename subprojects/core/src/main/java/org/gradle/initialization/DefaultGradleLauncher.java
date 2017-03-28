@@ -107,6 +107,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private BuildResult doBuild(Stage upTo) {
+        // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
         BuildOperationWorkerRegistry.Completion workerLease = buildServices.get(BuildOperationWorkerRegistry.class).operationStart();
         try {
             Throwable failure = null;
