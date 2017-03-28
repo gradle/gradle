@@ -17,10 +17,11 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 
 public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFactory {
     @Override
-    public <T extends BuildOperation> BuildOperationQueue<T> create(BuildOperationWorkerRegistry.Operation parentOperation, StoppableExecutor executor, BuildOperationWorker<T> worker) {
-        return new DefaultBuildOperationQueue<T>(parentOperation, executor, worker);
+    public <T extends BuildOperation> BuildOperationQueue<T> create(WorkerLeaseRegistry.WorkerLease parentWorkerLease, StoppableExecutor executor, BuildOperationWorker<T> worker) {
+        return new DefaultBuildOperationQueue<T>(parentWorkerLease, executor, worker);
     }
 }

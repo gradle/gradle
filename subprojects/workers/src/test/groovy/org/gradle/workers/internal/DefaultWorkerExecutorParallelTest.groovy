@@ -22,7 +22,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -36,7 +36,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def workerDaemonFactory = Mock(WorkerFactory)
     def workerInProcessFactory = Mock(WorkerFactory)
     def workerExecutorFactory = Mock(ExecutorFactory)
-    def buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry)
+    def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(FileResolver)
@@ -68,7 +68,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         }
 
         then:
-        5 * buildOperationWorkerRegistry.getCurrent()
+        5 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         5 * stoppableExecutor.execute(_ as ListenableFutureTask)
 
         where:

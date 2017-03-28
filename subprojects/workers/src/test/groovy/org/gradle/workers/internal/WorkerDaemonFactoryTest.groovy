@@ -16,8 +16,8 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
-import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation
+import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.process.internal.health.memory.MemoryManager
 import spock.lang.Specification
@@ -28,9 +28,9 @@ class WorkerDaemonFactoryTest extends Specification {
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
     def memoryManager = Mock(MemoryManager)
-    def buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry)
+    def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def workerOperation = Mock(Operation)
+    def workerOperation = Mock(WorkerLease)
     def buildOperation = Mock(BuildOperationExecutor.Operation)
 
     @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor)
@@ -53,7 +53,7 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
+        1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
         1 * buildOperationExecutor.getCurrentOperation() >> buildOperation
 
         then:
@@ -75,7 +75,7 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
+        1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
         1 * buildOperationExecutor.getCurrentOperation() >> buildOperation
 
         then:
@@ -94,7 +94,7 @@ class WorkerDaemonFactoryTest extends Specification {
         factory.getWorker(workerProtocolImplementation.class, workingDir, options).execute(spec)
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrent() >> workerOperation
+        1 * buildOperationWorkerRegistry.getCurrentWorkerLease() >> workerOperation
         1 * buildOperationExecutor.getCurrentOperation() >> buildOperation
 
         then:

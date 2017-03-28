@@ -83,7 +83,6 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingListener;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
-import org.gradle.internal.work.ProjectLockService;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.SystemProperties;
@@ -93,7 +92,6 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -119,8 +117,7 @@ public class TaskExecutionServices {
                                     GradleInternal gradle,
                                     TaskOutputOriginFactory taskOutputOriginFactory,
                                     BuildOperationExecutor buildOperationExecutor,
-                                    AsyncWorkTracker asyncWorkTracker,
-                                    ProjectLockService projectLockService) {
+                                    AsyncWorkTracker asyncWorkTracker) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
         //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
         boolean isOuterBuild = gradle.getParent() == null;
@@ -235,9 +232,9 @@ public class TaskExecutionServices {
         return new TaskCacheKeyCalculator();
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory) {
         int parallelThreads = startParameter.getMaxWorkerCount();
-        return new TaskPlanExecutorFactory(parallelThreads, executorFactory, buildOperationWorkerRegistry).create();
+        return new TaskPlanExecutorFactory(parallelThreads, executorFactory).create();
     }
 
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {

@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.work;
+package org.gradle.internal.resources;
 
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+public interface ResourceLockState {
+    /**
+     * Possible results from a resource lock state transform.
+     */
+    enum Disposition { FAILED, FINISHED, RETRY }
 
-public interface WorkerLeaseService extends BuildOperationWorkerRegistry, ProjectLockService, Stoppable {
-
+    /**
+     * Registers a resource lock to be rolled back if the transform associated with this resource lock state
+     * fails.
+     *
+     * @param resourceLock
+     */
+    void registerLocked(ResourceLock resourceLock);
 }

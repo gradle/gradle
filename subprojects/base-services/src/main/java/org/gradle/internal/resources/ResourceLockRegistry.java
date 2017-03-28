@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.internal.resources;
 
-import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.internal.work.WorkerLeaseRegistry;
+import java.util.Collection;
 
-public interface BuildOperationQueueFactory {
-    <T extends BuildOperation> BuildOperationQueue<T> create(WorkerLeaseRegistry.WorkerLease parentWorkerLease, StoppableExecutor executor, BuildOperationWorker<T> worker);
+public interface ResourceLockRegistry {
+    /**
+     * Get all of the resource locks held by the current thread.
+     */
+    Collection<? extends ResourceLock> getResourceLocks();
+
+    /**
+     * Returns true if the registry has any locks that are being held by a thread.
+     *
+     * @return true if any locks in the registry are currently held.
+     */
+    boolean hasOpenLocks();
 }

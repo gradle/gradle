@@ -29,23 +29,24 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
 /**
- * This class delegates worker leases management to {@link DefaultBuildOperationWorkerRegistry} and require that a current operation is in flight.
+ * This class delegates worker leases management to {@link org.gradle.internal.work.DefaultWorkerLeaseService} and require that a current operation is in flight.
  */
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final StoppableExecutor fixedSizePool;
 
-    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+    public DefaultBuildOperationProcessor(WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+        this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
@@ -53,16 +54,16 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
 
     @Override
     public <T extends BuildOperation> void run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
-        BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.maybeStartOperation();
+        WorkerLeaseRegistry.WorkerLeaseCompletion completion = workerLeaseRegistry.maybeStartWorkerLease();
         try {
             doRun(worker, generator);
         } finally {
-            completion.operationFinish();
+            completion.leaseFinish();
         }
     }
 
     private <T extends BuildOperation> void doRun(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
-        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(buildOperationWorkerRegistry.getCurrent(), fixedSizePool, new ParentBuildOperationAwareWorker<T>(worker));
+        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(workerLeaseRegistry.getCurrentWorkerLease(), fixedSizePool, new ParentBuildOperationAwareWorker<T>(worker));
 
         List<GradleException> failures = Lists.newArrayList();
         try {

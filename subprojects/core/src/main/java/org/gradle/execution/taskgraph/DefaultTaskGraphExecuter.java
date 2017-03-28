@@ -45,7 +45,8 @@ import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
-import org.gradle.internal.work.ProjectLockService;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,14 +72,14 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLockService projectLockService) {
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
         this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
         internalTaskListener = listenerManager.getBroadcaster(InternalTaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, projectLockService);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, coordinationService, workerLeaseService);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {

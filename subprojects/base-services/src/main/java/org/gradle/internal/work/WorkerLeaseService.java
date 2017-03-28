@@ -16,11 +16,9 @@
 
 package org.gradle.internal.work;
 
-public interface ProjectLockListener {
-    /**
-     * Fired when a project is unlocked.
-     *
-     * @param projectPath - the path of the project that was unlocked
-     */
-    void onProjectUnlock(String projectPath);
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
+
+public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseRegistry, Stoppable {
+
 }

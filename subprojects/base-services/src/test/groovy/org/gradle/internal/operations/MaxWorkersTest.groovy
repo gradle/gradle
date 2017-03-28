@@ -18,7 +18,8 @@ package org.gradle.internal.operations
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.progress.TestBuildOperationExecutor
-import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
@@ -34,17 +35,17 @@ class MaxWorkersTest extends ConcurrentSpec {
         when:
         async {
             start {
-                def cl = registry.operationStart()
+                def cl = registry.getWorkerLease().start()
                 instant.worker1
                 thread.blockUntil.worker2Ready
                 thread.block()
                 instant.worker1Finished
-                cl.operationFinish()
+                cl.leaseFinish()
             }
             start {
                 thread.blockUntil.worker1
                 instant.worker2Ready
-                def child2 = registry.operationStart()
+                def child2 = registry.getWorkerLease().start()
                 processor.run(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
@@ -53,7 +54,7 @@ class MaxWorkersTest extends ConcurrentSpec {
                         }
                     })
                 })
-                child2.operationFinish()
+                child2.leaseFinish()
             }
         }
 
@@ -74,7 +75,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         when:
         async {
             start {
-                def cl = registry.operationStart()
+                def cl = registry.getWorkerLease().start()
                 processor.run(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
@@ -86,14 +87,14 @@ class MaxWorkersTest extends ConcurrentSpec {
                         }
                     })
                 })
-                cl.operationFinish()
+                cl.leaseFinish()
             }
             start {
                 thread.blockUntil.worker1
                 instant.worker2Ready
-                def cl = registry.operationStart()
+                def cl = registry.getWorkerLease().start()
                 instant.worker2
-                cl.operationFinish()
+                cl.leaseFinish()
             }
         }
 
@@ -112,7 +113,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:
-        def outer = registry.operationStart()
+        def outer = registry.getWorkerLease().start()
         processor.run(processorWorker, { queue ->
             queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                 @Override
@@ -131,7 +132,7 @@ class MaxWorkersTest extends ConcurrentSpec {
                 }
             })
         })
-        outer.operationFinish()
+        outer.leaseFinish()
 
         then:
         instant.child2Started > instant.child1Finished || instant.child1Started > instant.child2Finished
@@ -140,7 +141,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    BuildOperationWorkerRegistry buildOperationWorkerRegistry(int maxWorkers) {
-        return new DefaultWorkerLeaseService(Mock(ListenerManager), true, maxWorkers)
+    WorkerLeaseRegistry buildOperationWorkerRegistry(int maxWorkers) {
+        return new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, maxWorkers)
     }
 }

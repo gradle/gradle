@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 
@@ -35,11 +34,9 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
 
-    public DefaultTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+    public DefaultTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory) {
         this.executorFactory = executorFactory;
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
@@ -52,7 +49,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor);
-            taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry).run();
+            taskWorker(taskExecutionPlan, taskWorker).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
             executor.stop();
@@ -63,24 +60,22 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
+            Runnable worker = taskWorker(taskExecutionPlan, taskWorker);
             executor.execute(worker);
         }
     }
 
-    private Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
-        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
+    private Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
+        return new TaskExecutorWorker(taskExecutionPlan, taskWorker);
     }
 
     private static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
-        private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
-            this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         }
 
         public void run() {
@@ -93,19 +88,14 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                 moreTasksToExecute = taskExecutionPlan.executeWithTask(new Action<TaskInfo>() {
                     @Override
                     public void execute(TaskInfo task) {
-                        BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.operationStart();
-                        try {
-                            final String taskPath = task.getTask().getPath();
-                            LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
-                            taskTimer.reset();
-                            processTask(task);
-                            long taskDuration = taskTimer.getElapsedMillis();
-                            busy.addAndGet(taskDuration);
-                            if (LOGGER.isInfoEnabled()) {
-                                LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
-                            }
-                        } finally {
-                            completion.operationFinish();
+                        final String taskPath = task.getTask().getPath();
+                        LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
+                        taskTimer.reset();
+                        processTask(task);
+                        long taskDuration = taskTimer.getElapsedMillis();
+                        busy.addAndGet(taskDuration);
+                        if (LOGGER.isInfoEnabled()) {
+                            LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
                         }
                     }
                 });

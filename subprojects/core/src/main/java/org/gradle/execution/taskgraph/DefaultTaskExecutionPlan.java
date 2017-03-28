@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.*;
 import org.gradle.api.*;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
@@ -39,9 +40,10 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.work.ProjectLock;
-import org.gradle.internal.work.ProjectLockListener;
-import org.gradle.internal.work.ProjectLockService;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 
@@ -50,8 +52,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
 
 /**
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
@@ -60,8 +63,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final static Logger LOGGER = Logging.getLogger(DefaultTaskExecutionPlan.class);
 
-    private final ReentrantLock lock = new ReentrantLock();
-    private final Condition tasksMayBeReady = lock.newCondition();
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
@@ -74,23 +75,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
-    private final ProjectLockService projectLockService;
-    private final ProjectLockListener projectLockListener;
+    private final ResourceLockCoordinationService coordinationService;
+    private final WorkerLeaseService workerLeaseService;
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ProjectLockService projectLockService) {
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService) {
         this.cancellationToken = cancellationToken;
-        this.projectLockService = projectLockService;
-
-        // Register a callback so that task workers waiting on a task will get
-        // notified when a project lock is released.
-        this.projectLockListener = new ProjectLockListener() {
-            @Override
-            public void onProjectUnlock(String projectPath) {
-                notifyTasksMayBeReady();
-            }
-        };
-        projectLockService.addListener(projectLockListener);
+        this.coordinationService = coordinationService;
+        this.workerLeaseService = workerLeaseService;
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -445,19 +437,19 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void clear() {
-        lock.lock();
-        try {
-            projectLockService.removeListener(projectLockListener);
-            graph.clear();
-            entryTasks.clear();
-            executionPlan.clear();
-            executionQueue.clear();
-            failures.clear();
-            canonicalizedOutputCache.clear();
-            runningTasks.clear();
-        } finally {
-            lock.unlock();
-        }
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                graph.clear();
+                entryTasks.clear();
+                executionPlan.clear();
+                executionQueue.clear();
+                failures.clear();
+                canonicalizedOutputCache.clear();
+                runningTasks.clear();
+                return FINISHED;
+            }
+        });
     }
 
     public List<Task> getTasks() {
@@ -474,9 +466,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public boolean executeWithTask(final Action<TaskInfo> taskExecution) {
-        lock.lock();
-        try {
-            while (true) {
+        final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
+        final AtomicBoolean canExecute = new AtomicBoolean();
+        final ResourceLock workerLease = workerLeaseService.getWorkerLease();
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 if (cancellationToken.isCancellationRequested()) {
                     if (abortExecution()) {
                         tasksCancelled = true;
@@ -484,101 +479,74 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
 
                 final Iterator<TaskInfo> iterator = executionQueue.iterator();
-                final AtomicBoolean selected = new AtomicBoolean();
-                final AtomicBoolean restartIteration = new AtomicBoolean();
-                final Set<String> lockedProjects = Sets.newHashSet();
                 while (iterator.hasNext()) {
                     final TaskInfo taskInfo = iterator.next();
-                    Project project = taskInfo.getTask().getProject();
-                    final String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
                     if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
-                        try {
-                            final ProjectLock projectLock = projectLockService.getProjectLock(projectPath);
-                            boolean couldNotLock = !projectLock.tryWithProjectLock(new Runnable() {
-                                @Override
-                                public void run() {
-                                    boolean canExecute = false;
-                                    try {
-                                        if (lockedProjects.contains(projectLock.getProjectPath())) {
-                                            // If the state of project locks has changed, we want to restart
-                                            // task selection so that we can be sure that the earliest task
-                                            // from this project in the execution queue is selected first.
-                                            restartIteration.set(true);
-                                        } else {
-                                            if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
-                                                selected.set(true);
-                                                iterator.remove();
-                                                if (taskInfo.allDependenciesSuccessful()) {
-                                                    taskInfo.startExecution();
-                                                    recordTaskStarted(taskInfo);
-                                                    canExecute = true;
-                                                } else {
-                                                    taskInfo.skipExecution();
-                                                }
-                                            }
-                                        }
-                                    } finally {
-                                        // We need to unlock the plan before unlocking the project.  This prevents a deadlock
-                                        // between the plan lock and the lock in the listener manager when a project is unlocked.  Note also
-                                        // that we need to execute the task with the plan unlocked so that other task workers can begin selecting
-                                        // tasks while we are executing.
-                                        lock.unlock();
+                        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                            @Override
+                            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                                ResourceLock projectLock = getProjectLock(taskInfo);
+                                // TODO: convert output file checks to a resource lock
+                                if (projectLock.tryLock() && workerLease.tryLock() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                                    selected.set(taskInfo);
+                                    iterator.remove();
+                                    if (taskInfo.allDependenciesSuccessful()) {
+                                        taskInfo.startExecution();
+                                        recordTaskStarted(taskInfo);
+                                        canExecute.set(true);
+                                    } else {
+                                        taskInfo.skipExecution();
                                     }
-
-                                    if (canExecute) {
-                                        taskExecution.execute(taskInfo);
-                                    }
+                                    return FINISHED;
+                                } else {
+                                    return FAILED;
                                 }
-                            });
-
-                            if (couldNotLock) {
-                                // If the project was locked, capture this fact so we can detect when
-                                // the project lock state has changed.
-                                lockedProjects.add(projectLock.getProjectPath());
                             }
-                        } finally {
-                            // if we acquired a project lock above, we will have released the plan lock
-                            if (!lock.isHeldByCurrentThread()) {
-                                lock.lock();
-                            }
-                        }
+                        });
 
-                        if (restartIteration.get()) {
-                            break;
-                        }
-
-                        if (selected.get()) {
-                            notifyTasksMayBeReady();
+                        if (selected.get() != null) {
                             break;
                         }
                     }
                 }
 
-                // If the project lock state changed while we were iterating, we need to restart task selection
-                if (restartIteration.get()) {
-                    continue;
-                }
-
-                // If all tasks are complete, we're done
-                if (allTasksComplete()) {
-                    return false;
-                }
-
-                // If we got here and we didn't select a task, then wait for one to become available
-                if (!selected.get()) {
-                    try {
-                        waitForTasksToBeReady();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                if (selected.get() == null && !allTasksComplete()) {
+                    return RETRY;
                 } else {
-                    // we selected a task and there are still more to be executed
-                    return true;
+                    return FINISHED;
                 }
             }
-        } finally {
-            lock.unlock();
+        });
+
+
+        if (selected.get() != null) {
+            try {
+                if (canExecute.get()) {
+                    taskExecution.execute(selected.get());
+                }
+            } finally {
+                coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                    @Override
+                    public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                        TaskInfo taskInfo = selected.get();
+                        ResourceLock projectLock = getProjectLock(taskInfo);
+                        projectLock.unlock();
+                        workerLease.unlock();
+                        return FINISHED;
+                    }
+                });
+            }
         }
+
+        // If all tasks are complete, we're done
+        return !allTasksComplete();
+    }
+
+    private ResourceLock getProjectLock(TaskInfo taskInfo) {
+        Project project = taskInfo.getTask().getProject();
+        String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
+        String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
+        return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
 
     private boolean canRunWithWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
@@ -663,19 +631,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         runningTasks.remove(task);
     }
 
-    public void taskComplete(TaskInfo taskInfo) {
-        lock.lock();
-        try {
-            enforceFinalizerTasks(taskInfo);
-            if (taskInfo.isFailed()) {
-                handleFailure(taskInfo);
-            }
+    public void taskComplete(final TaskInfo taskInfo) {
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                enforceFinalizerTasks(taskInfo);
+                if (taskInfo.isFailed()) {
+                    handleFailure(taskInfo);
+                }
 
-            taskInfo.finishExecution();
-            recordTaskCompleted(taskInfo);
-        } finally {
-            lock.unlock();
-        }
+                taskInfo.finishExecution();
+                recordTaskCompleted(taskInfo);
+
+                return FINISHED;
+            }
+        });
     }
 
     private void enforceFinalizerTasks(TaskInfo taskInfo) {
@@ -737,37 +707,17 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void awaitCompletion() {
-        lock.lock();
-        try {
-            while (!allTasksComplete()) {
-                try {
-                    waitForTasksToBeReady();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                if (allTasksComplete()) {
+                    rethrowFailures();
+                    return FINISHED;
+                } else {
+                    return RETRY;
                 }
             }
-            rethrowFailures();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void waitForTasksToBeReady() throws InterruptedException {
-        lock.lock();
-        try {
-            tasksMayBeReady.await();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void notifyTasksMayBeReady() {
-        lock.lock();
-        try {
-            tasksMayBeReady.signalAll();
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
     private void rethrowFailures() {

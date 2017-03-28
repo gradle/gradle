@@ -19,16 +19,16 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.Factory;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 
 public class WorkerLeaseHolderTestClassProcessor implements TestClassProcessor {
 
-    private final BuildOperationWorkerRegistry.Operation parentWorkerLease;
+    private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
     private final Factory<TestClassProcessor> factory;
 
     private TestClassProcessor processor;
 
-    public WorkerLeaseHolderTestClassProcessor(BuildOperationWorkerRegistry.Operation parentWorkerLease, Factory<TestClassProcessor> factory) {
+    public WorkerLeaseHolderTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, Factory<TestClassProcessor> factory) {
         this.parentWorkerLease = parentWorkerLease;
         this.factory = factory;
     }
@@ -41,11 +41,11 @@ public class WorkerLeaseHolderTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-        BuildOperationWorkerRegistry.Completion workerLease = parentWorkerLease.operationStart();
+        WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerLease.startChild();
         try {
             processor.processTestClass(testClass);
         } finally {
-            workerLease.operationFinish();
+            workerLease.leaseFinish();
         }
     }
 
