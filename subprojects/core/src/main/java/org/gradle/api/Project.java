@@ -1522,6 +1522,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     WorkResult copy(Closure closure);
 
     /**
+     * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
+     * copy the files.
+     * @see #copy(Closure)
+     * @param action Action to configure the CopySpec
+     * @return {@link WorkResult} that can be used to check if the copy did any work.
+     */
+    WorkResult copy(Action<? super CopySpec> action);
+
+    /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given closure is used
      * to configure the {@link CopySpec} before it is returned by this method.
      *
@@ -1543,15 +1552,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     CopySpec copySpec(Closure closure);
 
     /**
-     * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
-     * copy the files.
-     * @see #copy(Closure)
-     * @param action Action to configure the CopySpec
-     * @return {@link WorkResult} that can be used to check if the copy did any work.
-     */
-    WorkResult copy(Action<? super CopySpec> action);
-
-    /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
      * to configure the {@link CopySpec} before it is returned by this method.
      *
@@ -1567,6 +1567,41 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return a newly created copy spec
      */
     CopySpec copySpec();
+
+    /**
+     * Synchronizes the contents of a destination directory with some source directories and files.
+     * The given action is used to configure a {@link CopySpec}, which is then used to synchronize the files.
+     *
+     * <p>
+     * This method is like the {@link #copy(Action)} task, except the destination directory will only contain the files copied.
+     * All files that exist in the destination directory will be deleted before copying files, unless a preserve option is specified.
+     *
+     * <p>
+     * Example:
+     *
+     * <pre>
+     * project.sync {
+     *    from 'my/shared/dependencyDir'
+     *    into 'build/deps/compile'
+     * }
+     * </pre>
+     * Note that you can preserve output that already exists in the destination directory:
+     * <pre>
+     * project.sync {
+     *     from 'source'
+     *     into 'dest'
+     *     preserve {
+     *         include 'extraDir/**'
+     *         include 'dir1/**'
+     *         exclude 'dir1/extra.txt'
+     *     }
+     * }
+     * </pre>
+     *
+     * @param action Action to configure the CopySpec.
+     * @return {@link WorkResult} that can be used to check if the sync did any work.
+     */
+    WorkResult sync(Action<? super CopySpec> action);
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this
