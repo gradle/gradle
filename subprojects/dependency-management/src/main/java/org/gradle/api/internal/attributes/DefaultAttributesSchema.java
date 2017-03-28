@@ -28,6 +28,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
+import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -83,8 +84,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         return strategies.containsKey(key);
     }
 
-    @Override
-    public AttributeSelectionSchema mergeWith(AttributesSchemaInternal producerSchema) {
+    AttributeSelectionSchema mergeWith(AttributesSchemaInternal producerSchema) {
         return new MergedSchema(producerSchema);
     }
 
@@ -138,6 +138,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         @Override
         public boolean isMatching(AttributeContainer candidate, AttributeContainer requested) {
             return componentAttributeMatcher.isMatching(effectiveSchema, candidate, requested);
+        }
+
+        @Override
+        public <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested) {
+            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(candidate, requested);
+            effectiveSchema.matchValue(attribute, result);
+            return result.isCompatible();
         }
 
         @Override

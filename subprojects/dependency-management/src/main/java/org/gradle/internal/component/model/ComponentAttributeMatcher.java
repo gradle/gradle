@@ -247,7 +247,7 @@ public class ComponentAttributeMatcher {
         }
 
         void update(final Attribute<Object> attribute, AttributeSelectionSchema schema, AttributeValue<Object> consumerValue, AttributeValue<Object> producerValue) {
-            DefaultCompatibilityCheckResult<Object> details = new DefaultCompatibilityCheckResult<Object>(consumerValue, producerValue);
+            DefaultCompatibilityCheckResult<Object> details = new DefaultCompatibilityCheckResult<Object>(consumerValue.get(), producerValue.get());
             schema.matchValue(attribute, details);
             if (details.isCompatible()) {
                 matched.add(attribute);

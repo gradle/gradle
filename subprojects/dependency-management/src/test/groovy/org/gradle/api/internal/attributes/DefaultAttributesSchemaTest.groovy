@@ -47,13 +47,16 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.attribute(attribute)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("b"))
+        def details = new DefaultCompatibilityCheckResult<String>("a", "b")
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
         !details.isCompatible()
 
-        def details2 = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("a"))
+        def details2 = new DefaultCompatibilityCheckResult<String>("a", "a")
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details2)
         details2.isCompatible()
+
+        !schema.matcher().isMatching(attribute, "a", "b")
+        schema.matcher().isMatching(attribute, "a", "a")
     }
 
     static class DoNothingRule implements AttributeCompatibilityRule<String> {
@@ -71,11 +74,13 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.attribute(attribute).compatibilityRules.add(DoNothingRule)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("b"))
+        def details = new DefaultCompatibilityCheckResult<String>("a", "b")
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
         !details.isCompatible()
 
-        DoNothingRule.count == 1
+        !schema.matcher().isMatching(attribute, "a", "b")
+
+        DoNothingRule.count == 2
     }
 
     static class BrokenRule implements AttributeCompatibilityRule<String> {
@@ -91,9 +96,11 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.attribute(attribute).compatibilityRules.add(BrokenRule)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>(AttributeValue.of("a"), AttributeValue.of("a"))
+        def details = new DefaultCompatibilityCheckResult<String>("a", "a")
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
         details.isCompatible()
+
+        schema.matcher().isMatching(attribute, "a", "a")
     }
 
     def "strategy is per attribute"() {
@@ -145,13 +152,34 @@ class DefaultAttributesSchemaTest extends Specification {
         def value1 = [a: 'foo', b: 'bar']
         def value2 = [c: 'foo', d: 'bar']
 
-        def checkDetails = new DefaultCompatibilityCheckResult<Map>(AttributeValue.of(value1), AttributeValue.of(value2))
+        expect:
+        def checkDetails = new DefaultCompatibilityCheckResult<Map>(value1, value2)
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, checkDetails)
+        checkDetails.isCompatible()
+
+        schema.matcher().isMatching(attr, value1, value2)
+    }
+
+    def "selects all candidates when no disambiguation rules"() {
+        def attr = Attribute.of(Map)
+
+        given:
+        schema.attribute(attr)
+
+        def value1 = [a: 'foo', b: 'bar']
+        def value2 = [c: 'foo', d: 'bar']
+
+        def best = []
+        def candidates = LinkedListMultimap.create()
+        candidates.put(value1, "item1")
+        candidates.put(value2, "item2")
+        def candidateDetails = new DefaultCandidateResult(candidates, best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, checkDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
-        checkDetails.isCompatible()
+        best == ["item1", "item2"]
     }
 
     def "can set a custom disambiguation rule"() {

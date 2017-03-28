@@ -24,8 +24,8 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.attributes.CompatibilityCheckResult;
-import org.gradle.internal.component.model.AttributeSelectionSchema;
+import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.text.TreeFormatter;
@@ -40,23 +40,16 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
             return input.getName();
         }
     };
-    static final Function<Attribute<?>, String> ATTRIBUTE_NAME = new Function<Attribute<?>, String>() {
-        @Override
-        public String apply(Attribute<?> input) {
-            return input.getName();
-        }
-    };
 
     public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes,
-                                                    AttributeSelectionSchema schema,
+                                                    AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
                                                     ComponentResolveMetadata targetComponent) {
-        super(generateMessage(fromConfigurationAttributes, schema, matches, targetComponent));
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeSelectionSchema schema, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
+    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
         Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
-        Set<String> requestedAttributes = Sets.newTreeSet(Iterables.transform(fromConfigurationAttributes.keySet(), ATTRIBUTE_NAME));
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Cannot choose between the following configurations on ");
         formatter.append(targetComponent.getComponentId().getDisplayName());
@@ -69,14 +62,14 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
         // We're sorting the names of the configurations and later attributes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
-        for (final String ambiguousConf : ambiguousConfigurations) {
-            formatConfiguration(formatter, fromConfigurationAttributes, schema, matches, requestedAttributes, ambiguousConf);
+        for (String ambiguousConf : ambiguousConfigurations) {
+            formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, matches, ambiguousConf);
         }
         formatter.endChildren();
         return formatter.toString();
     }
 
-    static void formatConfiguration(TreeFormatter formatter, AttributeContainer fromConfigurationAttributes, AttributeSelectionSchema schema, List<? extends ConfigurationMetadata> matches, Set<String> requestedAttributes, final String conf) {
+    static void formatConfiguration(TreeFormatter formatter, AttributeContainer consumerAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, final String conf) {
         Optional<? extends ConfigurationMetadata> match = Iterables.tryFind(matches, new Predicate<ConfigurationMetadata>() {
             @Override
             public boolean apply(ConfigurationMetadata input) {
@@ -85,60 +78,31 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
         });
         if (match.isPresent()) {
             AttributeContainer producerAttributes = match.get().getAttributes();
-            Set<Attribute<?>> targetAttributes = producerAttributes.keySet();
-            Set<String> targetAttributeNames = Sets.newTreeSet(Iterables.transform(targetAttributes, ATTRIBUTE_NAME));
-            Set<Attribute<?>> allAttributes = Sets.union(fromConfigurationAttributes.keySet(), producerAttributes.keySet());
-            Set<String> commonAttributes = Sets.intersection(requestedAttributes, targetAttributeNames);
-            Set<String> consumerOnlyAttributes = Sets.difference(requestedAttributes, targetAttributeNames);
             formatter.node("Configuration '");
             formatter.append(conf);
             formatter.append("'");
             formatter.startChildren();
-            List<Attribute<?>> sortedAttributes = Ordering.usingToString().sortedCopy(allAttributes);
-            formatAttributes(formatter, fromConfigurationAttributes, schema, producerAttributes, commonAttributes, consumerOnlyAttributes, sortedAttributes);
+            formatAttributeMatches(formatter, consumerAttributes, attributeMatcher, producerAttributes);
             formatter.endChildren();
         }
     }
 
-    private static void formatAttributes(final TreeFormatter formatter, AttributeContainer fromConfigurationAttributes, AttributeSelectionSchema schema, AttributeContainer producerAttributes, Set<String> commonAttributes, Set<String> consumerOnlyAttributes, List<Attribute<?>> sortedAttributes) {
+    private static void formatAttributeMatches(TreeFormatter formatter, AttributeContainer consumerAttributes, AttributeMatcher attributeMatcher, AttributeContainer producerAttributes) {
+        Set<Attribute<?>> allAttributes = Sets.union(consumerAttributes.keySet(), producerAttributes.keySet());
+        List<Attribute<?>> sortedAttributes = Ordering.usingToString().sortedCopy(allAttributes);
         for (Attribute<?> attribute : sortedAttributes) {
-            final String attributeName = attribute.getName();
-            if (commonAttributes.contains(attributeName)) {
-                final Object consumerValue = fromConfigurationAttributes.getAttribute(attribute);
-                final Object producerValue = producerAttributes.getAttribute(attribute);
-                schema.matchValue(attribute, new CompatibilityCheckResult<Object>() {
-                    boolean done;
-
-                    @Override
-                    public boolean hasResult() {
-                        return done;
-                    }
-
-                    @Override
-                    public Object getConsumerValue() {
-                        return consumerValue;
-                    }
-
-                    @Override
-                    public Object getProducerValue() {
-                        return producerValue;
-                    }
-
-                    @Override
-                    public void compatible() {
-                        done = true;
-                        formatter.node("Required " + attributeName + " '" + consumerValue + "' and found compatible value '" + producerValue + "'.");
-                    }
-
-                    @Override
-                    public void incompatible() {
-                        done = true;
-                        formatter.node("Required " + attributeName + " '" + consumerValue + "' and found incompatible value '" + producerValue + "'.");
-                    }
-                });
-
-            } else if (consumerOnlyAttributes.contains(attributeName)) {
-                formatter.node("Required " + attributeName + " '" + fromConfigurationAttributes.getAttribute(attribute) + "' but no value provided.");
+            String attributeName = attribute.getName();
+            if (consumerAttributes.contains(attribute) && producerAttributes.contains(attribute)) {
+                Object consumerValue = consumerAttributes.getAttribute(attribute);
+                Object producerValue = producerAttributes.getAttribute(attribute);
+                Attribute<Object> untyped = Cast.uncheckedCast(attribute);
+                if (attributeMatcher.isMatching(untyped, producerValue, consumerValue)) {
+                    formatter.node("Required " + attributeName + " '" + consumerValue + "' and found compatible value '" + producerValue + "'.");
+                } else {
+                    formatter.node("Required " + attributeName + " '" + consumerValue + "' and found incompatible value '" + producerValue + "'.");
+                }
+            } else if (consumerAttributes.contains(attribute)) {
+                formatter.node("Required " + attributeName + " '" + consumerAttributes.getAttribute(attribute) + "' but no value provided.");
             } else {
                 formatter.node("Found " + attributeName + " '" + producerAttributes.getAttribute(attribute) + "' but wasn't required.");
             }

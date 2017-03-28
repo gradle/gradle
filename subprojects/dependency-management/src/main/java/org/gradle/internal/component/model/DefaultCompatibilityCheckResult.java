@@ -16,16 +16,15 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.CompatibilityCheckResult;
 
 public class DefaultCompatibilityCheckResult<T> implements CompatibilityCheckResult<T> {
-    private final AttributeValue<T> consumerValue;
-    private final AttributeValue<T> producerValue;
+    private final T consumerValue;
+    private final T producerValue;
     private boolean compatible;
     private boolean done;
 
-    public DefaultCompatibilityCheckResult(AttributeValue<T> consumerValue, AttributeValue<T> producerValue) {
+    public DefaultCompatibilityCheckResult(T consumerValue, T producerValue) {
         this.consumerValue = consumerValue;
         this.producerValue = producerValue;
     }
@@ -42,12 +41,12 @@ public class DefaultCompatibilityCheckResult<T> implements CompatibilityCheckRes
 
     @Override
     public T getConsumerValue() {
-        return consumerValue.get();
+        return consumerValue;
     }
 
     @Override
     public T getProducerValue() {
-        return producerValue.get();
+        return producerValue;
     }
 
     @Override
