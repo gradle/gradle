@@ -132,10 +132,12 @@ tasks.withType(AsciidoctorTask) {
     extensions {
         inlinemacro (name: "api") {
             parent, target, attributes ->
-            def (className, method) = target.split('#') as List
+            def (className, method) = target.split('#', 2) as List
             def content = "<apilink class=\"$className\""
             if (method) {
-                content += " method=\"${method.replaceAll(/,\s*/, ', ')}\""
+                // Add space after comma, because we can't have spaces in api: targets
+                // Restore Asciidoc's '&hellip;&zwsp;' replacement to the original '...'
+                content += " method=\"${method.replaceAll(/,\s*/, ', ').replaceAll(/\&#8230;\&#8203;/, '...')}\""
             }
             content += " />"
             return content
@@ -144,8 +146,13 @@ tasks.withType(AsciidoctorTask) {
 
     doLast {
         outputDir.eachFile { File file ->
-            def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(asciidocSanitizeStylesheet))
-            transformer.transform(new StreamSource(new StringReader(file.getText("utf-8"))), new StreamResult(file))
+            def contents = file.getText("utf-8")
+            try {
+                def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(asciidocSanitizeStylesheet))
+                transformer.transform(new StreamSource(new StringReader(contents)), new StreamResult(file))
+            } catch (Exception ex) {
+                throw new RuntimeException("Couldn't process $file:\n" + contents, ex)
+            }
         }
     }
 }

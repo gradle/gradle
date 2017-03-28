@@ -8,7 +8,7 @@
     <xsl:output method="xml" />
 
     <xsl:template match="/docbook:book">
-        <xsl:apply-templates select="docbook:chapter"/>
+        <xsl:apply-templates select="docbook:chapter | docbook:appendix"/>
     </xsl:template>
 
     <!-- Use <ulink url="..."/> instead of <link href="..."/> -->
