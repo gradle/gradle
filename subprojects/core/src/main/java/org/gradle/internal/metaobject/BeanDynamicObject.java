@@ -522,7 +522,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @Nullable
         protected MetaMethod lookupMethod(MetaClass metaClass, String name, Class[] arguments) {
-            return metaClass.getMetaMethod(name, arguments);
+            return metaClass.pickMethod(name, arguments);
         }
 
         protected DynamicInvokeResult invokeOpaqueMethod(MetaClass metaClass, String name, Object[] arguments) {
