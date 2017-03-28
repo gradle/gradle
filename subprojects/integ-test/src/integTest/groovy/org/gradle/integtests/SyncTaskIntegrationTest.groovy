@@ -460,7 +460,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
             task syncIt {
                 doLast {
                     project.sync {
-                        from files('source') + fileTree('source2') { exclude '**/ignore/**' } + configurations.compile
+                        from files('source')
+                        from fileTree('source2') { exclude '**/ignore/**' } 
+                        from configurations.compile
                         into 'dest'
                         include { fte -> fte.relativePath.segments.length < 3 && (fte.file.directory || fte.file.name.contains('f')) }
                     }
