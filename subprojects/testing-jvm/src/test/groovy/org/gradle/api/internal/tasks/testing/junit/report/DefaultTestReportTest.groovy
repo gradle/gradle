@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsPr
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.progress.TestBuildOperationExecutor
@@ -41,7 +41,7 @@ class DefaultTestReportTest extends Specification {
     final TestResultsProvider testResultProvider = Mock()
 
     def reportWithMaxThreads(int numThreads) {
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(Stub(BuildOperationWorkerRegistry)), new DefaultExecutorFactory(), numThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(Stub(WorkerLeaseRegistry)), new DefaultExecutorFactory(), numThreads)
         return new DefaultTestReport(buildOperationProcessor)
     }
 

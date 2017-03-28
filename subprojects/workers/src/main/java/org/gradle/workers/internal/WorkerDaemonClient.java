@@ -19,8 +19,8 @@ package org.gradle.workers.internal;
 import org.gradle.api.Transformer;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry.Completion;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
@@ -41,8 +41,8 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     }
 
     @Override
-    public DefaultWorkResult execute(final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
-        Completion workerLease = parentWorkerOperation.operationStart();
+    public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, BuildOperationExecutor.Operation parentBuildOperation) {
+        WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
         try {
             BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
             return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
@@ -53,7 +53,7 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
                 }
             });
         } finally {
-            workerLease.operationFinish();
+            workerLease.leaseFinish();
         }
     }
 

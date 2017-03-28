@@ -22,9 +22,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,23 +36,23 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final WorkerLeaseService workerLeaseService;
 
-    public DefaultTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+    public DefaultTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.executorFactory = executorFactory;
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
 
         this.executorCount = numberOfParallelExecutors;
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
     public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
-            BuildOperationWorkerRegistry.Operation parentWorkerLease = buildOperationWorkerRegistry.getCurrent();
+            WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);
             taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
             taskExecutionPlan.awaitCompletion();
@@ -60,7 +61,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         }
     }
 
-    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor, BuildOperationWorkerRegistry.Operation parentWorkerLease) {
+    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor, WorkerLease parentWorkerLease) {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
@@ -69,16 +70,16 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         }
     }
 
-    private Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry.Operation parentWorkerLease) {
+    private Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease) {
         return new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease);
     }
 
     private static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
-        private final BuildOperationWorkerRegistry.Operation parentWorkerLease;
+        private final WorkerLease parentWorkerLease;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry.Operation parentWorkerLease) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
             this.parentWorkerLease = parentWorkerLease;
@@ -91,22 +92,17 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
 
             boolean moreTasksToExecute = true;
             while (moreTasksToExecute) {
-                moreTasksToExecute = taskExecutionPlan.executeWithTask(new Action<TaskInfo>() {
+                moreTasksToExecute = taskExecutionPlan.executeWithTask(parentWorkerLease, new Action<TaskInfo>() {
                     @Override
                     public void execute(TaskInfo task) {
-                        BuildOperationWorkerRegistry.Completion completion = parentWorkerLease.operationStart();
-                        try {
-                            final String taskPath = task.getTask().getPath();
-                            LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
-                            taskTimer.reset();
-                            processTask(task);
-                            long taskDuration = taskTimer.getElapsedMillis();
-                            busy.addAndGet(taskDuration);
-                            if (LOGGER.isInfoEnabled()) {
-                                LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
-                            }
-                        } finally {
-                            completion.operationFinish();
+                        final String taskPath = task.getTask().getPath();
+                        LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
+                        taskTimer.reset();
+                        processTask(task);
+                        long taskDuration = taskTimer.getElapsedMillis();
+                        busy.addAndGet(taskDuration);
+                        if (LOGGER.isInfoEnabled()) {
+                            LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
                         }
                     }
                 });

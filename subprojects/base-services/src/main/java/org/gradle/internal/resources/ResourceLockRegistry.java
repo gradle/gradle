@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.work;
+package org.gradle.internal.resources;
 
-/**
- * Represents the completion of an item of asynchronous work
- */
-public interface AsyncWorkCompletion {
+import java.util.Collection;
+
+public interface ResourceLockRegistry {
     /**
-     * Block until the work item has completed.
+     * Get all of the resource locks held by the current thread.
      */
-    void waitForCompletion();
+    Collection<? extends ResourceLock> getResourceLocks();
 
     /**
-     * Returns true if the work item is completed.
+     * Returns true if the registry has any locks that are being held by a thread.
+     *
+     * @return true if any locks in the registry are currently held.
      */
-    boolean isComplete();
+    boolean hasOpenLocks();
 }

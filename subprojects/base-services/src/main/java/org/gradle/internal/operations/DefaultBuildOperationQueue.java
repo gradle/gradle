@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.*;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,8 +31,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
-    private final BuildOperationWorkerRegistry.Completion workerLeaseCompletion;
-    private final BuildOperationWorkerRegistry.Operation workerLease;
+    private final WorkerLeaseRegistry.WorkerLeaseCompletion workerLeaseCompletion;
+    private final WorkerLeaseRegistry.WorkerLease workerLease;
     private final ListeningExecutorService executor;
     private final BuildOperationWorker<T> worker;
 
@@ -42,9 +43,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final AtomicBoolean waitingForCompletion = new AtomicBoolean();
     private final AtomicBoolean canceled = new AtomicBoolean();
 
-    DefaultBuildOperationQueue(BuildOperationWorkerRegistry workerLeases, ExecutorService executor, BuildOperationWorker<T> worker) {
-        this.workerLeaseCompletion = workerLeases.operationStart();
-        this.workerLease = workerLeases.getCurrent();
+    DefaultBuildOperationQueue(WorkerLeaseRegistry workerLeases, ExecutorService executor, BuildOperationWorker<T> worker) {
+        this.workerLeaseCompletion = workerLeases.getCurrentWorkerLease().startChild();
+        this.workerLease = workerLeases.getCurrentWorkerLease();
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Collections.synchronizedList(Lists.<QueuedOperation>newArrayList());
@@ -96,7 +97,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            workerLeaseCompletion.operationFinish();
+            workerLeaseCompletion.leaseFinish();
         }
 
         // all operations are complete, check for errors
@@ -149,11 +150,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     }
 
     private class OperationHolder implements Runnable {
-        private final BuildOperationWorkerRegistry.Operation parentWorkerLease;
+        private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
         private final T operation;
         private final AtomicBoolean started = new AtomicBoolean();
 
-        OperationHolder(BuildOperationWorkerRegistry.Operation parentWorkerLease, T operation) {
+        OperationHolder(WorkerLeaseRegistry.WorkerLease parentWorkerLease, T operation) {
             this.parentWorkerLease = parentWorkerLease;
             this.operation = operation;
         }
@@ -168,11 +169,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private void runBuildOperation() {
-            BuildOperationWorkerRegistry.Completion workerLease = parentWorkerLease.operationStart();
+            WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerLease.startChild();
             try {
                 worker.execute(operation);
             } finally {
-                workerLease.operationFinish();
+                workerLease.leaseFinish();
             }
         }
 

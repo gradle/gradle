@@ -22,19 +22,19 @@ import org.gradle.internal.progress.BuildOperationDetails
 import org.gradle.internal.progress.BuildOperationExecutor
 import spock.lang.Specification
 
-import static org.gradle.internal.operations.BuildOperationWorkerRegistry.Completion
-import static org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation
+import static org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion
+import static org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease
 
 class WorkerDaemonClientTest extends Specification {
     BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     BuildOperationExecutor.Operation buildOperation = Mock(BuildOperationExecutor.Operation)
-    Operation workerOperation = Mock(Operation)
-    Completion completion = Mock(Completion)
+    WorkerLease workerOperation = Mock(WorkerLease)
+    WorkerLeaseCompletion completion = Mock(WorkerLeaseCompletion)
 
     WorkerDaemonClient client
 
     def setup() {
-        _ * workerOperation.operationStart() >> completion
+        _ * workerOperation.startChild() >> completion
     }
 
     def "underlying worker is executed when client is executed"() {
@@ -69,8 +69,8 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     def "build operation is started and finished when client is executed"() {
-        def operation = Mock(Operation)
-        def completion = Mock(Completion)
+        def operation = Mock(WorkerLease)
+        def completion = Mock(WorkerLeaseCompletion)
 
         given:
         client = client()
@@ -79,13 +79,13 @@ class WorkerDaemonClientTest extends Specification {
         client.execute(Stub(WorkSpec), operation, buildOperation)
 
         then:
-        1 * operation.operationStart() >> completion
-        1 * completion.operationFinish()
+        1 * operation.startChild() >> completion
+        1 * completion.leaseFinish()
     }
 
     def "build worker operation is finished even if worker fails"() {
-        def operation = Mock(Operation)
-        def completion = Mock(Completion)
+        def operation = Mock(WorkerLease)
+        def completion = Mock(WorkerLeaseCompletion)
         def workerDaemonProcess = Mock(WorkerDaemonProcess)
 
         given:
@@ -95,13 +95,13 @@ class WorkerDaemonClientTest extends Specification {
         client.execute(Stub(WorkSpec), operation, buildOperation)
 
         then:
-        1 * operation.operationStart() >> completion
+        1 * operation.startChild() >> completion
         1 * buildOperationExecutor.run(_ as BuildOperationDetails, _ as Transformer) >> { args -> args[1].transform(Mock(BuildOperationContext)) }
 
         then:
         thrown(RuntimeException)
         1 * workerDaemonProcess.execute(_) >> { throw new RuntimeException() }
-        1 * completion.operationFinish()
+        1 * completion.leaseFinish()
     }
 
     WorkerDaemonClient client() {

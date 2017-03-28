@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.util.RedirectStdOutAndErr
@@ -38,7 +38,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def workerDaemonFactory = Mock(WorkerFactory)
     def inProcessWorkerFactory = Mock(WorkerFactory)
     def executorFactory = Mock(ExecutorFactory)
-    def buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry)
+    def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(FileResolver)
@@ -128,7 +128,7 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrent()
+        1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executor.execute(_ as ListenableFutureTask) >> { args -> task = args[0] }
 
         when:
@@ -150,7 +150,7 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrent()
+        1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executor.execute(_ as ListenableFutureTask) >> { args -> task = args[0] }
 
         when:

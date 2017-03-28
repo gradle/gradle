@@ -51,6 +51,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             public class TestParallelRunnable implements Runnable {
                 final String path 
 
+                @Inject
                 public TestParallelRunnable(String path) {
                     this.path = path
                 }

@@ -361,7 +361,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         // warm buildSrc
         succeeds("help")
-        
+
         def calls = ["workItem0", "workItem1", "workItem2", "workItem3", "workItem4", "workItem5"] as String[]
         def handler = blockingHttpServer.blockOnConcurrentExecutionAnyOf(maxWorkers, calls)
 

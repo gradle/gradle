@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.progress.BuildOperationExecutor;
 
 /**
@@ -24,5 +24,5 @@ import org.gradle.internal.progress.BuildOperationExecutor;
  */
 public interface Worker<T extends WorkSpec> {
     DefaultWorkResult execute(T spec);
-    DefaultWorkResult execute(T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation);
+    DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, BuildOperationExecutor.Operation parentBuildOperation);
 }

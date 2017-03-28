@@ -23,14 +23,14 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
 class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
-    def executor = new DefaultTaskPlanExecutor(1, executorFactory, Stub(BuildOperationWorkerRegistry))
+    def executor = new DefaultTaskPlanExecutor(1, executorFactory, Mock(WorkerLeaseService))
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)
@@ -47,13 +47,13 @@ class DefaultTaskPlanExecutorTest extends Specification {
 
         then:
         1 * executorFactory.create(_) >> Mock(StoppableExecutor)
-        1 * taskPlan.executeWithTask(_) >> { args ->
-            args[0].execute(taskInfo)
+        1 * taskPlan.executeWithTask(_,_) >> { args ->
+            args[1].execute(taskInfo)
             return true
         }
         1 * worker.execute(task)
         1 * taskPlan.taskComplete(taskInfo)
-        1 * taskPlan.executeWithTask(_) >> false
+        1 * taskPlan.executeWithTask(_,_) >> false
         1 * taskPlan.awaitCompletion()
     }
 

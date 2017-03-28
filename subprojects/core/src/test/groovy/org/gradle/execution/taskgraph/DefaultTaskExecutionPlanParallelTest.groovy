@@ -24,8 +24,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -53,12 +53,14 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root
     def cancellationHandler = Mock(BuildCancellationToken)
-    def listenerManager = new DefaultListenerManager()
-    def projectLockService = new DefaultWorkerLeaseService(listenerManager, true, 1)
+    def coordinationService = new DefaultResourceLockCoordinationService()
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, true, 3)
+    def parentWorkerLease = workerLeaseService.workerLease
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, projectLockService)
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
+        parentWorkerLease.start()
     }
 
     def "multiple tasks with async work from the same project can run in parallel"() {
@@ -419,13 +421,13 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         start {
             def moreTasks = true
             while(moreTasks) {
-                moreTasks = executionPlan.executeWithTask(new Action<TaskInfo>() {
+                moreTasks = executionPlan.executeWithTask(parentWorkerLease, new Action<TaskInfo>() {
                     @Override
                     void execute(TaskInfo taskInfo) {
                         operation."${taskInfo.task.path}" {
                             tasks.add(taskInfo)
                             if (taskInfo.task instanceof Async) {
-                                projectLockService.withoutProjectLock {
+                                workerLeaseService.withoutProjectLock {
                                     thread.blockUntil."complete${taskInfo.task.path}"
                                 }
                             } else {

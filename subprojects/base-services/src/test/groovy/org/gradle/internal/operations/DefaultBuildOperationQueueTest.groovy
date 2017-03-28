@@ -19,7 +19,8 @@ package org.gradle.internal.operations
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.google.common.util.concurrent.MoreExecutors
 import org.gradle.api.GradleException
-import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -58,10 +59,11 @@ class DefaultBuildOperationQueueTest extends Specification {
     }
 
     BuildOperationQueue operationQueue
-    BuildOperationWorkerRegistry workerRegistry
+    WorkerLeaseRegistry workerRegistry
+    WorkerLeaseRegistry.WorkerLeaseCompletion completion
 
     void setupQueue(int threads) {
-        workerRegistry = new DefaultWorkerLeaseService(Mock(ListenerManager), true, threads) {};
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, threads) {};
         ListeningExecutorService sameThreadExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threads))
         operationQueue = new DefaultBuildOperationQueue(workerRegistry, sameThreadExecutor, new SimpleWorker())
     }

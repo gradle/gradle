@@ -19,30 +19,31 @@ package org.gradle.internal.operations
 import org.gradle.api.GradleException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
 class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
 
-    BuildOperationWorkerRegistry workerRegistry
+    WorkerLeaseRegistry workerRegistry
     BuildOperationProcessor buildOperationProcessor
-    BuildOperationWorkerRegistry.Completion outerOperationCompletion
-    BuildOperationWorkerRegistry.Operation outerOperation
+    WorkerLeaseRegistry.WorkerLeaseCompletion outerOperationCompletion
+    WorkerLeaseRegistry.WorkerLease outerOperation
 
     def setupBuildOperationProcessor(int maxThreads) {
-        workerRegistry = new DefaultWorkerLeaseService(Mock(ListenerManager), true, maxThreads)
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, maxThreads)
         buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), maxThreads)
-        outerOperationCompletion = workerRegistry.operationStart();
-        outerOperation = workerRegistry.getCurrent()
+        outerOperationCompletion = workerRegistry.getWorkerLease().start()
+        outerOperation = workerRegistry.getCurrentWorkerLease()
     }
 
     def "cleanup"() {
         if (outerOperationCompletion) {
-            outerOperationCompletion.operationFinish()
+            outerOperationCompletion.leaseFinish()
             workerRegistry.stop()
         }
     }
@@ -94,13 +95,13 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         async {
             numberOfQueues.times { i ->
                 start {
-                    def cl = outerOperation.operationStart()
+                    def cl = outerOperation.startChild()
                     buildOperationProcessor.run(worker, { queue ->
                         amountOfWork.times {
                             queue.add(operations[i])
                         }
                     })
-                    cl.operationFinish()
+                    cl.leaseFinish()
                 }
             }
         }
@@ -131,18 +132,18 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         async {
             // Successful queue
             start {
-                def cl = outerOperation.operationStart()
+                def cl = outerOperation.startChild()
                 buildOperationProcessor.run(worker, { queue ->
                     amountOfWork.times {
                         queue.add(success)
                     }
                 })
-                cl.operationFinish()
+                cl.leaseFinish()
                 successfulQueueCompleted = true
             }
             // Failure queue
             start {
-                def cl = outerOperation.operationStart()
+                def cl = outerOperation.startChild()
                 try {
                     buildOperationProcessor.run(worker, { queue ->
                         amountOfWork.times {
@@ -152,7 +153,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
                 } catch (MultipleBuildOperationFailures e) {
                     exceptionInFailureQueue = true
                 } finally {
-                    cl.operationFinish()
+                    cl.leaseFinish()
                 }
             }
         }

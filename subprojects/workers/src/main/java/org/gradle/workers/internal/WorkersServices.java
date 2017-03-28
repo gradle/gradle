@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -59,16 +59,16 @@ public class WorkersServices implements PluginServiceRegistry {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, startParameter, buildOperationExecutor));
         }
 
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryManager memoryManager, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, memoryManager, buildOperationWorkerRegistry, buildOperationExecutor);
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, memoryManager, workerLeaseRegistry, buildOperationExecutor);
         }
 
-        WorkerExecutor createWorkerExecutor(Instantiator instantiator, WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
-            return instantiator.newInstance(DefaultWorkerExecutor.class, workerDaemonFactory, inProcessWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker);
+        WorkerExecutor createWorkerExecutor(Instantiator instantiator, WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+            return instantiator.newInstance(DefaultWorkerExecutor.class, workerDaemonFactory, inProcessWorkerFactory, fileResolver, executorFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker);
         }
 
-        InProcessWorkerFactory createInProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
-            return new InProcessWorkerFactory(classLoaderFactory, buildOperationWorkerRegistry, buildOperationExecutor);
+        InProcessWorkerFactory createInProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
+            return new InProcessWorkerFactory(classLoaderFactory, workerLeaseRegistry, buildOperationExecutor);
         }
     }
 }

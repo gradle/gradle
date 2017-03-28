@@ -31,10 +31,11 @@ import org.gradle.internal.Factories
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
 
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -44,17 +45,18 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def listenerManager = new DefaultListenerManager()
     def executer = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def workerLeases = new DefaultWorkerLeaseService(listenerManager, true, 1)
+    def coordinationService = new DefaultResourceLockCoordinationService()
+    def workerLeases = new DefaultWorkerLeaseService(coordinationService, true, 1)
     def executorFactory = Mock(ExecutorFactory)
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(1, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases)
-    BuildOperationWorkerRegistry.Completion parentWorkerLease
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(1, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
+    WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
 
     def setup() {
-        parentWorkerLease = workerLeases.operationStart()
+        parentWorkerLease = workerLeases.getWorkerLease().start()
     }
 
     def cleanup() {
-        parentWorkerLease.operationFinish()
+        parentWorkerLease.leaseFinish()
         workerLeases.stop()
     }
 

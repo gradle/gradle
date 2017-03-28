@@ -250,7 +250,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         fails 'runInWorker'
 
         then:
-        failure.assertHasCause 'No build operation associated with the current thread'
+        failure.assertHasCause 'No worker lease associated with the current thread'
 
         where:
         forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']

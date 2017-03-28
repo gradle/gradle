@@ -21,8 +21,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.progress.BuildOperationExecutor.Operation;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -32,10 +35,10 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     private final ListMultimap<Operation, AsyncWorkCompletion> items = ArrayListMultimap.create();
     private final Set<Operation> waiting = Sets.newHashSet();
     private final ReentrantLock lock = new ReentrantLock();
-    private final ProjectLockService projectLockService;
+    private final ProjectLeaseRegistry projectLeaseRegistry;
 
-    public DefaultAsyncWorkTracker(ProjectLockService projectLockService) {
-        this.projectLockService = projectLockService;
+    public DefaultAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {
+        this.projectLeaseRegistry = projectLeaseRegistry;
     }
 
     @Override
@@ -66,22 +69,30 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
 
         try {
             if (workItems.size() > 0) {
-                projectLockService.withoutProjectLock(new Runnable() {
+                boolean workInProgress = CollectionUtils.any(workItems, new Spec<AsyncWorkCompletion>() {
                     @Override
-                    public void run() {
-                        for (AsyncWorkCompletion item : workItems) {
-                            try {
-                                item.waitForCompletion();
-                            } catch (Throwable t) {
-                                failures.add(t);
-                            }
-                        }
-
-                        if (failures.size() > 0) {
-                            throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
-                        }
+                    public boolean isSatisfiedBy(AsyncWorkCompletion workCompletion) {
+                        return !workCompletion.isComplete();
                     }
                 });
+                if (workInProgress) {
+                    projectLeaseRegistry.withoutProjectLock(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (AsyncWorkCompletion item : workItems) {
+                                try {
+                                    item.waitForCompletion();
+                                } catch (Throwable t) {
+                                    failures.add(t);
+                                }
+                            }
+
+                            if (failures.size() > 0) {
+                                throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
+                            }
+                        }
+                    });
+                }
             }
         } finally {
             stopWaiting(operation);
