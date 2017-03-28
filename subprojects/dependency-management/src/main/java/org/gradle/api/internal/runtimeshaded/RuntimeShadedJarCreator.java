@@ -105,7 +105,7 @@ class RuntimeShadedJarCreator {
         IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
             protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), new LinkedHashMap<String, List<String>>(), progressLogger);
+                processFiles(jarOutputStream, outputJar, files, new byte[BUFFER_SIZE], new HashSet<String>(), new LinkedHashMap<String, List<String>>(), progressLogger);
                 jarOutputStream.finish();
             }
         });
@@ -133,9 +133,9 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths, Map<String, List<String>> services,
+    private void processFiles(ZipOutputStream outputStream, File outputJar, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths, Map<String, List<String>> services,
                               ProgressLogger progressLogger) throws Exception {
-        PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
+        PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating '" + outputJar.getName() + "'", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
 
         for (File file : files) {
             progressLogger.progress(progressFormatter.getProgress());
