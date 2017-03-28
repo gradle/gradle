@@ -35,6 +35,9 @@ import static org.gradle.util.CollectionUtils.toStringList;
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
+        if (properties.isEmpty()) {
+            return delegate;
+        }
         DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(delegate);
 
         for (Map.Entry<?, ?> entry : properties.entrySet()) {
