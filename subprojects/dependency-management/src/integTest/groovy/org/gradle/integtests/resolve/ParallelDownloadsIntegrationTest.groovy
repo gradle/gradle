@@ -67,7 +67,26 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         repo << ['maven', 'ivy']
     }
 
-    private void multipleFilesToDownloadFrom(String repo, int artifacts = 8) {
+    @Unroll
+    def "downloads artifacts in parallel with project dependencies using #repo"() {
+        countParallelArtifactDownloads()
+
+        given:
+        multipleFilesToDownloadFrom(repo, 8, 8)
+
+        when:
+        run 'resolve'
+
+        then:
+        noExceptionThrown()
+        println "Max concurrent requests: $maxConcurrentRequests"
+        maxConcurrentRequests > 1
+
+        where:
+        repo << ['maven', 'ivy']
+    }
+
+    private void multipleFilesToDownloadFrom(String repo, int externalDependenciesCount = 8, int projectDependenciesCount = 0) {
         if (repo in ['ivy', 'maven']) {
             buildFile << """
             allprojects {
@@ -89,7 +108,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             
             dependencies {
         """
-            (1..artifacts).each {
+            externalDependenciesCount.times {
                 if (repo == 'maven') {
                     def module = mavenHttpRepo.module("test", "test$it", "1.0").publish()
                     module.pom.expectGet()
@@ -101,11 +120,22 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
                 buildFile << "               compile 'test:test$it:1.0'\n"
             }
-
+            projectDependenciesCount.times {
+                settingsFile << "include 'subproject$it'\n"
+                buildFile << "               compile project('subproject$it')\n"
+                file("subproject$it/build.gradle") << """
+                    apply plugin: 'java-library'
+                """
+                file("subproject$it/src/main/java/com/acme/Foo${it}.java") << """
+                    package com.acme;
+                    public class Foo${it} {}
+                """
+            }
             buildFile << """
             }
             
             task resolve {
+                dependsOn configurations.compile // force execution of jar tasks for local projects
                 doLast {
                     println configurations.compile.files
                 }

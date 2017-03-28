@@ -20,8 +20,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -52,7 +54,9 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
     public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
         if (visitor.canPerformPreemptiveDownload()) {
             for (ResolvedArtifact artifact : artifacts) {
-                actions.add(new DownloadArtifactFile(artifact, artifactFailures));
+                if (!isFromIncludedBuild(artifact)) {
+                    actions.add(new DownloadArtifactFile(artifact, artifactFailures));
+                }
             }
         }
     }
@@ -80,6 +84,11 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         return attributes;
     }
 
+    private static boolean isFromIncludedBuild(ResolvedArtifact artifact) {
+        ComponentArtifactIdentifier id = artifact.getId();
+        return id instanceof LocalComponentArtifactMetadata && ((LocalComponentArtifactMetadata) id).isComposite();
+    }
+
     private static class SingleArtifactResolvedVariant implements ResolvedVariant {
         private final AttributeContainerInternal variantAttributes;
         private final ResolvedArtifact artifact;
@@ -96,7 +105,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
-            if (visitor.canPerformPreemptiveDownload()) {
+            if (visitor.canPerformPreemptiveDownload() && !isFromIncludedBuild(artifact))  {
                 actions.add(new DownloadArtifactFile(artifact, artifactFailures));
             }
         }
