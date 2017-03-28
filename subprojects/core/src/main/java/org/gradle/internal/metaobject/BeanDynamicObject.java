@@ -54,6 +54,14 @@ import java.util.Map;
  */
 public class BeanDynamicObject extends AbstractDynamicObject {
     private static final Method META_PROP_METHOD;
+    private static final ThreadLocal<Object[]> META_PROP_ARGUMENT_ARRAY = new ThreadLocal<Object[]>() {
+        @Override
+        protected Object[] initialValue() {
+            Object[] args = new Object[2];
+            args[1] = false;
+            return args;
+        }
+    };
     private static final Field MISSING_PROPERTY_GET_METHOD;
     private static final Field MISSING_PROPERTY_SET_METHOD;
     private static final Field MISSING_METHOD_METHOD;
@@ -66,6 +74,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     private final MethodArgumentsTransformer argsTransformer;
     private final PropertySetTransformer propertySetTransformer;
+
+    private BeanDynamicObject withNoProperties;
+    private BeanDynamicObject withNoImplementsMissing;
 
     static {
         try {
@@ -115,11 +126,27 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     public BeanDynamicObject withNoProperties() {
-        return new BeanDynamicObject(bean, publicType, false, implementsMissing, propertySetTransformer, argsTransformer);
+        if (withNoProperties == null) {
+            withNoProperties = new BeanDynamicObject(bean, publicType, false, implementsMissing, propertySetTransformer, argsTransformer) {
+                @Override
+                public BeanDynamicObject withNoProperties() {
+                    return this;
+                }
+            };
+        }
+        return withNoProperties;
     }
 
     public BeanDynamicObject withNotImplementsMissing() {
-        return new BeanDynamicObject(bean, publicType, includeProperties, false, propertySetTransformer, argsTransformer);
+        if (withNoImplementsMissing == null) {
+            withNoImplementsMissing = new BeanDynamicObject(bean, publicType, includeProperties, false, propertySetTransformer, argsTransformer) {
+                @Override
+                public BeanDynamicObject withNotImplementsMissing() {
+                    return this;
+                }
+            };
+        }
+        return withNoImplementsMissing;
     }
 
     @Override
@@ -310,12 +337,21 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return null;
         }
 
+        /*
+         * MetaClass.getMetaProperty(name) is very expensive when the property is not known.
+         * Instead, we reach into the meta class to call a much more efficient lookup method.
+         * Since we do this in a hot code path, we also reuse the argument array used for the
+         * reflective call to save memory.
+         */
         @Nullable
         protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
             if (metaClass instanceof MetaClassImpl) {
-                // MetaClass.getMetaProperty(name) is very expensive when the property is not known. Instead, reach into the meta class to call a much more efficient lookup method
                 try {
-                    return (MetaProperty) META_PROP_METHOD.invoke(metaClass, name, false);
+                    Object[] args = META_PROP_ARGUMENT_ARRAY.get();
+                    args[0] = name;
+                    MetaProperty result = (MetaProperty) META_PROP_METHOD.invoke(metaClass, args);
+                    args[0] = null;
+                    return result;
                 } catch (Throwable e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
