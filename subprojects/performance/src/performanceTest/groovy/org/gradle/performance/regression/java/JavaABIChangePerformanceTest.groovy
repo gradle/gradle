@@ -20,13 +20,13 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "abi change on #testProject"() {
+    def "assemble for abi change on #testProject"() {
         given:
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
@@ -42,7 +42,7 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                   | fileToChange
-        LARGE_MONOLITHIC_JAVA_PROJECT | "src/main/java/org/gradle/test/performancenull_200/Productionnull_20000.java"
-        LARGE_JAVA_MULTI_PROJECT      | "project200/src/main/java/org/gradle/test/performance200_1/Production200_1.java"
+        LARGE_MONOLITHIC_JAVA_PROJECT | "src/main/java/org/gradle/test/performance/largemonolithicjavaproject/p0/Production0.java"
+        LARGE_JAVA_MULTI_PROJECT      | "project0/src/main/java/org/gradle/test/performance/largejavamultiproject/project0/p0/Production0.java"
     }
 }

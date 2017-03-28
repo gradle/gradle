@@ -18,9 +18,9 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -154,7 +154,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
-        ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSet.builder();
+        ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSortedSet.naturalOrder();
         for (File file : task.getOutputs().getFiles()) {
             declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));
         }
@@ -234,8 +234,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         private ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
         private Long discoveredFilesSnapshotId;
         private FileSnapshotRepository snapshotRepository;
-        private Map<String, FileCollectionSnapshot> inputFilesSnapshot;
-        private Map<String, FileCollectionSnapshot> outputFilesSnapshot;
+        private ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
+        private ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
         private FileCollectionSnapshot discoveredFilesSnapshot;
 
         /**
@@ -257,7 +257,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public Map<String, FileCollectionSnapshot> getInputFilesSnapshot() {
+        public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
             if (inputFilesSnapshot == null) {
                 ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
                 for (Map.Entry<String, Long> entry : inputFilesSnapshotIds.entrySet()) {
@@ -269,7 +269,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public void setInputFilesSnapshot(Map<String, FileCollectionSnapshot> inputFilesSnapshot) {
+        public void setInputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot) {
             this.inputFilesSnapshot = inputFilesSnapshot;
             this.inputFilesSnapshotIds = null;
         }
@@ -289,7 +289,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public Map<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
+        public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
             if (outputFilesSnapshot == null) {
                 ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
                 for (Map.Entry<String, Long> entry : outputFilesSnapshotIds.entrySet()) {
@@ -302,7 +302,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public void setOutputFilesSnapshot(Map<String, FileCollectionSnapshot> outputFilesSnapshot) {
+        public void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
             this.outputFilesSnapshot = outputFilesSnapshot;
             outputFilesSnapshotIds = null;
         }
@@ -352,11 +352,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 List<HashCode> taskActionsClassLoaderHashes = Collections.unmodifiableList(mutableTaskActionsClassLoaderHashes);
 
                 int cacheableOutputPropertiesCount = decoder.readSmallInt();
-                ImmutableSet.Builder<String> cacheableOutputPropertiesBuilder = ImmutableSet.builder();
+                ImmutableSortedSet.Builder<String> cacheableOutputPropertiesBuilder = ImmutableSortedSet.naturalOrder();
                 for (int j = 0; j < cacheableOutputPropertiesCount; j++) {
                     cacheableOutputPropertiesBuilder.add(decoder.readString());
                 }
-                ImmutableSet<String> cacheableOutputProperties = cacheableOutputPropertiesBuilder.build();
+                ImmutableSortedSet<String> cacheableOutputProperties = cacheableOutputPropertiesBuilder.build();
 
                 int outputFilesCount = decoder.readSmallInt();
                 ImmutableSet.Builder<String> declaredOutputFilePathsBuilder = ImmutableSet.builder();
@@ -365,7 +365,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
                 ImmutableSet<String> declaredOutputFilePaths = declaredOutputFilePathsBuilder.build();
 
-                ImmutableMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
+                ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
                 return new TaskExecutionSnapshot(
                     taskClass,

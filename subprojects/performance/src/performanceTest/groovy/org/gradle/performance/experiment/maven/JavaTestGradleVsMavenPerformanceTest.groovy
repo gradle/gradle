@@ -17,82 +17,118 @@
 package org.gradle.performance.experiment.maven
 
 import org.gradle.performance.AbstractGradleVsMavenPerformanceTest
-import org.gradle.performance.fixture.JavaSourceFileUpdater
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.GradleInvocationSpec
+import org.gradle.performance.fixture.InvocationCustomizer
+import org.gradle.performance.fixture.InvocationSpec
+import org.gradle.performance.fixture.MavenInvocationSpec
+import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
+
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC_JAVA_PROJECT
 
 /**
  * Performance tests aimed at comparing the performance of Gradle for compiling and executing test suites, making
  * sure we are always faster than Maven.
  */
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
-    @Unroll("Gradle vs Maven #description build for #template")
-    def "cleanTest test performance test"() {
+
+    @Unroll
+    def "#gradleCleanupTask #gradleTask on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
-        runner.testId = "$size $description with Java plugin"
-        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
+        runner.testProject = testProject
+        runner.jvmOpts << "-Xms${testProject.daemonMemory}" << "-Xmx${testProject.daemonMemory}"
+        if (testProject.parallel) {
+            runner.mvnArgs << '-T' << testProject.maxWorkers
+        }
+        runner.gradleTasks = gradleTask
+        runner.equivalentMavenTasks = mavenTask
+        if (mavenTask == "package") {
+            runner.mvnArgs << "-Dmaven.test.skip=true"
+        }
+        runner.warmUpRuns = 4
+        runner.runs = 10
+
+        setupCleanupOnOddRounds(gradleCleanupTask, mavenCleanupTask)
 
         when:
         def results = runner.run()
 
         then:
-        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
+        if (gradleTask != "test" || testProject != MEDIUM_JAVA_MULTI_PROJECT) { //there seems to be some inefficiency when testing with --parallel
+            results.assertFasterThanMaven()
+        }
 
         where:
-        template          | size     | description                 | gradleTasks           | equivalentMavenTasks | maxDiffMillis | maxDiffMB
-        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['test']             | 10000         | 100
-        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['clean', 'test']    | 5000          | 100
+        testProject                    | gradleTask    | mavenTask | gradleCleanupTask | mavenCleanupTask
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'    | 'package' | 'clean'           | 'clean'
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'        | 'test'    | 'cleanTest'       | 'help'
+
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'    | 'package' | 'clean'           | 'clean'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'        | 'test'    | 'cleanTest'       | 'help'
     }
 
-    @Unroll("Gradle vs Maven #description build for #template")
-    def "build performance test"() {
+    @Unroll
+    def "#gradleTask for non-abi change on #testProject (Gradle vs Maven)"() {
         given:
-        runner.testGroup = "Gradle vs Maven build using Java plugin"
-        runner.testId = "$size $description with Java plugin"
-        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
+        runner.testGroup = "Gradle vs Maven test build using Java plugin"
+        runner.testProject = testProject
+        runner.jvmOpts  << "-Xms${testProject.daemonMemory}" << "-Xmx${testProject.daemonMemory}"
+        if (testProject.parallel) {
+            runner.mvnArgs << '-T' << testProject.maxWorkers
+        }
+        runner.gradleTasks = gradleTask
+        runner.equivalentMavenTasks = mavenTask
+        if (mavenTask == "package") {
+            runner.mvnArgs << "-Dmaven.test.skip=true"
+        }
+        runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
 
         when:
         def results = runner.run()
 
         then:
-        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
+        results.assertFasterThanMaven()
 
         where:
-        template          | size     | description        | gradleTasks            | equivalentMavenTasks | maxDiffMillis | maxDiffMB
-        'mediumWithJUnit' | 'medium' | 'clean build'      | ['clean', 'build']     | ['clean', 'verify']  | 1000          | 100
-        'mediumWithJUnit' | 'medium' | 'up-to-date build' | ['cleanTest', 'build'] | ['verify']           | 5000          | 100
+        testProject                    | gradleTask     | mavenTask | fileToChange
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'         | 'test'               | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'     | 'package'            | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'         | 'test'               | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'     | 'package'            | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
     }
 
-    @Unroll("Gradle vs Maven #description incremental build for #template")
-    def "incremental build performance test"() {
-        given:
-        runner.testGroup = "Gradle vs Maven incremental build using Java plugin"
-        runner.testId = "$size $description with Java plugin"
-        runner.buildExperimentListener = new JavaSourceFileUpdater(10)
-        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
-
-        when:
-        def results = runner.run()
-
-        then:
-        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
-
-        where:
-        template          | size     | description         | gradleTasks | equivalentMavenTasks | maxDiffMillis | maxDiffMB
-        'mediumWithJUnit' | 'medium' | 'incremental build' | ['build']   | ['verify']           | 0             | 100
-        'largeWithJUnit'  | 'large'  | 'incremental build' | ['build']   | ['verify']           | 0             | 200
-    }
-
-    private void equivalentGradleAndMavenBuilds(String template, String description, List<String> gradleTasks, List<String> equivalentMavenTasks) {
-        runner.baseline {
-            projectName(template).displayName("Gradle $description for project $template").invocation {
-                tasksToRun(gradleTasks).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
+    void setupCleanupOnOddRounds(String gradleCleanupTask, String mavenCleanupTarget) {
+        runner.invocationCustomizer = new InvocationCustomizer() {
+            @Override
+            def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
+                if (invocationInfo.iterationNumber % 2 == 1) {
+                    if (invocationSpec instanceof GradleInvocationSpec) {
+                        invocationSpec.withBuilder()
+                        .tasksToRun([gradleCleanupTask])
+                        .build() as T
+                    } else {
+                        (invocationSpec as MavenInvocationSpec).withBuilder()
+                            .tasksToRun([mavenCleanupTarget])
+                            .build() as T
+                    }
+                } else {
+                    invocationSpec
+                }
             }
         }
-        runner.mavenBuildSpec {
-            projectName(template).displayName("Maven $description for project $template").invocation {
-                tasksToRun(equivalentMavenTasks).mavenOpts('-Xms1G', '-Xmx1G')
-                    .args('-q', '-Dsurefire.printSummary=false')
+        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if (invocationInfo.iterationNumber % 2 == 1) {
+                    measurementCallback.omitMeasurement()
+                }
             }
         }
     }

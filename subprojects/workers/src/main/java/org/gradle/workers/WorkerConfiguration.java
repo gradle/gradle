@@ -17,12 +17,12 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
-import java.io.Serializable;
 
 /**
  * Represents the configuration of a worker.
@@ -30,7 +30,7 @@ import java.io.Serializable;
  * @since 3.5
  */
 @Incubating
-public interface WorkerConfiguration extends Describable {
+public interface WorkerConfiguration extends Describable, ActionConfiguration {
     /**
      * Adds a set of files to the classpath associated with the worker.
      *
@@ -53,6 +53,18 @@ public interface WorkerConfiguration extends Describable {
     Iterable<File> getClasspath();
 
     /**
+     * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
+     */
+    ForkMode getForkMode();
+
+    /**
+     * Sets the forking mode for this worker, see {@link ForkMode}.
+     *
+     * @param forkMode the forking mode for this worker, see {@link ForkMode}
+     */
+    void setForkMode(ForkMode forkMode);
+
+    /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.
      *
      * @param forkOptionsAction - An action to configure the {@link JavaForkOptions} for this builder
@@ -65,20 +77,6 @@ public interface WorkerConfiguration extends Describable {
      * @return the {@link JavaForkOptions} of this builder
      */
     JavaForkOptions getForkOptions();
-
-    /**
-     * Sets any initialization parameters to use when constructing an instance of the implementation class.
-     *
-     * @param params - the parameters to use during construction
-     */
-    void setParams(Serializable... params);
-
-    /**
-     * Gets the initialization parameters that will be used when constructing an instance of the implementation class.
-     *
-     * @return the parameters to use during construction
-     */
-    Serializable[] getParams();
 
     /**
      * Sets the name to use when displaying this item of work.

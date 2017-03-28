@@ -26,8 +26,16 @@ import org.gradle.internal.UncheckedException;
 import java.io.File;
 import java.util.Set;
 
-class ArtifactCollectingVisitor implements ArtifactVisitor {
-    final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
+public class ArtifactCollectingVisitor implements ArtifactVisitor {
+    final Set<ResolvedArtifact> artifacts;
+
+    public ArtifactCollectingVisitor() {
+        this(Sets.<ResolvedArtifact>newLinkedHashSet());
+    }
+
+    public ArtifactCollectingVisitor(Set<ResolvedArtifact> artifacts) {
+        this.artifacts = artifacts;
+    }
 
     @Override
     public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {

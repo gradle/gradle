@@ -33,7 +33,6 @@ task wrapperBuildReceiptResource() {
     ext.destinationFile = file("${generatedTestResourcesDir}/${wrapperBuildReceipt}")
     inputs.property("versionNumber") { testedVersion }
     outputs.file(destinationFile)
-    outputs.cacheIf { true }
     doLast {
         destinationFile.parentFile.mkdirs()
         destinationFile.text = "versionNumber=${testedVersion}"
@@ -42,6 +41,9 @@ task wrapperBuildReceiptResource() {
 sourceSets.test.output.dir generatedTestResourcesDir, builtBy: wrapperBuildReceiptResource
 
 task executableJar(type: Jar) {
+    // gradle-wrapper.jar will be part of the plugins.jar - so it needs to be identical for now
+    reproducibleFileOrder = true
+    preserveFileTimestamps = false
     archiveName = 'gradle-wrapper.jar'
     from sourceSets.main.output
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }

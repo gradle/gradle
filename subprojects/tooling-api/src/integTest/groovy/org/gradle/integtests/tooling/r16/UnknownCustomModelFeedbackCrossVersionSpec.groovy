@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r16
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnknownModelException
 
 class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
@@ -52,7 +51,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
         withConnection { it.getModel(CustomModel.class) }
 
         then:
-        GradleConnectionException e = thrown()
-        e.message.contains('CustomModel')
+        caughtGradleConnectionException = thrown()
+        caughtGradleConnectionException.message.contains('CustomModel')
     }
 }

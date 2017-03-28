@@ -23,8 +23,8 @@ import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
 
-import static org.gradle.performance.regression.java.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.regression.java.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPerformanceTest{
     int firstWarmupWithCache = 1
@@ -38,6 +38,7 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.runs = 26
         runner.setupCleanupOnOddRounds()
         runner.args = ["-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true", "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true"]
+        runner.minimumVersion = "3.2"
         runner.targetVersions = ["3.5-20170302014333+0000"]
     }
 
@@ -47,8 +48,8 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
      */
     def getScenarios() {
         [
-            [LARGE_MONOLITHIC_JAVA_PROJECT, ['assemble']],
-            [LARGE_JAVA_MULTI_PROJECT, ['assemble']]
+            [LARGE_MONOLITHIC_JAVA_PROJECT, 'assemble'],
+            [LARGE_JAVA_MULTI_PROJECT, 'assemble']
         ]
     }
 

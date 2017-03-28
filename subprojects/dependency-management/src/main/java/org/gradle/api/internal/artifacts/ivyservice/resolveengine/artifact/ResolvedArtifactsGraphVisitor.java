@@ -100,14 +100,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
         if (!artifacts.isEmpty()) {
             Set<DefaultVariantMetadata> variants = ImmutableSet.of(new DefaultVariantMetadata(ImmutableAttributes.EMPTY, artifacts));
-            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory, buildOperationExecutor);
+            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, attributesFactory, buildOperationExecutor);
         }
 
         ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, artifactResolver, allResolvedArtifacts, id, attributesFactory, buildOperationExecutor);
+            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, attributesFactory, buildOperationExecutor);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!dependency.getExclusions(moduleExclusions).mayExcludeArtifacts()) {

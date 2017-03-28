@@ -22,8 +22,8 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 import spock.lang.Unroll
 
-import static JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
@@ -31,6 +31,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     def "get IDE model on #testProject for Eclipse"() {
         given:
         experiment(testProject.projectName) {
+            minimumVersion = "2.11"
             targetVersions = ["3.5-20170221000043+0000"]
             action {
                 def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
@@ -88,6 +89,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     def "get IDE model on #testProject for IDEA"() {
         given:
         experiment(testProject.projectName) {
+            minimumVersion = "2.11"
             targetVersions = ["3.5-20170221000043+0000"]
             action {
                 def model = model(tapiClass(IdeaProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()

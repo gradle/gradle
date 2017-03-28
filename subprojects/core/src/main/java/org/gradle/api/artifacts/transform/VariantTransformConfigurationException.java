@@ -23,7 +23,7 @@ import org.gradle.internal.exceptions.Contextual;
 /**
  * An exception to report a problem during transformation execution.
  *
- * @since 3.4
+ * @since 3.5
  */
 @Contextual
 @Incubating

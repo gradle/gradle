@@ -18,31 +18,33 @@ package org.gradle.api.credentials;
 
 /**
  * A username/password credentials that can be used to login to something protected by a username and password.
+ *
+ * @since 3.5
  */
 public interface PasswordCredentials extends Credentials {
     /**
-     * Returns the user name to use when authenticating to this repository.
+     * Returns the user name to use when authenticating.
      *
      * @return The user name. May be null.
      */
     String getUsername();
 
     /**
-     * Sets the user name to use when authenticating to this repository.
+     * Sets the user name to use when authenticating.
      *
      * @param userName The user name. May be null.
      */
     void setUsername(String userName);
 
     /**
-     * Returns the password to use when authenticating to this repository.
+     * Returns the password to use when authenticating.
      *
      * @return The password. May be null.
      */
     String getPassword();
 
     /**
-     * Sets the password to use when authenticating to this repository.
+     * Sets the password to use when authenticating.
      *
      * @param password The password. May be null.
      */

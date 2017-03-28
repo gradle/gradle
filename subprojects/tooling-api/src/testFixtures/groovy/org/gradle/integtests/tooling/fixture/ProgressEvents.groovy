@@ -29,6 +29,7 @@ import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.util.GradleVersion
 
 class ProgressEvents implements ProgressListener {
     private final List<ProgressEvent> events = []
@@ -36,6 +37,16 @@ class ProgressEvents implements ProgressListener {
     private final List<Operation> operations = new ArrayList<Operation>()
     private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
     boolean skipValidation
+
+    /**
+     * Creates a {@link ProgressEvents} implementation for the current tooling api client version.
+     */
+    static ProgressEvents create() {
+        return GradleVersion.current().baseVersion < GradleVersion.version("3.5") ? new ProgressEvents() : new ProgressEventsWithStatus()
+    }
+
+    protected ProgressEvents() {
+    }
 
     void clear() {
         events.clear()
@@ -52,6 +63,9 @@ class ProgressEvents implements ProgressListener {
             Map<OperationDescriptor, StartEvent> running = [:]
             for (ProgressEvent event : events) {
                 assert event.displayName == event.toString()
+                assert event.descriptor.displayName
+                assert event.descriptor.displayName == event.descriptor.toString()
+                assert event.descriptor.name
 
                 if (event instanceof StartEvent) {
                     def descriptor = event.descriptor
@@ -61,12 +75,13 @@ class ProgressEvents implements ProgressListener {
 
                     // Display name should be mostly unique
                     if (!skipValidation && uniqueBuildOperation(descriptor)) {
-                        if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']) {
+                        if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']
+                            || descriptor.displayName.contains('/maven-metadata.xml')) {
                             // Ignore this for now
                         } else {
                             def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
                             if (duplicateName != null) {
-                                throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events: " + events)
+                                throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events:\n${describeList(events)}")
                             }
                         }
                     }
@@ -75,7 +90,7 @@ class ProgressEvents implements ProgressListener {
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
                     def parent = descriptor.parent == null ? null : operations.find { it.descriptor == descriptor.parent }
 
-                    Operation operation = new Operation(parent, descriptor)
+                    Operation operation = newOperation(parent, descriptor)
                     operations.add(operation)
 
                     assert descriptor.displayName == descriptor.toString()
@@ -102,13 +117,25 @@ class ProgressEvents implements ProgressListener {
                     assert event.result.startTime == startEvent.eventTime
                     assert event.result.endTime == event.eventTime
                 } else {
-                    throw new AssertionError("Unexpected type of progress event received: ${event.getClass()}")
+                    def descriptor = event.descriptor
+                    // operation should still be running
+                    assert running.containsKey(descriptor) != null
+                    def operation = operations.find { it.descriptor == event.descriptor }
+                    otherEvent(event, operation)
                 }
             }
             assert running.size() == 0: "Not all operations completed: ${running.values()}, events: ${events}"
 
             dirty = false
         }
+    }
+
+    protected Operation newOperation(Operation parent, OperationDescriptor descriptor) {
+        new Operation(parent, descriptor)
+    }
+
+    protected void otherEvent(ProgressEvent event, Operation operation) {
+        throw new AssertionError("Unexpected type of progress event received: ${event.getClass()}")
     }
 
     // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
@@ -209,7 +236,7 @@ class ProgressEvents implements ProgressListener {
         assertHasZeroOrMoreTrees()
         def operation = operations.find { it.descriptor.displayName in displayNames }
         if (operation == null) {
-            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in: $operations")
+            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in:\n${describeList(operations)}")
         }
         return operation
     }
@@ -223,7 +250,7 @@ class ProgressEvents implements ProgressListener {
         assertHasZeroOrMoreTrees()
         def operation = operations.find { it.parent == parent && it.descriptor.displayName in displayNames }
         if (operation == null) {
-            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' and parent '$parent' found in: $operations")
+            throw new AssertionFailedError("No operation with display name '${displayNames[0]}' and parent '$parent' found in:\n${describeList(operations)}")
         }
         return operation
     }
@@ -241,7 +268,7 @@ class ProgressEvents implements ProgressListener {
         final List<Operation> children = []
         OperationResult result
 
-        private Operation(Operation parent, OperationDescriptor descriptor) {
+        protected Operation(Operation parent, OperationDescriptor descriptor) {
             this.descriptor = descriptor
             this.parent = parent
             if (parent != null) {
@@ -282,22 +309,20 @@ class ProgressEvents implements ProgressListener {
         Operation child(String displayName) {
             def child = children.find { it.descriptor.displayName == displayName }
             if (child == null) {
-                throw new AssertionFailedError("No operation with display name '$displayName' found in children of '$descriptor.displayName': $children")
+                throw new AssertionFailedError("No operation with display name '$displayName' found in children of '$descriptor.displayName':\n${describeList(children)}")
             }
             return child
         }
 
         Operation descendant(String displayName) {
             def found = [] as List<Operation>
-            def descendantsText = ''
             def recurse
-            recurse = { List<Operation> children, int level = 0 ->
+            recurse = { List<Operation> children ->
                 children.each { child ->
                     if (child.descriptor.displayName == displayName) {
                         found += child
                     }
-                    descendantsText += "\t${' ' * level}${child.descriptor.displayName}\n"
-                    recurse child.children, level + 1
+                    recurse child.children
                 }
             }
             recurse children
@@ -305,9 +330,30 @@ class ProgressEvents implements ProgressListener {
                 return found[0]
             }
             if (found.empty) {
-                throw new AssertionFailedError("No operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n$descendantsText")
+                throw new AssertionFailedError("No operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n${describeOperationsTree(children)}")
             }
-            throw new AssertionFailedError("More than one operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n$descendantsText")
+            throw new AssertionFailedError("More than one operation with display name '$displayName' found in descendants of '$descriptor.displayName':\n${describeOperationsTree(children)}")
         }
+    }
+
+    private static String describeList(List/*<ProgressEvent OR Operation>*/ haveDescriptor) {
+        return '\t' + haveDescriptor.collect { it.descriptor.displayName }.join('\n\t')
+    }
+
+    String describeOperationsTree() {
+        return describeOperationsTree(operations.findAll { !it.parent })
+    }
+
+    static String describeOperationsTree(List<Operation> operations) {
+        def description = ''
+        def recurse
+        recurse = { List<Operation> children, int level = 0 ->
+            children.each { child ->
+                description += "\t${' ' * level}${child.descriptor.displayName}\n"
+                recurse child.children, level + 1
+            }
+        }
+        recurse operations
+        return description
     }
 }

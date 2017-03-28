@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -25,27 +23,31 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
+import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultAttributesSchema implements AttributesSchemaInternal {
-
+public class DefaultAttributesSchema implements AttributesSchemaInternal, AttributesSchema {
     private final ComponentAttributeMatcher componentAttributeMatcher;
+    private final InstantiatorFactory instantiatorFactory;
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
-    private final Map<Key, List<? extends HasAttributes>> matchesCache = Maps.newHashMap();
+    private final DefaultAttributeMatcher matcher;
 
-    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher) {
+    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
+        this.instantiatorFactory = instantiatorFactory;
+        matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) {
         AttributeMatchingStrategy<?> strategy = strategies.get(attribute);
         if (strategy == null) {
@@ -63,7 +65,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
-            strategy = new DefaultAttributeMatchingStrategy<T>();
+            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory));
             strategies.put(attribute, strategy);
         }
         if (configureAction != null) {
@@ -82,91 +84,137 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
         return strategies.containsKey(key);
     }
 
+    AttributeSelectionSchema mergeWith(AttributesSchemaInternal producerSchema) {
+        return new MergedSchema(producerSchema);
+    }
+
     @Override
-    public <T extends HasAttributes> List<T> getMatches(AttributesSchema producerAttributeSchema, List<T> candidates, AttributeContainer consumer) {
-        if (candidates.isEmpty()) {
-            return Collections.emptyList();
+    public AttributeMatcher withProducer(AttributesSchemaInternal producerSchema) {
+        return new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(producerSchema));
+    }
+
+    @Override
+    public AttributeMatcher matcher() {
+        return matcher;
+    }
+
+    @Override
+    public CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute) {
+        AttributeMatchingStrategy<?> matchingStrategy = strategies.get(attribute);
+        if (matchingStrategy != null) {
+            return Cast.uncheckedCast(matchingStrategy.getCompatibilityRules());
         }
-        Key key = new Key(producerAttributeSchema, ImmutableList.copyOf(candidates), consumer);
-        List<? extends HasAttributes> match = this.matchesCache.get(key);
-        if (match == null) {
-            match = componentAttributeMatcher.match(this, (AttributesSchemaInternal) producerAttributeSchema, candidates, consumer);
-            matchesCache.put(key, match);
+        return EmptySchema.INSTANCE.compatibilityRules(attribute);
+    }
+
+    @Override
+    public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
+        AttributeMatchingStrategy<?> matchingStrategy = strategies.get(attribute);
+        if (matchingStrategy != null) {
+            return Cast.uncheckedCast(matchingStrategy.getDisambiguationRules());
         }
-        return Cast.uncheckedCast(match);
+        return EmptySchema.INSTANCE.disambiguationRules(attribute);
     }
 
-    @Override
-    public AttributeMatcher ignoreAdditionalProducerAttributes() {
-        return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalProducerAttributes());
-    }
+    private static class DefaultAttributeMatcher implements AttributeMatcher {
+        private final ComponentAttributeMatcher componentAttributeMatcher;
+        private final AttributeSelectionSchema effectiveSchema;
 
-    @Override
-    public AttributeMatcher ignoreAdditionalConsumerAttributes() {
-        return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalConsumerAttributes());
-    }
-
-    private static class Key {
-        final private AttributesSchema producerAttributeSchema;
-        final private List<?> candidates;
-        final private AttributeContainer consumer;
-        private final int hashCode;
-
-        public Key(AttributesSchema producerAttributeSchema, List<?> candidates, AttributeContainer consumer) {
-            this.producerAttributeSchema = producerAttributeSchema;
-            this.candidates = candidates;
-            this.consumer = consumer;
-            hashCode = doHashCode();
+        DefaultAttributeMatcher(ComponentAttributeMatcher componentAttributeMatcher, AttributeSelectionSchema effectiveSchema) {
+            this.componentAttributeMatcher = componentAttributeMatcher;
+            this.effectiveSchema = effectiveSchema;
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) {
+        public AttributeMatcher ignoreAdditionalConsumerAttributes() {
+            return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalConsumerAttributes(), effectiveSchema);
+        }
+
+        @Override
+        public AttributeMatcher ignoreAdditionalProducerAttributes() {
+            return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalProducerAttributes(), effectiveSchema);
+        }
+
+        @Override
+        public boolean isMatching(AttributeContainer candidate, AttributeContainer requested) {
+            return componentAttributeMatcher.isMatching(effectiveSchema, candidate, requested);
+        }
+
+        @Override
+        public <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested) {
+            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(candidate, requested);
+            effectiveSchema.matchValue(attribute, result);
+            return result.isCompatible();
+        }
+
+        @Override
+        public <T extends HasAttributes> List<T> matches(Collection<T> candidates, AttributeContainerInternal requested) {
+            return componentAttributeMatcher.match(effectiveSchema, candidates, requested);
+        }
+    }
+
+    private class MergedSchema implements AttributeSelectionSchema {
+        private final AttributesSchemaInternal producerSchema;
+
+        MergedSchema(AttributesSchemaInternal producerSchema) {
+            this.producerSchema = producerSchema;
+        }
+
+        @Override
+        public boolean hasAttribute(Attribute<?> attribute) {
+            return getAttributes().contains(attribute) || producerSchema.getAttributes().contains(attribute);
+        }
+
+        @Override
+        public void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+            DisambiguationRule<Object> rules = disambiguationRules(attribute);
+            rules.execute(result);
+            if (result.hasResult()) {
+                return;
+            }
+
+            rules = producerSchema.disambiguationRules(attribute);
+            rules.execute(result);
+            if (result.hasResult()) {
+                return;
+            }
+
+            // Select all candidates
+            for (Object candidate : result.getCandidateValues()) {
+                result.closestMatch(candidate);
+            }
+        }
+
+        @Override
+        public void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result) {
+            if (result.getConsumerValue().equals(result.getProducerValue())) {
+                result.compatible();
+                return;
+            }
+
+            CompatibilityRule<Object> rules = compatibilityRules(attribute);
+            rules.execute(result);
+            if (result.hasResult()) {
+                return;
+            }
+            rules = producerSchema.compatibilityRules(attribute);
+            rules.execute(result);
+            if (result.hasResult()) {
+                return;
+            }
+
+            // If no result, check whether values are equal
+            result.incompatible();
+        }
+
+        @Override
+        public boolean isCompatibleWhenMissing(Attribute<?> attribute) {
+            CompatibilityRule<Object> rules = compatibilityRules(attribute);
+            if (rules.isCompatibleWhenMissing()) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            Key key = (Key) o;
-            return Objects.equal(producerAttributeSchema, key.producerAttributeSchema)
-                && Objects.equal(consumer, key.consumer)
-                && Objects.equal(candidates, key.candidates);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-
-        private int doHashCode() {
-            return Objects.hashCode(producerAttributeSchema, candidates, consumer);
-        }
-
-        @Override
-        public String toString() {
-            return Objects.toStringHelper(this)
-                .add("producerAttributeSchema", producerAttributeSchema)
-                .add("candidates", candidates)
-                .add("consumer", consumer)
-                .toString();
-        }
-    }
-
-    private class DefaultAttributeMatcher implements AttributeMatcher {
-        private final ComponentAttributeMatcher componentAttributeMatcher;
-
-        DefaultAttributeMatcher(ComponentAttributeMatcher componentAttributeMatcher) {
-            this.componentAttributeMatcher = componentAttributeMatcher;
-        }
-
-        @Override
-        public boolean isMatching(AttributeContainer candidate, AttributeContainer target) {
-            return componentAttributeMatcher.isMatching(DefaultAttributesSchema.this, candidate, target);
-        }
-
-        @Override
-        public List<AttributeContainer> matches(List<AttributeContainer> candidates, AttributeContainerInternal target) {
-            return componentAttributeMatcher.match(DefaultAttributesSchema.this, DefaultAttributesSchema.this, candidates, target);
+            rules = producerSchema.compatibilityRules(attribute);
+            return rules.isCompatibleWhenMissing();
         }
     }
 }

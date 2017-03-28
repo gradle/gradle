@@ -27,17 +27,19 @@ import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
+import org.gradle.workers.ForkMode
 import org.gradle.workers.WorkerExecutionException
+import spock.lang.Unroll
 
 @UsesNativeServices
 class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
-    def workerDaemonFactory = Mock(WorkerDaemonFactory)
+    def workerDaemonFactory = Mock(WorkerFactory)
+    def workerInProcessFactory = Mock(WorkerFactory)
     def workerExecutorFactory = Mock(ExecutorFactory)
     def buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(FileResolver)
-    def serverImpl = Mock(WorkerDaemonProtocol)
     def stoppableExecutor = Mock(StoppableExecutor)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
@@ -46,16 +48,18 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * fileResolver.resolveLater(_) >> fileFactory()
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * workerExecutorFactory.create(_ as String) >> stoppableExecutor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, fileResolver, serverImpl.class, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker)
     }
 
-    def "work can be submitted concurrently"() {
+    @Unroll
+    def "work can be submitted concurrently in ForkMode.#forkMode"() {
         when:
         async {
             5.times {
                 start {
                     thread.blockUntil.allStarted
                     workerExecutor.submit(TestRunnable.class) { config ->
+                        config.forkMode = forkMode
                         config.params = []
                     }
                 }
@@ -66,6 +70,9 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         then:
         5 * buildOperationWorkerRegistry.getCurrent()
         5 * stoppableExecutor.execute(_ as ListenableFutureTask)
+
+        where:
+        forkMode << [ForkMode.ALWAYS, ForkMode.NEVER]
     }
 
     def "can wait on results to complete"() {
@@ -98,7 +105,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         }
     }
 
-    public static class TestRunnable implements Runnable {
+    static class TestRunnable implements Runnable {
         @Override
         void run() {
         }

@@ -21,7 +21,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 /**
- * Implementation of the {@code BuildOperationDescriptor} interface.
+ * Implementation of the {@link OperationDescriptor} interface, for those operations which are performed by the provider.
  */
 public class DefaultOperationDescriptor implements OperationDescriptor, OperationDescriptorWrapper {
 

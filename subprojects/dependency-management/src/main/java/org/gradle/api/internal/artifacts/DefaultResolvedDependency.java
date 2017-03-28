@@ -24,6 +24,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -119,7 +120,8 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
         Set<ResolvedArtifact> result = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
-        result.addAll(artifacts.getArtifacts());
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(result);
+        artifacts.visit(visitor);
         return result;
     }
 

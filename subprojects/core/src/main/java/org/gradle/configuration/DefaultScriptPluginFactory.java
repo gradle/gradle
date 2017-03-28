@@ -70,6 +70,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final PluginRepositoryFactory pluginRepositoryFactory;
+    private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
@@ -93,6 +94,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.modelRuleSourceDetector = modelRuleSourceDetector;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.pluginRepositoryFactory = pluginRepositoryFactory;
+        this.scriptPluginFactory = this;
+    }
+
+    public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
+        this.scriptPluginFactory = scriptPluginFactory;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
@@ -124,7 +130,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                     return fileLookup.getFileResolver().getPatternSetFactory();
                 }
             };
-            services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
+            services.add(ScriptPluginFactory.class, scriptPluginFactory);
             services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
             services.add(ClassLoaderScope.class, targetScope);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());

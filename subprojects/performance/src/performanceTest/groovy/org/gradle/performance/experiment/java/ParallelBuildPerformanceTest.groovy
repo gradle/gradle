@@ -21,24 +21,28 @@ import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.regression.java.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.performance.regression.java.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Category(PerformanceExperiment)
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
-    def "clean assemble on #testProject with 2 parallel workers"() {
+    def "clean assemble on #testProject with 4 parallel workers"() {
         when:
         runner.testGroup = "parallel builds"
         runner.buildSpec {
+            warmUpCount = warmUpRuns
+            invocationCount = runs
             projectName(testProject.projectName).displayName("parallel").invocation {
-                tasksToRun("clean", "assemble").args("-Porg.gradle.parallel=true", "--max-workers=2").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
+                tasksToRun("clean", "assemble").args("-Dorg.gradle.parallel=true", "--max-workers=4").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
         runner.baseline {
+            warmUpCount = warmUpRuns
+            invocationCount = runs
             projectName(testProject.projectName).displayName("serial").invocation {
-                tasksToRun("clean", "assemble").args("-Porg.gradle.parallel=false", "--max-workers=2").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
+                tasksToRun("clean", "assemble").args("-Dorg.gradle.parallel=false", "--max-workers=4").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
 

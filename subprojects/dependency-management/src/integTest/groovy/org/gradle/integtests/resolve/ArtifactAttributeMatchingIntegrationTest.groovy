@@ -120,7 +120,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
             buildFile << """
                 project(':consumer') {
                     task resolve {
-                        def files = configurations.consumerConfiguration.incoming.artifactView().attributes{$requiredAttributes}.files
+                        def files = configurations.consumerConfiguration.incoming.artifactView({attributes{$requiredAttributes}}).files
                         inputs.files files
                         doLast {
                             assert files.collect { it.name } == $expect
@@ -148,7 +148,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     def "can filter for variant artifacts with useTransform=#useTransformOnConsumerSide and useView=#useView"() {
         given:
         setupWith("it.attribute(variant, 'variant2')", useTransformOnConsumerSide, useView, useView ? "['producer.variant2']"
-            : "['producer.variant1']") //TODO should throw ambiguity error, see DefaultArtifactTransforms.AttributeMatchingVariantSelector
+            : "[]") //TODO should throw ambiguity error, see DefaultArtifactTransforms.AttributeMatchingVariantSelector
 
         buildFile << """
             project(':producer') {
@@ -172,7 +172,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks.unique().sort() == [':consumer:resolve', (useTransformOnConsumerSide || !useView? ':producer:variant1' : ':producer:variant2')]
+        executedTasks.unique().sort() == [':consumer:resolve'] + (useView ? (useTransformOnConsumerSide ? [':producer:variant1'] : [':producer:variant2']) : [])
         executedTransforms            == (!useTransformOnConsumerSide || !useView ? [] : ['VariantArtifactTransform'])
 
         where:
@@ -194,6 +194,14 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         String variantToMatchViaConfiguration = variant.toLowerCase()
 
         buildFile << """
+            class CompatibleWhenValuesEqualIgnoringCaseRule implements AttributeCompatibilityRule<String> {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.consumerValue.toLowerCase() == details.producerValue.toLowerCase()) {
+                        details.compatible()
+                    }
+                }
+            }
+
             project(':producer') {
                 dependencies {
                     attributesSchema {
@@ -211,11 +219,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
                     attributesSchema {
                         attribute(flavor)
                         attribute(variant) {
-                            compatibilityRules.add { details ->
-                                if (details.consumerValue.toLowerCase() == details.producerValue.toLowerCase()) {
-                                    details.compatible()
-                                }
-                            }
+                            compatibilityRules.add(CompatibleWhenValuesEqualIgnoringCaseRule)
                             compatibilityRules.assumeCompatibleWhenMissing()
                         }
                     }
@@ -319,9 +323,10 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
 
     // Documenting current behaviour, not necessarily desirable behaviour
     @Unroll
-    def "ignores producer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
+    def "honors producer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
         given:
-        setupWith("it.attribute(variant, 'variant2')", false, useView, "['producer.variant2']")
+        setupWith("it.attribute(variant, 'variant2')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
+        // TODO - should fail with 'no matching variant'
 
         String assumeCompatibleWhenMissingRequiredAttribute = assumeCompatibleWhenMissing ? "compatibilityRules.assumeCompatibleWhenMissing()" : ""
 
@@ -362,8 +367,8 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks.sort() == [':consumer:resolve', ':producer:variant2']
-        executedTransforms            == []
+        executedTasks.sort() == (assumeCompatibleWhenMissing ? [':consumer:resolve', ':producer:variant2'] : [':consumer:resolve'])
+        executedTransforms == []
 
         where:
         assumeCompatibleWhenMissing | useView

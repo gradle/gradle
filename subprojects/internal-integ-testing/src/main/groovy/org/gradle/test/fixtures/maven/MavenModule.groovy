@@ -79,4 +79,6 @@ interface MavenModule extends Module {
     MavenPom getParsedPom()
 
     MavenMetaData getRootMetaData()
+
+    boolean getUniqueSnapshots()
 }

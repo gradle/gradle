@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console
 
 import org.fusesource.jansi.Ansi
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import spock.lang.Issue
 import spock.lang.Specification
 
 class MultiLineBuildProgressAreaTest extends Specification {
@@ -33,9 +34,10 @@ class MultiLineBuildProgressAreaTest extends Specification {
     def consoleMetaData = Mock(ConsoleMetaData)
     def newLineListener = Mock(DefaultAnsiExecutor.NewLineListener)
     def ansiExecutor = new DefaultAnsiExecutor(target, colorMap, factory, consoleMetaData, writeCursor, newLineListener)
-    def progressArea = new MultiLineBuildProgressArea(4)
+    def progressArea = new MultiLineBuildProgressArea()
 
     def setup() {
+        progressArea.resizeBuildProgressTo(4);
         newLineListener.beforeNewLineWritten(_, _) >> {
             progressArea.newLineAdjustment();
         }
@@ -201,18 +203,81 @@ class MultiLineBuildProgressAreaTest extends Specification {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1482")
+    def "doesn't move the write cursor when progress area was never visible while out of bound"() {
+        given:
+        progressArea.visible = false
+        progressArea.scrollDownBy(1)
+
+        when:
+        redraw()
+
+        then:
+        progressArea.writePosition.row < 0
+        0 * ansi._
+    }
+
+    def "doesn't move the write cursor when progress area was never visible"() {
+        given:
+        progressArea.visible = false
+        writeCursor.row = 4  // Not on origin row
+
+        when:
+        redraw()
+
+        then:
+        writeCursor.row == 4
+        0 * ansi._
+
+    }
+
+    def "doesn't move the write cursor when progress area turn invisible while out of bound"() {
+        given:
+        progressArea.visible = false
+        progressArea.scrollUpBy(progressArea.height - 1)
+        redraw()  // Ensure visible
+
+        when:
+        progressArea.scrollDownBy(progressArea.height)
+        writeCursor.row = 2  // Not on origin row
+        redraw()
+
+        then:
+        writeCursor.row == 2
+        progressArea.writePosition.row == -1
+        0 * ansi._
+    }
+
+    def "resize build progress area makes the new build label available at the end of the area"() {
+        given:
+        def increaseBy = 4
+        def oldBuildProgressLabels = new ArrayList<StyledLabel>(progressArea.buildProgressLabels)
+        def currentCount = progressArea.buildProgressLabels.size()
+        def newCount = currentCount + increaseBy
+
+        when:
+        progressArea.resizeBuildProgressTo(newCount)
+        fillArea()
+
+        then:
+        progressArea.buildProgressLabels.size() == newCount
+        oldBuildProgressLabels.eachWithIndex{ StyledLabel entry, int i ->
+            assert progressArea.buildProgressLabels.get(i) == entry
+        }
+    }
+
     void redraw() {
         ansiExecutor.write {
             progressArea.redraw(it)
         }
     }
 
-    void fillArea() {
+    void fillArea(String prefix = "Progress") {
         progressArea.progressBar.text = "progress bar"
-        progressArea.buildProgressLabels[0].text = "Progress 0"
-        progressArea.buildProgressLabels[1].text = "Progress 1"
-        progressArea.buildProgressLabels[2].text = "Progress 2"
-        progressArea.buildProgressLabels[3].text = "Progress 3"
+        for (int i = 0; i < progressArea.buildProgressLabels.size(); ++i) {
+            String text = String.format("%s %d", prefix, i)
+            progressArea.buildProgressLabels.get(i).text = text
+        }
     }
 
     void expectAreaRedraw(String prefix = "Progress") {
@@ -223,7 +288,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
         1 * ansi.cursorLeft(12)
         1 * ansi.cursorDown(1)
 
-        for (int i = 0; i < progressArea.getBuildProgressLabels().size(); ++i) {
+        for (int i = 0; i < progressArea.buildProgressLabels.size(); ++i) {
             String text = String.format("%s %d", prefix, i)
             1 * ansi.a(text)
             1 * ansi.cursorLeft(text.length())

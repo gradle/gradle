@@ -23,8 +23,6 @@ import org.gradle.caching.configuration.AbstractBuildCache;
 /**
  * Configuration object for the local directory build cache.
  *
- * By default, the build cache is stored in {@code GRADLE_HOME/.caches/<GRADLE_VERSION>/build-cache}.
- *
  * @since 3.5
  */
 @Incubating

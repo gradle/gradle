@@ -38,6 +38,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.TextUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -113,9 +114,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         Callable<String> baseDir = new Callable<String>() {
             @Override
             public String call() throws Exception {
-                // For backwards compatibility, we need to simulate the exact behaviour of the previously uses Groovy minus operator
-                String toBeRenamedIfExists = "." + archiveTask.getExtension();
-                return archiveTask.getArchiveName().replaceFirst(toBeRenamedIfExists, "");
+                return TextUtil.minus(archiveTask.getArchiveName(), "." + archiveTask.getExtension());
             }
         };
 

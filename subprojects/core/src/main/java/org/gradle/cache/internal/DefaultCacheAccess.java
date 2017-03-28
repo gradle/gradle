@@ -45,35 +45,39 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
-import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
+    private final static Runnable NO_OP = new Runnable() {
+        @Override
+        public void run() {
+            // Empty initial operation to trigger onStartWork calls
+        }
+    };
+
     private final String cacheDisplayName;
     private final File baseDir;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
     private final Map<String, IndexedCacheEntry> caches = new HashMap<String, IndexedCacheEntry>();
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
-    private final LockOptions lockOptions;
+    private final CacheAccessOperationsStack operations;
 
     private StoppableExecutor cacheUpdateExecutor;
     private CacheAccessWorker cacheAccessWorker;
+    private final Lock stateLock = new ReentrantLock(); // protects the following state
+    private final Condition condition = stateLock.newCondition();
 
-    private final Lock lock = new ReentrantLock(); // protects the following state
-    private final Condition condition = lock.newCondition();
     private boolean open;
     private Thread owner;
     private FileLock fileLock;
     private FileLock.State stateAtOpen;
     private Runnable fileLockHeldByOwner;
-    private final CacheAccessOperationsStack operations;
     private int cacheClosedCount;
 
     public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
-        this.lockOptions = lockOptions;
         this.baseDir = baseDir;
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
@@ -99,7 +103,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
                 break;
             case None:
-                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, lock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, stateLock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
                 break;
             default:
                 throw new IllegalArgumentException();
@@ -117,7 +121,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     @Override
     public void open() {
-        lock.lock();
+        stateLock.lock();
         try {
             if (open) {
                 throw new IllegalStateException("Cache is already open.");
@@ -133,7 +137,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             crossProcessCacheAccess.close();
             throw UncheckedException.throwAsUncheckedException(throwable);
         } finally {
-            lock.unlock();
+            stateLock.unlock();
         }
     }
 
@@ -147,7 +151,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             cacheUpdateExecutor.stop();
             cacheUpdateExecutor = null;
         }
-        lock.lock();
+        stateLock.lock();
         try {
             // Take ownership
             takeOwnershipNow();
@@ -161,7 +165,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         } finally {
             owner = null;
             fileLockHeldByOwner = null;
-            lock.unlock();
+            stateLock.unlock();
         }
     }
 
@@ -177,29 +181,34 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     @Override
     public <T> T useCache(Factory<? extends T> factory) {
-        boolean wasStarted;
-        lock.lock();
-        try {
-            takeOwnership();
-            wasStarted = onStartWork();
-        } finally {
-            lock.unlock();
-        }
-        try {
-            return factory.create();
-        } finally {
-            lock.lock();
+            boolean wasStarted;
+            stateLock.lock();
             try {
+                takeOwnership();
                 try {
-                    if (wasStarted) {
-                        onEndWork();
-                    }
-                } finally {
+                    wasStarted = onStartWork();
+                } catch (Throwable t) {
                     releaseOwnership();
+                    throw UncheckedException.throwAsUncheckedException(t);
                 }
             } finally {
-                lock.unlock();
+                stateLock.unlock();
             }
+            try {
+                return factory.create();
+            } finally {
+                stateLock.lock();
+                try {
+                    try {
+                        if (wasStarted) {
+                            onEndWork();
+                        }
+                    } finally {
+                        releaseOwnership();
+                    }
+                } finally {
+                    stateLock.unlock();
+                }
         }
     }
 
@@ -244,87 +253,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     @Override
-    public <T> T longRunningOperation(Factory<? extends T> action) {
-        boolean wasEnded = startLongRunningOperation();
-        try {
-            return action.create();
-        } finally {
-            finishLongRunningOperation(wasEnded);
-        }
-    }
-
-    private boolean startLongRunningOperation() {
-        boolean wasEnded;
-        lock.lock();
-        try {
-            if (lockOptions.getMode() != None) {
-                throw new UnsupportedOperationException("Long running operation not supported for this lock mode.");
-            }
-            if (operations.isInCacheAction()) {
-                checkThreadIsOwner();
-                wasEnded = onEndWork();
-                owner = null;
-                condition.signalAll();
-            } else {
-                wasEnded = false;
-            }
-            operations.pushLongRunningOperation();
-        } finally {
-            lock.unlock();
-        }
-        return wasEnded;
-    }
-
-    private void finishLongRunningOperation(boolean wasEnded) {
-        lock.lock();
-        try {
-            operations.popLongRunningOperation();
-            if (operations.isInCacheAction()) {
-                restoreOwner();
-                if (wasEnded) {
-                    onStartWork();
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void checkThreadIsOwner() {
-        lock.lock();
-        try {
-            if (owner != Thread.currentThread()) {
-                throw new IllegalStateException(String.format("Cannot start long running operation, as the %s has not been locked.", cacheDisplayName));
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void restoreOwner() {
-        lock.lock();
-        try {
-            while (owner != null) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-            owner = Thread.currentThread();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
-    public void longRunningOperation(Runnable action) {
-        longRunningOperation(Factories.toFactory(action));
-    }
-
-    @Override
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
-        lock.lock();
+        stateLock.lock();
         IndexedCacheEntry entry = caches.get(parameters.getCacheName());
         try {
             if (entry == null) {
@@ -341,12 +271,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
                     if (fileLock == null) {
-                        useCache(new Runnable() {
-                            @Override
-                            public void run() {
-                                // Empty initial operation to trigger onStartWork calls
-                            }
-                        });
+                        useCache(NO_OP);
                     }
                 }
                 entry = new IndexedCacheEntry(parameters, indexedCache);
@@ -357,10 +282,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
             } else {
                 entry.assertCompatibleCacheParameters(parameters);
             }
+            return entry.getCache();
         } finally {
-            lock.unlock();
+            stateLock.unlock();
         }
-        return entry.getCache();
     }
 
     <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
@@ -432,14 +357,14 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return true;
     }
 
-    private FileLock getLock() {
-        lock.lock();
+    private FileLock getFileLock() {
+        stateLock.lock();
         try {
             if (Thread.currentThread() != owner) {
                 throw new IllegalStateException(String.format("The %s has not been locked for this thread. File lock: %s, owner: %s", cacheDisplayName, fileLock != null, owner));
             }
         } finally {
-            lock.unlock();
+            stateLock.unlock();
         }
         return fileLock;
     }
@@ -451,15 +376,15 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
 
         public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException {
-            return getLock().readFile(action);
+            return getFileLock().readFile(action);
         }
 
         public void updateFile(Runnable action) throws LockTimeoutException {
-            getLock().updateFile(action);
+            getFileLock().updateFile(action);
         }
 
         public void writeFile(Runnable action) throws LockTimeoutException {
-            getLock().writeFile(action);
+            getFileLock().writeFile(action);
         }
     }
 

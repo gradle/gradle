@@ -61,8 +61,8 @@ public class DependencyInjectingInstantiator implements Instantiator {
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
-        } catch (Throwable e) {
-            throw new ObjectInstantiationException(type, e);
+        } catch (Throwable t) {
+            throw new ObjectInstantiationException(type, t);
         }
     }
 
@@ -90,7 +90,6 @@ public class DependencyInjectingInstantiator implements Instantiator {
         }
         return resolvedParameters;
     }
-
 
     public static class ConstructorCache {
         private final LoadingCache<Class<?>, CachedConstructor> cachedConstructors = CacheBuilder.newBuilder()

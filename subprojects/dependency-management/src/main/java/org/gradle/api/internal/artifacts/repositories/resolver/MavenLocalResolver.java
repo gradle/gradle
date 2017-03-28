@@ -27,6 +27,7 @@ import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +40,9 @@ public class MavenLocalResolver extends MavenResolver {
                               LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                              ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory);
+                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                              CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null);
     }
 
     @Override

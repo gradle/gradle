@@ -136,8 +136,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
 
         ProjectView subProject = getSubProject(portion.getFirstPart());
 
-        if (!portion.hasRemainder()) //if we have no remainder, then the path is just a sub project's name. We're done (even if subProject is null).
-        {
+        if (!portion.hasRemainder()) { //if we have no remainder, then the path is just a sub project's name. We're done (even if subProject is null).
             return subProject;
         }
 
@@ -160,8 +159,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
         }
 
         PathParserPortion portion = new PathParserPortion(fullTaskName);
-        if (!portion.hasRemainder()) //if we have no remainder, then this is for a task.
-        {
+        if (!portion.hasRemainder()) { //if we have no remainder, then this is for a task.
             return getTask(portion.getFirstPart());
         }
 
@@ -186,8 +184,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
         } //if we're the root, our full project name is nothing.
 
         StringBuilder builder = new StringBuilder(name);
-        while (ancestorProject != null && ancestorProject.getParentProject() != null)   //we don't want to include the 'root' project
-        {
+        while (ancestorProject != null && ancestorProject.getParentProject() != null) {  //we don't want to include the 'root' project
             builder.insert(0, ancestorProject.getName() + ':');
             ancestorProject = ancestorProject.getParentProject();
         }

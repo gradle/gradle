@@ -73,8 +73,7 @@ public class SwingAddMultipleFavoritesInteraction implements FavoritesEditor.Add
                 secondTask += ",";   //add a comma
 
                 thirdTask = '\"' + tasksSample.get(2).getFullTaskName() + "\"";
-                if (tasksSample.size() > 3)  //if there are more, show a comma and ellipses
-                {
+                if (tasksSample.size() > 3) { //if there are more, show a comma and ellipses
                     thirdTask += ", ... ";
                 }
             }

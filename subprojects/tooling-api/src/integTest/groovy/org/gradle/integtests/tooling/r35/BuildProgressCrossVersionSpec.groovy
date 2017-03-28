@@ -26,14 +26,15 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
+import spock.lang.Issue
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.5")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
-    public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
 
-    @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+    @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
+    @TargetGradleVersion(">=3.5 <3.6")
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
@@ -56,7 +57,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -94,6 +95,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
+    @TargetGradleVersion(">=3.5 <3.6")
     @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
@@ -135,13 +137,11 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         projectD.artifact.expectGet()
 
         and:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                    .setJvmArguments("-D${REUSE_USER_HOME_SERVICES}=false")
-                    .addProgressListener(events)
-                    .run()
+                    .addProgressListener(events).run()
         }
 
         then:
@@ -176,13 +176,76 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifactC.children == [downloadCArtifact]
 
         cleanup:
-        try {
-            toolingApi.getDaemons().killAll()
-        } catch (RuntimeException ex) {
-            //TODO once we figured out why pid from logfile can be null we should remove this again
-            LOGGER.warn("Unable to kill daemon(s)", ex);
+        toolingApi.daemons.killAll()
+    }
+
+    @Issue("gradle/gradle#1641")
+    @LeaksFileHandles
+    def "generates download events during maven publish"() {
+        given:
+        toolingApi.requireIsolatedUserHome()
+        if (targetDist.version.version == "3.5-rc-1") { return }
+        def module = mavenHttpRepo.module('group', 'publish', '1')
+
+        // module is published
+        module.publish()
+
+        // module will be published a second time via 'maven-publish'
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.md5.expectPut()
+        module.pom.expectPut()
+        module.pom.sha1.expectPut()
+        module.pom.md5.expectPut()
+        module.rootMetaData.expectGet()
+        module.rootMetaData.sha1.expectGet()
+        module.rootMetaData.expectGet()
+        module.rootMetaData.sha1.expectGet()
+        module.rootMetaData.expectPut()
+        module.rootMetaData.sha1.expectPut()
+        module.rootMetaData.md5.expectPut()
+
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            version = '1'
+            group = 'group'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenHttpRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        def events = ProgressEvents.create()
+
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('publish')
+                    .addProgressListener(events).run()
         }
 
+        then:
+        def roots = events.operations.findAll { it.parent == null }.collect { it.descriptor.name }
+
+        roots == [
+            "Run build",
+            "Download ${module.rootMetaData.uri}",
+            "Download ${module.rootMetaData.sha1.uri}",
+            "Download ${module.rootMetaData.uri}",
+            "Download ${module.rootMetaData.sha1.uri}"
+        ]
+
+        cleanup:
+        toolingApi.daemons.killAll()
     }
 
     def "generate events for task actions"() {
@@ -192,7 +255,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("src/main/java/Thing.java") << """class Thing { }"""
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -231,7 +294,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """.stripIndent()
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()

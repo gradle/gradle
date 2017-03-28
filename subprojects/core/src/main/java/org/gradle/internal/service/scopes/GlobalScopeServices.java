@@ -20,13 +20,13 @@ import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
@@ -91,7 +91,6 @@ import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.progress.DefaultBuildOperationExecutor;
 import org.gradle.internal.progress.DefaultBuildOperationService;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -256,8 +255,8 @@ public class GlobalScopeServices {
         return new AsmBackedClassGenerator();
     }
 
-    Instantiator createInstantiator(ClassGenerator classGenerator) {
-        return new ClassGeneratorBackedInstantiator(classGenerator, DirectInstantiator.INSTANCE);
+    Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
+        return instantiatorFactory.decorate();
     }
 
     ExecutorFactory createExecutorFactory() {
@@ -356,8 +355,8 @@ public class GlobalScopeServices {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
-    DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
-        return new DependencyInjectingInstantiator.ConstructorCache();
+    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator) {
+        return new DefaultInstantiatorFactory(classGenerator);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {

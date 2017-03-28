@@ -27,7 +27,9 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
+import org.gradle.initialization.DefaultParallelismConfiguration;
 import org.gradle.initialization.DistributionInitScriptFinder;
+import org.gradle.initialization.ParallelismConfiguration;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
@@ -53,7 +55,7 @@ import java.util.Set;
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  */
-public class StartParameter implements LoggingConfiguration, Serializable {
+public class StartParameter implements LoggingConfiguration, ParallelismConfiguration, Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
 
     /**
@@ -62,6 +64,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
+    private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
     private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
@@ -84,10 +87,8 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private File projectCacheDir;
     private boolean refreshDependencies;
     private boolean recompileScripts;
-    private boolean parallelProjectExecution;
     private boolean buildCacheEnabled;
     private boolean configureOnDemand;
-    private int maxWorkerCount;
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<File>();
     private boolean buildScan;
@@ -173,7 +174,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         currentDir = layoutParameters.getCurrentDir();
         projectDir = layoutParameters.getProjectDir();
         gradleUserHomeDir = layoutParameters.getGradleUserHomeDir();
-        maxWorkerCount = Runtime.getRuntime().availableProcessors();
     }
 
     /**
@@ -227,10 +227,10 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         p.rerunTasks = rerunTasks;
         p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
-        p.parallelProjectExecution = parallelProjectExecution;
+        p.setParallelProjectExecutionEnabled(isParallelProjectExecutionEnabled());
         p.buildCacheEnabled = buildCacheEnabled;
         p.configureOnDemand = configureOnDemand;
-        p.maxWorkerCount = maxWorkerCount;
+        p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         return p;
     }
@@ -633,23 +633,21 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     }
 
     /**
-     * Returns true if parallel project execution is enabled.
-     *
-     * @see #getMaxWorkerCount()
+     * {@inheritDoc}
      */
     @Incubating
+    @Override
     public boolean isParallelProjectExecutionEnabled() {
-        return parallelProjectExecution;
+        return parallelismConfiguration.isParallelProjectExecutionEnabled();
     }
 
     /**
-     * Enables/disables parallel project execution.
-     *
-     * @see #isParallelProjectExecutionEnabled()
+     * {@inheritDoc}
      */
     @Incubating
+    @Override
     public void setParallelProjectExecutionEnabled(boolean parallelProjectExecution) {
-        this.parallelProjectExecution = parallelProjectExecution;
+        parallelismConfiguration.setParallelProjectExecutionEnabled(parallelProjectExecution);
     }
 
     /**
@@ -696,39 +694,21 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     }
 
     /**
-     * Returns the maximum number of concurrent workers used for underlying build operations.
-     *
-     * Workers can be threads, processes or whatever Gradle considers a "worker". Some examples:
-     *
-     * <ul>
-     *     <li>A thread running a task</li>
-     *     <li>A test process</li>
-     *     <li>A language compiler in a forked process</li>
-     * </ul>
-     *
-     * Defaults to the number of processors available to the Java virtual machine.
-     *
-     * @return maximum number of concurrent workers, always >= 1.
-     * @see java.lang.Runtime#availableProcessors()
+     * {@inheritDoc}
      */
     @Incubating
+    @Override
     public int getMaxWorkerCount() {
-        return maxWorkerCount;
+        return parallelismConfiguration.getMaxWorkerCount();
     }
 
     /**
-     * Specifies the maximum number of concurrent workers used for underlying build operations.
-     *
-     * @throws IllegalArgumentException if {@code maxWorkerCount} is &lt; 1
-     * @see #getMaxWorkerCount()
+     * {@inheritDoc}
      */
     @Incubating
+    @Override
     public void setMaxWorkerCount(int maxWorkerCount) {
-        if (maxWorkerCount < 1) {
-            throw new IllegalArgumentException("Max worker count must be > 0");
-        } else {
-            this.maxWorkerCount = maxWorkerCount;
-        }
+        parallelismConfiguration.setMaxWorkerCount(maxWorkerCount);
     }
 
     /**
@@ -759,9 +739,9 @@ public class StartParameter implements LoggingConfiguration, Serializable {
             + ", recompileScripts=" + recompileScripts
             + ", offline=" + offline
             + ", refreshDependencies=" + refreshDependencies
-            + ", parallelProjectExecution=" + parallelProjectExecution
+            + ", parallelProjectExecution=" + isParallelProjectExecutionEnabled()
             + ", configureOnDemand=" + configureOnDemand
-            + ", maxWorkerCount=" + maxWorkerCount
+            + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
             + '}';
     }

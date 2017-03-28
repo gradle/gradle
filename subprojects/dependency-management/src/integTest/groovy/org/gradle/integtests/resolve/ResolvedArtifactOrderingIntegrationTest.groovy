@@ -34,21 +34,21 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
             configurations {
                 unordered
                 consumerFirst
-                dependentFirst
+                dependencyFirst
             }
             dependencies {
                 unordered "org.test:A:1.0"
                 consumerFirst "org.test:A:1.0"
-                dependentFirst "org.test:A:1.0"
+                dependencyFirst "org.test:A:1.0"
             }
             configurations.consumerFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.CONSUMER_FIRST)
-            configurations.dependentFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.DEPENDENT_FIRST)
+            configurations.dependencyFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.DEPENDENCY_FIRST)
 """
     }
 
     private void checkOrdered(List<MavenModule> ordered) {
         checkArtifacts("consumerFirst", ordered)
-        checkArtifacts("dependentFirst", Lists.reverse(ordered))
+        checkArtifacts("dependencyFirst", Lists.reverse(ordered))
     }
 
     private void checkUnordered(List<MavenModule> unordered) {
@@ -61,7 +61,8 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
             task check${name} {
                 doLast {
                     assert configurations.${name}.collect { it.name } == [${fileNames}]
-                    assert configurations.${name}.incoming.artifactView().files.collect { it.name } == [${fileNames}]
+                    assert configurations.${name}.incoming.artifactView{}.files.collect { it.name } == [${fileNames}]
+                    assert configurations.${name}.incoming.artifactView{}.artifacts.collect { it.file.name } == [${fileNames}]
                 }
             }
 """

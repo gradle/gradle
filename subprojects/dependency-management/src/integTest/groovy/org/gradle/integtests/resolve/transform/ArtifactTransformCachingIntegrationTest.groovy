@@ -63,7 +63,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files 1: " + artifacts.artifactFiles.collect { it.name }
@@ -138,6 +140,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private String target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets(String target) {
                     this.target = target
                 }
@@ -178,8 +181,12 @@ allprojects {
                 }
                 task resolve {
                     doLast {
-                        def size = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
-                        def hash = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.artifacts
+                        def size = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'size') }
+                        }.artifacts
+                        def hash = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'hash') }
+                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "ids 1: " + size.collect { it.id }
                         println "components 1: " + size.collect { it.id.componentIdentifier }
@@ -252,6 +259,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private CustomType target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets(CustomType target) {
                     this.target = target
                 }
@@ -292,8 +300,12 @@ allprojects {
                 }
                 task resolve {
                     doLast {
-                        def size = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
-                        def hash = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.artifacts
+                        def size = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'size') }
+                        }.artifacts
+                        def hash = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'hash') }
+                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "files 2: " + hash.collect { it.file.name }
                     }
@@ -355,6 +367,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private $type target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets($type target) {
                     this.target = target
                 }
@@ -380,7 +393,9 @@ allprojects {
                 }
                 task resolve {
                     doLast {
-                        def values = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'value') }.artifacts
+                        def values = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'value') }
+                        }.artifacts
                         println "files 1: " + values.collect { it.file.name }
                         println "files 2: " + values.collect { it.file.name }
                     }
@@ -443,6 +458,7 @@ allprojects {
         given:
         buildFile << """
             class Sizer extends ArtifactTransform {
+                @javax.inject.Inject
                 Sizer(String target) {
                     // ignore config
                 }
@@ -458,6 +474,7 @@ allprojects {
             class Hasher extends ArtifactTransform {
                 private String target
                 
+                @javax.inject.Inject
                 Hasher(String target) {
                     // ignore config
                 }
@@ -486,8 +503,12 @@ allprojects {
                 }
                 task resolve {
                     doLast {
-                        def size = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
-                        def hash = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.artifacts
+                        def size = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'size') }
+                        }.artifacts
+                        def hash = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'hash') }
+                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "ids 1: " + size.collect { it.id }
                         println "components 1: " + size.collect { it.id.componentIdentifier }
@@ -562,7 +583,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files 1: " + artifacts.artifactFiles.collect { it.name }
@@ -655,7 +678,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -753,7 +778,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -859,7 +886,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -953,7 +982,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -962,6 +993,7 @@ allprojects {
             }
 
             class FileSizer extends ArtifactTransform {
+                @javax.inject.Inject
                 FileSizer(Number n) { }
                 
                 List<File> transform(File input) {
@@ -1053,7 +1085,9 @@ allprojects {
                     resolutionStrategy.cacheChangingModulesFor(0, "seconds")
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -1114,7 +1148,7 @@ allprojects {
         server.resetExpectations()
         m1.pom.expectHead()
         m1.artifact.expectHead()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1136,7 +1170,7 @@ allprojects {
         m1.artifact.expectHead()
         m1.artifact.sha1.expectGet()
         m1.artifact.expectGet()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1155,7 +1189,7 @@ allprojects {
         server.resetExpectations()
         m1.pom.expectHead()
         m1.artifact.expectHead()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1173,6 +1207,7 @@ allprojects {
         m1.pom.expectHead()
         m1.artifact.expectHead()
         m2.publishWithChangedContent()
+        m2.metaData.expectHead()
         m2.metaData.expectGet()
         m2.pom.expectHead()
         m2.pom.sha1.expectGet()

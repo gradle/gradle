@@ -29,7 +29,7 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.9'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.10'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
@@ -440,6 +440,90 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         then:
         succeeds("compileGroovy")
     }
+
+    def "compile bad groovy code do not fail the build when options.failOnError is false"() {
+        given:
+        buildFile << """
+            apply plugin: "groovy"
+            repositories { mavenCentral() }
+            compileGroovy.options.failOnError = false
+        """.stripIndent()
+
+        and:
+        badCode()
+
+        expect:
+        succeeds 'compileGroovy'
+    }
+
+    def "compile bad groovy code do not fail the build when groovyOptions.failOnError is false"() {
+        given:
+        buildFile << """
+            apply plugin: "groovy"
+            repositories { mavenCentral() }
+            compileGroovy.groovyOptions.failOnError = false
+        """.stripIndent()
+
+        and:
+        badCode()
+
+        expect:
+        succeeds 'compileGroovy'
+    }
+
+    def "joint compile bad java code do not fail the build when options.failOnError is false"() {
+        given:
+        buildFile << """
+            apply plugin: "groovy"
+            repositories { mavenCentral() }
+            compileGroovy.options.failOnError = false
+        """.stripIndent()
+
+        and:
+        goodCode()
+        badJavaCode()
+
+        expect:
+        succeeds 'compileGroovy'
+    }
+
+    def "joint compile bad java code do not fail the build when groovyOptions.failOnError is false"() {
+        given:
+        buildFile << """
+            apply plugin: "groovy"
+            repositories { mavenCentral() }
+            compileGroovy.groovyOptions.failOnError = false
+        """.stripIndent()
+
+        and:
+        goodCode()
+        badJavaCode()
+
+        expect:
+        succeeds 'compileGroovy'
+    }
+
+    def goodCode() {
+        file("src/main/groovy/compile/test/Person.groovy") << """
+            package compile.test
+            class Person {}
+        """.stripIndent()
+    }
+
+    def badCode() {
+        file("src/main/groovy/compile/test/Person.groovy") << """
+            package compile.test
+            class Person extends {}
+        """.stripIndent()
+    }
+
+    def badJavaCode() {
+        file("src/main/groovy/compile/test/Something.java") << """
+            package compile.test;
+            class Something extends {}
+        """.stripIndent()
+    }
+
 
     protected ExecutionResult run(String... tasks) {
         configureGroovy()

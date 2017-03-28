@@ -17,25 +17,31 @@
 package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.*;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
-import org.gradle.jvm.internal.*;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithDependencies;
+import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.jvm.internal.resolve.DefaultVariantsMetaData;
 import org.gradle.jvm.internal.resolve.SourceSetDependencyResolvingClasspath;
+import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.jvm.internal.resolve.DefaultVariantsMetaData;
-import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -192,12 +198,11 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 List<ResolutionAwareRepository> resolutionAwareRepositories = collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
                 ModelSchema<? extends BinarySpec> schema = schemaStore.getSchema(((BinarySpecInternal) binary).getPublicType());
                 VariantsMetaData variantsMetaData = DefaultVariantsMetaData.extractFrom(binary, schema);
-                AttributesSchema attributesSchema = serviceRegistry.get(AttributesSchema.class);
+                AttributesSchemaInternal attributesSchema = serviceRegistry.get(AttributesSchemaInternal.class);
                 ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
-                ModuleExclusions moduleExclusions = serviceRegistry.get(ModuleExclusions.class);
                 BuildOperationProcessor buildOperationProcessor = serviceRegistry.get(BuildOperationProcessor.class);
 
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor);
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, buildOperationProcessor);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

@@ -16,12 +16,12 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -33,12 +33,14 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -49,7 +51,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     ImmutableAttributesFactory factory
 
     def setup() {
-        attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+        attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
         factory = new DefaultImmutableAttributesFactory()
     }
 
@@ -111,6 +113,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            getAttributesSchema() >> EmptySchema.INSTANCE
         }
         attributesSchema.attribute(Attribute.of('key', String), {
             if (allowMissing) {
@@ -212,6 +215,7 @@ Configuration 'default':
             getComponentId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "<target>"
             }
+            getAttributesSchema() >> EmptySchema.INSTANCE
         }
 
         attributesSchema.attribute(Attribute.of('key', String))
@@ -432,6 +436,27 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         exclusions.is(moduleExclusions.excludeAny(dep.excludes))
     }
 
+    static class EqualsValuesCompatibleRule implements AttributeCompatibilityRule<String> {
+        @Override
+        void execute(CompatibilityCheckDetails<String> details) {
+            def requested = details.consumerValue
+            def candidate = details.producerValue
+            if (requested == candidate) { // simulate exact match
+                details.compatible()
+            }
+        }
+    }
+    static class ValueCompatibleRule implements AttributeCompatibilityRule<String> {
+        @Override
+        void execute(CompatibilityCheckDetails<String> details) {
+            def requested = details.consumerValue
+            def candidate = details.producerValue
+            if (requested == 'other' && candidate == 'something else') { // simulate compatible match
+                details.compatible()
+            }
+        }
+    }
+
     @Unroll("can select a compatible attribute value (#scenario)")
     def "can select a compatible attribute value"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
@@ -453,30 +478,12 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         }
         def toComponent = Stub(ComponentResolveMetadata) {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
+            getAttributesSchema() >> EmptySchema.INSTANCE
         }
-        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher())
+        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
-            it.compatibilityRules.add { CompatibilityCheckDetails details ->
-                def candidate = details.producerValue
-                if (candidate == 'something') {
-                    details.incompatible()
-                }
-            }
-            it.compatibilityRules.add { CompatibilityCheckDetails details ->
-                def requested = details.consumerValue
-                def candidate = details.producerValue
-                if (requested == candidate) { // simulate exact match
-                    details.compatible()
-                }
-            }
-            it.compatibilityRules.add { CompatibilityCheckDetails details ->
-                def requested = details.consumerValue
-                def candidate = details.producerValue
-                if (requested == 'other' && candidate == 'something else') { // simulate compatible match
-                    details.compatible()
-
-                }
-            }
+            it.compatibilityRules.add(EqualsValuesCompatibleRule)
+            it.compatibilityRules.add(ValueCompatibleRule)
         })
         attributeSchemaWithCompatibility.attribute(Attribute.of('extra', String))
 
@@ -490,53 +497,10 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
         where:
         scenario                     | queryAttributes                 | expected
-        'never compatible'           | [key: 'something']              | 'default'
+        'never compatible'           | [key: 'no match']               | 'default'
         'exact match'                | [key: 'something else']         | 'bar'
         'compatible value'           | [key: 'other']                  | 'bar'
         'wrong number of attributes' | [key: 'something', extra: 'no'] | 'default'
-    }
-
-    def "matcher failure"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
-        def fromComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(LocalConfigurationMetadata) {
-            getAttributes() >> attributes(key: 'something')
-        }
-        fromConfig.hierarchy >> ["from"]
-        def defaultConfig = defaultConfiguration()
-        def toFooConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'foo'
-            getAttributes() >> attributes(key: 'something')
-            isCanBeConsumed() >> true
-        }
-        def toBarConfig = Stub(LocalConfigurationMetadata) {
-            getName() >> 'bar'
-            getAttributes() >> attributes(key: 'something else')
-            isCanBeConsumed() >> true
-        }
-        def toComponent = Stub(ComponentResolveMetadata) {
-            getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
-        }
-        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher())
-        attributeSchemaWithCompatibility.attribute(Attribute.of("key", String), {
-            it.ordered(Mock(Comparator) {
-                compare(_, _) >> {
-                    throw new RuntimeException('oh noes!')
-                }
-            })
-        })
-
-        given:
-        toComponent.getConfiguration("default") >> defaultConfig
-        toComponent.getConfiguration("foo") >> toFooConfig
-        toComponent.getConfiguration("bar") >> toBarConfig
-
-        when:
-        dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
-
-        then:
-        def e = thrown(GradleException)
-        e.message.startsWith("Unexpected error thrown when trying to match attribute values with org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy")
     }
 
     def configuration(String name, String... parents) {

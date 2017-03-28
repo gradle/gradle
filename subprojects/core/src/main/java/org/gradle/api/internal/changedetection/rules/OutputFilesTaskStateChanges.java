@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 
 import java.util.Map;
 
@@ -36,25 +36,23 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     }
 
     @Override
-    public Map<String, FileCollectionSnapshot> getPrevious() {
+    public ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
         return previous.getOutputFilesSnapshot();
     }
 
     @Override
     public void saveCurrent() {
-        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
+        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
 
-        ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
-        for (TaskFilePropertySpec propertySpec : fileProperties) {
-            String propertyName = propertySpec.getPropertyName();
-            FileCollectionSnapshot beforeExecution = getCurrent().get(propertyName);
-            FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
-            FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-            FileCollectionSnapshot outputSnapshot = outputSnapshotter.createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
-            builder.put(propertyName, outputSnapshot);
-        }
-
-        current.setOutputFilesSnapshot(builder.build());
+        ImmutableSortedMap<String, FileCollectionSnapshot> results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(getCurrent(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
+            @Override
+            public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
+                FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
+                FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
+                return outputSnapshotter.createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
+            }
+        }));
+        current.setOutputFilesSnapshot(results);
     }
 
     private FileCollectionSnapshot getSnapshotAfterPreviousExecution(String propertyName) {

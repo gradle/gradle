@@ -35,11 +35,6 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def selector = Mock(VariantSelector)
     def set = new LocalFileDependencyBackedArtifactSet(dep, filter, selector, new DefaultImmutableAttributesFactory())
 
-    def "has no artifacts"() {
-        expect:
-        set.artifacts.empty
-    }
-
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)
         def files = Stub(FileCollection)
@@ -113,7 +108,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * visitor.includeFiles() >> true
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_) >> { Set<ResolvedVariant> variants -> variants.first() }
+        2 * selector.select(_, _) >> { Set<ResolvedVariant> variants, schema -> variants.first() }
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
         0 * visitor._
@@ -134,7 +129,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * filter.isSatisfiedBy(_) >> true
         _ * visitor.includeFiles() >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_) >> { Set<ResolvedVariant> variants -> variants.first() }
+        2 * selector.select(_, _) >> { Set<ResolvedVariant> variants, schema -> variants.first() }
         1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f1), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
         1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f2), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
         0 * visitor._
@@ -198,7 +193,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * visitor.includeFiles() >> true
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_) >> { Set<ResolvedVariant> variants -> variants.first() }
+        2 * selector.select(_, _) >> { Set<ResolvedVariant> variants, schema -> variants.first() }
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f1.name), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, f2.name), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
         0 * visitor._

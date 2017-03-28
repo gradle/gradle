@@ -90,6 +90,7 @@ include 'soak'
 include 'smokeTest'
 include 'compositeBuilds'
 include 'workers'
+include 'runtimeApiInfo'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

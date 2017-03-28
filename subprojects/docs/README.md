@@ -40,7 +40,7 @@ You can run the `editReleaseNotes` task to open the raw markdown notes in whatev
 
 ## Userguide
 
-The source for the userguide lives @ `src/docs/userguide`. The userguide is authored using [docbook](http://www.docbook.org/) and uses [docbook stylesheets](http://docbook.sourceforge.net/) with some customizations in `src/stylesheets` to generate HTML. It uses [Flying Saucer](https://github.com/flyingsaucerproject/flyingsaucer) + [iText](http://www.lowagie.com/iText/) to generate the PDF from the HTML.
+The source for the userguide lives @ `src/docs/userguide`. The userguide is authored using [docbook](http://www.docbook.org/) or [asciidoc](http://asciidoctor.org) and uses [docbook stylesheets](http://docbook.sourceforge.net/) with some customizations in `src/stylesheets` to generate HTML. It uses [Flying Saucer](https://github.com/flyingsaucerproject/flyingsaucer) + [iText](http://www.lowagie.com/iText/) to generate the PDF from the HTML.
 
 When adding new content, it's generally best to find an example of the kind of content that you want to add somewhere else in the userguide and copy it.
 
@@ -53,19 +53,23 @@ You can then view the built html in `build/docs/userguide` (open the `userguide.
 Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
 with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
 
-### Useful docbook tags:
+### Using Docbook
+
+To write a chapter in Docbook format, simply place it in `src/docs/userguide` called `<chapter>.xml`.
+
+#### Useful docbook tags:
 
 See the [docbook reference](http://docbook.org/tdg/en/html/part2.html) for a list of all available tags.
 
 Here are some useful ones:
 
-#### `<programlisting>`
+##### `<programlisting>`
 
 For code snippets
 
-### Custom Tags
+#### Custom Tags
 
-#### `<apilink>`
+##### `<apilink>`
 
 This is an inline element which adds a link to the API documentation for a particular class or method.
 
@@ -77,7 +81,7 @@ To link to a method:
 
     <apilink class='org.gradle.api.Project' method="apply(java.util.Map)" />
 
-#### `<sample>`
+##### `<sample>`
 
 This is a block element which adds some source code from one of the sample builds in `src/samples`.
 
@@ -99,25 +103,25 @@ You can include zero or more `<sourcefile>` elements, zero or more `<output>` el
 
 Attribute `includeLocation` is optional and defaults to false. When set to true, a tip is included in the userguide to inform the reader when they can find the source for the sample.
 
-##### `<layout>`
+###### `<layout>`
 
 The `<layout>` element generates a directory tree listing showing the given files and directories. It will be compared against the actual sample directory layout, to test that the listing included in the userguide matches that in the source. The `after` attribute is optional. When present, Gradle will be run with the given arguments before checking that the files and directories exist. This way, you can document generated files. The `<layout>` element should contain a list of file or directory paths, one per line, relative to the sample directory. Directory names must end with a trailing `/` character.
 
-##### `<sourcefile>`
+###### `<sourcefile>`
 
 The `<sourcefile>` element includes a source file in the userguide. It must have a `file` attribute. This is the path to the file to include, relative to the sample base directory. It may optionally have a `snippet` attribute, which is the name of the snippet to include from the source file.
 
-##### `<output>`
+###### `<output>`
 
 The `<output>` element includes a screen listing showing the command to be executed and the expected output.
 
-##### `<test>`
+###### `<test>`
 
 The `<test>` elements defines an integration test to exercise the sample. Nothing is included in the userguide for this element.
 
 When you use the `<sample>` element, a test is added to the integration testsuite to ensure that the sample actually works. If no `<output>`, `<test>`, or `<layout after='...'>` element is present, the test will run `gradle tasks` in the sample directory, and check that the build does not fail. For each `<output>` element, the test will run `gradle $args` and compare the output against the corresponding expected output file in `src/samples/userguideOutput`. For each `<test args='...'>` or `<layout after='...'>` element, the test will run `gradle $args`.
 
-#### `condition="standalone"`
+##### `condition="standalone"`
 
 This attribute can be attached to any docbook element to conditionally includes the element in the generated document when the target document is a standalone document, rather than part of the userguide.
 
@@ -125,11 +129,11 @@ This attribute can be attached to any docbook element to conditionally includes 
       <para>You are not reading the user guide right now.</para>
     </section>
 
-#### `<ulink url="website:somepage.html"/>`
+##### `<ulink url="website:somepage.html"/>`
 
 Adds a link to the given page on the Gradle web site. This will be replaced by a relative link when the content is included in the web site, and an absolute link when the content is included in a stand alone user guide.
 
-#### Snippets
+##### Snippets
 
 The sample source files can contain snippets which can be included in the documentation, in place of the entire source file.
 
@@ -138,6 +142,55 @@ The sample source files can contain snippets which can be included in the docume
     // END SNIPPET something
 
     some other code
+
+### Using Asciidoctor
+
+To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
+
+#### Sources and console logs
+
+Use a [source code block](http://asciidoctor.org/docs/asciidoc-syntax-quick-reference/#source-code) to include code snippets.
+
+```asciidoc
+[source,java]
+----
+public static void main(String... args) {}
+----
+```
+
+Omit the `[source]` element for console logs.
+
+#### API links
+
+To link to the API documentation for a particular class or method, use the `api:` macro:
+
+```asciidoc
+You can use the api:org.gradle.api.Project[] interface to do stuff.
+```
+
+The link will point to the DSL reference for the specified class, if available. Otherwise, it will point to the javadoc for the class.
+
+To link to a method:
+
+```asciidoc
+api:org.gradle.api.Project#apply(java.util.Map[]
+```
+
+You can omit the method's parameters if the method has no overloads.
+
+**Note:** When linking to a method with multiple arguments, be sure _not_ to separate them by whitespace.
+
+#### All other custom elements
+
+Not everything is supported natively for Asciidoc. For other custom things like `<sample>`s and `<test>`s you can simply use the Docbook tags wrapped in a passthrough block:
+
+```asciidoc
+++++
+<sample id='aUniqueIdForTheSample' dir='userguide/someSample' includeLocation="true" title='a title for the sample'>
+    <!-- ... -->
+</sample>
+++++
+```
 
 ## Reference Documentation
 

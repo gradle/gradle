@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.testing;
+package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import org.gradle.util.Requires
 import spock.lang.Unroll
 
 class TestTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -114,7 +114,8 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        succeeds 'test', "--max-workers=${maxWorkers}"
+        executer.withArguments("--max-workers=${maxWorkers}")
+        succeeds 'test'
 
         then:
         output.contains("test.maxParallelForks ($maxParallelForks) is larger than max-workers ($maxWorkers), forcing it to $maxWorkers")

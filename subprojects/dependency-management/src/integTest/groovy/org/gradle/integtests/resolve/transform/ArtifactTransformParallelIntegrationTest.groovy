@@ -81,7 +81,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
             task resolve {
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     assert artifacts.artifactFiles.collect { it.name } == ['test-1.3.jar.txt', 'test2-2.3.jar.txt', 'test3-3.3.jar.txt']
                 }
             }
@@ -114,7 +116,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
             task resolve {
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'c.jar.txt']
                 }
             }
@@ -162,7 +166,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
             task resolve {
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'c.jar.txt', 'test-1.3.jar.txt', 'test2-2.3.jar.txt', 'test3-3.3.jar.txt']
                 }
             }
@@ -195,7 +201,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
             task resolve {
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     println artifacts.artifactFiles.collect { it.name }
                 }
             }

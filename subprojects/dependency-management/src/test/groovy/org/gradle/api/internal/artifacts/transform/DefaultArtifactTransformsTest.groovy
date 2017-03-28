@@ -21,9 +21,10 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
@@ -34,29 +35,27 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(VariantAttributeMatchingCache)
+    def producerSchema = Mock(AttributesSchemaInternal)
     def transforms = new DefaultArtifactTransforms(matchingCache)
 
     def "selects variant with requested attributes"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
-        def artifacts1 = Stub(ResolvedArtifactSet)
 
         given:
         variant1.attributes >> typeAttributes("classes")
         variant2.attributes >> typeAttributes("jar")
-        variant1.artifacts >> artifacts1
 
-        matchingCache.selectMatches([variant1, variant2], typeAttributes("classes")) >> [variant1]
+        matchingCache.selectMatches([variant1, variant2], producerSchema, typeAttributes("classes")) >> [variant1]
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("classes")).select([variant1, variant2])
-        result.artifacts == artifacts1
+        def result = transforms.variantSelector(typeAttributes("classes")).select([variant1, variant2], producerSchema)
+        result == variant1
     }
 
     def "selects variant with attributes that can be transformed to requested format"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
-        def artifacts1 = Stub(ResolvedArtifactSet)
         def id = Stub(ComponentIdentifier)
         def sourceArtifact = Stub(TestArtifact)
         def sourceArtifactFile = new File("thing-1.0.jar")
@@ -72,20 +71,19 @@ class DefaultArtifactTransformsTest extends Specification {
         given:
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("dll")
-        variant1.artifacts >> artifacts1
 
-        matchingCache.selectMatches(_, _) >> []
+        matchingCache.selectMatches(_, _, _) >> []
         matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
             result.matched(to, transformer, 1)
         }
         matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
 
         when:
-        def result = transforms.variantSelector(targetAttributes).select([variant1, variant2])
-        result.artifacts.visit(visitor)
+        def result = transforms.variantSelector(targetAttributes).select([variant1, variant2], producerSchema)
+        result.visit(visitor)
 
         then:
-        _ * artifacts1.visit(_) >> { ArtifactVisitor v ->
+        _ * variant1.visit(_) >> { ArtifactVisitor v ->
             v.visitArtifact(targetAttributes, sourceArtifact)
             v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), targetAttributes, sourceFile)
         }
@@ -107,7 +105,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
-        matchingCache.selectMatches(_, _) >> []
+        matchingCache.selectMatches(_, _, _) >> []
         matchingCache.collectConsumerVariants(_, _, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
                 result.matched(to, Stub(Transformer), 1)
         }
@@ -115,7 +113,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def selector = transforms.variantSelector(typeAttributes("dll"))
 
         when:
-        selector.select([variant1, variant2])
+        selector.select([variant1, variant2], producerSchema)
 
         then:
         def e = thrown(AmbiguousTransformException)
@@ -133,13 +131,13 @@ Found the following transforms:
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
-        matchingCache.selectMatches(_, _) >> []
+        matchingCache.selectMatches(_, _, _) >> []
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("jar"), _) >> null
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("dll")).select([variant1, variant2])
-        result.artifacts == ResolvedArtifactSet.EMPTY
+        def result = transforms.variantSelector(typeAttributes("dll")).select([variant1, variant2], producerSchema)
+        result instanceof EmptyResolvedVariant
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {

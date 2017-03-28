@@ -30,7 +30,7 @@ class UserGuideSectionVerifier extends DefaultTask {
 
     @TaskAction
     void verify() {
-        Map<String, ValidationResult> allResults = docbookFiles.collectEntries { f ->
+        Map<String, ValidationResult> allResults = docbookFiles.files.findAll { !it.directory }.collectEntries { f ->
             [f.name, validateSections(f)]
         }
 

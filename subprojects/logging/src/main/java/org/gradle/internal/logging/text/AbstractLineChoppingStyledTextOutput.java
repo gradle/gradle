@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.text;
 
+import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
 
 /**
@@ -25,6 +26,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     private final char[] eolChars;
     private final String eol;
     private int seenCharsFromEol;
+    private State currentState = INITIAL_STATE;
 
     protected AbstractLineChoppingStyledTextOutput() {
         eol = SystemProperties.getInstance().getLineSeparator();
@@ -33,36 +35,13 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
 
     @Override
     protected final void doAppend(String text) {
-        int max = text.length();
-        int pos = 0;
-        int start = 0;
-        while (pos < max) {
-            if (seenCharsFromEol == eolChars.length) {
-                doStartLine();
-                seenCharsFromEol = 0;
-            }
-            if (seenCharsFromEol < eolChars.length && text.charAt(pos) == eolChars[seenCharsFromEol]) {
-                seenCharsFromEol++;
-                pos++;
-                if (seenCharsFromEol == eolChars.length) {
-                    if (start < pos - seenCharsFromEol) {
-                        doLineText(text.substring(start,  pos - seenCharsFromEol));
-                    }
-                    doEndLine(eol);
-                    start = pos;
-                }
-            } else {
-                if (seenCharsFromEol > 0 && start == 0) {
-                    doLineText(eol.substring(0, seenCharsFromEol));
-                    start = pos;
-                }
-                seenCharsFromEol = 0;
-                pos++;
-            }
+        StateContext context = new StateContext(text);
+
+        while (context.hasChar()) {
+            currentState.execute(context);
         }
-        if (start < pos - seenCharsFromEol) {
-            doLineText(text.substring(start,  pos - seenCharsFromEol));
-        }
+        seenCharsFromEol = context.seenCharsFromEol;
+        context.flushLineText();
     }
 
     /**
@@ -80,4 +59,145 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
      * Called when end of line is to be appended.
      */
     protected abstract void doEndLine(CharSequence endOfLine);
+
+    private interface State extends Action<StateContext> {}
+
+    private class StateContext {
+        private final String text;
+        private int pos;
+        private int max;
+        private int start;
+        private int seenCharsFromEol = AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol;
+        private final char[] eolChars = AbstractLineChoppingStyledTextOutput.this.eolChars;
+        private final String eol = AbstractLineChoppingStyledTextOutput.this.eol;
+
+        StateContext(String text) {
+            this.text = text;
+            this.max = text.length();
+            this.pos = -seenCharsFromEol;
+            this.start = pos;
+        }
+
+        void next() {
+            pos++;
+        }
+
+        void next(int count) {
+            pos += count;
+        }
+
+        boolean isCurrentCharEquals(char value) {
+            char ch;
+            if ((seenCharsFromEol + pos) < 0) {
+                ch = eolChars[pos+AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol];
+            } else {
+                ch = text.charAt(pos + seenCharsFromEol);
+            }
+            return ch == value;
+        }
+
+        boolean hasChar() {
+            return (pos + seenCharsFromEol) < max;
+        }
+
+        void setState(State state) {
+            currentState = state;
+        }
+
+        void reset() {
+            start = pos;
+            seenCharsFromEol = 0;
+        }
+
+        void flushLineText() {
+            if (start < pos) {
+                if (start < 0) {
+                    doLineText(eol.substring(0, AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol) + text.substring(0, seenCharsFromEol - AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol));
+                } else {
+                    doLineText(text.substring(start, pos));
+                }
+            }
+        }
+
+        void flushEndLine(String eol) {
+            doEndLine(eol);
+        }
+
+        void flushStartLine() {
+            doStartLine();
+        }
+    }
+
+    private static final State SYSTEM_EOL_PARSING_STATE = new State() {
+        @Override
+        public void execute(StateContext context) {
+            if (context.seenCharsFromEol < context.eolChars.length) {
+                if (!context.eol.equals("\r\n") && context.isCurrentCharEquals(context.eolChars[context.seenCharsFromEol])) {
+                    context.seenCharsFromEol++;
+                    if (context.seenCharsFromEol == context.eolChars.length) {
+                        context.flushLineText();
+                        context.flushEndLine(context.eol);
+                        context.next(context.seenCharsFromEol);
+                        context.reset();
+                        context.setState(START_LINE_STATE);
+                    }
+                    return;
+                } else if (context.seenCharsFromEol == 0) {
+                    WELL_KNOWN_EOL_PARSING_STATE.execute(context);
+                    return;
+                }
+            }
+
+            context.next(context.seenCharsFromEol);
+            context.flushLineText();
+            context.reset();
+            context.setState(INITIAL_STATE);
+        }
+    };
+
+    private static final State INITIAL_STATE = SYSTEM_EOL_PARSING_STATE;
+
+    private static final State WELL_KNOWN_EOL_PARSING_STATE = new State() {
+        @Override
+        public void execute(StateContext context) {
+            if (context.isCurrentCharEquals('\r')) {
+                context.seenCharsFromEol++;
+                context.setState(WINDOWS_EOL_PARSING_ODDITY_STATE);
+            } else if (context.isCurrentCharEquals('\n')) {
+                context.flushLineText();
+                context.flushEndLine("\n");
+                context.next();
+                context.reset();
+                context.setState(START_LINE_STATE);
+            } else {
+                context.next();
+                context.setState(INITIAL_STATE);
+            }
+        }
+    };
+
+    private static final State WINDOWS_EOL_PARSING_ODDITY_STATE = new State() {
+        @Override
+        public void execute(StateContext context) {
+            if (context.isCurrentCharEquals('\n')) {
+                context.flushLineText();
+                context.flushEndLine("\r\n");
+                context.next(2);
+                context.reset();
+                context.setState(START_LINE_STATE);
+            } else {
+                context.seenCharsFromEol = 0;
+                context.next(2);
+                context.setState(INITIAL_STATE);
+            }
+        }
+    };
+
+    private static final State START_LINE_STATE = new State() {
+        @Override
+        public void execute(StateContext context) {
+            context.flushStartLine();
+            context.setState(INITIAL_STATE);
+        }
+    };
 }

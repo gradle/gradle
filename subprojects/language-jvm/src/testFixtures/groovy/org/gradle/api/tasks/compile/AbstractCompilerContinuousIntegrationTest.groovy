@@ -44,14 +44,14 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         buildFile << """
             ${applyAndConfigure}
 
-            import org.gradle.workers.internal.WorkerDaemonManager
+            import org.gradle.workers.internal.WorkerDaemonFactory
             import org.gradle.workers.internal.DaemonForkOptions
 
             tasks.withType(${compileTaskType}) {
                 doLast { task ->
                     def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
-                    def daemonFactory = services.get(WorkerDaemonManager)
-                    compilerDaemonIdentityFile << daemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
+                    def workerDaemonFactory = services.get(WorkerDaemonFactory)
+                    compilerDaemonIdentityFile << workerDaemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }
         """

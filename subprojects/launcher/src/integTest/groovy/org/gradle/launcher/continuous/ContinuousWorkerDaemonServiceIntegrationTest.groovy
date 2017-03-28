@@ -70,7 +70,7 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends Java7RequiringContinu
         return """
             import javax.inject.Inject
             import org.gradle.workers.WorkerExecutor
-            import org.gradle.workers.internal.WorkerDaemonManager
+            import org.gradle.workers.internal.WorkerDaemonFactory
 
             class TestRunnable implements Runnable {
                 void run() {
@@ -96,7 +96,7 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends Java7RequiringContinu
 
                 void captureWorkerDaemons() {
                     def workerDaemonIdentityFile = project.file("$workerDaemonIdentityFileName")
-                    def daemonFactory = services.get(WorkerDaemonManager)
+                    def daemonFactory = services.get(WorkerDaemonFactory)
                     workerDaemonIdentityFile << daemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }

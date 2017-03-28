@@ -34,8 +34,8 @@ public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
     private int httpPort;
 
     public DefaultPlayRunSpec(Iterable<File> classpath, Iterable<File> changingClasspath, File applicationJar, File assetsJar, Iterable<File> assetsDirs, File projectPath, BaseForkOptions forkOptions, int httpPort) {
-        this.classpath = Sets.newHashSet(classpath);
-        this.changingClasspath = changingClasspath != null ? Sets.newHashSet(changingClasspath) : Collections.<File>emptySet();
+        this.classpath = Sets.newLinkedHashSet(classpath);
+        this.changingClasspath = changingClasspath != null ? Sets.newLinkedHashSet(changingClasspath) : Collections.<File>emptySet();
         this.applicationJar = applicationJar;
         this.assetsJar = assetsJar;
         this.assetsDirs = assetsDirs;

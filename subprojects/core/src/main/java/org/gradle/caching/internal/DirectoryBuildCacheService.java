@@ -41,17 +41,11 @@ public class DirectoryBuildCacheService implements BuildCacheService {
     private final PersistentCache persistentCache;
 
     public DirectoryBuildCacheService(CacheRepository cacheRepository, File baseDir) {
-        this(cacheRepository.cache(checkDirectory(baseDir)));
-    }
-
-    public DirectoryBuildCacheService(CacheRepository cacheRepository, String cacheKey) {
-        this(cacheRepository.cache(cacheKey));
-    }
-
-    private DirectoryBuildCacheService(CacheBuilder cacheBuilder) {
-        this.persistentCache = cacheBuilder
+        this.persistentCache = cacheRepository
+            .cache(checkDirectory(baseDir))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
     }
 

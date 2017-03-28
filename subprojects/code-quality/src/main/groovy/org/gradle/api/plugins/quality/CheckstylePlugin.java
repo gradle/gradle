@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
  */
 public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
-    public static final String DEFAULT_CHECKSTYLE_VERSION = "5.9";
+    public static final String DEFAULT_CHECKSTYLE_VERSION = "6.19";
     private CheckstyleExtension extension;
 
     @Override

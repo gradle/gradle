@@ -18,34 +18,32 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
 import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Pair;
+import org.gradle.internal.component.AmbiguousVariantSelectionException;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.text.TreeFormatter;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final VariantAttributeMatchingCache matchingCache;
@@ -71,12 +69,14 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public ResolvedVariant select(Collection<? extends ResolvedVariant> variants) {
-            List<? extends ResolvedVariant> matches = matchingCache.selectMatches(variants, requested);
-            if (matches.size() > 0) {
+        public ResolvedVariant select(Collection<? extends ResolvedVariant> variants, AttributesSchemaInternal producerSchema) {
+            List<? extends ResolvedVariant> matches = matchingCache.selectMatches(variants, producerSchema, requested);
+            if (matches.size() == 1) {
                 return matches.get(0);
             }
-            // TODO - fail on ambiguous match
+            if (matches.size() > 1) {
+                throw new AmbiguousVariantSelectionException(requested, matches);
+            }
 
             List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
             for (ResolvedVariant variant : variants) {
@@ -89,30 +89,14 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
             if (candidates.size() == 1) {
                 Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-                ConsumerProvidedVariantArtifacts consumerProvidedVariantArtifacts = new ConsumerProvidedVariantArtifacts(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
-                return new ConsumerProvidedResolvedVariant(requested, consumerProvidedVariantArtifacts);
+                return new ConsumerProvidedResolvedVariant(result.getLeft(), result.getRight().attributes, result.getRight().transformer);
             }
 
             if (!candidates.isEmpty()) {
-                TreeFormatter formatter = new TreeFormatter();
-                formatter.node("Found multiple transforms that can produce a variant for consumer attributes");
-                formatter.startChildren();
-                formatAttributes(formatter, requested);
-                formatter.endChildren();
-                formatter.node("Found the following transforms");
-                formatter.startChildren();
-                for (Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> candidate : candidates) {
-                    formatter.node("Transform from variant");
-                    formatter.startChildren();
-                    formatAttributes(formatter, candidate.getLeft().getAttributes());
-                    formatter.endChildren();
-                }
-                formatter.endChildren();
-
-                throw new AmbiguousTransformException(formatter.toString());
+                throw new AmbiguousTransformException(requested, candidates);
             }
 
-            return new ConsumerProvidedResolvedVariant(requested, ResolvedArtifactSet.EMPTY);
+            return new EmptyResolvedVariant(requested);
         }
 
         @Override
@@ -133,42 +117,16 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
     }
 
-    private void formatAttributes(TreeFormatter formatter, AttributeContainerInternal attributes) {
-        for (Attribute<?> attribute : Ordering.usingToString().sortedCopy(attributes.keySet())) {
-            formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
-        }
-    }
-
     private class ConsumerProvidedResolvedVariant implements ResolvedVariant {
+        private final ResolvedVariant delegate;
         private final AttributeContainerInternal attributes;
-        private final ResolvedArtifactSet artifacts;
-
-        public ConsumerProvidedResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
-            this.attributes = attributes;
-            this.artifacts = artifacts;
-        }
-
-        @Override
-        public AttributeContainerInternal getAttributes() {
-            return attributes;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return artifacts;
-        }
-    }
-
-    private static class ConsumerProvidedVariantArtifacts implements ResolvedArtifactSet {
-        private final ResolvedArtifactSet delegate;
-        private final AttributeContainerInternal target;
         private final Transformer<List<File>, File> transform;
         private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newConcurrentMap();
         private final Map<File, Throwable> fileFailures = Maps.newConcurrentMap();
 
-        ConsumerProvidedVariantArtifacts(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
+        ConsumerProvidedResolvedVariant(ResolvedVariant delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
             this.delegate = delegate;
-            this.target = target;
+            this.attributes = target;
             this.transform = transform;
         }
 
@@ -196,10 +154,9 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 }
             });
         }
-
         @Override
-        public Set<ResolvedArtifact> getArtifacts() {
-            throw new UnsupportedOperationException();
+        public void visit(ArtifactVisitor visitor) {
+            delegate.visit(new ArtifactTransformingVisitor(visitor, attributes, transform, artifactFailures, fileFailures));
         }
 
         @Override
@@ -208,8 +165,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void visit(ArtifactVisitor visitor) {
-            delegate.visit(new ArtifactTransformingVisitor(visitor, target, transform, artifactFailures, fileFailures));
+        public AttributeContainerInternal getAttributes() {
+            return attributes;
         }
 
         private class TransformArtifactOperation implements RunnableBuildOperation {

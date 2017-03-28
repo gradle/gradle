@@ -46,7 +46,8 @@
         <xi:include href='buildEnvironment.xml'/>
         <xi:include href='troubleshooting.xml'/>
         <xi:include href='embedding.xml'/>
-        <xi:include href='buildCache.xml'/>
+        <!-- this is generated -->
+        <xi:include href='../../../build/asciidoc/userguide/buildCache.xml'/>
     </part>
     <part>
         <title>Writing Gradle build scripts</title>

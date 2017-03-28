@@ -21,7 +21,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
+import org.gradle.api.Incubating;
 import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 import java.util.Arrays;
@@ -32,7 +35,8 @@ import java.util.Set;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.*;
-import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.*;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.EXCLUDE_ALL;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.INCLUDE_ONLY;
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
@@ -47,7 +51,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private List<String> natures = Lists.newArrayList();
     private List<BuildCommand> buildCommands = Lists.newArrayList();
     private Set<Link> linkedResources = Sets.newLinkedHashSet();
-    private Set<ResourceFilter> resourceFilters = Sets.newLinkedHashSet();    
+    private Set<ResourceFilter> resourceFilters = Sets.newLinkedHashSet();
 
     public Project(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
@@ -124,10 +128,22 @@ public class Project extends XmlPersistableConfigurationObject {
         this.linkedResources = linkedResources;
     }
 
+    /*
+     * The resource filters of this Eclipse project.
+     *
+     * @since 3.5
+     */
+    @Incubating
     public Set<ResourceFilter> getResourceFilters() {
         return resourceFilters;
     }
 
+    /*
+     * Sets the resource filters of this Eclipse project.
+     *
+     * @since 3.5
+     */
+    @Incubating
     public void setResourceFilters(Set<ResourceFilter> resourceFilters) {
         this.resourceFilters = resourceFilters;
     }
@@ -207,7 +223,7 @@ public class Project extends XmlPersistableConfigurationObject {
             ResourceFilterType type = resourceFilterTypeBitmaskToType(typeBitmask);
             boolean recursive = isResourceFilterTypeBitmaskRecursive(typeBitmask);
             ResourceFilterMatcher matcher = readResourceFilterMatcher(matcherNode);
-            resourceFilters.add(new ResourceFilter(
+            resourceFilters.add(new DefaultResourceFilter(
                 appliesTo,
                 type,
                 recursive,
@@ -324,7 +340,7 @@ public class Project extends XmlPersistableConfigurationObject {
                 type |= 12;
                 break;
         }
-        if (resourceFilter.getRecursive()) {
+        if (resourceFilter.isRecursive()) {
             type |= 16;
         }
         return type;
@@ -379,7 +395,7 @@ public class Project extends XmlPersistableConfigurationObject {
         } else {
             arguments = argumentsNode != null ? argumentsNode.text() : null;
         }
-        return new ResourceFilterMatcher(
+        return new DefaultResourceFilterMatcher(
             idNode != null ? idNode.text() : null,
             arguments,
             children
@@ -426,7 +442,7 @@ public class Project extends XmlPersistableConfigurationObject {
             + ", natures=" + natures
             + ", buildCommands=" + buildCommands
             + ", linkedResources=" + linkedResources
-            + ", resourceFilters=" + resourceFilters            
+            + ", resourceFilters=" + resourceFilters
             + "}";
     }
 }

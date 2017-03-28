@@ -58,7 +58,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends AbstractRole
 
         @Override
         public void readFrom(final InputStream input) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName("Loading entry " + key + " from " + getRole() + " build cache").build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Load entry " + key + " from " + getRole() + " build cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {
@@ -82,7 +82,7 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends AbstractRole
 
         @Override
         public void writeTo(final OutputStream output) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName("Storing entry " + key + " in " + getRole() + " build cache").build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(BuildOperationDetails.displayName("Store entry " + key + " in " + getRole() + " build cache").build(), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     try {

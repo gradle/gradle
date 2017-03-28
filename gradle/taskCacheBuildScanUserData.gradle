@@ -26,20 +26,30 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.buildCacheEnabled) {
+        buildScan.tag 'CACHED'
 
         ext.tasksToInvestigateForCache = project.hasProperty('cache.investigate.tasks') ? project.getProperty('cache.investigate.tasks').split(',') : [
             'compileJava',
             ':jar',
-            ':docs:test'
+            ':docs:test',
+            ':launcher:startScripts',
+            ':toolingApi:shadedJarWithoutVersion',
+            ':integTest',
+            ':test',
+            ':compileTestFixtures',
+            ':compileTestGroovy',
+            ':compileIntegTestGroovy',
         ]
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
-            ':dependencyManagement:generateGradleApiPackageList',
-            ':launcher:integTest',
-            ':baseServices:classpathManifest'
+            ':baseServices:classpathManifest',
         ]
         ext.taskPropertiesWithFullFileSnapshot = [
-            ':baseServices:compileJava': 'classpath'
+            ':baseServices:compileJava': ['classpath'],
         ]
+
+        def cacheConfiguration = gradle.services.get(org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal)
+        publishCacheConfiguration('local', cacheConfiguration.local)
+        publishCacheConfiguration('remote', cacheConfiguration.remote)
 
         gradle.addListener(new TaskOutputCachingListener() {
             @Override
@@ -49,7 +59,10 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     buildScan.value "${task.path}-build-cache-key", String.valueOf(key.hashCode)
                     def inputs = key.inputs
                     buildScan.value "${task.path}-classloader-hash", String.valueOf(inputs.classLoaderHash)
-                    buildScan.value "${task.path}-action-classloader-hash", String.valueOf(inputs.actionsClassLoaderHash)
+                    int actionIndex = 0
+                    inputs.actionClassLoaderHashes.each {
+                        buildScan.value "${task.path}-action-classloader-hash-${actionIndex++}", String.valueOf(it)
+                    }
                     if (tasksToInvestigateForCache.any { task.getPath().contains(it) }) {
                         inputs.inputHashes.each { name, hash ->
                             buildScan.value "${task.path}-input-${name}", String.valueOf(hash)
@@ -67,8 +80,8 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         project.buildScan.buildFinished(new Action() {
             public void execute(result) {
                 for (Task task : (allprojects*.tasks).flatten()) {
-                    if (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
-                        || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath())) {
+                    if (task.state.executed && (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
+                        || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath()))) {
                         def buildScan = task.project.buildScan
                         def fileProperties = task.inputs.fileProperties
                         fileProperties.each { inputProperty ->
@@ -81,15 +94,13 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                             if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
                                 publishPaths(inputProperty.propertyFiles, prefix)
                             }
-                            if (taskPropertiesWithFullFileSnapshot[task.getPath()] == name) {
+                            if (name in taskPropertiesWithFullFileSnapshot[task.getPath()]) {
                                 publishIndividualFileHashes(snapshot, prefix)
                             }
                         }
                         if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
                             def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
                             new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
-                            int actionIndex = 0
-                            task.actionClassLoaders.each { new Visitor(task.project.buildScan, hasher, "${task.path}-action-classloader-${actionIndex++}").visit(it) }
                         }
                     }
                 }
@@ -138,6 +149,21 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         })
     }
 }
+
+def publishCacheConfiguration(String role, cache) {
+    if (cache?.enabled) {
+        buildScan.tag "PULL-FROM-${role.toUpperCase()}"
+        if (cache.push) {
+            buildScan.tag "PUSH-TO-${role.toUpperCase()}"
+        }
+    }
+    buildScan.value "build-cache-${role}-class", String.valueOf(cache?.getClass()?.superclass?.simpleName ?: "<no build cache>")
+    if (cache != null) {
+        buildScan.value "build-cache-${role}-enabled", String.valueOf(cache.enabled)
+        buildScan.value "build-cache-${role}-push", String.valueOf(cache.push)
+    }
+}
+
 
 class Visitor extends org.gradle.internal.classloader.ClassLoaderVisitor {
     final buildScan

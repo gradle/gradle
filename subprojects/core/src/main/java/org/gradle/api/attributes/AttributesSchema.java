@@ -36,8 +36,9 @@ public interface AttributesSchema {
      * @param attribute the attribute
      * @param <T> the type of the attribute
      * @return the matching strategy for this attribute.
+     * @throws IllegalArgumentException When no strategy is available for the given attribute.
      */
-    <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute);
+    <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) throws IllegalArgumentException;
 
     /**
      * Declares a new attribute in the schema and configures it with the default strategy.

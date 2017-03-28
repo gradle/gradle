@@ -38,7 +38,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
             }
 
             dependencies {
-                compile 'org.codehaus.groovy:groovy-all:2.4.9'
+                compile 'org.codehaus.groovy:groovy-all:2.4.10'
             }
         """.stripIndent()
 

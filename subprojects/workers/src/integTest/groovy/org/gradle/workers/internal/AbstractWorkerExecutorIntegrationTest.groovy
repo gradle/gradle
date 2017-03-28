@@ -20,14 +20,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
 
-class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
-    def outputFileDir = file("build/workerDaemons")
+abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
+    def outputFileDir = file("build/workers")
     def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
     def list = [ 1, 2, 3 ]
 
     def setup() {
         buildFile << """
-            $taskTypeUsingWorkerDaemon
+            import org.gradle.workers.*
+            $taskTypeUsingWorker
         """
     }
 
@@ -49,16 +50,15 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    String getTaskTypeUsingWorkerDaemon() {
+    String getTaskTypeUsingWorker() {
         withParameterClassInBuildSrc()
 
         return """
             import javax.inject.Inject
-            import org.gradle.workers.WorkerExecutor
             import org.gradle.other.Foo
 
             @ParallelizableTask
-            class DaemonTask extends DefaultTask {
+            class WorkerTask extends DefaultTask {
                 def list = $list
                 def outputFileDirPath = "${outputFileDirPath}/\${name}"
                 def additionalForkOptions = {}
@@ -66,6 +66,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 def additionalClasspath = project.files()
                 def foo = new Foo()
                 def displayName = null
+                def forkMode = ForkMode.AUTO
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -74,11 +75,12 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void executeTask() {
-                    workerExecutor.submit(runnableClass) { config ->
-                        config.displayName = displayName
-                        config.forkOptions(additionalForkOptions)
-                        config.classpath(additionalClasspath)
-                        config.params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
+                    workerExecutor.submit(runnableClass) {
+                        forkMode = this.forkMode
+                        displayName = this.displayName
+                        forkOptions(additionalForkOptions)
+                        classpath(additionalClasspath)
+                        params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
                     }
                 }
             }
@@ -94,6 +96,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
             import java.io.BufferedWriter;
             import java.io.FileWriter;
             import java.util.UUID;
+            import javax.inject.Inject;
 
             public class TestRunnable implements Runnable {
                 private final List<String> files;
@@ -101,6 +104,7 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
                 private final Foo foo;
                 private static final String id = UUID.randomUUID().toString();
 
+                @Inject
                 public TestRunnable(List<String> files, File outputDir, Foo foo) {
                     this.files = files;
                     this.outputDir = outputDir;
@@ -196,8 +200,10 @@ class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
             import java.util.List;
             import org.gradle.other.Foo;
             import java.net.URL;
+            import javax.inject.Inject;
 
             public class AlternateRunnable extends TestRunnable {
+                @Inject
                 public AlternateRunnable(List<String> files, File outputDir, Foo foo) {
                     super(files, outputDir, foo);
                 }

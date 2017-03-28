@@ -145,9 +145,6 @@
                 <td>org.gradle.api.initialization.IncludedBuild</td>
             </tr>
             <tr>
-                <td>org.gradle.caching.configuration.BuildCacheConfiguration</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.Script</td>
             </tr>
             <tr>
@@ -294,6 +291,23 @@
             </tr>
             <tr>
                 <td>org.gradle.authentication.http.DigestAuthentication</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Build Cache types</title>
+        <para>Types used to connect to and configure the build cache:</para>
+        <table>
+            <title>Build Cache types</title>
+            <tr>
+                <td>org.gradle.caching.configuration.BuildCacheConfiguration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.caching.local.DirectoryBuildCache</td>
+            </tr>
+            <tr>
+                <td>org.gradle.caching.http.HttpBuildCache</td>
             </tr>
         </table>
     </section>

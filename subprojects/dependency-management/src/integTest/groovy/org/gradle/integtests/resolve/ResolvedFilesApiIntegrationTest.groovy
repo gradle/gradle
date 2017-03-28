@@ -29,7 +29,7 @@ def usage = Attribute.of('usage', String)
 allprojects {
     dependencies {
         attributesSchema {
-           attribute(usage)
+           attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
         }
     }
     configurations {
@@ -86,13 +86,14 @@ task show {
         println "files 2: " + configurations.compile.incoming.files.collect { it.name }
         println "files 3: " + configurations.compile.files.collect { it.name }
         println "files 4: " + configurations.compile.resolve().collect { it.name }
-        println "files 5: " + configurations.compile.incoming.artifactView().files.collect { it.name }
-        println "files 6: " + configurations.compile.incoming.artifactView().componentFilter { true }.files.collect { it.name }
-        println "files 7: " + configurations.compile.files { true }.collect { it.name }
-        println "files 8: " + configurations.compile.fileCollection { true }.collect { it.name }
-        println "files 9: " + configurations.compile.fileCollection { true }.files.collect { it.name }
-        println "files 10: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
-        println "files 11: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
+        println "files 5: " + configurations.compile.incoming.artifactView({}).files.collect { it.name }
+        println "files 6: " + configurations.compile.incoming.artifactView({componentFilter { true }}).files.collect { it.name }
+        println "files 7: " + configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles.collect { it.name }
+        println "files 8: " + configurations.compile.files { true }.collect { it.name }
+        println "files 9: " + configurations.compile.fileCollection { true }.collect { it.name }
+        println "files 10: " + configurations.compile.fileCollection { true }.files.collect { it.name }
+        println "files 11: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
+        println "files 12: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
     }
 }
 """
@@ -107,12 +108,285 @@ task show {
         outputContains("files 4: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
         outputContains("files 5: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
         outputContains("files 6: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
+        outputContains("files 7: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, b.jar, test2-1.0.jar")
         // Note: the filtered views order files differently. This is documenting existing behaviour rather than necessarily desired behaviour
-        outputContains("files 7: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
         outputContains("files 8: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
         outputContains("files 9: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
         outputContains("files 10: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
         outputContains("files 11: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+        outputContains("files 12: [test-lib.jar, a-lib.jar, b-lib.jar, a.jar, test-1.0.jar, test2-1.0.jar, b.jar")
+    }
+
+    @Unroll
+    def "applies compatibility rules to select variant"() {
+        settingsFile << """
+include 'a', 'b'
+"""
+        buildFile << """
+class FreeRule implements AttributeCompatibilityRule<String> {
+    void execute(CompatibilityCheckDetails<String> details) {
+        if (details.consumerValue == 'preview' && details.producerValue == 'free') {
+            details.compatible()
+        }
+    }
+}
+
+class PaidRule implements AttributeCompatibilityRule<String> {
+    void execute(CompatibilityCheckDetails<String> details) {
+        if (details.consumerValue == 'preview' && details.producerValue == 'paid') {
+            details.compatible()
+        }
+    }
+}
+
+def flavor = Attribute.of('flavor', String)
+
+allprojects {
+    dependencies {
+        attributesSchema.attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+    }
+}
+
+configurations {
+    compile.attributes.attribute(flavor, 'preview')
+}
+
+dependencies {
+    compile project(':a')
+}
+
+project(':a') {
+    dependencies {
+        attributesSchema.attribute(flavor) {
+            compatibilityRules.add(FreeRule)
+        }
+        compile project(':b')
+    }
+    task freeJar(type: Jar) { archiveName = 'a-free.jar' }
+    task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    configurations.compile.outgoing.variants {
+        free {
+            attributes.attribute(flavor, 'free')
+            artifact freeJar
+        }
+        paid {
+            attributes.attribute(flavor, 'paid')
+            artifact paidJar
+        }
+    }
+}
+project(':b') {
+    dependencies {
+        attributesSchema.attribute(flavor) {
+            compatibilityRules.add(PaidRule)
+        }
+    }    
+    task freeJar(type: Jar) { archiveName = 'b-free.jar' }
+    task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    configurations.compile.outgoing.variants {
+        free {
+            attributes.attribute(flavor, 'free')
+            artifact freeJar
+        }
+        paid {
+            attributes.attribute(flavor, 'paid')
+            artifact paidJar
+        }
+    }
+}
+
+task show {
+    inputs.files ${expression}
+    doLast {
+        println "files: " + ${expression}.collect { it.name }
+    }
+}
+"""
+        expect:
+        succeeds("show")
+        output.contains("files: [a-free.jar, b-paid.jar]")
+        result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
+
+        where:
+        expression                                                                                         | _
+        "configurations.compile"                                                                           | _
+        "configurations.compile.incoming.files"                                                            | _
+        "configurations.compile.fileCollection { true }"                                                   | _
+        "configurations.compile.incoming.artifactView({}).files"                                           | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+    }
+
+    @Unroll
+    def "applies disambiguation rules to select variant"() {
+        settingsFile << """
+include 'a', 'b'
+"""
+        buildFile << """
+class SelectFreeRule implements AttributeDisambiguationRule<String> {
+    void execute(MultipleCandidatesDetails<String> details) {
+        details.closestMatch('free')
+    }
+}
+class SelectPaidRule implements AttributeDisambiguationRule<String> {
+    void execute(MultipleCandidatesDetails<String> details) {
+        details.closestMatch('paid')
+    }
+}
+
+def flavor = Attribute.of('flavor', String)
+
+dependencies {
+    compile project(':a')
+}
+
+project(':a') {
+    dependencies {
+        attributesSchema.attribute(flavor) {
+            compatibilityRules.assumeCompatibleWhenMissing()
+            disambiguationRules.add(SelectFreeRule)
+        }
+        compile project(':b')
+    }
+    task freeJar(type: Jar) { archiveName = 'a-free.jar' }
+    task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    configurations.compile.outgoing.variants {
+        free {
+            attributes.attribute(flavor, 'free')
+            artifact freeJar
+        }
+        paid {
+            attributes.attribute(flavor, 'paid')
+            artifact paidJar
+        }
+    }
+}
+project(':b') {
+    dependencies {
+            attributesSchema.attribute(flavor) {
+            compatibilityRules.assumeCompatibleWhenMissing()
+            disambiguationRules.add(SelectPaidRule)
+        }
+    }    
+    task freeJar(type: Jar) { archiveName = 'b-free.jar' }
+    task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    configurations.compile.outgoing.variants {
+        free {
+            attributes.attribute(flavor, 'free')
+            artifact freeJar
+        }
+        paid {
+            attributes.attribute(flavor, 'paid')
+            artifact paidJar
+        }
+    }
+}
+
+task show {
+    inputs.files ${expression}
+    doLast {
+        println "files: " + ${expression}.collect { it.name }
+    }
+}
+"""
+        expect:
+        succeeds("show")
+        output.contains("files: [a-free.jar, b-paid.jar]")
+        result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
+
+        where:
+        expression                                                                                         | _
+        "configurations.compile"                                                                           | _
+        "configurations.compile.incoming.files"                                                            | _
+        "configurations.compile.fileCollection { true }"                                                   | _
+        "configurations.compile.incoming.artifactView({}).files"                                           | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+    }
+
+    @Unroll
+    def "reports failure when there is more than one compatible variant"() {
+        settingsFile << """
+include 'a', 'b'
+"""
+        buildFile << """
+def flavor = Attribute.of('flavor', String)
+
+dependencies {
+    compile project(':a')
+}
+
+project(':a') {
+    dependencies {
+        attributesSchema.attribute(flavor) {
+            compatibilityRules.assumeCompatibleWhenMissing()
+        }
+        compile project(':b')
+    }
+    task freeJar(type: Jar) { archiveName = 'a-free.jar' }
+    task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    configurations.compile.outgoing.variants {
+        free {
+            attributes.attribute(flavor, 'free')
+            artifact freeJar
+        }
+        paid {
+            attributes.attribute(flavor, 'paid')
+            artifact paidJar
+        }
+    }
+}
+project(':b') {
+    dependencies {
+            attributesSchema.attribute(flavor) {
+            compatibilityRules.assumeCompatibleWhenMissing()
+        }
+    }    
+    task freeJar(type: Jar) { archiveName = 'b-free.jar' }
+    task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    configurations.compile.outgoing.variants {
+        free {
+            attributes.attribute(flavor, 'free')
+            artifact freeJar
+        }
+        paid {
+            attributes.attribute(flavor, 'paid')
+            artifact paidJar
+        }
+    }
+}
+
+task show {
+    doLast {
+        println "files: " + ${expression}.collect { it.name }
+    }
+}
+"""
+        expect:
+        fails("show")
+        failure.assertHasCause("""More than one variant matches the consumer attributes: usage 'compile'
+Found the following matches:
+  - Variant:
+      - artifactType 'jar'
+      - flavor 'free'
+      - usage 'compile'
+  - Variant:
+      - artifactType 'jar'
+      - flavor 'paid'
+      - usage 'compile'""")
+
+        where:
+        expression                                                                                         | _
+        "configurations.compile"                                                                           | _
+        "configurations.compile.incoming.files"                                                            | _
+        "configurations.compile.files"                                                                     | _
+        "configurations.compile.resolve()"                                                                 | _
+        "configurations.compile.files { true }"                                                            | _
+        "configurations.compile.fileCollection { true }"                                                   | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
+        "configurations.compile.incoming.artifactView({}).files"                                           | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
     @Unroll
@@ -148,16 +422,17 @@ task show {
         failure.assertHasCause("Could not resolve org:test2:2.0.")
 
         where:
-        expression                                                                      | _
-        "configurations.compile"                                                        | _
-        "configurations.compile.incoming.files"                                         | _
-        "configurations.compile.files"                                                  | _
-        "configurations.compile.resolve()"                                              | _
-        "configurations.compile.files { true }"                                         | _
-        "configurations.compile.fileCollection { true }"                                | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
-        "configurations.compile.incoming.artifactView().files"                          | _
-        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
+        expression                                                                                         | _
+        "configurations.compile"                                                                           | _
+        "configurations.compile.incoming.files"                                                            | _
+        "configurations.compile.files"                                                                     | _
+        "configurations.compile.resolve()"                                                                 | _
+        "configurations.compile.files { true }"                                                            | _
+        "configurations.compile.fileCollection { true }"                                                   | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
+        "configurations.compile.incoming.artifactView({}).files"                                           | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
     @Unroll
@@ -194,16 +469,17 @@ task show {
         failure.assertHasCause("Could not find test.jar (org:test:1.0).")
 
         where:
-        expression                                                                      | _
-        "configurations.compile"                                                        | _
-        "configurations.compile.incoming.files"                                         | _
-        "configurations.compile.files"                                                  | _
-        "configurations.compile.resolve()"                                              | _
-        "configurations.compile.files { true }"                                         | _
-        "configurations.compile.fileCollection { true }"                                | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
-        "configurations.compile.incoming.artifactView().files"                          | _
-        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
+        expression                                                                                         | _
+        "configurations.compile"                                                                           | _
+        "configurations.compile.incoming.files"                                                            | _
+        "configurations.compile.files"                                                                     | _
+        "configurations.compile.resolve()"                                                                 | _
+        "configurations.compile.files { true }"                                                            | _
+        "configurations.compile.fileCollection { true }"                                                   | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
+        "configurations.compile.incoming.artifactView({}).files"                                           | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
     @Unroll
@@ -228,16 +504,17 @@ task show {
         failure.assertHasCause("broken")
 
         where:
-        expression                                                                      | _
-        "configurations.compile"                                                        | _
-        "configurations.compile.incoming.files"                                         | _
-        "configurations.compile.files"                                                  | _
-        "configurations.compile.resolve()"                                              | _
-        "configurations.compile.files { true }"                                         | _
-        "configurations.compile.fileCollection { true }"                                | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
-        "configurations.compile.incoming.artifactView().files"                          | _
-        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
+        expression                                                                                         | _
+        "configurations.compile"                                                                           | _
+        "configurations.compile.incoming.files"                                                            | _
+        "configurations.compile.files"                                                                     | _
+        "configurations.compile.resolve()"                                                                 | _
+        "configurations.compile.files { true }"                                                            | _
+        "configurations.compile.fileCollection { true }"                                                   | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
+        "configurations.compile.incoming.artifactView({}).files"                                           | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
     @Unroll
@@ -279,15 +556,16 @@ task show {
         failure.assertHasCause("broken 2")
 
         where:
-        expression                                                                      | _
-        "configurations.compile"                                                        | _
-        "configurations.compile.incoming.files"                                         | _
-        "configurations.compile.files"                                                  | _
-        "configurations.compile.resolve()"                                              | _
-        "configurations.compile.files { true }"                                         | _
-        "configurations.compile.fileCollection { true }"                                | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                | _
-        "configurations.compile.incoming.artifactView().files"                          | _
-        "configurations.compile.incoming.artifactView().componentFilter { true }.files" | _
+        expression                                                                                         | _
+        "configurations.compile"                                                                           | _
+        "configurations.compile.incoming.files"                                                            | _
+        "configurations.compile.files"                                                                     | _
+        "configurations.compile.resolve()"                                                                 | _
+        "configurations.compile.files { true }"                                                            | _
+        "configurations.compile.fileCollection { true }"                                                   | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
+        "configurations.compile.incoming.artifactView({}).files"                                           | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 }

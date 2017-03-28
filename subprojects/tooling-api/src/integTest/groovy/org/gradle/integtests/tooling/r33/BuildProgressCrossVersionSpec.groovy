@@ -32,7 +32,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'single'"
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -59,7 +59,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -98,7 +98,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -126,6 +126,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureBuild.children == [configureRoot, configureA]
     }
 
+    @TargetGradleVersion(">=3.3 <3.6")
     def "generates events for project configuration where project configuration is nested"() {
         given:
         settingsFile << """
@@ -142,7 +143,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -186,7 +187,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -221,7 +222,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("src/main/java/Thing.java") << """class Thing { }"""
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -249,7 +250,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("src/test/java/Thing.java") << """class ThingTest { }"""
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -285,7 +286,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
@@ -325,7 +326,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         javaProjectWithTests()
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()

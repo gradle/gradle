@@ -95,15 +95,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':b:barJar'
-        notExecuted ':b:fooJar'
+        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
@@ -157,16 +155,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':b:barJar'
-        notExecuted ':b:fooJar'
-
+        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration and target configuration is not top-level"() {
@@ -227,16 +222,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':b:barJar'
-        notExecuted ':b:fooJar'
-
+        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
     def "explicit configuration selection should take precedence"() {
@@ -279,7 +271,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                        attributes { $freeDebug }
                     }
                     bar {
-                        extendsFrom compile
+                       extendsFrom compile
+                       attributes { $freeDebug }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -301,12 +294,65 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:barJar'
-        notExecuted ':b:fooJar'
-
+        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
     }
 
-    def "revalidates explicit configuration selection"() {
+    def "explicit configuration selection can be used when no configurations in target have attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    compile
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
+                    _compileFreeDebug.extendsFrom compile
+                    _compileFreeRelease.extendsFrom compile
+                }
+                dependencies {
+                    compile project(path:':b', configuration: 'bar')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        // TODO - should select the artifacts
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    compile
+                    foo {
+                       extendsFrom compile
+                    }
+                    bar {
+                       extendsFrom compile
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        result.assertTasksExecuted(':a:checkDebug')
+    }
+
+    def "fails when explicitly selected configuration is not compatible with requested"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -373,23 +419,57 @@ Configuration 'bar':
         run ':a:checkRelease'
 
         then:
-        executed ':b:barJar'
-        notExecuted ':b:fooJar'
-
+        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
-    /**
-     * Whenever a dependency on a project is found and that the client configuration
-     * defines attributes, we try to find a target configuration with the same attributes
-     * declared. However if no such configuration exists, what should we do?
-     * This test implements option 1, which is falling back on the default configuration,
-     * without error.
-     *
-     * Rationale: it mimics the current behavior of Gradle Android builds. It will cause
-     * the build of artifacts which are not necessary for a specific task, but it won't fail
-     * the build.
-     */
-    def "selects default configuration when no match is found"() {
+    // Documents existing behaviour
+    def "uses explicitly selected configuration when it has no attributes but is not compatible with requested"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    compile
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeDebug.extendsFrom compile
+                }
+                dependencies {
+                    compile project(path:':b', configuration: 'bar')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        configurations._compileFreeDebug.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    compile
+                    bar {
+                       extendsFrom compile
+                    }
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        // TODO - should be selecting files as well
+        result.assertTasksExecuted(':a:checkDebug')
+    }
+
+    def "selects default configuration when it matches configuration attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -412,6 +492,95 @@ Configuration 'bar':
                 configurations {
                     foo
                     bar
+                    create('default').attributes { $freeDebug }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        result.assertTasksExecuted(':a:checkDebug')
+    }
+
+    def "selects default configuration when target has no configurations with attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes { $freeDebug }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        // TODO - should select artifacts
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo
+                    bar
+                    create 'default'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    'default' barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        result.assertTasksExecuted(':a:checkDebug')
+    }
+
+    def "selects default configuration when no match is found"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes { $freeDebug }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo { attributes { $freeRelease } }
+                    bar { attributes { $release } }
                     create 'default'
                 }
                 task fooJar(type: Jar) {
@@ -432,8 +601,7 @@ Configuration 'bar':
         run ':a:checkDebug'
 
         then:
-        notExecuted ':b:fooJar', ':b:barJar'
-
+        result.assertTasksExecuted(':a:checkDebug')
     }
 
     def "does not select default configuration when no match is found and default configuration is not consumable"() {
@@ -535,7 +703,7 @@ Configuration 'bar':
 
     }
 
-    def "gives details about failing matchs when it cannot select default configuration when no match is found and default configuration is not consumable"() {
+    def "gives details about failing matches when it cannot select default configuration when no match is found and default configuration is not consumable"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -647,12 +815,10 @@ Configuration 'bar':
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:defaultJar', ':b:barJar'
-
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
     }
 
-    def "cannot choose a configuration when multiple partial matchs are found"() {
+    def "cannot choose a configuration when multiple partial matches are found"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -776,9 +942,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
-
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
     }
 
     /**
@@ -988,6 +1152,15 @@ All of them match the consumer attributes:
         buildFile << """
             $typeDefs
 
+            allprojects {
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                   }
+               }
+            }
+
             project(':a') {
                 configurations {
                     _compileFreeDebug.attributes { $freeDebug }
@@ -1050,16 +1223,13 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':b:barJar'
-        notExecuted ':b:fooJar'
-
+        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
     def "context travels down to transitive dependencies"() {
@@ -1067,6 +1237,15 @@ All of them match the consumer attributes:
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
+
+            allprojects {
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                   }
+               }
+            }
 
             project(':a') {
                 configurations {
@@ -1122,16 +1301,13 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':c:fooJar'
-        notExecuted ':c:barJar'
+        result.assertTasksExecuted(':c:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':c:barJar'
-        notExecuted ':c:fooJar'
-
+        result.assertTasksExecuted(':c:barJar', ':a:checkRelease')
     }
 
     def "context travels down to transitive dependencies with dependency substitution"() {
@@ -1139,6 +1315,15 @@ All of them match the consumer attributes:
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
+
+            allprojects {
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                   }
+               }
+            }
 
             project(':a') {
                 configurations {
@@ -1199,16 +1384,13 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':c:fooJar'
-        notExecuted ':c:barJar'
+        result.assertTasksExecuted(':c:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':c:barJar'
-        notExecuted ':c:fooJar'
-
+        result.assertTasksExecuted(':c:barJar', ':a:checkRelease')
     }
 
     def "transitive dependencies selection uses the source configuration attributes"() {
@@ -1334,6 +1516,15 @@ All of them match the consumer attributes:
         buildFile << """
             $typeDefs
 
+            allprojects {
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                   }
+               }
+            }
+
             project(':a') {
                 repositories { jcenter() }
 
@@ -1395,16 +1586,13 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':c:fooJar'
-        notExecuted ':c:barJar'
+        result.assertTasksExecuted(':c:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':c:barJar'
-        notExecuted ':c:fooJar'
-
+        result.assertTasksExecuted(':c:barJar', ':a:checkRelease')
     }
 
     def "two configurations can have the same attributes but for different roles"() {
@@ -1468,16 +1656,13 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':b:barJar'
-        notExecuted ':b:fooJar'
-
+        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
     def "Library project with flavors depends on a library project that does not"() {
@@ -1530,9 +1715,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
-
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
     }
 
     def "Library project without flavors depends on a library project with flavors"() {
@@ -1586,9 +1769,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
-
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
     }
 
     def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
@@ -1673,12 +1854,10 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar', ':c:fooJar'
-        notExecuted ':b:barJar', ':c:barJar'
-
+        result.assertTasksExecuted(':b:fooJar', ':c:fooJar', ':a:checkDebug')
     }
 
-    def "incompatible matches are excluded from selection"() {
+    def "selects configuration with superset of matching attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -1690,9 +1869,9 @@ All of them match the consumer attributes:
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(extra) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(extra).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
                     }
                     _compileFreeDebug project(':b')
                 }
@@ -1706,10 +1885,10 @@ All of them match the consumer attributes:
                 configurations {
                     create 'default'
                     foo {
-                       attributes { $freeDebug }
+                       attributes { $free; $debug }
                     }
                     bar {
-                       attributes { $freeRelease }
+                       attributes { $free }
                     }
                 }
                 task defaultJar(type: Jar) {
@@ -1734,9 +1913,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:defaultJar', ':b:barJar'
-
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
     }
 
 }

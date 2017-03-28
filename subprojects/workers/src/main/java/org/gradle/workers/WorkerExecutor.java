@@ -36,7 +36,7 @@ public interface WorkerExecutor {
      *
      * In the event that an error is thrown while submitting work, all uncompleted work will be canceled.
      */
-    void submit(Class<? extends Runnable> actionClass, Action<WorkerConfiguration> configAction);
+    void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction);
 
     /**
      * Blocks until all work associated with the current build operation is complete.

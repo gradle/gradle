@@ -17,6 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -49,7 +50,15 @@ public interface DisambiguationRuleChain<T> {
      *
      * @param rule the rule to add
      */
-    void add(Action<? super MultipleCandidatesDetails<T>> rule);
+    void add(Class<? extends AttributeDisambiguationRule<T>> rule);
+
+    /**
+     * <p>Adds an arbitrary disambiguation rule to the chain, possibly configuring the rule as well.</p>
+     *
+     * @param rule the rule to add
+     * @param configureAction the action to use to configure the rule
+     */
+    void add(Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
      * Adds an ordered disambiguation rule. Values will be compared using the

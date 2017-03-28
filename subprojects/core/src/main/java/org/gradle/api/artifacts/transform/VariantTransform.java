@@ -17,11 +17,14 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 
 /**
  * Registration of an variant transform.
+ *
+ * @since 3.5
  */
 @Incubating
 public interface VariantTransform {
@@ -47,5 +50,5 @@ public interface VariantTransform {
      *
      * <p>An instance of the specified type is created for each file that is to be transformed. The class should provide a public constructor that accepts the provided configuration.</p>
      */
-    void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> configAction);
+    void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ActionConfiguration> configAction);
 }

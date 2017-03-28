@@ -25,7 +25,7 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "src/main/java/App.java"
     public static final String SAMPLE_APP_TEST_CLASS = "src/test/java/AppTest.java"
-    public static final String SAMPLE_SPOCK_APP_TEST_CLASS = "src/test/groovy/AppTest.groovy"
+    public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
 
     final wrapper = new WrapperTestFixture(testDirectory)
 
@@ -59,7 +59,7 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file(SAMPLE_APP_CLASS).exists()
-        file(SAMPLE_SPOCK_APP_TEST_CLASS).exists()
+        file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()

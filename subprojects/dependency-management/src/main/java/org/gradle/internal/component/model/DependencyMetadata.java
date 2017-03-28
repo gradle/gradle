@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.util.Collection;
 import java.util.List;
@@ -70,7 +70,7 @@ public interface DependencyMetadata {
      * Select the target configurations for this dependency from the given target component.
      */
     // TODO:ADAM - fromComponent and fromConfiguration should be implicit in this metadata
-    Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchema attributesSchema);
+    Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
 
     /**
      * Returns the set of source configurations that this dependency should be attached to.

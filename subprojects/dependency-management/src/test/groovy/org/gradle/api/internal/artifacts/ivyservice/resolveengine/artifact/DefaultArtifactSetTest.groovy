@@ -19,16 +19,18 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.transform.VariantSelector
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.model.VariantMetadata
 import spock.lang.Specification
 
 class DefaultArtifactSetTest extends Specification {
     def componentId = Stub(ComponentIdentifier)
     def exclusions = Stub(ModuleExclusions)
+    def schema = Stub(AttributesSchemaInternal)
 
     def "returns empty set when component id does not match spec"() {
         def variant1 = Stub(VariantMetadata)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, null, null, 12L, null, null)
+        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null, null)
 
         expect:
         def selected = artifactSet.select({false}, Stub(VariantSelector))
@@ -38,16 +40,15 @@ class DefaultArtifactSetTest extends Specification {
     def "selects artifacts when component id matches spec"() {
         def variant1 = Stub(VariantMetadata)
         def resolvedVariant1 = Stub(ResolvedVariant)
-        def variant1Artifacts = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, null, null, 12L, null, null)
+        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null, null)
 
         given:
-        selector.select(_) >> resolvedVariant1
-        resolvedVariant1.artifacts >> variant1Artifacts
+        selector.select(_, schema) >> resolvedVariant1
 
         expect:
         def selected = artifactSet.select({true}, selector)
-        selected == variant1Artifacts
+        selected instanceof SingleVariantResolvedArtifactSet
+        selected.variant == resolvedVariant1
     }
 }

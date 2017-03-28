@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -95,7 +96,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     pomReader.getParentGroupId(),
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
-            PomReader parentPomReader = parseOtherPom(parserSettings, parentId);
+            PomReader parentPomReader = parseParentPom(parserSettings, parentId, pomReader.getAllPomProperties());
             pomReader.setPomParent(parentPomReader);
         }
         pomReader.resolveGAV();
@@ -184,32 +185,22 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return DEPENDENCY_IMPORT_SCOPE.equals(dependencyMgt.getScope());
     }
 
-    /**
-     * Parses imported POM.
-     *
-     * @param parseContext Parse context
-     * @param pomDependencyMgt Dependency management information
-     * @return POM reader
-     * @throws IOException
-     * @throws SAXException
-     */
     private PomReader parseImportedPom(DescriptorParseContext parseContext, PomDependencyMgt pomDependencyMgt) throws IOException, SAXException {
         ModuleComponentIdentifier importedId = DefaultModuleComponentIdentifier.newId(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion());
-        return parseOtherPom(parseContext, importedId);
+        return parsePom(parseContext, importedId, Maps.<String, String>newHashMap());
     }
 
-    /**
-     * Parses other POM.
-     *
-     * @param parseContext Parse context
-     * @param parentId Parent module revision ID
-     * @return POM reader
-     * @throws IOException
-     * @throws SAXException
-     */
     private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId) throws IOException, SAXException {
+        return parsePom(parseContext, parentId, Maps.<String, String>newHashMap());
+    }
+
+    private PomReader parseParentPom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId, Map<String, String> childProperties) throws IOException, SAXException {
+        return parsePom(parseContext, parentId, childProperties);
+    }
+
+    private PomReader parsePom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId, Map<String, String> childProperties) throws IOException, SAXException {
         LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(parentId, ArtifactType.MAVEN_POM);
-        PomReader pomReader = new PomReader(localResource, moduleIdentifierFactory);
+        PomReader pomReader = new PomReader(localResource, moduleIdentifierFactory, childProperties);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme, moduleIdentifierFactory, moduleExclusions);
         doParsePom(parseContext, mdBuilder, pomReader);
         return pomReader;

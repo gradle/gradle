@@ -16,5 +16,7 @@
 
 /**
  * Classes and API for the reflection and types.
+ *
+ * @since 3.5
  */
 package org.gradle.api.reflect;

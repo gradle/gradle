@@ -25,11 +25,14 @@ public class CacheAccessOperationsStack {
     private final Map<Thread, CacheOperationStack> perThreadStacks = new HashMap<Thread, CacheOperationStack>();
 
     public void pushCacheAction() {
-        getStackForCurrentThread().pushCacheAction();
+        getStackForCurrentThread(true).pushCacheAction();
     }
 
     public void popCacheAction() {
-        CacheOperationStack stack = getStackForCurrentThread();
+        CacheOperationStack stack = getStackForCurrentThread(false);
+        if (stack == null) {
+            throw new IllegalStateException("Operation stack is empty.");
+        }
         stack.popCacheAction();
         if (stack.isEmpty()) {
             perThreadStacks.remove(currentThread());
@@ -41,21 +44,9 @@ public class CacheAccessOperationsStack {
         return stack != null && stack.isInCacheAction();
     }
 
-    public void pushLongRunningOperation() {
-        getStackForCurrentThread().pushLongRunningOperation();
-    }
-
-    public void popLongRunningOperation() {
-        CacheOperationStack stack = getStackForCurrentThread();
-        stack.popLongRunningOperation();
-        if (stack.isEmpty()) {
-            perThreadStacks.remove(currentThread());
-        }
-    }
-
-    private CacheOperationStack getStackForCurrentThread() {
+    private CacheOperationStack getStackForCurrentThread(boolean create) {
         CacheOperationStack stack = perThreadStacks.get(currentThread());
-        if (stack == null) {
+        if (stack == null && create) {
             stack = new CacheOperationStack();
             perThreadStacks.put(currentThread(), stack);
         }

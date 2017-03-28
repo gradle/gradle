@@ -30,7 +30,7 @@ import java.util.List;
 
 public class WorkerDaemonClientsManager {
 
-    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonManager.class);
+    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonFactory.class);
 
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
@@ -42,7 +42,8 @@ public class WorkerDaemonClientsManager {
         this.workerDaemonStarter = workerDaemonStarter;
     }
 
-    public WorkerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions) {
+    // TODO - should supply and check for the same parameters as passed to reserveNewClient()
+    public <T extends WorkSpec> WorkerDaemonClient<T> reserveIdleClient(DaemonForkOptions forkOptions) {
         return reserveIdleClient(forkOptions, idleClients);
     }
 
@@ -60,9 +61,9 @@ public class WorkerDaemonClientsManager {
         }
     }
 
-    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerDaemonProtocol> serverImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> WorkerDaemonClient<T> reserveNewClient(Class<? extends WorkerProtocol<T>> workerProtocolImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
-        WorkerDaemonClient client = workerDaemonStarter.startDaemon(serverImplementationClass, workingDir, forkOptions);
+        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, workingDir, forkOptions);
         synchronized (lock) {
             allClients.add(client);
         }

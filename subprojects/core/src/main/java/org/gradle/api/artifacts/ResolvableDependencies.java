@@ -32,7 +32,7 @@ import org.gradle.api.file.FileCollection;
  *
  * <p>The dependencies are resolved once only, when the result is first requested. The result is reused and returned for subsequent calls. Once resolved, any mutation to the dependencies will result in an error.</p>
  */
-public interface ResolvableDependencies {
+public interface ResolvableDependencies extends ArtifactView {
     /**
      * Returns the name of this set.
      *
@@ -118,5 +118,14 @@ public interface ResolvableDependencies {
      * @since 3.4
      */
     @Incubating
-    ArtifactView artifactView();
+    ArtifactView artifactView(Closure configAction);
+
+    /**
+     * Returns a builder that can be used to define and access a filtered view of the resolved artifacts.
+     * @return A view over the artifacts resolved for this set of dependencies.
+     *
+     * @since 3.4
+     */
+    @Incubating
+    ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction);
 }

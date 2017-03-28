@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-
-import java.util.Map;
 
 public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry) {
@@ -32,7 +31,7 @@ public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     }
 
     @Override
-    protected Map<String, FileCollectionSnapshot> getPrevious() {
+    protected ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
         return previous.getInputFilesSnapshot();
     }
 

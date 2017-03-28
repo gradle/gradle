@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -30,25 +31,39 @@ import org.gradle.api.specs.Spec;
  * @since 3.4
  */
 @Incubating
-public interface ArtifactView extends HasConfigurableAttributes<ArtifactView> {
-    /**
-     * Specify a filter for the components that should be included in this view.
-     * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
-     *
-     * This method cannot be called a multiple times for a view.
-     */
-    @Incubating
-    ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter);
+public interface ArtifactView extends HasAttributes {
 
     /**
      * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
      */
-    @Incubating
     ArtifactCollection getArtifacts();
 
     /**
      * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
      */
-    @Incubating
     FileCollection getFiles();
+
+    /**
+     * Configuration for a defined artifact view.
+     */
+    interface ViewConfiguration extends HasConfigurableAttributes<ViewConfiguration> {
+        /**
+         * Specify a filter for the components that should be included in this view.
+         * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
+         *
+         * This method cannot be called a multiple times for a view.
+         */
+        ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter);
+
+        /**
+         * Specify if the view should be resolved in a 'lenient' fashion.
+         *
+         * When set to <code>true</code>, this view will resolve as many artifacts and/or files as possible
+         * collecting any failures.
+         *
+         * When set to <code>false</code>, any failures will be propagated as exceptions when the view is resolved.
+         */
+        ViewConfiguration lenient(boolean lenient);
+
+    }
 }

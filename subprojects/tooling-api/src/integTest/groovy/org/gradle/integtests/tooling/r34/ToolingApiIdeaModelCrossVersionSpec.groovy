@@ -74,7 +74,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.jdkName == null
     }
 
-    @ToolingApiVersion("current")
+    @ToolingApiVersion(">=3.4")
     @TargetGradleVersion(">=1.2 <3.4")
     def "jdkName property from idea module model is not available in the tooling before 3.4"() {
         when:

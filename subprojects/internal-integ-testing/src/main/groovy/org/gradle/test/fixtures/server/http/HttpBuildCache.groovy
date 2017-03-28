@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
+import org.mortbay.jetty.Handler
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
 
@@ -30,14 +31,17 @@ class HttpBuildCache extends ExternalResource implements HttpServerFixture {
 
     HttpBuildCache(TestDirectoryProvider provider) {
         this.provider = provider
-        webapp = new WebAppContext()
+        this.webapp = new WebAppContext()
         this.webapp.addFilter(RestFilter, "/*", 1)
-
-        server.setHandler(this.webapp)
     }
 
     TestFile getCacheDir() {
         Preconditions.checkNotNull(cacheDir)
+    }
+
+    @Override
+    Handler getCustomHandler() {
+        return webapp
     }
 
     @Override
@@ -50,5 +54,9 @@ class HttpBuildCache extends ExternalResource implements HttpServerFixture {
     @Override
     protected void after() {
         stop()
+    }
+
+    void withBasicAuth(String username, String password) {
+        requireAuthentication('/*', username, password)
     }
 }

@@ -53,9 +53,8 @@ public interface ComponentResolveMetadata {
     ModuleSource getSource();
 
     /**
-     * Returns the schema used by this component, may be null.
+     * Returns the schema used by this component.
      */
-    @Nullable
     AttributesSchemaInternal getAttributesSchema();
 
     /**

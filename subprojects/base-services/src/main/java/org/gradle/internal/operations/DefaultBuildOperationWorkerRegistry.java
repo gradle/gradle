@@ -71,7 +71,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
             DefaultOperation operation = new DefaultOperation(parent, workerId, ownerThread);
             while (!parent.grantLease()) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Worker {} waiting for a lease. Currently {} in use", operation.getDisplayName(), root.leasesInUse);
+                    LOGGER.debug("Build operation {} waiting for a lease. Currently {} worker(s) in use", operation.getDisplayName(), root.leasesInUse);
                 }
                 try {
                     lock.wait();
@@ -82,7 +82,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
 
             threads.put(ownerThread, operation);
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Worker {} started ({} in use).", operation.getDisplayName(), root.leasesInUse);
+                LOGGER.debug("Build operation {} started ({} worker(s) in use).", operation.getDisplayName(), root.leasesInUse);
             }
             return operation;
         }
@@ -178,7 +178,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
                 lock.notifyAll();
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Worker {} completed ({} in use)", getDisplayName(), root.leasesInUse);
+                    LOGGER.debug("Build operation {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
                 }
 
                 if (children != 0) {

@@ -18,11 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.util.BiFunction;
-import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 import java.util.List;
@@ -30,15 +27,17 @@ import java.util.List;
 class ArtifactTransformBackedTransformer implements BiFunction<List<File>, File, File> {
     private final Class<? extends ArtifactTransform> implementationClass;
     private final Object[] parameters;
+    private final Instantiator instantiator;
 
-    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters) {
+    ArtifactTransformBackedTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, Instantiator instantiator) {
         this.implementationClass = implementationClass;
         this.parameters = parameters;
+        this.instantiator = instantiator;
     }
 
     @Override
     public List<File> apply(File file, File outputDir) {
-        ArtifactTransform artifactTransform = create();
+        ArtifactTransform artifactTransform = instantiator.newInstance(implementationClass, parameters);
         artifactTransform.setOutputDirectory(outputDir);
         List<File> outputs = artifactTransform.transform(file);
         if (outputs == null) {
@@ -63,15 +62,4 @@ class ArtifactTransformBackedTransformer implements BiFunction<List<File>, File,
         }
         return outputs;
     }
-
-    private ArtifactTransform create() {
-        try {
-            return DirectInstantiator.INSTANCE.newInstance(implementationClass, parameters);
-        } catch (ObjectInstantiationException e) {
-            throw new VariantTransformConfigurationException("Could not create instance of " + ModelType.of(implementationClass).getDisplayName() + ".", e.getCause());
-        } catch (RuntimeException e) {
-            throw new VariantTransformConfigurationException("Could not create instance of " + ModelType.of(implementationClass).getDisplayName() + ".", e);
-        }
-    }
-
 }

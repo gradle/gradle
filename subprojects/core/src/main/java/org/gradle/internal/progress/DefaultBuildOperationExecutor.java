@@ -25,11 +25,16 @@ import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.time.TimeProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
+
     private final BuildOperationListener listener;
     private final TimeProvider timeProvider;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -102,6 +107,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
                     progressLogger = null;
                 }
 
+                LOGGER.debug("Build operation '{}' started", operation.getDisplayName());
                 try {
                     result = factory.transform(context);
                 } finally {
@@ -124,6 +130,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
 
+            LOGGER.debug("Build operation '{}' completed", operation.getDisplayName());
             return result;
         } finally {
             this.currentOperation.set(operationBefore);

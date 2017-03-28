@@ -1,7 +1,9 @@
 
 // Calculate the set of released versions - do this at configuration time because we need this to create various tasks
 // At some point, make this a configuration rule
-ext.releasedVersions = new org.gradle.build.ReleasedVersions()
-releasedVersions.destFile = new File(buildDir, "all-released-versions.json")
-releasedVersions.offline = gradle.startParameter.offline
+ext.releasedVersions = new org.gradle.build.ReleasedVersions(
+    destFile: new File(buildDir, "all-released-versions.json"),
+    alwaysDownload: isCiServer,
+    offline: gradle.startParameter.offline
+)
 releasedVersions.prepare()

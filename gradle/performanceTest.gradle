@@ -87,6 +87,7 @@ task prepareSamples {
 task cleanSamples(type: Delete) {
     delete {tasks.withType(ProjectGeneratorTask)*.destDir}
     delete {tasks.withType(RemoteProject)*.outputDirectory}
+    delete {tasks.withType(JavaExec)*.outputs}
 }
 
 def withPerformanceDb = { task ->

@@ -16,7 +16,7 @@
 
 // START SNIPPET http-build-cache
 buildCache {
-    remote(org.gradle.caching.http.HttpBuildCache) {
+    remote(HttpBuildCache) {
         url = 'https://example.com:8123/build-cache/'
     }
 }

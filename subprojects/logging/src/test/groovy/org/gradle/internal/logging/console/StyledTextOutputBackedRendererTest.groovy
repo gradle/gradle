@@ -16,12 +16,16 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.SystemProperties
+import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.RenderableOutputEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
-import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.logging.text.TestLineChoppingStyledTextOuput
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class StyledTextOutputBackedRendererTest extends OutputSpecification {
     def rendersOutputEvent() {
@@ -77,7 +81,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         then:
         output.value == '10:00:00.000 [INFO] [category] message\n'
     }
-    
+
     def continuesLineWhenPreviousOutputEventDidNotEndWithEOL() {
         TestStyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
@@ -106,5 +110,30 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
 
         then:
         output.value == '10:00:00.000 [INFO] [category] message\n10:00:00.000 [INFO] [category2] message2'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1566")
+    @Unroll
+    def renderMultiNonNativeNewLineTextCorrectly() {
+        StyledTextOutput output = new TestLineChoppingStyledTextOuput()
+        StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
+        RenderableOutputEvent event = Mock()
+        String headerLine = "###"
+        String firstLine = "# This is the first long line!"
+        String secondLine = "# This is the second long line!"
+        String thirdLine = "# This is the third long line!"
+        String fourthLine = "# This is the fourth long line!"
+        String fifthLine = "# This is the fifth long line!"
+        String footerLine = "###"
+
+        when:
+        renderer.onOutput(event)
+
+        then:
+        1 * event.render(!null) >> { args -> args[0].text("$headerLine$eol$firstLine$eol$secondLine$eol$thirdLine$eol$fourthLine$eol$fifthLine$eol$footerLine") }
+        output.value == "$headerLine\n$firstLine\n$secondLine\n$thirdLine\n$fourthLine\n$fifthLine\n$footerLine"
+
+        where:
+        eol << [SystemProperties.instance.lineSeparator, "\n", "\r\n"]
     }
 }

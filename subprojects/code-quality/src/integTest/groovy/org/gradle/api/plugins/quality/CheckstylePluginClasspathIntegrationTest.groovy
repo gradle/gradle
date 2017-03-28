@@ -21,7 +21,7 @@ import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import spock.lang.Issue
 
 @Issue("gradle/gradle#855")
-@TargetCoverage({ CheckstyleCoverage.ALL })
+@TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginClasspathIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         writeBuildFiles()

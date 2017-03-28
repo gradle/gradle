@@ -108,8 +108,7 @@ public class PrefixedFileLinkDefinition implements FileLinkDefinition {
      */
     public int parseFileLink(String fullSearchTest, String matchedText, int start, int end, boolean verifyFileExists, List<FileLink> fileLinks) {
         int extensionIndex = matchedText.lastIndexOf(extension);
-        if (extensionIndex == -1) //this shouldn't happen unless the extension is not included
-        {
+        if (extensionIndex == -1) { //this shouldn't happen unless the extension is not included
             return -1;
         }
 
@@ -118,8 +117,7 @@ public class PrefixedFileLinkDefinition implements FileLinkDefinition {
         String path = matchedText.substring(prefixIndex, realPathEnd).trim();
 
         File file = new File(path);
-        if (verifyFileExists && !file.exists())  //so we can optionally disable this for testing.
-        {
+        if (verifyFileExists && !file.exists()) { //so we can optionally disable this for testing.
             return -1;
         }
 
