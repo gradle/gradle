@@ -175,7 +175,12 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'buildCacheHttp'
+        'resourcesSftp', 'resourcesS3', 'compositeBuilds', 'buildCacheHttp'
+    ].collect {
+        project(it)
+    }
+    extensionPluginProjects = [
+            'toolingApiBuilders'
     ].collect {
         project(it)
     }
@@ -290,6 +295,7 @@ dependencies {
     runtime project(":installationBeacon")
     runtime patchedExternalModules
     gradlePlugins pluginProjects
+    gradlePlugins extensionPluginProjects
     gradlePlugins project(':workers')
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')

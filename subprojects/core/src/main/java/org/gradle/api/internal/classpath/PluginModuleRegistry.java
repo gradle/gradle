@@ -22,4 +22,6 @@ import java.util.Set;
  */
 public interface PluginModuleRegistry {
     Set<Module> getPluginModules();
+
+    Set<Module> getExtensionPluginModules();
 }
