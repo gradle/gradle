@@ -31,6 +31,7 @@ import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -149,6 +150,9 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public <T extends HasAttributes> List<T> matches(Collection<T> candidates, AttributeContainerInternal requested) {
+            if (candidates.isEmpty()) {
+                return Collections.emptyList();
+            }
             return componentAttributeMatcher.match(effectiveSchema, candidates, requested);
         }
     }
