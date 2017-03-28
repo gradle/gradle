@@ -192,6 +192,303 @@ task show {
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
     }
 
+    def "applies compatibility rules to select variants"() {
+        buildFile << """
+class OneRule implements AttributeCompatibilityRule<String> {
+    void execute(CompatibilityCheckDetails<String> details) {
+        if (details.consumerValue == 'preview' && details.producerValue == 'one') {
+            details.compatible()
+        }
+    }
+}
+class TwoRule implements AttributeCompatibilityRule<String> {
+    void execute(CompatibilityCheckDetails<String> details) {
+        if (details.consumerValue == 'preview' && details.producerValue == 'two') {
+            details.compatible()
+        }
+    }
+}
+
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+}
+
+dependencies {
+    compile project(':a')
+}
+
+configurations.compile.attributes.attribute(flavor, 'preview')
+
+project(':a') {
+    dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(OneRule)
+    task oneJar(type: Jar) { baseName = 'a1' }
+    task twoJar(type: Jar) { baseName = 'a2' }
+    configurations {
+        compile {
+            attributes.attribute(buildType, 'debug')
+            outgoing {
+                variants {
+                    var1 {
+                        artifact oneJar
+                        attributes.attribute(flavor, 'one')
+                    }
+                    var2 {
+                        artifact twoJar
+                        attributes.attribute(flavor, 'two')
+                    }
+                }
+            }
+        }
+    }
+    dependencies {
+        compile project(':b')
+    }
+}
+project(':b') {
+    dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(TwoRule)
+    task oneJar(type: Jar) { baseName = 'b1' }
+    task twoJar(type: Jar) { baseName = 'b2' }
+    configurations {
+        compile {
+            outgoing {
+                variants {
+                    var1 {
+                        artifact oneJar
+                        attributes.attribute(flavor, 'one')
+                    }
+                    var2 {
+                        artifact twoJar
+                        attributes.attribute(flavor, 'two')
+                    }
+                }
+            }
+        }
+    }
+}
+
+task show {
+    inputs.files configurations.compile.${expression}.artifactFiles
+    doLast {
+        def artifacts = configurations.compile.${expression}
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id.displayName }
+        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+        assert artifacts.failures.empty
+    }
+}
+"""
+
+        when:
+        run 'show'
+
+        then:
+        outputContains("files: [a1.jar, b2.jar]")
+        outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
+        outputContains("components: [project :a, project :b]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+
+        and:
+        result.assertTasksExecuted(':a:oneJar', ':b:twoJar', ':show')
+
+        where:
+        expression                                                    | _
+        "incoming.artifacts"                                          | _
+        "incoming.artifactView({}).artifacts"                         | _
+        "incoming.artifactView({componentFilter { true }}).artifacts" | _
+    }
+
+    def "applies disambiguation rules to select variants"() {
+        buildFile << """
+class OneRule implements AttributeDisambiguationRule<String> {
+    void execute(MultipleCandidatesDetails<String> details) {
+        details.closestMatch('one')
+    }
+}
+class TwoRule implements AttributeDisambiguationRule<String> {
+    void execute(MultipleCandidatesDetails<String> details) {
+        details.closestMatch('two')
+    }
+}
+
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+}
+
+dependencies {
+    compile project(':a')
+}
+
+project(':a') {
+    dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(OneRule)
+    task oneJar(type: Jar) { baseName = 'a1' }
+    task twoJar(type: Jar) { baseName = 'a2' }
+    configurations {
+        compile {
+            attributes.attribute(buildType, 'debug')
+            outgoing {
+                variants {
+                    var1 {
+                        artifact oneJar
+                        attributes.attribute(flavor, 'one')
+                    }
+                    var2 {
+                        artifact twoJar
+                        attributes.attribute(flavor, 'two')
+                    }
+                }
+            }
+        }
+    }
+    dependencies {
+        compile project(':b')
+    }
+}
+project(':b') {
+    dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(TwoRule)
+    task oneJar(type: Jar) { baseName = 'b1' }
+    task twoJar(type: Jar) { baseName = 'b2' }
+    configurations {
+        compile {
+            outgoing {
+                variants {
+                    var1 {
+                        artifact oneJar
+                        attributes.attribute(flavor, 'one')
+                    }
+                    var2 {
+                        artifact twoJar
+                        attributes.attribute(flavor, 'two')
+                    }
+                }
+            }
+        }
+    }
+}
+
+task show {
+    inputs.files configurations.compile.${expression}.artifactFiles
+    doLast {
+        def artifacts = configurations.compile.${expression}
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id.displayName }
+        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+        assert artifacts.failures.empty
+    }
+}
+"""
+
+        when:
+        run 'show'
+
+        then:
+        outputContains("files: [a1.jar, b2.jar]")
+        outputContains("ids: [a1.jar (project :a), b2.jar (project :b)]")
+        outputContains("components: [project :a, project :b]")
+        outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
+
+        and:
+        result.assertTasksExecuted(':a:oneJar', ':b:twoJar', ':show')
+
+        where:
+        expression                                                    | _
+        "incoming.artifacts"                                          | _
+        "incoming.artifactView({}).artifacts"                         | _
+        "incoming.artifactView({componentFilter { true }}).artifacts" | _
+    }
+
+    def "reports failure when multiple compatible variants available"() {
+        buildFile << """
+allprojects {
+    configurations.compile.attributes.attribute(usage, 'compile')
+}
+
+dependencies {
+    compile project(':a')
+}
+
+project(':a') {
+    task oneJar(type: Jar) { baseName = 'a1' }
+    task twoJar(type: Jar) { baseName = 'a2' }
+    configurations {
+        compile {
+            attributes.attribute(buildType, 'debug')
+            outgoing {
+                variants {
+                    var1 {
+                        artifact oneJar
+                        attributes.attribute(flavor, 'one')
+                    }
+                    var2 {
+                        artifact twoJar
+                        attributes.attribute(flavor, 'two')
+                    }
+                }
+            }
+        }
+    }
+    dependencies {
+        compile project(':b')
+    }
+}
+project(':b') {
+    task oneJar(type: Jar) { baseName = 'b1' }
+    task twoJar(type: Jar) { baseName = 'b2' }
+    configurations {
+        compile {
+            outgoing {
+                variants {
+                    var1 {
+                        artifact oneJar
+                        attributes.attribute(flavor, 'one')
+                    }
+                    var2 {
+                        artifact twoJar
+                        attributes.attribute(flavor, 'two')
+                    }
+                }
+            }
+        }
+    }
+}
+
+task show {
+    doLast {
+        def artifacts = configurations.compile.${expression}
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id.displayName }
+        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+        assert artifacts.failures.empty
+    }
+}
+"""
+
+        when:
+        fails 'show'
+
+        then:
+        failure.assertHasCause("""More than one variant matches the consumer attributes: usage 'compile'
+Found the following matches:
+  - Variant:
+      - artifactType 'jar'
+      - buildType 'debug'
+      - flavor 'one'
+      - usage 'compile'
+  - Variant:
+      - artifactType 'jar'
+      - buildType 'debug'
+      - flavor 'two'
+      - usage 'compile'""")
+
+        where:
+        expression                                                    | _
+        "incoming.artifacts"                                          | _
+        "incoming.artifactView({}).artifacts"                         | _
+        "incoming.artifactView({componentFilter { true }}).artifacts" | _
+    }
+
     def "result includes consumer-provided variants"() {
         mavenRepo.module("org", "test", "1.0").publish()
 

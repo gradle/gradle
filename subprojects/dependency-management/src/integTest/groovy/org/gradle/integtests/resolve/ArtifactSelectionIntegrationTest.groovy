@@ -765,14 +765,6 @@ task show {
                         files.collect { it.name }
                     }
                 }
-
-                task resolveFiles {
-                    def files = configurations.compile
-                    inputs.files files
-                    doLast {
-                        files.collect { it.name }
-                    }
-                }
             }
         """
 
@@ -794,21 +786,52 @@ Found the following matches:
       - artifactType 'jar'
       - buildType 'release'
       - usage 'api'""")
+    }
 
-        fails "resolveFiles"
-        failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveFiles'.")
-        failure.assertHasCause("""More than one variant matches the consumer attributes: usage 'api'
-Found the following matches:
-  - Variant:
-      - artifactType 'jar'
-      - usage 'api'
-  - Variant:
-      - artifactType 'jar'
-      - buildType 'debug'
-      - usage 'api'
-  - Variant:
-      - artifactType 'jar'
-      - buildType 'release'
-      - usage 'api'""")
+    def "returns empty result when no variants match"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                debug {
+                                    attributes.attribute(buildType, 'debug')
+                                    artifact file: file('lib-debug.jar')
+                                }
+                                release {
+                                    attributes.attribute(buildType, 'release')
+                                    artifact file: file('lib-release.jar')
+                                }
+                            }
+                        }
+                    }
+                }
+                artifacts {
+                    compile file('implicit.jar')
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+
+                task resolveView {
+                    def files = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'dll') }
+                    }.files
+                    inputs.files files
+                    doLast {
+                        assert files.empty
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "resolveView"
+        result.assertTasksExecuted(":app:resolveView")
     }
 }
