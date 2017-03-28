@@ -1,0 +1,118 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[jetty_plugin]]
+== The Jetty Plugin
+
+NOTE:  This plugin is deprecated and will be removed in Gradle 4.0. Consider using the more feature-rich https://github.com/akhikhl/gretty[Gretty plugin] instead. 
+
+The Jetty plugin extends the War plugin to add tasks which allow you to deploy your web application to a Jetty web container embedded in the build.
+
+
+[[sec:jetty_usage]]
+=== Usage
+
+To use the Jetty plugin, include the following in your build script:
+
+++++
+<sample id="useJettyPlugin" dir="webApplication/quickstart" title="Using the Jetty plugin">
+            <sourcefile file="build.gradle" snippet="use-jetty-plugin"/>
+        </sample>
+++++
+
+
+[[sec:jetty_tasks]]
+=== Tasks
+
+The Jetty plugin defines the following tasks:
+
+.Jetty plugin - tasks
+[cols="a,a,a,a"]
+|===
+| Task name
+| Depends on
+| Type
+| Description
+
+| `jettyRun`
+| `compile`
+| api:org.gradle.api.plugins.jetty.JettyRun[]
+| Starts a Jetty instance and deploys the exploded web application to it.
+
+| `jettyRunWar`
+| `war`
+| api:org.gradle.api.plugins.jetty.JettyRunWar[]
+| Starts a Jetty instance and deploys the WAR to it.
+
+| `jettyStop`
+| -
+| api:org.gradle.api.plugins.jetty.JettyStop[]
+| Stops the Jetty instance.
+|===
+
+++++
+<figure>
+            <title>Jetty plugin - tasks</title>
+            <imageobject>
+                <imagedata fileref="img/jettyPluginTasks.png"/>
+            </imageobject>
+        </figure>
+++++
+
+
+[[sec:jetty_project_layout]]
+=== Project layout
+
+The Jetty plugin uses the same layout as the War plugin.
+
+[[sec:jetty_dependency_management]]
+=== Dependency management
+
+The Jetty plugin does not define any dependency configurations.
+
+[[sec:jetty_convention_properties]]
+=== Convention properties
+
+The Jetty plugin defines the following convention properties:
+
+.Jetty plugin - properties
+[cols="a,a,a,a"]
+|===
+| Property name
+| Type
+| Default value
+| Description
+
+| `contextPath`
+| `String`
+| WAR file base name
+| The application deployment location within the Jetty container.
+
+| `httpPort`
+| `Integer`
+| `8080`
+| The TCP port which Jetty should listen for HTTP requests on.
+
+| `stopPort`
+| `Integer`
+| `null`
+| The TCP port which Jetty should listen for admin requests on.
+
+| `stopKey`
+| `String`
+| `null`
+| The key to pass to Jetty when requesting it to stop.
+|===
+
+These properties are provided by a api:org.gradle.api.plugins.jetty.JettyPluginConvention[] convention object.
