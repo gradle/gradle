@@ -430,15 +430,6 @@
                 <td>org.gradle.api.plugins.quality.JDepend</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.jetty.JettyRun</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.jetty.JettyRunWar</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.jetty.JettyStop</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.plugins.quality.Pmd</td>
             </tr>
             <tr>

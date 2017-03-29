@@ -93,7 +93,6 @@
         <xi:include href='webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
         <xi:include href='earPlugin.xml'/>
-        <xi:include href='jettyPlugin.xml'/>
         <xi:include href='applicationPlugin.xml'/>
         <xi:include href='javaLibraryDistributionPlugin.xml'/>
         <xi:include href='groovyTutorial.xml'/>
