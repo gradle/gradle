@@ -467,8 +467,9 @@ task checkstyleApi(type: Checkstyle) {
 }
 
 task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets]) {
+    dependsOn userguideAsciidoc
     tags << 'standalone'
-    sourceFile = new File(userguideSrcDir, 'installation.xml')
+    sourceFile = file("${userguideAsciidoc.outputDir}/installation.xml")
     destFile = new File(docbookSrc, 'installation.xml')
 }
 
