@@ -27,6 +27,7 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
 
     def "can be used at configuration time"() {
         given:
+        settingsFile << 'rootProject.name = "root"'
         buildFile << '''
             plugins { id 'java' }
             repositories { jcenter() }
@@ -38,6 +39,6 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        buildOperations.operation('Resolve dependencies :compile').parentId == buildOperations.operation('Configure project :').id
+        buildOperations.operation('Resolve dependencies :compile').parentId == buildOperations.operation("Apply build file '$buildFile' to root project 'root'").id
     }
 }
