@@ -25,7 +25,7 @@ import java.util.List;
 public class VersionParser implements Transformer<Version, String> {
     public static final VersionParser INSTANCE = new VersionParser();
 
-    private VersionParser() {
+    public VersionParser() {
     }
 
     @Override
