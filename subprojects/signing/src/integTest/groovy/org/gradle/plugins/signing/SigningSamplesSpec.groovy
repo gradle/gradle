@@ -60,6 +60,18 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
     }
 
+    @UsesSample('signing/gnupg-signatory')
+    def "use gnupg signatory"() {
+        given:
+        sample mavenSample
+
+        when:
+        run "signArchives"
+
+        then:
+        file("signing", "gnupg-signatory", "build", "libs", "gnupg-signatory-1.0.jar.asc").text
+    }
+
     MavenFileRepository getRepo() {
         return maven(mavenSample.dir.file("build/repo"))
     }
