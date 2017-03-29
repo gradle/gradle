@@ -129,7 +129,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
 
         @Override
         public void execute(final T t) {
-            BuildOperationDetails operationDetails = BuildOperationDetails.displayName(getDisplayName())
+            BuildOperationDetails operationDetails = BuildOperationDetails.displayName(t.getDescription())
                 .parent(parentOperation)
                 .build();
             buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
