@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
@@ -32,7 +33,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
 
     def setupBuildOperationProcessor(int maxThreads) {
         workerRegistry = new DefaultBuildOperationWorkerRegistry(maxThreads)
-        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxThreads)
         outerOperationCompletion = workerRegistry.operationStart();
         outerOperation = workerRegistry.getCurrent()
     }
@@ -191,7 +192,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         def buildQueue = Mock(BuildOperationQueue)
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory)
 
-        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -223,7 +224,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
             create(_, _, _) >> { buildQueue }
         }
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -253,7 +254,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
             create(_, _, _) >> { buildQueue }
         }
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 

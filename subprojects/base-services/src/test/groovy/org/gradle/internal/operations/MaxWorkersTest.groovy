@@ -17,6 +17,7 @@
 package org.gradle.internal.operations
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class MaxWorkersTest extends ConcurrentSpec {
@@ -25,7 +26,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         given:
         def maxWorkers = 1
         def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
+        def processor = new DefaultBuildOperationProcessor(registry, new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:
@@ -65,7 +66,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         given:
         def maxWorkers = 1
         def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
+        def processor = new DefaultBuildOperationProcessor(registry, new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:
@@ -105,7 +106,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         given:
         def maxWorkers = 1
         def registry = new DefaultBuildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(registry, new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
+        def processor = new DefaultBuildOperationProcessor(registry, new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:

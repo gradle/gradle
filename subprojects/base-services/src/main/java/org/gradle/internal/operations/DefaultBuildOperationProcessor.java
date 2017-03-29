@@ -26,6 +26,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -37,11 +39,13 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final StoppableExecutor fixedSizePool;
 
-    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
     }
@@ -57,7 +61,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
     }
 
     private <T extends BuildOperation> void doRun(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
-        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(buildOperationWorkerRegistry.getCurrent(), fixedSizePool, worker);
+        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(buildOperationWorkerRegistry.getCurrent(), fixedSizePool, new ParentBuildOperationAwareWorker<T>(worker));
 
         List<GradleException> failures = Lists.newArrayList();
         try {
@@ -107,5 +111,33 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
                 return e.getMessage();
             }
         }), LINE_SEPARATOR + "AND" + LINE_SEPARATOR);
+    }
+
+    private class ParentBuildOperationAwareWorker<T extends BuildOperation> implements BuildOperationWorker<T> {
+        private final BuildOperationExecutor.Operation parentOperation;
+        private final BuildOperationWorker<T> delegate;
+
+        private ParentBuildOperationAwareWorker(BuildOperationWorker<T> delegate) {
+            this.parentOperation = buildOperationExecutor.getCurrentOperation();
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
+        }
+
+        @Override
+        public void execute(final T t) {
+            BuildOperationDetails operationDetails = BuildOperationDetails.displayName(getDisplayName())
+                .parent(parentOperation)
+                .build();
+            buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
+                @Override
+                public void execute(BuildOperationContext buildOperationContext) {
+                    delegate.execute(t);
+                }
+            });
+        }
     }
 }
