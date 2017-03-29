@@ -79,14 +79,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         if (parent == null) {
             parentId = null;
         } else {
-            if (!parent.running.get()) {
+            if (!parent.isRunning()) {
                 throw new IllegalStateException(String.format("Cannot start operation (%s) as parent operation (%s) has already completed.", operationDetails.getDisplayName(), parent.operationDetails.getDisplayName()));
             }
             parentId = parent.id;
         }
         OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
         OperationDetails currentOperation = new OperationDetails(parent, id, operationDetails);
-        currentOperation.running.set(true);
+        currentOperation.setRunning(true);
         this.currentOperation.set(currentOperation);
         try {
             long startTime = timeProvider.getCurrentTime();
@@ -115,7 +115,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
                         progressLogger.completed();
                     }
                 }
-                if (parent != null && !parent.running.get()) {
+                if (parent != null && !parent.isRunning()) {
                     throw new IllegalStateException(String.format("Parent operation (%s) completed before this operation (%s).", parent.operationDetails.getDisplayName(), operationDetails.getDisplayName()));
                 }
             } catch (Throwable t) {
@@ -134,17 +134,24 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             return result;
         } finally {
             this.currentOperation.set(operationBefore);
-            currentOperation.running.set(false);
+            currentOperation.setRunning(false);
         }
     }
 
-    private static class OperationDetails implements Operation {
+    protected void createRunningRootOperation(String displayName) {
+        assert currentOperation.get() == null;
+        OperationDetails operation = new OperationDetails(null, new OperationIdentifier(0), BuildOperationDetails.displayName(displayName).build());
+        operation.setRunning(true);
+        currentOperation.set(operation);
+    }
+
+    protected static class OperationDetails implements Operation {
         final AtomicBoolean running = new AtomicBoolean();
         final OperationDetails parent;
         final OperationIdentifier id;
         final BuildOperationDetails operationDetails;
 
-        OperationDetails(OperationDetails parent, OperationIdentifier id, BuildOperationDetails operationDetails) {
+        public OperationDetails(OperationDetails parent, OperationIdentifier id, BuildOperationDetails operationDetails) {
             this.parent = parent;
             this.id = id;
             this.operationDetails = operationDetails;
@@ -158,6 +165,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         @Override
         public Object getParentId() {
             return parent.id;
+        }
+
+        public boolean isRunning() {
+            return running.get();
+        }
+
+        public void setRunning(boolean running) {
+            this.running.set(running);
         }
     }
 

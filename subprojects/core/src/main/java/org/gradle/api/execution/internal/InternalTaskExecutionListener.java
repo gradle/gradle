@@ -16,11 +16,12 @@
 
 package org.gradle.api.execution.internal;
 
+import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 
 /**
- * Used by build scans to collect some task details, and will be retired. Use {@link org.gradle.internal.progress.BuildOperationListener} instead.
+ * Used by build scans to collect some task details, and will be retired. Use {@link BuildOperationListener} instead.
  */
 public interface InternalTaskExecutionListener {
     void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent);
