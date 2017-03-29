@@ -436,7 +436,7 @@
                         type and anything else that can be passed to either the
                         <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>
                         method - for single file/directory properties - or the
-                        <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>
+                        <apilink class="org.gradle.api.Project" method="files(java.lang.Object...)"/>
                         method.</para>
                     </listitem>
                     <listitem><para>Nested values</para>
@@ -659,7 +659,7 @@
                                 can be any type accepted by
                                 <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>
                                 and <literal>Iterable&lt;File&gt;</literal> can be any type accepted by
-                                <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>.
+                                <apilink class="org.gradle.api.Project" method="files(java.lang.Object...)"/>.
                                 This includes instances of <literal>Callable</literal>, such as closures,
                                 allowing for lazy evaluation of the property values. Be aware that the types
                                 <literal>FileCollection</literal> and <literal>FileTree</literal> are
