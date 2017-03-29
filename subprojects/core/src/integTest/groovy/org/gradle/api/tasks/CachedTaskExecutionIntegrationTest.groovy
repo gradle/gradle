@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -301,6 +302,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         file("build/classes/main/Hello.class").exists()
     }
 
+    @Ignore("Must fix for 4.0")
     def "using `doNotCacheIf` without reason is deprecated"() {
         given:
         buildFile << """
