@@ -25,6 +25,8 @@ import spock.lang.Specification
 
 class RetryRuleUtil {
 
+    static private String FILES_TO_PRESERVE = ['reproducible-archives-init.gradle']
+
     static RetryRule retryCrossVersionTestOnIssueWithReleasedGradleVersion(Specification specification) {
         RetryRule.retryIf(specification) { t ->
             Throwable failure = t
@@ -174,11 +176,15 @@ class RetryRuleUtil {
         }
         if (specification.hasProperty("projectDir")) {
             specification.projectDir.listFiles().each {
-                it.deleteDir()
+                if (!FILES_TO_PRESERVE.contains(it.name)) {
+                    it.deleteDir()
+                }
             }
         } else if (specification.hasProperty("testDirectory")) {
             specification.testDirectory.listFiles().each {
-                it.deleteDir()
+                if (!FILES_TO_PRESERVE.contains(it.name)) {
+                    it.deleteDir()
+                }
             }
         }
         true
