@@ -36,6 +36,7 @@ import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
+import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.process.internal.JavaExecHandleFactory
@@ -82,6 +83,7 @@ class BuildSessionScopeServicesTest extends Specification {
 
     def "provides a BuildOperationProcessor"() {
         given:
+        _ * parent.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
         _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * parent.get(ExecutorFactory) >> Mock(ExecutorFactory)
 
