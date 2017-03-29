@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class RetryRuleUtil {
 
-    static private String FILES_TO_PRESERVE = ['reproducible-archives-init.gradle']
+    static private final String FILES_TO_PRESERVE = ['reproducible-archives-init.gradle']
 
     static RetryRule retryCrossVersionTestOnIssueWithReleasedGradleVersion(Specification specification) {
         RetryRule.retryIf(specification) { t ->
