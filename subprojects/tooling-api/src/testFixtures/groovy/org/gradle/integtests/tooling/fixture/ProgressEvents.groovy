@@ -79,8 +79,12 @@ class ProgressEvents implements ProgressListener {
                             || descriptor.displayName.contains('/maven-metadata.xml')) {
                             // Ignore this for now
                         } else {
-                            def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
+                            def duplicateName = operations.find({
+                                it.descriptor.displayName == descriptor.displayName &&
+                                it.parent.descriptor == descriptor.parent
+                            })
                             if (duplicateName != null) {
+                                // Same display name and same parent
                                 throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events:\n${describeList(events)}")
                             }
                         }
