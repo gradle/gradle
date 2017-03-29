@@ -33,7 +33,9 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.AmbiguousVariantSelectionException;
+import org.gradle.internal.component.NoMatchingVariantSelectionException;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
+import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -47,20 +49,24 @@ import java.util.Map;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final VariantAttributeMatchingCache matchingCache;
+    private final AttributesSchemaInternal schema;
 
-    public DefaultArtifactTransforms(VariantAttributeMatchingCache matchingCache) {
+    public DefaultArtifactTransforms(VariantAttributeMatchingCache matchingCache, AttributesSchemaInternal schema) {
         this.matchingCache = matchingCache;
+        this.schema = schema;
     }
 
-    public VariantSelector variantSelector(AttributeContainerInternal requested) {
-        return new AttributeMatchingVariantSelector(requested.asImmutable());
+    public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants) {
+        return new AttributeMatchingVariantSelector(consumerAttributes.asImmutable(), allowNoMatchingVariants);
     }
 
     private class AttributeMatchingVariantSelector implements VariantSelector {
         private final AttributeContainerInternal requested;
+        private final boolean ignoreWhenNoMatches;
 
-        private AttributeMatchingVariantSelector(AttributeContainerInternal requested) {
+        private AttributeMatchingVariantSelector(AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
             this.requested = requested;
+            this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         }
 
         @Override
@@ -70,12 +76,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public ResolvedVariant select(Collection<? extends ResolvedVariant> variants, AttributesSchemaInternal producerSchema) {
-            List<? extends ResolvedVariant> matches = matchingCache.selectMatches(variants, producerSchema, requested);
+            AttributeMatcher matcher = schema.withProducer(producerSchema);
+            List<? extends ResolvedVariant> matches = matcher.matches(variants, requested);
             if (matches.size() == 1) {
                 return matches.get(0);
             }
             if (matches.size() > 1) {
-                throw new AmbiguousVariantSelectionException(requested, matches);
+                throw new AmbiguousVariantSelectionException(requested, matches, matcher);
             }
 
             List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
@@ -96,7 +103,10 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 throw new AmbiguousTransformException(requested, candidates);
             }
 
-            return new EmptyResolvedVariant(requested);
+            if (ignoreWhenNoMatches) {
+                return new EmptyResolvedVariant(requested);
+            }
+            throw new NoMatchingVariantSelectionException(requested, variants, matcher);
         }
 
         @Override
@@ -159,6 +169,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 }
             });
         }
+
         @Override
         public void visit(ArtifactVisitor visitor) {
             delegate.visit(new ArtifactTransformingVisitor(visitor, attributes, transform, artifactFailures, fileFailures));
@@ -295,7 +306,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
         }
     }
-
 
 
 }

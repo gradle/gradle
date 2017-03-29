@@ -238,7 +238,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                 new VariantAttributeMatchingCache(
                                     variantTransforms,
                                     attributesSchema,
-                                    attributesFactory)),
+                                    attributesFactory),
+                                attributesSchema),
                             attributesFactory,
                             moduleIdentifierFactory),
                         componentIdentifierFactory,

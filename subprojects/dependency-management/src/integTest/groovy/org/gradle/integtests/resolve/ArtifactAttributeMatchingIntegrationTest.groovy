@@ -145,10 +145,9 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     }
 
     @Unroll
-    def "can filter for variant artifacts with useTransform=#useTransformOnConsumerSide and useView=#useView"() {
+    def "can filter for variant artifacts with useTransform=#useTransformOnConsumerSide"() {
         given:
-        setupWith("it.attribute(variant, 'variant2')", useTransformOnConsumerSide, useView, useView ? "['producer.variant2']"
-            : "[]") //TODO should throw ambiguity error, see DefaultArtifactTransforms.AttributeMatchingVariantSelector
+        setupWith("it.attribute(variant, 'variant2')", useTransformOnConsumerSide, true, "['producer.variant2']")
 
         buildFile << """
             project(':producer') {
@@ -172,15 +171,13 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
         succeeds 'resolve'
 
         then:
-        executedTasks.unique().sort() == [':consumer:resolve'] + (useView ? (useTransformOnConsumerSide ? [':producer:variant1'] : [':producer:variant2']) : [])
-        executedTransforms            == (!useTransformOnConsumerSide || !useView ? [] : ['VariantArtifactTransform'])
+        executedTasks.unique().sort() == [':consumer:resolve'] + (useTransformOnConsumerSide ? [':producer:variant1'] : [':producer:variant2'])
+        executedTransforms            == (!useTransformOnConsumerSide ? [] : ['VariantArtifactTransform'])
 
         where:
-        useTransformOnConsumerSide | useView
-        false                      | false
-        false                      | true
-        true                       | false
-        true                       | true
+        useTransformOnConsumerSide | _
+        false                      | _
+        true                       | _
     }
 
     @Unroll

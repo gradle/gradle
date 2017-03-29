@@ -469,18 +469,17 @@ task show {
         fails 'show'
 
         then:
-        failure.assertHasCause("""More than one variant matches the consumer attributes: usage 'compile'
-Found the following matches:
+        failure.assertHasCause("""More than one variant matches the consumer attributes:
   - Variant:
-      - artifactType 'jar'
-      - buildType 'debug'
-      - flavor 'one'
-      - usage 'compile'
+      - Found artifactType 'jar' but wasn't required.
+      - Found buildType 'debug' but wasn't required.
+      - Found flavor 'one' but wasn't required.
+      - Required usage 'compile' and found compatible value 'compile'.
   - Variant:
-      - artifactType 'jar'
-      - buildType 'debug'
-      - flavor 'two'
-      - usage 'compile'""")
+      - Found artifactType 'jar' but wasn't required.
+      - Found buildType 'debug' but wasn't required.
+      - Found flavor 'two' but wasn't required.
+      - Required usage 'compile' and found compatible value 'compile'.""")
 
         where:
         expression                                                    | _

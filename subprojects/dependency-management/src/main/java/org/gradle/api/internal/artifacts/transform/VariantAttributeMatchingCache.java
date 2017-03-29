@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -29,7 +28,6 @@ import org.gradle.internal.component.model.AttributeMatcher;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -43,10 +41,6 @@ public class VariantAttributeMatchingCache {
         this.variantTransforms = variantTransforms;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
-    }
-
-    public <T extends HasAttributes> List<T> selectMatches(Collection<T> candidates, AttributesSchemaInternal producerSchema, AttributeContainerInternal requested) {
-        return schema.withProducer(producerSchema).matches(candidates, requested);
     }
 
     public void collectConsumerVariants(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {

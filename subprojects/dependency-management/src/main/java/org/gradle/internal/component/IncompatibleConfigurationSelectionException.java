@@ -25,7 +25,7 @@ import java.util.Collections;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
-public class IncompatibleConfigurationSelectionException extends IllegalArgumentException {
+public class IncompatibleConfigurationSelectionException extends RuntimeException {
     public IncompatibleConfigurationSelectionException(
         AttributeContainer fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,

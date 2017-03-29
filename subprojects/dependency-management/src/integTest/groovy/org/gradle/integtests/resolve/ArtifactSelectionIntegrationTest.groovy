@@ -384,11 +384,11 @@ project(':lib') {
 }
 
 task show {
-    inputs.files configurations.compile
+    def artifacts = configurations.compile.incoming.artifactView {
+        attributes { it.attribute(buildType, 'debug'); it.attribute(flavor, 'anything') }
+    }.artifacts
+    inputs.files artifacts.artifactFiles
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView {
-            attributes { it.attribute(buildType, 'debug'); it.attribute(flavor, 'anything') }
-        }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "variants: " + artifacts.collect { it.variant.attributes }
     }
@@ -578,11 +578,11 @@ project(':ui') {
 }
 
 task show {
-    inputs.files configurations.compile
+    def artifacts = configurations.compile.incoming.artifactView {
+        attributes {it.attribute(usage, 'transformed')}
+    }.artifacts
+    inputs.files artifacts.artifactFiles
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView {
-            attributes {it.attribute(usage, 'transformed')}
-        }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
         println "variants: " + artifacts.collect { it.variant.attributes }
@@ -772,23 +772,20 @@ task show {
         fails "resolveView"
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
         failure.assertHasCause("""More than one variant matches the consumer attributes:
-  - artifactType 'jar'
-  - usage 'api'
-Found the following matches:
   - Variant:
-      - artifactType 'jar'
-      - usage 'api'
+      - Required artifactType 'jar' and found compatible value 'jar'.
+      - Required usage 'api' and found compatible value 'api'.
   - Variant:
-      - artifactType 'jar'
-      - buildType 'debug'
-      - usage 'api'
+      - Required artifactType 'jar' and found compatible value 'jar'.
+      - Found buildType 'debug' but wasn't required.
+      - Required usage 'api' and found compatible value 'api'.
   - Variant:
-      - artifactType 'jar'
-      - buildType 'release'
-      - usage 'api'""")
+      - Required artifactType 'jar' and found compatible value 'jar'.
+      - Found buildType 'release' but wasn't required.
+      - Required usage 'api' and found compatible value 'api'.""")
     }
 
-    def "returns empty result when no variants match"() {
+    def "returns empty result when no variants match and view attributes specified"() {
         given:
         buildFile << """
             project(':lib') {
@@ -833,5 +830,63 @@ Found the following matches:
         expect:
         succeeds "resolveView"
         result.assertTasksExecuted(":app:resolveView")
+    }
+
+    def "fails when no variants match and no view attributes specified"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                configurations {
+                    compile {
+                        outgoing {
+                            variants {
+                                debug {
+                                    attributes.attribute(buildType, 'debug')
+                                    artifact file: file('lib-debug.jar')
+                                }
+                                release {
+                                    attributes.attribute(buildType, 'release')
+                                    artifact file: file('lib-release.jar')
+                                }
+                            }
+                        }
+                    }
+                }
+                artifacts {
+                    compile file('implicit.jar')
+                }
+            }
+
+            project(':app') {
+                configurations.compile.attributes.attribute(artifactType, 'dll')
+                
+                dependencies {
+                    compile project(':lib')
+                }
+
+                task resolveView {
+                    def files = configurations.compile.incoming.artifactView { }.files
+                    inputs.files files
+                    doLast {
+                        assert files.empty
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails "resolveView"
+        failure.assertHasCause("""No variants match the consumer attributes:
+  - Variant:
+      - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Required usage 'api' and found compatible value 'api'.
+  - Variant:
+      - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Found buildType 'debug' but wasn't required.
+      - Required usage 'api' and found compatible value 'api'.
+  - Variant:
+      - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Found buildType 'release' but wasn't required.
+      - Required usage 'api' and found compatible value 'api'.""")
     }
 }

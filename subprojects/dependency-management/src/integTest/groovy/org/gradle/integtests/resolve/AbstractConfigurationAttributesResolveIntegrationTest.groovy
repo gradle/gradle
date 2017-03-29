@@ -304,6 +304,10 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             $typeDefs
 
             project(':a') {
+                dependencies.attributesSchema {
+                    attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                    attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                }
                 configurations {
                     compile
                     _compileFreeDebug.attributes { $freeDebug }
@@ -316,8 +320,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
                     doLast {
-                        // TODO - should select the artifacts
-                        assert configurations._compileFreeDebug.collect { it.name } == []
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -349,7 +352,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':a:checkDebug')
+        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
     }
 
     def "fails when explicitly selected configuration is not compatible with requested"() {
@@ -422,53 +425,6 @@ Configuration 'bar':
         result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
-    // Documents existing behaviour
-    def "uses explicitly selected configuration when it has no attributes but is not compatible with requested"() {
-        given:
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
-            $typeDefs
-
-            project(':a') {
-                configurations {
-                    compile
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileFreeDebug.extendsFrom compile
-                }
-                dependencies {
-                    compile project(path:':b', configuration: 'bar')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    doLast {
-                        configurations._compileFreeDebug.files
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    compile
-                    bar {
-                       extendsFrom compile
-                    }
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    bar barJar
-                }
-            }
-
-        """
-
-        when:
-        run ':a:checkDebug'
-
-        then:
-        // TODO - should be selecting files as well
-        result.assertTasksExecuted(':a:checkDebug')
-    }
-
     def "selects default configuration when it matches configuration attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
@@ -526,12 +482,16 @@ Configuration 'bar':
                     _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies {
+                    attributesSchema {
+                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                    }
+                    
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
                     doLast {
-                        // TODO - should select artifacts
-                        assert configurations._compileFreeDebug.collect { it.name } == []
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -555,7 +515,7 @@ Configuration 'bar':
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':a:checkDebug')
+        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
     }
 
     def "selects default configuration when no match is found"() {
@@ -567,6 +527,10 @@ Configuration 'bar':
             project(':a') {
                 configurations {
                     _compileFreeDebug.attributes { $freeDebug }
+                }
+                dependencies.attributesSchema {
+                    attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                    attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
                 }
                 dependencies {
                     _compileFreeDebug project(':b')

@@ -86,31 +86,31 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes));
+            artifactsForThisConfiguration = artifactResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false));
         }
         return artifactsForThisConfiguration;
     }
 
     private SelectedFileDependencyResults getSelectedFiles() {
         if (filesForThisConfiguration == null) {
-            filesForThisConfiguration = fileDependencyResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes));
+            filesForThisConfiguration = fileDependencyResults.select(Specs.<ComponentIdentifier>satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false));
         }
         return filesForThisConfiguration;
     }
 
     public SelectedArtifactSet select() {
-        return select(Specs.<Dependency>satisfyAll(), implicitAttributes, Specs.<ComponentIdentifier>satisfyAll());
+        return select(Specs.<Dependency>satisfyAll(), implicitAttributes, Specs.<ComponentIdentifier>satisfyAll(), false);
     }
 
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
-        return select(dependencySpec, implicitAttributes, Specs.<ComponentIdentifier>satisfyAll());
+        return select(dependencySpec, implicitAttributes, Specs.<ComponentIdentifier>satisfyAll(), false);
     }
 
     @Override
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec) {
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants) {
         final SelectedArtifactResults artifactResults;
         final SelectedFileDependencyResults fileDependencyResults;
-        VariantSelector selector = artifactTransforms.variantSelector(requestedAttributes);
+        VariantSelector selector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariants);
         artifactResults = this.artifactResults.select(componentSpec, selector);
         fileDependencyResults = this.fileDependencyResults.select(componentSpec, selector);
 

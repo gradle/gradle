@@ -364,16 +364,98 @@ task show {
 """
         expect:
         fails("show")
-        failure.assertHasCause("""More than one variant matches the consumer attributes: usage 'compile'
-Found the following matches:
+        failure.assertHasCause("""More than one variant matches the consumer attributes:
   - Variant:
-      - artifactType 'jar'
-      - flavor 'free'
-      - usage 'compile'
+      - Found artifactType 'jar' but wasn't required.
+      - Found flavor 'free' but wasn't required.
+      - Required usage 'compile' and found compatible value 'compile'.
   - Variant:
-      - artifactType 'jar'
-      - flavor 'paid'
-      - usage 'compile'""")
+      - Found artifactType 'jar' but wasn't required.
+      - Found flavor 'paid' but wasn't required.
+      - Required usage 'compile' and found compatible value 'compile'.""")
+
+        where:
+        expression                                                                                         | _
+        "configurations.compile"                                                                           | _
+        "configurations.compile.incoming.files"                                                            | _
+        "configurations.compile.files"                                                                     | _
+        "configurations.compile.resolve()"                                                                 | _
+        "configurations.compile.files { true }"                                                            | _
+        "configurations.compile.fileCollection { true }"                                                   | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
+        "configurations.compile.incoming.artifactView({}).files"                                           | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
+        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+    }
+
+    @Unroll
+    def "reports failure when there is no compatible variant"() {
+        settingsFile << """
+include 'a', 'b'
+"""
+        buildFile << """
+def flavor = Attribute.of('flavor', String)
+
+dependencies {
+    compile project(':a')
+}
+
+allprojects {
+    dependencies.attributesSchema.attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+}
+
+configurations.compile.attributes.attribute(flavor, 'preview')
+
+project(':a') {
+    dependencies {
+        compile project(':b')
+    }
+    task freeJar(type: Jar) { archiveName = 'a-free.jar' }
+    task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    configurations.compile.outgoing.variants {
+        free {
+            attributes.attribute(flavor, 'free')
+            artifact freeJar
+        }
+        paid {
+            attributes.attribute(flavor, 'paid')
+            artifact paidJar
+        }
+    }
+}
+project(':b') {
+    task freeJar(type: Jar) { archiveName = 'b-free.jar' }
+    task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    configurations.compile.outgoing.variants {
+        free {
+            attributes.attribute(flavor, 'free')
+            artifact freeJar
+        }
+        paid {
+            attributes.attribute(flavor, 'paid')
+            artifact paidJar
+        }
+    }
+}
+
+task show {
+    doLast {
+        println "files: " + ${expression}.collect { it.name }
+    }
+}
+"""
+
+        expect:
+        fails("show")
+        failure.assertHasCause("""No variants match the consumer attributes:
+  - Variant:
+      - Found artifactType 'jar' but wasn't required.
+      - Required flavor 'preview' and found incompatible value 'free'.
+      - Required usage 'compile' and found compatible value 'compile'.
+  - Variant:
+      - Found artifactType 'jar' but wasn't required.
+      - Required flavor 'preview' and found incompatible value 'paid'.
+      - Required usage 'compile' and found compatible value 'compile'.""")
 
         where:
         expression                                                                                         | _

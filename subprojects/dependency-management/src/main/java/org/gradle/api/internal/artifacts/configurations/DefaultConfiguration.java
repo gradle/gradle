@@ -798,6 +798,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final AttributeContainerInternal viewAttributes;
         private final Spec<? super ComponentIdentifier> componentSpec;
         private final boolean lenient;
+        private final boolean allowNoMatchingVariants;
         private SelectedArtifactSet selectedArtifacts;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
@@ -806,14 +807,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.viewAttributes = configurationAttributes;
             this.componentSpec = Specs.satisfyAll();
             lenient = false;
+            allowNoMatchingVariants = false;
         }
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec, AttributeContainerInternal viewAttributes,
-                                            Spec<? super ComponentIdentifier> componentSpec, boolean lenient) {
+                                            Spec<? super ComponentIdentifier> componentSpec, boolean lenient, boolean allowNoMatchingVariants) {
             this.dependencySpec = dependencySpec;
             this.viewAttributes = viewAttributes.asImmutable();
             this.componentSpec = componentSpec;
             this.lenient = lenient;
+            this.allowNoMatchingVariants = allowNoMatchingVariants;
         }
 
         private ConfigurationFileCollection(Closure dependencySpecClosure) {
@@ -831,7 +834,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public TaskDependency getBuildDependencies() {
             assertResolvingAllowed();
-            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec);
+            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -858,7 +861,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             assertResolvingAllowed();
             if (selectedArtifacts == null) {
                 resolveToStateOrLater(ARTIFACTS_RESOLVED);
-                selectedArtifacts = cachedResolverResults.getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec);
+                selectedArtifacts = cachedResolverResults.getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
             }
             return selectedArtifacts;
         }
@@ -1033,7 +1036,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction) {
             ArtifactViewConfiguration config = new ArtifactViewConfiguration(attributesFactory, configurationAttributes);
             configAction.execute(config);
-            return new ConfigurationArtifactView(config.lockViewAttributes(), config.lockComponentFilter(), config.lenient);
+            ImmutableAttributes viewAttributes = config.lockViewAttributes();
+            // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
+            boolean allowNoMatchingVariants = config.attributesUsed;
+            return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
         }
 
         @Override
@@ -1045,11 +1051,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             private final ImmutableAttributes viewAttributes;
             private final Spec<? super ComponentIdentifier> componentFilter;
             private final boolean lenient;
+            private final boolean allowNoMatchingVariants;
 
-            public ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient) {
+            ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
                 this.viewAttributes = viewAttributes;
                 this.componentFilter = componentFilter;
                 this.lenient = lenient;
+                this.allowNoMatchingVariants = allowNoMatchingVariants;
             }
 
             @Override
@@ -1059,12 +1067,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return new ConfigurationArtifactCollection(viewAttributes, componentFilter, lenient);
+                return new ConfigurationArtifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
             }
 
             @Override
             public FileCollection getFiles() {
-                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter, lenient);
+                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
             }
         }
     }
@@ -1075,6 +1083,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private AttributeContainerInternal viewAttributes;
         private Spec<? super ComponentIdentifier> componentFilter;
         private boolean lenient;
+        private boolean attributesUsed;
 
         ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
             this.attributesFactory = attributesFactory;
@@ -1085,6 +1094,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public AttributeContainer getAttributes() {
             if (viewAttributes == null) {
                 viewAttributes = new DefaultMutableAttributeContainer(attributesFactory, configurationAttributes);
+                attributesUsed = true;
             }
             return viewAttributes;
         }
@@ -1140,14 +1150,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private Set<Throwable> failures;
 
         ConfigurationArtifactCollection() {
-            this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll(), false);
+            this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll(), false, false);
         }
 
-        ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient) {
+        ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
             assertResolvingAllowed();
             this.viewAttributes = attributes.asImmutable();
             this.componentFilter = componentFilter;
-            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, this.componentFilter, lenient);
+            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, this.componentFilter, lenient, allowNoMatchingVariants);
             this.lenient = lenient;
         }
 
@@ -1195,11 +1205,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super Dependency> dependencySpec;
         private final AttributeContainerInternal requestedAttributes;
         private final Spec<? super ComponentIdentifier> componentIdentifierSpec;
+        private final boolean allowNoMatchingVariants;
 
-        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec) {
+        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec, boolean allowNoMatchingVariants) {
             this.dependencySpec = dependencySpec;
             this.requestedAttributes = requestedAttributes;
             this.componentIdentifierSpec = componentIdentifierSpec;
+            this.allowNoMatchingVariants = allowNoMatchingVariants;
         }
 
         @Override
@@ -1219,7 +1231,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     results = cachedResolverResults;
                 }
                 List<Object> buildDependencies = new ArrayList<Object>();
-                results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectBuildDependencies(buildDependencies);
+                results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants).collectBuildDependencies(buildDependencies);
                 for (Object buildDependency : buildDependencies) {
                     context.add(buildDependency);
                 }

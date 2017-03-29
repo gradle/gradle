@@ -21,7 +21,6 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.attributes.HasAttributes
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
@@ -49,20 +48,6 @@ class VariantAttributeMatchingCacheTest extends Specification {
         List<File> transform(File input) {
             return transformer.transform(input)
         }
-    }
-
-    def "variants are selected using matcher"() {
-        def variant1 = Stub(HasAttributes)
-        def variant2 = Stub(HasAttributes)
-
-        when:
-        def result = matchingCache.selectMatches([variant1, variant2], producerSchema, c1)
-
-        then:
-        result == [variant1]
-        1 * schema.withProducer(producerSchema) >> matcher
-        1 * matcher.matches([variant1, variant2], c1) >> [variant1]
-        0 * matcher._
     }
 
     def "selects transform that can produce variant that is compatible with requested"() {

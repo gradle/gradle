@@ -16,42 +16,29 @@
 
 package org.gradle.internal.component;
 
-import com.google.common.collect.Ordering;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.text.TreeFormatter;
 
-import java.util.List;
+import java.util.Collection;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
 
-public class AmbiguousVariantSelectionException extends RuntimeException {
-
-    public AmbiguousVariantSelectionException(AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher) {
-        super(format(requested, matches, matcher));
+public class NoMatchingVariantSelectionException extends RuntimeException {
+    public NoMatchingVariantSelectionException(AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
+        super(format(consumer, candidates, matcher));
     }
 
-    private static String format(AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher) {
+    private static String format(AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("More than one variant matches the consumer attributes");
+        formatter.node("No variants match the consumer attributes");
         formatter.startChildren();
-        for (ResolvedVariant variant : variants) {
+        for (ResolvedVariant variant : candidates) {
             formatter.node("Variant");
             formatAttributeMatches(formatter, consumer, matcher, variant.getAttributes());
         }
         formatter.endChildren();
         return formatter.toString();
     }
-
-    public static void formatAttributes(TreeFormatter formatter, AttributeContainer attributes) {
-        formatter.startChildren();
-        for (Attribute<?> attribute : Ordering.usingToString().sortedCopy(attributes.keySet())) {
-            formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
-        }
-        formatter.endChildren();
-    }
-
 }

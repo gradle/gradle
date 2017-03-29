@@ -33,7 +33,7 @@ import org.gradle.internal.text.TreeFormatter;
 import java.util.List;
 import java.util.Set;
 
-public class AmbiguousConfigurationSelectionException extends IllegalArgumentException {
+public class AmbiguousConfigurationSelectionException extends RuntimeException {
     private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
         @Override
         public String apply(ConfigurationMetadata input) {
@@ -81,15 +81,14 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
             formatter.node("Configuration '");
             formatter.append(conf);
             formatter.append("'");
-            formatter.startChildren();
             formatAttributeMatches(formatter, consumerAttributes, attributeMatcher, producerAttributes);
-            formatter.endChildren();
         }
     }
 
-    private static void formatAttributeMatches(TreeFormatter formatter, AttributeContainer consumerAttributes, AttributeMatcher attributeMatcher, AttributeContainer producerAttributes) {
+    public static void formatAttributeMatches(TreeFormatter formatter, AttributeContainer consumerAttributes, AttributeMatcher attributeMatcher, AttributeContainer producerAttributes) {
         Set<Attribute<?>> allAttributes = Sets.union(consumerAttributes.keySet(), producerAttributes.keySet());
         List<Attribute<?>> sortedAttributes = Ordering.usingToString().sortedCopy(allAttributes);
+        formatter.startChildren();
         for (Attribute<?> attribute : sortedAttributes) {
             String attributeName = attribute.getName();
             if (consumerAttributes.contains(attribute) && producerAttributes.contains(attribute)) {
@@ -107,5 +106,6 @@ public class AmbiguousConfigurationSelectionException extends IllegalArgumentExc
                 formatter.node("Found " + attributeName + " '" + producerAttributes.getAttribute(attribute) + "' but wasn't required.");
             }
         }
+        formatter.endChildren();
     }
 }
