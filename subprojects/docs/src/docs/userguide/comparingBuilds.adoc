@@ -15,7 +15,13 @@
 [[comparing_builds]]
 == Comparing Builds
 
-NOTE:  Build comparison support is an <<feature_lifecycle,incubating>> feature. This means that it is incomplete and not yet at regular Gradle production quality. This also means that this Gradle User Guide chapter is a work in progress. 
+
+[NOTE]
+====
+ 
+Build comparison support is an <<feature_lifecycle,incubating>> feature. This means that it is incomplete and not yet at regular Gradle production quality. This also means that this Gradle User Guide chapter is a work in progress.
+ 
+====
 
 Gradle provides support for comparing the _outcomes_ (e.g. the produced binary archives) of two builds. There are several reasons why you may want to compare the outcomes of two builds. You may want to compare:
 
@@ -31,7 +37,23 @@ By comparing builds in these scenarios you can make an informed decision about t
 
 The following are the terms used for build comparison and their definitions.
 
-“Build”::In the context of build comparison, a build is not necessarily a Gradle build. It can be any invokable “process” that produces observable “outcomes”. At least one of the builds in a comparison will be a Gradle build.“Build Outcome”::Something that happens in an observable manner during a build, such as the creation of a zip file or test execution. These are the things that are compared.“Source Build”::The build that comparisons are being made against, typically the build in its “current” state. In other words, the left hand side of the comparison.“Target Build”::The build that is being compared to the source build, typically the “proposed” build. In other words, the right hand side of the comparison.“Host Build”::The Gradle build that executes the comparison process. It may be the same project as either the “target” or “source” build or may be a completely separate project. It does not need to be the same Gradle version as the “source” or “target” builds. The host build must be run with Gradle 1.2 or newer.“Compared Build Outcome”::Build outcomes that are intended to be logically equivalent in the “source” and “target” builds, and are therefore meaningfully comparable.“Uncompared Build Outcome”::A build outcome is uncompared if a logical equivalent from the other build cannot be found (e.g. a build produces a zip file that the other build does not).“Unknown Build Outcome”::A build outcome that cannot be understood by the host build. This can occur when the source or target build is a newer Gradle version than the host build and that Gradle version exposes new outcome types. Unknown build outcomes can be compared in so far as they can be identified to be logically equivalent to an unknown build outcome in the other build, but no meaningful comparison of what the build outcome actually is can be performed. Using the latest Gradle version for the host build will avoid encountering unknown build outcomes.
+“Build”::
+In the context of build comparison, a build is not necessarily a Gradle build. It can be any invokable “process” that produces observable “outcomes”. At least one of the builds in a comparison will be a Gradle build.
+“Build Outcome”::
+Something that happens in an observable manner during a build, such as the creation of a zip file or test execution. These are the things that are compared.
+“Source Build”::
+The build that comparisons are being made against, typically the build in its “current” state. In other words, the left hand side of the comparison.
+“Target Build”::
+The build that is being compared to the source build, typically the “proposed” build. In other words, the right hand side of the comparison.
+“Host Build”::
+The Gradle build that executes the comparison process. It may be the same project as either the “target” or “source” build or may be a completely separate project. It does not need to be the same Gradle version as the “source” or “target” builds. The host build must be run with Gradle 1.2 or newer.
+“Compared Build Outcome”::
+Build outcomes that are intended to be logically equivalent in the “source” and “target” builds, and are therefore meaningfully comparable.
+“Uncompared Build Outcome”::
+A build outcome is uncompared if a logical equivalent from the other build cannot be found (e.g. a build produces a zip file that the other build does not).
+“Unknown Build Outcome”::
+A build outcome that cannot be understood by the host build. This can occur when the source or target build is a newer Gradle version than the host build and that Gradle version exposes new outcome types. Unknown build outcomes can be compared in so far as they can be identified to be logically equivalent to an unknown build outcome in the other build, but no meaningful comparison of what the build outcome actually is can be performed. Using the latest Gradle version for the host build will avoid encountering unknown build outcomes.
+
 
 
 [[sec:current_capabilities]]

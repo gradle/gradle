@@ -15,7 +15,13 @@
 [[maven_plugin]]
 == The Maven Plugin
 
-NOTE:  This chapter is a work in progress 
+
+[NOTE]
+====
+ 
+This chapter is a work in progress
+ 
+====
 
 The Maven plugin adds support for deploying artifacts to Maven repositories.
 
@@ -38,7 +44,7 @@ To use the Maven plugin, include the following in your build script:
 The Maven plugin defines the following tasks:
 
 .Maven plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -63,7 +69,7 @@ The Maven plugin does not define any dependency configurations.
 The Maven plugin defines the following convention properties:
 
 .Maven plugin - properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type
@@ -72,7 +78,7 @@ The Maven plugin defines the following convention properties:
 
 | `mavenPomDir`
 | `File`
-| `<replaceable>${project.buildDir}</replaceable>/poms`
+| ``${project.buildDir}`/poms`
 | The directory where the generated POMs are written to.
 
 | `conf2ScopeMappings`
@@ -120,7 +126,7 @@ Let's assume your project produces just the default jar file. Now you want to de
 
 That is all. Calling the `uploadArchives` task will generate the POM and deploys the artifact and the POM to the specified repository.
 
-There is more work to do if you need support for protocols other than `file`. In this case the native Maven code we delegate to needs additional libraries. Which libraries are needed depends on what protocol you plan to use. The available protocols and the corresponding libraries are listed in <<wagonLibs>> (those libraries have transitive dependencies which have transitive dependencies). footnote:[It is planned for a future release to provide out-of-the-box support for this] For example, to use the ssh protocol you can do:
+There is more work to do if you need support for protocols other than `file`. In this case the native Maven code we delegate to needs additional libraries. Which libraries are needed depends on what protocol you plan to use. The available protocols and the corresponding libraries are listed in <<wagonLibs>> (those libraries have transitive dependencies which have transitive dependencies).footnote:[It is planned for a future release to provide out-of-the-box support for this] For example, to use the ssh protocol you can do:
 
 ++++
 <sample id="uploadWithSsh" dir="userguide/artifacts/maven" title="Upload of file via SSH">
@@ -132,8 +138,9 @@ There are many configuration options for the Maven deployer. The configuration i
 
 In Maven you can define repositories and optionally snapshot repositories. If no snapshot repository is defined, releases and snapshots are both deployed to the `repository` element. Otherwise snapshots are deployed to the `snapshotRepository` element.
 
+[[wagonLibs]]
 .Protocol jars for Maven deployment
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Protocol
 | Library
@@ -157,8 +164,9 @@ In Maven you can define repositories and optionally snapshot repositories. If no
 | -
 |===
 
+[[deployerConfig]]
 .Configuration elements of the MavenDeployer
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Element
 | Javadoc
@@ -197,7 +205,7 @@ The Maven plugin adds an `install` task to your project. This task depends on al
 When deploying an artifact to a Maven repository, Gradle automatically generates a POM for it. The `groupId`, `artifactId`, `version` and `packaging` elements used for the POM default to the values shown in the table below. The `dependency` elements are created from the project's dependency declarations.
 
 .Default Values for Maven POM generation
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Maven Element
 | Default Value
@@ -217,7 +225,12 @@ When deploying an artifact to a Maven repository, Gradle automatically generates
 
 Here, `uploadTask` and `archiveTask` refer to the tasks used for uploading and generating the archive, respectively (for example `uploadArchives` and `jar`). `archiveTask.baseName` defaults to `project.archivesBaseName` which in turn defaults to `project.name`.
 
-NOTE:  When you set the “`archiveTask.baseName`” property to a value other than the default, you'll also have to set `uploadTask.repositories.mavenDeployer.pom.artifactId` to the same value. Otherwise, the project at hand may be referenced with the wrong artifact ID from generated POMs for other projects in the same build. 
+[NOTE]
+====
+ 
+When you set the “`archiveTask.baseName`” property to a value other than the default, you'll also have to set `uploadTask.repositories.mavenDeployer.pom.artifactId` to the same value. Otherwise, the project at hand may be referenced with the wrong artifact ID from generated POMs for other projects in the same build.
+ 
+====
 
 Generated POMs can be found in `&lt;buildDir&gt;/poms`. They can be further customized via the api:org.gradle.api.artifacts.maven.MavenPom[] API. For example, you might want the artifact deployed to the Maven repository to have a different version or name than the artifact generated by Gradle. To customize these you can do:
 

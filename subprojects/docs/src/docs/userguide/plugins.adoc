@@ -87,7 +87,13 @@ For more on defining your own plugins, see <<custom_plugins>>.
 [[sec:plugins_block]]
 ==== Applying plugins with the plugins DSL
 
-NOTE:  The plugins DSL is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+The plugins DSL is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+ 
+====
 
 The new plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of api:org.gradle.plugin.use.PluginDependenciesSpec[].
 
@@ -186,7 +192,13 @@ If you then run `gradle hello` you'll see that only the helloA and helloB subpro
 [[sec:plugin_management]]
 ===== Plugin Management
 
-NOTE:  The <code>pluginManagement {}</code> DSL is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+The <code>pluginManagement {}</code> DSL is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+ 
+====
 
 
 [[sec:custom_plugin_repositories]]

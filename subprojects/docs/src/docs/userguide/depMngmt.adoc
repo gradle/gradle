@@ -73,7 +73,10 @@ When these large dependency trees need to change, you'll often have to solve som
 
 While you could try to manage this problem manually, you will quickly find that this approach doesn't scale. If you want to get rid of a first level dependency you really can't be sure which other jars you should remove. A dependency of a first level dependency might also be a first level dependency itself, or it might be a transitive dependency of yet another first level dependency. If you try to manage transitive dependencies yourself, the end of the story is that your build becomes brittle: no one dares to change your dependencies because the risk of breaking the build is too high. The project classpath becomes a complete mess, and, if a classpath problem arises, hell on earth invites you for a ride.
 
-NOTE: _NOTE:_In one project, we found a mystery LDAP related jar in the classpath. No code referenced this jar and there was no connection to the project. No one could figure out what the jar was for, until it was removed from the build and the application suffered massive performance problems whenever it attempted to authenticate to LDAP. This mystery jar was a necessary transitive, fourth-level dependency that was easy to miss because no one had bothered to use managed transitive dependencies.
+[NOTE]
+====
+_NOTE:_In one project, we found a mystery LDAP related jar in the classpath. No code referenced this jar and there was no connection to the project. No one could figure out what the jar was for, until it was removed from the build and the application suffered massive performance problems whenever it attempted to authenticate to LDAP. This mystery jar was a necessary transitive, fourth-level dependency that was easy to miss because no one had bothered to use managed transitive dependencies.
+====
 
 Gradle offers you different ways to express first-level and transitive dependencies. With Gradle you can mix and match approaches; for example, you could store your jars in an SCM without XML descriptor files and still use transitive dependency management.
 
@@ -149,7 +152,7 @@ To configure a configuration:
 There are several different types of dependencies that you can declare:
 
 .Dependency types
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Type
 | Description
@@ -203,7 +206,7 @@ api:org.gradle.api.artifacts.dsl.DependencyHandler[]
 [[ssub:artifact_dependencies]]
 ===== Artifact only notation
 
-As said above, if no module descriptor file can be found, Gradle by default downloads a jar with the name of the module. But sometimes, even if the repository contains module descriptors, you want to download only the artifact jar, without the dependencies. footnote:[Gradle supports partial multiproject builds (see <<multi_project_builds>>).] And sometimes you want to download a zip from a repository, that does not have module descriptors. Gradle provides an _artifact only_ notation for those use cases - simply prefix the extension that you want to be downloaded with `'@'` sign: 
+As said above, if no module descriptor file can be found, Gradle by default downloads a jar with the name of the module. But sometimes, even if the repository contains module descriptors, you want to download only the artifact jar, without the dependencies.footnote:[Gradle supports partial multiproject builds (see <<multi_project_builds>>).] And sometimes you want to download a zip from a repository, that does not have module descriptors. Gradle provides an _artifact only_ notation for those use cases - simply prefix the extension that you want to be downloaded with `'@'` sign: 
 ++++
 <sample id="artifactOnly" dir="userguide/artifacts/externalDependencies" title="Artifact only notation">
                         <sourcefile file="build.gradle" snippet="artifact-only"/>
@@ -214,7 +217,7 @@ As said above, if no module descriptor file can be found, Gradle by default down
 [[sub:classifiers]]
 ===== Classifiers
 
-The Maven dependency management has the notion of classifiers. footnote:[ http://books.sonatype.com/mvnref-book/reference/pom-relationships-sect-project-relationships.html[] ] Gradle supports this. To retrieve classified dependencies from a Maven repository you can write:
+The Maven dependency management has the notion of classifiers.footnote:[ http://books.sonatype.com/mvnref-book/reference/pom-relationships-sect-project-relationships.html[] ] Gradle supports this. To retrieve classified dependencies from a Maven repository you can write:
 
 ++++
 <sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers" title="Dependency with classifier">
@@ -472,7 +475,7 @@ You may configure any number of repositories, each of which is treated independe
 There are several different types of repositories you can declare:
 
 .Repository types
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Type
 | Description
@@ -543,7 +546,7 @@ To use the local Maven cache as a repository you can do:
             </sample>
 ++++
 
-Gradle uses the same logic as Maven to identify the location of your local Maven cache. If a local repository location is defined in a `settings.xml`, this location will be used. The `settings.xml` in `<replaceable>USER_HOME</replaceable>/.m2` takes precedence over the `settings.xml` in `<replaceable>M2_HOME</replaceable>/conf`. If no `settings.xml` is available, Gradle uses the default location `<replaceable>USER_HOME</replaceable>/.m2/repository`.
+Gradle uses the same logic as Maven to identify the location of your local Maven cache. If a local repository location is defined in a `settings.xml`, this location will be used. The `settings.xml` in ``USER_HOME`/.m2` takes precedence over the `settings.xml` in ``M2_HOME`/conf`. If no `settings.xml` is available, Gradle uses the default location ``USER_HOME`/.m2/repository`.
 
 [[sub:maven_repo]]
 ==== Maven repositories
@@ -669,7 +672,7 @@ To access an Ivy repository which uses basic authentication, you specify the use
 Maven and Ivy repositories support the use of various transport protocols. At the moment the following protocols are supported:
 
 .Repository transport protocols
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Type
 | Credential types
@@ -729,7 +732,7 @@ You can also delegate all credentials to the AWS sdk by using the AwsImAuthentic
 The following system properties can be used to configure the interactions with s3 repositories:
 
 .S3 Configuration Properties
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Property
 | Description
@@ -780,11 +783,19 @@ If the 'org.gradle.s3.endpoint' property has been specified with a http (not htt
 
 Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requests are signed in accordance with AWS's http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html[signature version 4]. It is recommended to specify S3 URL's containing the region specific endpoint when using buckets that require V4 signatures. e.g. `s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release` 
 
-NOTE: _NOTE:_ When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the following warning will appear on the console: Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, please use region-specific endpoint to access buckets located in regions that require V4 signing.  Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:  
+[NOTE]
+====
+_NOTE:_ When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the following warning will appear on the console: 
+Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, please use region-specific endpoint to access buckets located in regions that require V4 signing.
+  
+Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:
+  
 * `3 round-trips to AWS, as opposed to one, for every file upload and download.`
 * `Depending on location - increased network latencies and slower builds.`
 * `Increased likelihood of transmission failures.`
  
+====
+
 
 [[sub:authentication_schemes]]
 ===== Configuring HTTP authentication schemes
@@ -800,7 +811,7 @@ When configuring a repository using HTTP or HTTPS transport protocols, multiple 
 Currently supported authentication schemes are:
 
 .Authentication schemes
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Type | Description 
 
@@ -854,7 +865,7 @@ Gradle is extremely flexible regarding repositories:
 * The protocol sftp currently only supports username/password-based authentication.
 * Each repository can have its own layout.
 
-Let's say, you declare a dependency on the `junit:junit:3.8.2` library. Now how does Gradle find it in the repositories? Somehow the dependency information has to be mapped to a path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern that defines what the path will look like. Here are some examples: footnote:[At http://ant.apache.org/ivy/history/latest-milestone/concept.html[] you can learn more about ivy patterns.] 
+Let's say, you declare a dependency on the `junit:junit:3.8.2` library. Now how does Gradle find it in the repositories? Somehow the dependency information has to be mapped to a path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern that defines what the path will look like. Here are some examples:footnote:[At http://ant.apache.org/ivy/history/latest-milestone/concept.html[] you can learn more about ivy patterns.] 
 
 [source]
 ----
@@ -993,13 +1004,22 @@ At times a completely different module can serve as a replacement for a requeste
 
 Dependency substitution rules work similarly to dependency resolve rules. In fact, many capabilities of dependency resolve rules can be implemented with dependency substitution rules. They allow project and module dependencies to be transparently substituted with specified replacements. Unlike dependency resolve rules, dependency substitution rules allow project and module dependencies to be substituted interchangeably.
 
-NOTE:   _NOTE: Adding a dependency substitution rule to a configuration changes the timing of when that configuration is resolved._ Instead of being resolved on first use, the configuration is instead resolved when the task graph is being constructed. This can have unexpected consequences if the configuration is being further modified during task execution, or if the configuration relies on modules that are published during execution of another task.  To explain: 
+[NOTE]
+====
+ 
+ _NOTE: Adding a dependency substitution rule to a configuration changes the timing of when that configuration is resolved._ Instead of being resolved on first use, the configuration is instead resolved when the task graph is being constructed. This can have unexpected consequences if the configuration is being further modified during task execution, or if the configuration relies on modules that are published during execution of another task.
+  
+To explain: 
 
 * A `Configuration` can be declared as an input to any Task, and that configuration can include project dependencies when it is resolved.
 * If a project dependency is an input to a Task (via a configuration), then tasks to built the project artifacts must be added to the task dependencies.
 * In order to determine the project dependencies that are inputs to a task, Gradle needs to resolve the `Configuration` inputs.
 * Because the Gradle task graph is fixed once task execution has commenced, Gradle needs to perform this resolution prior to executing any tasks.
-   In the absence of dependency substitution rules, Gradle knows that an external module dependency will never transitively reference a project dependency. This makes it easy to determine the full set of project dependencies for a configuration through simple graph traversal. With this functionality, Gradle can no longer make this assumption, and must perform a full resolve in order to determine the project dependencies. 
+ 
+  
+In the absence of dependency substitution rules, Gradle knows that an external module dependency will never transitively reference a project dependency. This makes it easy to determine the full set of project dependencies for a configuration through simple graph traversal. With this functionality, Gradle can no longer make this assumption, and must perform a full resolve in order to determine the project dependencies.
+ 
+====
 
 
 [[sec:module_to_project_substitution]]
@@ -1314,7 +1334,7 @@ If your project relies on the Maven Central repository you are likely to need an
 * You want to deal properly with invalid metadata in a Maven Central POM file.
 * You don't want to expose people to the downtimes or slow response of Maven Central, if they just want to build your project.
 
-It is not a big deal to set-up a custom repository, footnote:[If you want to shield your project from the downtimes of Maven Central things get more complicated. You probably want to set-up a repository proxy for this. In an enterprise environment this is rather common. For an open source project it looks like overkill.] but it can be tedious to keep it up to date. For a new version, you always have to create the new XML descriptor and the directories. Your custom repository is another infrastructure element which might have downtimes and needs to be updated. To enable historical builds, you need to keep all the past libraries, not to mention a backup of these. It is another layer of indirection. Another source of information you have to lookup. All this is not really a big deal but in its sum it has an impact. Repository managers like Artifactory or Nexus make this easier, but most open source projects don't usually have a host for those products. This is changing with new services like http://bintray.com[Bintray] that let developers host and distribute their release binaries using a self-service repository platform. Bintray also supports sharing approved artifacts though the http://jcenter.bintray.com[JCenter] public repository to provide a single resolution address for all popular OSS Java artifacts (see <<sub:maven_jcenter>>).
+It is not a big deal to set-up a custom repository,footnote:[If you want to shield your project from the downtimes of Maven Central things get more complicated. You probably want to set-up a repository proxy for this. In an enterprise environment this is rather common. For an open source project it looks like overkill.] but it can be tedious to keep it up to date. For a new version, you always have to create the new XML descriptor and the directories. Your custom repository is another infrastructure element which might have downtimes and needs to be updated. To enable historical builds, you need to keep all the past libraries, not to mention a backup of these. It is another layer of indirection. Another source of information you have to lookup. All this is not really a big deal but in its sum it has an impact. Repository managers like Artifactory or Nexus make this easier, but most open source projects don't usually have a host for those products. This is changing with new services like http://bintray.com[Bintray] that let developers host and distribute their release binaries using a self-service repository platform. Bintray also supports sharing approved artifacts though the http://jcenter.bintray.com[JCenter] public repository to provide a single resolution address for all popular OSS Java artifacts (see <<sub:maven_jcenter>>).
 
 This is a common reason why many projects prefer to store their libraries in their version control system. This approach is fully supported by Gradle. The libraries can be stored in a flat directory without any XML module descriptor files. Yet Gradle offers complete transitive dependency management. You can use either client module dependencies to express the dependency relations, or artifact dependencies in case a first level dependency has no transitive dependencies. People can check out such a project from your source code control system and have everything necessary to build it.
 

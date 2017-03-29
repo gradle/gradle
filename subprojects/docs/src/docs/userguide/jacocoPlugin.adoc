@@ -15,7 +15,13 @@
 [[jacoco_plugin]]
 == The JaCoCo Plugin
 
-NOTE:  The JaCoCo plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+The JaCoCo plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+ 
+====
 
 The JaCoCo plugin provides code coverage metrics for Java code via integration with http://www.eclemma.org/jacoco/[JaCoCo].
 
@@ -31,7 +37,7 @@ To get started, apply the JaCoCo plugin to the project you want to calculate cod
         </sample>
 ++++
 
-If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created that depends on the `test` task. The report is available at `<replaceable>$buildDir</replaceable>/reports/jacoco/test`. By default, a HTML report is generated.
+If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created that depends on the `test` task. The report is available at ``$buildDir`/reports/jacoco/test`. By default, a HTML report is generated.
 
 [[sec:configuring_the_jacoco_plugin]]
 === Configuring the JaCoCo Plugin
@@ -45,13 +51,13 @@ The JaCoCo plugin adds a project extension named `jacoco` of type api:org.gradle
 ++++
 
 .Gradle defaults for JaCoCo properties
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Property
 | Gradle default
 
 | reportsDir
-| “<replaceable>$buildDir</replaceable>/reports/jacoco”
+| “`$buildDir`/reports/jacoco”
 |===
 
 
@@ -70,7 +76,13 @@ The api:org.gradle.testing.jacoco.tasks.JacocoReport[] task can be used to gener
 [[sec:jacoco_report_violation_rules]]
 === Enforcing code coverage metrics
 
-NOTE:  This feature requires the use of JaCoCo version 0.6.3 or higher. 
+
+[NOTE]
+====
+ 
+This feature requires the use of JaCoCo version 0.6.3 or higher.
+ 
+====
 
 The api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification[] task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method api:org.gradle.testing.jacoco.tasks.JacocoCoverageVerification#violationRules(org.gradle.api.Action)[] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of api:org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer[] providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
 
@@ -96,7 +108,7 @@ The JaCoCo plugin adds a api:org.gradle.testing.jacoco.plugins.JacocoTaskExtensi
 ++++
 
 .Default values of the JaCoCo Task extension
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Property
 | Gradle default
@@ -105,7 +117,7 @@ The JaCoCo plugin adds a api:org.gradle.testing.jacoco.plugins.JacocoTaskExtensi
 | true
 
 | destPath
-| <replaceable>$buildDir</replaceable>/jacoco
+| `$buildDir`/jacoco
 
 | append
 | true
@@ -170,7 +182,7 @@ For example you can configure your build to generate code coverage using the `ap
 For projects that also apply the Java Plugin, The JaCoCo plugin automatically adds the following tasks:
 
 .JaCoCo plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -195,7 +207,7 @@ For projects that also apply the Java Plugin, The JaCoCo plugin automatically ad
 The JaCoCo plugin adds the following dependency configurations:
 
 .JaCoCo plugin - dependency configurations
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Name
 | Meaning

@@ -21,7 +21,7 @@ Ant can be divided into two layers. The first layer is the Ant language. It prov
 
 The second layer of Ant is its wealth of Ant tasks and types, like `javac`, `copy` or `jar`. For this layer Gradle provides integration simply by relying on Groovy, and the fantastic `AntBuilder`.
 
-Finally, since build scripts are Groovy scripts, you can always execute an Ant build as an external process. Your build script may contain statements like:`"ant clean compile".execute()`. footnote:[In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a look in 'Groovy in Action' 9.3.2 or at the Groovy wiki] 
+Finally, since build scripts are Groovy scripts, you can always execute an Ant build as an external process. Your build script may contain statements like: `"ant clean compile".execute()`.footnote:[In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a look in 'Groovy in Action' 9.3.2 or at the Groovy wiki] 
 
 You can use Gradle's Ant integration as a path for migrating your build from Ant to Gradle. For example, you could start by importing your existing Ant build. Then you could move your dependency declarations from the Ant script to your build file. Finally, you could move your tasks across to your build file, or replace them with some of Gradle's plugins. This process can be done in parts over time, and you can have a working Gradle build during the entire process.
 
@@ -198,7 +198,7 @@ There are several ways to get an Ant reference:
 Gradle maps Ant message priorities to Gradle log levels so that messages logged from Ant appear in the Gradle output. By default, these are mapped as follows:
 
 .Ant message priority mapping
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Ant Message Priority
 | Gradle Log Level

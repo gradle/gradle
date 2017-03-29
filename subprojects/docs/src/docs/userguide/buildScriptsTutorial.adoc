@@ -30,7 +30,7 @@ For now, we will look at defining some simple tasks in a build with one project.
 [[sec:hello_world]]
 === Hello world
 
-You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory. footnote:[There are command line switches to change this behavior. See <<gradle_command_line>>)] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
+You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.footnote:[There are command line switches to change this behavior. See <<gradle_command_line>>)] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
 
 To try this out, create the following build script named `build.gradle`.
 
@@ -40,12 +40,15 @@ To try this out, create the following build script named `build.gradle`.
         </sample>
 ++++
 
-In a command-line shell, move to the containing directory and execute the build script with [userinput]#gradle -q hello#:
+In a command-line shell, move to the containing directory and execute the build script with `gradle -q hello`:
 
-TIP:  .What does `-q` do?
+[TIP]
+====
+ .What does `-q` do?
   
 Most of the examples in this user guide are run with the `-q` command-line option. This suppresses Gradle's log messages, so that only the output of the tasks is shown. This keeps the example output in this user guide a little clearer. You don't need to use this option if you don't want to. See <<logging>> for more details about the command-line options which affect Gradle's output.
  
+====
 
 ++++
 <sample id="hello" dir="userguide/tutorial/hello" title="Execution of a build script">
@@ -53,14 +56,20 @@ Most of the examples in this user guide are run with the `-q` command-line optio
         </sample>
 ++++
 
-What's going on here? This build script defines a single task, called `hello`, and adds an action to it. When you run [userinput]#gradle hello#, Gradle executes the `hello` task, which in turn executes the action you've provided. The action is simply a closure containing some Groovy code to execute.
+What's going on here? This build script defines a single task, called `hello`, and adds an action to it. When you run `gradle hello`, Gradle executes the `hello` task, which in turn executes the action you've provided. The action is simply a closure containing some Groovy code to execute.
 
 If you think this looks similar to Ant's targets, you would be right. Gradle tasks are the equivalent to Ant targets, but as you will see, they are much more powerful. We have used a different terminology than Ant as we think the word _task_ is more expressive than the word _target_. Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands, such as `javac` or `copy`, tasks. So when we talk about tasks, we _always_ mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about Ant tasks (Ant commands), we explicitly say _Ant task_.
 
 [[sec:a_shortcut_task_definition]]
 === A shortcut task definition
 
-NOTE:  This functionality is deprecated and will be removed in Gradle 5.0 without replacement. Use the methods api:org.gradle.api.Task#doFirst(org.gradle.api.Action)[] and api:org.gradle.api.Task#doLast(org.gradle.api.Action)[] to define an action instead, as demonstrated by the rest of the examples in this chapter. 
+
+[NOTE]
+====
+ 
+This functionality is deprecated and will be removed in Gradle 5.0 without replacement. Use the methods api:org.gradle.api.Task#doFirst(org.gradle.api.Action)[] and api:org.gradle.api.Task#doLast(org.gradle.api.Action)[] to define an action instead, as demonstrated by the rest of the examples in this chapter.
+ 
+====
 
 There is a shorthand way to define a task like our `hello` task above, which is more concise.
 
@@ -222,7 +231,7 @@ Gradle allows you to define one or more default tasks that are executed if no ot
         </sample>
 ++++
 
-This is equivalent to running [userinput]#gradle clean run#. In a multi-project build every subproject can have its own specific default tasks. If a subproject does not specify default tasks, the default tasks of the parent project are used (if defined).
+This is equivalent to running `gradle clean run`. In a multi-project build every subproject can have its own specific default tasks. If a subproject does not specify default tasks, the default tasks of the parent project are used (if defined).
 
 [[configure-by-dag]]
 === Configure by DAG

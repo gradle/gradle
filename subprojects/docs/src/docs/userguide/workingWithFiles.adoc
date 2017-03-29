@@ -66,7 +66,13 @@ You can also pass the `files()` method a closure or a `Callable` instance. This 
 
 Some other types of things you can pass to `files()`:
 
-`FileCollection`::These are flattened and the contents included in the file collection.`Task`::The output files of the task are included in the file collection.`TaskOutputs`::The output files of the TaskOutputs are included in the file collection.
+`FileCollection`::
+These are flattened and the contents included in the file collection.
+`Task`::
+The output files of the task are included in the file collection.
+`TaskOutputs`::
+The output files of the TaskOutputs are included in the file collection.
+
 
 It is important to note that the content of a file collection is evaluated lazily, when it is needed. This means you can, for example, create a `FileCollection` that represents files which will be created in the future by, say, some task.
 
@@ -236,10 +242,13 @@ A project can have as many JAR archives as you want. You can also add WAR, ZIP a
         </sample>
 ++++
 
-TIP:  .Why are you using the Java plugin?
+[TIP]
+====
+ .Why are you using the Java plugin?
   
 The Java plugin adds a number of default values for the archive tasks. You can use the archive tasks without using the Java plugin, if you like. You will need to provide values for some additional properties.
  
+====
 
 The archive tasks all work exactly the same way as the `Copy` task, and implement the same `CopySpec` interface. As with the `Copy` task, you specify the input files using the `from()` method, and can optionally specify where they end up in the archive using the `into()` method. You can filter the contents of file, rename files, and all the other things you can do with a copy spec.
 
@@ -247,7 +256,7 @@ The archive tasks all work exactly the same way as the `Copy` task, and implemen
 [[sec:archive_naming]]
 ==== Archive naming
 
-The format of `<replaceable>projectName</replaceable>-<replaceable>version</replaceable>.<replaceable>type</replaceable>` is used for generated archive file names. For example:
+The format of ``projectName`-`version`.`type`` is used for generated archive file names. For example:
 
 ++++
 <sample id="archiveNaming" dir="userguide/files/archiveNaming" title="Creation of ZIP archive">
@@ -276,8 +285,9 @@ You can further customize the archive names:
             </sample>
 ++++
 
+[[archiveTasksNamingProperties]]
 .Archive tasks - naming properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type
@@ -286,23 +296,23 @@ You can further customize the archive names:
 
 | `archiveName`
 | `String`
-| `<replaceable>baseName</replaceable>-<replaceable>appendix</replaceable>-<replaceable>version</replaceable>-<replaceable>classifier</replaceable>.<replaceable>extension</replaceable>`
+| ``baseName`-`appendix`-`version`-`classifier`.`extension``
 If any of these properties is empty the trailing `-` is not added to the name.
 | The base file name of the generated archive
 
 | `archivePath`
 | `File`
-| `<replaceable>destinationDir</replaceable>/<replaceable>archiveName</replaceable>`
+| ``destinationDir`/`archiveName``
 | The absolute path of the generated archive.
 
 | `destinationDir`
 | `File`
-| Depends on the archive type. JARs and WARs go into `<replaceable>project.buildDir</replaceable>/libraries`. ZIPs and TARs go into `<replaceable>project.buildDir</replaceable>/distributions`.
+| Depends on the archive type. JARs and WARs go into ``project.buildDir`/libraries`. ZIPs and TARs go into ``project.buildDir`/distributions`.
 | The directory to generate the archive into
 
 | `baseName`
 | `String`
-| `<replaceable>project.name</replaceable>`
+| ``project.name``
 | The base name portion of the archive file name.
 
 | `appendix`
@@ -312,7 +322,7 @@ If any of these properties is empty the trailing `-` is not added to the name.
 
 | `version`
 | `String`
-| `<replaceable>project.version</replaceable>`
+| ``project.version``
 | The version portion of the archive file name.
 
 | `classifier`

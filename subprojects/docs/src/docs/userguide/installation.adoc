@@ -19,9 +19,9 @@
 [[sec:prerequisites]]
 === Prerequisites
 
-Gradle requires a Java JDK or JRE to be installed, version 7 or higher (to check, use [userinput]#java -version#). Gradle ships with its own Groovy library, therefore Groovy does not need to be installed. Any existing Groovy installation is ignored by Gradle.
+Gradle requires a Java JDK or JRE to be installed, version 7 or higher (to check, use `java -version`). Gradle ships with its own Groovy library, therefore Groovy does not need to be installed. Any existing Groovy installation is ignored by Gradle.
 
-Gradle uses whatever JDK it finds in your path. Alternatively, you can set the <envar>JAVA_HOME</envar> environment variable to point to the installation directory of the desired JDK.
+Gradle uses whatever JDK it finds in your path. Alternatively, you can set the `JAVA_HOME` environment variable to point to the installation directory of the desired JDK.
 
 [[sec:download]]
 === Download
@@ -44,7 +44,7 @@ The Gradle distribution comes packaged as a ZIP. The full distribution contains:
 [[sec:installation_environment_variables]]
 === Environment variables
 
-For running Gradle, firstly add the environment variable <envar>GRADLE_HOME</envar>. This should point to the unpacked files from the Gradle website. Next add `<replaceable>GRADLE_HOME</replaceable>/bin` to your <envar>PATH</envar> environment variable. Usually, this is sufficient to run Gradle.
+For running Gradle, firstly add the environment variable `GRADLE_HOME`. This should point to the unpacked files from the Gradle website. Next add ``GRADLE_HOME`/bin` to your `PATH` environment variable. Usually, this is sufficient to run Gradle.
 
 [[sec:running_and_testing_your_installation]]
 === Running and testing your installation
@@ -54,11 +54,11 @@ You run Gradle via the `gradle` command. To check if Gradle is properly installe
 [[sec:jvm_options]]
 === JVM options
 
-JVM options for running Gradle can be set via environment variables. You can use either <envar>GRADLE_OPTS</envar> or <envar>JAVA_OPTS</envar>, or both. <envar>JAVA_OPTS</envar> is by convention an environment variable shared by many Java applications. A typical use case would be to set the HTTP proxy in <envar>JAVA_OPTS</envar> and the memory options in <envar>GRADLE_OPTS</envar>. Those variables can also be set at the beginning of the `gradle` or `gradlew` script.
+JVM options for running Gradle can be set via environment variables. You can use either `GRADLE_OPTS` or `JAVA_OPTS`, or both. `JAVA_OPTS` is by convention an environment variable shared by many Java applications. A typical use case would be to set the HTTP proxy in `JAVA_OPTS` and the memory options in `GRADLE_OPTS`. Those variables can also be set at the beginning of the `gradle` or `gradlew` script.
 
 Note that it's not currently possible to set JVM options for Gradle on the command line.
 
 [[sec:installation_getting_help]]
 === Getting help
 
-You might check the user guide at `<replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html`. It is also available on the website:documentation.html[Gradle web site]. Typing `gradle help` prints the command line help. Typing `gradle tasks` shows all the tasks of a Gradle build.
+You might check the user guide at ``GRADLE_HOME`/docs/userguide/userguide.html`. It is also available on the website:documentation.html[Gradle web site]. Typing `gradle help` prints the command line help. Typing `gradle tasks` shows all the tasks of a Gradle build.

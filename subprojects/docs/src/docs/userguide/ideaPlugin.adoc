@@ -20,7 +20,7 @@ The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[
 What exactly the IDEA plugin generates depends on which other plugins are used:
 
 .IDEA plugin behavior
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Plugin
 | Description
@@ -53,8 +53,9 @@ The IDEA plugin adds a number of tasks to your project. The main tasks that you 
 
 The IDEA plugin adds the tasks shown below to a project. Notice that the `clean` task does not depend on the `cleanIdeaWorkspace` task. This is because the workspace typically contains a lot of user specific temporary data and it is not desirable to manipulate it outside IDEA.
 
+[[ideatasks]]
 .IDEA plugin - Tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -107,8 +108,9 @@ The IDEA plugin adds the tasks shown below to a project. Notice that the `clean`
 === Configuration
 
 
+[[idea-configuration]]
 .Configuration of the idea plugin
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Model
 | Reference name
@@ -149,9 +151,9 @@ Sections of existing IDEA files that are also the target of generated content wi
 [[sec:complete_overwrite_of_idea_files]]
 ===== Disabling merging with a complete overwrite
 
-To completely rewrite existing IDEA files, execute a clean task together with its corresponding generation task, like “[userinput]#gradle cleanIdea idea#” (in that order). If you want to make this the default behavior, add “<code>tasks.idea.dependsOn(cleanIdea)</code>” to your build script. This makes it unnecessary to execute the clean task explicitly.
+To completely rewrite existing IDEA files, execute a clean task together with its corresponding generation task, like “`gradle cleanIdea idea`” (in that order). If you want to make this the default behavior, add “<code>tasks.idea.dependsOn(cleanIdea)</code>” to your build script. This makes it unnecessary to execute the clean task explicitly.
 
-This strategy can also be used for individual files that the plugin would generate. For instance, this can be done for the “`.iml`” file with “[userinput]#gradle cleanIdeaModule ideaModule#”.
+This strategy can also be used for individual files that the plugin would generate. For instance, this can be done for the “`.iml`” file with “`gradle cleanIdeaModule ideaModule`”.
 
 [[sec:hooking_into_the_idea_generation_lifecycle]]
 ==== Hooking into the generation lifecycle
@@ -166,8 +168,9 @@ The plugin provides objects modeling the sections of the metadata files that are
 . The final XML is persisted
  The following table lists the domain object used for each of the model types:
 
+[[idea-hooks]]
 .Idea plugin hooks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Model
 | `beforeMerged { arg -&gt; }` argument type

@@ -15,7 +15,13 @@
 [[software_model_concepts]]
 == Software model concepts
 
-NOTE:  Support for the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+Support for the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+ 
+====
 
 The software model describes how a piece of software is built and how the components of the software relate to each other. The software model is organized around some key concepts:
 

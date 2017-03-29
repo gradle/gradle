@@ -15,7 +15,13 @@
 [[build_init_plugin]]
 == Build Init Plugin
 
-NOTE:  The Build Init plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+The Build Init plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+ 
+====
 
 The Gradle Build Init plugin can be used to bootstrap the process of creating a new Gradle build. It supports creating brand new projects of different types as well as converting existing builds (e.g. An Apache Maven build) to be Gradle builds.
 
@@ -30,7 +36,7 @@ It also leverages the `wrapper` task from the Wrapper plugin (see <<wrapper_plug
 The plugin adds the following tasks to the project:
 
 .Build Init plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -63,7 +69,11 @@ All build setup types include the setup of the Gradle Wrapper.
 [[sec:build_init_types]]
 === Build init types
 
-NOTE: As this plugin is currently <<feature_lifecycle,incubating>>, only a few build init types are currently supported. More types will be added in future Gradle releases.
+
+[NOTE]
+====
+As this plugin is currently <<feature_lifecycle,incubating>>, only a few build init types are currently supported. More types will be added in future Gradle releases.
+====
 
 
 [[sec:pom_maven_conversion_]]

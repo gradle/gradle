@@ -64,7 +64,7 @@ The OSGi plugin does not add any convention properties to the project.
 The OSGi plugin adds the following methods. For more details, see the API documentation of the convention object.
 
 .OSGi methods
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Method
 | Return Type

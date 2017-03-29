@@ -15,7 +15,13 @@
 [[native_software]]
 == Building native software
 
-NOTE:  Support for building native software is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+Support for building native software is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+ 
+====
 
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.
 
@@ -57,7 +63,7 @@ Gradle offers the ability to execute the same build using different tool chains.
 
 The following tool chains are supported:
 
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Operating System
 | Tool Chain
@@ -90,7 +96,7 @@ The following tool chains are supported:
 
 The following tool chains are unofficially supported. They generally work fine, but are not tested continuously:
 
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Operating System
 | Tool Chain
@@ -121,7 +127,13 @@ The following tool chains are unofficially supported. They generally work fine, 
 [[sec:tool_chain_installation]]
 === Tool chain installation
 
-NOTE:  Note that if you are using GCC then you currently need to install support for C++, even if you are not building from C++ source. This restriction will be removed in a future Gradle version. 
+
+[NOTE]
+====
+ 
+Note that if you are using GCC then you currently need to install support for C++, even if you are not building from C++ source. This restriction will be removed in a future Gradle version.
+ 
+====
 
 To build native software, you will need to have a compatible tool chain installed:
 
@@ -138,7 +150,7 @@ Alternatively, you can install Cygwin with GCC or MinGW. Clang is currently not 
 
 To build on OS X, you should install XCode. The native plugins will discover the XCode installation using the system PATH.
 
-The native plugins also work with GCC and Clang bundled with Macports. To use one of the Macports tool chains, you will need to make the tool chain the default using the [userinput]#port select# command and add Macports to the system PATH.
+The native plugins also work with GCC and Clang bundled with Macports. To use one of the Macports tool chains, you will need to make the tool chain the default using the `port select` command and add Macports to the system PATH.
 
 [[sec:linux]]
 ==== Linux
@@ -210,14 +222,17 @@ In the following example, the build file defines `OpenSSL` as a dependency of `l
             </figure>
 ++++
   
-NOTE: By following the dependencies backwards, you can see `LinuxApp` and `WindowsApp` are _dependents_ of `libUtil`. When `libUtil` is changed, Gradle will need to recompile or relink `LinuxApp` and `WindowsApp`.
+[NOTE]
+====
+By following the dependencies backwards, you can see `LinuxApp` and `WindowsApp` are _dependents_ of `libUtil`. When `libUtil` is changed, Gradle will need to recompile or relink `LinuxApp` and `WindowsApp`.
+====
  
 
 When you _assemble_ dependents of a component, the component and all of its dependents are compiled and linked, including any test suite binaries. Gradle's up-to-date checks are used to only compile or link if something has changed. For instance, if you have changed source files in a way that do not affect the headers of your project, Gradle will be able to skip compilation for dependent components and only need to re-link with the new library. Tests are not run when assembling a component.
 
 When you _build_ dependents of a component, the component and all of its dependent binaries are compiled, linked _and checked_. Checking components means running any <<sec:check_tasks,check task>> including executing any test suites, so tests _are_ run when building a component.
 
-In the following sections, we will demonstrate the usage of the [userinput]#assembleDependents\*#, [userinput]#buildDependents\*# and [userinput]#dependentComponents# tasks with a sample build that contains a CUnit test suite. The build script for the sample is the following:
+In the following sections, we will demonstrate the usage of the `assembleDependents\*`, `buildDependents\*` and `dependentComponents` tasks with a sample build that contains a CUnit test suite. The build script for the sample is the following:
 
 ++++
 <sample id="nativeDependentComponentsSample" dir="native-binaries/cunit" title="Sample build" includeLocation="true">
@@ -229,7 +244,7 @@ In the following sections, we will demonstrate the usage of the [userinput]#asse
 [[sec:dependents_report]]
 ==== Dependent components report
 
-Gradle provides a report that you can run from the command-line that shows a graph of components in your project and components that depend upon them. The following is an example of running [userinput]#gradle dependentComponents# on the sample project:
+Gradle provides a report that you can run from the command-line that shows a graph of components in your project and components that depend upon them. The following is an example of running `gradle dependentComponents` on the sample project:
 
 ++++
 <sample id="nativeDependentComponentsReport" dir="native-binaries/cunit" title="Dependent components report">
@@ -237,9 +252,12 @@ Gradle provides a report that you can run from the command-line that shows a gra
             </sample>
 ++++
 
-NOTE: See api:org.gradle.api.reporting.dependents.DependentComponentsReport[] API documentation for more details.
+[NOTE]
+====
+See api:org.gradle.api.reporting.dependents.DependentComponentsReport[] API documentation for more details.
+====
 
-By default, non-buildable binaries and test suites are hidden from the report. The [userinput]#dependentComponents# task provides options that allow you to see all dependents by using the `--all` option:
+By default, non-buildable binaries and test suites are hidden from the report. The `dependentComponents` task provides options that allow you to see all dependents by using the `--all` option:
 
 ++++
 <sample id="nativeDependentComponentsReportAll" dir="native-binaries/cunit" title="Dependent components report">
@@ -267,11 +285,11 @@ Here is the corresponding report for the `operators` component, showing dependen
 [[sec:assemble_dependents]]
 ==== Assembling dependents
 
-For each api:org.gradle.nativeplatform.NativeBinarySpec[], Gradle will create a task named [userinput]#assembleDependents<replaceable>${component.name}${binary.variant}</replaceable># that _assembles_ (compile and link) the binary and all of its dependent binaries.
+For each api:org.gradle.nativeplatform.NativeBinarySpec[], Gradle will create a task named `assembleDependents`${component.name}${binary.variant}`` that _assembles_ (compile and link) the binary and all of its dependent binaries.
 
-For each api:org.gradle.nativeplatform.NativeComponentSpec[], Gradle will create a task named [userinput]#assembleDependents<replaceable>${component.name}</replaceable># that _assembles_ all the binaries of the component and all of their dependent binaries.
+For each api:org.gradle.nativeplatform.NativeComponentSpec[], Gradle will create a task named `assembleDependents`${component.name}`` that _assembles_ all the binaries of the component and all of their dependent binaries.
 
-For example, to assemble the dependents of the "passing" flavor of the "static" library binary of the "operators" component, you would run the [userinput]#assembleDependentsOperatorsPassingStaticLibrary# task:
+For example, to assemble the dependents of the "passing" flavor of the "static" library binary of the "operators" component, you would run the `assembleDependentsOperatorsPassingStaticLibrary` task:
 
 ++++
 <sample id="nativeAssembleDependentComponents" dir="native-binaries/cunit" title="Assemble components that depends on the passing/static binary of the operators component">
@@ -281,16 +299,16 @@ For example, to assemble the dependents of the "passing" flavor of the "static" 
 
 In the output above, the targeted binary gets assembled as well as the test suite binary that depends on it.
 
-You can also assemble _all_ of the dependents of a component (i.e. of all its binaries/variants) using the corresponding component task, e.g. [userinput]#assembleDependentsOperators#. This is useful if you have many combinations of build types, flavors and platforms and want to assemble all of them.
+You can also assemble _all_ of the dependents of a component (i.e. of all its binaries/variants) using the corresponding component task, e.g. `assembleDependentsOperators`. This is useful if you have many combinations of build types, flavors and platforms and want to assemble all of them.
 
 [[sec:build_dependents]]
 ==== Building dependents
 
-For each api:org.gradle.nativeplatform.NativeBinarySpec[], Gradle will create a task named [userinput]#buildDependents<replaceable>${component.name}${binary.variant}</replaceable># that _builds_ (compile, link and check) the binary and all of its dependent binaries.
+For each api:org.gradle.nativeplatform.NativeBinarySpec[], Gradle will create a task named `buildDependents`${component.name}${binary.variant}`` that _builds_ (compile, link and check) the binary and all of its dependent binaries.
 
-For each api:org.gradle.nativeplatform.NativeComponentSpec[], Gradle will create a task named [userinput]#buildDependents<replaceable>${component.name}</replaceable># that _builds_ all the binaries of the component and all of their dependent binaries.
+For each api:org.gradle.nativeplatform.NativeComponentSpec[], Gradle will create a task named `buildDependents`${component.name}`` that _builds_ all the binaries of the component and all of their dependent binaries.
 
-For example, to build the dependents of the "passing" flavor of the "static" library binary of the "operators" component, you would run the [userinput]#buildDependentsOperatorsPassingStaticLibrary# task:
+For example, to build the dependents of the "passing" flavor of the "static" library binary of the "operators" component, you would run the `buildDependentsOperatorsPassingStaticLibrary` task:
 
 ++++
 <sample id="nativeBuildDependentComponents" dir="native-binaries/cunit" title="Build components that depends on the passing/static binary of the operators component">
@@ -300,14 +318,14 @@ For example, to build the dependents of the "passing" flavor of the "static" lib
 
 In the output above, the targeted binary as well as the test suite binary that depends on it are built and the test suite has run.
 
-You can also build _all_ of the dependents of a component (i.e. of all its binaries/variants) using the corresponding component task, e.g. [userinput]#buildDependentsOperators#.
+You can also build _all_ of the dependents of a component (i.e. of all its binaries/variants) using the corresponding component task, e.g. `buildDependentsOperators`.
 
 [[sec:native_tasks]]
 === Tasks
 
 For each api:org.gradle.nativeplatform.NativeBinarySpec[] that can be produced by a build, a single _lifecycle task_ is constructed that can be used to create that binary, together with a set of other tasks that do the actual work of compiling, linking or assembling the binary.
 
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Component Type
 | Native Binary Type
@@ -316,18 +334,18 @@ For each api:org.gradle.nativeplatform.NativeBinarySpec[] that can be produced b
 
 | api:org.gradle.nativeplatform.NativeExecutableSpec[]
 | api:org.gradle.nativeplatform.NativeExecutableBinarySpec[]
-| `<replaceable>${component.name}</replaceable>Executable`
-| `<replaceable>${project.buildDir}</replaceable>/exe/<replaceable>${component.name}</replaceable>/<replaceable>${component.name}</replaceable>`
+| ``${component.name}`Executable`
+| ``${project.buildDir}`/exe/`${component.name}`/`${component.name}``
 
 | api:org.gradle.nativeplatform.NativeLibrarySpec[]
 | api:org.gradle.nativeplatform.SharedLibraryBinarySpec[]
-| `<replaceable>${component.name}</replaceable>SharedLibrary`
-| `<replaceable>${project.buildDir}</replaceable>/libs/<replaceable>${component.name}</replaceable>/shared/lib<replaceable>${component.name}</replaceable>.so`
+| ``${component.name}`SharedLibrary`
+| ``${project.buildDir}`/libs/`${component.name}`/shared/lib`${component.name}`.so`
 
 | api:org.gradle.nativeplatform.NativeLibrarySpec[]
 | api:org.gradle.nativeplatform.StaticLibraryBinarySpec[]
-| `<replaceable>${component.name}</replaceable>StaticLibrary`
-| `<replaceable>${project.buildDir}</replaceable>/libs/<replaceable>${component.name}</replaceable>/static/<replaceable>${component.name}</replaceable>.a`
+| ``${component.name}`StaticLibrary`
+| ``${project.buildDir}`/libs/`${component.name}`/static/`${component.name}`.a`
 |===
 
 
@@ -336,7 +354,7 @@ For each api:org.gradle.nativeplatform.NativeBinarySpec[] that can be produced b
 
 For each api:org.gradle.nativeplatform.NativeBinarySpec[] that can be produced by a build, a single _check task_ is constructed that can be used to assemble and check that binary.
 
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Component Type
 | Native Binary Type
@@ -344,15 +362,15 @@ For each api:org.gradle.nativeplatform.NativeBinarySpec[] that can be produced b
 
 | api:org.gradle.nativeplatform.NativeExecutableSpec[]
 | api:org.gradle.nativeplatform.NativeExecutableBinarySpec[]
-| `check<replaceable>${component.name}</replaceable>Executable`
+| `check`${component.name}`Executable`
 
 | api:org.gradle.nativeplatform.NativeLibrarySpec[]
 | api:org.gradle.nativeplatform.SharedLibraryBinarySpec[]
-| `check<replaceable>${component.name}</replaceable>SharedLibrary`
+| `check`${component.name}`SharedLibrary`
 
 | api:org.gradle.nativeplatform.NativeLibrarySpec[]
 | api:org.gradle.nativeplatform.StaticLibraryBinarySpec[]
-| `check<replaceable>${component.name}</replaceable>StaticLibrary`
+| `check`${component.name}`StaticLibrary`
 |===
 
 The built-in `check` task depends on all the _check tasks_ for binaries in the project. Without either <<native_binaries:cunit,CUnit>> or <<native_binaries:google_test,GoogleTest>> plugins, the binary check task only depends on the _lifecycle task_ that assembles the binary, see <<sec:native_tasks>>.
@@ -384,7 +402,7 @@ For each executable binary produced, the `cpp` plugin provides an `install${bina
 [[sec:finding_out_more_about_your_project]]
 === Finding out more about your project
 
-Gradle provides a report that you can run from the command-line that shows some details about the components and binaries that your project produces. To use this report, just run [userinput]#gradle components#. Below is an example of running this report for one of the sample projects:
+Gradle provides a report that you can run from the command-line that shows some details about the components and binaries that your project produces. To use this report, just run `gradle components`. Below is an example of running this report for one of the sample projects:
 
 ++++
 <sample id="nativeComponentReport" dir="native-binaries/cpp" title="The components report">
@@ -660,14 +678,21 @@ For a build type, a Gradle project will typically define a set of compiler/linke
             </sample>
 ++++
 
-NOTE: At this stage, it is completely up to the build script to configure the relevant compiler/linker flags for each build type. Future versions of Gradle will automatically include the appropriate debug flags for any 'debug' build type, and may be aware of various levels of optimisation as well.
+[NOTE]
+====
+At this stage, it is completely up to the build script to configure the relevant compiler/linker flags for each build type. Future versions of Gradle will automatically include the appropriate debug flags for any 'debug' build type, and may be aware of various levels of optimisation as well.
+====
+
 
 [[native_binaries:platform]]
 ==== Platform
 
 An executable or library can be built to run on different operating systems and cpu architectures, with a variant being produced for each platform. Gradle defines each OS/architecture combination as a api:org.gradle.nativeplatform.platform.NativePlatform[], and a project may define any number of platforms. If no platforms are defined in a project, then a single, default platform 'current' is added.
 
-NOTE: Presently, a `Platform` consists of a defined operating system and architecture. As we continue to develop the native binary support in Gradle, the concept of Platform will be extended to include things like C-runtime version, Windows SDK, ABI, etc. Sophisticated builds may use the extensibility of Gradle to apply additional attributes to each platform, which can then be queried to specify particular includes, preprocessor macros or compiler arguments for a native binary.
+[NOTE]
+====
+Presently, a `Platform` consists of a defined operating system and architecture. As we continue to develop the native binary support in Gradle, the concept of Platform will be extended to include things like C-runtime version, Windows SDK, ABI, etc. Sophisticated builds may use the extensibility of Gradle to apply additional attributes to each platform, which can then be queried to specify particular includes, preprocessor macros or compiler arguments for a native binary.
+====
 
 ++++
 <sample id="platforms" dir="native-binaries/variants" title="Defining platforms">
@@ -751,11 +776,14 @@ Each tool chain implementation allows for a certain degree of configuration (see
 
 It is not necessary or possible to specify the tool chain that should be used to build. For a given variant, Gradle will attempt to locate a api:org.gradle.nativeplatform.toolchain.NativeToolChain[] that is able to build for the target platform. Available tool chains are searched in the order defined.
 
-NOTE: When a platform does not define an architecture or operating system, the default target of the tool chain is assumed. So if a platform does not define a value for `operatingSystem`, Gradle will find the first available tool chain that can build for the specified `architecture`.
+[NOTE]
+====
+When a platform does not define an architecture or operating system, the default target of the tool chain is assumed. So if a platform does not define a value for `operatingSystem`, Gradle will find the first available tool chain that can build for the specified `architecture`.
+====
 
 The core Gradle tool chains are able to target the following architectures out of the box. In each case, the tool chain will target the current operating system. See the next section for information on cross-compiling for other operating systems.
 
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Tool Chain
 | Architectures
@@ -823,7 +851,11 @@ Gradle initialises the CUnit test registry and executes the tests, utilising som
             </sample>
 ++++
 
-NOTE: Due to this mechanism, your CUnit sources may not contain a `main` method since this will clash with the method provided by Gradle.
+[NOTE]
+====
+Due to this mechanism, your CUnit sources may not contain a `main` method since this will clash with the method provided by Gradle.
+====
+
 
 [[sec:building_cunit_executables]]
 ==== Building CUnit executables
@@ -836,12 +868,16 @@ A api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec[] component has an
             </sample>
 ++++
 
-NOTE: Both the CUnit sources provided by your project and the generated launcher require the core CUnit headers and libraries. Presently, this library dependency must be provided by your project for each api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[].
+[NOTE]
+====
+Both the CUnit sources provided by your project and the generated launcher require the core CUnit headers and libraries. Presently, this library dependency must be provided by your project for each api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[].
+====
+
 
 [[sec:running_cunit_tests]]
 ==== Running CUnit tests
 
-For each api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered CUnit tests. Test results will be found in the `<replaceable>${build.dir}</replaceable>/test-results` directory.
+For each api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered CUnit tests. Test results will be found in the ``${build.dir}`/test-results` directory.
 
 ++++
 <sample id="completeCUnitExample" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
@@ -850,12 +886,18 @@ For each api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[], Gr
             </sample>
 ++++
 
-NOTE:  The current support for CUnit is quite rudimentary. Plans for future integration include:  
+[NOTE]
+====
+ 
+The current support for CUnit is quite rudimentary. Plans for future integration include:
+  
 * Allow tests to be declared with Javadoc-style annotations.
 * Improved HTML reporting, similar to that available for JUnit.
 * Real-time feedback for test execution.
 * Support for additional test frameworks.
  
+====
+
 
 [[native_binaries:google_test]]
 === GoogleTest support
@@ -879,14 +921,23 @@ A api:org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec[] compon
             </sample>
 ++++
 
-NOTE: The GoogleTest sources provided by your project require the core GoogleTest headers and libraries. Presently, this library dependency must be provided by your project for each api:org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec[].
+[NOTE]
+====
+The GoogleTest sources provided by your project require the core GoogleTest headers and libraries. Presently, this library dependency must be provided by your project for each api:org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec[].
+====
+
 
 [[sec:running_googletest_tests]]
 ==== Running GoogleTest tests
 
-For each api:org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered GoogleTest tests. Test results will be found in the `<replaceable>${build.dir}</replaceable>/test-results` directory.
-NOTE:  The current support for GoogleTest is quite rudimentary. Plans for future integration include:  
+For each api:org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered GoogleTest tests. Test results will be found in the ``${build.dir}`/test-results` directory.
+[NOTE]
+====
+ 
+The current support for GoogleTest is quite rudimentary. Plans for future integration include:
+  
 * Improved HTML reporting, similar to that available for JUnit.
 * Real-time feedback for test execution.
 * Support for additional test frameworks.
  
+====

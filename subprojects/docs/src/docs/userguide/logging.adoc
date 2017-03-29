@@ -17,8 +17,9 @@
 
 The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden by this. On the other hand you need relevant information for figuring out if things have gone wrong. Gradle defines 6 log levels, as shown in <<logLevels>>. There are two Gradle-specific log levels, in addition to the ones you might normally see. Those levels are _QUIET_ and _LIFECYCLE_. The latter is the default, and is used to report build progress.
 
+[[logLevels]]
 .Log levels
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Level
 | Used for
@@ -48,8 +49,9 @@ The log is the main 'UI' of a build tool. If it is too verbose, real warnings an
 
 You can use the command line switches shown in <<logLevelCommandLineOptions>> to choose different log levels. In <<stacktraces>> you find the command line switches which affect stacktrace logging.
 
+[[logLevelCommandLineOptions]]
 .Log level command-line options
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Option
 | Outputs Log Levels
@@ -70,8 +72,9 @@ You can use the command line switches shown in <<logLevelCommandLineOptions>> to
 | DEBUG and higher (that is, all log messages)
 |===
 
+[[stacktraces]]
 .Stacktrace command-line options
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Option
 | Meaning

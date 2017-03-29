@@ -24,7 +24,7 @@ In the introductory tutorial (<<tutorial_using_tasks>>) you learned how to creat
 When Gradle executes a task, it can label the task with different outcomes in the console UI and via the Tooling API (see <<embedding>>). These labels are based on if a task has actions to execute, if it should execute those actions, if it did execute those actions and if those actions made any changes.
 
 .Details about task outcomes
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Outcome label | Description of outcome | Situations that have this outcome 
 
@@ -170,10 +170,14 @@ You can also use a configuration closure when you define a task.
         </sample>
 ++++
 
-TIP:  .Don't forget about the build phases
+[TIP]
+====
+ .Don't forget about the build phases
   
 A task has both configuration and actions. When using the `&lt;&lt;`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle>> for more details about the build lifecycle.
  
+====
+
 
 [[sec:adding_dependencies_to_tasks]]
 === Adding dependencies to a task
@@ -210,7 +214,13 @@ For more information about task dependencies, see the api:org.gradle.api.Task[] 
 [[sec:ordering_tasks]]
 === Ordering tasks
 
-NOTE:  Task ordering is an <<feature_lifecycle,incubating>> feature. Please be aware that this feature may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+Task ordering is an <<feature_lifecycle,incubating>> feature. Please be aware that this feature may change in later Gradle versions.
+ 
+====
 
 In some cases it is useful to control the _order_ in which 2 tasks will execute, without introducing an explicit dependency between those tasks. The primary difference between a task _ordering_ and a task _dependency_ is that an ordering rule does not influence which tasks will be executed, only the order in which they will be executed.
 
@@ -269,7 +279,7 @@ As mentioned before, the “should run after” ordering rule will be ignored if
 [[sec:adding_a_description_to_a_task]]
 === Adding a description to a task
 
-You can add a description to your task. This description is displayed when executing [userinput]#gradle tasks#.
+You can add a description to your task. This description is displayed when executing `gradle tasks`.
 
 ++++
 <sample id="describeTask" dir="userguide/tasks/defineAndConfigure" title="Adding a description to a task">
@@ -323,7 +333,7 @@ If the logic for skipping a task can't be expressed with a predicate, you can us
         </sample>
 ++++
 
-This feature is helpful if you work with tasks provided by Gradle. It allows you to add _conditional_ execution of the built-in actions of such a task. footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script (see <<script-default-imports>>).] 
+This feature is helpful if you work with tasks provided by Gradle. It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script (see <<script-default-imports>>).] 
 
 [[sec:enabling_and_disabling_tasks]]
 ==== Enabling and disabling tasks
@@ -433,7 +443,7 @@ This example is particularly interesting because it works with collections of so
 Now that you have seen some of the input and output annotations in practice, let’s take a look at all the annotations available to you and when you should use them. The table below lists the available annotations and the corresponding property type you can use with each one.
 
 .Incremental build property type annotations
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Annotation | Expected property type | Description 
 
@@ -456,7 +466,13 @@ Now that you have seen some of the input and output annotations in practice, let
 | `@api:org.gradle.api.tasks.Classpath[]`
 | `Iterable&lt;File&gt;`\*
 | An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). 
-NOTE:  To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`. 
+[NOTE]
+====
+ 
+To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`.
+ 
+====
+
 
 | `@api:org.gradle.api.tasks.CompileClasspath[]`
 | `Iterable&lt;File&gt;`\*
@@ -470,7 +486,13 @@ NOTE:  To stay compatible with Gradle versions before 3.2, classpath properties 
 * Changes to debug information, for example when a change to a comment affects the line numbers in class debug information.
 * Changes to directories, including directory entries in Jars.
 
-NOTE:  To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`. 
+[NOTE]
+====
+ 
+To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`.
+ 
+====
+
 
 | `@api:org.gradle.api.tasks.OutputFile[]`
 | `File`\*
@@ -501,16 +523,22 @@ NOTE:  To stay compatible with Gradle versions before 3.2, classpath properties 
 | Indicates that the property is used internally but is neither an input nor an output.
 |===
 
-NOTE: | _\*_ In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are `Iterable&lt;File&gt;`s.
+
+[NOTE]
+====
+| _\*_ In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are `Iterable&lt;File&gt;`s.
 
 | _\*\*_ Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in `Callable`s, such as closures.
 
+====
+
 .Additional annotations used to further qualifying property type annotations
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Annotation | Description 
 
-| <anchor id="skip-when-empty"/>`@api:org.gradle.api.tasks.SkipWhenEmpty[]`
+| <anchor>[[skip-when-empty]]
+</anchor>`@api:org.gradle.api.tasks.SkipWhenEmpty[]`
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 | `@api:org.gradle.api.tasks.Optional[]`
@@ -519,7 +547,13 @@ NOTE: | _\*_ In fact, `File` can be any type accepted by api:org.gradle.api.Proj
 | `@api:org.gradle.api.tasks.OrderSensitive[]`
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle that a change in the order of the files should mark the task out-of-date.
 
-NOTE:  This functionality is deprecated and will be removed in Gradle 4.0. For classpath properties, use `@Classpath` instead. 
+[NOTE]
+====
+ 
+This functionality is deprecated and will be removed in Gradle 4.0. For classpath properties, use `@Classpath` instead.
+ 
+====
+
 
 | `@api:org.gradle.api.tasks.PathSensitive[]`
 | Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
@@ -789,7 +823,7 @@ Sometimes you want to have a task whose behavior depends on a large or infinite 
         </sample>
 ++++
 
-The String parameter is used as a description for the rule, which is shown with [userinput]#gradle tasks#.
+The String parameter is used as a description for the rule, which is shown with `gradle tasks`.
 
 Rules are not only used when calling tasks from the command line. You can also create dependsOn relations on rule based tasks:
 
@@ -805,7 +839,13 @@ If you run “`gradle -q tasks`” you won't find a task named “`pingServer1`�
 [[sec:finalizer_tasks]]
 === Finalizer tasks
 
-NOTE:  Finalizers tasks are an _incubating_ feature (see <<sec:incubating_state>>). 
+
+[NOTE]
+====
+ 
+Finalizers tasks are an _incubating_ feature (see <<sec:incubating_state>>).
+ 
+====
 
 Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
 

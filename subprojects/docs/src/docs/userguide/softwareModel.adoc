@@ -15,7 +15,13 @@
 [[software_model]]
 == Rule based model configuration
 
-NOTE:  Support for rule based configuration is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+Support for rule based configuration is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+ 
+====
 
 Rule based model configuration enables _configuration logic to itself have dependencies_ on other elements of configuration, and to make use of the resolved states of those other elements of configuration while performing its own configuration.
 
@@ -140,7 +146,7 @@ By defining a getter/setter pair, you are effectively declaring a managed proper
 
 Managed properties can be of any scalar type. In addition, properties can also be of any type which is itself managed:
 
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Property type
 | Nullable
@@ -243,7 +249,7 @@ Managed types can be defined out of interfaces or abstract classes and are usual
 There are particular types (language types) supported by the model space and can be generalised as follows:
 
 .Type definitions
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Type | Definition 
 | Scalar
@@ -270,7 +276,7 @@ There are particular types (language types) supported by the model space and can
 There are various contexts in which these types can be used:
 
 .Model type support
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Context | Supported types 
 | Creating top level model elements
@@ -354,9 +360,12 @@ In the example below, a `@Defaults` rule is applied to each <code>FileItem</code
 
 In addition to using a RuleSource, it is also possible to declare a model and rules directly in a build script using the “model DSL”.
 
-TIP:  
+[TIP]
+====
+ 
 The model DSL makes heavy use of various Groovy DSL features. Please have a read of <<groovy-dsl-basics>> for an introduction to these Groovy features.
  
+====
 
 The general form of the model DSL is:
 
@@ -470,9 +479,12 @@ Notice that the creation rule appears in the build script _after_ the configurat
 
 Most DSL rules take a closure containing some code to run to configure the subject. The code you can use in this closure depends on the type of the subject of the rule.
 
-TIP:  
+[TIP]
+====
+ 
 You can use the <<model-report,model report>> to determine the type of a particular model element.
  
+====
 
 In general, a rule closure may contain arbitrary code, mixed with some type specific DSL syntax.
 
@@ -528,7 +540,11 @@ A rule closure can also configure the properties of the element using nested clo
                 </sample>
 ++++
 
-NOTE: Currently, the nested closures do not define rules and are executed immediately. Please be aware that this behaviour will change in a future Gradle release.
+[NOTE]
+====
+Currently, the nested closures do not define rules and are executed immediately. Please be aware that this behaviour will change in a future Gradle release.
+====
+
 
 [[sec:all_other_subjects]]
 ===== All other subjects
@@ -597,7 +613,7 @@ When you use a api:org.gradle.model.ModelMap[] as input, each item in the map is
 The built-in api:org.gradle.api.reporting.model.ModelReport[] task displays a hierarchical view of the elements in the model space. Each item prefixed with a `+` on the model report is a model element and the visual nesting of these elements correlates to the model path (e.g. `tasks.help`). The model report displays the following details about each model element:
 
 .Model report - model element details
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Detail
 | Description

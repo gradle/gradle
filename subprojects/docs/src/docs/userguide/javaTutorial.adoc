@@ -40,9 +40,12 @@ Let's look at a simple example. To use the Java plugin, add the following to you
 
 This is all you need to define a Java project. This will apply the Java plugin to your project, which adds a number of tasks to your project.
 
-TIP:  .What tasks are available?
+[TIP]
+====
+ .What tasks are available?
   
-You can use [userinput]#gradle tasks# to list the tasks of a project. This will let you see the tasks that the Java plugin has added to your project.
+You can use `gradle tasks` to list the tasks of a project. This will let you see the tasks that the Java plugin has added to your project.
+====
 
 Gradle expects to find your production source code under `src/main/java` and your test source code under `src/test/java`. In addition, any files under `src/main/resources` will be included in the JAR file as resources, and any files under `src/test/resources` will be included in the classpath used to run the tests. All output files are created under the `build` directory, with the JAR file ending up in the `build/libs` directory.
 
@@ -50,7 +53,7 @@ Gradle expects to find your production source code under `src/main/java` and you
 [[sec:building_the_project]]
 ==== Building the project
 
-The Java plugin adds quite a few tasks to your project. However, there are only a handful of tasks that you will need to use to build the project. The most commonly used task is the `build` task, which does a full build of the project. When you run [userinput]#gradle build#, Gradle will compile and test your code, and create a JAR file containing your main classes and resources:
+The Java plugin adds quite a few tasks to your project. However, there are only a handful of tasks that you will need to use to build the project. The most commonly used task is the `build` task, which does a full build of the project. When you run `gradle build`, Gradle will compile and test your code, and create a JAR file containing your main classes and resources:
 
 ++++
 <sample id="javaQuickstart" dir="java/quickstart" title="Building a Java project">
@@ -60,7 +63,13 @@ The Java plugin adds quite a few tasks to your project. However, there are only 
 
 Some other useful tasks are:
 
-clean::Deletes the `build` directory, removing all built files.assemble::Compiles and jars your code, but does not run the unit tests. Other plugins add more artifacts to this task. For example, if you use the War plugin, this task will also build the WAR file for your project.check::Compiles and tests your code. Other plugins add more checks to this task. For example, if you use the `checkstyle` plugin, this task will also run Checkstyle against your source code.
+clean::
+Deletes the `build` directory, removing all built files.
+assemble::
+Compiles and jars your code, but does not run the unit tests. Other plugins add more artifacts to this task. For example, if you use the War plugin, this task will also build the WAR file for your project.
+check::
+Compiles and tests your code. Other plugins add more checks to this task. For example, if you use the `checkstyle` plugin, this task will also run Checkstyle against your source code.
+
 
 
 [[sec:java_external_dependencies]]
@@ -95,9 +104,12 @@ The Java plugin adds a number of properties to your project. These properties ha
             </sample>
 ++++
 
-TIP:  .What properties are available?
+[TIP]
+====
+ .What properties are available?
   
-You can use [userinput]#gradle properties# to list the properties of a project. This will allow you to see the properties added by the Java plugin, and their default values.
+You can use `gradle properties` to list the properties of a project. This will allow you to see the properties added by the Java plugin, and their default values.
+====
 
 The tasks which the Java plugin adds are regular tasks, exactly the same as if they were declared in the build file. This means you can use any of the mechanisms shown in earlier chapters to customize these tasks. For example, you can set the properties of a task, add behaviour to a task, change the dependencies of a task, or replace a task entirely. In our sample, we will configure the `test` task, which is of type api:org.gradle.api.tasks.testing.Test[], to add a system property when the tests are executed:
 
@@ -119,7 +131,7 @@ Usually the JAR file needs to be published somewhere. To do this, you need to te
             </sample>
 ++++
 
-To publish the JAR file, run [userinput]#gradle uploadArchives#.
+To publish the JAR file, run `gradle uploadArchives`.
 
 [[sec:creating_an_eclipse_project]]
 ==== Creating an Eclipse project
@@ -132,7 +144,7 @@ To create the Eclipse-specific descriptor files, like `.project`, you need to ad
             </sample>
 ++++
 
-Now execute [userinput]#gradle eclipse# command to generate Eclipse project files. More information about the `eclipse` task can be found in <<eclipse_plugin>>.
+Now execute `gradle eclipse` command to generate Eclipse project files. More information about the `eclipse` task can be found in <<eclipse_plugin>>.
 
 [[sec:summary]]
 ==== Summary
@@ -189,7 +201,7 @@ For most multi-project builds, there is some configuration which is common to al
             </sample>
 ++++
 
-Notice that our sample applies the Java plugin to each subproject. This means the tasks and configuration properties we have seen in the previous section are available in each subproject. So, you can compile, test, and JAR all the projects by running [userinput]#gradle build# from the root project directory.
+Notice that our sample applies the Java plugin to each subproject. This means the tasks and configuration properties we have seen in the previous section are available in each subproject. So, you can compile, test, and JAR all the projects by running `gradle build` from the root project directory.
 
 Also note that these plugins are only applied within the `subprojects` section, not at the root level, so the root build will not expect to find Java source files in the root project, only in the subprojects.
 

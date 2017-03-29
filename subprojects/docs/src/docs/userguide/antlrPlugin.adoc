@@ -17,7 +17,12 @@
 
 The ANTLR plugin extends the Java plugin to add support for generating parsers using http://www.antlr.org/[ANTLR].
 
-NOTE:  The ANTLR plugin supports ANTLR version 2, 3 and 4. 
+[NOTE]
+====
+ 
+The ANTLR plugin supports ANTLR version 2, 3 and 4.
+ 
+====
 
 
 [[sec:antlr_usage]]
@@ -38,7 +43,7 @@ To use the ANTLR plugin, include the following in your build script:
 The ANTLR plugin adds a number of tasks to your project, as shown below.
 
 .ANTLR plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -55,7 +60,7 @@ The ANTLR plugin adds a number of tasks to your project, as shown below.
 | api:org.gradle.api.plugins.antlr.AntlrTask[]
 | Generates the source files for all test ANTLR grammars.
 
-| `generate<replaceable>SourceSet</replaceable>GrammarSource`
+| `generate`SourceSet`GrammarSource`
 | -
 | api:org.gradle.api.plugins.antlr.AntlrTask[]
 | Generates the source files for all ANTLR grammars for the given source set.
@@ -64,7 +69,7 @@ The ANTLR plugin adds a number of tasks to your project, as shown below.
 The ANTLR plugin adds the following dependencies to tasks added by the Java plugin.
 
 .ANTLR plugin - additional task dependencies
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -74,8 +79,8 @@ The ANTLR plugin adds the following dependencies to tasks added by the Java plug
 | compileTestJava
 | generateTestGrammarSource
 
-| compile<replaceable>SourceSet</replaceable>Java
-| generate<replaceable>SourceSet</replaceable>GrammarSource
+| compile`SourceSet`Java
+| generate`SourceSet`GrammarSource
 |===
 
 
@@ -84,7 +89,7 @@ The ANTLR plugin adds the following dependencies to tasks added by the Java plug
 
 
 .ANTLR plugin - project layout
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Directory
 | Meaning
@@ -95,7 +100,7 @@ The ANTLR plugin adds the following dependencies to tasks added by the Java plug
 | `src/test/antlr`
 | Test ANTLR grammar files.
 
-| `src/<replaceable>sourceSet</replaceable>/antlr`
+| `src/`sourceSet`/antlr`
 | ANTLR grammar files for the given source set.
 |===
 
@@ -124,7 +129,7 @@ The ANTLR plugin does not add any convention properties.
 The ANTLR plugin adds the following properties to each source set in the project.
 
 .ANTLR plugin - source set properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type
@@ -138,7 +143,7 @@ The ANTLR plugin adds the following properties to each source set in the project
 
 | `antlr.srcDirs`
 | `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/antlr]`
+| `[`projectDir`/src/`name`/antlr]`
 | The source directories containing the ANTLR grammar files of this source set.
 |===
 

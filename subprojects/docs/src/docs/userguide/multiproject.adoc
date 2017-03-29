@@ -401,7 +401,7 @@ On the same nesting level the configuration order depends on the alphanumeric po
 [[sub:real_life_examples]]
 ==== Real life examples
 
-Gradle's multi-project features are driven by real life use cases. One good example consists of two web application projects and a parent project that creates a distribution including the two web applications. footnote:[The real use case we had, was using http://lucene.apache.org/solr[], where you need a separate war for each index you are accessing. That was one reason why we have created a distribution of webapps. The Resin servlet container allows us, to let such a distribution point to a base installation of the servlet container.] For the example we use only one build script and do _cross project configuration_.
+Gradle's multi-project features are driven by real life use cases. One good example consists of two web application projects and a parent project that creates a distribution including the two web applications.footnote:[The real use case we had, was using http://lucene.apache.org/solr[], where you need a separate war for each index you are accessing. That was one reason why we have created a distribution of webapps. The Resin servlet container allows us, to let such a distribution point to a base installation of the servlet container.] For the example we use only one build script and do _cross project configuration_.
 
 ++++
 <sample id="webdist" dir="userguide/multiproject/dependencies/webDist" includeLocation="true" title="Dependencies - real life example - crossproject configuration">
@@ -450,7 +450,7 @@ What if one project needs the jar produced by another project in its compile pat
         </sample>
 ++++
 
-We have the projects “`shared`”, “`api`” and “`personService`”. The “`personService`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project. footnote:[“`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script.] 
+We have the projects “`shared`”, “`api`” and “`personService`”. The “`personService`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.footnote:[“`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script.] 
 
 ++++
 <sample id="javadependencies_2" dir="userguide/multiproject/dependencies/java" title="Project lib dependencies">
@@ -459,7 +459,7 @@ We have the projects “`shared`”, “`api`” and “`personService`”. The 
         </sample>
 ++++
 
-All the build logic is in the “`build.gradle`” file of the root project. footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “[userinput]#gradle compile#”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
+All the build logic is in the “`build.gradle`” file of the root project.footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “`gradle compile`”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
 
 If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might expect some more fine grained control. Gradle offers this to you:
 
@@ -578,4 +578,4 @@ You might be wondering why we have implemented a feature we obviously don't like
 [[sec:multiproject_summary]]
 === Summary
 
-Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message for this chapter is that multi-project builds with Gradle are usually _not_ difficult. There are five elements you need to remember: `allprojects`, `subprojects`, `evaluationDependsOn`, `evaluationDependsOnChildren` and project lib dependencies. footnote:[So we are well in the range of the http://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two[7 plus 2 Rule] :)] With those elements, and keeping in mind that Gradle has a distinct configuration and execution phase, you already have a lot of flexibility. But when you enter steep territory Gradle does not become an obstacle and usually accompanies and carries you to the top of the mountain.
+Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message for this chapter is that multi-project builds with Gradle are usually _not_ difficult. There are five elements you need to remember: `allprojects`, `subprojects`, `evaluationDependsOn`, `evaluationDependsOnChildren` and project lib dependencies.footnote:[So we are well in the range of the http://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two[7 plus 2 Rule] :)] With those elements, and keeping in mind that Gradle has a distinct configuration and execution phase, you already have a lot of flexibility. But when you enter steep territory Gradle does not become an obstacle and usually accompanies and carries you to the top of the mountain.

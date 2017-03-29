@@ -21,9 +21,9 @@ This chapter introduces the basics of the Gradle command-line. You run a build u
 [[sec:executing_multiple_tasks]]
 === Executing multiple tasks
 
-You can execute multiple tasks in a single build by listing each of the tasks on the command-line. For example, the command [userinput]#gradle compile test# will execute the `compile` and `test` tasks. Gradle will execute the tasks in the order that they are listed on the command-line, and will also execute the dependencies for each task. Each task is executed once only, regardless of how it came to be included in the build: whether it was specified on the command-line, or as a dependency of another task, or both. Let's look at an example.
+You can execute multiple tasks in a single build by listing each of the tasks on the command-line. For example, the command `gradle compile test` will execute the `compile` and `test` tasks. Gradle will execute the tasks in the order that they are listed on the command-line, and will also execute the dependencies for each task. Each task is executed once only, regardless of how it came to be included in the build: whether it was specified on the command-line, or as a dependency of another task, or both. Let's look at an example.
 
-Below four tasks are defined. Both `dist` and `test` depend on the `compile` task. Running [userinput]#gradle dist test# for this build script results in the `compile` task being executed only once.
+Below four tasks are defined. Both `dist` and `test` depend on the `compile` task. Running `gradle dist test` for this build script results in the `compile` task being executed only once.
 
 ++++
 <figure>
@@ -41,7 +41,7 @@ Below four tasks are defined. Both `dist` and `test` depend on the `compile` tas
         </sample>
 ++++
 
-Each task is executed only once, so [userinput]#gradle test test# is exactly the same as [userinput]#gradle test#.
+Each task is executed only once, so `gradle test test` is exactly the same as `gradle test`.
 
 [[sec:excluding_tasks_from_the_command_line]]
 === Excluding tasks
@@ -68,7 +68,7 @@ If a task fails, any subsequent tasks that were depending on it will not be exec
 [[sec:task_name_abbreviation]]
 === Task name abbreviation
 
-When you specify tasks on the command-line, you don't have to provide the full name of the task. You only need to provide enough of the task name to uniquely identify the task. For example, in the sample build above, you can execute task `dist` by running [userinput]#gradle d#:
+When you specify tasks on the command-line, you don't have to provide the full name of the task. You only need to provide enough of the task name to uniquely identify the task. For example, in the sample build above, you can execute task `dist` by running `gradle d`:
 
 ++++
 <sample id="abbreviateTaskName" dir="userguide/tutorial/excludeTasks" title="Abbreviated task name">
@@ -76,7 +76,7 @@ When you specify tasks on the command-line, you don't have to provide the full n
         </sample>
 ++++
 
-You can also abbreviate each word in a camel case task name. For example, you can execute task `compileTest` by running [userinput]#gradle compTest# or even [userinput]#gradle cT#
+You can also abbreviate each word in a camel case task name. For example, you can execute task `compileTest` by running `gradle compTest` or even `gradle cT`
 
 ++++
 <sample id="abbreviateCamelCaseTaskName" dir="userguide/tutorial/excludeTasks" title="Abbreviated camel case task name">
@@ -135,7 +135,7 @@ In addition to the built-in tasks shown below, you can also use the <<project_re
 [[sec:listing_projects]]
 ==== Listing projects
 
-Running [userinput]#gradle projects# gives you a list of the sub-projects of the selected project, displayed in a hierarchy. Here is an example:
+Running `gradle projects` gives you a list of the sub-projects of the selected project, displayed in a hierarchy. Here is an example:
 
 ++++
 <sample id="projectListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about projects">
@@ -155,7 +155,7 @@ The report shows the description of each project, if specified. You can provide 
 [[sec:listing_tasks]]
 ==== Listing tasks
 
-Running [userinput]#gradle tasks# gives you a list of the main tasks of the selected project. This report shows the default tasks for the project, if any, and a description for each task. Below is an example of this report:
+Running `gradle tasks` gives you a list of the main tasks of the selected project. This report shows the default tasks for the project, if any, and a description for each task. Below is an example of this report:
 
 ++++
 <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
@@ -183,7 +183,7 @@ You can obtain more information in the task listing using the `--all` option. Wi
 [[sec:show_task_details]]
 ==== Show task usage details
 
-Running [userinput]#gradle help --task someTask# gives you detailed information about a specific task or multiple tasks matching the given task name in your multi-project build. Below is an example of this detailed information:
+Running `gradle help --task someTask` gives you detailed information about a specific task or multiple tasks matching the given task name in your multi-project build. Below is an example of this detailed information:
 
 ++++
 <sample id="taskHelp" dir="userguide/tutorial/projectReports" title="Obtaining detailed help for tasks">
@@ -196,7 +196,7 @@ This information includes the full task path, the task type, possible commandlin
 [[sec:listing_dependencies]]
 ==== Listing project dependencies
 
-Running [userinput]#gradle dependencies# gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below is an example of this report:
+Running `gradle dependencies` gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below is an example of this report:
 
 ++++
 <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
@@ -204,7 +204,7 @@ Running [userinput]#gradle dependencies# gives you a list of the dependencies of
             </sample>
 ++++
 
-Since a dependency report can get large, it can be useful to restrict the report to a particular configuration. This is achieved with the optional [userinput]#--configuration# parameter:
+Since a dependency report can get large, it can be useful to restrict the report to a particular configuration. This is achieved with the optional `--configuration` parameter:
 
 ++++
 <sample id="dependencyListReportFiltered" dir="userguide/tutorial/projectReports" title="Filtering dependency report by configuration">
@@ -216,12 +216,12 @@ Since a dependency report can get large, it can be useful to restrict the report
 [[sec:listing_buildscript_dependencies]]
 ==== Listing project buildscript dependencies
 
-Running [userinput]#gradle buildEnvironment# visualises the buildscript dependencies of the selected project, similarly to how [userinput]#gradle dependencies# visualises the dependencies of the software being built.
+Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualises the dependencies of the software being built.
 
 [[sec:dependency_insight]]
 ==== Getting the insight into a particular dependency
 
-Running [userinput]#gradle dependencyInsight# gives you an insight into a particular dependency (or dependencies) that match specified input. Below is an example of this report:
+Running `gradle dependencyInsight` gives you an insight into a particular dependency (or dependencies) that match specified input. Below is an example of this report:
 
 ++++
 <sample id="dependencyInsightReport" dir="userguide/tutorial/projectReports" title="Getting the insight into a particular dependency">
@@ -236,7 +236,7 @@ The built-in dependencyInsight task is a part of the 'Help' tasks group. The tas
 [[sec:listing_properties]]
 ==== Listing project properties
 
-Running [userinput]#gradle properties# gives you a list of the properties of the selected project. This is a snippet from the output:
+Running `gradle properties` gives you a list of the properties of the selected project. This is a snippet from the output:
 
 ++++
 <sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">
@@ -248,7 +248,7 @@ Running [userinput]#gradle properties# gives you a list of the properties of the
 [[sec:profiling_build]]
 ==== Profiling a build
 
-The [userinput]#--profile# command line option will record some useful timing information while your build is running and write a report to the `build/reports/profile` directory. The report will be named using the time when the build was run.
+The `--profile` command line option will record some useful timing information while your build is running and write a report to the `build/reports/profile` directory. The report will be named using the time when the build was run.
 
 This report lists summary times and details for both the configuration phase and task execution. The times for configuration and task execution are sorted with the most expensive operations first. The task execution results also indicate if any tasks were skipped (and the reason) or if tasks that were not skipped did no work.
 
@@ -258,7 +258,7 @@ Builds which utilize a buildSrc directory will generate a second profile report 
 [[sec:dry_run]]
 === Dry Run
 
-Sometimes you are interested in which tasks are executed in which order for a given set of tasks specified on the command line, but you don't want the tasks to be executed. You can use the `-m` option for this. For example, if you run “[userinput]#gradle -m clean compile#”, you'll see all the tasks that would be executed as part of the `clean` and `compile` tasks. This is complementary to the `tasks` task, which shows you the tasks which are available for execution.
+Sometimes you are interested in which tasks are executed in which order for a given set of tasks specified on the command line, but you don't want the tasks to be executed. You can use the `-m` option for this. For example, if you run “`gradle -m clean compile`”, you'll see all the tasks that would be executed as part of the `clean` and `compile` tasks. This is complementary to the `tasks` task, which shows you the tasks which are available for execution.
 
 [[sec:cli_tutorial_summary]]
 === Summary

@@ -15,7 +15,13 @@
 [[java_software]]
 == Building Java Libraries
 
-NOTE:  Support for building Java libraries using the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+Support for building Java libraries using the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+ 
+====
 
 The Java software plugins are intended to replace the <<java_plugin,Java plugin>>, and leverage the Gradle <<software_model,software model>> to achieve the best performance, improved expressiveness and support for variant-aware dependency management.
 
@@ -70,7 +76,7 @@ This example creates a library named `main`, which will implicitly create a api:
 Source sets represent logical groupings of source files in a library. A library can define multiple source sets and all sources will be compiled and included in the resulting binaries. When a library is added to a build, the following source sets are added by default.
 
 .Java plugin - default source sets
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Source Set
 | Type
@@ -107,10 +113,11 @@ It is also possible to create an additional source set, using the api:org.gradle
 
 By default, when the plugins above are applied, no new tasks are added to the build. However, when libraries are defined, conventional tasks are added which build and package each binary of the library.
 
-For each binary of a library, a single lifecycle task is created which executes all tasks associated with building the binary. To build all binaries, the standard [userinput]#build# lifecycle task can be used.
+For each binary of a library, a single lifecycle task is created which executes all tasks associated with building the binary. To build all binaries, the standard `build` lifecycle task can be used.
 
+[[java_lifecycle_tasks]]
 .Java plugin - lifecycle tasks
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Component Type
 | Binary Type
@@ -123,8 +130,9 @@ For each binary of a library, a single lifecycle task is created which executes 
 
 For each source set added to a library, tasks are added to compile or process the source files for each binary.
 
+[[java_sourceset_tasks]]
 .Java plugin - source set tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Source Set Type
 | Task name
@@ -144,8 +152,9 @@ For each source set added to a library, tasks are added to compile or process th
 
 For each binary in a library, a packaging task is added to create the jar for that binary.
 
+[[java_packaging_tasks]]
 .Java plugin - packaging tasks
-[cols="a,a,a,a,a"]
+[cols="a,a,a,a,a", options="header"]
 |===
 | Binary Type
 | Task name
@@ -164,7 +173,7 @@ For each binary in a library, a packaging task is added to create the jar for th
 [[sec:java_libraries_finding_out_more_about_your_project]]
 === Finding out more about your project
 
-Gradle provides a report that you can run from the command-line that shows details about the components and binaries that your project produces. To use this report, just run [userinput]#gradle components#. Below is an example of running this report for one of the sample projects:
+Gradle provides a report that you can run from the command-line that shows details about the components and binaries that your project produces. To use this report, just run `gradle components`. Below is an example of running this report for one of the sample projects:
 
 ++++
 <sample id="javaLibraryComponentReport" dir="javaLibraryPlugin/quickstart" title="The components report">
@@ -270,7 +279,14 @@ By default, all `public` types of a library are considered to be part of its API
 
 By default, dependencies of a library are _not_ considered to be part of its API. By explicitly declaring a dependency as part of the library API, this dependency will then be made available to consumers when compiling. Dependencies declared this way are considered to be _exported_, and are known as 'API dependencies'.
 
-NOTE:  JDK 9 will introduce _Jigsaw_, the reference implementation of the _Java Module System_. Jigsaw will provide both compile-time and run-time enforcement of API encapsulation.  Gradle anticipates the arrival of JDK 9 and the Java Module System with an approach to specifying and enforcing API encapsulation at compile-time. This allows Gradle users to leverage the many benefits of strong encapsulation, and prepare their software projects for migration to JDK 9. 
+[NOTE]
+====
+ 
+JDK 9 will introduce _Jigsaw_, the reference implementation of the _Java Module System_. Jigsaw will provide both compile-time and run-time enforcement of API encapsulation.
+  
+Gradle anticipates the arrival of JDK 9 and the Java Module System with an approach to specifying and enforcing API encapsulation at compile-time. This allows Gradle users to leverage the many benefits of strong encapsulation, and prepare their software projects for migration to JDK 9.
+ 
+====
 
 
 [[sec:some_terminology]]

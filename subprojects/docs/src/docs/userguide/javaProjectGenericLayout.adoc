@@ -11,11 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-| `src/<replaceable>sourceSet</replaceable>/java`
+| `src/`sourceSet`/java`
 | 
 | Java source for the given source set
 
-| `src/<replaceable>sourceSet</replaceable>/resources`
+| `src/`sourceSet`/resources`
 | 
 | Resources for the given source set
 

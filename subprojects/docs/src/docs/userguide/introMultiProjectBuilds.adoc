@@ -30,7 +30,7 @@ Such builds come in all shapes and sizes, but they do have some common character
 * Child directories that have their own `\*.gradle` build files (some multi-project builds may omit child project build scripts)
  
 
-The `settings.gradle` file tells Gradle how the project and subprojects are structured. Fortunately, you don’t have to read this file simply to learn what the project structure is as you can run the command [userinput]#gradle projects#. Here's the output from using that command on the Java _multiproject_ build in the Gradle samples: 
+The `settings.gradle` file tells Gradle how the project and subprojects are structured. Fortunately, you don’t have to read this file simply to learn what the project structure is as you can run the command `gradle projects`. Here's the output from using that command on the Java _multiproject_ build in the Gradle samples: 
 ++++
 <sample id="listProjects" dir="java/multiproject" title="Listing the projects in a build">
                 <output args="-q projects"/>
@@ -54,18 +54,18 @@ Once you know what subprojects are available, the key question for a build user 
 === Executing a multi-project build
 
 From a user's perspective, multi-project builds are still collections of tasks you can run. The difference is that you may want to control _which_ project's tasks get executed. You have two options here: 
-* Change to the directory corresponding to the subproject you’re interested in and just execute [userinput]#gradle &lt;task&gt;# as normal.
-* Use a qualified task name from any directory, although this is usually done from the root. For example: [userinput]#gradle :services:webservice:build# will build the _webservice_ subproject and any subprojects it depends on.
+* Change to the directory corresponding to the subproject you’re interested in and just execute `gradle &lt;task&gt;` as normal.
+* Use a qualified task name from any directory, although this is usually done from the root. For example: `gradle :services:webservice:build` will build the _webservice_ subproject and any subprojects it depends on.
  
 
-The first approach is similar to the single-project use case, but Gradle works slightly differently in the case of a multi-project build. The command [userinput]#gradle test# will execute the `test` task in any subprojects, relative to the current working directory, that have that task. So if you run the command from the root project directory, you’ll run `test` in _api_, _shared_, _services:shared_ and _services:webservice_. If you run the command from the services project directory, you’ll only execute the task in _services:shared_ and _services:webservice_.
+The first approach is similar to the single-project use case, but Gradle works slightly differently in the case of a multi-project build. The command `gradle test` will execute the `test` task in any subprojects, relative to the current working directory, that have that task. So if you run the command from the root project directory, you’ll run `test` in _api_, _shared_, _services:shared_ and _services:webservice_. If you run the command from the services project directory, you’ll only execute the task in _services:shared_ and _services:webservice_.
 
 For more control over what gets executed, use qualified names (the second approach mentioned). These are paths just like directory paths, but use ‘:’ instead of ‘/’ or ‘\’. If the path begins with a ‘:’, then the path is resolved relative to the root project. In other words, the leading ‘:’ represents the root project itself. All other colons are path separators.
 
-This approach works for any task, so if you want to know what tasks are in a particular subproject, just use the `tasks` task, e.g. [userinput]#gradle :services:webservice:tasks# .
+This approach works for any task, so if you want to know what tasks are in a particular subproject, just use the `tasks` task, e.g. `gradle :services:webservice:tasks` .
 
 Regardless of which technique you use to execute tasks, Gradle will take care of building any subprojects that the target depends on. You don’t have to worry about the inter-project dependencies yourself. If you’re interested in how this is configured, you can read about writing multi-project builds <<multi_project_builds,later in the user guide>>.
 
-There’s one last thing to note. When you’re using the Gradle wrapper, the first approach doesn’t work well because you have to specify the path to the wrapper script if you’re not in the project root. For example, if you’re in the _webservice_ subproject directory, you would have to run [userinput]#../../gradlew build#.
+There’s one last thing to note. When you’re using the Gradle wrapper, the first approach doesn’t work well because you have to specify the path to the wrapper script if you’re not in the project root. For example, if you’re in the _webservice_ subproject directory, you would have to run `../../gradlew build`.
 
 That’s all you really need to know about multi-project builds as a build user. You can now identify whether a build is a multi-project one and you can discover its structure. And finally, you can execute tasks within specific subprojects.

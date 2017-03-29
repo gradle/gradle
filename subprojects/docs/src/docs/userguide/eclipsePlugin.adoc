@@ -22,7 +22,7 @@ The `eclipse-wtp` is automatically applied whenever the `eclipse` plugin is appl
 What exactly the `eclipse` plugin generates depends on which other plugins are used:
 
 .Eclipse plugin behavior
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Plugin
 | Description
@@ -77,8 +77,9 @@ Both Eclipse plugins add a number of tasks to your projects. The main tasks that
 
 The Eclipse plugins add the tasks shown below to a project.
 
+[[eclipsetasks]]
 .Eclipse plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -126,8 +127,9 @@ The Eclipse plugins add the tasks shown below to a project.
 | Generates the `.settings/org.eclipse.jdt.core.prefs` file.
 |===
 
+[[eclipsewtptasks]]
 .Eclipse WTP plugin - additional tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -160,8 +162,9 @@ The Eclipse plugins add the tasks shown below to a project.
 === Configuration
 
 
+[[eclipse-configuration]]
 .Configuration of the Eclipse plugins
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Model
 | Reference name
@@ -208,9 +211,9 @@ Sections of existing Eclipse files that are also the target of generated content
 [[sec:complete_rewrite_of_eclipse_files]]
 ===== Disabling merging with a complete rewrite
 
-To completely rewrite existing Eclipse files, execute a clean task together with its corresponding generation task, like “[userinput]#gradle cleanEclipse eclipse#” (in that order). If you want to make this the default behavior, add “<code>tasks.eclipse.dependsOn(cleanEclipse)</code>” to your build script. This makes it unnecessary to execute the clean task explicitly.
+To completely rewrite existing Eclipse files, execute a clean task together with its corresponding generation task, like “`gradle cleanEclipse eclipse`” (in that order). If you want to make this the default behavior, add “<code>tasks.eclipse.dependsOn(cleanEclipse)</code>” to your build script. This makes it unnecessary to execute the clean task explicitly.
 
-This strategy can also be used for individual files that the plugins would generate. For instance, this can be done for the “`.classpath`” file with “[userinput]#gradle cleanEclipseClasspath eclipseClasspath#”.
+This strategy can also be used for individual files that the plugins would generate. For instance, this can be done for the “`.classpath`” file with “`gradle cleanEclipseClasspath eclipseClasspath`”.
 
 [[sec:hooking_into_the_eclipse_generation_lifecycle]]
 ==== Hooking into the generation lifecycle
@@ -225,8 +228,9 @@ The Eclipse plugins provide objects modeling the sections of the Eclipse files t
 . The final XML is persisted
  The following table lists the domain object used for each of the Eclipse model types:
 
+[[eclipse-plugin-hooks]]
 .Advanced configuration hooks
-[cols="a,a,a,a,a"]
+[cols="a,a,a,a,a", options="header"]
 |===
 | Model
 | `beforeMerged { arg -&gt; }` argument type

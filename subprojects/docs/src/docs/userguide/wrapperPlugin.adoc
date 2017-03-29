@@ -15,7 +15,13 @@
 [[wrapper_plugin]]
 == Wrapper Plugin
 
-NOTE:  The wrapper plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+The wrapper plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+ 
+====
 
 The Gradle wrapper plugin allows the generation of Gradle wrapper files by adding a api:org.gradle.api.tasks.wrapper.Wrapper[] task, that generates all files needed to run the build using the Gradle Wrapper. Details about the Gradle Wrapper can be found in <<gradle_wrapper>>.
 
@@ -31,7 +37,7 @@ Without modifying the `build.gradle` file, the wrapper plugin can be auto-applie
 The wrapper plugin adds the following tasks to the project:
 
 .Wrapper plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on

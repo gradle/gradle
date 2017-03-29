@@ -21,7 +21,19 @@
 
 The following tutorials introduce some of the basics of Gradle, to help you get started.
 
- <<installation>> ::Describes how to install Gradle. <<tutorial_using_tasks>> ::Introduces the basic build script elements: _projects_ and _tasks_. <<tutorial_java_projects>> ::Shows how to start using Gradle's build-by-convention support for Java projects. <<artifact_dependencies_tutorial>> ::Shows how to start using Gradle's dependency management. <<tutorial_groovy_projects>> ::Using Gradle's build-by-convention support for Groovy projects. <<web_project_tutorial>> ::Using Gradle's build-by-convention support for Web applications.
+ <<installation>> ::
+Describes how to install Gradle.
+ <<tutorial_using_tasks>> ::
+Introduces the basic build script elements: _projects_ and _tasks_.
+ <<tutorial_java_projects>> ::
+Shows how to start using Gradle's build-by-convention support for Java projects.
+ <<artifact_dependencies_tutorial>> ::
+Shows how to start using Gradle's dependency management.
+ <<tutorial_groovy_projects>> ::
+Using Gradle's build-by-convention support for Groovy projects.
+ <<web_project_tutorial>> ::
+Using Gradle's build-by-convention support for Web applications.
+
 
 
 [[sec:tutorials_where_to_next]]

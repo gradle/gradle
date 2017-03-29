@@ -15,7 +15,13 @@
 [[troubleshooting]]
 == Troubleshooting
 
-NOTE:  This chapter is currently a work in progress. 
+
+[NOTE]
+====
+ 
+This chapter is currently a work in progress.
+ 
+====
 
 When using Gradle (or any software package), you can run into problems. You may not understand how to use a particular feature, or you may encounter a defect. Or, you may have a general question about Gradle.
 

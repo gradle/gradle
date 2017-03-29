@@ -55,7 +55,15 @@ In Gradle dependencies are grouped into _configurations_. A configuration is sim
 
 The Java plugin defines a number of standard configurations. These configurations represent the classpaths that the Java plugin uses. Some are listed below, and you can find more details in <<tab:configurations>>.
 
-compile::The dependencies required to compile the production source of the project.runtime::The dependencies required by the production classes at runtime. By default, also includes the compile time dependencies.testCompile::The dependencies required to compile the test source of the project. By default, also includes the compiled production classes and the compile time dependencies.testRuntime::The dependencies required to run the tests. By default, also includes the compile, runtime and test compile dependencies.
+compile::
+The dependencies required to compile the production source of the project.
+runtime::
+The dependencies required by the production classes at runtime. By default, also includes the compile time dependencies.
+testCompile::
+The dependencies required to compile the test source of the project. By default, also includes the compiled production classes and the compile time dependencies.
+testRuntime::
+The dependencies required to run the tests. By default, also includes the compile, runtime and test compile dependencies.
+
 
 Various plugins add further standard configurations. You can also define your own custom configurations to use in your build. Please see <<sub:configurations>> for the details of defining and customizing dependency configurations.
 
@@ -74,7 +82,7 @@ To define an external dependency, you add it to a dependency configuration:
 
 An external dependency is identified using `group`, `name` and `version` attributes. Depending on which kind of repository you are using, `group` and `version` may be optional.
 
-The shortcut form for declaring external dependencies looks like “`<replaceable>group</replaceable>:<replaceable>name</replaceable>:<replaceable>version</replaceable>`”.
+The shortcut form for declaring external dependencies looks like “``group`:`name`:`version``”.
 
 ++++
 <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Shortcut definition of an external dependency">
@@ -146,7 +154,7 @@ The plugins do a pretty good job of defining the artifacts of a project, so you 
         </sample>
 ++++
 
-Now, when you run [userinput]#gradle uploadArchives#, Gradle will build and upload your Jar. Gradle will also generate and upload an `ivy.xml` as well.
+Now, when you run `gradle uploadArchives`, Gradle will build and upload your Jar. Gradle will also generate and upload an `ivy.xml` as well.
 
 You can also publish to Maven repositories. The syntax is slightly different.footnote:[We are working to make the syntax consistent for resolving from and publishing to Maven repositories.] Note that you also need to apply the Maven plugin in order to publish to a Maven repository. when this is in place, Gradle will generate and upload a `pom.xml`.
 

@@ -25,16 +25,19 @@ The Gradle Wrapper (henceforth referred to as the “Wrapper”) solves both the
 
 If a Gradle project has set up the Wrapper (and we recommend all projects do so), you can execute the build using one of the following commands from the root of the project: 
 
-* [userinput]#./gradlew &lt;task&gt;# (on Unix-like platforms such as Linux and Mac OS X)
-* [userinput]#gradlew &lt;task&gt;# (on Windows using the gradlew.bat batch file)
+* `./gradlew &lt;task&gt;` (on Unix-like platforms such as Linux and Mac OS X)
+* `gradlew &lt;task&gt;` (on Windows using the gradlew.bat batch file)
  Each Wrapper is tied to a specific version of Gradle, so when you first run one of the commands above for a given Gradle version, it will download the corresponding Gradle distribution and use it to execute the build.
 
-TIP:  .IDEs
+[TIP]
+====
+ .IDEs
   
 When importing a Gradle project via its wrapper, your IDE may ask to use the Gradle 'all' distribution. This is perfectly fine and helps the IDE provide code completion for the build files.
  
+====
 
-Not only does this mean that you don’t have to manually install Gradle yourself, but you are also sure to use the version of Gradle that the build is designed for. This makes your historical builds more reliable. Just use the appropriate syntax from above whenever you see a command line starting with [userinput]#gradle ...# in the user guide, on Stack Overflow, in articles or wherever.
+Not only does this mean that you don’t have to manually install Gradle yourself, but you are also sure to use the version of Gradle that the build is designed for. This makes your historical builds more reliable. Just use the appropriate syntax from above whenever you see a command line starting with `gradle ...` in the user guide, on Stack Overflow, in articles or wherever.
 
 For completeness sake, and to ensure you don’t delete any important files, here are the files and directories in a Gradle project that make up the Wrapper: 
 
@@ -100,10 +103,14 @@ If you build via the Wrapper, any existing Gradle distribution installed on the 
 [[sec:authenticated_download]]
 === Authenticated Gradle distribution download
 
-TIP:  .Security Warning
+
+[TIP]
+====
+ .Security Warning
   
 HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones. With Basic Authentication, the user credentials are sent in clear text.
  
+====
 
 The Gradle `Wrapper` can download Gradle distributions from servers using HTTP Basic Authentication. This enables you to host the Gradle distribution on a private protected server. You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the `distributionUrl`. Credentials in system properties take precedence over the ones embedded in `distributionUrl`.
 

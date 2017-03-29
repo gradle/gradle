@@ -36,7 +36,7 @@ To use the Scala plugin, include the following in your build script:
 The Scala plugin adds the following tasks to the project.
 
 .Scala plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -53,8 +53,8 @@ The Scala plugin adds the following tasks to the project.
 | api:org.gradle.api.tasks.scala.ScalaCompile[]
 | Compiles test Scala source files.
 
-| `compile<replaceable>SourceSet</replaceable>Scala`
-| `compile<replaceable>SourceSet</replaceable>Java`
+| `compile`SourceSet`Scala`
+| `compile`SourceSet`Java`
 | api:org.gradle.api.tasks.scala.ScalaCompile[]
 | Compiles the given source set's Scala source files.
 
@@ -67,7 +67,7 @@ The Scala plugin adds the following tasks to the project.
 The Scala plugin adds the following dependencies to tasks added by the Java plugin.
 
 .Scala plugin - additional task dependencies
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -77,8 +77,8 @@ The Scala plugin adds the following dependencies to tasks added by the Java plug
 | `testClasses`
 | `compileTestScala`
 
-| `<replaceable>sourceSet</replaceable>Classes`
-| `compile<replaceable>SourceSet</replaceable>Scala`
+| ``sourceSet`Classes`
+| `compile`SourceSet`Scala`
 |===
 
 ++++
@@ -96,8 +96,9 @@ The Scala plugin adds the following dependencies to tasks added by the Java plug
 
 The Scala plugin assumes the project layout shown below. All the Scala source directories can contain Scala _and_ Java code. The Java source directories may only contain Java source code. None of these directories need to exist or have anything in them; the Scala plugin will simply compile whatever it finds.
 
+[[scalalayout]]
 .Scala plugin - project layout
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Directory
 | 
@@ -114,7 +115,7 @@ include::javaProjectTestLayout.adoc[]
 | Test Scala sources. May also contain Java sources for joint compilation.
 
 include::javaProjectGenericLayout.adoc[]
-| `src/<replaceable>sourceSet</replaceable>/scala`
+| `src/`sourceSet`/scala`
 | 
 | Scala sources for the given source set. May also contain Java sources for joint compilation.
 |===
@@ -135,7 +136,7 @@ Just like the Java plugin, the Scala plugin allows you to configure custom locat
 [[sec:scala_dependency_management]]
 === Dependency management
 
-Scala projects need to declare a `scala-library` dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively. footnote:[See <<sec:configure_scala_classpath>>.] 
+Scala projects need to declare a `scala-library` dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively.footnote:[See <<sec:configure_scala_classpath>>.] 
 
 If Scala is used for production code, the `scala-library` dependency should be added to the `compile` configuration:
 
@@ -175,19 +176,31 @@ The Scala plugin uses a configuration named `zinc` to resolve the <<https://gith
         </sample>
 ++++
 
-NOTE:  It is important to take care when declaring your `scala-library` dependency. The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application. Gradle takes care of adding a compatible version of `scala-library` for you, but over-broad dependency resolution rules could force an incompatible version to be used instead.  For example, using `configurations.all` to force a particular version of `scala-library` would also override the version used by the Zinc compiler:  
+[NOTE]
+====
+ 
+It is important to take care when declaring your `scala-library` dependency. The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application. Gradle takes care of adding a compatible version of `scala-library` for you, but over-broad dependency resolution rules could force an incompatible version to be used instead.
+  
+For example, using `configurations.all` to force a particular version of `scala-library` would also override the version used by the Zinc compiler:
+  
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="allScalaLibraryDependency" dir="userguide/scala/zincOverride" title="Forcing a scala-library dependency for all configurations">
                 <sourcefile file="build.gradle" snippet="all-dependency"/>
             </sample>
 ++++
-  The best way to avoid this problem is to be more selective when configuring the `scala-library` dependency (such as not using a `configuration.all` rule or using a conditional to prevent the rule from being applied to the `zinc` configuration). Sometimes this rule may come from a plugin or other code that you do not have control over. In such a case, you can force a correct version of the library on the `zinc` configuration only:  
+  
+The best way to avoid this problem is to be more selective when configuring the `scala-library` dependency (such as not using a `configuration.all` rule or using a conditional to prevent the rule from being applied to the `zinc` configuration). Sometimes this rule may come from a plugin or other code that you do not have control over. In such a case, you can force a correct version of the library on the `zinc` configuration only:
+  
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="zincScalaLibraryDependency" dir="userguide/scala/zincOverride" title="Forcing a scala-library dependency for the zinc configuration">
                 <sourcefile file="build.gradle" snippet="zinc-dependency"/>
             </sample>
 ++++
-  You can diagnose problems with the version of the Zinc compiler selected by running <<sec:dependency_insight,dependencyInsight>> for the `zinc` configuration. 
+  
+You can diagnose problems with the version of the Zinc compiler selected by running <<sec:dependency_insight,dependencyInsight>> for the `zinc` configuration.
+ 
+====
+
 
 [[sec:scala_convention_properties]]
 === Convention properties
@@ -200,7 +213,7 @@ The Scala plugin does not add any convention properties to the project.
 The Scala plugin adds the following convention properties to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
 
 .Scala plugin - source set properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type
@@ -214,7 +227,7 @@ The Scala plugin adds the following convention properties to each source set in 
 
 | `scala.srcDirs`
 | `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/scala]`
+| `[`projectDir`/src/`name`/scala]`
 | The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
 
 | `allScala`
@@ -228,7 +241,7 @@ These convention properties are provided by a convention object of type api:org.
 The Scala plugin also modifies some source set properties:
 
 .Scala plugin - source set properties
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Property name
 | Change

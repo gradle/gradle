@@ -15,7 +15,7 @@
 [[organizing_build_logic]]
 == Organizing Build Logic
 
-Gradle offers a variety of ways to organize your build logic. First of all you can put your build logic directly in the action closure of a task. If a couple of tasks share the same logic you can extract this logic into a method. If multiple projects of a multi-project build share some logic you can define this method in the parent project. If the build logic gets too complex for being properly modeled by methods then you likely should implement your logic with classes to encapsulate your logic. footnote:[Which might range from a single class to something very complex.] Gradle makes this very easy. Just drop your classes in a certain directory and Gradle automatically compiles them and puts them in the classpath of your build script.
+Gradle offers a variety of ways to organize your build logic. First of all you can put your build logic directly in the action closure of a task. If a couple of tasks share the same logic you can extract this logic into a method. If multiple projects of a multi-project build share some logic you can define this method in the parent project. If the build logic gets too complex for being properly modeled by methods then you likely should implement your logic with classes to encapsulate your logic.footnote:[Which might range from a single class to something very complex.] Gradle makes this very easy. Just drop your classes in a certain directory and Gradle automatically compiles them and puts them in the classpath of your build script.
 
 Here is a summary of the ways you can organise your build logic:
 
@@ -152,7 +152,7 @@ Every project automatically has a `buildEnvironment` task of type api:org.gradle
 [[sec:ant_optional_dependencies]]
 === Ant optional dependencies
 
-For reasons we don't fully understand yet, external dependencies are not picked up by Ant's optional tasks. But you can easily do it in another way. footnote:[In fact, we think this is a better solution. Only if your buildscript and Ant's optional task need the _same_ library would you have to define it twice. In such a case it would be nice if Ant's optional task would automatically pick up the classpath defined in the “`gradle.settings`” file.] 
+For reasons we don't fully understand yet, external dependencies are not picked up by Ant's optional tasks. But you can easily do it in another way.footnote:[In fact, we think this is a better solution. Only if your buildscript and Ant's optional task need the _same_ library would you have to define it twice. In such a case it would be nice if Ant's optional task would automatically pick up the classpath defined in the “`gradle.settings`” file.] 
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="buildLogic" dir="userguide/organizeBuildLogic" title="Ant optional dependencies">

@@ -50,7 +50,11 @@ Dependencies appearing in the `api` configurations will be transitively exposed 
 * less recompilations when implementation dependencies change: consumers would not need to be recompiled
 * cleaner publishing: when used in conjunction with the new `maven-publish` plugin, Java libraries produce POM files that distinguish exactly between what is required to compile against the library and what is required to use the library at runtime (in other words, don't mix what is needed to compile the library itself and what is needed to compile against the library).
 
-NOTE: The `compile` configuration still exists but should not be used as it will not offer the guarantees that the `api` and `implementation` configurations provide.
+[NOTE]
+====
+The `compile` configuration still exists but should not be used as it will not offer the guarantees that the `api` and `implementation` configurations provide.
+====
+
 
 [[sec:java_library_recognizing_dependencies]]
 === Recognizing API and implementation dependencies
@@ -102,12 +106,15 @@ The following graph describes the main configurations setup when the Java Librar
 
 And the next graph describes the test configurations setup:
 <imageobject> <imagedata fileref="img/java-library-ignore-deprecated-test.png"/> </imageobject>
-NOTE: The _compile_, _testCompile_, _runtime_ and _testRuntime_ configurations inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
+[NOTE]
+====
+The _compile_, _testCompile_, _runtime_ and _testRuntime_ configurations inherited from the Java plugin are still available but are deprecated. You should avoid using them, as they are only kept for backwards compatibility.
+====
 
 The role of each configuration is described in the following tables:
 
 .Java Library plugin - configurations used to declare dependencies
-[cols="a,a,a,a,a"]
+[cols="a,a,a,a,a", options="header"]
 |===
 | Configuration name
 | Role
@@ -159,7 +166,7 @@ The role of each configuration is described in the following tables:
 |===
 
 .Java Library plugin - configurations used by consumers
-[cols="a,a,a,a,a"]
+[cols="a,a,a,a,a", options="header"]
 |===
 | Configuration name
 | Role
@@ -181,7 +188,7 @@ The role of each configuration is described in the following tables:
 |===
 
 .Java Library plugin - configurations used by the library itself
-[cols="a,a,a,a,a"]
+[cols="a,a,a,a,a", options="header"]
 |===
 | Configuration name
 | Role

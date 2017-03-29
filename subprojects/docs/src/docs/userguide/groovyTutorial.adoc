@@ -47,7 +47,7 @@ Here is our complete build file:
         </sample>
 ++++
 
-Running [userinput]#gradle build# will compile, test and JAR your project.
+Running `gradle build` will compile, test and JAR your project.
 
 [[sec:groovy_tutorial_summary]]
 === Summary

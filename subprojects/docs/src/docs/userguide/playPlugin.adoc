@@ -15,7 +15,13 @@
 [[play_plugin]]
 == Building Play applications
 
-NOTE:  Support for building Play applications is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions. 
+
+[NOTE]
+====
+ 
+Support for building Play applications is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+ 
+====
 
  https://www.playframework.com/[Play] is a modern web application framework. The Play plugin adds support for building, testing and running Play applications with Gradle.
 
@@ -67,7 +73,7 @@ The Play plugin uses a _software model_ to describe a Play application and how t
 A Play application component describes the application to be built and consists of several configuration elements. One type of element that describes the application are the source sets that define where the application controller, route, template and model class source files should be found. These source sets are logical groupings of files of a particular type and a default source set for each type is created when the `play` plugin is applied.
 
 .Default Play source sets
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Source Set
 | Type
@@ -130,8 +136,9 @@ The Play plugin follows the typical Play application layout. You can <<configuri
 
 The Play plugin hooks into the normal Gradle lifecycle tasks such as `assemble`, `check` and `build`, but it also adds several additional tasks which form the lifecycle of a Play project:
 
+[[play_lifecycle_tasks]]
 .Play plugin - lifecycle tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -157,7 +164,7 @@ The Play plugin hooks into the normal Gradle lifecycle tasks such as `assemble`,
 The plugin also provides tasks for running, testing and packaging your Play application:
 
 .Play plugin - running and testing tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -177,8 +184,9 @@ The plugin also provides tasks for running, testing and packaging your Play appl
 
 For the different types of sources in a Play application, the plugin adds the following compilation tasks:
 
+[[play_source_set_tasks]]
 .Play plugin - source set tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Source Type
@@ -210,7 +218,7 @@ For the different types of sources in a Play application, the plugin adds the fo
 [[sec:play_finding_out_more_about_your_project]]
 === Finding out more about your project
 
-Gradle provides a report that you can run from the command-line that shows some details about the components and binaries that your project produces. To use this report, just run [userinput]#gradle components#. Below is an example of running this report for one of the sample projects:
+Gradle provides a report that you can run from the command-line that shows some details about the components and binaries that your project produces. To use this report, just run `gradle components`. Below is an example of running this report for one of the sample projects:
 
 ++++
 <sample id="playComponentReport" dir="play/basic" title="The components report">
@@ -226,7 +234,7 @@ The `runPlayBinary` task starts the Play application under development. During d
 
 When not run as part of a continuous build, the `runPlayBinary` task will _block_ the build. That is, the task will not complete as long as the application is running. When running as part of a continuous build, the task will start the application if not running and otherwise propagate any changes to the code of the application to the running instance. This is useful for quickly iterating on your Play application with an edit-&gt;rebuild-&gt;refresh cycle. Changes to your application will not take affect until the end of the overall build.
 
-To enable continuous build, run Gradle with [userinput]#-t runPlayBinary# or [userinput]#--continuous runPlayBinary#.
+To enable continuous build, run Gradle with `-t runPlayBinary` or `--continuous runPlayBinary`.
 
 Users of Play used to such a workflow with Play's default build system should note that compile errors are handled differently. If a build failure occurs during a continuous build, the Play application will not be reloaded. Instead, you will be presented with an exception message. The exception message will only contain the overall cause of the build failure. More detailed information will only be available from the console.
 
@@ -305,7 +313,11 @@ If your Play application requires additional Scala compiler flags, you can add t
 [[sec:configuring_routes_style]]
 ==== Configuring routes style
 
-NOTE: The injected router is only supported in Play Framework 2.4 or better.
+
+[NOTE]
+====
+The injected router is only supported in Play Framework 2.4 or better.
+====
 
 If your Play application's router uses dependency injection to access your controllers, you'll need to configure your application to _not_ use the default static router. Under the covers, the Play plugin is using the `InjectedRoutesGenerator` instead of the default `StaticRoutesGenerator` to generate the router classes.
 
@@ -349,7 +361,7 @@ Gradle provides the capability to package your Play application so that it can e
 The distribution can be created by running the `dist` lifecycle task and places the distribution in the `$buildDir/distributions` directory. Alternatively, one can validate the contents by running the `stage` lifecycle task which copies the files to the `$buildDir/stage` directory using the layout of the distribution package.
 
 .Play distribution tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on

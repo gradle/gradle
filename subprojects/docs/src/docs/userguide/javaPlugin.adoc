@@ -45,7 +45,7 @@ The Java plugin defines two standard source sets, called `main` and `test`. The 
 The Java plugin adds a number of tasks to your project, as shown below.
 
 .Java plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -107,7 +107,7 @@ The Java plugin adds a number of tasks to your project, as shown below.
 | api:org.gradle.api.tasks.Delete[]
 | Deletes the project build directory.
 
-| `clean<replaceable>TaskName</replaceable>`
+| `clean`TaskName``
 | -
 | api:org.gradle.api.tasks.Delete[]
 | Deletes files created by specified task. `cleanJar` will delete the JAR file created by the `jar` task, and `cleanTest` will delete the test results created by the `test` task.
@@ -115,26 +115,27 @@ The Java plugin adds a number of tasks to your project, as shown below.
 
 For each source set you add to the project, the Java plugin adds the following compilation tasks:
 
+[[java_source_set_tasks]]
 .Java plugin - source set tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
 | Type
 | Description
 
-| `compile<replaceable>SourceSet</replaceable>Java`
+| `compile`SourceSet`Java`
 | All tasks which produce the source set's compile classpath.
 | api:org.gradle.api.tasks.compile.JavaCompile[]
 | Compiles the given source set's Java source files using javac.
 
-| `process<replaceable>SourceSet</replaceable>Resources`
+| `process`SourceSet`Resources`
 | -
 | api:org.gradle.api.tasks.Copy[]
 | Copies the given source set's resources into the resources directory.
 
-| `<replaceable>sourceSet</replaceable>Classes`
-| The `compile<replaceable>SourceSet</replaceable>Java` task and the `process<replaceable>SourceSet</replaceable>Resources` task. Some plugins add additional compilation tasks for the source set.
+| ``sourceSet`Classes`
+| The `compile`SourceSet`Java` task and the `process`SourceSet`Resources` task. Some plugins add additional compilation tasks for the source set.
 | api:org.gradle.api.Task[]
 | Assembles the given source set's classes and resources directories.
 |===
@@ -142,7 +143,7 @@ For each source set you add to the project, the Java plugin adds the following c
 The Java plugin also adds a number of tasks which form a lifecycle for the project:
 
 .Java plugin - lifecycle tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -174,13 +175,13 @@ The Java plugin also adds a number of tasks which form a lifecycle for the proje
 | api:org.gradle.api.Task[]
 | Performs a full build of the project and all projects which depend on it.
 
-| `build<replaceable>ConfigName</replaceable>`
-| The tasks which produce the artifacts in configuration <replaceable>ConfigName</replaceable>.
+| `build`ConfigName``
+| The tasks which produce the artifacts in configuration `ConfigName`.
 | api:org.gradle.api.Task[]
 | Assembles the artifacts in the specified configuration. The task is added by the Base plugin which is implicitly applied by the Java plugin.
 
-| `upload<replaceable>ConfigName</replaceable>`
-| The tasks which uploads the artifacts in configuration <replaceable>ConfigName</replaceable>.
+| `upload`ConfigName``
+| The tasks which uploads the artifacts in configuration `ConfigName`.
 | api:org.gradle.api.tasks.Upload[]
 | Assembles and uploads the artifacts in the specified configuration. The task is added by the Base plugin which is implicitly applied by the Java plugin.
 |===
@@ -202,8 +203,9 @@ The following diagram shows the relationships between these tasks.
 
 The Java plugin assumes the project layout shown below. None of these directories need to exist or have anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
 
+[[javalayout]]
 .Java plugin - default project layout
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Directory
 | 
@@ -232,8 +234,9 @@ You configure the project layout by configuring the appropriate source set. This
 
 The Java plugin adds a number of dependency configurations to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
 
+[[tab:configurations]]
 .Java plugin - dependency configurations
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Name
 | Extends
@@ -302,31 +305,32 @@ The Java plugin adds a number of dependency configurations to your project, as s
 
 For each source set you add to the project, the Java plugins adds the following dependency configurations:
 
+[[java_source_set_configurations]]
 .Java plugin - source set dependency configurations
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Name
 | Extends
 | Used by tasks
 | Meaning
 
-| `<replaceable>sourceSet</replaceable>Compile`
+| ``sourceSet`Compile`
 | -
 | -
 | Compile time dependencies for the given source set
 
-| `<replaceable>sourceSet</replaceable>CompileOnly`
+| ``sourceSet`CompileOnly`
 | -
 | -
 | Compile time only dependencies for the given source set, not used at runtime
 
-| `<replaceable>sourceSet</replaceable>CompileClasspath`
-| `<replaceable>sourceSet</replaceable>Compile`, `<replaceable>sourceSet</replaceable>CompileOnly`
-| `compile<replaceable>SourceSet</replaceable>Java`
+| ``sourceSet`CompileClasspath`
+| ``sourceSet`Compile`, ``sourceSet`CompileOnly`
+| `compile`SourceSet`Java`
 | Compile classpath, used when compiling source
 
-| `<replaceable>sourceSet</replaceable>Runtime`
-| `<replaceable>sourceSet</replaceable>Compile`
+| ``sourceSet`Runtime`
+| ``sourceSet`Compile`
 | -
 | Runtime dependencies for the given source set
 |===
@@ -337,8 +341,9 @@ For each source set you add to the project, the Java plugins adds the following 
 
 The Java plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
 
+[[javaconventionDir]]
 .Java plugin - directory properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type
@@ -353,7 +358,7 @@ include::reportingBasePluginProperties.adoc[]
 
 | `testResultsDir`
 | `File` (read-only)
-| `<replaceable>buildDir</replaceable>/<replaceable>testResultsDirName</replaceable>`
+| ``buildDir`/`testResultsDirName``
 | The directory to generate test result .xml files into.
 
 | `testReportDirName`
@@ -363,7 +368,7 @@ include::reportingBasePluginProperties.adoc[]
 
 | `testReportDir`
 | `File` (read-only)
-| `<replaceable>reportsDir</replaceable>/`testReportDirName``
+| ``reportsDir`/`testReportDirName``
 | The directory to generate the test report into.
 
 | `libsDirName`
@@ -373,7 +378,7 @@ include::reportingBasePluginProperties.adoc[]
 
 | `libsDir`
 | `File` (read-only)
-| `<replaceable>buildDir</replaceable>/<replaceable>libsDirName</replaceable>`
+| ``buildDir`/`libsDirName``
 | The directory to generate libraries into.
 
 | `distsDirName`
@@ -383,7 +388,7 @@ include::reportingBasePluginProperties.adoc[]
 
 | `distsDir`
 | `File` (read-only)
-| `<replaceable>buildDir</replaceable>/<replaceable>distsDirName</replaceable>`
+| ``buildDir`/`distsDirName``
 | The directory to generate distributions into.
 
 | `docsDirName`
@@ -393,7 +398,7 @@ include::reportingBasePluginProperties.adoc[]
 
 | `docsDir`
 | `File` (read-only)
-| `<replaceable>buildDir</replaceable>/<replaceable>docsDirName</replaceable>`
+| ``buildDir`/`docsDirName``
 | The directory to generate documentation into.
 
 | `dependencyCacheDirName`
@@ -403,12 +408,13 @@ include::reportingBasePluginProperties.adoc[]
 
 | `dependencyCacheDir`
 | `File` (read-only)
-| `<replaceable>buildDir</replaceable>/<replaceable>dependencyCacheDirName</replaceable>`
+| ``buildDir`/`dependencyCacheDirName``
 | The directory to use to cache source dependency information.
 |===
 
+[[javaconventionNonDir]]
 .Java plugin - other properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type
@@ -427,12 +433,12 @@ include::reportingBasePluginProperties.adoc[]
 
 | `targetCompatibility`
 | api:org.gradle.api.JavaVersion[]. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
-| `<replaceable>sourceCompatibility</replaceable>`
+| ``sourceCompatibility``
 | Java version to generate classes for.
 
 | `archivesBaseName`
 | `String`
-| `<replaceable>projectName</replaceable>`
+| ``projectName``
 | The basename to use for archives, such as JAR or ZIP files.
 
 | `manifest`
@@ -469,7 +475,7 @@ To configure an existing source set, you simply use one of the above access meth
 The following table lists some of the important properties of a source set. You can find more details in the API documentation for api:org.gradle.api.tasks.SourceSet[].
 
 .Java plugin - source set properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type
@@ -488,22 +494,22 @@ The following table lists some of the important properties of a source set. You 
 
 | `output.classesDir`
 | `File`
-| `<replaceable>buildDir</replaceable>/classes/<replaceable>name</replaceable>`
+| ``buildDir`/classes/`name``
 | The directory to generate the classes of this source set into.
 
 | `output.resourcesDir`
 | `File`
-| `<replaceable>buildDir</replaceable>/resources/<replaceable>name</replaceable>`
+| ``buildDir`/resources/`name``
 | The directory to generate the resources of this source set into.
 
 | `compileClasspath`
 | api:org.gradle.api.file.FileCollection[]
-| `compile<replaceable>SourceSet</replaceable>` configuration.
+| `compile`SourceSet`` configuration.
 | The classpath to use when compiling the source files of this source set.
 
 | `runtimeClasspath`
 | api:org.gradle.api.file.FileCollection[]
-| `output` + `runtime<replaceable>SourceSet</replaceable>` configuration.
+| `output` + `runtime`SourceSet`` configuration.
 | The classpath to use when executing the classes of this source set.
 
 | `java`
@@ -513,7 +519,7 @@ The following table lists some of the important properties of a source set. You 
 
 | `java.srcDirs`
 | `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/java]`
+| `[`projectDir`/src/`name`/java]`
 | The source directories containing the Java source files of this source set.
 
 | `resources`
@@ -523,7 +529,7 @@ The following table lists some of the important properties of a source set. You 
 
 | `resources.srcDirs`
 | `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/resources]`
+| `[`projectDir`/src/`name`/resources]`
 | The source directories containing the resources of this source set.
 
 | `allJava`
@@ -557,7 +563,7 @@ When you define a new source set, the Java plugin adds some dependency configura
             </sample>
 ++++
 
-The Java plugin also adds a number of tasks which assemble the classes for the source set, as shown in <<java_source_set_tasks>>. For example, for a source set called `intTest`, compiling the classes for this source set is done by running [userinput]#gradle intTestClasses#.
+The Java plugin also adds a number of tasks which assemble the classes for the source set, as shown in <<java_source_set_tasks>>. For example, for a source set called `intTest`, compiling the classes for this source set is done by running `gradle intTestClasses`.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="compileSourceSet" dir="userguide/java/sourceSets" title="Compiling a source set">
@@ -600,7 +606,7 @@ Adding a test suite to run the tests in a source set:
 The `javadoc` task is an instance of api:org.gradle.api.tasks.javadoc.Javadoc[]. It supports the core Javadoc options and the options of the standard doclet described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html[reference documentation] of the Javadoc executable. For a complete list of supported Javadoc options consult the API documentation of the following classes: api:org.gradle.external.javadoc.CoreJavadocOptions[] and api:org.gradle.external.javadoc.StandardJavadocDocletOptions[].
 
 .Java plugin - Javadoc properties
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Task Property
 | Type
@@ -616,7 +622,7 @@ The `javadoc` task is an instance of api:org.gradle.api.tasks.javadoc.Javadoc[].
 
 | `destinationDir`
 | `File`
-| `<replaceable>docsDir</replaceable>/javadoc`
+| ``docsDir`/javadoc`
 
 | `title`
 | `String`
@@ -630,7 +636,7 @@ The `javadoc` task is an instance of api:org.gradle.api.tasks.javadoc.Javadoc[].
 The `clean` task is an instance of api:org.gradle.api.tasks.Delete[]. It simply removes the directory denoted by its `dir` property.
 
 .Java plugin - Clean properties
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Task Property
 | Type
@@ -638,7 +644,7 @@ The `clean` task is an instance of api:org.gradle.api.tasks.Delete[]. It simply 
 
 | `dir`
 | `File`
-| `<replaceable>buildDir</replaceable>`
+| ``buildDir``
 |===
 
 
@@ -648,7 +654,7 @@ The `clean` task is an instance of api:org.gradle.api.tasks.Delete[]. It simply 
 The Java plugin uses the api:org.gradle.api.tasks.Copy[] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<sec:copying_files>>.
 
 .Java plugin - ProcessResources properties
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Task Property
 | Type
@@ -656,11 +662,11 @@ The Java plugin uses the api:org.gradle.api.tasks.Copy[] task for resource handl
 
 | `srcDirs`
 | `Object`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `<replaceable>sourceSet</replaceable>.resources`
+| ``sourceSet`.resources`
 
 | `destinationDir`
 | `File`. Can set using anything described in <<sec:locating_files>>.
-| `<replaceable>sourceSet</replaceable>.output.resourcesDir`
+| ``sourceSet`.output.resourcesDir`
 |===
 
 
@@ -670,7 +676,7 @@ The Java plugin uses the api:org.gradle.api.tasks.Copy[] task for resource handl
 The Java plugin adds a api:org.gradle.api.tasks.compile.JavaCompile[] instance for each source set in the project. Some of the most common configuration options are shown below.
 
 .Java plugin - Compile properties
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Task Property
 | Type
@@ -678,15 +684,15 @@ The Java plugin adds a api:org.gradle.api.tasks.compile.JavaCompile[] instance f
 
 | `classpath`
 | api:org.gradle.api.file.FileCollection[]
-| `<replaceable>sourceSet</replaceable>.compileClasspath`
+| ``sourceSet`.compileClasspath`
 
 | `source`
 | api:org.gradle.api.file.FileTree[]. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `<replaceable>sourceSet</replaceable>.java`
+| ``sourceSet`.java`
 
 | `destinationDir`
 | `File`.
-| `<replaceable>sourceSet</replaceable>.output.classesDir`
+| ``sourceSet`.output.classesDir`
 |===
 
 By default, the Java compiler runs in the Gradle process. Setting `options.fork` to `true` causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will reuse the same compiler process as much as possible. In both cases, all fork options specified with `options.forkOptions` will be honored.
@@ -766,7 +772,7 @@ The `testLogging` property allows you to configure which test events are going t
 
 The test task provides a api:org.gradle.api.tasks.testing.Test#getDebug()[] property that can be set to launch to make the JVM wait for a debugger to attach to port 5005 before proceeding with test execution.
 
-This can also be enabled at invocation time via the [userinput]#--debug-jvm# task option (since Gradle 1.12).
+This can also be enabled at invocation time via the `--debug-jvm` task option (since Gradle 1.12).
 
 [[test_filtering]]
 ==== Test filtering
@@ -814,9 +820,13 @@ Some examples of using the command line option:
 [[sec:single_test_execution_via_system_properties]]
 ==== Single test execution via System Properties
 
-NOTE: This mechanism has been superseded by 'Test Filtering', described above.
 
-Setting a system property of <replaceable>taskName.single</replaceable> = <replaceable>testNamePattern</replaceable> will only execute tests that match the specified <replaceable>testNamePattern</replaceable>. The <replaceable>taskName</replaceable> can be a full multi-project path like “:sub1:sub2:test” or just the task name. The <replaceable>testNamePattern</replaceable> will be used to form an include pattern of “\*\*/testNamePattern\*.class”. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples: 
+[NOTE]
+====
+This mechanism has been superseded by 'Test Filtering', described above.
+====
+
+Setting a system property of `taskName.single` = `testNamePattern` will only execute tests that match the specified `testNamePattern`. The `taskName` can be a full multi-project path like “:sub1:sub2:test” or just the task name. The `testNamePattern` will be used to form an include pattern of “\*\*/testNamePattern\*.class”. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples: 
 * `gradle -Dtest.single=ThisUniquelyNamedTest test`
 * `gradle -Dtest.single=a/b/ test`
 * `gradle -DintegTest.single=\*IntegrationTest integTest`
@@ -847,7 +857,7 @@ If you don't want to use test class detection, you can disable it by setting `sc
 
 JUnit and TestNG allows sophisticated groupings of test methods.
 
-For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories. footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
+For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitcategories" dir="testing/junit/categories" title="JUnit Categories">
@@ -855,7 +865,7 @@ For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of 
             </sample>
 ++++
 
-The TestNG framework has a quite similar concept. In TestNG you can specify different test groups. footnote:[The TestNG documentation contains more details about test groups: http://testng.org/doc/documentation-main.html#test-groups[].] The test groups that should be included or excluded from the test execution can be configured in the test task.
+The TestNG framework has a quite similar concept. In TestNG you can specify different test groups.footnote:[The TestNG documentation contains more details about test groups: http://testng.org/doc/documentation-main.html#test-groups[].] The test groups that should be included or excluded from the test execution can be configured in the test task.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testnggrouping" dir="testing/testng/groups" title="Grouping TestNG tests">
@@ -869,7 +879,7 @@ The TestNG framework has a quite similar concept. In TestNG you can specify diff
 
 TestNG allows explicit control of the execution order of tests.
 
-The `preserveOrder` property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including `@BeforeXXX` and `@AfterXXX`) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with `testng.xml` files, the http://testng.org/javadocs/org/testng/TestNG.html[TestNG API], that is used for running tests programmatically, as well as Gradle's TestNG integration execute tests in unpredictable order by default. footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
+The `preserveOrder` property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including `@BeforeXXX` and `@AfterXXX`) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with `testng.xml` files, the http://testng.org/javadocs/org/testng/TestNG.html[TestNG API], that is used for running tests programmatically, as well as Gradle's TestNG integration execute tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
@@ -877,7 +887,7 @@ The `preserveOrder` property controls whether tests are executed in deterministi
             </sample>
 ++++
 
-The `groupByInstance` property controls whether tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all instances before running the dependants. The default behavior is not to group tests by instances. footnote:[The TestNG documentation contains more details about grouping tests by instances: http://testng.org/doc/documentation-main.html#dependencies-with-annotations[].] Grouping tests by instances was introduced with TestNG version 6.1. Setting the `groupByInstances` property to `true` for an older TestNG version will cause the build to fail.
+The `groupByInstance` property controls whether tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all instances before running the dependants. The default behavior is not to group tests by instances.footnote:[The TestNG documentation contains more details about grouping tests by instances: http://testng.org/doc/documentation-main.html#dependencies-with-annotations[].] Grouping tests by instances was introduced with TestNG version 6.1. Setting the `groupByInstances` property to `true` for an older TestNG version will cause the build to fail.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testnggroupbyinstances" dir="testing/testng/groupbyinstances" title="Grouping TestNG tests by instances">
@@ -918,7 +928,7 @@ Given a parameterized test method named `aTestMethod` that takes two parameters,
 
 
 .Java plugin - test properties
-[cols="a,a,a"]
+[cols="a,a,a", options="header"]
 |===
 | Task Property
 | Type
@@ -1001,7 +1011,7 @@ To use Java 6 the following tasks need to be configured:
 * `JavaCompile` task to fork and use the correct Java home
 * `Javadoc` task to use the correct `javadoc` executable
 * `Test` and the `JavaExec` task to use the correct `java` executable.
- The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the Java 6 home should be configured in `GRADLE_USER_HOME/gradle.properties`  footnote:[For more details on `gradle.properties` see <<sec:gradle_configuration_properties>> ] in the users home directory on each developer machine, as shown in the example. 
+ The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the Java 6 home should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<sec:gradle_configuration_properties>> ] in the users home directory on each developer machine, as shown in the example. 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="javaCrossCompilation" dir="java/crossCompilation" title="Configure Java 6 build">
                 <sourcefile file="gradle.properties"/>

@@ -37,7 +37,7 @@ To use the Ear plugin, include the following in your build script:
 The Ear plugin adds the following tasks to the project.
 
 .Ear plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -53,7 +53,7 @@ The Ear plugin adds the following tasks to the project.
 The Ear plugin adds the following dependencies to tasks added by the base plugin.
 
 .Ear plugin - additional task dependencies
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -67,7 +67,7 @@ The Ear plugin adds the following dependencies to tasks added by the base plugin
 
 
 .Ear plugin - project layout
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Directory
 | Meaning
@@ -87,7 +87,7 @@ The Ear plugin adds two dependency configurations: `deploy` and `earlib`. All de
 
 
 .Ear plugin - directory properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type

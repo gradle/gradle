@@ -52,8 +52,9 @@ Finally, send announcements with the `announce` method:
 ++++
 
 The `announce` method takes two String arguments: The message to be sent, and the notification service to be used. The following table lists supported notification services and their configuration properties.
+
 .Announce Plugin Notification Services
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Notification Service
 | Operating System

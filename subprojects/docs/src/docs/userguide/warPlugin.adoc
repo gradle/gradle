@@ -36,7 +36,7 @@ To use the War plugin, include the following in your build script:
 The War plugin adds the following tasks to the project.
 
 .War plugin - tasks
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -52,7 +52,7 @@ The War plugin adds the following tasks to the project.
 The War plugin adds the following dependencies to tasks added by the Java plugin.
 
 .War plugin - additional task dependencies
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Task name
 | Depends on
@@ -75,7 +75,7 @@ The War plugin adds the following dependencies to tasks added by the Java plugin
 
 
 .War plugin - project layout
-[cols="a,a"]
+[cols="a,a", options="header"]
 |===
 | Directory
 | Meaning
@@ -95,7 +95,7 @@ The War plugin adds two dependency configurations named `providedCompile` and `p
 
 
 .War plugin - directory properties
-[cols="a,a,a,a"]
+[cols="a,a,a,a", options="header"]
 |===
 | Property name
 | Type
@@ -109,7 +109,7 @@ The War plugin adds two dependency configurations named `providedCompile` and `p
 
 | `webAppDir`
 | `File` (read-only)
-| `<replaceable>projectDir</replaceable>/<replaceable>webAppDirName</replaceable>`
+| ``projectDir`/`webAppDirName``
 | The web application source directory.
 |===
 
@@ -118,7 +118,7 @@ These properties are provided by a api:org.gradle.api.plugins.WarPluginConventio
 [[sec:war_default_settings]]
 === War
 
-The default behavior of the War task is to copy the content of `src/main/webapp` to the root of the archive. Your `webapp` directory may of course contain a `WEB-INF` sub-directory, which may contain a `web.xml` file. Your compiled classes are compiled to `WEB-INF/classes`. All the dependencies of the `runtime`  footnote:[The `runtime` configuration extends the `compile` configuration.] configuration are copied to `WEB-INF/lib`.
+The default behavior of the War task is to copy the content of `src/main/webapp` to the root of the archive. Your `webapp` directory may of course contain a `WEB-INF` sub-directory, which may contain a `web.xml` file. Your compiled classes are compiled to `WEB-INF/classes`. All the dependencies of the `runtime` footnote:[The `runtime` configuration extends the `compile` configuration.] configuration are copied to `WEB-INF/lib`.
 
 The api:org.gradle.api.tasks.bundling.War[] class in the API documentation has additional useful information.
 

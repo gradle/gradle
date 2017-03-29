@@ -15,7 +15,13 @@
 [[tutorial_gradle_gui]]
 == Using the Gradle Graphical User Interface
 
-NOTE:  The Gradle GUI has been deprecated and will be removed in Gradle 4.0. Consider using an IDE with support for Gradle e.g. https://eclipse.org/[Eclipse], https://www.jetbrains.com/idea/[IntelliJ] or https://netbeans.org/[NetBeans] instead. 
+
+[NOTE]
+====
+ 
+The Gradle GUI has been deprecated and will be removed in Gradle 4.0. Consider using an IDE with support for Gradle e.g. https://eclipse.org/[Eclipse], https://www.jetbrains.com/idea/[IntelliJ] or https://netbeans.org/[NetBeans] instead.
+ 
+====
 
 In addition to supporting a traditional command line interface, Gradle offers a graphical user interface. This is a stand alone user interface that can be launched with the `--gui` option.
 <example> .Launching the GUI

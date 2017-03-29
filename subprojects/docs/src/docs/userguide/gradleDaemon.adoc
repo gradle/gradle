@@ -67,15 +67,19 @@ The Gradle Daemon is enabled by default, and we recommend always enabling it for
 
 Note that having the Daemon enabled, all your builds will take advantage of the speed boost, regardless of the version of Gradle a particular build uses.
 
-TIP:  .Continuous integration
+[TIP]
+====
+ .Continuous integration
   
 At the moment, we recommend that you disable the Daemon for Continuous Integration servers as correctness is usually a priority over speed in CI environments. Using a fresh runtime for each build is more reliable since the runtime is _completely_ isolated from any previous builds. Additionally, since the Daemon primarily acts to reduce build startup times, this isn't as critical in CI as it is on a developer's machine.
  
+====
+
 
 [[sec:stopping_an_existing_daemon]]
 === Stopping an existing Daemon
 
-As mentioned, the Daemon is a background process. You needn’t worry about a build up of Gradle processes on your machine, though. Every Daemon monitors its memory usage compared to total system memory and will stop itself if idle when available system memory is low. If you want to explicitly stop running Daemon processes for any reason, just use the command [userinput]#gradle --stop#.
+As mentioned, the Daemon is a background process. You needn’t worry about a build up of Gradle processes on your machine, though. Every Daemon monitors its memory usage compared to total system memory and will stop itself if idle when available system memory is low. If you want to explicitly stop running Daemon processes for any reason, just use the command `gradle --stop`.
 
 This will terminate all Daemon processes that were started with the same version of Gradle used to execute the command. If you have the Java Development Kit (JDK) installed, you can easily verify that a Daemon has stopped by running the `jps` command. You’ll see any running Daemons listed with the name `GradleDaemon`.
 
@@ -92,7 +96,12 @@ There are two recommended ways to disable the Daemon persistently for an environ
 
 Via properties file: add `org.gradle.daemon=false` to the `«GRADLE_USER_HOME»/gradle.properties` file
 
-NOTE:  Note, `«GRADLE_USER_HOME»` defaults to `«USER_HOME»/.gradle`, where `«USER_HOME»` is the home directory of the current user. This location can be configured via the `-g` and `--gradle-user-home` command line switches, as well as by the `GRADLE_USER_HOME` environment variable and `org.gradle.user.home` JVM system property. 
+[NOTE]
+====
+ 
+Note, `«GRADLE_USER_HOME»` defaults to `«USER_HOME»/.gradle`, where `«USER_HOME»` is the home directory of the current user. This location can be configured via the `-g` and `--gradle-user-home` command line switches, as well as by the `GRADLE_USER_HOME` environment variable and `org.gradle.user.home` JVM system property.
+ 
+====
 
 Both approaches have the same effect. Which one to use is up to personal preference. Most Gradle users choose the second option and add the entry to the user `gradle.properties` file.
 
@@ -121,7 +130,11 @@ The `--daemon` and `--no-daemon` command line options enable and disable usage o
 
 There are several reasons why Gradle will create a new Daemon, instead of using one that is already running. The basic rule is that Gradle will start a new Daemon if there are no existing idle or compatible Daemons available. Gradle will kill any Daemon that has been idle for 3 hours or more, so you don't have to worry about cleaning them up manually.
 
-idle::An idle Daemon is one that is not currently executing a build or doing other useful work.compatible::A compatible Daemon is one that can (or can be made to) meet the requirements of the requested build environment. The Java runtime used to execute the build is an example aspect of the build environment. Another example is the set of JVM system properties required by the build runtime.
+idle::
+An idle Daemon is one that is not currently executing a build or doing other useful work.
+compatible::
+A compatible Daemon is one that can (or can be made to) meet the requirements of the requested build environment. The Java runtime used to execute the build is an example aspect of the build environment. Another example is the set of JVM system properties required by the build runtime.
+
 
 Some aspects of the requested build environment may not be met by an Daemon. If the Daemon is running with a Java 7 runtime, but the requested environment calls for Java 8, then the Daemon is not compatible and another must be started. Moreover, certain properties of a Java runtime cannot be changed once the JVM has started. For example, it is not possible to change the memory allocation (e.g. `-Xmx1024m`), default text encoding, default locale, etc of a running JVM.
 
