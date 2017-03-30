@@ -99,11 +99,13 @@ public class WorkerDaemonClientsManager {
                 }
             });
             List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(sortedClients));
-            idleClients.removeAll(clientsToStop);
-            allClients.removeAll(clientsToStop);
-            LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());
-            CompositeStoppable.stoppable(clientsToStop).stop();
-            LOGGER.info("Stopped {} worker daemon(s).", clientsToStop.size());
+            if (!clientsToStop.isEmpty()) {
+                idleClients.removeAll(clientsToStop);
+                allClients.removeAll(clientsToStop);
+                LOGGER.debug("Stopping {} worker daemon(s).", clientsToStop.size());
+                CompositeStoppable.stoppable(clientsToStop).stop();
+                LOGGER.info("Stopped {} worker daemon(s).", clientsToStop.size());
+            }
         }
     }
 }
