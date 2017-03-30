@@ -35,6 +35,7 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -87,6 +88,9 @@ public class ProjectBuilderImpl {
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
+
+        // Take a root worker lease, it won't ever be released as ProjectBuilder has no lifecycle
+        topLevelRegistry.get(BuildOperationWorkerRegistry.class).operationStart();
 
         return project;
     }
