@@ -34,6 +34,7 @@ import org.junit.runner.notification.RunNotifier;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
@@ -111,6 +112,31 @@ public class JUnitTestClassExecuter {
 
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(listener);
+
+        if (!options.getListeners().isEmpty()) {
+            Transformer<Class<? extends RunListener>, String> transformer = new Transformer<Class<? extends RunListener>, String>() {
+                @SuppressWarnings("unchecked")
+                public Class<? extends RunListener> transform(final String original) {
+                    try {
+                        return (Class<? extends RunListener>) applicationClassLoader.loadClass(original);
+                    } catch (ClassNotFoundException e) {
+                        throw new InvalidUserDataException(String.format("Can't load listener class [%s].", original), e);
+                    } catch (ClassCastException e) {
+                        throw new InvalidUserDataException("JUnit listener should implement org.junit.runner.notification.RunListener", e);
+                    }
+                }
+            };
+            Set<Class<? extends RunListener>> classes = CollectionUtils.collect(options.getListeners(), transformer);
+            for (Class<? extends RunListener> clazz : classes) {
+                try {
+                    final RunListener listener = clazz.newInstance();
+                    notifier.addListener(listener);
+                } catch (Exception e) {
+                    throw new InvalidUserDataException(String.format("Can't create instance of listener %s", clazz), e);
+                }
+            }
+        }
+
         runner.run(notifier);
     }
 

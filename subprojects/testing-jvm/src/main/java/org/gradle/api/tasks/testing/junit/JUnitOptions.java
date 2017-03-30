@@ -27,9 +27,12 @@ import java.util.Set;
  * The JUnit specific test options.
  */
 public class JUnitOptions extends TestFrameworkOptions {
+
     private Set<String> includeCategories = new LinkedHashSet<String>();
 
     private Set<String> excludeCategories = new LinkedHashSet<String>();
+
+    private Set<String> listeners = new LinkedHashSet<String>();
 
     @Incubating
     public JUnitOptions includeCategories(String... includeCategories) {
@@ -40,6 +43,12 @@ public class JUnitOptions extends TestFrameworkOptions {
     @Incubating
     public JUnitOptions excludeCategories(String... excludeCategories) {
         this.excludeCategories.addAll(Arrays.asList(excludeCategories));
+        return this;
+    }
+
+    @Incubating
+    public JUnitOptions listeners(String... listeners) {
+        this.listeners.addAll(Arrays.asList(listeners));
         return this;
     }
 
@@ -68,5 +77,15 @@ public class JUnitOptions extends TestFrameworkOptions {
         this.excludeCategories = excludeCategories;
     }
 
+    /**
+     * The set of listeners to add.
+     */
+    @Incubating
+    public Set<String> getListeners() {
+        return listeners;
+    }
 
+    public void setListeners(Set<String> listeners) {
+        this.listeners = listeners;
+    }
 }

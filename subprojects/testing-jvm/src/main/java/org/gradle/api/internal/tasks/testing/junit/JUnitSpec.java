@@ -22,11 +22,14 @@ public class JUnitSpec implements Serializable {
     private final Set<String> includeCategories;
     private final Set<String> excludeCategories;
     private final Set<String> includedTests;
+    private final Set<String> listeners;
 
-    public JUnitSpec(Set<String> includeCategories, Set<String> excludeCategories, Set<String> includedTests) {
+    public JUnitSpec(Set<String> includeCategories, Set<String> excludeCategories,
+                     Set<String> includedTests, Set<String> listeners) {
         this.includeCategories = includeCategories;
         this.excludeCategories = excludeCategories;
         this.includedTests = includedTests;
+        this.listeners = listeners;
     }
 
     public Set<String> getIncludeCategories() {
@@ -43,5 +46,9 @@ public class JUnitSpec implements Serializable {
 
     public Set<String> getIncludedTests() {
         return includedTests;
+    }
+
+    public Set<String> getListeners() {
+        return listeners;
     }
 }
