@@ -40,6 +40,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.tooling.internal.provider.ContinuousBuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.GradleThreadBuildActionExecuter
 import org.gradle.tooling.internal.provider.ServicesSetupBuildActionExecuter
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
@@ -163,9 +164,10 @@ class BuildActionsFactoryTest extends Specification {
 
     void isInProcess(def action) {
         assert action instanceof RunBuildAction
-        assert action.executer instanceof ServicesSetupBuildActionExecuter
-        assert action.executer.delegate instanceof ContinuousBuildActionExecuter
-        assert action.executer.delegate.delegate instanceof InProcessBuildActionExecuter
+        assert action.executer instanceof GradleThreadBuildActionExecuter
+        assert action.executer.delegate instanceof ServicesSetupBuildActionExecuter
+        assert action.executer.delegate.delegate instanceof ContinuousBuildActionExecuter
+        assert action.executer.delegate.delegate.delegate instanceof InProcessBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

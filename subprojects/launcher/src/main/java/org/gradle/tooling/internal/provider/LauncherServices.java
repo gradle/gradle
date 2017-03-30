@@ -71,15 +71,16 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
     static class ToolingGlobalScopeServices {
         BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
             List<BuildActionRunner> buildActionRunners = globalServices.getAll(BuildActionRunner.class);
-            return new ServicesSetupBuildActionExecuter(
-                new ContinuousBuildActionExecuter(
-                    new InProcessBuildActionExecuter(gradleLauncherFactory,
-                        new ChainingBuildActionRunner(buildActionRunners)),
-                    fileWatcherFactory,
-                    listenerManager,
-                    styledTextOutputFactory,
-                    executorFactory),
-                userHomeServiceRegistry);
+            return new GradleThreadBuildActionExecuter(
+                new ServicesSetupBuildActionExecuter(
+                    new ContinuousBuildActionExecuter(
+                        new InProcessBuildActionExecuter(gradleLauncherFactory,
+                            new ChainingBuildActionRunner(buildActionRunners)),
+                        fileWatcherFactory,
+                        listenerManager,
+                        styledTextOutputFactory,
+                        executorFactory),
+                    userHomeServiceRegistry));
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

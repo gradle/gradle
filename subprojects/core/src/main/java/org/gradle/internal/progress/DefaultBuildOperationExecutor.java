@@ -17,9 +17,11 @@
 package org.gradle.internal.progress;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -49,9 +51,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public Operation getCurrentOperation() {
-        OperationDetails current = currentOperation.get();
+        Operation current = currentOperation.get();
         if (current == null) {
-            throw new IllegalStateException("No operation is currently running.");
+            if (GradleThread.isManaged()) {
+                throw new IllegalStateException("No operation is currently running.");
+            } else {
+                LOGGER.warn("No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
+                current = new UnmanagedThreadOperation();
+            }
         }
         return current;
     }
@@ -182,6 +189,35 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         @Override
         public void failed(Throwable t) {
             failure = t;
+        }
+    }
+
+    private static class UnmanagedThreadOperation implements Operation {
+
+        private static final AtomicLong COUNTER = new AtomicLong();
+        private final String id;
+        private final String toString;
+
+        private UnmanagedThreadOperation() {
+            long count = COUNTER.getAndIncrement();
+            id = "unmanaged_" + count;
+            toString = "Unmanaged thread operation #" + count + " (" + Thread.currentThread().getName() + ')';
+        }
+
+        @Override
+        public Object getId() {
+            return id;
+        }
+
+        @Nullable
+        @Override
+        public Object getParentId() {
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return toString;
         }
     }
 }
