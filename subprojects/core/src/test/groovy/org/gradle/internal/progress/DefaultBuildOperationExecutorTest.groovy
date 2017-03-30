@@ -18,6 +18,7 @@ package org.gradle.internal.progress
 
 import org.gradle.api.Action
 import org.gradle.api.Transformer
+import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
@@ -327,7 +328,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         e.message == "No operation is currently running."
     }
 
-    def "cannot query operation id when no operation running on current thread"() {
+    def "cannot query operation id when no operation running on current managed thread"() {
         when:
         async {
             start {
@@ -337,16 +338,43 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
                 } as Action)
             }
             thread.blockUntil.operationRunning
+            GradleThread.setManaged()
             try {
                 operationExecutor.currentOperation
             } finally {
                 instant.queried
+                GradleThread.setUnmanaged()
             }
         }
 
         then:
         IllegalStateException e = thrown()
         e.message == "No operation is currently running."
+    }
+
+    def "can query operation id when no operation running on current unmanaged thread"() {
+        when:
+        BuildOperationExecutor.Operation op
+        async {
+            start {
+                operationExecutor.run("operation", {
+                    instant.operationRunning
+                    thread.blockUntil.queried
+                } as Action)
+            }
+            thread.blockUntil.operationRunning
+            try {
+                op = operationExecutor.currentOperation
+            } finally {
+                instant.queried
+            }
+        }
+
+        then:
+        op != null
+        op.id == 'unmanaged_0'
+        op.parentId == null
+        op.toString() == 'Unmanaged thread operation #0 (Test thread 1)'
     }
 
     def "attaches parent id when operation is nested inside another"() {
