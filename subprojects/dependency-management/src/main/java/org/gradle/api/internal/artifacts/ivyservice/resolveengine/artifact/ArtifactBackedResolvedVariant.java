@@ -25,6 +25,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.DescribableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collection;
@@ -125,7 +126,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
     }
 
-    private static class DownloadArtifactFile implements RunnableBuildOperation {
+    private static class DownloadArtifactFile implements RunnableBuildOperation, DescribableBuildOperation<ComponentArtifactIdentifier> {
         private final ResolvedArtifact artifact;
         private final Map<ResolvedArtifact, Throwable> artifactFailures;
 
@@ -146,6 +147,16 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public String getDescription() {
             return "Resolve artifact " + artifact;
+        }
+
+        @Override
+        public ComponentArtifactIdentifier getOperationDescriptor() {
+            return artifact.getId();
+        }
+
+        @Override
+        public String getProgressDisplayName() {
+            return null;
         }
     }
 }

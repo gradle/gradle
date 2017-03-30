@@ -22,12 +22,13 @@ import spock.lang.Unroll
 import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    private final AtomicInteger concurrentRequests = new AtomicInteger()
+    private final Object lock = new Object()
+    private volatile int concurrentRequests
     protected volatile int maxConcurrentRequests
+
     protected Closure<Boolean> acceptURI
 
     def setup() {
@@ -38,12 +39,16 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         server.beforeHandle { HttpServletRequest request ->
             if (acceptURI(request.requestURI)) {
                 barrier.await(20, TimeUnit.SECONDS)
-                maxConcurrentRequests = Math.max(maxConcurrentRequests, concurrentRequests.incrementAndGet())
+                synchronized (lock) {
+                    maxConcurrentRequests = Math.max(maxConcurrentRequests, ++concurrentRequests)
+                }
             }
         }
         server.afterHandle { HttpServletRequest request ->
             if (acceptURI(request.requestURI)) {
-                concurrentRequests.decrementAndGet()
+                synchronized (lock) {
+                    concurrentRequests--
+                }
             }
         }
     }

@@ -129,15 +129,24 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
 
         @Override
         public void execute(final T t) {
-            BuildOperationDetails operationDetails = BuildOperationDetails.displayName(t.getDescription())
-                .parent(parentOperation)
-                .build();
-            buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(createBuildOperationDetails(t), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     delegate.execute(t);
                 }
             });
+        }
+
+        private BuildOperationDetails createBuildOperationDetails(T buildOperation) {
+            BuildOperationDetails.Builder builder = BuildOperationDetails.displayName(buildOperation.getDescription());
+            if (buildOperation instanceof DescribableBuildOperation) {
+                DescribableBuildOperation describableBuildOperation = (DescribableBuildOperation) buildOperation;
+                Object operationDescriptor = describableBuildOperation.getOperationDescriptor();
+                builder.operationDescriptor(operationDescriptor);
+                String displayName = describableBuildOperation.getProgressDisplayName();
+                builder.progressDisplayName(displayName);
+            }
+            return builder.parent(parentOperation).build();
         }
     }
 }
