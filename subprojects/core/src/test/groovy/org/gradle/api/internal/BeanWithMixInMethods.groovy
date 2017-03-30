@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal
 
-import org.gradle.internal.metaobject.InvokeMethodResult
+import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.MethodAccess
 import org.gradle.internal.metaobject.MethodMixIn
 
@@ -36,10 +36,11 @@ class BeanWithMixInMethods implements MethodMixIn {
             }
 
             @Override
-            void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+            DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
                 if (name == "dyno") {
-                    result.result(Arrays.toString(arguments))
+                    return DynamicInvokeResult.found(Arrays.toString(arguments))
                 }
+                return DynamicInvokeResult.notFound()
             }
         }
     }

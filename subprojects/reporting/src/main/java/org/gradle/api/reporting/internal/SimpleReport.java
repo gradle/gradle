@@ -23,6 +23,8 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -31,7 +33,7 @@ import java.util.concurrent.Callable;
 public class SimpleReport implements ConfigurableReport {
 
     private String name;
-    private String displayName;
+    private Factory<String> displayName;
     private FileResolver fileResolver;
 
     private final PropertyState<File> destination;
@@ -40,6 +42,10 @@ public class SimpleReport implements ConfigurableReport {
     private OutputType outputType;
 
     public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver, Project project) {
+        this(name, Factories.constant(displayName), outputType, fileResolver, project);
+    }
+
+    public SimpleReport(String name, Factory<String> displayName, OutputType outputType, FileResolver fileResolver, Project project) {
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
@@ -54,7 +60,7 @@ public class SimpleReport implements ConfigurableReport {
     }
 
     public String getDisplayName() {
-        return displayName;
+        return displayName.create();
     }
 
     public String toString() {

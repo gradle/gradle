@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 class TaskStateInternalTest {
-    private final TaskStateInternal state = new TaskStateInternal('task-description')
+    private final TaskStateInternal state = new TaskStateInternal()
 
     @Test
     public void defaultValues() {
@@ -135,7 +135,7 @@ class TaskStateInternalTest {
             state.rethrowFailure()
             fail()
         } catch (GradleException e) {
-            assertThat(e.message, equalTo('Task-description failed with an exception.'))
+            assertThat(e.message, equalTo('Task failed with an exception.'))
             assertThat(e.cause, sameInstance(failure))
         }
     }

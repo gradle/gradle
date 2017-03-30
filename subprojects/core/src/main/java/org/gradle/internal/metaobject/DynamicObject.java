@@ -42,17 +42,17 @@ public interface DynamicObject extends MethodAccess, PropertyAccess {
     MissingMethodException methodMissingException(String name, Object... params);
 
     /**
-     * Don't use this method. Use the overload {@link PropertyAccess#getProperty(String, GetPropertyResult)} instead.
+     * Don't use this method. Use the overload {@link #tryGetProperty(String)} instead.
      */
     Object getProperty(String name) throws MissingPropertyException;
 
     /**
-     * Don't use this method. Use the overload {@link PropertyAccess#setProperty(String, Object, SetPropertyResult)} instead.
+     * Don't use this method. Use the overload {@link #trySetProperty(String, Object)} instead.
      */
     void setProperty(String name, Object value) throws MissingPropertyException;
 
     /**
-     * Don't use this method. Use the overload {@link MethodAccess#invokeMethod(String, InvokeMethodResult, Object...)} instead.
+     * Don't use this method. Use the overload {@link MethodAccess#tryInvokeMethod(String, Object...)} instead.
      */
     Object invokeMethod(String name, Object... arguments) throws MissingMethodException;
 }

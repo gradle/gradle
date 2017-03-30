@@ -28,8 +28,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.metaobject.PropertyAccess;
@@ -349,11 +348,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public void getProperty(String name, GetPropertyResult result) {
+        public DynamicInvokeResult tryGetProperty(String name) {
             T t = findByName(name);
-            if (t != null) {
-                result.result(t);
-            }
+            return t == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(t);
         }
 
         @Override
@@ -367,10 +364,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
-                result.result(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
+                return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
             }
+            return DynamicInvokeResult.notFound();
         }
 
         private boolean isConfigureMethod(String name, Object... arguments) {

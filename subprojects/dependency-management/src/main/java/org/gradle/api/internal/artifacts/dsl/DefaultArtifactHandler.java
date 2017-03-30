@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.internal.Actions;
-import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -85,22 +85,22 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (arguments.length == 0) {
-                return;
+                return DynamicInvokeResult.notFound();
             }
             Configuration configuration = configurationContainer.findByName(name);
             if (configuration == null) {
-                return;
+                return DynamicInvokeResult.notFound();
             }
             List<Object> normalizedArgs = GUtil.flatten(Arrays.asList(arguments), false);
             if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-                result.result(pushArtifact(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
+                return DynamicInvokeResult.found(pushArtifact(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
             } else {
                 for (Object notation : normalizedArgs) {
                     pushArtifact(configuration, notation, Actions.doNothing());
                 }
-                result.result(null);
+                return DynamicInvokeResult.found();
             }
         }
     }

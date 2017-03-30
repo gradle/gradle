@@ -30,18 +30,16 @@ public interface PropertyAccess {
     boolean hasProperty(String name);
 
     /**
-     * Gets the value of the given property, attaching it to the given result using {@link GetPropertyResult#result(Object)}.
-     *
-     * <p>Use the {@link GetPropertyResult#isFound()} method to determine whether the property has been found or not.</p>
+     * Gets the value of the given property, if present.
      */
-    void getProperty(String name, GetPropertyResult result);
+    DynamicInvokeResult tryGetProperty(String name);
 
     /**
-     * Sets the value of the given property. The implementation should call {@link SetPropertyResult#found()} when the property value has been set.
+     * Sets the value of the given property, if present.
      *
-     * <p>Use the {@link SetPropertyResult#isFound()} method to determine whether the property has been found or not.</p>
+     * @return true if the property was found
      */
-    void setProperty(String name, Object value, SetPropertyResult result);
+    DynamicInvokeResult trySetProperty(String name, Object value);
 
     /**
      * Returns the properties known for this object.

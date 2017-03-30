@@ -59,6 +59,48 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         ":test" in nonSkippedTasks
     }
 
+    def "configurest test task when debug property is set"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            task validate() {
+                doFirst {
+                    assert test.debug
+                }
+            }
+            test.dependsOn(validate)
+            test.enabled = false
+        """
+
+        when:
+        executer.withArgument("-Dtest.debug")
+
+        then:
+        succeeds("test")
+    }
+
+    def "configurest test task when test.single property is set"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            task validate() {
+                doFirst {
+                    assert test.includes  == ['**/pattern*.class'] as Set
+                    assert test.inputs.sourceFiles.empty
+                }
+            }
+            test.include 'ignoreme'
+            test.dependsOn(validate)
+            test.enabled = false
+        """
+
+        when:
+        executer.withArgument("-Dtest.single=pattern")
+
+        then:
+        succeeds("test")
+    }
+
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
         given:
         file('src/test/java/ExceptionTest.java') << """

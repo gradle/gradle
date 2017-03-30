@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
-import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.CollectionUtils;
@@ -193,24 +193,24 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (arguments.length == 0) {
-                return;
+                return DynamicInvokeResult.notFound();
             }
             Configuration configuration = configurationContainer.findByName(name);
             if (configuration == null) {
-                return;
+                return DynamicInvokeResult.notFound();
             }
             List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);
             if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-                result.result(doAdd(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
+                return DynamicInvokeResult.found(doAdd(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
             } else if (normalizedArgs.size() == 1) {
-                result.result(doAdd(configuration, normalizedArgs.get(0), null));
+                return DynamicInvokeResult.found(doAdd(configuration, normalizedArgs.get(0), null));
             } else {
                 for (Object arg : normalizedArgs) {
                     doAdd(configuration, arg, null);
                 }
-                result.result(null);
+                return DynamicInvokeResult.found();
             }
         }
     }

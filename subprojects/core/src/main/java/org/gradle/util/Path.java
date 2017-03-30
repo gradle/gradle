@@ -16,6 +16,7 @@
 
 package org.gradle.util;
 
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -27,21 +28,16 @@ public class Path implements Comparable<Path> {
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
     private final String[] segments;
     private final boolean absolute;
-    private final String fullPath;
+    private String fullPath;
     public static final Path ROOT = new Path(Project.PATH_SEPARATOR);
 
     private Path(String path) {
-        this(StringUtils.split(path, Project.PATH_SEPARATOR), path.startsWith(Project.PATH_SEPARATOR), path.length() > 1 && path.endsWith(Project.PATH_SEPARATOR) ? path.substring(0, path.length() - 1) : path);
+        this(StringUtils.split(path, Project.PATH_SEPARATOR), path.startsWith(Project.PATH_SEPARATOR));
     }
 
     private Path(String[] segments, boolean absolute) {
-        this(segments, absolute, createFullPath(segments, absolute));
-    }
-
-    private Path(String[] segments, boolean absolute, String fullPath) {
         this.segments = segments;
         this.absolute = absolute;
-        this.fullPath = fullPath;
     }
 
     public static Path path(String path) {
@@ -54,10 +50,13 @@ public class Path implements Comparable<Path> {
     }
 
     public String getPath() {
+        if (fullPath == null) {
+            fullPath = createFullPath();
+        }
         return fullPath;
     }
 
-    private static String createFullPath(String[] segments, boolean absolute) {
+    private String createFullPath() {
         StringBuilder path = new StringBuilder();
         if (absolute) {
             path.append(Project.PATH_SEPARATOR);
@@ -163,30 +162,37 @@ public class Path implements Comparable<Path> {
      * Resolves the given name relative to this path. If an absolute path is provided, it is returned.
      */
     public String absolutePath(String path) {
-        if (!isAbsolutePath(path)) {
-            return fullPath.equals(Project.PATH_SEPARATOR) ? fullPath + path : fullPath + Project.PATH_SEPARATOR + path;
+        if (isAbsolutePath(path)) {
+            return path;
         }
-        return path;
+        String prefix = isRoot() ? getPath() : getPath() + Project.PATH_SEPARATOR;
+        return prefix + path;
+    }
+
+    private boolean isRoot() {
+        return this == ROOT;
     }
 
     /**
      * Calculates a path relative to this path. If the given path is not a child of this path, it is returned unmodified.
      */
     public String relativePath(String path) {
-        if (fullPath.equals(Project.PATH_SEPARATOR)) {
-            if (path.startsWith(fullPath) && path.length() > fullPath.length()) {
+        if (isRoot()) {
+            if (path.startsWith(Project.PATH_SEPARATOR) && path.length() > 1) {
                 return path.substring(1);
             }
             return path;
         }
-        if (path.startsWith(fullPath) && path.length() > fullPath.length() + 1 && path.charAt(fullPath.length()) == ':') {
-            return path.substring(fullPath.length() + 1);
+        String myPath = getPath();
+        int myLength = myPath.length();
+        if (path.startsWith(myPath) && path.length() > myLength + 1 && path.substring(myLength, myLength + 1).equals(Project.PATH_SEPARATOR)) {
+            return path.substring(myLength + 1);
         }
         return path;
     }
 
     private boolean isAbsolutePath(String path) {
-        if (!GUtil.isTrue(path)) {
+        if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
         return path.startsWith(Project.PATH_SEPARATOR);

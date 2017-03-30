@@ -17,24 +17,25 @@
 package org.gradle.groovy.scripts;
 
 import groovy.lang.MetaClass;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.PrintStream;
 import java.util.Map;
 
-public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations, ProcessOperations {
+public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations, ProcessOperations, DynamicObjectAware {
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private DynamicObject dynamicTarget;
-    private final DynamicObject scriptObject = new BeanDynamicObject(this).withNotImplementsMissing();
+    private final BeanDynamicObject externalScriptObject = new BeanDynamicObject(this);
+    private final DynamicObject scriptObject = externalScriptObject.withNotImplementsMissing();
 
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
@@ -65,12 +66,11 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         if (getBinding().hasVariable(property)) {
             return super.getProperty(property);
         }
-        GetPropertyResult result = new GetPropertyResult();
-        scriptObject.getProperty(property, result);
+        DynamicInvokeResult result = scriptObject.tryGetProperty(property);
         if (result.isFound()) {
             return result.getValue();
         }
-        dynamicTarget.getProperty(property, result);
+        result = dynamicTarget.tryGetProperty(property);
         if (result.isFound()) {
             return result.getValue();
         }
@@ -99,21 +99,32 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     @Override
     public Object invokeMethod(String name, Object args) {
         Object[] arguments = (Object[]) args;
-        InvokeMethodResult result = new InvokeMethodResult();
-        scriptObject.invokeMethod(name, result, arguments);
+        DynamicInvokeResult result = scriptObject.tryInvokeMethod(name, arguments);
         if (result.isFound()) {
-            return result.getResult();
+            return result.getValue();
         }
-        dynamicTarget.invokeMethod(name, result, arguments);
+        result = dynamicTarget.tryInvokeMethod(name, arguments);
         if (result.isFound()) {
-            return result.getResult();
+            return result.getValue();
         }
         throw dynamicTarget.methodMissingException(name, arguments);
     }
 
     public Object methodMissing(String name, Object args) {
-        // In some cases the meta class will invoke this before invokeMethod()
         return invokeMethod(name, args);
+    }
+
+    public Object propertyMissing(String name) {
+        return getProperty(name);
+    }
+
+    public void propertyMissing(String name, Object value) {
+        setProperty(name, value);
+    }
+
+    @Override
+    public DynamicObject getAsDynamicObject() {
+        return externalScriptObject;
     }
 }
 

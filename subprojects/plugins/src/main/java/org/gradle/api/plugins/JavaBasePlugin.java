@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -376,16 +377,23 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
         project.getTasks().withType(Test.class, new Action<Test>() {
-            public void execute(Test test) {
+            public void execute(final Test test) {
                 configureTestDefaults(test, project, convention);
             }
         });
-        project.afterEvaluate(new Action<Project>() {
-            public void execute(Project project) {
+        project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
+            @Override
+            public void execute(final TaskExecutionGraph taskExecutionGraph) {
                 project.getTasks().withType(Test.class, new Action<Test>() {
+
+                    @Override
                     public void execute(Test test) {
-                        configureBasedOnSingleProperty(test);
-                        overwriteDebugIfDebugPropertyIsSet(test);
+                        if (taskExecutionGraph.hasTask(test)) {
+                            //TODO we should deprecate and remove these old properties
+                            //they can be replaced by --tests and --debug-jvm
+                            configureBasedOnSingleProperty(test);
+                            overwriteDebugIfDebugPropertyIsSet(test);
+                        }
                     }
                 });
             }

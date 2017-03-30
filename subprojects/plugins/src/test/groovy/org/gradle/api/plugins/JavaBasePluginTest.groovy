@@ -261,32 +261,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
     }
 
-    def configuresTestTaskWhenDebugSystemPropertyIsSet() {
-        project.pluginManager.apply(JavaBasePlugin)
-        def task = project.tasks.create('test', Test.class)
-
-        when:
-        System.setProperty("test.debug", "true")
-        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
-
-        then:
-        task.debug
-    }
-
-    def "configures test task when test.single is used"() {
-        project.pluginManager.apply(JavaBasePlugin)
-        def task = project.tasks.create('test', Test.class)
-        task.include 'ignoreme'
-
-        when:
-        System.setProperty("test.single", "pattern")
-        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
-
-        then:
-        task.includes == ['**/pattern*.class'] as Set
-        task.inputs.getSourceFiles().empty
-    }
-
     def "adds language source sets for each source set added to the 'sourceSets' container"() {
         project.pluginManager.apply(JavaBasePlugin)
 

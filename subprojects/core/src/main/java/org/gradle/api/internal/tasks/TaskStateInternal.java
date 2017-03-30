@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
@@ -25,13 +24,8 @@ public class TaskStateInternal implements TaskState {
     private boolean executing;
     private boolean didWork;
     private Throwable failure;
-    private String description;
     private TaskOutputCachingState taskOutputCaching;
     private TaskExecutionOutcome outcome;
-
-    public TaskStateInternal(String description) {
-        this.description = description;
-    }
 
     public boolean getDidWork() {
         return didWork;
@@ -105,7 +99,7 @@ public class TaskStateInternal implements TaskState {
         if (failure instanceof Error) {
             throw (Error) failure;
         }
-        throw new GradleException(String.format("%s failed with an exception.", StringUtils.capitalize(description)), failure);
+        throw new GradleException("Task failed with an exception.", failure);
     }
 
     public boolean getSkipped() {

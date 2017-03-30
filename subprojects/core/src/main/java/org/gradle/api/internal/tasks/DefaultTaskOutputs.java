@@ -65,10 +65,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
-
-        final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-        buildDependencies.add(task);
-        this.allOutputFiles = new TaskOutputUnionFileCollection(buildDependencies);
+        this.allOutputFiles = new TaskOutputUnionFileCollection(task);
     }
 
     @Override
@@ -254,9 +251,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
-        private final DefaultTaskDependency buildDependencies;
+        private final TaskInternal buildDependencies;
 
-        public TaskOutputUnionFileCollection(DefaultTaskDependency buildDependencies) {
+        public TaskOutputUnionFileCollection(TaskInternal buildDependencies) {
             this.buildDependencies = buildDependencies;
         }
 
