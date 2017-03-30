@@ -30,6 +30,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
@@ -98,6 +99,14 @@ class ToolingApiDistributionResolver {
         def sessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, ClassPath.EMPTY)
         def topLevelRegistry = BuildScopeServices.forSession(sessionServices)
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
+
+        def workerLease = sessionServices.get(BuildOperationWorkerRegistry).operationStart()
+        stopLater.add(new Stoppable() {
+            @Override
+            void stop() {
+                workerLease.operationFinish()
+            }
+        })
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)
