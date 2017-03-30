@@ -38,10 +38,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         def barrier = new CyclicBarrier(2)
         server.beforeHandle { HttpServletRequest request ->
             if (acceptURI(request.requestURI)) {
-                barrier.await(20, TimeUnit.SECONDS)
                 synchronized (lock) {
                     maxConcurrentRequests = Math.max(maxConcurrentRequests, ++concurrentRequests)
                 }
+                barrier.await(20, TimeUnit.SECONDS)
             }
         }
         server.afterHandle { HttpServletRequest request ->
