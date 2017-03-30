@@ -319,15 +319,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
     }
 
-    def "cannot query operation id when no operation running"() {
-        when:
-        operationExecutor.currentOperation
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == "No operation is currently running."
-    }
-
     def "cannot query operation id when no operation running on current managed thread"() {
         when:
         async {
@@ -372,9 +363,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         op != null
-        op.id == 'unmanaged_0'
+        (op.id as String).startsWith 'unmanaged_'
         op.parentId == null
-        op.toString() == 'Unmanaged thread operation #0 (Test thread 1)'
+        op.toString().matches(/Unmanaged thread operation #\d+ \(Test thread \d+\)/)
     }
 
     def "attaches parent id when operation is nested inside another"() {
