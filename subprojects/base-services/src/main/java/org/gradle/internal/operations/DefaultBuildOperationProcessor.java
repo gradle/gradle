@@ -39,13 +39,11 @@ import java.util.List;
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final StoppableExecutor fixedSizePool;
 
-    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+    public DefaultBuildOperationProcessor(BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
@@ -53,16 +51,11 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
 
     @Override
     public <T extends BuildOperation> void run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
-        BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.maybeStartOperation();
-        try {
-            doRun(worker, generator);
-        } finally {
-            completion.operationFinish();
-        }
+        doRun(worker, generator);
     }
 
     private <T extends BuildOperation> void doRun(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
-        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(buildOperationWorkerRegistry.getCurrent(), fixedSizePool, new ParentBuildOperationAwareWorker<T>(worker));
+        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(fixedSizePool, new ParentBuildOperationAwareWorker<T>(worker));
 
         List<GradleException> failures = Lists.newArrayList();
         try {

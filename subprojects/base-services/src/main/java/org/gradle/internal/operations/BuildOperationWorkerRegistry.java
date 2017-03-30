@@ -33,13 +33,6 @@ public interface BuildOperationWorkerRegistry {
     Completion operationStart();
 
     /**
-     * Ensures that there is a started build operation associated with the current thread, starting one if necessary.
-     * If an operation needs to be started, then the returned {@link Completion} will complete the operation.
-     * If there is already a build operation for the current thread, the returned {@link Completion} is a no-op.
-     */
-    Completion maybeStartOperation();
-
-    /**
      * Returns the build operation associated with the current thread. Allows child operations to be created for this operation. Fails when there is no operation associated with this thread.
      */
     Operation getCurrent();
