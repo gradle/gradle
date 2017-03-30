@@ -24,7 +24,6 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -55,7 +54,7 @@ public class JacocoTaskExtension {
         }
     }
 
-    private JacocoAgentJar agent;
+    private final JacocoAgentJar agent;
     private final JavaForkOptions task;
 
     private boolean enabled = true;
@@ -226,21 +225,6 @@ public class JacocoTaskExtension {
 
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
-     */
-    @Deprecated
-    public File getClassDumpFile() {
-        DeprecationLogger.nagUserOfReplacedMethod("JacocoTaskExtension.getClassDumpFile()", "getClassDumpDir()");
-        return getClassDumpDir();
-    }
-
-    @Deprecated
-    public void setClassDumpFile(File classDumpFile) {
-        DeprecationLogger.nagUserOfReplacedMethod("JacocoTaskExtension.setClassDumpFile(File)", "setClassDumpDir(File)");
-        setClassDumpDir(classDumpFile);
-    }
-
-    /**
-     * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
      *
      * @since 3.4
      */
@@ -268,24 +252,6 @@ public class JacocoTaskExtension {
 
     public void setJmx(boolean jmx) {
         this.jmx = jmx;
-    }
-
-    /**
-     * agent
-     * @deprecated Agent should be considered final.
-     */
-    @Deprecated
-    public JacocoAgentJar getAgent() {
-        return agent;
-    }
-
-    /**
-     * agent
-     * @deprecated Agent should be considered final.
-     */
-    @Deprecated
-    public void setAgent(JacocoAgentJar agent) {
-        this.agent = agent;
     }
 
     /**
