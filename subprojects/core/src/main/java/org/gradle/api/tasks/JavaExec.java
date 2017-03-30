@@ -474,4 +474,27 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public List<String> getCommandLine() {
         return javaExecHandleBuilder.getCommandLine();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public JavaExecSpec inheritIO(boolean inheritIO) {
+        javaExecHandleBuilder.inheritIO(inheritIO);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setInheritIO(boolean inheritIO) {
+        javaExecHandleBuilder.setInheritIO(inheritIO);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Input
+    public boolean isInheritIO() {
+        return javaExecHandleBuilder.isInheritIO();
+    }
 }

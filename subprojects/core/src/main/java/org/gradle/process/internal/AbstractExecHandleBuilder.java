@@ -122,7 +122,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
         StreamsHandler effectiveHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                effectiveHandler, listeners, redirectErrorStream, timeoutMillis, daemon);
+                effectiveHandler, listeners, redirectErrorStream, timeoutMillis, daemon, isInheritIO());
     }
 
     private StreamsHandler getEffectiveStreamsHandler() {

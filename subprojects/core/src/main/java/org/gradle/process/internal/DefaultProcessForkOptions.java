@@ -29,6 +29,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private Object executable;
     private Factory<File> workingDir;
     private final Map<String, Object> environment = new HashMap<String, Object>(Jvm.current().getInheritableEnvironmentVariables(System.getenv()));
+    private boolean inheritIO;
 
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
         this.resolver = resolver;
@@ -92,6 +93,20 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         target.setExecutable(executable);
         target.setWorkingDir(workingDir);
         target.setEnvironment(environment);
+        target.setInheritIO(inheritIO);
         return this;
+    }
+
+    public ProcessForkOptions inheritIO(boolean inheritIO) {
+        this.inheritIO = inheritIO;
+        return this;
+    }
+
+    public void setInheritIO(boolean inheritIO) {
+        this.inheritIO = inheritIO;
+    }
+
+    public boolean isInheritIO() {
+        return inheritIO;
     }
 }

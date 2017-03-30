@@ -32,4 +32,6 @@ public interface ProcessSettings {
 
     boolean getRedirectErrorStream();
 
+    boolean isInheritIO();
+
 }

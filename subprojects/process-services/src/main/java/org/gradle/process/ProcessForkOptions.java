@@ -100,6 +100,28 @@ public interface ProcessForkOptions {
     ProcessForkOptions environment(String name, Object value);
 
     /**
+     * Sets whether the child process should inherit the standard streams.
+     *
+     * @param inheritIO whether the fork process should inherit the standard streams
+     * @return this
+     */
+    ProcessForkOptions inheritIO(boolean inheritIO);
+
+    /**
+     * Sets whether the child process should inherit the standard streams.
+     *
+     * @param inheritIO whether the fork process should inherit the standard streams
+     */
+    void setInheritIO(boolean inheritIO);
+
+    /**
+     * Tells whether the child process should inherit standard streams. Defaults to <code>false</code>.
+     *
+     * @return whether the fork process should inherit the standard streams
+     */
+    boolean isInheritIO();
+
+    /**
      * Copies these options to the given target options.
      *
      * @param options The target options
