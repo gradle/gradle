@@ -60,7 +60,7 @@ In this simple example it was the same build in the same workspace which produce
 Without any extra configuration, your build will use a local directory in your `GRADLE_USER_HOME` to store task outputs.
 To take this to another level, you can configure your build to pull task outputs from a build cache _shared with your team_.
 You can [configure nginx](userguide/build_cache.html#sec:build_cache_setup_http_backend) to act as a shared build cache.
-A scalable, highly-available build cache backend is coming soon in [Gradle Enterprise](https://docs.gradle.com/enterprise/).
+A scalable, highly-available build cache backend is coming soon in [Gradle Enterprise](https://gradle.com/enterprise).
 
 We provide a [recommended configuration](userguide/build_cache.html#sec:build_cache_configure) that uses your continuous integration builds to populate a shared build cache and allows all developers to pull from that build cache.
 Our recommended configuration does not directly share task outputs among developer builds.
