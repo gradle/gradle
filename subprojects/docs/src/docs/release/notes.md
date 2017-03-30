@@ -185,6 +185,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
+### Changes to previously deprecated APIs
+
+- The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
+- The `JacocoTaskExtension` methods `getClassDumpFile()`, `setClassDumpFile(File)`, `getAgent()` and `setAgent(JacocoAgentJar)` are removed.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
