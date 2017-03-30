@@ -45,8 +45,6 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
         if (subscribable) {
             GradleInternal gradle = buildController.getGradle();
             SubscribableBuildAction subscribableBuildAction = (SubscribableBuildAction) action;
-            // register listeners that dispatch all progress via the registered BuildEventConsumer instance,
-            // this allows to send progress events back to the DaemonClient (via short-cut)
             registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), gradle);
         }
         try {

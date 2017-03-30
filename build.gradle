@@ -179,7 +179,7 @@ ext {
     ].collect {
         project(it)
     }
-    extensionPluginProjects = [
+    implementationPluginProjects = [
             'toolingApiBuilders'
     ].collect {
         project(it)
@@ -295,7 +295,7 @@ dependencies {
     runtime project(":installationBeacon")
     runtime patchedExternalModules
     gradlePlugins pluginProjects
-    gradlePlugins extensionPluginProjects
+    gradlePlugins implementationPluginProjects
     gradlePlugins project(':workers')
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')

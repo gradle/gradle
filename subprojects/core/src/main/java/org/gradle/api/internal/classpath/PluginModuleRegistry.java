@@ -21,7 +21,13 @@ import java.util.Set;
  * A registry of dynamically loaded plugin modules.
  */
 public interface PluginModuleRegistry {
-    Set<Module> getPluginModules();
+    /**
+     * Plugin modules exposed in the Gradle API.
+     */
+    Set<Module> getApiModules();
 
-    Set<Module> getExtensionPluginModules();
+    /**
+     * Plugin modules exposed to the Gradle runtime only.
+     */
+    Set<Module> getImplementationModules();
 }

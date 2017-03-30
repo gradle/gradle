@@ -43,8 +43,8 @@ class DynamicModulesClassPathProviderTest extends Specification {
         1 * moduleRegistry.getModule("gradle-workers") >> module("gradle-workers")
         1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")
         1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
-        1 * pluginModuleRegistry.getPluginModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
-        1 * pluginModuleRegistry.getExtensionPluginModules() >> ([module("extension1"), module("extension2")] as LinkedHashSet)
+        1 * pluginModuleRegistry.getApiModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
+        1 * pluginModuleRegistry.getImplementationModules() >> ([module("extension1"), module("extension2")] as LinkedHashSet)
     }
 
     def module(String name, Module... requiredModules) {

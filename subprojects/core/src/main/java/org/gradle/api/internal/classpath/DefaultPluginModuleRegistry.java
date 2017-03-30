@@ -32,14 +32,14 @@ public class DefaultPluginModuleRegistry implements PluginModuleRegistry {
     }
 
     @Override
-    public Set<Module> getPluginModules() {
+    public Set<Module> getApiModules() {
         Properties properties = loadPluginProperties("/gradle-plugins.properties");
         return loadModules(properties);
     }
 
     @Override
-    public Set<Module> getExtensionPluginModules() {
-        Properties properties = loadPluginProperties("/gradle-extension-plugins.properties");
+    public Set<Module> getImplementationModules() {
+        Properties properties = loadPluginProperties("/gradle-implementation-plugins.properties");
         return loadModules(properties);
     }
 

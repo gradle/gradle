@@ -44,10 +44,10 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
                     }
                 }
             }
-            for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
+            for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
                 classpath = classpath.plus(pluginModule.getClasspath());
             }
-            for (Module pluginModule : pluginModuleRegistry.getExtensionPluginModules()) {
+            for (Module pluginModule : pluginModuleRegistry.getImplementationModules()) {
                 classpath = classpath.plus(pluginModule.getClasspath());
             }
             return classpath;
