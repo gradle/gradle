@@ -82,7 +82,7 @@ To define an external dependency, you add it to a dependency configuration:
 
 An external dependency is identified using `group`, `name` and `version` attributes. Depending on which kind of repository you are using, `group` and `version` may be optional.
 
-The shortcut form for declaring external dependencies looks like “``group`:`name`:`version``”.
+The shortcut form for declaring external dependencies looks like “`__group__:__name__:__version__`”.
 
 ++++
 <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Shortcut definition of an external dependency">

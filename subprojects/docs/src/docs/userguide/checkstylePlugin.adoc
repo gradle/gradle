@@ -56,8 +56,8 @@ The Checkstyle plugin adds the following tasks to the project:
 | api:org.gradle.api.plugins.quality.Checkstyle[]
 | Runs Checkstyle against the test Java source files.
 
-| `checkstyle`SourceSet``
-| ``sourceSet`Classes`
+| `checkstyle__SourceSet__`
+| `__sourceSet__Classes`
 | api:org.gradle.api.plugins.quality.Checkstyle[]
 | Runs Checkstyle against the given source set's Java source files.
 |===

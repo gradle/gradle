@@ -109,7 +109,7 @@ The War plugin adds two dependency configurations named `providedCompile` and `p
 
 | `webAppDir`
 | `File` (read-only)
-| ``projectDir`/`webAppDirName``
+| `__projectDir__/__webAppDirName__`
 | The web application source directory.
 |===
 

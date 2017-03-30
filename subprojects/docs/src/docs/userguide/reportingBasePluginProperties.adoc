@@ -18,6 +18,6 @@
 
 | `reportsDir`
 | `File` (read-only)
-| ``buildDir`/`reportsDirName``
+| `__buildDir__/__reportsDirName__`
 | The directory to generate reports into.
 

@@ -56,8 +56,8 @@ The FindBugs plugin adds the following tasks to the project:
 | api:org.gradle.api.plugins.quality.FindBugs[]
 | Runs FindBugs against the test Java source files.
 
-| `findbugs`SourceSet``
-| ``sourceSet`Classes`
+| `findbugs__SourceSet__`
+| `__sourceSet__Classes`
 | api:org.gradle.api.plugins.quality.FindBugs[]
 | Runs FindBugs against the given source set's Java source files.
 |===

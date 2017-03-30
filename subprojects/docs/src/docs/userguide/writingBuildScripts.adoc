@@ -87,7 +87,7 @@ The `Project` object provides some standard properties, which are available in y
 
 | `buildDir`
 | `File`
-| ``projectDir`/build`
+| `__projectDir__/build`
 
 | `group`
 | `Object`

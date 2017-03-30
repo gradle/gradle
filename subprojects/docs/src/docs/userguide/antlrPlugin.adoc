@@ -60,7 +60,7 @@ The ANTLR plugin adds a number of tasks to your project, as shown below.
 | api:org.gradle.api.plugins.antlr.AntlrTask[]
 | Generates the source files for all test ANTLR grammars.
 
-| `generate`SourceSet`GrammarSource`
+| `generate__SourceSet__GrammarSource`
 | -
 | api:org.gradle.api.plugins.antlr.AntlrTask[]
 | Generates the source files for all ANTLR grammars for the given source set.
@@ -79,8 +79,8 @@ The ANTLR plugin adds the following dependencies to tasks added by the Java plug
 | compileTestJava
 | generateTestGrammarSource
 
-| compile`SourceSet`Java
-| generate`SourceSet`GrammarSource
+| compile__SourceSet__Java
+| generate__SourceSet__GrammarSource
 |===
 
 
@@ -100,7 +100,7 @@ The ANTLR plugin adds the following dependencies to tasks added by the Java plug
 | `src/test/antlr`
 | Test ANTLR grammar files.
 
-| `src/`sourceSet`/antlr`
+| `src/__sourceSet__/antlr`
 | ANTLR grammar files for the given source set.
 |===
 
@@ -143,7 +143,7 @@ The ANTLR plugin adds the following properties to each source set in the project
 
 | `antlr.srcDirs`
 | `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[`projectDir`/src/`name`/antlr]`
+| `[__projectDir__/src/__name__/antlr]`
 | The source directories containing the ANTLR grammar files of this source set.
 |===
 

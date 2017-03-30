@@ -285,9 +285,9 @@ Here is the corresponding report for the `operators` component, showing dependen
 [[sec:assemble_dependents]]
 ==== Assembling dependents
 
-For each api:org.gradle.nativeplatform.NativeBinarySpec[], Gradle will create a task named `assembleDependents`${component.name}${binary.variant}`` that _assembles_ (compile and link) the binary and all of its dependent binaries.
+For each api:org.gradle.nativeplatform.NativeBinarySpec[], Gradle will create a task named `assembleDependents__${component.name}${binary.variant}__` that _assembles_ (compile and link) the binary and all of its dependent binaries.
 
-For each api:org.gradle.nativeplatform.NativeComponentSpec[], Gradle will create a task named `assembleDependents`${component.name}`` that _assembles_ all the binaries of the component and all of their dependent binaries.
+For each api:org.gradle.nativeplatform.NativeComponentSpec[], Gradle will create a task named `assembleDependents__${component.name}__` that _assembles_ all the binaries of the component and all of their dependent binaries.
 
 For example, to assemble the dependents of the "passing" flavor of the "static" library binary of the "operators" component, you would run the `assembleDependentsOperatorsPassingStaticLibrary` task:
 
@@ -304,9 +304,9 @@ You can also assemble _all_ of the dependents of a component (i.e. of all its bi
 [[sec:build_dependents]]
 ==== Building dependents
 
-For each api:org.gradle.nativeplatform.NativeBinarySpec[], Gradle will create a task named `buildDependents`${component.name}${binary.variant}`` that _builds_ (compile, link and check) the binary and all of its dependent binaries.
+For each api:org.gradle.nativeplatform.NativeBinarySpec[], Gradle will create a task named `buildDependents__${component.name}${binary.variant}__` that _builds_ (compile, link and check) the binary and all of its dependent binaries.
 
-For each api:org.gradle.nativeplatform.NativeComponentSpec[], Gradle will create a task named `buildDependents`${component.name}`` that _builds_ all the binaries of the component and all of their dependent binaries.
+For each api:org.gradle.nativeplatform.NativeComponentSpec[], Gradle will create a task named `buildDependents__${component.name}__` that _builds_ all the binaries of the component and all of their dependent binaries.
 
 For example, to build the dependents of the "passing" flavor of the "static" library binary of the "operators" component, you would run the `buildDependentsOperatorsPassingStaticLibrary` task:
 
@@ -334,18 +334,18 @@ For each api:org.gradle.nativeplatform.NativeBinarySpec[] that can be produced b
 
 | api:org.gradle.nativeplatform.NativeExecutableSpec[]
 | api:org.gradle.nativeplatform.NativeExecutableBinarySpec[]
-| ``${component.name}`Executable`
-| ``${project.buildDir}`/exe/`${component.name}`/`${component.name}``
+| `__${component.name}__Executable`
+| `__${project.buildDir}__/exe/__${component.name}__/__${component.name}__`
 
 | api:org.gradle.nativeplatform.NativeLibrarySpec[]
 | api:org.gradle.nativeplatform.SharedLibraryBinarySpec[]
-| ``${component.name}`SharedLibrary`
-| ``${project.buildDir}`/libs/`${component.name}`/shared/lib`${component.name}`.so`
+| `__${component.name}__SharedLibrary`
+| `__${project.buildDir}__/libs/__${component.name}__/shared/lib__${component.name}__.so`
 
 | api:org.gradle.nativeplatform.NativeLibrarySpec[]
 | api:org.gradle.nativeplatform.StaticLibraryBinarySpec[]
-| ``${component.name}`StaticLibrary`
-| ``${project.buildDir}`/libs/`${component.name}`/static/`${component.name}`.a`
+| `__${component.name}__StaticLibrary`
+| `__${project.buildDir}__/libs/__${component.name}__/static/__${component.name}__.a`
 |===
 
 
@@ -362,15 +362,15 @@ For each api:org.gradle.nativeplatform.NativeBinarySpec[] that can be produced b
 
 | api:org.gradle.nativeplatform.NativeExecutableSpec[]
 | api:org.gradle.nativeplatform.NativeExecutableBinarySpec[]
-| `check`${component.name}`Executable`
+| `check__${component.name}__Executable`
 
 | api:org.gradle.nativeplatform.NativeLibrarySpec[]
 | api:org.gradle.nativeplatform.SharedLibraryBinarySpec[]
-| `check`${component.name}`SharedLibrary`
+| `check__${component.name}__SharedLibrary`
 
 | api:org.gradle.nativeplatform.NativeLibrarySpec[]
 | api:org.gradle.nativeplatform.StaticLibraryBinarySpec[]
-| `check`${component.name}`StaticLibrary`
+| `check__${component.name}__StaticLibrary`
 |===
 
 The built-in `check` task depends on all the _check tasks_ for binaries in the project. Without either <<native_binaries:cunit,CUnit>> or <<native_binaries:google_test,GoogleTest>> plugins, the binary check task only depends on the _lifecycle task_ that assembles the binary, see <<sec:native_tasks>>.
@@ -877,7 +877,7 @@ Both the CUnit sources provided by your project and the generated launcher requi
 [[sec:running_cunit_tests]]
 ==== Running CUnit tests
 
-For each api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered CUnit tests. Test results will be found in the ``${build.dir}`/test-results` directory.
+For each api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered CUnit tests. Test results will be found in the `__${build.dir}__/test-results` directory.
 
 ++++
 <sample id="completeCUnitExample" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
@@ -930,7 +930,7 @@ The GoogleTest sources provided by your project require the core GoogleTest head
 [[sec:running_googletest_tests]]
 ==== Running GoogleTest tests
 
-For each api:org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered GoogleTest tests. Test results will be found in the ``${build.dir}`/test-results` directory.
+For each api:org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec[], Gradle will create a task to execute this binary, which will run all of the registered GoogleTest tests. Test results will be found in the `__${build.dir}__/test-results` directory.
 [NOTE]
 ====
  

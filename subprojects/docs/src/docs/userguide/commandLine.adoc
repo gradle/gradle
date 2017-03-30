@@ -69,7 +69,7 @@ Build projects in parallel. Gradle will attempt to determine the optimal number 
  `--max-workers (incubating)` ::
 Sets the maximum number of workers that Gradle may use. For example`--max-workers=3`. The default is the number of processors.
  `--profile` ::
-Profiles build execution time and generates a report in the ``buildDir`/reports/profile` directory. See <<sec:profiling_build>>.
+Profiles build execution time and generates a report in the `__buildDir__/reports/profile` directory. See <<sec:profiling_build>>.
  `--project-cache-dir` ::
 Specifies the project-specific cache directory. Default value is `.gradle` in the root project directory.
 `-q`, `--quiet` ::

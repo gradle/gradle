@@ -36,7 +36,7 @@ This chapter is about how you declare the outgoing artifacts of your project, an
 
 Like dependencies, artifacts are grouped by configurations. In fact, a configuration can contain both artifacts and dependencies at the same time.
 
-For each configuration in your project, Gradle provides the tasks `upload`ConfigurationName`` and `build`ConfigurationName``.footnote:[To be exact, the Base plugin provides those tasks. This plugin is automatically applied if you use the Java plugin.] Execution of these tasks will build or upload the artifacts belonging to the respective configuration.
+For each configuration in your project, Gradle provides the tasks `upload__ConfigurationName__` and `build__ConfigurationName__`.footnote:[To be exact, the Base plugin provides those tasks. This plugin is automatically applied if you use the Java plugin.] Execution of these tasks will build or upload the artifacts belonging to the respective configuration.
 
 <<tab:configurations>> shows the configurations added by the Java plugin. Two of the configurations are relevant for the usage with artifacts. The <code>archives</code> configuration is the standard configuration to assign your artifacts to. The Java plugin automatically assigns the default jar to this configuration. We will talk more about the <code>runtime</code> configuration in <<project_libraries>>. As with dependencies, you can declare as many custom configurations as you like and assign artifacts to them.
 

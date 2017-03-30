@@ -53,8 +53,8 @@ The Groovy plugin adds the following tasks to the project.
 | api:org.gradle.api.tasks.compile.GroovyCompile[]
 | Compiles test Groovy source files.
 
-| `compile`SourceSet`Groovy`
-| `compile`SourceSet`Java`
+| `compile__SourceSet__Groovy`
+| `compile__SourceSet__Java`
 | api:org.gradle.api.tasks.compile.GroovyCompile[]
 | Compiles the given source set's Groovy source files.
 
@@ -77,8 +77,8 @@ The Groovy plugin adds the following dependencies to tasks added by the Java plu
 | testClasses
 | compileTestGroovy
 
-| `sourceSet`Classes
-| compile`SourceSet`Groovy
+| __sourceSet__Classes
+| compile__SourceSet__Groovy
 |===
 
 ++++
@@ -115,7 +115,7 @@ include::javaProjectTestLayout.adoc[]
 | Test Groovy sources. May also contain Java sources for joint compilation.
 
 include::javaProjectGenericLayout.adoc[]
-| `src/`sourceSet`/groovy`
+| `src/__sourceSet__/groovy`
 | 
 | Groovy sources for the given source set. May also contain Java sources for joint compilation.
 |===
@@ -210,7 +210,7 @@ The Groovy plugin adds the following convention properties to each source set in
 
 | `groovy.srcDirs`
 | `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[`projectDir`/src/`name`/groovy]`
+| `[__projectDir__/src/__name__/groovy]`
 | The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation.
 
 | `allGroovy`
@@ -251,15 +251,15 @@ The Groovy plugin adds a api:org.gradle.api.tasks.compile.GroovyCompile[] task f
 
 | `classpath`
 | api:org.gradle.api.file.FileCollection[]
-| ``sourceSet`.compileClasspath`
+| `__sourceSet__.compileClasspath`
 
 | `source`
 | api:org.gradle.api.file.FileTree[]. Can set using anything described in <<sec:specifying_multiple_files>>.
-| ``sourceSet`.groovy`
+| `__sourceSet__.groovy`
 
 | `destinationDir`
 | `File`.
-| ``sourceSet`.output.classesDir`
+| `__sourceSet__.output.classesDir`
 
 | `groovyClasspath`
 | api:org.gradle.api.file.FileCollection[]

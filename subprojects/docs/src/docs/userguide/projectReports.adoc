@@ -110,7 +110,7 @@ include::reportingBasePluginProperties.adoc[]
 
 | `projectReportDir`
 | `File` (read-only)
-| ``reportsDir`/`projectReportDirName``
+| `__reportsDir__/__projectReportDirName__`
 | The directory to generate the project report into.
 |===
 

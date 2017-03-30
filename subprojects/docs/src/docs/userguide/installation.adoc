@@ -44,7 +44,7 @@ The Gradle distribution comes packaged as a ZIP. The full distribution contains:
 [[sec:installation_environment_variables]]
 === Environment variables
 
-For running Gradle, firstly add the environment variable `GRADLE_HOME`. This should point to the unpacked files from the Gradle website. Next add ``GRADLE_HOME`/bin` to your `PATH` environment variable. Usually, this is sufficient to run Gradle.
+For running Gradle, firstly add the environment variable `GRADLE_HOME`. This should point to the unpacked files from the Gradle website. Next add `__GRADLE_HOME__/bin` to your `PATH` environment variable. Usually, this is sufficient to run Gradle.
 
 [[sec:running_and_testing_your_installation]]
 === Running and testing your installation
@@ -61,4 +61,4 @@ Note that it's not currently possible to set JVM options for Gradle on the comma
 [[sec:installation_getting_help]]
 === Getting help
 
-You might check the user guide at ``GRADLE_HOME`/docs/userguide/userguide.html`. It is also available on the website:documentation.html[Gradle web site]. Typing `gradle help` prints the command line help. Typing `gradle tasks` shows all the tasks of a Gradle build.
+You might check the user guide at `__GRADLE_HOME__/docs/userguide/userguide.html`. It is also available on the website:documentation.html[Gradle web site]. Typing `gradle help` prints the command line help. Typing `gradle tasks` shows all the tasks of a Gradle build.

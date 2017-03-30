@@ -56,8 +56,8 @@ The JDepend plugin adds the following tasks to the project:
 | api:org.gradle.api.plugins.quality.JDepend[]
 | Runs JDepend against the test Java source files.
 
-| `jdepend`SourceSet``
-| ``sourceSet`Classes`
+| `jdepend__SourceSet__`
+| `__sourceSet__Classes`
 | api:org.gradle.api.plugins.quality.JDepend[]
 | Runs JDepend against the given source set's Java source files.
 |===

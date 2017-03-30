@@ -56,7 +56,7 @@ The PMD plugin adds the following tasks to the project:
 | api:org.gradle.api.plugins.quality.Pmd[]
 | Runs PMD against the test Java source files.
 
-| `pmd`SourceSet``
+| `pmd__SourceSet__`
 | -
 | api:org.gradle.api.plugins.quality.Pmd[]
 | Runs PMD against the given source set's Java source files.

@@ -256,7 +256,7 @@ The archive tasks all work exactly the same way as the `Copy` task, and implemen
 [[sec:archive_naming]]
 ==== Archive naming
 
-The format of ``projectName`-`version`.`type`` is used for generated archive file names. For example:
+The format of `__projectName__-__version__.__type__` is used for generated archive file names. For example:
 
 ++++
 <sample id="archiveNaming" dir="userguide/files/archiveNaming" title="Creation of ZIP archive">
@@ -296,23 +296,23 @@ You can further customize the archive names:
 
 | `archiveName`
 | `String`
-| ``baseName`-`appendix`-`version`-`classifier`.`extension``
+| `__baseName__-__appendix__-__version__-__classifier__.__extension__`
 If any of these properties is empty the trailing `-` is not added to the name.
 | The base file name of the generated archive
 
 | `archivePath`
 | `File`
-| ``destinationDir`/`archiveName``
+| `__destinationDir__/__archiveName__`
 | The absolute path of the generated archive.
 
 | `destinationDir`
 | `File`
-| Depends on the archive type. JARs and WARs go into ``project.buildDir`/libraries`. ZIPs and TARs go into ``project.buildDir`/distributions`.
+| Depends on the archive type. JARs and WARs go into `__project.buildDir__/libraries`. ZIPs and TARs go into `__project.buildDir__/distributions`.
 | The directory to generate the archive into
 
 | `baseName`
 | `String`
-| ``project.name``
+| `__project.name__`
 | The base name portion of the archive file name.
 
 | `appendix`
@@ -322,7 +322,7 @@ If any of these properties is empty the trailing `-` is not added to the name.
 
 | `version`
 | `String`
-| ``project.version``
+| `__project.version__`
 | The version portion of the archive file name.
 
 | `classifier`

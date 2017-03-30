@@ -317,8 +317,8 @@ These plugins form the basic building blocks which the other plugins are assembl
 | base
 | Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks: 
 
-* adds build `ConfigurationName` tasks. Those tasks assemble the artifacts belonging to the specified configuration.
-* adds upload `ConfigurationName` tasks. Those tasks assemble and upload the artifacts belonging to the specified configuration.
+* adds build __ConfigurationName__ tasks. Those tasks assemble the artifacts belonging to the specified configuration.
+* adds upload __ConfigurationName__ tasks. Those tasks assemble and upload the artifacts belonging to the specified configuration.
 * configures reasonable default values for all archive tasks (e.g. tasks that inherit from api:org.gradle.api.tasks.bundling.AbstractArchiveTask[]). For example, the archive tasks are tasks of types: api:org.gradle.api.tasks.bundling.Jar[], api:org.gradle.api.tasks.bundling.Tar[], api:org.gradle.api.tasks.bundling.Zip[]. Specifically, `destinationDir`, `baseName` and `version` properties of the archive tasks are preconfigured with defaults. This is extremely useful because it drives consistency across projects; the consistency regarding naming conventions of archives and their location after the build completed.
  
 

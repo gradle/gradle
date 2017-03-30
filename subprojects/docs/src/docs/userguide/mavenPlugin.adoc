@@ -78,7 +78,7 @@ The Maven plugin defines the following convention properties:
 
 | `mavenPomDir`
 | `File`
-| ``${project.buildDir}`/poms`
+| `__${project.buildDir}__/poms`
 | The directory where the generated POMs are written to.
 
 | `conf2ScopeMappings`

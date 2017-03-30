@@ -60,13 +60,13 @@ This launching of an extra JVM on every build execution is quite expensive, whic
 
 Gradle offers a variety of ways to add properties to your build. With the `-D` command line option you can pass a system property to the JVM which runs Gradle. The `-D` option of the `gradle` command has the same effect as the `-D` option of the `java` command.
 
-You can also add properties to your project objects using properties files. You can place a `gradle.properties` file in the Gradle user home directory (defined by the “`GRADLE_USER_HOME`” environment variable, which if not set defaults to ``USER_HOME`/.gradle`) or in your project directory. For multi-project builds you can place `gradle.properties` files in any subproject directory. The properties set in a `gradle.properties` file can be accessed via the project object. The properties file in the user's home directory has precedence over property files in the project directories.
+You can also add properties to your project objects using properties files. You can place a `gradle.properties` file in the Gradle user home directory (defined by the “`GRADLE_USER_HOME`” environment variable, which if not set defaults to `__USER_HOME__/.gradle`) or in your project directory. For multi-project builds you can place `gradle.properties` files in any subproject directory. The properties set in a `gradle.properties` file can be accessed via the project object. The properties file in the user's home directory has precedence over property files in the project directories.
 
 You can also add properties directly to your project object via the `-P` command line option.
 
 Gradle can also set project properties when it sees specially-named system properties or environment variables. This feature is very useful when you don't have admin rights to a continuous integration server and you need to set property values that should not be easily visible, typically for security reasons. In that situation, you can't use the `-P` option, and you can't change the system-level configuration files. The correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern. This won't be visible to normal users on the system.footnote:[ _Jenkins_, _Teamcity_, or _Bamboo_ are some CI servers which offer this functionality.] 
 
-If the environment variable name looks like `ORG_GRADLE_PROJECT_`prop`=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.`prop``.
+If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`.
 
 You can also set system properties in the `gradle.properties` file. If a property name in such a file has the prefix “`systemProp.`”, like “`systemProp.propName`”, then the property and its value will be set as a system property, without the prefix. In a multi project build, “`systemProp.`” properties set in any project except the root will be ignored. That is, only the root project's `gradle.properties` file will be checked for properties that begin with the “`systemProp.`” prefix.
 
@@ -129,6 +129,6 @@ We could not find a good overview for all possible proxy settings. One place to 
 
 If your proxy requires NTLM authentication, you may need to provide the authentication domain as well as the username and password. There are 2 ways that you can provide the domain for authenticating to a NTLM proxy: 
 
-* Set the `http.proxyUser` system property to a value like ``domain`/`username``.
+* Set the `http.proxyUser` system property to a value like `__domain__/__username__`.
 * Provide the authentication domain via the `http.auth.ntlm.domain` system property.
  

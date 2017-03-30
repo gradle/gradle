@@ -54,7 +54,7 @@ The CodeNarc plugin adds the following tasks to the project:
 | api:org.gradle.api.plugins.quality.CodeNarc[]
 | Runs CodeNarc against the test Groovy source files.
 
-| `codenarc`SourceSet``
+| `codenarc__SourceSet__`
 | -
 | api:org.gradle.api.plugins.quality.CodeNarc[]
 | Runs CodeNarc against the given source set's Groovy source files.

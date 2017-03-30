@@ -37,7 +37,7 @@ To get started, apply the JaCoCo plugin to the project you want to calculate cod
         </sample>
 ++++
 
-If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created that depends on the `test` task. The report is available at ``$buildDir`/reports/jacoco/test`. By default, a HTML report is generated.
+If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created that depends on the `test` task. The report is available at `__$buildDir__/reports/jacoco/test`. By default, a HTML report is generated.
 
 [[sec:configuring_the_jacoco_plugin]]
 === Configuring the JaCoCo Plugin
@@ -57,7 +57,7 @@ The JaCoCo plugin adds a project extension named `jacoco` of type api:org.gradle
 | Gradle default
 
 | reportsDir
-| “`$buildDir`/reports/jacoco”
+| “__$buildDir__/reports/jacoco”
 |===
 
 
@@ -117,7 +117,7 @@ The JaCoCo plugin adds a api:org.gradle.testing.jacoco.plugins.JacocoTaskExtensi
 | true
 
 | destPath
-| `$buildDir`/jacoco
+| __$buildDir__/jacoco
 
 | append
 | true

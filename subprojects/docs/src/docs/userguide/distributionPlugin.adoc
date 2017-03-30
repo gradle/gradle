@@ -39,9 +39,9 @@ To use the distribution plugin, include the following in your build script:
 
 The plugin adds an extension named “`distributions`” of type api:org.gradle.api.distribution.DistributionContainer[] to the project. It also creates a single distribution in the distributions container extension named “`main`”. If your build only produces one distribution you only need to configure this distribution (or use the defaults).
 
-You can run “`gradle distZip`” to package the main distribution as a ZIP, or “`gradle distTar`” to create a TAR file. To build both types of archives just run `gradle assembleDist`. The files will be created at “``$buildDir`/distributions/`$project.name`-`$project.version`.`«ext»``”.
+You can run “`gradle distZip`” to package the main distribution as a ZIP, or “`gradle distTar`” to create a TAR file. To build both types of archives just run `gradle assembleDist`. The files will be created at “`__$buildDir__/distributions/__$project.name__-__$project.version__.__«ext»__`”.
 
-You can run “`gradle installDist`” to assemble the uncompressed distribution into “``$buildDir`/install/`main``”.
+You can run “`gradle installDist`” to assemble the uncompressed distribution into “`__$buildDir__/install/__main__`”.
 
 [[sec:distribution_tasks]]
 === Tasks
@@ -87,22 +87,22 @@ For each extra distribution set you add to the project, the distribution plugin 
 | Type
 | Description
 
-| ``${distribution.name}`DistZip`
+| `__${distribution.name}__DistZip`
 | `-`
 | api:org.gradle.api.tasks.bundling.Zip[]
 | Creates a ZIP archive of the distribution contents
 
-| ``${distribution.name}`DistTar`
+| `__${distribution.name}__DistTar`
 | `-`
 | api:org.gradle.api.tasks.bundling.Tar[]
 | Creates a TAR archive of the distribution contents
 
-| `assemble`${distribution.name.capitalize()}`Dist`
-| ``${distribution.name}`DistTar`, ``${distribution.name}`DistZip`
+| `assemble__${distribution.name.capitalize()}__Dist`
+| `__${distribution.name}__DistTar`, `__${distribution.name}__DistZip`
 | api:org.gradle.api.Task[]
 | Assembles all distribution archives
 
-| `install`${distribution.name.capitalize()}`Dist`
+| `install__${distribution.name.capitalize()}__Dist`
 | `-`
 | api:org.gradle.api.tasks.Sync[]
 | Assembles the distribution content and installs it on the current machine
@@ -124,12 +124,12 @@ This will add following tasks to the project:
 
 Given that the project name is “`myproject`” and version “`1.2`”, running “`gradle customDistZip`” will produce a ZIP file named “`myproject-custom-1.2.zip`”.
 
-Running “`gradle installCustomDist`” will install the distribution contents into “``$buildDir`/install/custom`”.
+Running “`gradle installCustomDist`” will install the distribution contents into “`__$buildDir__/install/custom`”.
 
 [[sec:distribution_contents]]
 === Distribution contents
 
-All of the files in the “`src/`$distribution.name`/dist`” directory will automatically be included in the distribution. You can add additional files by configuring the api:org.gradle.api.distribution.Distribution[] object that is part of the container.
+All of the files in the “`src/__$distribution.name__/dist`” directory will automatically be included in the distribution. You can add additional files by configuring the api:org.gradle.api.distribution.Distribution[] object that is part of the container.
 
 ++++
 <sample id="configureDistribution" dir="userguide/distribution" title="Configuring the main distribution">
