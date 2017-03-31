@@ -1,0 +1,51 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[wrapper_plugin]]
+== Wrapper Plugin
+
+
+[NOTE]
+====
+ 
+The wrapper plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+ 
+====
+
+The Gradle wrapper plugin allows the generation of Gradle wrapper files by adding a api:org.gradle.api.tasks.wrapper.Wrapper[] task, that generates all files needed to run the build using the Gradle Wrapper. Details about the Gradle Wrapper can be found in <<gradle_wrapper>>.
+
+
+[[sec:wrapper_plugin_usage]]
+=== Usage
+
+Without modifying the `build.gradle` file, the wrapper plugin can be auto-applied to the root project of the current build by running “`gradle wrapper`” from the command line. This applies the plugin if no task named `wrapper` is already defined in the build.
+
+[[sec:wrapper_plugin_tasks]]
+=== Tasks
+
+The wrapper plugin adds the following tasks to the project:
+
+.Wrapper plugin - tasks
+[cols="a,a,a,a", options="header"]
+|===
+| Task name
+| Depends on
+| Type
+| Description
+
+| `wrapper`
+| -
+| api:org.gradle.api.tasks.wrapper.Wrapper[]
+| Generates Gradle wrapper files.
+|===

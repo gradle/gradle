@@ -1,0 +1,42 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[tutorials]]
+== Tutorials
+
+
+[[sec:tutorials_getting_started]]
+=== Getting Started
+
+The following tutorials introduce some of the basics of Gradle, to help you get started.
+
+ <<installation>> ::
+Describes how to install Gradle.
+ <<tutorial_using_tasks>> ::
+Introduces the basic build script elements: _projects_ and _tasks_.
+ <<tutorial_java_projects>> ::
+Shows how to start using Gradle's build-by-convention support for Java projects.
+ <<artifact_dependencies_tutorial>> ::
+Shows how to start using Gradle's dependency management.
+ <<tutorial_groovy_projects>> ::
+Using Gradle's build-by-convention support for Groovy projects.
+ <<web_project_tutorial>> ::
+Using Gradle's build-by-convention support for Web applications.
+
+
+
+[[sec:tutorials_where_to_next]]
+=== Where to next?
+
+There are more tutorials and plenty of reference material in the website:documentation[user guide].
