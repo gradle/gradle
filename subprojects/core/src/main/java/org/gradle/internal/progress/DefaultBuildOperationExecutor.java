@@ -51,14 +51,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public Operation getCurrentOperation() {
-        Operation current = currentOperation.get();
+        OperationDetails current = findCurrentOperation();
         if (current == null) {
-            if (GradleThread.isManaged()) {
-                throw new IllegalStateException("No operation is currently running.");
-            } else {
-                LOGGER.warn("No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
-                current = new UnmanagedThreadOperation();
-            }
+            throw new IllegalStateException("No operation is currently running.");
         }
         return current;
     }
@@ -81,7 +76,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     @Override
     public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
         OperationDetails operationBefore = currentOperation.get();
-        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : operationBefore;
+        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : findCurrentOperation();
         OperationIdentifier parentId;
         if (parent == null) {
             parentId = null;
@@ -140,11 +135,44 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             LOGGER.debug("Build operation '{}' completed", operation.getDisplayName());
             return result;
         } finally {
-            this.currentOperation.set(operationBefore);
-            currentOperation.setRunning(false);
+            if (parent instanceof UnmanagedThreadOperation) {
+                this.currentOperation.set(null);
+                currentOperation.setRunning(false);
+                UnmanagedThreadOperation unmanagedParent = (UnmanagedThreadOperation) parent;
+                try {
+                    listener.finished(unmanagedParent.internal, new OperationResult(unmanagedParent.startTime, timeProvider.getCurrentTime(), null));
+                } finally {
+                    unmanagedParent.setRunning(false);
+                }
+            } else {
+                this.currentOperation.set(operationBefore);
+                currentOperation.setRunning(false);
+            }
         }
     }
 
+    @Nullable
+    private OperationDetails findCurrentOperation() {
+        OperationDetails current = currentOperation.get();
+        if (current == null && !GradleThread.isManaged()) {
+            current = startUnmanagedThreadOperation();
+        }
+        return current;
+    }
+
+    private OperationDetails startUnmanagedThreadOperation() {
+        // TODO:pm Move this to WARN level once we fixed maven-publish, see gradle/gradle#1662
+        LOGGER.debug("WARNING No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
+        UnmanagedThreadOperation operation = UnmanagedThreadOperation.create(timeProvider.getCurrentTime());
+        currentOperation.set(operation);
+        listener.started(operation.internal, new OperationStartEvent(operation.startTime));
+        return operation;
+    }
+
+    /**
+     * Artificially create a running root operation.
+     * Main use case is ProjectBuilder, useful for some of our test fixtures too.
+     */
     protected void createRunningRootOperation(String displayName) {
         assert currentOperation.get() == null;
         OperationDetails operation = new OperationDetails(null, new OperationIdentifier(0), BuildOperationDetails.displayName(displayName).build());
@@ -171,6 +199,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
         @Override
         public Object getParentId() {
+            if (parent == null) {
+                return null;
+            }
             return parent.id;
         }
 
@@ -192,32 +223,30 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         }
     }
 
-    private static class UnmanagedThreadOperation implements Operation {
+    private static class UnmanagedThreadOperation extends OperationDetails {
 
-        private static final AtomicLong COUNTER = new AtomicLong();
-        private final String id;
-        private final String toString;
+        private static final AtomicLong COUNTER = new AtomicLong(-1);
 
-        private UnmanagedThreadOperation() {
-            long count = COUNTER.getAndIncrement();
-            id = "unmanaged_" + count;
-            toString = "Unmanaged thread operation #" + count + " (" + Thread.currentThread().getName() + ')';
+        private final long startTime;
+        private final BuildOperationInternal internal;
+
+        private static UnmanagedThreadOperation create(long startTime) {
+            long id = COUNTER.getAndDecrement();
+            String displayName = "Unmanaged thread operation #" + id + " (" + Thread.currentThread().getName() + ')';
+            UnmanagedThreadOperation operation = new UnmanagedThreadOperation(startTime, new OperationIdentifier(id), BuildOperationDetails.displayName(displayName).build());
+            operation.setRunning(true);
+            return operation;
         }
 
-        @Override
-        public Object getId() {
-            return id;
-        }
-
-        @Nullable
-        @Override
-        public Object getParentId() {
-            return null;
+        private UnmanagedThreadOperation(long startTime, OperationIdentifier id, BuildOperationDetails operationDetails) {
+            super(null, id, operationDetails);
+            this.startTime = startTime;
+            this.internal = new BuildOperationInternal(id, null, operationDetails.getName(), operationDetails.getDisplayName(), operationDetails.getOperationDescriptor());
         }
 
         @Override
         public String toString() {
-            return toString;
+            return operationDetails.getDisplayName();
         }
     }
 }

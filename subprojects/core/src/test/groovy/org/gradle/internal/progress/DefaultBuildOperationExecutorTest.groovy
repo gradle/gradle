@@ -32,6 +32,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory)
 
     def "fires events when operation starts and finishes successfully"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
         def action = Mock(Transformer)
         def progressLogger = Mock(ProgressLogger)
         def descriptor = "some-thing"
@@ -80,9 +84,16 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert opResult.endTime == 124L
             assert opResult.failure == null
         }
+
+        cleanup:
+        GradleThread.setUnmanaged()
     }
 
     def "fires events when operation starts and fails"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
         def action = Mock(Transformer)
         def operationDetails = BuildOperationDetails.displayName("<some-operation>").progressDisplayName("<some-op>").build()
         def failure = new RuntimeException()
@@ -126,9 +137,16 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert opResult.endTime == 124L
             assert opResult.failure == failure
         }
+
+        cleanup:
+        GradleThread.setUnmanaged()
     }
 
     def "action can mark operation as failed without throwing an exception"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
         def action = Mock(Transformer)
         def failure = new RuntimeException()
 
@@ -142,6 +160,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
             assert opResult.failure == failure
         }
+
+        cleanup:
+        GradleThread.setUnmanaged()
     }
 
     def "does not generate progress logging when operation has no progress display name"() {
@@ -165,12 +186,14 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
+                GradleThread.setManaged()
                 operationExecutor.run("<thread-1>", {
                     instant.action1Started
                     thread.blockUntil.action2Started
                 } as Action)
             }
             thread.blockUntil.action1Started
+            GradleThread.setManaged()
             operationExecutor.run("<thread-2>", {
                 instant.action2Started
                 thread.blockUntil.action1Finished
@@ -202,6 +225,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "multiple threads can run child operations concurrently"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
         def parentId
         def id1
         def id2
@@ -260,6 +287,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.id == parentId
             assert opResult.failure == null
         }
+
+        cleanup:
+        GradleThread.setUnmanaged()
     }
 
     def "cannot start child operation when parent has completed"() {
@@ -363,12 +393,32 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         op != null
-        (op.id as String).startsWith 'unmanaged_'
+        (op.id as String).matches(/-\d+/)
         op.parentId == null
-        op.toString().matches(/Unmanaged thread operation #\d+ \(Test thread \d+\)/)
+        op.toString().matches(/Unmanaged thread operation #-\d+ \(Test thread \d+\)/)
+    }
+
+
+    def "can nest operations on unmanaged threads"() {
+        when:
+        async {
+            assert !GradleThread.managed
+            assert operationExecutor.currentOperation instanceof DefaultBuildOperationExecutor.UnmanagedThreadOperation
+            operationExecutor.run('outer', {
+                assert operationExecutor.currentOperation instanceof DefaultBuildOperationExecutor.OperationDetails
+                operationExecutor.run('inner', {} as Action)
+            } as Action)
+        }
+
+        then:
+        noExceptionThrown()
     }
 
     def "attaches parent id when operation is nested inside another"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
         def action1 = Mock(Transformer)
         def action2 = Mock(Transformer)
         def action3 = Mock(Transformer)
@@ -423,6 +473,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
             assert operation.id == parentId
         }
+
+        cleanup:
+        GradleThread.setUnmanaged()
     }
 
     def "attaches correct parent id when multiple threads run nested operations"() {
@@ -434,6 +487,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
+                GradleThread.setManaged()
                 operationExecutor.run("<parent-1>", {
                     operationExecutor.run("<child-1>", {
                         instant.child1Started
@@ -442,6 +496,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
                 } as Action)
             }
             start {
+                GradleThread.setManaged()
                 operationExecutor.run("<parent-2>", {
                     operationExecutor.run("<child-2>", {
                         instant.child2Started
@@ -481,6 +536,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "attaches parent id when sibling operation fails"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
         def action1 = Mock(Transformer)
         def action2 = Mock(Transformer)
         def action3 = Mock(Transformer)
@@ -533,5 +592,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
             assert operation.id == parentId
         }
+
+        cleanup:
+        GradleThread.setUnmanaged()
     }
 }

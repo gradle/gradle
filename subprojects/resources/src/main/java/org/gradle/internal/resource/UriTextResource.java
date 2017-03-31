@@ -22,7 +22,11 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URLConnection;
@@ -35,6 +39,7 @@ public class UriTextResource implements TextResource {
     private final File sourceFile;
     private final URI sourceUri;
     private final String description;
+    private String displayName;
 
     public UriTextResource(String description, File sourceFile) {
         this.description = description;
@@ -58,12 +63,15 @@ public class UriTextResource implements TextResource {
 
     @Override
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(description);
-        builder.append(" '");
-        builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
-        builder.append("'");
-        return builder.toString();
+        if (displayName == null) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(description);
+            builder.append(" '");
+            builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
+            builder.append("'");
+            displayName = builder.toString();
+        }
+        return displayName;
     }
 
     @Override
