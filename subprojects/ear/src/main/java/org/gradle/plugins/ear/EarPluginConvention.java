@@ -38,12 +38,6 @@ public class EarPluginConvention {
     private String appDirName;
     private String libDirName;
 
-    @Deprecated
-    @Inject
-    public EarPluginConvention(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
-
     @Inject
     public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {
         this.fileResolver = fileResolver;
