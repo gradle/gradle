@@ -526,7 +526,13 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'b'
 
         then:
-        result.assertTasksExecutedInOrder ':f', ':d', ':b', ':e', ':h'
+        result.assertTasksExecutedInOrder(
+            any(
+                exact(':f', ':h'),
+                exact(':b', ':e'),
+                exact(':f', ':d', ':b')
+            )
+        )
 
         when:
         succeeds 'a', 'b'
@@ -534,9 +540,10 @@ task someTask(dependsOn: [someDep, someOtherDep])
         then:
         result.assertTasksExecutedInOrder(
             any(
-                exact(':f', ':d', ':b', ':e', ':h'),
+                exact(':f', ':h'),
+                exact(':b', ':e'),
+                exact(':f', ':d', any(':b', ':c')),
                 exact(any(':c', ':g'), ':a'),
-                exact(':f', ':d', ':c')
             )
         )
 
@@ -546,9 +553,10 @@ task someTask(dependsOn: [someDep, someOtherDep])
         then:
         result.assertTasksExecutedInOrder(
             any(
-                exact(':f', ':d', ':b', ':e', ':h'),
+                exact(':f', ':h'),
+                exact(':b', ':e'),
+                exact(':f', ':d', any(':b', ':c')),
                 exact(any(':c', ':g'), ':a'),
-                exact(':f', ':d', ':c')
             )
         )
     }
