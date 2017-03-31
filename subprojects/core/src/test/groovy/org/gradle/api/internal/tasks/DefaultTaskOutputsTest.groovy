@@ -338,11 +338,20 @@ class DefaultTaskOutputsTest extends Specification {
 
         when:
         outputs.dir("someDir")
-
         then:
         outputs.cachingState.enabled
 
         when:
+        def taskHistory = Mock(TaskExecutionHistory)
+        outputs.setHistory(taskHistory)
+        taskHistory.hasOverlappingOutputs() >> true
+        then:
+        !outputs.cachingState.enabled
+        outputs.cachingState.disabledReason == "Overlapping output directories were detected"
+        outputs.cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
+
+        when:
+        outputs.setHistory(null)
         outputs.doNotCacheIf("Caching manually disabled") { true }
 
         then:

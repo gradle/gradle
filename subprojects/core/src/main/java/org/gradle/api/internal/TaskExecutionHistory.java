@@ -22,4 +22,9 @@ public interface TaskExecutionHistory {
      * Returns the set of output files which the task produced.
      */
     FileCollection getOutputFiles();
+
+    /**
+     * Returns if overlapping outputs were detected
+     */
+    boolean hasOverlappingOutputs();
 }

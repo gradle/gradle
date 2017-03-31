@@ -148,6 +148,9 @@ public class TaskExecutionServices {
                 executer
             );
         }
+        if (taskOutputCacheEnabled) {
+            executer = new ResolveTaskOutputCachingStateExecuter(executer);
+        }
         executer = new SkipUpToDateTaskExecuter(executer);
         if (verifyInputsEnabled || taskOutputCacheEnabled) {
             executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer);
@@ -157,9 +160,6 @@ public class TaskExecutionServices {
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
         executer = new SkipTaskWithNoActionsExecuter(executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
-        if (taskOutputCacheEnabled) {
-            executer = new ResolveTaskOutputCachingStateExecuter(executer);
-        }
         executer = new ExecuteAtMostOnceTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
         return executer;

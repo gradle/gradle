@@ -123,6 +123,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
+        public boolean hasOverlappingOutputs() {
+            return history.getCurrentExecution().hasDetectedOverlappingOutputs();
+        }
+
+        @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
             // Ensure that states are created
             getStates();
