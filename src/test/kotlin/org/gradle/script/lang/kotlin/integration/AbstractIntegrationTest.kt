@@ -71,17 +71,19 @@ open class AbstractIntegrationTest {
         File(projectRoot, fileName).parentFile
 
     protected fun build(vararg arguments: String): BuildResult =
-        gradleRunner()
-            .withArguments(*arguments, "--stacktrace")
+        gradleRunnerForArguments(arguments)
             .build()
-
-    protected fun buildAndFail(vararg arguments: String): BuildResult =
-        gradleRunner()
-            .withArguments(*arguments, "--stacktrace")
-            .buildAndFail()
 
     protected fun buildFailureOutput(vararg arguments: String): String =
         buildAndFail(*arguments).output
+
+    protected fun buildAndFail(vararg arguments: String): BuildResult =
+        gradleRunnerForArguments(arguments)
+            .buildAndFail()
+
+    private fun gradleRunnerForArguments(arguments: Array<out String>) =
+        gradleRunner()
+            .withArguments(*arguments, "--stacktrace")
 
     private fun gradleRunner() =
         gradleRunnerFor(projectRoot)
