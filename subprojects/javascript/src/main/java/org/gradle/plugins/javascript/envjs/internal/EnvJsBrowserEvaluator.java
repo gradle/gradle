@@ -21,7 +21,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluator;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
+import org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerHandleFactory;
 
 import java.io.File;
 import java.io.IOException;
