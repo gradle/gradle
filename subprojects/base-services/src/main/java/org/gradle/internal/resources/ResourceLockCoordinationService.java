@@ -48,4 +48,9 @@ public interface ResourceLockCoordinationService {
      * Notify the coordinator that the resource lock state has changed in some way.
      */
     void notifyStateChange();
+
+    /**
+     * Adds a registry of resource locks to this coordination service
+     */
+    void addRegistry(ResourceLockRegistry registry);
 }

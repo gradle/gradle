@@ -290,4 +290,6 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
     TestTrackedResourceLock resourceLock(String displayName) {
         return resourceLock(displayName, false)
     }
+
+
 }

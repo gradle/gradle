@@ -17,6 +17,7 @@
 package org.gradle.internal.resources;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Nullable;
 
 /**
  * Represents a lock on an abstract resource.  Implementations of this interface should see that methods fail if they are called
@@ -48,4 +49,12 @@ public interface ResourceLock extends Describable {
      * Unlock this resource if it's held by the calling thread.
      */
     void unlock();
+
+    /**
+     * The thread that currently owns this lock.
+     *
+     * @return the current owner of the lock, null if unlocked.
+     */
+    @Nullable
+    Thread getOwner();
 }

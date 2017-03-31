@@ -16,19 +16,14 @@
 
 package org.gradle.internal.resources;
 
-public interface ResourceLockState {
-    /**
-     * Possible results from a resource lock state transform.
-     */
-    enum Disposition { FAILED, FINISHED, RETRY }
+import org.gradle.api.Describable;
 
-    /**
-     * Registers a resource lock to be rolled back if the transform associated with this resource lock state
-     * fails.
-     *
-     * @param resourceLock
-     */
-    void registerLocked(ResourceLock resourceLock);
+public interface LeaseHolder extends Describable {
+    int getMaxLeases();
 
-    void registerFailed(ResourceLock resourceLock);
+    boolean grantLease();
+
+    void releaseLease();
+
+    LeaseHolder getRoot();
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.resources;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +25,11 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTrackedResourceLock.class);
 
     private final String displayName;
-
     private final ResourceLockCoordinationService coordinationService;
     private final Action<ResourceLock> lockAction;
     private final Action<ResourceLock> unlockAction;
+
+    private Thread owner;
 
     public AbstractTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
         this.displayName = displayName;
@@ -44,8 +46,10 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
                 LOGGER.debug("{}: acquired lock on {}", Thread.currentThread().getName(), displayName);
                 lockAction.execute(this);
                 coordinationService.getCurrent().registerLocked(this);
+                owner = Thread.currentThread();
                 return true;
             } else {
+                coordinationService.getCurrent().registerFailed(this);
                 return false;
             }
         } else {
@@ -57,10 +61,16 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     public void unlock() {
         failIfNotInResourceLockStateChange();
         if (isLockedByCurrentThread()) {
-            releaseLock();
-            LOGGER.debug("{}: released lock on {}", Thread.currentThread().getName(), displayName);
-            unlockAction.execute(this);
-            coordinationService.notifyStateChange();
+            try {
+                releaseLock();
+            } finally {
+                if (!doIsLocked()) {
+                    LOGGER.debug("{}: released lock on {}", Thread.currentThread().getName(), displayName);
+                    unlockAction.execute(this);
+                    owner = null;
+                    coordinationService.notifyStateChange();
+                }
+            }
         }
     }
 
@@ -80,6 +90,12 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
         if (coordinationService.getCurrent() == null) {
             throw new IllegalStateException("No ResourceLockState is associated with this thread.");
         }
+    }
+
+    @Nullable
+    @Override
+    public Thread getOwner() {
+        return owner;
     }
 
     abstract protected boolean acquireLock();

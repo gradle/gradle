@@ -35,7 +35,7 @@ class AbstractResourceLockRegistryTest extends Specification {
         lock.tryLock()
 
         then:
-        registry.getResourceLocksByCurrentThread() == [lock]
+        registry.getResourceLocksByThread(Thread.currentThread()) == [lock]
     }
 
     def "does not get locks associated with other threads"() {
@@ -47,7 +47,7 @@ class AbstractResourceLockRegistryTest extends Specification {
         lock.tryLock()
 
         then:
-        registry.getResourceLocksByCurrentThread() == [lock]
+        registry.getResourceLocksByThread(Thread.currentThread()) == [lock]
     }
 
     def "identifies open locks in the registry"() {
