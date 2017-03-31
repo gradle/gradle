@@ -180,6 +180,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @Issue("gradle/gradle#1641")
+    @TargetGradleVersion(">=3.5 <3.6")
     @LeaksFileHandles
     def "generates download events during maven publish"() {
         given:

@@ -197,6 +197,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Removed constructor `JarDirectory(Object, Object)`.
 - Removed constructor `Jdk(Object, Object, Object, Object)`.
 - Removed constructor `ModuleDependency(Object, Object)`.
+- Moved classes `RhinoWorkerHandleFactory` and `RhinoWorkerUtils` into internal package.
+- Removed `RhinoWorker`.
+- Removed constructor `EarPluginConvention(Instantiator)`.
 
 ## External contributions
 

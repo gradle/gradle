@@ -143,6 +143,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "action can mark operation as failed without throwing an exception"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
         def action = Mock(Transformer)
         def failure = new RuntimeException()
 
@@ -156,6 +160,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
             assert opResult.failure == failure
         }
+
+        cleanup:
+        GradleThread.setUnmanaged()
     }
 
     def "does not generate progress logging when operation has no progress display name"() {

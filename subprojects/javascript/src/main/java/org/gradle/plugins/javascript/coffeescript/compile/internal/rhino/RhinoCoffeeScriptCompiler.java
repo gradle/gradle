@@ -21,7 +21,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompiler;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
+import org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerHandleFactory;
 
 import java.io.File;
 

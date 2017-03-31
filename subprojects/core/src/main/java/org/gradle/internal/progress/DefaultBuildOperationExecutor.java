@@ -17,6 +17,7 @@
 package org.gradle.internal.progress;
 
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
@@ -50,19 +51,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public Operation getCurrentOperation() {
-        OperationDetails current = getNullableCurrentOperation();
+        OperationDetails current = findCurrentOperation();
         if (current == null) {
             throw new IllegalStateException("No operation is currently running.");
-        }
-        return current;
-    }
-
-    private OperationDetails getNullableCurrentOperation() {
-        OperationDetails current = currentOperation.get();
-        if (current == null && !GradleThread.isManaged()) {
-            LOGGER.warn("No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
-            current = UnmanagedThreadOperation.create();
-            currentOperation.set(current);
         }
         return current;
     }
@@ -84,8 +75,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
-        OperationDetails operationBefore = getNullableCurrentOperation();
-        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : operationBefore;
+        OperationDetails operationBefore = currentOperation.get();
+        OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : findCurrentOperation();
         OperationIdentifier parentId;
         if (parent == null) {
             parentId = null;
@@ -144,11 +135,44 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             LOGGER.debug("Build operation '{}' completed", operation.getDisplayName());
             return result;
         } finally {
-            this.currentOperation.set(operationBefore);
-            currentOperation.setRunning(false);
+            if (parent instanceof UnmanagedThreadOperation) {
+                this.currentOperation.set(null);
+                currentOperation.setRunning(false);
+                UnmanagedThreadOperation unmanagedParent = (UnmanagedThreadOperation) parent;
+                try {
+                    listener.finished(unmanagedParent.internal, new OperationResult(unmanagedParent.startTime, timeProvider.getCurrentTime(), null));
+                } finally {
+                    unmanagedParent.setRunning(false);
+                }
+            } else {
+                this.currentOperation.set(operationBefore);
+                currentOperation.setRunning(false);
+            }
         }
     }
 
+    @Nullable
+    private OperationDetails findCurrentOperation() {
+        OperationDetails current = currentOperation.get();
+        if (current == null && !GradleThread.isManaged()) {
+            current = startUnmanagedThreadOperation();
+        }
+        return current;
+    }
+
+    private OperationDetails startUnmanagedThreadOperation() {
+        // TODO:pm Move this to WARN level once we fixed maven-publish, see gradle/gradle#1662
+        LOGGER.debug("WARNING No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
+        UnmanagedThreadOperation operation = UnmanagedThreadOperation.create(timeProvider.getCurrentTime());
+        currentOperation.set(operation);
+        listener.started(operation.internal, new OperationStartEvent(operation.startTime));
+        return operation;
+    }
+
+    /**
+     * Artificially create a running root operation.
+     * Main use case is ProjectBuilder, useful for some of our test fixtures too.
+     */
     protected void createRunningRootOperation(String displayName) {
         assert currentOperation.get() == null;
         OperationDetails operation = new OperationDetails(null, new OperationIdentifier(0), BuildOperationDetails.displayName(displayName).build());
@@ -203,16 +227,21 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
         private static final AtomicLong COUNTER = new AtomicLong(-1);
 
-        private static UnmanagedThreadOperation create() {
+        private final long startTime;
+        private final BuildOperationInternal internal;
+
+        private static UnmanagedThreadOperation create(long startTime) {
             long id = COUNTER.getAndDecrement();
             String displayName = "Unmanaged thread operation #" + id + " (" + Thread.currentThread().getName() + ')';
-            UnmanagedThreadOperation operation = new UnmanagedThreadOperation(new OperationIdentifier(id), BuildOperationDetails.displayName(displayName).build());
+            UnmanagedThreadOperation operation = new UnmanagedThreadOperation(startTime, new OperationIdentifier(id), BuildOperationDetails.displayName(displayName).build());
             operation.setRunning(true);
             return operation;
         }
 
-        private UnmanagedThreadOperation(OperationIdentifier id, BuildOperationDetails operationDetails) {
+        private UnmanagedThreadOperation(long startTime, OperationIdentifier id, BuildOperationDetails operationDetails) {
             super(null, id, operationDetails);
+            this.startTime = startTime;
+            this.internal = new BuildOperationInternal(id, null, operationDetails.getName(), operationDetails.getDisplayName(), operationDetails.getOperationDescriptor());
         }
 
         @Override

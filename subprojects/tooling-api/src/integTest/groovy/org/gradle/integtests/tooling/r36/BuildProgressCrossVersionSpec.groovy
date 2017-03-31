@@ -28,6 +28,7 @@ import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
@@ -371,6 +372,79 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         }
+    }
+
+    @Issue("gradle/gradle#1641")
+    @LeaksFileHandles
+    def "generates download events during maven publish"() {
+        given:
+        toolingApi.requireIsolatedUserHome()
+        if (targetDist.version.version == "3.5-rc-1") {
+            return
+        }
+        def module = mavenHttpRepo.module('group', 'publish', '1')
+
+        // module is published
+        module.publish()
+
+        // module will be published a second time via 'maven-publish'
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.md5.expectPut()
+        module.pom.expectPut()
+        module.pom.sha1.expectPut()
+        module.pom.md5.expectPut()
+        module.rootMetaData.expectGet()
+        module.rootMetaData.sha1.expectGet()
+        module.rootMetaData.expectGet()
+        module.rootMetaData.sha1.expectGet()
+        module.rootMetaData.expectPut()
+        module.rootMetaData.sha1.expectPut()
+        module.rootMetaData.md5.expectPut()
+
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            version = '1'
+            group = 'group'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenHttpRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        def events = ProgressEvents.create()
+
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('publish')
+                    .addProgressListener(events).run()
+        }
+
+        then:
+        println events.describeOperationsTree()
+        def roots = events.operations.findAll { it.parent == null }
+        roots.any { it.descriptor.name == 'Run build' }
+
+        def orphans = roots.findAll { it.descriptor.name != 'Run build' }
+        orphans.size() == 4
+        orphans.findAll { it.descriptor.name.startsWith('Unmanaged thread operation #') } == orphans
+        orphans[0].child "Download ${module.rootMetaData.uri}"
+        orphans[1].child "Download ${module.rootMetaData.sha1.uri}"
+        orphans[2].child "Download ${module.rootMetaData.uri}"
+        orphans[3].child "Download ${module.rootMetaData.sha1.uri}"
+
+        cleanup:
+        toolingApi.daemons.killAll()
     }
 
     MavenHttpRepository getMavenHttpRepo() {
