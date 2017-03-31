@@ -19,8 +19,8 @@ package org.gradle.internal.logging.console
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultScalableElapsedTimeFormatterTest extends Specification {
-    def formatter = new DefaultScalableElapsedTimeFormatter()
+class DefaultTerseDurationFormatterTest extends Specification {
+    def formatter = new DefaultTerseDurationFormatter()
 
     @Unroll
     def "shows #output when elapsed time is greater or equals than #lowerBoundInclusive but lower than #upperBoundExlusive"() {

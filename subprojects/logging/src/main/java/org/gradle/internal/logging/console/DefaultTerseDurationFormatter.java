@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
-public class DefaultScalableElapsedTimeFormatter {
+public class DefaultTerseDurationFormatter {
     public String format(long elapsedTimeMs) {
         double elapsedTime = elapsedTimeMs / 1000.0;
 

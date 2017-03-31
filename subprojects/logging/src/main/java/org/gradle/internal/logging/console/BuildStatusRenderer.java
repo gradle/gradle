@@ -43,7 +43,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private final ConsoleMetaData consoleMetaData;
     private final TimeProvider timeProvider;
     private final ScheduledExecutorService executor;
-    private final DefaultScalableElapsedTimeFormatter elapsedTimeFormatter = new DefaultScalableElapsedTimeFormatter();
+    private final DefaultTerseDurationFormatter elapsedTimeFormatter = new DefaultTerseDurationFormatter();
     private final Object lock = new Object();
     private String currentBuildStatus;
     private OperationIdentifier rootOperationId;
