@@ -95,7 +95,6 @@ def buckets = [
         ":messaging",
         ":logging",
         ":resourcesHttp",
-        ":openApi",
         ":versionInfo"
     ],
 
