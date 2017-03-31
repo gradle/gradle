@@ -205,7 +205,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     new ProgressLogEventGenerator(
                         new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), true),
                     console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData),
+                console.getStatusBar(), console, consoleMetaData, timeProvider),
             timeProvider);
         synchronized (lock) {
             if (stdout && stderr) {
