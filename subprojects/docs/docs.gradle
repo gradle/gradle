@@ -14,6 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+buildscript {
+    dependencies { classpath("org.gradle.gradle2kts:gradle2kts:0.0.1-SNAPSHOT") }
+    repositories { maven { url 'https://repo.gradle.org/gradle/libs-snapshots' } }
+}
+
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.CacheableAsciidoctorTask
@@ -344,12 +349,23 @@ task userguideDocbook(type: UserGuideTransformTask) {
     dependsOn checkSectionIds
 }
 
+task ktsSamples(type: org.gradle.gradle2kts.tasks.Gradle2Kts, dependsOn: samples) {
+    sourceDir = samples.snippetsDir
+    destDir = new File(sourceDir.parentFile, 'snippets-kts')
+}
+
+task ktsUserGuideDocbook(type: UserGuideTransformTask, dependsOn: ktsSamples) {
+    destFile = new File(docbookSrc, 'ktsUserGuide.xml')
+    snippetsDir = ktsSamples.destDir
+    dependsOn checkSectionIds
+}
+
 // This is used for the PDF, where we need absolute links to the javadoc etc.
 task pdfUserguideDocbook(type: UserGuideTransformTask) {
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
 }
 
-configure([userguideDocbook, pdfUserguideDocbook]) {
+configure([userguideDocbook, ktsUserGuideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
     includes = files(
         samplesDocbook,
@@ -377,6 +393,16 @@ task userguideHtml(type: Docbook2Xhtml) {
     stylesheetName = 'userGuideHtml.xsl'
     resources = resourceFiles
     ext.entryPoint = "$destDir/userguide.html"
+}
+
+task ktsUserGuideHtml(type: Docbook2Xhtml) {
+    group = "Documentation"
+    source ktsUserGuideDocbook
+    destDir = new File(userguideDir.parentFile, 'ktsUserGuide')
+    stylesheetName = 'userGuideHtml.xsl'
+    resources = resourceFiles
+    ext.entryPoint = "$destDir/userguide.html"
+    outputs.doNotCacheIf('Depends on the output of ktsUserGuideDocbook, which contains an ever changing version') { true }
 }
 
 task userguideSingleHtml(type: Docbook2Xhtml) {
