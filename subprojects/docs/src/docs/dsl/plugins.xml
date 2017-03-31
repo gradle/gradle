@@ -26,9 +26,6 @@
     <plugin id="ear" description="Ear Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.plugins.ear.EarPluginConvention"/>
     </plugin>
-    <plugin id="jetty" description="Jetty Plugin">
-        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.jetty.JettyPluginConvention"/>
-    </plugin>
     <plugin id="project-report" description="Project Report Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ProjectReportsPluginConvention"/>
     </plugin>

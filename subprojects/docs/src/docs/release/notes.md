@@ -193,6 +193,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Removed `RhinoWorker`.
 - Removed constructor `EarPluginConvention(Instantiator)`.
 
+The deprecated `jetty` plugin has been removed. We recommend using the [Gretty plugin](https://github.com/akhikhl/gretty) for developing Java web applications.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
