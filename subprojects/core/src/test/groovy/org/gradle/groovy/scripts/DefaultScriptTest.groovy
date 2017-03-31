@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.LoggingManager
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -58,6 +59,8 @@ class DefaultScriptTest {
             will(returnValue(context.mock(FileLookup)))
             allowing(serviceRegistryMock).get(DirectoryFileTreeFactory)
             will(returnValue(context.mock(DirectoryFileTreeFactory)))
+            allowing(serviceRegistryMock).get(ProviderFactory)
+            will(returnValue(context.mock(ProviderFactory)))
         }
 
         DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
