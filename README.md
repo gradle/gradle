@@ -93,3 +93,10 @@ We recommend using IntelliJ IDEA.
 4. In `Window->Preferences->Groovy->Compiler`, check `Enable Script folder support` and add `**/*.gradle`
 5. Run `./gradlew eclipse` from the root directory
 6. Import all projects using the "Import Existing Projects into Workspace" wizard
+
+### Running or debugging gradle under Eclipse
+1. Create a Java Application Run/Debug configuration as
+2. Right click on launcher/src/main/java/org.gradle.launcher.Main and select `Run as->Run configuration`
+3. In the Arguments tab, enter: `--no-daemon -Dorg.gradle.appname=gradle`
+4. In the Working Directory tab: `enter you project's root directory`
+5. Apply/Run/Close as needed
