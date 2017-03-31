@@ -42,7 +42,7 @@ import org.gradle.util.Path;
 public interface ProjectInternal extends Project, ProjectIdentifier, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
-    // in the ‘core’ and ‘ui’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.
+    // in the ‘core’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.
     String HELP_TASK = "help";
     String TASKS_TASK = "tasks";
     String PROJECTS_TASK = "projects";
