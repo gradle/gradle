@@ -42,7 +42,6 @@
         <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='continuousBuild.xml'/>
         <xi:include href='compositeBuilds.xml'/>
-        <xi:include href='guiTutorial.xml'/>
         <xi:include href='buildEnvironment.xml'/>
         <xi:include href='troubleshooting.xml'/>
         <xi:include href='embedding.xml'/>
