@@ -17,7 +17,6 @@
 package org.gradle.internal.progress;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
@@ -51,14 +50,19 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public Operation getCurrentOperation() {
-        Operation current = currentOperation.get();
+        OperationDetails current = getNullableCurrentOperation();
         if (current == null) {
-            if (GradleThread.isManaged()) {
-                throw new IllegalStateException("No operation is currently running.");
-            } else {
-                LOGGER.warn("No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
-                current = new UnmanagedThreadOperation();
-            }
+            throw new IllegalStateException("No operation is currently running.");
+        }
+        return current;
+    }
+
+    private OperationDetails getNullableCurrentOperation() {
+        OperationDetails current = currentOperation.get();
+        if (current == null && !GradleThread.isManaged()) {
+            LOGGER.warn("No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
+            current = UnmanagedThreadOperation.create();
+            currentOperation.set(current);
         }
         return current;
     }
@@ -80,7 +84,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
-        OperationDetails operationBefore = currentOperation.get();
+        OperationDetails operationBefore = getNullableCurrentOperation();
         OperationDetails parent = operationDetails.getParent() != null ? (OperationDetails) operationDetails.getParent() : operationBefore;
         OperationIdentifier parentId;
         if (parent == null) {
@@ -171,6 +175,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
         @Override
         public Object getParentId() {
+            if (parent == null) {
+                return null;
+            }
             return parent.id;
         }
 
@@ -192,32 +199,25 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         }
     }
 
-    private static class UnmanagedThreadOperation implements Operation {
+    private static class UnmanagedThreadOperation extends OperationDetails {
 
-        private static final AtomicLong COUNTER = new AtomicLong();
-        private final String id;
-        private final String toString;
+        private static final AtomicLong COUNTER = new AtomicLong(-1);
 
-        private UnmanagedThreadOperation() {
-            long count = COUNTER.getAndIncrement();
-            id = "unmanaged_" + count;
-            toString = "Unmanaged thread operation #" + count + " (" + Thread.currentThread().getName() + ')';
+        private static UnmanagedThreadOperation create() {
+            long id = COUNTER.getAndDecrement();
+            String displayName = "Unmanaged thread operation #" + id + " (" + Thread.currentThread().getName() + ')';
+            UnmanagedThreadOperation operation = new UnmanagedThreadOperation(new OperationIdentifier(id), BuildOperationDetails.displayName(displayName).build());
+            operation.setRunning(true);
+            return operation;
         }
 
-        @Override
-        public Object getId() {
-            return id;
-        }
-
-        @Nullable
-        @Override
-        public Object getParentId() {
-            return null;
+        private UnmanagedThreadOperation(OperationIdentifier id, BuildOperationDetails operationDetails) {
+            super(null, id, operationDetails);
         }
 
         @Override
         public String toString() {
-            return toString;
+            return operationDetails.getDisplayName();
         }
     }
 }
