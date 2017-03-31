@@ -189,6 +189,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
 - The `JacocoTaskExtension` methods `getClassDumpFile()`, `setClassDumpFile(File)`, `getAgent()` and `setAgent(JacocoAgentJar)` are removed.
+- Removed constructor `EarPluginConvention(Instantiator)`.
 
 ## External contributions
 
