@@ -6,12 +6,11 @@ import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assert.assertNotEquals
 import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
-
-import kotlin.test.assertNotEquals
 
 class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 

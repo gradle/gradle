@@ -5,9 +5,8 @@ import groovy.lang.Closure
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import kotlin.test.assertEquals
 
 class GroovyInteroperabilityTest {
 

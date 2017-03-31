@@ -3,10 +3,9 @@ package org.gradle.script.lang.kotlin.provider
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assert.assertNull
+import org.junit.Assert.fail
 import org.junit.Test
-
-import kotlin.test.assertNull
-import kotlin.test.fail
 
 class BuildscriptBlockExtractionTest {
 
