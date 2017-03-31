@@ -21,8 +21,7 @@ import org.junit.runner.RunWith;
 public class DescriptionWithNullClassTest {
 
     @Test
-    public void someTest() throws Exception {
-
+    public void someTest() {
 
     }
 }

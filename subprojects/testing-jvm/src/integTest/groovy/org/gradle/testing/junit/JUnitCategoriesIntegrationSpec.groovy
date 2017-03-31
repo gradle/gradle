@@ -68,9 +68,9 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
     def supportsCategoriesAndNullTestClassDescription() {
         when:
         run "test"
+
         then:
         ":test" in nonSkippedTasks
-        and:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         def testClass = result.testClass("Not a real class name")
         testClass.assertTestCount(1, 0, 0)
