@@ -40,6 +40,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.api.logging.configuration.LoggingConfiguration
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.configuration.DefaultBuildConfigurer
@@ -223,6 +224,7 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         expectListenerManagerCreated()
         allowGetGradleInstallation()
+        expectParentServiceLocated(ProviderFactory)
         expectParentServiceLocated(BuildOperationExecutor)
         expectParentServiceLocated(CacheFactory)
 
@@ -234,6 +236,7 @@ public class BuildScopeServicesTest extends Specification {
     def providesAScriptObjectConfigurerFactory() {
         setup:
         expectListenerManagerCreated()
+        expectParentServiceLocated(ProviderFactory)
         expectParentServiceLocated(CacheFactory)
 
         expect:
@@ -244,6 +247,7 @@ public class BuildScopeServicesTest extends Specification {
     def providesASettingsProcessor() {
         setup:
         expectListenerManagerCreated()
+        expectParentServiceLocated(ProviderFactory)
         expectParentServiceLocated(CacheFactory)
         expectParentServiceLocated(BuildOperationExecutor)
 
