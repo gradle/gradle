@@ -12,11 +12,11 @@ dependencies {
     compile project(':jvmServices')
     compile project(':core')
     compile project(':cli')
-    compile project(':ui')
     compile project(':toolingApi')
     compile project(':native')
     compile project(':logging')
 
+    compile libraries.commons_io
     compile libraries.slf4j_api
 
     integTestCompile project(':internalIntegTesting')
