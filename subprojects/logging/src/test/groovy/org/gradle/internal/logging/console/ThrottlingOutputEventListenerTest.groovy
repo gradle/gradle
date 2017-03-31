@@ -26,7 +26,7 @@ import spock.lang.Subject
 class ThrottlingOutputEventListenerTest extends OutputSpecification {
     def listener = Mock(BatchOutputEventListener)
     def timeProvider = new MockTimeProvider()
-    def executor = new MockExecutor();
+    def executor = new MockExecutor()
 
     @Subject renderer = new ThrottlingOutputEventListener(listener, 100, executor, timeProvider)
 
@@ -136,5 +136,4 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
     void flush() {
         executor.runNow()
     }
-
 }

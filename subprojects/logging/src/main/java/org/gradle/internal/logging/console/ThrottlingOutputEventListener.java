@@ -95,7 +95,6 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         }
 
         listener.onOutput(new ArrayList<OutputEvent>(queue));
-
         queue.clear();
         lastUpdate = now;
     }
