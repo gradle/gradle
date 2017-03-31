@@ -16,26 +16,10 @@
 
 package org.gradle.internal.logging.events;
 
-import org.gradle.api.logging.LogLevel;
-
-public class RenderNowOutputEvent extends OutputEvent {
-    private final long now;
-
-    public RenderNowOutputEvent(long now) {
-        this.now = now;
-    }
-
-    public long getNow() {
-        return now;
-    }
-
-    @Override
-    public String toString() {
-        return RenderNowOutputEvent.class.getSimpleName();
-    }
-
-    @Override
-    public LogLevel getLogLevel() {
-        return null;
+public abstract class BatchOutputEventListener implements OutputEventListener {
+    public void onOutput(Iterable<OutputEvent> events) {
+        for (OutputEvent event : events) {
+            onOutput(event);
+        }
     }
 }

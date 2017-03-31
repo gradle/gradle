@@ -18,20 +18,19 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
-import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.RenderNowOutputEvent;
+import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.util.Arrays;
 
-public class BuildStatusRenderer implements OutputEventListener {
+public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
-    private final OutputEventListener listener;
+    private final BatchOutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
@@ -40,7 +39,11 @@ public class BuildStatusRenderer implements OutputEventListener {
     private OperationIdentifier rootOperationId;
     private long buildStartTimestamp;
 
-    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+        this(listener, buildStatusLabel, console, consoleMetaData);
+    }
+
+    BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
@@ -83,12 +86,14 @@ public class BuildStatusRenderer implements OutputEventListener {
                 buildProgressed(progressEvent);
             }
         }
+    }
 
-        listener.onOutput(event);
-
-        if (event instanceof RenderNowOutputEvent) {
-            renderNow(((RenderNowOutputEvent)event).getNow());
-        }
+    @Override
+    public void onOutput(Iterable<OutputEvent> events) {
+        synchronized (lock) {
+            super.onOutput(events);
+            listener.onOutput(events);
+            renderNow(timeProvider.getCurrentTime());
     }
 
     private String trimToConsole(String str) {

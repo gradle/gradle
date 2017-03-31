@@ -16,25 +16,17 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
+import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.EndOutputEvent
-import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.events.RenderNowOutputEvent
+import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.util.MockExecutor
 import org.gradle.util.MockTimeProvider
 import spock.lang.Subject
 
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
-
 class ThrottlingOutputEventListenerTest extends OutputSpecification {
-    def listener = Mock(OutputEventListener)
+    def listener = Mock(BatchOutputEventListener)
     def timeProvider = new MockTimeProvider()
-    def future = Mock(ScheduledFuture)
-    def executor = new MockExecutor() {
-        public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-            return future
-        }
-    }
+    def executor = new MockExecutor();
 
     @Subject renderer = new ThrottlingOutputEventListener(listener, 100, executor, timeProvider)
 
@@ -45,11 +37,8 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
-        interaction {
-            1 * listener.onOutput(event)
-            expectRenderNowOnListener()
-            0 * _
-        }
+        1 * listener.onOutput([event] as ArrayList<OutputEvent>)
+        0 * _
     }
 
     def "queues events received soon after first and forwards in batch"() {
@@ -64,28 +53,20 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event3)
 
         then:
-        interaction {
-            1 * listener.onOutput(event1)
-            expectRenderNowOnListener()
-            0 * _
-        }
+        1 * listener.onOutput([event1] as ArrayList<OutputEvent>)
+        0 * _
 
         when:
         flush()
 
         then:
-        interaction {
-            1 * listener.onOutput(event2)
-            1 * listener.onOutput(event3)
-            expectRenderNowOnListener()
-            0 * _
-        }
+        1 * listener.onOutput([event2, event3] as ArrayList<OutputEvent>)
+        0 * _
 
         when:
         renderer.onOutput(event4)
 
         then:
-        _ * future._
         0 * _
     }
 
@@ -102,11 +83,8 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event2)
 
         then:
-        interaction {
-            1 * listener.onOutput(event2)
-            expectRenderNowOnListener()
-            0 * _
-        }
+        1 * listener.onOutput([event2] as ArrayList<OutputEvent>)
+        0 * _
 
         when:
         renderer.onOutput(event3)
@@ -127,24 +105,15 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event3)
 
         then:
-        interaction {
-            1 * listener.onOutput(event1)
-            expectRenderNowOnListener()
-            0 * _
-        }
+        1 * listener.onOutput([event1] as ArrayList<OutputEvent>)
+        0 * _
 
         when:
         renderer.onOutput(end)
 
         then:
-        interaction {
-            1 * listener.onOutput(event2)
-            1 * listener.onOutput(event3)
-            1 * listener.onOutput(end)
-            expectRenderNowOnListener()
-            _ * future._
-            0 * _
-        }
+        1 * listener.onOutput([event2, event3, end] as ArrayList<OutputEvent>)
+        0 * _
     }
 
     def backgroundFlushDoesNothingWhenEventsAlreadyFlushed() {
@@ -161,17 +130,11 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         flush()
 
         then:
-        interaction {
-            expectRenderNowOnListener()
-            0 * _
-        }
+        0 * _
     }
 
     void flush() {
         executor.runNow()
     }
 
-    void expectRenderNowOnListener() {
-        1 * listener.onOutput(_ as RenderNowOutputEvent)
-    }
 }

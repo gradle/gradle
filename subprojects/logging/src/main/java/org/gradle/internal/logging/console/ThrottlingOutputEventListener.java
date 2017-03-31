@@ -16,8 +16,8 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.RenderNowOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.time.TimeProvider;
@@ -26,38 +26,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
  */
 public class ThrottlingOutputEventListener implements OutputEventListener {
-    private final OutputEventListener listener;
+    private final BatchOutputEventListener listener;
 
     private final ScheduledExecutorService executor;
     private final TimeProvider timeProvider;
     private final int throttleMs;
     private final Object lock = new Object();
 
-    private final Runnable scheduledRenderNow = new Runnable() {
-        @Override
-        public void run() {
-            synchronized (lock) {
-                renderNow(timeProvider.getCurrentTime());
-            }
-        }
-    };
-
     private long lastUpdate;
-    private ScheduledFuture future;
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
-    public ThrottlingOutputEventListener(OutputEventListener listener, TimeProvider timeProvider) {
+    public ThrottlingOutputEventListener(BatchOutputEventListener listener, TimeProvider timeProvider) {
         this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
     }
 
-    ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
+    ThrottlingOutputEventListener(BatchOutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
         this.throttleMs = throttleMs;
         this.listener = listener;
         this.executor = executor;
@@ -88,24 +77,25 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             }
 
             // This is the first queued event - schedule a thread to flush later
-            executor.schedule(scheduledRenderNow, throttleMs, TimeUnit.MILLISECONDS);
-
-            if (future == null || future.isCancelled()) {
-                future = executor.scheduleAtFixedRate(scheduledRenderNow, throttleMs, throttleMs, TimeUnit.MILLISECONDS);
-            }
+            executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (lock) {
+                        renderNow(timeProvider.getCurrentTime());
+                    }
+                }
+            }, throttleMs, TimeUnit.MILLISECONDS);
         }
     }
 
     private void renderNow(long now) {
-        queue.add(new RenderNowOutputEvent(now));
-
-        for (OutputEvent event : queue) {
-            listener.onOutput(event);
-
-            if (event instanceof EndOutputEvent) {
-                future.cancel(false);
-            }
+        if (queue.isEmpty()) {
+            // Already rendered - don't update anything
+            return;
         }
+
+        listener.onOutput(new ArrayList<OutputEvent>(queue));
+
         queue.clear();
         lastUpdate = now;
     }
