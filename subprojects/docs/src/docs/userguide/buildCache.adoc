@@ -194,12 +194,6 @@ These issues may affect the correctness of your build when using the build cache
 This causes Gradle to mix the result of one task into another. Depending on the order the tasks run, Gradle may delete all output from one of the tasks and cause broken builds.
 | Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in `src/main/groovy`.
 
-| Overlapping outputs.
-| If two cacheable tasks share an output directory, Gradle does not reliably cache the results from either task.
-More precisely, Gradle is not able to determine which outputs belong to which task and will possibly store the combined output of both tasks in the build cache.
-When loading from the build cache you can get the combined output when you expect a single output and vice versa.
-| Disable caching for both tasks. You can detect this situation by using https://github.com/gradle/gradle/blob/master/gradle/overlappingTaskOutputsStatsInit.gradle[this init script].
-
 | Tracking the Java vendor implementation
 | Gradle currently tracks the major version of Java that is used for compilation and test execution. If your build uses several Java implementations (IBM, OpenJDK, Oracle, etc) that are the same major version, Gradle will treat them all as equivalent and re-use outputs from any implementation.
 | Only enable caching for builds that all use the same Java implementation or manually add the Java vendor as an input to compilation and test execution tasks by using <<sec:task_input_output_runtime_api,the runtime api>> for adding task inputs.
