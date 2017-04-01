@@ -26,6 +26,8 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class DefaultDaemonScanInfo implements DaemonScanInfo {
 
     private final DaemonRunningStats stats;
@@ -70,6 +72,7 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
             Ideally, the value given would describe the problem and not be phrased in terms of why we are shutting down,
             but this is a practical compromise born out of piggy backing on the expiration listener mechanism to implement it.
          */
+        final AtomicReference<BuildAdapter> buildListenerReference = new AtomicReference<BuildAdapter>();
         final DaemonExpirationListener daemonExpirationListener = new DaemonExpirationListener() {
             @Override
             public void onExpirationEvent(DaemonExpirationResult result) {
@@ -78,17 +81,24 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
                         listener.execute(result.getReason());
                     } finally {
                         listenerManager.removeListener(this);
+                        BuildAdapter buildListener = buildListenerReference.get();
+                        if (buildListener != null) {
+                            listenerManager.removeListener(buildListener);
+                        }
                     }
                 }
             }
         };
         listenerManager.addListener(daemonExpirationListener);
-        listenerManager.addListener(new BuildAdapter() {
+        final BuildAdapter buildListener = new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
                 listenerManager.removeListener(daemonExpirationListener);
+                listenerManager.removeListener(this);
             }
-        });
+        };
+        buildListenerReference.set(buildListener);
+        listenerManager.addListener(buildListener);
     }
 
 }
