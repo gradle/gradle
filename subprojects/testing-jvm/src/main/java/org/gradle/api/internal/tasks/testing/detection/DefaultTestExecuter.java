@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.internal.tasks.testing.processors.WorkerLeaseHolderTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -72,23 +73,28 @@ public class DefaultTestExecuter implements TestExecuter {
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, testTask,
-                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry, currentOperation);
+                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry);
             }
         };
-        Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
+        final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testTask.getForkEvery());
             }
         };
+        Factory<TestClassProcessor> workerLeaseHolderProcessorFactory = new Factory<TestClassProcessor>() {
+            public TestClassProcessor create() {
+                return new WorkerLeaseHolderTestClassProcessor(currentOperation, reforkingProcessorFactory);
+            }
+        };
 
         TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testTask),
-            reforkingProcessorFactory, actorFactory);
+            workerLeaseHolderProcessorFactory, actorFactory);
 
         final FileTree testClassFiles = testTask.getCandidateClassFiles();
 
         Runnable detector;
         if (testTask.isScanForTestClasses()) {
-            TestFrameworkDetector testFrameworkDetector = testTask.getTestFramework().getDetector();
+            TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClassesDirectory(testTask.getTestClassesDir());
             testFrameworkDetector.setTestClasspath(classpath);
             detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
