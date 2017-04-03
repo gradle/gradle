@@ -127,6 +127,47 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         Runtime.runtime.availableProcessors() + 1 | _
     }
 
+    def "re-runs tests when resources are renamed"() {
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
+                repositories { jcenter() }
+            }
+            dependencies { 
+                testCompile 'junit:junit:4.12'
+                testCompile project(":dependency") 
+            }
+        """
+        settingsFile << """
+            include 'dependency'
+        """
+        file("src/test/java/MyTest.java") << """
+            import org.junit.*;
+
+            public class MyTest {
+               @Test
+               public void test() {
+                  Assert.assertNotNull(getClass().getResource("foo.properties"));
+               }
+            }
+        """.stripIndent()
+
+        def resourceFile = file("dependency/src/main/resources/foo.properties")
+        resourceFile << """
+            someProperty = true
+        """
+
+        when:
+        succeeds 'test'
+        then:
+        noExceptionThrown()
+
+        when:
+        resourceFile.renameTo(file("dependency/src/main/resources/bar.properties"))
+        then:
+        fails 'test'
+    }
+
     private static String standaloneTestClass() {
         return testClass('MyTest')
     }
