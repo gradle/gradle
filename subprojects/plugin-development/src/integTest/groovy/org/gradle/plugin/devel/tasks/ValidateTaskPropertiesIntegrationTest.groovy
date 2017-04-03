@@ -154,4 +154,69 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "validateTaskProperties"
     }
+
+    def "does not report missing properties for Provider types"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.provider.Provider;
+            import org.gradle.api.provider.PropertyState;
+            
+            import java.io.File;
+            import java.util.concurrent.Callable;
+
+            public class MyTask extends DefaultTask {
+                private final Provider<String> text;
+                private final PropertyState<File> file;
+                private final PropertyState<Pojo> pojo;
+
+                public MyTask() {
+                    text = getProject().provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "Hello World!";
+                        }
+                    });
+                    file = getProject().property(File.class);
+                    file.set(new File("some/dir"));
+                    pojo = getProject().property(Pojo.class);
+                }
+
+                @Input
+                public String getText() {
+                    return text.get();
+                }
+
+                @OutputFile
+                public File getFile() {
+                    return file.get();
+                }
+
+                @Nested
+                public Pojo getPojo() {
+                    return pojo.get();
+                }
+            }
+        """
+
+        file("src/main/java/Pojo.java") << """
+            import org.gradle.api.tasks.Input;
+
+            public class Pojo {
+                private final Boolean enabled;
+                
+                public Pojo(Boolean enabled) {
+                    this.enabled = enabled;
+                }
+
+                @Input
+                public Boolean isEnabled() {
+                    return enabled;
+                }
+            }
+        """
+
+        expect:
+        succeeds "validateTaskProperties"
+    }
 }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Internal;
 
 import java.util.concurrent.Callable;
 
@@ -52,7 +51,6 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
         return provider.get();
     }
 
-    @Internal
     @Override
     public T getOrNull() {
         return isPresent() ? provider.getOrNull() : null;
