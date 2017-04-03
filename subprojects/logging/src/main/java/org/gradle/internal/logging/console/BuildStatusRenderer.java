@@ -96,8 +96,11 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
             if (progressEvent.getOperationId().equals(rootOperationId)) {
                 buildProgressed(progressEvent);
             }
-        } else if (event instanceof EndOutputEvent && future != null && !future.isCancelled()) {
-            future.cancel(false);
+        } else if (event instanceof EndOutputEvent) {
+            if (future != null && !future.isCancelled()) {
+                future.cancel(false);
+            }
+            executor.shutdown();
         }
     }
 
