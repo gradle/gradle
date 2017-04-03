@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.Coroutines
 
 plugins {
     application
-    id("nebula.kotlin") version "1.1.0"
+    id("nebula.kotlin") version embeddedKotlinVersion
 }
 
 application {
