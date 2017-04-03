@@ -27,6 +27,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.*;
 import org.gradle.internal.Cast;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.plugin.use.PluginId;
@@ -48,11 +50,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final Map<Class<?>, Plugin<?>> instances = Maps.newHashMap();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
+    private final BuildOperationExecutor buildOperationExecutor;
+
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator, BuildOperationExecutor buildOperationExecutor) {
         this.instantiator = instantiator;
         this.applicator = applicator;
         this.pluginRegistry = pluginRegistry;
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -65,7 +70,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public <P extends Plugin> P addImperativePlugin(PluginImplementation<P> plugin) {
-        doApply(plugin);
+        doApplyThroughBuildOperation(plugin);
         Class<? extends P> pluginClass = plugin.asClass();
         return pluginClass.cast(instances.get(pluginClass));
     }
@@ -102,7 +107,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public void apply(PluginImplementation<?> plugin) {
-        doApply(plugin);
+        doApplyThroughBuildOperation(plugin);
     }
 
     public void apply(String pluginId) {
@@ -110,11 +115,20 @@ public class DefaultPluginManager implements PluginManagerInternal {
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
-        doApply(plugin);
+        doApplyThroughBuildOperation(plugin);
     }
 
     public void apply(Class<?> type) {
-        doApply(pluginRegistry.inspect(type));
+        doApplyThroughBuildOperation(pluginRegistry.inspect(type));
+    }
+
+    private void doApplyThroughBuildOperation(final PluginImplementation<?> plugin) {
+        new ApplyPluginBuildOperation(plugin, buildOperationExecutor).run(new Action<BuildOperationContext>() {
+            @Override
+            public void execute(BuildOperationContext buildOperationContext) {
+                doApply(plugin);
+            }
+        });
     }
 
     private void doApply(PluginImplementation<?> plugin) {
