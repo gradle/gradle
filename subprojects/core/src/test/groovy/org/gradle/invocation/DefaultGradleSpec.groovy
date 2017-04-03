@@ -34,6 +34,8 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
+import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -50,6 +52,7 @@ class DefaultGradleSpec extends Specification {
 
     StartParameter parameter = new StartParameter()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
+    BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
 
     GradleInternal gradle
 
@@ -65,6 +68,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(Instantiator) >> Mock(Instantiator)
         _ * serviceRegistry.get(ListenerManager) >> listenerManager
         _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation
+        _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
 
         gradle = classGenerator.newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }

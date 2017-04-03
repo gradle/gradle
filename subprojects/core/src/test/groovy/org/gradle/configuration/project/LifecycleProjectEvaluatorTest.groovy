@@ -18,6 +18,7 @@ package org.gradle.configuration.project
 
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.internal.progress.TestBuildOperationExecutor
@@ -26,6 +27,7 @@ import spock.lang.Specification
 
 class LifecycleProjectEvaluatorTest extends Specification {
     private project = Mock(ProjectInternal)
+    private gradle = Mock(GradleInternal)
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
     private buildOperationExecutor = new TestBuildOperationExecutor()
@@ -35,6 +37,8 @@ class LifecycleProjectEvaluatorTest extends Specification {
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
         project.displayName >> "<project>"
+        project.gradle >> gradle
+        gradle.findIdentityPath() >> Path.path(":project1")
         project.identityPath >> Path.path(":project1")
     }
 
