@@ -41,7 +41,6 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         // Source
         contentsDir.file('src').eachFile { TestFile file -> file.assertIsDir() }
         contentsDir.file('src/core/org/gradle/api/Project.java').assertIsFile()
-        contentsDir.file('src/ui/org/gradle/gradleplugin/userinterface/swing/standalone/BlockingApplication.java').assertIsFile()
         contentsDir.file('src/wrapper/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
         // Samples
