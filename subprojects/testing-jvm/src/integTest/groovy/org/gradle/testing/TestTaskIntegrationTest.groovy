@@ -147,12 +147,12 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
             public class MyTest {
                @Test
                public void test() {
-                  Assert.assertNotNull(getClass().getResource("foo.properties"));
+                  Assert.assertNotNull(getClass().getResource("dependency/foo.properties"));
                }
             }
         """.stripIndent()
 
-        def resourceFile = file("dependency/src/main/resources/foo.properties")
+        def resourceFile = file("dependency/src/main/resources/dependency/foo.properties")
         resourceFile << """
             someProperty = true
         """
@@ -163,7 +163,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         when:
-        resourceFile.renameTo(file("dependency/src/main/resources/bar.properties"))
+        resourceFile.renameTo(file("dependency/src/main/resources/dependency/bar.properties"))
         then:
         fails 'test'
     }
