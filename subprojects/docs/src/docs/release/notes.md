@@ -9,8 +9,8 @@ Add-->
 ### More work avoidance when using `@Classpath` task properties
 
 For built-in and custom tasks that use the `@Classpath` annotation, Gradle now performs deeper inspection of the classpath to filter out some differences that do not affect task execution.  Gradle will ignore changes to timestamps within a jar file and the order of entries inside a jar file.
- 
-In previous versions, for tasks like `Javadoc`, `Checkstyle` and `Test`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc). 
+
+In previous versions, for tasks like `Javadoc`, `Checkstyle` and `Test`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc).
 
 ### Extensions now have a public type
 
@@ -33,19 +33,19 @@ For example, if you have a `FancyExtension` type, implemented by some `DefaultFa
 Because Gradle's build lifecycle clearly distinguishes between configuration phase and execution phase the evaluation of property
  values has to be deferred under certain conditions to properly capture end user input. A typical use case is the mapping of
  extension properties to custom task properties as part of a plugin implementation. In the past, many plugin developers were forced to solve evaluation order problems by using the concept of convention mapping, an internal API in Gradle subject to change.
- 
+
 This release of Gradle introduces a mutable type to the public API representing a property with state. The relevant interface is called [`PropertyState`](javadoc/org/gradle/api/provider/PropertyState.html). An instance of this type can be created through the method [`Project.property(Class)`](javadoc/org/gradle/api/Project.html#property-java.lang.Class-).
 
 The following example demonstrates how to use the property state API to map an extension property to a custom task property without
 running into evaluation ordering issues:
 
     apply plugin: GreetingPlugin
-    
+
     greeting {
         message = 'Hi from Gradle'
         outputFiles = files('a.txt', 'b.txt')
     }
-    
+
     class GreetingPlugin implements Plugin<Project> {
         void apply(Project project) {
             // Add the 'greeting' extension object
@@ -57,63 +57,63 @@ running into evaluation ordering issues:
             }
         }
     }
-    
+
     class GreetingPluginExtension {
         final PropertyState<String> message
         final ConfigurableFileCollection outputFiles
-    
+
         GreetingPluginExtension(Project project) {
             message = project.property(String)
             setMessage('Hello from GreetingPlugin')
             outputFiles = project.files()
         }
-    
+
         String getMessage() {
             message.get()
         }
-    
+
         Provider<String> getMessageProvider() {
             message
         }
-    
+
         void setMessage(String message) {
             this.message.set(message)
         }
-    
+
         FileCollection getOutputFiles() {
             outputFiles
         }
-    
+
         void setOutputFiles(FileCollection outputFiles) {
             this.outputFiles.setFrom(outputFiles)
         }
     }
-    
+
     class Greeting extends DefaultTask {
         final PropertyState<String> message = project.property(String)
         final ConfigurableFileCollection outputFiles = project.files()
-    
+
         @Input
         String getMessage() {
             message.get()
         }
-    
+
         void setMessage(String message) {
             this.message.set(message)
         }
-    
+
         void setMessage(Provider<String> message) {
             this.message.set(message)
         }
-    
+
         FileCollection getOutputFiles() {
             outputFiles
         }
-    
+
         void setOutputFiles(FileCollection outputFiles) {
             this.outputFiles.setFrom(outputFiles)
         }
-    
+
         @TaskAction
         void printMessage() {
             getOutputFiles().each {
@@ -135,7 +135,7 @@ In previous versions of Gradle, it was not possible to supply command-line optio
 
     -myoption 'foo' 'bar'
     -myoption 'baz'
-    
+
 Gradle would produce a single `-myoption` or combine the option's value into a single argument.
 
     javadoc {
@@ -149,7 +149,7 @@ Gradle would produce a single `-myoption` or combine the option's value into a s
     }
 
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
-This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases. 
+This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases.
 
 <!--
 ### Example new and noteworthy
@@ -211,6 +211,9 @@ We would like to thank the following community members for making contributions 
 - [Jenn Strater](https://github.com/jlstrater) - Add groovy-application project init type ([gradle/gradle#1480](https://github.com/gradle/gradle/pull/1480))
 - [Jacob Ilsoe](https://github.com/jacobilsoe) - Update Zinc to 0.3.13 ([gradle/gradle#1463](https://github.com/gradle/gradle/issues/1463))
 - [Shintaro Katafuchi](https://github.com/hotchemi) - Issue: #952 Make project.sync() a public API ([gradle/gradle#1137](https://github.com/gradle/gradle/pull/1137))
+- [Lari Hotari](https://github.com/lhtorai) - Issue: #1730 Memory leak in Gradle daemon
+ ([gradle/gradle#1736](https://github.com/gradle/gradle/pull/1736))
+
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
