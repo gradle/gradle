@@ -189,6 +189,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
 - The `JacocoTaskExtension` methods `getClassDumpFile()`, `setClassDumpFile(File)`, `getAgent()` and `setAgent(JacocoAgentJar)` are removed.
+- Removed constructor `AccessRule(Object, Object)`.
+- Removed constructor `ProjectDependency(String, String)` and the methods `getGradlePath()`, `setGradlePath(String)`.
+- Removed constructor `WbDependentModule(Object)`.
+- Removed constructor `WbProperty(Object)`.
+- Removed constructor `WbResource(Object)`.
+- Removed constructor `JarDirectory(Object, Object)`.
+- Removed constructor `Jdk(Object, Object, Object, Object)`.
+- Removed constructor `ModuleDependency(Object, Object)`.
 - Moved classes `RhinoWorkerHandleFactory` and `RhinoWorkerUtils` into internal package.
 - Removed `RhinoWorker`.
 - Removed constructor `EarPluginConvention(Instantiator)`.
