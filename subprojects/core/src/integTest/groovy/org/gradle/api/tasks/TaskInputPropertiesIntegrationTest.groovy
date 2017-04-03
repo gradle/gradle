@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.Actions
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -183,6 +184,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skipped ':test'
     }
 
+    @Ignore("Must fix for 4.0")
     def "no deprecation warning printed when @OutputDirectories or @OutputFiles is used on Map property"() {
         file("buildSrc/src/main/groovy/TaskWithOutputFilesProperty.groovy") << """
             import org.gradle.api.*
@@ -205,6 +207,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
+    @Ignore("Must fix for 4.0")
     @Unroll("deprecation warning printed when TaskInputs.#method is called")
     def "deprecation warning printed when deprecated source method is used"() {
         buildFile << """
@@ -227,6 +230,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         "source(Object...)" | "files(Object...)" | 'source("a", "b")'
     }
 
+    @Ignore("Must fix for 4.0")
     @Unroll
     def "deprecation warning printed when deprecated order sensitivity is set via #method"() {
         buildFile << """
@@ -247,6 +251,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         "orderSensitive(boolean)" | "orderSensitive(true)"
     }
 
+    @Ignore("Must fix for 4.0")
     def "deprecation warning printed when deprecated @OrderSensitivity annotation is used"() {
         buildFile << """
             class TaskWithOrderSensitiveProperty extends DefaultTask {
@@ -281,6 +286,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
+    @Ignore("Must fix for 4.0")
     @Unroll
     def "deprecation warning printed when inputs calls are chained"() {
         buildFile << """
