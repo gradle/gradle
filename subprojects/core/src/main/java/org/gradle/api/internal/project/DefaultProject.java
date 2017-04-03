@@ -610,7 +610,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Action<? super Project> action) {
-        new ProjectConfigureBlockBuildOperation("subprojects", getAllprojects(), gradle.getBuildOperationExecutor()).runConfigureAction(action);
+        new ProjectConfigureBlockBuildOperation("subprojects", getSubprojects(), gradle.getBuildOperationExecutor()).runConfigureAction(action);
     }
 
     @Override
@@ -1085,7 +1085,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
-        new ProjectConfigureBlockBuildOperation("subprojects", getAllprojects(), gradle.getBuildOperationExecutor()).runConfigureClosure(configureClosure);
+        new ProjectConfigureBlockBuildOperation("subprojects", getSubprojects(), gradle.getBuildOperationExecutor()).runConfigureClosure(configureClosure);
     }
 
     @Override
