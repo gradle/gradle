@@ -16,51 +16,60 @@
 
 package org.gradle.internal.resources
 
-import com.google.common.collect.ArrayListMultimap
+import org.gradle.api.Action
 import spock.lang.Specification
 
 
 class AbstractTrackedResourceLockTest extends Specification {
-    def threadMap = ArrayListMultimap.create()
     def resourceLockState = Mock(ResourceLockState)
     def coordinationService = Mock(ResourceLockCoordinationService)
-    def lock = new TestTrackedResourceLock("test", threadMap, coordinationService)
+    def lockAction = Mock(Action)
+    def unlockAction = Mock(Action)
+    def lock = new TestTrackedResourceLock("test", coordinationService, lockAction, unlockAction)
 
-    def "tracks the lock in the thread map and current resource lock state"()  {
+    def "tracks the lock in the current resource lock state and calls provided actions"()  {
         given:
-        assert !(lock in threadMap.get(Thread.currentThread().id))
+        _ * coordinationService.current >> resourceLockState
 
         when:
         lock.tryLock()
 
         then:
-        lock in threadMap.get(Thread.currentThread().id)
-
-        and:
-        2 * coordinationService.current >> resourceLockState
+        1 * lockAction.execute(lock)
         1 * resourceLockState.registerLocked(lock)
 
         when:
         lock.unlock()
 
         then:
-        !(lock in threadMap.get(Thread.currentThread().id))
-
-        and:
-        2 * coordinationService.current >> resourceLockState
+        1 * unlockAction.execute(lock)
     }
 
-    def "checks that state methods are called inside coordination service transform"() {
+    def "throws exception when methods are called without coordination service transform"() {
+        given:
+        _ * coordinationService.current >> null
+
         when:
-        lock.hasResourceLock()
+        lock.tryLock()
 
         then:
-        1 * coordinationService.current
+        thrown(IllegalStateException)
+
+        when:
+        lock.unlock()
+
+        then: thrown(IllegalStateException)
+
+        when:
+        lock.isLockedByCurrentThread()
+
+        then:
+        thrown(IllegalStateException)
 
         when:
         lock.isLocked()
 
         then:
-        1 * coordinationService.current
+        thrown(IllegalStateException)
     }
 }

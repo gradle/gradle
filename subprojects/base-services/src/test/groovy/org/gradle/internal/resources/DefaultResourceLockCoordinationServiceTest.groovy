@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resources
 
-import com.google.common.collect.ArrayListMultimap
+import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -43,7 +43,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         then:
         lock1.lockedState == lock1Locked || (!lock1Locked && !lock2Locked)
         lock2.lockedState == lock2Locked || (!lock1Locked && !lock2Locked)
-        result == (lock1.doHasResourceLock() && lock2.doHasResourceLock())
+        result == (lock1.doIsLockedByCurrentThread() && lock2.doIsLockedByCurrentThread())
 
         where:
         lock1Locked | lock2Locked
@@ -77,8 +77,8 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
                         }
                     }
                 })
-                assert lock1.doHasResourceLock()
-                assert lock2.doHasResourceLock()
+                assert lock1.doIsLockedByCurrentThread()
+                assert lock2.doIsLockedByCurrentThread()
             }
 
             thread.blockUntil.executed1
@@ -164,14 +164,6 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
-    def "throws exception when current worker lease is requested outside of withStateLock"() {
-        when:
-        coordinationService.getCurrent()
-
-        then:
-        thrown(IllegalStateException)
-    }
-
     def "locks are rolled back when an exception is thrown"() {
         def lock1 = resourceLock("lock1", false)
         def lock2 = resourceLock("lock2", false)
@@ -203,7 +195,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
     }
 
     TestTrackedResourceLock resourceLock(String displayName, boolean locked) {
-        return new TestTrackedResourceLock(displayName, ArrayListMultimap.create(), coordinationService, locked)
+        return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked)
     }
 
     TestTrackedResourceLock resourceLock(String displayName) {

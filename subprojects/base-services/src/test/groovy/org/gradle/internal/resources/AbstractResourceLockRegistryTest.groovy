@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resources
 
-import com.google.common.collect.Multimap
+import org.gradle.api.Action
 import spock.lang.Specification
 
 
@@ -78,8 +78,8 @@ class AbstractResourceLockRegistryTest extends Specification {
         def getResourceLock(String displayName) {
             return getOrRegisterResourceLock(displayName, new AbstractResourceLockRegistry.ResourceLockProducer() {
                 @Override
-                ResourceLock create(String name, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService) {
-                    return new TestTrackedResourceLock(name, threadResourceLockMap, coordinationService)
+                ResourceLock create(String name, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+                    return new TestTrackedResourceLock(name, coordinationService, lockAction, unlockAction)
                 }
             })
         }

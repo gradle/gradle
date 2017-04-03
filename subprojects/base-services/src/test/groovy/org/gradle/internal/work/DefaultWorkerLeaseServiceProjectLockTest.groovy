@@ -319,7 +319,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                held.set(resourceLock.locked && resourceLock.hasResourceLock())
+                held.set(resourceLock.locked && resourceLock.isLockedByCurrentThread())
                 return ResourceLockState.Disposition.FINISHED
             }
         })

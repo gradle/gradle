@@ -23,8 +23,7 @@ public interface ResourceLockCoordinationService {
      * Gets the current {@link ResourceLockState} active in this thread.  This must be called in the context
      * of a {@link #withStateLock(Transformer)} transform.
      *
-     * @return the current {@link ResourceLockState}
-     * @throws IllegalStateException if called outside of {@link #withStateLock(Transformer)}
+     * @return the current {@link ResourceLockState} or null if not in a transform.
      */
     ResourceLockState getCurrent();
 

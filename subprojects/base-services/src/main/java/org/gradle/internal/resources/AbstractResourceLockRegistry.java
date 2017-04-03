@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import org.gradle.api.Action;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentMap;
@@ -35,7 +36,7 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
     }
 
     protected T getOrRegisterResourceLock(String displayName, ResourceLockProducer<T> producer) {
-        resourceLocks.putIfAbsent(displayName, producer.create(displayName, threadResourceLockMap, coordinationService));
+        resourceLocks.putIfAbsent(displayName, producer.create(displayName, coordinationService, getLockAction(), getUnlockAction()));
         return resourceLocks.get(displayName);
     }
 
@@ -55,7 +56,25 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         return false;
     }
 
+    private Action<ResourceLock> getLockAction() {
+        return new Action<ResourceLock>() {
+            @Override
+            public void execute(ResourceLock resourceLock) {
+                threadResourceLockMap.put(Thread.currentThread().getId(), resourceLock);
+            }
+        };
+    }
+
+    private Action<ResourceLock> getUnlockAction() {
+        return new Action<ResourceLock>() {
+            @Override
+            public void execute(ResourceLock resourceLock) {
+                threadResourceLockMap.remove(Thread.currentThread().getId(), resourceLock);
+            }
+        };
+    }
+
     public interface ResourceLockProducer<T extends ResourceLock> {
-        T create(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService);
+        T create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction);
     }
 }

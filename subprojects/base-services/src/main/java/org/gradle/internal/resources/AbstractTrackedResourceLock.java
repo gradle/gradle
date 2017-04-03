@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resources;
 
-import com.google.common.collect.Multimap;
+import org.gradle.api.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,23 +25,25 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
 
     private final String displayName;
 
-    private final Multimap<Long, ResourceLock> threadResourceLockMap;
     private final ResourceLockCoordinationService coordinationService;
+    private final Action<ResourceLock> lockAction;
+    private final Action<ResourceLock> unlockAction;
 
-    public AbstractTrackedResourceLock(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService) {
+    public AbstractTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
         this.displayName = displayName;
-        this.threadResourceLockMap = threadResourceLockMap;
         this.coordinationService = coordinationService;
+        this.lockAction = lockAction;
+        this.unlockAction = unlockAction;
     }
 
     @Override
     public boolean tryLock() {
-        ResourceLockState resourceLockState = coordinationService.getCurrent();
-        if (!hasResourceLock()) {
+        failIfNotInResourceLockStateChange();
+        if (!isLockedByCurrentThread()) {
             if (acquireLock()) {
                 LOGGER.debug("{}: acquired lock on {}", Thread.currentThread().getName(), displayName);
-                threadResourceLockMap.put(Thread.currentThread().getId(), this);
-                resourceLockState.registerLocked(this);
+                lockAction.execute(this);
+                coordinationService.getCurrent().registerLocked(this);
                 return true;
             } else {
                 return false;
@@ -53,25 +55,31 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
 
     @Override
     public void unlock() {
-        coordinationService.getCurrent();
-        if (hasResourceLock()) {
+        failIfNotInResourceLockStateChange();
+        if (isLockedByCurrentThread()) {
             releaseLock();
             LOGGER.debug("{}: released lock on {}", Thread.currentThread().getName(), displayName);
-            threadResourceLockMap.remove(Thread.currentThread().getId(), this);
+            unlockAction.execute(this);
             coordinationService.notifyStateChange();
         }
     }
 
     @Override
     public boolean isLocked() {
-        coordinationService.getCurrent();
+        failIfNotInResourceLockStateChange();
         return doIsLocked();
     }
 
     @Override
-    public boolean hasResourceLock() {
-        coordinationService.getCurrent();
-        return doHasResourceLock();
+    public boolean isLockedByCurrentThread() {
+        failIfNotInResourceLockStateChange();
+        return doIsLockedByCurrentThread();
+    }
+
+    private void failIfNotInResourceLockStateChange() {
+        if (coordinationService.getCurrent() == null) {
+            throw new IllegalStateException("No ResourceLockState is associated with this thread.");
+        }
     }
 
     abstract protected boolean acquireLock();
@@ -80,7 +88,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
 
     abstract protected boolean doIsLocked();
 
-    abstract protected boolean doHasResourceLock();
+    abstract protected boolean doIsLockedByCurrentThread();
 
     @Override
     public String getDisplayName() {

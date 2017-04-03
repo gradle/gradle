@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resources
 
-import com.google.common.collect.ArrayListMultimap
+import org.gradle.api.Action
 import spock.lang.Specification
 
 import static org.gradle.internal.resources.ResourceLockOperations.*
@@ -42,8 +42,8 @@ class ResourceLockOperationsTest extends Specification {
         disposition == expectedDisposition
 
         and:
-        lock1.hasResourceLock() == !lock1Locked
-        lock2.hasResourceLock() == (!lock1Locked && !lock2Locked)
+        lock1.isLockedByCurrentThread() == !lock1Locked
+        lock2.isLockedByCurrentThread() == (!lock1Locked && !lock2Locked)
 
         where:
         lock1Locked | lock2Locked | expectedDisposition
@@ -64,8 +64,8 @@ class ResourceLockOperationsTest extends Specification {
         disposition == expectedDisposition
 
         and:
-        lock1.hasResourceLock() == !lock1Locked
-        lock2.hasResourceLock() == (!lock1Locked && !lock2Locked)
+        lock1.isLockedByCurrentThread() == !lock1Locked
+        lock2.isLockedByCurrentThread() == (!lock1Locked && !lock2Locked)
 
         where:
         lock1Locked | lock2Locked | expectedDisposition
@@ -98,6 +98,6 @@ class ResourceLockOperationsTest extends Specification {
     }
 
     TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock=false) {
-        return new TestTrackedResourceLock(displayName, ArrayListMultimap.create(), coordinationService, locked, hasLock)
+        return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
     }
 }

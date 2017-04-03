@@ -16,14 +16,12 @@
 
 package org.gradle.internal.resources
 
-import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.Multimap
+import org.gradle.api.Action
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService()
-    Multimap<Long, ResourceLock> threads = ArrayListMultimap.create()
-    def resourceLock = new ExclusiveAccessResourceLock("test", threads, coordinationService)
+    def resourceLock = new ExclusiveAccessResourceLock("test", coordinationService, Mock(Action), Mock(Action))
 
     def "throws an exception when not called from coordination service"() {
         when:
@@ -45,14 +43,14 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
 
         then:
         resourceLock.doIsLocked()
-        resourceLock.doHasResourceLock()
+        resourceLock.doIsLockedByCurrentThread()
 
         when:
         coordinationService.withStateLock(ResourceLockOperations.unlock(resourceLock))
 
         then:
         !resourceLock.doIsLocked()
-        !resourceLock.doHasResourceLock()
+        !resourceLock.doIsLockedByCurrentThread()
     }
 
     def "can lock a resource that is already locked"() {
@@ -66,7 +64,7 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
         then:
         noExceptionThrown()
         resourceLock.doIsLocked()
-        resourceLock.doHasResourceLock()
+        resourceLock.doIsLockedByCurrentThread()
     }
 
     def "can unlock a resource that is already unlocked"() {
@@ -76,7 +74,7 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
         then:
         noExceptionThrown()
         !resourceLock.doIsLocked()
-        !resourceLock.doHasResourceLock()
+        !resourceLock.doIsLockedByCurrentThread()
     }
 
     def "cannot lock a resource that is already locked by another thread"() {
@@ -86,7 +84,7 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
 
             start {
                 assert !coordinationService.withStateLock(ResourceLockOperations.tryLock(resourceLock))
-                assert !resourceLock.doHasResourceLock()
+                assert !resourceLock.doIsLockedByCurrentThread()
                 instant.child1Finished
             }
 
@@ -95,7 +93,7 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
 
             start {
                 assert coordinationService.withStateLock(ResourceLockOperations.tryLock(resourceLock))
-                assert resourceLock.doHasResourceLock()
+                assert resourceLock.doIsLockedByCurrentThread()
             }
         }
 
