@@ -149,9 +149,7 @@ public class TaskExecutionServices {
             );
         }
         executer = new SkipUpToDateTaskExecuter(executer);
-        if (taskOutputCacheEnabled) {
-            executer = new ResolveTaskOutputCachingStateExecuter(executer);
-        }
+        executer = new ResolveTaskOutputCachingStateExecuter(taskOutputCacheEnabled, executer);
         if (verifyInputsEnabled || taskOutputCacheEnabled) {
             executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer);
         }

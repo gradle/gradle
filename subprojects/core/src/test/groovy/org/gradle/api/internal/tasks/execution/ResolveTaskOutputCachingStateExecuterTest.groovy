@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.tasks.DefaultTaskOutputs
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -35,7 +36,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def delegate = Mock(TaskExecuter)
-    def executer = new ResolveTaskOutputCachingStateExecuter(delegate)
+    def executer = new ResolveTaskOutputCachingStateExecuter(true, delegate)
 
     def "stores caching enabled in TaskState"() {
         when:
@@ -81,5 +82,16 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
     }
 
+    def "when task output caching is disabled, state is DISABLED"() {
+        executer = new ResolveTaskOutputCachingStateExecuter(false, delegate)
+        when:
+        executer.execute(task, taskState, taskContext)
 
+        then:
+        1 * taskState.setTaskOutputCaching(DefaultTaskOutputs.DISABLED)
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+        0 * _
+    }
 }

@@ -117,8 +117,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         withBuildCache().succeeds "cacheable"
     }
 
-    // TODO: This seems wrong
-    def "cacheability for a task with no actions is BUILD_CACHE_DISABLED"() {
+    def "cacheability for a task with no actions is UNKNOWN"() {
         buildFile << """
             @CacheableTask
             class NoActions extends BaseTask {
@@ -126,8 +125,8 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             
             task cacheable(type: NoActions) {
                 cachingEnabled = false
-                disabledReason = "Task output caching is disabled"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED
+                disabledReason = "Cacheability was not determined"
+                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.UNKNOWN
             }
         """
         expect:
@@ -200,20 +199,20 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         withBuildCache().succeeds "cacheable"
     }
 
-    def "cacheability for a task with onlyIf is BUILD_CACHE_DISABLED"() {
+    def "cacheability for a task with onlyIf is UNKNOWN"() {
         buildFile << """
             task cacheable(type: Cacheable) {
                 onlyIf { false }
                 cachingEnabled = false
-                disabledReason = "Task output caching is disabled"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED
+                disabledReason = "Cacheability was not determined"
+                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.UNKNOWN
             }
         """
         expect:
         withBuildCache().succeeds "cacheable"
     }
 
-    def "cacheability for a task with no sources is BUILD_CACHE_DISABLED"() {
+    def "cacheability for a task with no sources is UNKNOWN"() {
         buildFile << """
             @CacheableTask
             class NoSources extends NotCacheable {
@@ -224,8 +223,8 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             
             task cacheable(type: NoSources) {
                 cachingEnabled = false
-                disabledReason = "Task output caching is disabled"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED
+                disabledReason = "Cacheability was not determined"
+                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.UNKNOWN
             }
         """
         expect:
