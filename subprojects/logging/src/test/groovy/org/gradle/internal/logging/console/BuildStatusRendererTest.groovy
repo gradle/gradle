@@ -69,14 +69,14 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput([event1] as ArrayList<OutputEvent>)
 
         then:
-        label.display == "message [0.0s]"
+        label.display == "message [0.000s]"
 
         when:
         currentTimeMs += 100
         renderer.onOutput([event2] as ArrayList<OutputEvent>)
 
         then:
-        label.display == "message [0.1s]"
+        label.display == "message [0.100s]"
     }
 
     def startRoot(String description) {

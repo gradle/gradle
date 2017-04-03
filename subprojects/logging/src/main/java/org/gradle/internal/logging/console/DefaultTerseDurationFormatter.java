@@ -16,30 +16,21 @@
 
 package org.gradle.internal.logging.console;
 
+import java.util.concurrent.TimeUnit;
+
 public class DefaultTerseDurationFormatter {
-    public String format(long elapsedTimeMs) {
-        double elapsedTime = elapsedTimeMs / 1000.0;
+    private static final long MS_PER_MINUTE = TimeUnit.MINUTES.toMillis(1);
+    private static final long MS_PER_HOUR = TimeUnit.HOURS.toMillis(1);
 
-        if (elapsedTime < 60.0) {
-            return format(elapsedTime, 1, "s");
+    public String format(long elapsedTimeInMs) {
+        StringBuilder result = new StringBuilder();
+        if (elapsedTimeInMs > MS_PER_HOUR) {
+            result.append(elapsedTimeInMs / MS_PER_HOUR).append("h ");
         }
-
-        elapsedTime /= 60.0;
-        if (elapsedTime < 60.0) {
-            return format(elapsedTime, 1, "m");
+        if (elapsedTimeInMs > MS_PER_MINUTE) {
+            result.append((elapsedTimeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append("m ");
         }
-
-        elapsedTime /= 60.0;
-        if (elapsedTime < 10.0) {
-            return format(elapsedTime, 2, "h");
-        } else if (elapsedTime < 100.0) {
-            return format(elapsedTime, 1, "h");
-        } else {
-            return format(elapsedTime, 0, "h");
-        }
-    }
-
-    private static String format(double value, int precision, String unit) {
-        return String.format("%." + precision + "f%s", value, unit);
+        result.append(String.format("%.3f", (elapsedTimeInMs % MS_PER_MINUTE) / 1000.0)).append("s");
+        return result.toString();
     }
 }

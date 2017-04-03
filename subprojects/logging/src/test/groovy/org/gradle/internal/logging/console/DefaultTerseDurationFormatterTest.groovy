@@ -32,13 +32,13 @@ class DefaultTerseDurationFormatterTest extends Specification {
 
         where:
         lowerBoundInclusive | upperBoundExclusive | input            | output
-        "None"              | "10 seconds"        | seconds(4.21345) | "4.2s"
-        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42.1s"
-        "1 minute"          | "10 minutes"        | minutes(4.21234) | "4.2m"
-        "10 minutes"        | "1 hour"            | minutes(42.1234) | "42.1m"
-        "1 hour"            | "10 hours"          | hours(4.2123456) | "4.21h"
-        "10 hours"          | "100 hours"         | hours(42.123456) | "42.1h"
-        "100 hours"         | "None"              | hours(421.23456) | "421h"
+        "None"              | "10 seconds"        | seconds(4.21345) | "4.213s"
+        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42.123s"
+        "1 minute"          | "10 minutes"        | minutes(4.21234) | "4m 12.740s"
+        "10 minutes"        | "1 hour"            | minutes(42.1234) | "42m 7.404s"
+        "1 hour"            | "10 hours"          | hours(4.2123456) | "4h 12m 44.444s"
+        "10 hours"          | "100 hours"         | hours(42.123456) | "42h 7m 24.441s"
+        "100 hours"         | "None"              | hours(421.23456) | "421h 14m 4.416s"
     }
 
     @Unroll
@@ -51,8 +51,7 @@ class DefaultTerseDurationFormatterTest extends Specification {
 
         where:
         input         | output
-        hours(4.2)  | "4.20h"
-        hours(42.0) | "42.0h"
+        seconds(1.2)  | "1.200s"
     }
 
     private static long hours(double value) {

@@ -44,7 +44,7 @@ class ConsoleFunctionalTest extends Specification {
         renderer.configure(LogLevel.INFO)
         renderer.addConsole(console, true, true, metaData)
         _ * metaData.getRows() >> 10
-        _ * metaData.getCols() >> 30
+        _ * metaData.getCols() >> 35
         _ * timeProvider.getCurrentTime() >> { currentTimeMs }
     }
 
@@ -54,7 +54,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% INITIALIZING [0.0s]'
+            assert statusBar.display == '<---> 0% INITIALIZING [0.000s]'
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
@@ -66,7 +66,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% CONFIGURING [0.0s]'
+            assert statusBar.display == '<---> 0% CONFIGURING [0.000s]'
             assert progressArea.display == ['> root project', IDLE, IDLE, IDLE]
         }
 
@@ -77,7 +77,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<=--> 33% CONFIGURING [0.2s]'
+            assert statusBar.display == '<=--> 33% CONFIGURING [0.200s]'
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
@@ -133,7 +133,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzA', IDLE, IDLE, IDLE]
+            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzABCDEF', IDLE, IDLE, IDLE]
         }
     }
 
