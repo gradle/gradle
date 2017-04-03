@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
-    private static final long RENDER_NOW_PERIOD_MILLISECONDS = 86;
+    private static final long RENDER_NOW_PERIOD_MILLISECONDS = 85;
     private final BatchOutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
