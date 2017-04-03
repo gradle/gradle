@@ -18,6 +18,7 @@ package integration
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
@@ -37,6 +38,9 @@ open class CheckSample : DefaultTask() {
 
     @get:InputDirectory
     var installation: File? = null
+
+    @get:Input
+    var additionalGradleArguments = emptyList<String>()
 
     @Suppress("unused")
     @get:InputFiles
@@ -72,7 +76,8 @@ open class CheckSample : DefaultTask() {
     private fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
         withConnectionFrom(connectorFor(projectDir).useInstallation(installation!!)) {
             newBuild()
-                .withArguments("--recompile-scripts", "--stacktrace")
+                .withArguments(
+                    listOf("--recompile-scripts", "--stacktrace") + additionalGradleArguments)
                 .forTasks("tasks")
                 .setStandardOutput(TeeOutputStream(System.out, stdout))
                 .setStandardError(TeeOutputStream(System.err, stdout))

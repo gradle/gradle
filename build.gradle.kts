@@ -161,6 +161,9 @@ val benchmark by task<integration.Benchmark> {
     latestInstallation = customInstallationDir
 }
 
+val isCI by lazy {
+    !System.getenv("CI").isNullOrEmpty()
+}
 
 // -- Integration testing ---------------------------------------------
 //
@@ -175,6 +178,9 @@ tasks.addRule("Pattern: check-<SAMPLE>") {
             dependsOn(customInstallation)
             installation = customInstallationDir
             sampleDir = file("samples/${taskName.removePrefix("check-")}")
+            if (isCI) {
+                additionalGradleArguments = listOf("-d", "-Dkotlin-daemon.verbose=true")
+            }
         }
         task(taskName).dependsOn(checkSample)
     }
