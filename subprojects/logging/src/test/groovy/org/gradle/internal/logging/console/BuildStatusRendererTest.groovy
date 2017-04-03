@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.BatchOutputEventListener
+import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.time.TimeProvider
@@ -77,6 +78,20 @@ class BuildStatusRendererTest extends OutputSpecification {
 
         then:
         label.display == "message [0.100s]"
+    }
+
+    def "correctly cancel the future once the end event is received"() {
+        def startEvent = startRoot('message')
+        def end = new EndOutputEvent()
+
+        given:
+        renderer.onOutput([startEvent] as ArrayList<OutputEvent>)
+
+        when:
+        renderer.onOutput([end] as ArrayList<OutputEvent>)
+
+        then:
+        1 * future.cancel(false)
     }
 
     def startRoot(String description) {
