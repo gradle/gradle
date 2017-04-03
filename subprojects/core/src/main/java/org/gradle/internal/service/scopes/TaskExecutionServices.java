@@ -148,10 +148,10 @@ public class TaskExecutionServices {
                 executer
             );
         }
+        executer = new SkipUpToDateTaskExecuter(executer);
         if (taskOutputCacheEnabled) {
             executer = new ResolveTaskOutputCachingStateExecuter(executer);
         }
-        executer = new SkipUpToDateTaskExecuter(executer);
         if (verifyInputsEnabled || taskOutputCacheEnabled) {
             executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer);
         }
