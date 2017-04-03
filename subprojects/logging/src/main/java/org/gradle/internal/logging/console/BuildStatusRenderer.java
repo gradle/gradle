@@ -123,7 +123,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
 
     private void renderNow(long now) {
         if (currentBuildStatus != null && !currentBuildStatus.isEmpty()) {
-            if (future == null || future.isCancelled()) {
+            if ((future == null || future.isCancelled()) && !executor.isShutdown()) {
                 future = executor.scheduleAtFixedRate(new Runnable() {
                     @Override
                     public void run() {
