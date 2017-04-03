@@ -15,14 +15,13 @@
  */
 package org.gradle.configuration.project;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.internal.project.ProjectConfigureBuildOperation;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +45,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             return;
         }
 
-        String displayName = "project " + project.getIdentityPath().toString();
-        buildOperationExecutor.run(BuildOperationDetails.displayName("Configure " + displayName).name(StringUtils.capitalize(displayName)).build(), new Action<BuildOperationContext>() {
+        new ProjectConfigureBuildOperation(project, buildOperationExecutor).runBuildOperationAction(new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
                 doConfigure(project, state);

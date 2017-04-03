@@ -34,4 +34,8 @@ public class MutableActionSet<T> implements Action<T> {
     public void execute(T t) {
         actions.execute(t);
     }
+
+    public boolean isEmpty() {
+        return actions.isEmpty();
+    }
 }

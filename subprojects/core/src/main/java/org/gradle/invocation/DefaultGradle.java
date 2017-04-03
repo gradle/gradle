@@ -35,18 +35,20 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
+import org.gradle.api.internal.project.ProjectConfigureBlockBuildOperation;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.MutableActionSet;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
@@ -80,8 +82,10 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         buildListenerBroadcast.add(new BuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
-                rootProjectActions.execute(rootProject);
-                rootProjectActions = null;
+                if (!rootProjectActions.isEmpty()) {
+                    new ProjectConfigureBlockBuildOperation("rootProject", Collections.<Project>singleton(rootProject), getBuildOperationExecutor()).runConfigureAction(rootProjectActions);
+                    rootProjectActions = null;
+                }
             }
         });
     }
@@ -112,7 +116,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                     // Not known yet
                     return null;
                 }
-                identityPath = parent.getIdentityPath().child(rootProject.getName());
+                Path parentIdentityPath = parent.findIdentityPath();
+                if (parentIdentityPath == null) {
+                    // Not known yet
+                    return null;
+                }
+                this.identityPath = parentIdentityPath.child(rootProject.getName());
             }
         }
         return identityPath;
@@ -383,6 +392,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Inject
     public PluginManagerInternal getPluginManager() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public BuildOperationExecutor getBuildOperationExecutor() {
         throw new UnsupportedOperationException();
     }
 }
