@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Internal;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.Callable;
@@ -32,7 +31,6 @@ public class DefaultProvider<T> implements Provider<T> {
         this.value = value;
     }
 
-    @Internal
     @Override
     public T get() {
         T evaluatedValue = getOrNull();
@@ -44,7 +42,6 @@ public class DefaultProvider<T> implements Provider<T> {
         return evaluatedValue;
     }
 
-    @Internal
     @Override
     public T getOrNull() {
         try {

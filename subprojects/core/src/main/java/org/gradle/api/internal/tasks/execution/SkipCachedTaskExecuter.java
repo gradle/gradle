@@ -67,6 +67,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         final TaskOutputsInternal taskOutputs = task.getOutputs();
         TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
+
         if (taskOutputCachingEnabled) {
             if (cacheKey.isValid()) {
                 TaskArtifactState taskState = context.getTaskArtifactState();

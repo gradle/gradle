@@ -415,27 +415,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         """.stripIndent()
     }
 
-    def "previous outputs are cleared before task is loaded from cache"() {
-        when:
-        withBuildCache().succeeds "jar"
-        then:
-        skippedTasks.empty
-
-        when:
-        assert file("build/classes/main/Hello.class").delete()
-        assert file("build/classes/main/Hi.class") << "A fake class that somehow got in the way"
-        withBuildCache().succeeds "compileJava"
-        then:
-        skippedTasks.contains ":compileJava"
-        file("build/classes/main/Hello.class").exists()
-        !file("build/classes/main/Hi.class").exists()
-
-        when:
-        withBuildCache().succeeds "jar"
-        then:
-        skippedTasks.containsAll ":compileJava", ":jar"
-    }
-
     def "outputs loaded from the cache are snapshotted as outputs"() {
         buildFile << """ 
             apply plugin: 'base'

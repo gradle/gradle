@@ -54,12 +54,11 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
                   Not cacheable - 3 tasks took 4 ms (avg 1.33 ms, stddev 0.47 ms, min 1 ms, max 2 ms)
                     org.gradle.api.DefaultTask - 3 tasks took 4 ms (avg 1.33 ms, stddev 0.47 ms, min 1 ms, max 2 ms)
                 NO_SOURCE - 6 tasks took 25 ms (avg 4.17 ms, stddev 3.02 ms, min 1 ms, max 10 ms)
-                  Not cacheable - 2 tasks took 4 ms (avg 2.00 ms, stddev 1.00 ms, min 1 ms, max 3 ms)
-                    org.gradle.language.jvm.tasks.ProcessResources - 2 tasks took 4 ms (avg 2.00 ms, stddev 1.00 ms, min 1 ms, max 3 ms)
-                  Cacheable - 4 tasks took 21 ms (avg 5.25 ms, stddev 3.11 ms, min 2 ms, max 10 ms)
+                  Not cacheable - 6 tasks took 4 ms (avg 2.00 ms, stddev 1.00 ms, min 1 ms, max 3 ms)
                     org.gradle.api.tasks.compile.GroovyCompile - 2 tasks took 9 ms (avg 4.50 ms, stddev 1.50 ms, min 3 ms, max 6 ms)
                     org.gradle.api.tasks.compile.JavaCompile - 1 task took 2 ms
                     org.gradle.api.tasks.testing.Test - 1 task took 10 ms
+                    org.gradle.language.jvm.tasks.ProcessResources - 2 tasks took 4 ms (avg 2.00 ms, stddev 1.00 ms, min 1 ms, max 3 ms)
                 EXECUTED - 3 tasks took 15 ms (avg 5.00 ms, stddev 6.38 ms, min 0 ms, max 14 ms)
                   Not cacheable - 3 tasks took 15 ms (avg 5.00 ms, stddev 6.38 ms, min 0 ms, max 14 ms)
                     org.gradle.api.DefaultTask - 2 tasks took 1 ms (avg 0.50 ms, stddev 0.50 ms, min 0 ms, max 1 ms)
@@ -94,9 +93,9 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
             "EXECUTED","Not cacheable","Jar","org.gradle.api.tasks.bundling",1,6,6.0,0.0,6,6
             "FROM_CACHE","Cacheable","JavaCompile (*)","org.gradle.api.tasks.compile",1,5,5.0,0.0,5,5
             "UP_TO_DATE","Not cacheable","DefaultTask","org.gradle.api",5,1,0.2,0.39999999999999997,0,1
-            "NO_SOURCE","Cacheable","GroovyCompile","org.gradle.api.tasks.compile",2,0,0.0,0.0,0,0
-            "NO_SOURCE","Cacheable","JavaCompile","org.gradle.api.tasks.compile",1,2,2.0,0.0,2,2
-            "NO_SOURCE","Cacheable","Test","org.gradle.api.tasks.testing",1,1,1.0,0.0,1,1
+            "NO_SOURCE","Not cacheable","GroovyCompile","org.gradle.api.tasks.compile",2,0,0.0,0.0,0,0
+            "NO_SOURCE","Not cacheable","JavaCompile","org.gradle.api.tasks.compile",1,2,2.0,0.0,2,2
+            "NO_SOURCE","Not cacheable","Test","org.gradle.api.tasks.testing",1,1,1.0,0.0,1,1
             "NO_SOURCE","Not cacheable","ProcessResources","org.gradle.language.jvm.tasks",2,1,0.5,0.5,0,1
         """.stripIndent().split("\n").findAll { !it.empty }.collect { it.replaceAll(NUMBER_PATTERN, "NUMBER") }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,28 @@ import java.util.Map;
  * Takes a snapshot of the output files of a task.
  */
 public class OutputFilesSnapshotter {
+    public boolean hasOverlappingOutputs(final FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
+        // If there aren't any snapshots before execution, there can't be any overlaps
+        if (beforeExecution.isEmpty()) {
+            return false;
+        }
+
+        Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
+        Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+
+        for (Map.Entry<String, NormalizedFileSnapshot> beforeSnapshot : beforeSnapshots.entrySet()) {
+            final String path = beforeSnapshot.getKey();
+            NormalizedFileSnapshot fileSnapshot = beforeSnapshot.getValue();
+            NormalizedFileSnapshot previousSnapshot = previousSnapshots.get(path);
+            // Missing files or just directories can be ignored
+            if (fileSnapshot.getSnapshot().getType() == FileType.RegularFile && previousSnapshot == null) {
+                // created since last execution, possibly by another task
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
      */

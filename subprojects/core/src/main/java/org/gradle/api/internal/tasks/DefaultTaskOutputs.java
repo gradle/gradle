@@ -49,6 +49,7 @@ import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCateg
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task");
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
+    private static final TaskOutputCachingState OVERLAPPING_OUTPUTS = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS, "Overlapping output directories were detected");
 
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
@@ -99,7 +100,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         if (!hasDeclaredOutputs()) {
             return NO_OUTPUTS_DECLARED;
         }
-
+        if (history!=null && history.hasOverlappingOutputs()) {
+            return OVERLAPPING_OUTPUTS;
+        }
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
                 return DefaultTaskOutputCachingState.disabled(

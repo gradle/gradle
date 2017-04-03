@@ -63,4 +63,10 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     public FileCollection getOutputFiles() {
         return null;
     }
+
+    @Override
+    public boolean hasOverlappingOutputs() {
+        // TODO: Should be checking for stale outputs?
+        return false;
+    }
 }

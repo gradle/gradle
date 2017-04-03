@@ -24,7 +24,6 @@ def buckets = [
         ":toolingApi",
         ":compositeBuilds",
         ":resourcesS3",
-        ":jetty",
         ":resources",
         ":jvmServices",
         ":docs",

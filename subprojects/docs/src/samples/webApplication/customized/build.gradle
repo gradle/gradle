@@ -1,4 +1,13 @@
-apply plugin: 'jetty'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.akhikhl.gretty:gretty:1.4.2'
+    }
+}
+apply plugin: 'org.akhikhl.gretty'
+
 // START SNIPPET use-plugin
 apply plugin: 'war'
 // END SNIPPET use-plugin
@@ -12,7 +21,7 @@ configurations {
 
 repositories {
    flatDir { dirs "lib" }
-   mavenCentral()
+   jcenter()
 }
 
 dependencies {
@@ -38,6 +47,6 @@ war {
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 // END SNIPPET customization
-stopKey = 'foo'
-stopPort = 9451
-httpPort = 8080
+gretty {
+    httpPort = 8080
+}
