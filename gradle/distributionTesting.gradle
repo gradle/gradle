@@ -321,10 +321,10 @@ project(":") {
             }
         }
     }
-}
-
-allprojects {
-    tasks.whenTaskAdded {
-        it.dependsOn(':killExistingDaemons')
+    allprojects {
+        tasks.whenTaskAdded {
+            it.dependsOn(':killExistingDaemons')
+        }
     }
 }
+
