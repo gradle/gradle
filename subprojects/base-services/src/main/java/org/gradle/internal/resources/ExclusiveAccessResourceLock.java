@@ -16,15 +16,15 @@
 
 package org.gradle.internal.resources;
 
-import com.google.common.collect.Multimap;
+import org.gradle.api.Action;
 
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
     private ReentrantLock lock = new ReentrantLock();
 
-    public ExclusiveAccessResourceLock(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService) {
-        super(displayName, threadResourceLockMap, coordinationService);
+    public ExclusiveAccessResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+        super(displayName, coordinationService, lockAction, unlockAction);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
     }
 
     @Override
-    protected boolean doHasResourceLock() {
+    protected boolean doIsLockedByCurrentThread() {
         return lock.isHeldByCurrentThread();
     }
 

@@ -17,7 +17,7 @@
 package org.gradle.internal.work;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
@@ -141,8 +141,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
             return getOrRegisterResourceLock(displayName, new ResourceLockProducer<ExclusiveAccessResourceLock>() {
                 @Override
-                public ExclusiveAccessResourceLock create(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService) {
-                    return new ExclusiveAccessResourceLock(displayName, threadResourceLockMap, coordinationService);
+                public ExclusiveAccessResourceLock create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+                    return new ExclusiveAccessResourceLock(displayName, coordinationService, lockAction, unlockAction);
                 }
             });
         }
@@ -157,8 +157,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
             String displayName = parent.getDisplayName() + '.' + workerId;
             return getOrRegisterResourceLock(displayName, new ResourceLockProducer<DefaultWorkerLease>() {
                 @Override
-                public DefaultWorkerLease create(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService) {
-                    return new DefaultWorkerLease(displayName, threadResourceLockMap, coordinationService, parent, ownerThread);
+                public DefaultWorkerLease create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+                    return new DefaultWorkerLease(displayName, coordinationService, lockAction, unlockAction, parent, ownerThread);
                 }
             });
         }
@@ -198,8 +198,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
         int children;
         boolean active;
 
-        public DefaultWorkerLease(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService, LeaseHolder parent, Thread ownerThread) {
-            super(displayName, threadResourceLockMap, coordinationService);
+        public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, LeaseHolder parent, Thread ownerThread) {
+            super(displayName, coordinationService, lockAction, unlockAction);
             this.parent = parent;
             this.ownerThread = ownerThread;
         }
@@ -210,7 +210,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
         }
 
         @Override
-        protected boolean doHasResourceLock() {
+        protected boolean doIsLockedByCurrentThread() {
             return active && Thread.currentThread() == ownerThread;
         }
 

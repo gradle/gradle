@@ -16,28 +16,25 @@
 
 package org.gradle.internal.resources
 
-import com.google.common.collect.Multimap
+import org.gradle.api.Action
 
 import java.util.concurrent.atomic.AtomicBoolean
 
 
 class TestTrackedResourceLock extends AbstractTrackedResourceLock {
-    final Multimap<Long, ResourceLock> threadResourceLockMap
     final AtomicBoolean lockedState = new AtomicBoolean()
     final AtomicBoolean hasLock = new AtomicBoolean()
 
-    TestTrackedResourceLock(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService) {
-        super(displayName, threadResourceLockMap, coordinationService)
-        this.threadResourceLockMap = threadResourceLockMap
+    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+        super(displayName, coordinationService, lockAction, unlockAction)
     }
 
-    TestTrackedResourceLock(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService, boolean lockedState) {
-        this(displayName, threadResourceLockMap, coordinationService, lockedState, false)
+    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, boolean lockedState) {
+        this(displayName, coordinationService, lockAction, unlockAction, lockedState, false)
     }
 
-    TestTrackedResourceLock(String displayName, Multimap<Long, ResourceLock> threadResourceLockMap, ResourceLockCoordinationService coordinationService, boolean lockedState, boolean hasLock) {
-        super(displayName, threadResourceLockMap, coordinationService)
-        this.threadResourceLockMap = threadResourceLockMap
+    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, boolean lockedState, boolean hasLock) {
+        super(displayName, coordinationService, lockAction, unlockAction)
         this.lockedState.set(lockedState)
         if (lockedState) {
             this.hasLock.set(hasLock)
@@ -50,7 +47,7 @@ class TestTrackedResourceLock extends AbstractTrackedResourceLock {
     }
 
     @Override
-    boolean doHasResourceLock() {
+    boolean doIsLockedByCurrentThread() {
         return hasLock.get()
     }
 

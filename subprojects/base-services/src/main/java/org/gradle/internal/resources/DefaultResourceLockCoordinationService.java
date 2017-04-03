@@ -54,10 +54,11 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             break;
                         case FINISHED:
                             return true;
-                        // FAILED
-                        default:
+                        case FAILED:
                             releaseLocks(resourceLockState);
                             return false;
+                        default:
+                            throw new IllegalArgumentException("Unhandled disposition type: " + disposition.name());
                     }
                 } catch (Throwable t) {
                     releaseLocks(resourceLockState);
@@ -75,7 +76,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
             int numStates = currentState.get().size();
             return currentState.get().get(numStates - 1);
         } else {
-            throw new IllegalStateException("No ResourceLockState is associated with this thread.");
+            return null;
         }
     }
 

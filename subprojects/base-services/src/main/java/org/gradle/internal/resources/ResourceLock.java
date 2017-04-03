@@ -35,7 +35,7 @@ public interface ResourceLock extends Describable {
      *
      * @return true if the task for this operation holds the lock for this resource.
      */
-    boolean hasResourceLock();
+    boolean isLockedByCurrentThread();
 
     /**
      * Attempt to lock this resource.  Does not block.
