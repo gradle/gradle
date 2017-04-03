@@ -16,18 +16,21 @@
 
 package org.gradle.internal.resources;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractResourceLockRegistry<T extends ResourceLock> implements ResourceLockRegistry {
-    private final ConcurrentMap<String, T> resourceLocks = Maps.newConcurrentMap();
+    private final Cache<String, T> resourceLocks = CacheBuilder.newBuilder().weakValues().build();
     private final Multimap<Long, ResourceLock> threadResourceLockMap = Multimaps.synchronizedListMultimap(ArrayListMultimap.<Long, ResourceLock>create());
     private final ResourceLockCoordinationService coordinationService;
 
@@ -35,20 +38,28 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         this.coordinationService = coordinationService;
     }
 
-    protected T getOrRegisterResourceLock(String displayName, ResourceLockProducer<T> producer) {
-        resourceLocks.putIfAbsent(displayName, producer.create(displayName, coordinationService, getLockAction(), getUnlockAction()));
-        return resourceLocks.get(displayName);
+    protected T getOrRegisterResourceLock(final String displayName, final ResourceLockProducer<T> producer) {
+        try {
+            return resourceLocks.get(displayName, new Callable<T>() {
+                @Override
+                public T call() throws Exception {
+                    return producer.create(displayName, coordinationService, getLockAction(), getUnlockAction());
+                }
+            });
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     @Override
-    public Collection<? extends ResourceLock> getResourceLocks() {
+    public Collection<? extends ResourceLock> getResourceLocksByCurrentThread() {
         final Long threadId = Thread.currentThread().getId();
         return ImmutableList.copyOf(threadResourceLockMap.get(threadId));
     }
 
     @Override
     public boolean hasOpenLocks() {
-        for (ResourceLock resourceLock : resourceLocks.values()) {
+        for (ResourceLock resourceLock : resourceLocks.asMap().values()) {
             if (resourceLock.isLocked()) {
                 return true;
             }

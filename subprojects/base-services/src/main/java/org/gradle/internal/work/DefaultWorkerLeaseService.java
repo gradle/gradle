@@ -57,7 +57,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
     @Override
     public WorkerLease getCurrentWorkerLease() {
-        Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocks();
+        Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         if (operations.isEmpty()) {
             throw new IllegalStateException("No worker lease associated with the current thread");
         }
@@ -66,7 +66,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
     @Override
     public WorkerLeaseCompletion maybeStartWorkerLease() {
-        Collection<? extends ResourceLock> workerLeases = workerLeaseLockRegistry.getResourceLocks();
+        Collection<? extends ResourceLock> workerLeases = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         if (workerLeases.isEmpty()) {
             return getWorkerLease().start();
         }
@@ -81,7 +81,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
     @Override
     public DefaultWorkerLease getWorkerLease() {
-        Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocks();
+        Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         LeaseHolder parent = operations.isEmpty() ? root : (DefaultWorkerLease) operations.toArray()[operations.size() - 1];
         return getWorkerLease(parent);
     }
@@ -109,13 +109,13 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
     @Override
     public void withoutProjectLock(Runnable runnable) {
-        final Collection<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocks();
+        final Collection<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
         coordinationService.withStateLock(unlock(projectLocks));
         try {
             runnable.run();
         } finally {
             if (!coordinationService.withStateLock(tryLock(projectLocks))) {
-                final Collection<? extends ResourceLock> workerLeases = workerLeaseLockRegistry.getResourceLocks();
+                final Collection<? extends ResourceLock> workerLeases = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
                 List<ResourceLock> allLocks = Lists.newArrayList();
                 allLocks.addAll(workerLeases);
                 allLocks.addAll(projectLocks);

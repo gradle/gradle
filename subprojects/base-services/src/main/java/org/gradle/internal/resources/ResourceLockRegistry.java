@@ -22,7 +22,7 @@ public interface ResourceLockRegistry {
     /**
      * Get all of the resource locks held by the current thread.
      */
-    Collection<? extends ResourceLock> getResourceLocks();
+    Collection<? extends ResourceLock> getResourceLocksByCurrentThread();
 
     /**
      * Returns true if the registry has any locks that are being held by a thread.
