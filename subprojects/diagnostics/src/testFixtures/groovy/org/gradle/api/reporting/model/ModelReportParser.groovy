@@ -144,7 +144,7 @@ class ModelReportParser {
     }
 
     private static List<String> nodeOnlyLines(List<String> nodeLines) {
-        int successMarker = nodeLines.findIndexOf { line -> line == END_OF_REPORT_MARKER }
+        int successMarker = nodeLines.findIndexOf { line -> line.startsWith(END_OF_REPORT_MARKER) }
         if (successMarker == 0) {
             return []
         }

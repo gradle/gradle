@@ -129,7 +129,7 @@ class CommandLineActionFactoryTest extends Specification {
         action.execute(executionListener)
 
         then:
-        1 * loggingManager.setMaxWorkerCount(expectedMaxWorkerCount);
+        1 * loggingManager.setMaxWorkerCount(expectedMaxWorkerCount)
 
         where:
         expectedMaxWorkerCount | flags

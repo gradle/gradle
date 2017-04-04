@@ -366,57 +366,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.contains ':compileJava'
     }
 
-    def "task execution statistics are reported"() {
-        given:
-        // Force a forking executer
-        // This is necessary since for the embedded executer
-        // the Task statistics are not part of the output
-        // returned by "this.output"
-        executer.requireGradleDistribution()
-
-        file("input.txt") << "data"
-        buildFile << """
-            task adHocTask {
-                def outputFile = file("\$buildDir/output.txt")
-                inputs.file(file("input.txt"))
-                outputs.file(outputFile)
-                doLast {
-                    project.mkdir outputFile.parentFile
-                    outputFile.text = file("input.txt").text
-                }
-                outputs.cacheIf { true }
-            }
-
-            task executedTask {
-                doLast {
-                    println 'Hello world'
-                }
-            }
-        """
-
-        when:
-        withBuildCache().run 'adHocTask', 'executedTask', 'compileJava'
-
-        then:
-        output.contains """
-            3 tasks in build, out of which 3 (100%) were executed
-            2  (67%) cache miss
-            1  (33%) not cacheable
-        """ .stripIndent()
-
-        when:
-        assert file('build/output.txt').delete()
-        withBuildCache().run 'adHocTask', 'executedTask', 'compileJava'
-
-        then:
-        output.contains """
-            3 tasks in build, out of which 1 (33%) were executed
-            1  (33%) up-to-date
-            1  (33%) loaded from cache
-            1  (33%) not cacheable
-        """.stripIndent()
-    }
-
     def "outputs loaded from the cache are snapshotted as outputs"() {
         buildFile << """ 
             apply plugin: 'base'

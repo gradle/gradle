@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console
+package org.gradle.internal.logging.format
 
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultTerseDurationFormatterTest extends Specification {
-    def formatter = new DefaultTerseDurationFormatter()
+class TersePrettyDurationFormatterTest extends Specification {
+    def formatter = new TersePrettyDurationFormatter()
 
     @Unroll
     def "shows #output when elapsed time is greater or equals than #lowerBoundInclusive but lower than #upperBoundExlusive"() {
