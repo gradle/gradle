@@ -43,11 +43,11 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final StoppableExecutor fixedSizePool;
 
-    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory) {
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
+        this.fixedSizePool = executorFactory.create("build operations");
     }
 
     @Override
