@@ -91,7 +91,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         return id instanceof ProjectComponentIdentifier
             && !((ProjectComponentIdentifier) id).getBuild().isCurrentBuild();
     }
-    
+
     private static class SingleArtifactResolvedVariant implements ResolvedVariant {
         private final AttributeContainerInternal variantAttributes;
         private final ResolvedArtifact artifact;

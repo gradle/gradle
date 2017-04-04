@@ -55,7 +55,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
     @Unroll
     def "downloads artifacts in parallel using #repo"() {
-        countParallelArtifactDownloads()
+        enableCountOfParallelArtifactDownloads()
 
         given:
         multipleFilesToDownloadFrom(repo)
@@ -74,7 +74,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
     @Unroll
     def "downloads artifacts in parallel with project dependencies using #repo"() {
-        countParallelArtifactDownloads()
+        enableCountOfParallelArtifactDownloads()
 
         given:
         multipleFilesToDownloadFrom(repo, 8, 8)
@@ -151,7 +151,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         }
     }
 
-    private void countParallelArtifactDownloads() {
+    private void enableCountOfParallelArtifactDownloads() {
         acceptURI = { String uri ->
             uri.endsWith('.jar')
         }
