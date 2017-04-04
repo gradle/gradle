@@ -75,11 +75,6 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
         return artifactFile;
     }
 
-    @Override
-    public boolean isComposite() {
-        return true;
-    }
-
     public Set<String> getTasks() {
         return tasks;
     }

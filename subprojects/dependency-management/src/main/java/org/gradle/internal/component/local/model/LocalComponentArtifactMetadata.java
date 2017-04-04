@@ -22,5 +22,4 @@ import java.io.File;
 
 public interface LocalComponentArtifactMetadata extends ComponentArtifactMetadata {
     File getFile();
-    boolean isComposite();
 }

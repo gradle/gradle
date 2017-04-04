@@ -21,9 +21,10 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.DescribableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -86,10 +87,11 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
 
     private static boolean isFromIncludedBuild(ResolvedArtifact artifact) {
-        ComponentArtifactIdentifier id = artifact.getId();
-        return id instanceof LocalComponentArtifactMetadata && ((LocalComponentArtifactMetadata) id).isComposite();
+        ComponentIdentifier id = artifact.getId().getComponentIdentifier();
+        return id instanceof ProjectComponentIdentifier
+            && !((ProjectComponentIdentifier) id).getBuild().isCurrentBuild();
     }
-
+    
     private static class SingleArtifactResolvedVariant implements ResolvedVariant {
         private final AttributeContainerInternal variantAttributes;
         private final ResolvedArtifact artifact;

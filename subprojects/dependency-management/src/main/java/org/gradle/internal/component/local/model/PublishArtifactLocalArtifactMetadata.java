@@ -58,11 +58,6 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
     }
 
     @Override
-    public boolean isComposite() {
-        return false;
-    }
-
-    @Override
     public ComponentArtifactIdentifier getId() {
         return this;
     }

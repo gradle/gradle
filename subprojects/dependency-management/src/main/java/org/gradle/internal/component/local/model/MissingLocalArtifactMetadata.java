@@ -45,11 +45,6 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
         return null;
     }
 
-    @Override
-    public boolean isComposite() {
-        return false;
-    }
-
     public IvyArtifactName getName() {
         return name;
     }
