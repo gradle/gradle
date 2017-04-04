@@ -29,10 +29,21 @@ public final class UncheckedException extends RuntimeException {
         super(cause);
     }
 
+    private UncheckedException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     /**
      * Note: always throws the failure in some form. The return value is to keep the compiler happy.
      */
     public static RuntimeException throwAsUncheckedException(Throwable t) {
+        return throwAsUncheckedException(t, false);
+    }
+
+    /**
+     * Note: always throws the failure in some form. The return value is to keep the compiler happy.
+     */
+    public static RuntimeException throwAsUncheckedException(Throwable t, boolean preserveMessage) {
         if (t instanceof RuntimeException) {
             throw (RuntimeException) t;
         }
@@ -40,9 +51,17 @@ public final class UncheckedException extends RuntimeException {
             throw (Error) t;
         }
         if (t instanceof IOException) {
-            throw new UncheckedIOException(t);
+            if (preserveMessage) {
+                throw new UncheckedIOException(t.getMessage(), t);
+            } else {
+                throw new UncheckedIOException(t);
+            }
         }
-        throw new UncheckedException(t);
+        if (preserveMessage) {
+            throw new UncheckedException(t.getMessage(), t);
+        } else {
+            throw new UncheckedException(t);
+        }
     }
 
     /**
