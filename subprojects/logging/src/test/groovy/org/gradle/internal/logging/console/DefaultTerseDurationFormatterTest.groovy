@@ -32,26 +32,13 @@ class DefaultTerseDurationFormatterTest extends Specification {
 
         where:
         lowerBoundInclusive | upperBoundExclusive | input            | output
-        "None"              | "10 seconds"        | seconds(4.21345) | "4.213s"
-        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42.123s"
-        "1 minute"          | "10 minutes"        | minutes(4.21234) | "4m 12.740s"
-        "10 minutes"        | "1 hour"            | minutes(42.1234) | "42m 7.404s"
-        "1 hour"            | "10 hours"          | hours(4.2123456) | "4h 12m 44.444s"
-        "10 hours"          | "100 hours"         | hours(42.123456) | "42h 7m 24.441s"
-        "100 hours"         | "None"              | hours(421.23456) | "421h 14m 4.416s"
-    }
-
-    @Unroll
-    def "should pad the decimal to always have 3 digits"() {
-        when:
-        def result = formatter.format(input);
-
-        then:
-        result == output
-
-        where:
-        input         | output
-        seconds(1.2)  | "1.200s"
+        "None"              | "10 seconds"        | seconds(4.21345) | "4s"
+        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42s"
+        "1 minute"          | "10 minutes"        | minutes(4.21234) | "4m 12s"
+        "10 minutes"        | "1 hour"            | minutes(42.1234) | "42m 7s"
+        "1 hour"            | "10 hours"          | hours(4.2123456) | "4h 12m 44s"
+        "10 hours"          | "100 hours"         | hours(42.123456) | "42h 7m 24s"
+        "100 hours"         | "None"              | hours(421.23456) | "421h 14m 4s"
     }
 
     private static long hours(double value) {

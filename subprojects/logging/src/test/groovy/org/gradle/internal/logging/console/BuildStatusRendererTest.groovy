@@ -70,14 +70,14 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput([event1] as ArrayList<OutputEvent>)
 
         then:
-        label.display == "message [0.000s]"
+        label.display == "message [0s]"
 
         when:
-        currentTimeMs += 100
+        currentTimeMs += 1000
         renderer.onOutput([event2] as ArrayList<OutputEvent>)
 
         then:
-        label.display == "message [0.100s]"
+        label.display == "message [1s]"
     }
 
     def "correctly cancel the future once the end event is received"() {

@@ -54,7 +54,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% INITIALIZING [0.000s]'
+            assert statusBar.display == '<---> 0% INITIALIZING [0s]'
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
@@ -66,18 +66,18 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% CONFIGURING [0.000s]'
+            assert statusBar.display == '<---> 0% CONFIGURING [0s]'
             assert progressArea.display == ['> root project', IDLE, IDLE, IDLE]
         }
 
         when:
-        currentTimeMs += 200L;
+        currentTimeMs += 2000L;
         renderer.onOutput(completeEvent(2, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY))
         renderer.onOutput(progressEvent(1, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, '<=--> 33% CONFIGURING'))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<=--> 33% CONFIGURING [0.200s]'
+            assert statusBar.display == '<=--> 33% CONFIGURING [2s]'
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }

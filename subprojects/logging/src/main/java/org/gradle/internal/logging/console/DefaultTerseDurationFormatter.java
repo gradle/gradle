@@ -30,7 +30,7 @@ public class DefaultTerseDurationFormatter {
         if (elapsedTimeInMs > MS_PER_MINUTE) {
             result.append((elapsedTimeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append("m ");
         }
-        result.append(String.format("%.3f", (elapsedTimeInMs % MS_PER_MINUTE) / 1000.0)).append("s");
+        result.append((elapsedTimeInMs % MS_PER_MINUTE) / 1000).append("s");
         return result.toString();
     }
 }
