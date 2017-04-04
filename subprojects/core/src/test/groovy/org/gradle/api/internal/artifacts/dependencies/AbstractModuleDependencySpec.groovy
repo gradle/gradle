@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.dependencies
+
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
@@ -45,7 +45,6 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.transitive
         dependency.artifacts.isEmpty()
         dependency.excludeRules.isEmpty()
-        dependency.configuration == Dependency.DEFAULT_CONFIGURATION
         dependency.targetConfiguration == null
     }
 
@@ -110,7 +109,6 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.name == dependency.name
         assert copiedDependency.version == dependency.version
         assert copiedDependency.targetConfiguration == dependency.targetConfiguration
-        assert copiedDependency.configuration == dependency.configuration
         assert copiedDependency.transitive == dependency.transitive
         assert copiedDependency.artifacts == dependency.artifacts
         assert copiedDependency.excludeRules == dependency.excludeRules

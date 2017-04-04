@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -67,12 +66,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     public String getVersion() {
         return dependencyProject.getVersion().toString();
-    }
-
-    @Deprecated
-    public Configuration getProjectConfiguration() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ProjectDependency.getProjectConfiguration()");
-        return dependencyProject.getConfigurations().getByName(getConfiguration());
     }
 
     @Override
