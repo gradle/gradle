@@ -38,7 +38,8 @@ class PathTest extends Specification {
         strictlyEquals(Path.ROOT, Path.ROOT)
         strictlyEquals(Path.path('path'), Path.path('path'))
         strictlyEquals(Path.path(':a:path'), Path.path(':a:path'))
-        Path.path(':a') != Path.path(':b')
+        !strictlyEquals(Path.path(':a'), Path.path(':b'))
+        !strictlyEquals(Path.path(':a'), Path.path('a'))
     }
 
     def canGetParent() {
@@ -72,14 +73,12 @@ class PathTest extends Specification {
 
         then:
         path.absolutePath('path') == ':path'
-        path.resolve('path') == Path.path(':path')
 
         when:
         path = Path.path(':sub')
 
         then:
         path.absolutePath('path') == ':sub:path'
-        path.resolve('path') == Path.path(':sub:path')
     }
 
     def convertsAbsolutePathToAbsolutePath() {
@@ -88,8 +87,6 @@ class PathTest extends Specification {
         expect:
         path.absolutePath(':') == ':'
         path.absolutePath(':path') == ':path'
-        path.resolve(':') == Path.path(':')
-        path.resolve(':path') == Path.path(':path')
     }
 
     def convertsAbsolutePathToRelativePath() {
