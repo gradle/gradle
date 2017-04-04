@@ -402,6 +402,7 @@ class DefaultGradleSpec extends Specification {
             gradle, serviceRegistryFactory,
             Stub(ClassLoaderScope), Stub(ClassLoaderScope)
         ])
+        project.getProjectConfigurator() >> projectConfigurator
         projectRegistry.addProject(project)
         _ * project.getProjectRegistry() >> projectRegistry
         return project
