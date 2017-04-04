@@ -6,28 +6,6 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-### More work avoidance when using `@Classpath` task properties
-
-For built-in and custom tasks that use the `@Classpath` annotation, Gradle now performs deeper inspection of the classpath to filter out some differences that do not affect task execution.  Gradle will ignore changes to timestamps within a jar file and the order of entries inside a jar file.
-
-In previous versions, for tasks like `Javadoc`, `Checkstyle` and `Test`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc).
-
-### Extensions now have a public type
-
-Extensions can now be registered in `ExtensionContainer`s with an explicit public type.
- This allows plugin authors to hide their implementation type from build scripts and
- allow `ExtensionContainer`s to expose a schema of all the registered extensions.
-
-For example, if you have a `FancyExtension` type, implemented by some `DefaultFancyExtension` type, here is how
- you should register it:
-
-    // If you want to delegate the extension instance creation to Gradle:
-    project.extensions.create FancyExtension, 'fancy', DefaultFancyExtension
-
-    // Or if you need to create the extension instance yourself:
-    FancyExtension fancyInstance = new DefaultFancyExtension(...)
-    project.extensions.add FancyExtension, 'fancy', fancyInstance
-
 ### Public type for representing lazily evaluated properties
 
 Because Gradle's build lifecycle clearly distinguishes between configuration phase and execution phase the evaluation of property
@@ -119,32 +97,6 @@ running into evaluation ordering issues:
             getOutputFiles().each {
                 it.text = getMessage()
             }
-        }
-    }
-
-### BuildActionExecutor supports running tasks
-
-Tooling API clients can now run tasks before running a build action. This allows them to fetch tooling models which depend on the result of
-executing some task. This mirrors the existing `ModelBuilder.forTasks()` API.
-
-### Support for multi-value Javadoc options
-
-Gradle has added support for command-line options to doclets that can appear [multiple times and have multiple values](javadoc/org/gradle/external/javadoc/CoreJavadocOptions.html#addMultilineMultiValueOption-java.lang.String-).
-
-In previous versions of Gradle, it was not possible to supply command-line options like:
-
-    -myoption 'foo' 'bar'
-    -myoption 'baz'
-
-Gradle would produce a single `-myoption` or combine the option's value into a single argument.
-
-    javadoc {
-        options {
-            def myoption = addMultilineMultiValueOption("myoption")
-            myoption.setValue([
-                [ "foo", "bar" ],
-                [ "baz" ]
-            ])
         }
     }
 
