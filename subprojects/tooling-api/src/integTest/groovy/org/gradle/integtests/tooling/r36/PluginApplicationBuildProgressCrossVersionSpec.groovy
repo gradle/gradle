@@ -450,7 +450,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         configureBuildSrcB.children("Apply plugin id 'org.gradle.java'").empty
 
         groovyPlugin.child("Apply plugin class 'org.gradle.api.plugins.JavaPlugin'")
-        applyBuildSrcBuildGradle.child("Executing 'allprojects {}' action").child("Configure project :buildSrc").child("Apply plugin id 'org.gradle.java'")
+        applyBuildSrcBuildGradle.child("Executing 'allprojects {}' action").child("Configure project :buildSrc").children.empty //buildSrc auto-applies Java, so it is not applied again
         applyBuildSrcBuildGradle.child("Executing 'allprojects {}' action").child("Configure project :buildSrc:a").child("Apply plugin id 'org.gradle.java'")
         applyBuildSrcBuildGradle.child("Executing 'allprojects {}' action").child("Configure project :buildSrc:b").child("Apply plugin id 'org.gradle.java'")
     }
