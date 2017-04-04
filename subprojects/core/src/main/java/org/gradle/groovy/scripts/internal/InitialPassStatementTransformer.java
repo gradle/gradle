@@ -82,7 +82,7 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
                 }
 
                 return null;
-            } if (scriptBlock.getName().equals(PLUGIN_MANAGEMENT)) {
+            } else if (scriptBlock.getName().equals(PLUGIN_MANAGEMENT)) {
                 String failureMessage = null;
                 if (!scriptTarget.getSupportsPluginManagementBlock()) {
                     failureMessage = "Only Settings scripts can contain a pluginManagement {} block.";
