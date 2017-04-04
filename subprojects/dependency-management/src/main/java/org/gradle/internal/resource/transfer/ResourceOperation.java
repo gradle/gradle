@@ -31,14 +31,16 @@ public class ResourceOperation {
     private final ProgressLogger progressLogger;
     private final Type operationType;
     private final String contentLengthString;
+    private final String resourceName;
 
     private long loggedKBytes;
     private long totalProcessedBytes;
 
-    public ResourceOperation(ProgressLogger progressLogger, Type type, long contentLength) {
+    public ResourceOperation(ProgressLogger progressLogger, Type type, long contentLength, String resourceName) {
         this.progressLogger = progressLogger;
         this.operationType = type;
         this.contentLengthString = getLengthText(contentLength != 0 ? contentLength : null);
+        this.resourceName = resourceName;
     }
 
     private String getLengthText(Long bytes) {
@@ -59,7 +61,7 @@ public class ResourceOperation {
         long processedKB = totalProcessedBytes / 1024;
         if (processedKB > loggedKBytes) {
             loggedKBytes = processedKB;
-            final String progressMessage = String.format("%s/%s %sed", getLengthText(totalProcessedBytes), contentLengthString, operationType);
+            final String progressMessage = String.format("%s/%s %sed: %s", getLengthText(totalProcessedBytes), contentLengthString, operationType, resourceName);
             progressLogger.progress(progressMessage);
         }
     }

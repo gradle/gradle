@@ -28,6 +28,11 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         new MavenSftpRepository(server, '/repo')
     }
 
+    def setup() {
+        // SFTP test fixture doesn't seem to handle concurrent requests properly
+        executer.withArguments('--max-workers', '1')
+    }
+
     def "can publish to a SFTP repository"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()

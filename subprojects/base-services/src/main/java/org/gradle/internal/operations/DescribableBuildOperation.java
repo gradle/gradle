@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.operations;
 
-package org.gradle.api.publish.ivy
-
-import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.junit.Rule
-
-class IvySftpLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
-    @Rule
-    final SFTPServer server = new SFTPServer(temporaryFolder)
-
-    def setup() {
-        // SFTP test fixture doesn't seem to handle concurrent requests properly
-        executer.withArguments('--max-workers', '1')
-    }
+/**
+ * Interface used by build operations which also provide a display name
+ * or an operation descriptor.
+ *
+ * @param <T> the type of the operation descriptor
+ */
+public interface DescribableBuildOperation<T> extends BuildOperation {
+    T getOperationDescriptor();
+    String getProgressDisplayName();
 }

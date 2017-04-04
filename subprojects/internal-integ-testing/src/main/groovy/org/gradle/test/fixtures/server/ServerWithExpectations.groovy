@@ -19,6 +19,13 @@ package org.gradle.test.fixtures.server
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 
+/**
+ * This test fixture needs to be thread-safe for all operations that are done at execution time:
+ *
+ * - defining expectations is done serially in 'given', 'when' blocks, so doesn't need to be thread-safe
+ * - but handlers, as well as failures, need to be thread-safe
+ *
+ */
 abstract class ServerWithExpectations extends ExternalResource {
 
     protected Throwable failure
@@ -43,7 +50,7 @@ abstract class ServerWithExpectations extends ExternalResource {
         resetExpectations()
     }
 
-    protected void onFailure(Throwable failure) {
+    protected synchronized void onFailure(Throwable failure) {
         logger.error(failure.message)
         if (this.failure == null) {
             this.failure = failure
