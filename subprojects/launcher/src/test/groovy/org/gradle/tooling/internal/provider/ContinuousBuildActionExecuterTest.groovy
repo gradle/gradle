@@ -32,9 +32,9 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.Clock
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
 import spock.lang.AutoCleanup

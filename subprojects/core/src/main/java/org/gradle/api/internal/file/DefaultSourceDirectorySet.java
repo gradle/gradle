@@ -22,7 +22,6 @@ import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
@@ -33,7 +32,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -62,12 +60,6 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.patterns = fileResolver.getPatternSetFactory().create();
         this.filter = fileResolver.getPatternSetFactory().create();
         dirs = new FileCollectionAdapter(new SourceDirectories());
-    }
-
-    @Deprecated
-    public DefaultSourceDirectorySet(String name, FileResolver fileResolver) {
-        this(name, name, fileResolver, new DefaultDirectoryFileTreeFactory());
-        DeprecationLogger.nagUserOfDeprecated("Constructor DefaultSourceDirectorySet(String, FileResolver)");
     }
 
     public DefaultSourceDirectorySet(String name, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
