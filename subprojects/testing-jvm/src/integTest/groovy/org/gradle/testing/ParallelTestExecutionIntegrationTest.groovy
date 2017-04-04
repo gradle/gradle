@@ -46,10 +46,6 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument '--parallel'
     }
 
-    def cleanup() {
-        blockingServer.stop()
-    }
-
     @Unroll
     def "execute #maxConcurrency tests concurrently when maxWorkers=#maxWorkers and maxParallelForks=#maxParallelForks and forkEvery=#forkEvery"() {
         given:
@@ -99,16 +95,16 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         3              | 3          | 3                | 0
         2              | 2          | 3                | 0
         2              | 3          | 2                | 0
-        1              | 1          | 1                | 2
-        3              | 3          | 3                | 2
-        2              | 2          | 3                | 2
-        2              | 3          | 2                | 2
+        1              | 1          | 1                | 1
+        3              | 3          | 3                | 1
+        2              | 2          | 3                | 1
+        2              | 3          | 2                | 1
     }
 
     private void withJUnitTests(int testCount) {
         testIndices(testCount).each { idx ->
-            file("src/test/groovy/${pkg(idx)}/SomeTest_${idx}.groovy") << """
-                package ${pkg(idx)}
+            file("src/test/groovy/pkg/SomeTest_${idx}.groovy") << """
+                package pkg
                 import org.junit.Test
                 public class SomeTest_$idx {
                     @Test
@@ -123,9 +119,5 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     private static int[] testIndices(int testCount) {
         (1..(testCount))
-    }
-
-    private static String pkg(int testIndex) {
-        "pkg${testIndex % 100}"
     }
 }
