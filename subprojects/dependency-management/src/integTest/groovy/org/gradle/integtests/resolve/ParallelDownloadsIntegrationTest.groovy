@@ -65,7 +65,6 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         noExceptionThrown()
-        println "Max concurrent requests: $maxConcurrentRequests"
         maxConcurrentRequests > 1
 
         where:
@@ -84,7 +83,6 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         noExceptionThrown()
-        println "Max concurrent requests: $maxConcurrentRequests"
         maxConcurrentRequests > 1
 
         where:
