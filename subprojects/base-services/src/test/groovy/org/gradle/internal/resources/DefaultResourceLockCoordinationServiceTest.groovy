@@ -21,6 +21,9 @@ import org.gradle.api.Transformer
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
+import static org.gradle.internal.resources.ResourceLockState.Disposition.*
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
+
 class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService()
 
@@ -33,9 +36,9 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                 if (lock1.tryLock() && lock2.tryLock()) {
-                    return ResourceLockState.Disposition.FINISHED
+                    return FINISHED
                 } else {
-                    return ResourceLockState.Disposition.FAILED
+                    return FAILED
                 }
             }
         })
@@ -66,10 +69,10 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
                     ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                         try {
                             if (lock1.tryLock() && lock2.tryLock()) {
-                                return ResourceLockState.Disposition.FINISHED
+                                return FINISHED
                             } else {
                                 println "failed to acquire locks - blocking until state change"
-                                return ResourceLockState.Disposition.RETRY
+                                return RETRY
                             }
                         } finally {
                             count++
@@ -112,9 +115,9 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                 if (lock[2].tryLock() && lock[3].tryLock()) {
-                    return ResourceLockState.Disposition.FINISHED
+                    return FINISHED
                 } else {
-                    return ResourceLockState.Disposition.FAILED
+                    return FAILED
                 }
             }
         }
@@ -124,12 +127,12 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
                 if (lock[0].tryLock()) {
                     coordinationService.withStateLock(innerAction)
                     if (lock[1].tryLock()) {
-                        return ResourceLockState.Disposition.FINISHED
+                        return FINISHED
                     }
                 }
 
                 // else
-                return ResourceLockState.Disposition.FAILED
+                return FAILED
             }
         }
 
@@ -156,7 +159,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                 assert coordinationService.getCurrent() == workerLeaseState
-                return ResourceLockState.Disposition.FINISHED
+                return FINISHED
             }
         })
 
@@ -179,7 +182,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
                     assert lock1.lockedState
                     assert lock2.lockedState
 
-                    return ResourceLockState.Disposition.FINISHED
+                    return FINISHED
                 } finally {
                     throw new RuntimeException("BOOM!")
                 }
@@ -194,8 +197,94 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         !lock2.lockedState
     }
 
-    TestTrackedResourceLock resourceLock(String displayName, boolean locked) {
-        return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked)
+    def "can lock resources atomically with tryLock"() {
+        def lock1 = resourceLock("lock1", lock1Locked)
+        def lock2 = resourceLock("lock1", lock2Locked)
+
+        when:
+        def disposition = null
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                disposition = tryLock(lock1, lock2).transform(resourceLockState)
+                return FINISHED
+            }
+        })
+
+        then:
+        disposition == expectedDisposition
+
+        and:
+        lock1.doIsLockedByCurrentThread() == !lock1Locked
+        lock2.doIsLockedByCurrentThread() == (!lock1Locked && !lock2Locked)
+
+        where:
+        lock1Locked | lock2Locked | expectedDisposition
+        true        | true        | FAILED
+        true        | false       | FAILED
+        false       | true        | FAILED
+        false       | false       | FINISHED
+    }
+
+    def "can block on locked resources with lock"() {
+        def lock1 = resourceLock("lock1", lock1Locked)
+        def lock2 = resourceLock("lock1", lock2Locked)
+
+        when:
+        def disposition = null
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                disposition = lock(lock1, lock2).transform(resourceLockState)
+                return FINISHED
+            }
+        })
+
+        then:
+        disposition == expectedDisposition
+
+        and:
+        lock1.doIsLockedByCurrentThread() == !lock1Locked
+        lock2.doIsLockedByCurrentThread() == (!lock1Locked && !lock2Locked)
+        where:
+        lock1Locked | lock2Locked | expectedDisposition
+        true        | true        | RETRY
+        true        | false       | RETRY
+        false       | true        | RETRY
+        false       | false       | FINISHED
+    }
+
+    def "can unlock resources with unlock"() {
+        def lock1 = resourceLock("lock1", lock1Locked, true)
+        def lock2 = resourceLock("lock1", lock2Locked, true)
+
+        when:
+        def disposition = null
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                disposition = unlock(lock1, lock2).transform(resourceLockState)
+                return FINISHED
+            }
+        })
+
+        then:
+        disposition == expectedDisposition
+
+        and:
+        !lock1.lockedState
+        !lock2.lockedState
+
+        where:
+        lock1Locked | lock2Locked | expectedDisposition
+        true        | true        | FINISHED
+        true        | false       | FINISHED
+        false       | true        | FINISHED
+        false       | false       | FINISHED
+    }
+
+    TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock=false) {
+        return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
     }
 
     TestTrackedResourceLock resourceLock(String displayName) {

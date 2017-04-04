@@ -33,13 +33,14 @@ import org.gradle.execution.taskgraph.CalculateTaskGraphOperationResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.util.CollectionUtils;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultGradleLauncher implements GradleLauncher {
 
@@ -113,26 +114,28 @@ public class DefaultGradleLauncher implements GradleLauncher {
         return doBuild(Stage.Load);
     }
 
-    private BuildResult doBuild(Stage upTo) {
+    private BuildResult doBuild(final Stage upTo) {
         // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-        BuildOperationWorkerRegistry.Completion workerLease = buildServices.get(BuildOperationWorkerRegistry.class).operationStart();
-        try {
-            Throwable failure = null;
-            try {
-                buildListener.buildStarted(gradle);
-                doBuildStages(upTo);
-            } catch (Throwable t) {
-                failure = exceptionAnalyser.transform(t);
+        final AtomicReference<BuildResult> buildResult = new AtomicReference<BuildResult>();
+        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
+        workerLeaseService.withLocks(workerLeaseService.getWorkerLease()).execute(new Runnable() {
+            @Override
+            public void run() {
+                Throwable failure = null;
+                try {
+                    buildListener.buildStarted(gradle);
+                    doBuildStages(upTo);
+                } catch (Throwable t) {
+                    failure = exceptionAnalyser.transform(t);
+                }
+                buildResult.set(new BuildResult(upTo.name(), gradle, failure));
+                buildListener.buildFinished(buildResult.get());
+                if (failure != null) {
+                    throw new ReportedException(failure);
+                }
             }
-            BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
-            buildListener.buildFinished(buildResult);
-            if (failure != null) {
-                throw new ReportedException(failure);
-            }
-            return buildResult;
-        } finally {
-            workerLease.operationFinish();
-        }
+        });
+        return buildResult.get();
     }
 
 

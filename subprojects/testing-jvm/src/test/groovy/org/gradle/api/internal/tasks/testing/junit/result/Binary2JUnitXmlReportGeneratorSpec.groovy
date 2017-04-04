@@ -19,15 +19,17 @@ package org.gradle.api.internal.tasks.testing.junit.result
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.util.concurrent.Executor
 
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
@@ -35,12 +37,24 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     private resultsProvider = Mock(TestResultsProvider)
     BuildOperationProcessor buildOperationProcessor
     Binary2JUnitXmlReportGenerator generator
+    final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
 
     def generatorWithMaxThreads(int numThreads) {
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(Stub(WorkerLeaseRegistry)), new DefaultExecutorFactory(), numThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationProcessor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
+    }
+
+    def setup() {
+        _ * workerLeaseService.withLocks(_) >> { args ->
+            new Executor() {
+                @Override
+                void execute(Runnable runnable) {
+                    runnable.run()
+                }
+            }
+        }
     }
 
     @Unroll

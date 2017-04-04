@@ -20,7 +20,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import static org.gradle.internal.resources.ResourceLockOperations.*
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
 
 class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
     ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()

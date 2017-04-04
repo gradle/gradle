@@ -41,7 +41,6 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.remote.MessagingServer;
@@ -84,8 +83,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultDeploymentRegistry();
     }
 
-    BuildOperationProcessor createBuildOperationProcessor(WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, StartParameter startParameter, ExecutorFactory executorFactory) {
-        return new DefaultBuildOperationProcessor(buildOperationExecutor, new DefaultBuildOperationQueueFactory(workerLeaseRegistry), executorFactory, startParameter.getMaxWorkerCount());
+    BuildOperationProcessor createBuildOperationProcessor(WorkerLeaseService workerLeaseService, BuildOperationExecutor buildOperationExecutor, StartParameter startParameter, ExecutorFactory executorFactory) {
+        return new DefaultBuildOperationProcessor(buildOperationExecutor, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, startParameter.getMaxWorkerCount());
     }
 
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,

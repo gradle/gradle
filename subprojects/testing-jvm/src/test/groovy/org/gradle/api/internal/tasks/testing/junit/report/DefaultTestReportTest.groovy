@@ -20,16 +20,18 @@ import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsPr
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.util.concurrent.Executor
 
 class DefaultTestReportTest extends Specification {
     @Rule
@@ -39,10 +41,22 @@ class DefaultTestReportTest extends Specification {
     final TestFile reportDir = tmpDir.file('report')
     final TestFile indexFile = reportDir.file('index.html')
     final TestResultsProvider testResultProvider = Mock()
+    final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
 
     def reportWithMaxThreads(int numThreads) {
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(Stub(WorkerLeaseRegistry)), new DefaultExecutorFactory(), numThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
         return new DefaultTestReport(buildOperationProcessor)
+    }
+
+    def setup() {
+        _ * workerLeaseService.withLocks(_) >> { args ->
+            new Executor() {
+                @Override
+                void execute(Runnable runnable) {
+                    runnable.run()
+                }
+            }
+        }
     }
 
     def generatesReportWhenThereAreNoTestResults() {

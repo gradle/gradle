@@ -41,7 +41,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.TestBuildOperationExecutor;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockOperations;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -107,13 +106,13 @@ public class DefaultTaskGraphExecuterTest {
         }});
 
         parentWorkerLease = workerLeases.getWorkerLease();
-        resourceLockCoordinationService.withStateLock(ResourceLockOperations.lock(parentWorkerLease));
+        resourceLockCoordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(parentWorkerLease));
         taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(1, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, resourceLockCoordinationService);
     }
 
     @After
     public void tearDown() {
-        resourceLockCoordinationService.withStateLock(ResourceLockOperations.unlock(parentWorkerLease));
+        resourceLockCoordinationService.withStateLock(DefaultResourceLockCoordinationService.unlock(parentWorkerLease));
         workerLeases.stop();
     }
 

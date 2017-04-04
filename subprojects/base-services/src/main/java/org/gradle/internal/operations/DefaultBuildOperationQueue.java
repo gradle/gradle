@@ -21,6 +21,7 @@ import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.*;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,8 +32,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
-    private final WorkerLeaseRegistry.WorkerLeaseCompletion workerLeaseCompletion;
-    private final WorkerLeaseRegistry.WorkerLease workerLease;
+    private final WorkerLeaseService workerLeases;
+    private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
     private final ListeningExecutorService executor;
     private final BuildOperationWorker<T> worker;
 
@@ -43,9 +44,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final AtomicBoolean waitingForCompletion = new AtomicBoolean();
     private final AtomicBoolean canceled = new AtomicBoolean();
 
-    DefaultBuildOperationQueue(WorkerLeaseRegistry workerLeases, ExecutorService executor, BuildOperationWorker<T> worker) {
-        this.workerLeaseCompletion = workerLeases.getCurrentWorkerLease().startChild();
-        this.workerLease = workerLeases.getCurrentWorkerLease();
+    DefaultBuildOperationQueue(WorkerLeaseService workerLeases, ExecutorService executor, BuildOperationWorker<T> worker) {
+        this.workerLeases = workerLeases;
+        this.parentWorkerLease = workerLeases.getWorkerLease();
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Collections.synchronizedList(Lists.<QueuedOperation>newArrayList());
@@ -56,7 +57,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         if (waitingForCompletion.get()) {
             throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
         }
-        OperationHolder operationHolder = new OperationHolder(workerLease, operation);
+        OperationHolder operationHolder = new OperationHolder(parentWorkerLease, operation);
         ListenableFuture<?> future = executor.submit(operationHolder);
         operations.add(new QueuedOperation(operationHolder, future));
     }
@@ -79,26 +80,29 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     public void waitForCompletion() throws MultipleBuildOperationFailures {
         waitingForCompletion.set(true);
 
-        CountDownLatch finished = new CountDownLatch(operations.size());
-        Queue<Throwable> failures = Queues.newConcurrentLinkedQueue();
+        final CountDownLatch finished = new CountDownLatch(operations.size());
+        final Queue<Throwable> failures = Queues.newConcurrentLinkedQueue();
 
-        for (QueuedOperation operation : operations) {
-            if (operation.future.isCancelled()) {
-                // If it's canceled, we'll never get a callback, so we just remove it from
-                // operations we're waiting for.
-                finished.countDown();
-            } else {
-                Futures.addCallback(operation.future, new CompletionCallback(finished, failures));
+        workerLeases.withLocks(parentWorkerLease).execute(new Runnable() {
+            @Override
+            public void run() {
+                for (QueuedOperation operation : operations) {
+                    if (operation.future.isCancelled()) {
+                        // If it's canceled, we'll never get a callback, so we just remove it from
+                        // operations we're waiting for.
+                        finished.countDown();
+                    } else {
+                        Futures.addCallback(operation.future, new CompletionCallback(finished, failures));
+                    }
+                }
+
+                try {
+                    finished.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
-        }
-
-        try {
-            finished.await();
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            workerLeaseCompletion.leaseFinish();
-        }
+        });
 
         // all operations are complete, check for errors
         if (!failures.isEmpty()) {
@@ -169,12 +173,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private void runBuildOperation() {
-            WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerLease.startChild();
-            try {
-                worker.execute(operation);
-            } finally {
-                workerLease.leaseFinish();
-            }
+            workerLeases.withLocks(parentWorkerLease.createChild()).execute(new Runnable() {
+                @Override
+                public void run() {
+                    worker.execute(operation);
+                }
+            });
         }
 
         public boolean isStarted() {
