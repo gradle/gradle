@@ -23,6 +23,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
+import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -43,7 +44,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private final ConsoleMetaData consoleMetaData;
     private final TimeProvider timeProvider;
     private final ScheduledExecutorService executor;
-    private final DefaultTerseDurationFormatter elapsedTimeFormatter = new DefaultTerseDurationFormatter();
+    private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
     private final Object lock = new Object();
     private String currentBuildStatus;
     private OperationIdentifier rootOperationId;

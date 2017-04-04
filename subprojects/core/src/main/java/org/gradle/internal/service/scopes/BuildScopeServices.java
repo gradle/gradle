@@ -66,6 +66,8 @@ import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
+import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.provider.ProviderFactory;
@@ -77,8 +79,6 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
 import org.gradle.caching.internal.DirectoryBuildCacheServiceFactory;
-import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
-import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
@@ -395,12 +395,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }
 
-    protected TaskExecutionStatisticsEventAdapter createTaskExecutionStatisticsEventAdapter(ListenerManager listenerManager) {
-        return new TaskExecutionStatisticsEventAdapter(listenerManager.getBroadcaster(TaskExecutionStatisticsListener.class));
-    }
-
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
         return new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope());
+    }
+
+    protected TaskExecutionStatisticsEventAdapter createTaskExecutionStatisticsEventAdapter(ListenerManager listenerManager) {
+        return new TaskExecutionStatisticsEventAdapter(listenerManager.getBroadcaster(TaskExecutionStatisticsListener.class));
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

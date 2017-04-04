@@ -22,6 +22,7 @@ import org.gradle.api.tasks.TaskState;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;
+    private boolean actionable = true;
     private boolean didWork;
     private Throwable failure;
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
@@ -121,5 +122,17 @@ public class TaskStateInternal implements TaskState {
 
     public boolean isFromCache() {
         return outcome == TaskExecutionOutcome.FROM_CACHE;
+    }
+
+    public boolean isAvoided() {
+        return actionable && getUpToDate();
+    }
+
+    public boolean isActionsWereExecuted() {
+        return actionable && outcome == TaskExecutionOutcome.EXECUTED;
+    }
+
+    public void setActionable(boolean actionable) {
+        this.actionable = actionable;
     }
 }

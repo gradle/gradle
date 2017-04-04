@@ -93,17 +93,14 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
         def expectedOutput = """:helloWorld
 Hello world!
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
-"""
+BUILD SUCCESSFUL"""
         def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments [helloWorld]
 
 Output:
 $expectedOutput"""
 
-        normalize(t.message) == expectedMessage
-        normalize(t.buildResult.output) == expectedOutput
+        normalize(t.message).startsWith(expectedMessage)
+        normalize(t.buildResult.output).startsWith(expectedOutput)
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
     }
 
@@ -156,18 +153,15 @@ Execution failed for task ':helloWorld'.
 * Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
 
-BUILD FAILED
-
-Total time: 1 secs
-"""
+BUILD FAILED"""
         String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments [helloWorld]
 
 Output:
 $expectedOutput"""
 
-        normalize(t.message) == expectedMessage
+        normalize(t.message).startsWith(expectedMessage)
         def result = t.buildResult
-        normalize(result.output) == expectedOutput
+        normalize(result.output).startsWith(expectedOutput)
         result.taskPaths(FAILED) == [':helloWorld']
     }
 

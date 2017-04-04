@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     public BuildLogger(Logger logger, StyledTextOutputFactory textOutputFactory, StartParameter startParameter, BuildRequestMetaData requestMetaData) {
         this.logger = logger;
         resultLoggers.add(new BuildExceptionReporter(textOutputFactory, startParameter, requestMetaData.getClient()));
-        resultLoggers.add(new BuildResultLogger(textOutputFactory, requestMetaData.getBuildTimeClock()));
+        resultLoggers.add(new BuildResultLogger(textOutputFactory, requestMetaData.getBuildTimeClock(), new TersePrettyDurationFormatter()));
     }
 
     public void buildStarted(Gradle gradle) {
