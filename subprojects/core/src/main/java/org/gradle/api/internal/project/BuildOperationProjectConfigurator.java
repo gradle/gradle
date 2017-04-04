@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.internal.Actions;
@@ -141,11 +140,7 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
     }
 
     private BuildOperationDetails computeProjectBuildOperationDetails(Project project) {
-        String name = getProjectPath(project);
-        return BuildOperationDetails.displayName("Configure " + name).name(StringUtils.capitalize(name)).build();
-    }
-
-    private String getProjectPath(Project project) {
-        return "project " + ((ProjectInternal) project).getIdentityPath().toString();
+        String identityPath = ((ProjectInternal) project).getIdentityPath().toString();
+        return BuildOperationDetails.displayName("Configure project " + identityPath).name(identityPath).build();
     }
 }
