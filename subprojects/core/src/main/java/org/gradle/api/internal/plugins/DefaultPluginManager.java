@@ -25,9 +25,14 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.plugins.*;
+import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.api.plugins.InvalidPluginException;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.PluginInstantiationException;
+import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
@@ -123,12 +128,18 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     private void doApplyThroughBuildOperation(final PluginImplementation<?> plugin) {
-        new ApplyPluginBuildOperation(plugin, buildOperationExecutor).run(new Action<BuildOperationContext>() {
+        buildOperationExecutor.run(getApplyPluginBuildOperationBuildOperationDetails(plugin), new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
                 doApply(plugin);
             }
         });
+    }
+
+    private BuildOperationDetails getApplyPluginBuildOperationBuildOperationDetails(PluginImplementation<?> pluginImplementation) {
+        String identifier = pluginImplementation.getDisplayName();
+        return BuildOperationDetails.displayName("Apply plugin " + identifier)
+            .name(identifier).operationDescriptor(pluginImplementation).build();
     }
 
     private void doApply(PluginImplementation<?> plugin) {
