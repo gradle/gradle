@@ -83,7 +83,6 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -611,12 +610,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Action<? super Project> action) {
-        new ProjectConfigureBlockBuildOperation("subprojects", getSubprojects(), getServices().get(BuildOperationExecutor.class)).runConfigureAction(action);
+        services.get(ProjectConfigurator.class).subprojects(getSubprojects(), action);
     }
 
     @Override
     public void allprojects(Action<? super Project> action) {
-        new ProjectConfigureBlockBuildOperation("allprojects", getAllprojects(), getServices().get(BuildOperationExecutor.class)).runConfigureAction(action);
+        services.get(ProjectConfigurator.class).allprojects(getAllprojects(), action);
     }
 
     @Override
@@ -1086,22 +1085,22 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
-        new ProjectConfigureBlockBuildOperation("subprojects", getSubprojects(), getServices().get(BuildOperationExecutor.class)).runConfigureClosure(configureClosure);
+        services.get(ProjectConfigurator.class).subprojects(getSubprojects(), configureClosure);
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        new ProjectConfigureBlockBuildOperation("allprojects", getAllprojects(), getServices().get(BuildOperationExecutor.class)).runConfigureClosure(configureClosure);
+        services.get(ProjectConfigurator.class).allprojects(getAllprojects(), configureClosure);
     }
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return new ProjectConfigureBuildOperation(project(path), getServices().get(BuildOperationExecutor.class)).runConfigureClosure(configureClosure);
+        return services.get(ProjectConfigurator.class).project(project(path), configureClosure);
     }
 
     @Override
     public Project project(String path, Action<? super Project> configureAction) {
-        return new ProjectConfigureBuildOperation(project(path), getServices().get(BuildOperationExecutor.class)).runConfigureAction(configureAction);
+        return services.get(ProjectConfigurator.class).project(project(path), configureAction);
     }
 
     @Override

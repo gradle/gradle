@@ -19,6 +19,7 @@ package org.gradle.configuration.project
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.BuildOperationProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.internal.progress.TestBuildOperationExecutor
@@ -31,7 +32,8 @@ class LifecycleProjectEvaluatorTest extends Specification {
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
     private buildOperationExecutor = new TestBuildOperationExecutor()
-    private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate)
+    private projectConfigurator = new BuildOperationProjectConfigurator(buildOperationExecutor)
+    private evaluator = new LifecycleProjectEvaluator(projectConfigurator, delegate)
     private state = Mock(ProjectStateInternal)
 
     void setup() {

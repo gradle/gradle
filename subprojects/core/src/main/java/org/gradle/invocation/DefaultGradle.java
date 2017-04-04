@@ -35,7 +35,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
-import org.gradle.api.internal.project.ProjectConfigureBlockBuildOperation;
+import org.gradle.api.internal.project.ProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -46,7 +46,6 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -83,7 +82,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             @Override
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
-                    new ProjectConfigureBlockBuildOperation("rootProject", Collections.<Project>singleton(rootProject), getServices().get(BuildOperationExecutor.class)).runConfigureAction(rootProjectActions);
+                    services.get(ProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                     rootProjectActions = null;
                 }
             }

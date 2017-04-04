@@ -43,6 +43,8 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.project.BuildOperationProjectConfigurator;
+import org.gradle.api.internal.project.ProjectConfigurator;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -166,6 +168,10 @@ public class GlobalScopeServices {
 
     BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
         return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory);
+    }
+
+    ProjectConfigurator createProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
+        return new BuildOperationProjectConfigurator(buildOperationExecutor);
     }
 
     BuildOperationService createBuildOperationService(ListenerManager listenerManager) {
