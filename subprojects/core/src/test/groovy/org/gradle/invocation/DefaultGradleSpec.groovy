@@ -23,8 +23,10 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.project.BuildOperationProjectConfigurator
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.DefaultProjectRegistry
+import org.gradle.api.internal.project.ProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.execution.TaskGraphExecuter
@@ -53,6 +55,7 @@ class DefaultGradleSpec extends Specification {
     StartParameter parameter = new StartParameter()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    ProjectConfigurator projectConfigurator = new BuildOperationProjectConfigurator(buildOperationExecutor)
 
     GradleInternal gradle
 
@@ -69,6 +72,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ListenerManager) >> listenerManager
         _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation
         _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
+        _ * serviceRegistry.get(ProjectConfigurator) >> projectConfigurator
 
         gradle = classGenerator.newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
