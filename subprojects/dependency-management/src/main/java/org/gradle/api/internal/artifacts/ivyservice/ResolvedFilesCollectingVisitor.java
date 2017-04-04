@@ -33,8 +33,12 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-        // Defer adding the artifacts until after all the file dependencies have been visited
-        this.artifacts.add(artifact);
+        try {
+            artifact.getFile(); // triggering file resolve
+            this.artifacts.add(artifact);
+        } catch (Throwable t) {
+            failures.add(t);
+        }
     }
 
     @Override

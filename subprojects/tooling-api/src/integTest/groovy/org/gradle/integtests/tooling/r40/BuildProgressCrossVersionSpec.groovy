@@ -122,15 +122,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def configureRoot = events.operation("Configure project :")
 
         def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
-
+        def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve artifacts :compile")
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies :compile")
-        applyRootBuildScript.child("Resolve artifact a.jar (project :a)")
-        applyRootBuildScript.child("Resolve artifact b.jar (project :b)")
+        resolveArtifactsInRoot.child("Resolve artifact a.jar (project :a)")
+        resolveArtifactsInRoot.child("Resolve artifact b.jar (project :b)")
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
-
+        def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve artifacts :a:compile")
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies :a:compile")
-        applyProjectABuildScript.child("Resolve artifact b.jar (project :b)")
+        resolveArtifactsInProjectA.child("Resolve artifact b.jar (project :b)")
 
         resolveCompileA.child("Configure project :b")
     }
@@ -187,6 +187,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         def applyBuildScript = events.operation "Apply script build.gradle to root project 'root'"
+        def resolveArtifacts = applyBuildScript.child("Resolve artifacts :compile")
 
         applyBuildScript.child("Resolve dependencies :compile").with {
             it.child "Configure project :a"
@@ -197,15 +198,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             it.child "Download http://localhost:${server.port}${projectD.pomPath}"
         }
 
-        applyBuildScript.child("Resolve artifact a.jar (project :a)").children.isEmpty()
+        resolveArtifacts.child("Resolve artifact a.jar (project :a)").children.isEmpty()
 
-        applyBuildScript.child("Resolve artifact projectB.jar (group:projectB:1.0)")
+        resolveArtifacts.child("Resolve artifact projectB.jar (group:projectB:1.0)")
             .child "Download http://localhost:${server.port}${projectB.artifactPath}"
 
-        applyBuildScript.child("Resolve artifact projectC.jar (group:projectC:1.5)")
+        resolveArtifacts.child("Resolve artifact projectC.jar (group:projectC:1.5)")
             .child "Download http://localhost:${server.port}${projectC.artifactPath}"
 
-        applyBuildScript.child("Resolve artifact projectD.jar (group:projectD:2.0-SNAPSHOT)")
+        resolveArtifacts.child("Resolve artifact projectD.jar (group:projectD:2.0-SNAPSHOT)")
             .child "Download http://localhost:${server.port}${projectD.artifactPath}"
 
         cleanup:

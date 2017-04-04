@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
+import org.gradle.internal.progress.BuildOperationExecutor
 import spock.lang.Specification
 
 class DefaultLenientConfigurationTest extends Specification {
@@ -39,6 +40,7 @@ class DefaultLenientConfigurationTest extends Specification {
     def artifactsResults = Stub(VisitedArtifactsResults)
     def fileDependencyResults = Stub(VisitedFileDependencyResults)
     def configuration = Stub(ConfigurationInternal)
+    def buildOperationExecutor = Mock(BuildOperationExecutor)
 
     def setup() {
         _ * configuration.attributes >> ImmutableAttributes.EMPTY
@@ -52,7 +54,7 @@ class DefaultLenientConfigurationTest extends Specification {
         rootNode.children.add(child)
         def expectedResults = [child] as Set
 
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor)
 
         when:
         def results = lenientConfiguration.getFirstLevelModuleDependencies()
@@ -75,7 +77,7 @@ class DefaultLenientConfigurationTest extends Specification {
         def firstLevelDependencies = [(Mock(ModuleDependency)): node1, (Mock(ModuleDependency)): node2, (Mock(ModuleDependency)): node3]
         def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
 
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor)
 
         when:
         def result = lenientConfiguration.getFirstLevelModuleDependencies(spec)
@@ -93,7 +95,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     def "should flatten all resolved dependencies in dependency tree"() {
         given:
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor)
 
         def (expected, root) = generateDependenciesWithChildren(treeStructure)
 
