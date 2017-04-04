@@ -55,7 +55,7 @@ public class DefaultScriptTarget implements ScriptTarget {
     }
 
     @Override
-    public boolean getSupportsPluginRepositoriesBlock() {
+    public boolean getSupportsPluginManagementBlock() {
         return false;
     }
 
