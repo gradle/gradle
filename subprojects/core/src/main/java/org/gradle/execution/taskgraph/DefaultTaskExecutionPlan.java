@@ -54,6 +54,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
 
 /**
@@ -525,16 +526,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     taskExecution.execute(selected.get());
                 }
             } finally {
-                coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-                    @Override
-                    public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                        TaskInfo taskInfo = selected.get();
-                        ResourceLock projectLock = getProjectLock(taskInfo);
-                        projectLock.unlock();
-                        workerLease.unlock();
-                        return FINISHED;
-                    }
-                });
+                TaskInfo taskInfo = selected.get();
+                ResourceLock projectLock = getProjectLock(taskInfo);
+                coordinationService.withStateLock(unlock(projectLock, workerLease));
             }
         }
 

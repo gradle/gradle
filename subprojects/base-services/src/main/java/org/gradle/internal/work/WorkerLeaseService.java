@@ -18,7 +18,23 @@ package org.gradle.internal.work;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.resources.ResourceLock;
+
+import java.util.concurrent.Executor;
 
 public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseRegistry, Stoppable {
+    /**
+     * Returns an {@link Executor} that will run a given {@link Runnable} while the specified locks are being held, releasing
+     * the locks upon completion.  {@link Executor#execute(Runnable)} will run the provided {@link Runnable} immediately and
+     * synchronously.  Blocks until the specified locks can be obtained.
+     */
+    Executor withLocks(ResourceLock... locks);
 
+    /**
+     * Returns an {@link Executor} that will run a given {@link Runnable} while the specified locks are releases and then
+     * reacquire the locks upon completion.  If the locks cannot be immediately reacquired, all worker leases will be released
+     * the method will block until the locks are reacquired.  {@link Executor#execute(Runnable)} will run the provided {@link Runnable}
+     * immediately and synchronously.
+     */
+    Executor withoutLocks(ResourceLock... locks);
 }

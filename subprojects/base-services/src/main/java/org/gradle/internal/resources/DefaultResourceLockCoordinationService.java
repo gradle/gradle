@@ -21,6 +21,8 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -106,5 +108,81 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
+    /**
+     * Attempts an atomic, blocking lock on the provided resource locks.
+     */
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> lock(Collection<? extends ResourceLock> resourceLocks) {
+        return new AcquireLocks(resourceLocks, true);
+    }
 
+    /**
+     * Attempts an atomic, blocking lock on the provided resource locks.
+     */
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> lock(ResourceLock... resourceLocks) {
+        return lock(Arrays.asList(resourceLocks));
+    }
+
+    /**
+     * Attempts an atomic, non-blocking lock on the provided resource locks.
+     */
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> tryLock(Collection<? extends ResourceLock> resourceLocks) {
+        return new AcquireLocks(resourceLocks, false);
+    }
+
+    /**
+     * Attempts an atomic, non-blocking lock on the provided resource locks.
+     */
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> tryLock(ResourceLock... resourceLocks) {
+        return tryLock(Arrays.asList(resourceLocks));
+    }
+
+    /**
+     * Unlocks the provided resource locks.
+     */
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> unlock(Collection<? extends ResourceLock> resourceLocks) {
+        return new ReleaseLocks(resourceLocks);
+    }
+
+    /**
+     * Unlocks the provided resource locks.
+     */
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> unlock(ResourceLock... resourceLocks) {
+        return unlock(Arrays.asList(resourceLocks));
+    }
+
+    private static class AcquireLocks implements Transformer<ResourceLockState.Disposition, ResourceLockState> {
+        private final Iterable<? extends ResourceLock> resourceLocks;
+        private final boolean blocking;
+
+        AcquireLocks(Iterable<? extends ResourceLock> resourceLocks, boolean blocking) {
+            this.resourceLocks = resourceLocks;
+            this.blocking = blocking;
+        }
+
+        @Override
+        public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+            for (ResourceLock resourceLock : resourceLocks) {
+                if (!resourceLock.tryLock()) {
+                    return blocking ? ResourceLockState.Disposition.RETRY : ResourceLockState.Disposition.FAILED;
+                }
+            }
+            return ResourceLockState.Disposition.FINISHED;
+        }
+    }
+
+    private static class ReleaseLocks implements Transformer<ResourceLockState.Disposition, ResourceLockState> {
+        private final Iterable<? extends ResourceLock> resourceLocks;
+
+        ReleaseLocks(Iterable<? extends ResourceLock> resourceLocks) {
+            this.resourceLocks = resourceLocks;
+        }
+
+        @Override
+        public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+            for (ResourceLock resourceLock : resourceLocks) {
+                resourceLock.unlock();
+            }
+            return ResourceLockState.Disposition.FINISHED;
+        }
+    }
 }
