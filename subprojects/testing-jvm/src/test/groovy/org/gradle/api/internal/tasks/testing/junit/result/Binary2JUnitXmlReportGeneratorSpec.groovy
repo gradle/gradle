@@ -22,6 +22,7 @@ import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,7 +38,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     Binary2JUnitXmlReportGenerator generator
 
     def generatorWithMaxThreads(int numThreads) {
-        buildOperationProcessor = new DefaultBuildOperationProcessor(Stub(BuildOperationWorkerRegistry), new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), numThreads)
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationWorkerRegistry(numThreads), new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory())
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationProcessor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator

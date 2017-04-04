@@ -24,6 +24,7 @@ import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -48,7 +49,7 @@ abstract class NativeCompilerTest extends Specification {
 
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
 
-    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(Stub(BuildOperationWorkerRegistry), new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), 1)
+    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationWorkerRegistry(1), new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory())
 
     def "arguments include source file"() {
         given:
