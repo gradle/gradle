@@ -13,10 +13,6 @@ Because Gradle's build lifecycle clearly distinguishes between configuration pha
  extension properties to custom task properties as part of a plugin implementation. In the past, many plugin developers were forced to solve evaluation order problems by using the concept of convention mapping, an internal API in Gradle subject to change.
 
 This release of Gradle introduces a mutable type to the public API representing a property with state. The relevant interface is called [`PropertyState`](javadoc/org/gradle/api/provider/PropertyState.html). An instance of this type can be created through the method [`Project.property(Class)`](javadoc/org/gradle/api/Project.html#property-java.lang.Class-).
-Without any extra configuration, your build will use a local directory in your `GRADLE_USER_HOME` to store task outputs.
-To take this to another level, you can configure your build to pull task outputs from a build cache _shared with your team_.
-We provide a [recommended configuration](userguide/build_cache.html#sec:build_cache_configure) that uses your continuous integration builds to populate a shared build cache and allows all developers to pull from that build cache.
-Our recommended configuration does not directly share task outputs among developer builds.
 
 The following example demonstrates how to use the property state API to map an extension property to a custom task property without
 running into evaluation ordering issues:
@@ -104,7 +100,12 @@ running into evaluation ordering issues:
         }
     }
 
+### Build Cache honors `--offline` 
+
+When running with `--offline`, Gradle will disable the remote build cache.
+
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
+
 This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases.
 
 <!--

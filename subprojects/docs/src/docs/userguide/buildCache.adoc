@@ -348,10 +348,6 @@ For automatic cleanup tools like http://manpages.ubuntu.com/manpages/precise/man
 |===
 | Description | Impact | Workaround
 
-| `--offline` is not honored for the remote build cache.
-| The built-in HTTP build cache ignores the offline flag.
-| To completely disable task output caching, use `--no-build-cache`.
-
 | Slow/hanging builds when on a poor connection with the remote build cache enabled.
 | For every cacheable task, Gradle will attempt to find a corresponding cache entry in the remote cache. For large cache entries, it may be slower to download the previous result than to recreate it.
 | Disable the build cache temporarily with `--no-build-cache`.
