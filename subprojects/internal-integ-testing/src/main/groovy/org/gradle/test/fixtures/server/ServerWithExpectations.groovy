@@ -24,7 +24,7 @@ import org.slf4j.Logger
  *
  * - defining expectations is done serially in 'given', 'when' blocks, so doesn't need to be thread-safe
  * - but handlers, as well as failures, need to be thread-safe
- * 
+ *
  */
 abstract class ServerWithExpectations extends ExternalResource {
 

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import com.google.common.collect.Maps;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
@@ -41,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * Provides some convenience and unified logging.
@@ -318,37 +316,4 @@ public class HttpClientHelper implements Closeable {
         }
     }
 
-    private static class ClonableHttpContext implements HttpContext {
-        private final Map<String, Object> attributes = Maps.newConcurrentMap();
-
-        public ClonableHttpContext() {
-        }
-
-        private ClonableHttpContext(Map<String, Object> attributes) {
-            this.attributes.putAll(attributes);
-        }
-
-        @Override
-        public Object getAttribute(String id) {
-            return attributes.get(id);
-        }
-
-        @Override
-        public void setAttribute(String id, Object obj) {
-            if (obj == null) {
-                attributes.remove(id);
-            } else {
-                attributes.put(id, obj);
-            }
-        }
-
-        @Override
-        public Object removeAttribute(String id) {
-            return attributes.remove(id);
-        }
-
-        public ClonableHttpContext copy() {
-            return new ClonableHttpContext(attributes);
-        }
-    }
 }
