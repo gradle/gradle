@@ -83,7 +83,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             @Override
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
-                    new ProjectConfigureBlockBuildOperation("rootProject", Collections.<Project>singleton(rootProject), getBuildOperationExecutor()).runConfigureAction(rootProjectActions);
+                    new ProjectConfigureBlockBuildOperation("rootProject", Collections.<Project>singleton(rootProject), getServices().get(BuildOperationExecutor.class)).runConfigureAction(rootProjectActions);
                     rootProjectActions = null;
                 }
             }
@@ -392,11 +392,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Inject
     public PluginManagerInternal getPluginManager() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public BuildOperationExecutor getBuildOperationExecutor() {
         throw new UnsupportedOperationException();
     }
 }

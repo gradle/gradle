@@ -196,6 +196,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
             allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
             allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
+            allowing(serviceRegistryMock).get(BuildOperationExecutor) ; will(returnValue(buildOperationExecutor))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))
@@ -221,9 +222,6 @@ class DefaultProjectTest {
 
             allowing(build).getParent()
             will(returnValue(null))
-
-            allowing(build).getBuildOperationExecutor()
-            will(returnValue(buildOperationExecutor))
 
             allowing(build).findIdentityPath()
             will(returnValue(Path.ROOT))
