@@ -81,7 +81,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         1 * listener.afterEvaluate(project, state)
 
         and:
-        buildOperationExecutor.operations[0].name == 'Project :project1'
+        buildOperationExecutor.operations[0].name == ':project1'
         buildOperationExecutor.operations[0].displayName == 'Configure project :project1'
     }
 

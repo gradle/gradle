@@ -74,15 +74,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
-        configureRoot.descriptor.name == 'Project :'
+        configureRoot.descriptor.name == 'Project :' || configureRoot.descriptor.name == ':'
 
         def configureA = events.operation("Configure project :a")
         configureA.parent == configureBuild
-        configureA.descriptor.name == 'Project :a'
+        configureA.descriptor.name == 'Project :a' || configureA.descriptor.name == ':a'
 
         def configureB = events.operation("Configure project :b")
         configureB.parent == configureBuild
-        configureB.descriptor.name == 'Project :b'
+        configureB.descriptor.name == 'Project :b' || configureB.descriptor.name == ':b'
 
         configureBuild.children.containsAll(configureRoot, configureA, configureB)
     }
