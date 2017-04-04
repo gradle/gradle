@@ -350,7 +350,7 @@ For automatic cleanup tools like http://manpages.ubuntu.com/manpages/precise/man
 
 | Slow/hanging builds when on a poor connection with the remote build cache enabled.
 | For every cacheable task, Gradle will attempt to find a corresponding cache entry in the remote cache. For large cache entries, it may be slower to download the previous result than to recreate it.
-| Disable the build cache temporarily with `--no-build-cache`.
+| Disable the build cache temporarily with `--no-build-cache` or `--offline`.
 
 | No HTTP timeouts.
 | Gradle does not enforce any HTTP timeout when downloading a cache entry. On a remote build cache that fails to respond, Gradle will wait indefinitely.
