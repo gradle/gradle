@@ -33,11 +33,15 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
     private final static String SUBPROJECTS = "subprojects";
     private final static String ROOTPROJECT = "rootProject";
 
-    private final BuildOperationDetails allprojectsDetails = computeConfigurationBlockBuildOperationDetails(ALLPROJECTS);
-    private final BuildOperationDetails subprojectsDetails = computeConfigurationBlockBuildOperationDetails(SUBPROJECTS);
-    private final BuildOperationDetails rootProjectDetails = computeConfigurationBlockBuildOperationDetails(ROOTPROJECT);
+    private final static BuildOperationDetails ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(ALLPROJECTS);
+    private final static BuildOperationDetails SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(SUBPROJECTS);
+    private final static BuildOperationDetails ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails(ROOTPROJECT);
 
     private final BuildOperationExecutor buildOperationExecutor;
+
+    private static BuildOperationDetails computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
+        return BuildOperationDetails.displayName("Executing '" + configurationBlockName + " {}' action").name(configurationBlockName).build();
+    }
 
     public BuildOperationProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -63,27 +67,27 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
 
     @Override
     public void subprojects(Iterable<Project> projects, Closure<? super Project> configureClosure) {
-        runBlockConfigureClosure(subprojectsDetails, projects, configureClosure);
+        runBlockConfigureClosure(SUBPROJECTS_DETAILS, projects, configureClosure);
     }
 
     @Override
     public void subprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(subprojectsDetails, projects, configureAction);
+        runBlockConfigureAction(SUBPROJECTS_DETAILS, projects, configureAction);
     }
 
     @Override
     public void allprojects(Iterable<Project> projects, Closure<? super Project> configureClosure) {
-        runBlockConfigureClosure(allprojectsDetails, projects, configureClosure);
+        runBlockConfigureClosure(ALLPROJECTS_DETAILS, projects, configureClosure);
     }
 
     @Override
     public void allprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(allprojectsDetails, projects, configureAction);
+        runBlockConfigureAction(ALLPROJECTS_DETAILS, projects, configureAction);
     }
 
     @Override
     public Project rootProject(Project project, Action<Project> buildOperationExecutor) {
-        runBlockConfigureAction(rootProjectDetails, Collections.singleton(project), buildOperationExecutor);
+        runBlockConfigureAction(ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor);
         return project;
     }
 
@@ -133,10 +137,6 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
 
     private void runBuildOperation(BuildOperationDetails details, Action<? super BuildOperationContext> buildOperationAction) {
         buildOperationExecutor.run(details, buildOperationAction);
-    }
-
-    private BuildOperationDetails computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
-        return BuildOperationDetails.displayName("Executing '" + configurationBlockName + " {}' action").name(configurationBlockName).build();
     }
 
     private BuildOperationDetails computeProjectBuildOperationDetails(Project project) {
