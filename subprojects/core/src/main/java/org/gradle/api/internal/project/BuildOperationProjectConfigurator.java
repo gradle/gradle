@@ -146,10 +146,6 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
     }
 
     private String getProjectPath(Project project) {
-        ProjectInternal projectInternal = (ProjectInternal) project;
-        if (project.getParent() == null && projectInternal.getGradle().findIdentityPath() == null) {
-            return "project " + project.getName();
-        }
-        return "project " + projectInternal.getIdentityPath().toString();
+        return "project " + ((ProjectInternal) project).getIdentityPath().toString();
     }
 }
