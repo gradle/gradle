@@ -66,7 +66,6 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
 
     @Override
     public boolean hasOverlappingOutputs() {
-        // TODO: Should be checking for stale outputs?
         return false;
     }
 }
