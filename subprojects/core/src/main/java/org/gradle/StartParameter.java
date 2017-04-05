@@ -36,6 +36,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.io.Serializable;
@@ -667,6 +668,29 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         this.buildCacheEnabled = buildCacheEnabled;
+    }
+
+    /**
+     * Returns true if task output caching is enabled.
+     *
+     * @deprecated Use {@link #isBuildCacheEnabled()}
+     */
+    @Incubating
+    @Deprecated
+    public boolean isTaskOutputCacheEnabled() {
+        return isBuildCacheEnabled();
+    }
+
+    /**
+     * Enables/disables task output caching.
+     *
+     * @deprecated Use {@link #setBuildCacheEnabled(boolean)}
+     */
+    @Incubating
+    @Deprecated
+    public void setTaskOutputCacheEnabled(boolean buildCacheEnabled) {
+        SingleMessageLogger.nagUserOfReplacedMethod("StartParameter.setTaskOutputCacheEnabled", "StartParameter.setBuildCacheEnabled");
+        setBuildCacheEnabled(buildCacheEnabled);
     }
 
     /**

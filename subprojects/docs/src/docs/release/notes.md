@@ -157,7 +157,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Moved classes `RhinoWorkerHandleFactory` and `RhinoWorkerUtils` into internal package.
 - Removed `RhinoWorker`.
 - Removed constructor `EarPluginConvention(Instantiator)`.
-- Removed the methods `isTaskOutputCacheEnabled()`, `setTaskOutputCacheEnabled(boolean)` from `StartParameter`.
 - Removed the method `registerWatchPoints(FileSystemSubset.Builder)` from `FileCollectionDependency`.
 - Removed the method `getConfiguration()` from `ModuleDependency`.
 - Removed the method `getProjectConfiguration()` from `ProjectDependency`.
