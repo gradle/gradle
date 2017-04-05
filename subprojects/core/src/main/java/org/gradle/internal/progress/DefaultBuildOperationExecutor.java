@@ -51,7 +51,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public Operation getCurrentOperation() {
-        OperationDetails current = findCurrentOperation();
+        OperationDetails current = currentOperation.get();
         if (current == null) {
             throw new IllegalStateException("No operation is currently running.");
         }

@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -118,7 +119,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
         private final BuildOperationWorker<T> delegate;
 
         private ParentBuildOperationAwareWorker(BuildOperationWorker<T> delegate) {
-            this.parentOperation = buildOperationExecutor.getCurrentOperation();
+            this.parentOperation = GradleThread.isManaged() ? buildOperationExecutor.getCurrentOperation() : null;
             this.delegate = delegate;
         }
 
