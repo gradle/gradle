@@ -22,7 +22,7 @@ import com.google.common.hash.HashCode
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.DefaultFileVisitDetails
-import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
@@ -44,7 +44,7 @@ class DefaultJarSnapshotterTest extends Specification {
 
     def "creates snapshot for an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing")))))
+        def snapshot = snapshotter.createSnapshot(HashCode.fromInt(123), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DefaultDirectoryFileTreeFactory().create(new File("missing")))))
         snapshot.hashes.isEmpty()
         snapshot.analysis
     }
