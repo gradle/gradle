@@ -32,10 +32,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.util.Collection;
 import java.util.Map;
 
-class ArtifactBackedResolvedVariant implements ResolvedVariant {
+class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailuresCollector {
     private final AttributeContainerInternal attributes;
     private final ImmutableSet<ResolvedArtifact> artifacts;
-    private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newConcurrentMap();
+    private volatile Map<ResolvedArtifact, Throwable> failures;
 
     private ArtifactBackedResolvedVariant(AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
         this.attributes = attributes;
@@ -57,7 +57,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         if (visitor.canPerformPreemptiveDownload()) {
             for (ResolvedArtifact artifact : artifacts) {
                 if (!isFromIncludedBuild(artifact)) {
-                    actions.add(new DownloadArtifactFile(artifact, artifactFailures));
+                    actions.add(new DownloadArtifactFile(artifact, this));
                 }
             }
         }
@@ -66,8 +66,8 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
     @Override
     public void visit(ArtifactVisitor visitor) {
         for (ResolvedArtifact artifact : artifacts) {
-            if (artifactFailures.containsKey(artifact)) {
-                visitor.visitFailure(artifactFailures.get(artifact));
+            if (hasFailure(artifact)) {
+                visitor.visitFailure(getFailure(artifact));
             } else {
                 visitor.visitArtifact(attributes, artifact);
             }
@@ -86,16 +86,36 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         return attributes;
     }
 
+    @Override
+    // May be accessed concurrently, by download workers
+    public synchronized void addFailure(ResolvedArtifact resolvedArtifact, Throwable err) {
+        if (failures == null) {
+            failures = Maps.newHashMap();
+        }
+        failures.put(resolvedArtifact, err);
+    }
+
+    // always accessed from the same thread, doesn't need synchronization
+    private boolean hasFailure(ResolvedArtifact artifact) {
+        return failures != null && failures.containsKey(artifact);
+    }
+
+    // always accessed from the same thread, doesn't need synchronization
+    private Throwable getFailure(ResolvedArtifact artifact) {
+        // no null-check here since it's illegal to call this without checking hasFailure first
+        return failures.get(artifact);
+    }
+
     private static boolean isFromIncludedBuild(ResolvedArtifact artifact) {
         ComponentIdentifier id = artifact.getId().getComponentIdentifier();
         return id instanceof ProjectComponentIdentifier
             && !((ProjectComponentIdentifier) id).getBuild().isCurrentBuild();
     }
 
-    private static class SingleArtifactResolvedVariant implements ResolvedVariant {
+    private static class SingleArtifactResolvedVariant implements ResolvedVariant, ArtifactFailuresCollector {
         private final AttributeContainerInternal variantAttributes;
         private final ResolvedArtifact artifact;
-        private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newConcurrentMap();
+        private volatile Throwable failure;
 
         SingleArtifactResolvedVariant(AttributeContainerInternal variantAttributes, ResolvedArtifact artifact) {
             this.variantAttributes = variantAttributes;
@@ -109,14 +129,14 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
             if (visitor.canPerformPreemptiveDownload() && !isFromIncludedBuild(artifact))  {
-                actions.add(new DownloadArtifactFile(artifact, artifactFailures));
+                actions.add(new DownloadArtifactFile(artifact, this));
             }
         }
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            if (artifactFailures.containsKey(artifact)) {
-                visitor.visitFailure(artifactFailures.get(artifact));
+            if (failure != null) {
+                visitor.visitFailure(failure);
             } else {
                 visitor.visitArtifact(variantAttributes, artifact);
             }
@@ -126,13 +146,18 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
             dest.add(((Buildable) artifact).getBuildDependencies());
         }
+
+        @Override
+        public void addFailure(ResolvedArtifact resolvedArtifact, Throwable err) {
+            failure = err;
+        }
     }
 
     private static class DownloadArtifactFile implements RunnableBuildOperation, DescribableBuildOperation<ComponentArtifactIdentifier> {
         private final ResolvedArtifact artifact;
-        private final Map<ResolvedArtifact, Throwable> artifactFailures;
+        private final ArtifactFailuresCollector artifactFailures;
 
-        DownloadArtifactFile(ResolvedArtifact artifact, Map<ResolvedArtifact, Throwable> artifactFailures) {
+        DownloadArtifactFile(ResolvedArtifact artifact, ArtifactFailuresCollector artifactFailures) {
             this.artifact = artifact;
             this.artifactFailures = artifactFailures;
         }
@@ -142,7 +167,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
             try {
                 artifact.getFile();
             } catch (Throwable t) {
-                artifactFailures.put(artifact, t);
+                artifactFailures.addFailure(artifact, t);
             }
         }
 
@@ -161,4 +186,5 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
             return null;
         }
     }
+
 }
