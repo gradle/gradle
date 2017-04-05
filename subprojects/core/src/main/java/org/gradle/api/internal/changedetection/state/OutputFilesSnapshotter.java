@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
@@ -30,7 +31,7 @@ import java.util.Map;
 public class OutputFilesSnapshotter {
     private static final Logger LOGGER = Logging.getLogger(OutputFilesSnapshotter.class);
 
-    public boolean hasOverlappingOutputs(final String propertyName, final FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
+    public TaskExecutionHistory.OverlapOutputDetection detectOverlappingOutputs(final String propertyName, final FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
         Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
         Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
 
@@ -40,14 +41,14 @@ public class OutputFilesSnapshotter {
             NormalizedFileSnapshot previousSnapshot = previousSnapshots.get(path);
             // Missing files or just directories can be ignored
             // It would be nice to consider directories too, but we can't distinguish between an existing _root_ directory of an output property
-            // and a directory inside the root directory. 
+            // and a directory inside the root directory.
             if (fileSnapshot.getSnapshot().getType() == FileType.RegularFile && previousSnapshot == null) {
                 // created since last execution, possibly by another task
                 LOGGER.info("Detected overlap for property '{}' with path '{}'", propertyName, fileSnapshot.getNormalizedPath());
-                return true;
+                return new TaskExecutionHistory.OverlapOutputDetection(propertyName, fileSnapshot.getNormalizedPath());
             }
         }
-        return false;
+        return null;
     }
 
     /**

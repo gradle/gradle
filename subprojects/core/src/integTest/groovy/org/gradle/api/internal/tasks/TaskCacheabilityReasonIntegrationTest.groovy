@@ -165,7 +165,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             task cacheableWithOverlap(type: Cacheable) {
                 outputFile = cacheable.outputFile
                 cachingEnabled = false
-                disabledReason = "Overlapping output directories were detected"
+                disabledReason = "Overlapping outputs were detected in property 'outputFile' with path '" + outputFile + "'"
                 disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
             }
         """

@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
@@ -77,9 +78,10 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
             String propertyName = entry.getKey();
             FileCollectionSnapshot beforeExecution = entry.getValue();
             FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-            if (outputSnapshotter.hasOverlappingOutputs(propertyName, afterPreviousExecution, beforeExecution)) {
+            TaskExecutionHistory.OverlapOutputDetection overlapOutputDetection = outputSnapshotter.detectOverlappingOutputs(propertyName, afterPreviousExecution, beforeExecution);
+            if (overlapOutputDetection!=null) {
                 LOGGER.info("Detected overlapping outputs for task '{}' output property '{}'", taskName, propertyName);
-                current.setDetectedOverlappingOutputs(true);
+                current.setDetectedOverlappingOutputs(overlapOutputDetection);
                 return;
             }
         }

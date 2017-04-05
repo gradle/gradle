@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
+import org.gradle.api.internal.TaskExecutionHistory;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public abstract class TaskExecution {
     private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
-    private boolean detectedOverlappingOutputs;
+    private TaskExecutionHistory.OverlapOutputDetection detectedOverlappingOutputs;
 
     /**
      * Returns the names of all cacheable output property names that have a value set.
@@ -108,11 +109,11 @@ public abstract class TaskExecution {
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 
-    public boolean hasDetectedOverlappingOutputs() {
+    public TaskExecutionHistory.OverlapOutputDetection getDetectedOverlappingOutputs() {
         return detectedOverlappingOutputs;
     }
 
-    public void setDetectedOverlappingOutputs(boolean detectedOverlappingOutputs) {
+    public void setDetectedOverlappingOutputs(TaskExecutionHistory.OverlapOutputDetection detectedOverlappingOutputs) {
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 }

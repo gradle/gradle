@@ -344,10 +344,10 @@ class DefaultTaskOutputsTest extends Specification {
         when:
         def taskHistory = Mock(TaskExecutionHistory)
         outputs.setHistory(taskHistory)
-        taskHistory.hasOverlappingOutputs() >> true
+        taskHistory.getOverlappingOutputDetection() >> new TaskExecutionHistory.OverlapOutputDetection("someProperty", "outputFile")
         then:
         !outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == "Overlapping output directories were detected"
+        outputs.cachingState.disabledReason == "Overlapping outputs were detected in property 'someProperty' with path 'outputFile'"
         outputs.cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
 
         when:

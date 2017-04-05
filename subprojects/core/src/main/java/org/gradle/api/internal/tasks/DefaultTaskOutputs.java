@@ -51,7 +51,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public static final TaskOutputCachingState DISABLED = DefaultTaskOutputCachingState.disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
     private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task");
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
-    private static final TaskOutputCachingState OVERLAPPING_OUTPUTS = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS, "Overlapping output directories were detected");
 
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
@@ -99,12 +98,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         if (cacheIfSpecs.isEmpty()) {
             return CACHING_NOT_ENABLED;
         }
+
         if (!hasDeclaredOutputs()) {
             return NO_OUTPUTS_DECLARED;
         }
-        if (history!=null && history.hasOverlappingOutputs()) {
-            return OVERLAPPING_OUTPUTS;
+
+        TaskExecutionHistory.OverlapOutputDetection overlappingOutputDetection = getOverlapOutputDetection();
+        if (overlappingOutputDetection!=null) {
+            return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS, String.format("Overlapping outputs were detected in %s", overlappingOutputDetection.getDisplayName()));
         }
+
         for (TaskPropertySpec spec : getFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
                 return DefaultTaskOutputCachingState.disabled(
@@ -115,6 +118,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 );
             }
         }
+
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
             if (!selfDescribingSpec.isSatisfiedBy(task)) {
                 return DefaultTaskOutputCachingState.disabled(
@@ -123,6 +127,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 );
             }
         }
+
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
             if (selfDescribingSpec.isSatisfiedBy(task)) {
                 return DefaultTaskOutputCachingState.disabled(
@@ -132,6 +137,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             }
         }
         return ENABLED;
+    }
+
+    private TaskExecutionHistory.OverlapOutputDetection getOverlapOutputDetection() {
+        return history!=null ? history.getOverlappingOutputDetection() : null;
     }
 
     @Override
