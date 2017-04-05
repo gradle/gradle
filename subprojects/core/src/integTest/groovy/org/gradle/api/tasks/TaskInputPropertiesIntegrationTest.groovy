@@ -230,47 +230,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         "source(Object...)" | "files(Object...)" | 'source("a", "b")'
     }
 
-    @Ignore("Must fix for 4.0")
-    @Unroll
-    def "deprecation warning printed when deprecated order sensitivity is set via #method"() {
-        buildFile << """
-            task test {
-                inputs.files([]).${call}
-            }
-        """
-        executer.expectDeprecationWarning()
-        executer.requireGradleDistribution()
-
-        expect:
-        succeeds "test"
-        outputContains "The TaskInputFilePropertyBuilder.${method} method has been deprecated and is scheduled to be removed in Gradle 4.0."
-
-        where:
-        method                    | call
-        "orderSensitive()"        | "orderSensitive()"
-        "orderSensitive(boolean)" | "orderSensitive(true)"
-    }
-
-    @Ignore("Must fix for 4.0")
-    def "deprecation warning printed when deprecated @OrderSensitivity annotation is used"() {
-        buildFile << """
-            class TaskWithOrderSensitiveProperty extends DefaultTask {
-                @OrderSensitive @InputFiles def inputFiles = project.files()
-                @TaskAction void action() {}
-            }
-
-            task test(type: TaskWithOrderSensitiveProperty) {
-            }
-        """
-
-        executer.expectDeprecationWarning()
-
-        when:
-        succeeds "test"
-        then:
-        outputContains "The @OrderSensitive annotation has been deprecated and is scheduled to be removed in Gradle 4.0. For classpath properties, use the @Classpath annotation instead."
-    }
-
     def "no deprecation warning printed when @Classpath annotation is used"() {
         buildFile << """
             class TaskWithClasspathProperty extends DefaultTask {

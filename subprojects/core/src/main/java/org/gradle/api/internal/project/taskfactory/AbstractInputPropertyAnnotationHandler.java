@@ -17,10 +17,8 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
@@ -44,22 +42,8 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
                     .withPathSensitivity(getPathSensitivity(context))
                     .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
                     .optional(context.isOptional());
-                handleOrderSensitive(propertyBuilder, context);
             }
         });
-    }
-
-    @SuppressWarnings("deprecation")
-    private void handleOrderSensitive(final TaskInputFilePropertyBuilder propertyBuilder, TaskPropertyActionContext context) {
-        if (context.isAnnotationPresent(OrderSensitive.class)) {
-            DeprecationLogger.nagUserOfDeprecated("The @OrderSensitive annotation", "For classpath properties, use the @Classpath annotation instead");
-            DeprecationLogger.whileDisabled(new Runnable() {
-                @Override
-                public void run() {
-                    propertyBuilder.orderSensitive();
-                }
-            });
-        }
     }
 
     protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);

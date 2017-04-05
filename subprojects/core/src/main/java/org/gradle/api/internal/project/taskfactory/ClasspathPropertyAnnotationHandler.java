@@ -19,12 +19,10 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
-import org.gradle.util.DeprecationLogger;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
@@ -48,19 +46,11 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                final TaskInputFilePropertyBuilder propertyBuilder =
-                    ((TaskInputFilePropertyBuilderInternal) task.getInputs().files(futureValue))
+                ((TaskInputFilePropertyBuilderInternal) task.getInputs().files(futureValue))
                     .withPropertyName(context.getName())
                     .withSnapshotNormalizationStrategy(ClasspathSnapshotNormalizationStrategy.INSTANCE)
                     .withSnapshotter(getSnapshotterType())
                     .optional(context.isOptional());
-                DeprecationLogger.whileDisabled(new Runnable() {
-                    @Override
-                    @SuppressWarnings("deprecation")
-                    public void run() {
-                        propertyBuilder.orderSensitive();
-                    }
-                });
             }
         });
     }

@@ -61,26 +61,6 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder optional(boolean optional);
 
     /**
-     * Sets the order of the files to be relevant when observing this property.
-     *
-     * @since 3.1
-     *
-     * @deprecated This method will be removed in Gradle 4.0 without replacement.
-     */
-    @Deprecated
-    TaskInputFilePropertyBuilder orderSensitive();
-
-    /**
-     * Sets whether the order of the files is relevant when observing this property.
-     *
-     * @since 3.1
-     *
-     * @deprecated This method will be removed in Gradle 4.0 without replacement.
-     */
-    @Deprecated
-    TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive);
-
-    /**
      * {@inheritDoc}
      *
      * @since 3.1

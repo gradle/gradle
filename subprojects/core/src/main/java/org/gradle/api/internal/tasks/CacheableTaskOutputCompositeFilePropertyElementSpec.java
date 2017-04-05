@@ -26,8 +26,6 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import java.io.File;
 import java.util.Collections;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
-
 class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTaskOutputFilePropertySpec {
     private final CompositeTaskOutputPropertySpec parentProperty;
     private final String propertySuffix;
@@ -63,7 +61,7 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
 
     @Override
     public TaskFilePropertyCompareStrategy getCompareStrategy() {
-        return OUTPUT;
+        return parentProperty.getCompareStrategy();
     }
 
     @Override

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.FileHasher;
@@ -46,6 +47,11 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     @Override
     public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
         return ClasspathSnapshotter.class;
+    }
+
+    @Override
+    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
+        return super.snapshot(input, TaskFilePropertyCompareStrategy.ORDERED, snapshotNormalizationStrategy);
     }
 
     @Override

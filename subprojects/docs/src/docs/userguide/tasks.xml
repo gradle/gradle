@@ -712,20 +712,6 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><literal>@<apilink class="org.gradle.api.tasks.OrderSensitive"/></literal></td>
-                        <td>
-                            <para>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
-                                to tell Gradle that a change in the order of the files should mark the task
-                                out-of-date.
-                            </para>
-                            <note>
-                                <para>This functionality is deprecated and will be removed in Gradle 4.0.
-                                    For classpath properties, use <literal>@Classpath</literal> instead.
-                                </para>
-                            </note>
-                        </td>
-                    </tr>
-                    <tr>
                         <td><literal>@<apilink class="org.gradle.api.tasks.PathSensitive"/></literal></td>
                         <td>Used with any input file property to tell Gradle to only consider the given
                             part of the file paths as important. For example, if a property is annotated

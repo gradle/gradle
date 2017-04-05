@@ -30,8 +30,6 @@ import org.gradle.util.DeprecationLogger;
 
 import java.util.Map;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 
 public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder implements TaskInputPropertySpecAndBuilder {
@@ -40,7 +38,6 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     private final TaskPropertyFileCollection files;
     private boolean skipWhenEmpty;
     private boolean optional;
-    private TaskFilePropertyCompareStrategy compareStrategy = UNORDERED;
     private SnapshotNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
     private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
 
@@ -93,25 +90,7 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
 
     @Override
     public TaskFilePropertyCompareStrategy getCompareStrategy() {
-        return compareStrategy;
-    }
-
-    @Override
-    public TaskInputFilePropertyBuilderInternal orderSensitive() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputFilePropertyBuilder.orderSensitive()");
-        setOrderSensitive(true);
-        return this;
-    }
-
-    @Override
-    public TaskInputFilePropertyBuilderInternal orderSensitive(boolean orderSensitive) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputFilePropertyBuilder.orderSensitive(boolean)");
-        setOrderSensitive(orderSensitive);
-        return this;
-    }
-
-    private void setOrderSensitive(boolean orderSensitive) {
-        this.compareStrategy = orderSensitive ? ORDERED : UNORDERED;
+        return TaskFilePropertyCompareStrategy.UNORDERED;
     }
 
     @Override
@@ -143,7 +122,7 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
 
     @Override
     public String toString() {
-        return getPropertyName() + " (" + compareStrategy + ", " + snapshotNormalizationStrategy + ")";
+        return getPropertyName() + " (" + snapshotNormalizationStrategy + ")";
     }
 
     // --- Deprecated delegate methods
