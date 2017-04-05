@@ -24,16 +24,19 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.util.Map;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
+    private static final Logger LOGGER = Logging.getLogger(OutputFilesTaskStateChanges.class);
     private final OutputFilesSnapshotter outputSnapshotter;
 
     public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter) {
         super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties());
         this.outputSnapshotter = outputSnapshotter;
-        detectOverlappingOutputs();
+        detectOverlappingOutputs(task.getName());
     }
 
     @Override
@@ -69,16 +72,15 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
         return FileCollectionSnapshot.EMPTY;
     }
 
-    public void detectOverlappingOutputs() {
-        if (!current.hasDetectedOverlappingOutputs()) {
-            for (Map.Entry<String, FileCollectionSnapshot> entry : getCurrent().entrySet()) {
-                String propertyName = entry.getKey();
-                FileCollectionSnapshot beforeExecution = entry.getValue();
-                FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-                if (outputSnapshotter.hasOverlappingOutputs(afterPreviousExecution, beforeExecution)) {
-                    current.setDetectedOverlappingOutputs(true);
-                    return;
-                }
+    private void detectOverlappingOutputs(String taskName) {
+        for (Map.Entry<String, FileCollectionSnapshot> entry : getCurrent().entrySet()) {
+            String propertyName = entry.getKey();
+            FileCollectionSnapshot beforeExecution = entry.getValue();
+            FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
+            if (outputSnapshotter.hasOverlappingOutputs(propertyName, afterPreviousExecution, beforeExecution)) {
+                LOGGER.info("Detected overlapping outputs for task '{}' output property '{}'", taskName, propertyName);
+                current.setDetectedOverlappingOutputs(true);
+                return;
             }
         }
     }
