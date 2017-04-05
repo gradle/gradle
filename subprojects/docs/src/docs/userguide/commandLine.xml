@@ -113,20 +113,6 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term>
-                <option>--gui</option>
-            </term>
-            <listitem>
-                <para>
-                    Launches the Gradle GUI. See <xref linkend="tutorial_gradle_gui"/>.
-                </para>
-                <para>
-                    The Gradle GUI has been deprecated and will be removed in Gradle 4.0. Consider using an IDE with support for Gradle e.g. <ulink url="https://eclipse.org/">Eclipse</ulink>,
-                    <ulink url="https://www.jetbrains.com/idea/">IntelliJ</ulink> or <ulink url="https://netbeans.org/">NetBeans</ulink> instead.
-                </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
             <term><option>--include-build</option>
             </term>
             <listitem>
