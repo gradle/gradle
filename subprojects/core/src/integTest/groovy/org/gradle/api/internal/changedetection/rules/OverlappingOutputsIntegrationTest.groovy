@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.rules
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -62,321 +63,381 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         """
     }
 
-    private void useOverlappingOutputDirectories() {
+    private Object[] useOverlappingOutputDirectories() {
         buildFile << """
-            task A(type: OutputDirectoryTask)
-            task B(type: OutputDirectoryTask)
-            task cleanB(type: Delete) {
-                delete B
+            task first(type: OutputDirectoryTask)
+            task second(type: OutputDirectoryTask)
+            task cleanSecond(type: Delete) {
+                delete second
             }
         """
+        return [":first", file("build/first.txt"),
+                ":second", file("build/second.txt")]
     }
 
-    def "overlapping output directory with A B then A B"() {
-        useOverlappingOutputDirectories()
+    def "overlapping output directory with first, second then first, second"() {
+        def (String first, TestFile firstOutput,
+             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // Only one task can be cached
+        firstOutput.assertExists()
+        secondOutput.assertExists()
+        // Only the first task can be cached since the second detects the overlap
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // A can be from the cache
-        result.assertTaskSkipped(":A")
-        // B cannot be from the cache
-        result.assertTaskNotSkipped(":B")
+        // Output should match the first execution
+        firstOutput.assertExists()
+        secondOutput.assertExists()
+        // first can be loaded from the cache
+        result.assertTaskSkipped(first)
+        // second cannot be loaded from the cache due to a cache miss
+        result.assertTaskNotSkipped(second)
     }
 
-    def "overlapping output directory with A B then B A"() {
-        useOverlappingOutputDirectories()
+    def "overlapping output directory with first, second then second, first"() {
+        def (String first, TestFile firstOutput,
+             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // Only one task can be cached
+        firstOutput.assertExists()
+        secondOutput.assertExists()
+        // Only the first task can be cached since the second detects the overlap
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("B", "A")
+        withBuildCache().succeeds(second, first)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // A and B will not be from the cache
-        result.assertTasksNotSkipped(":B", ":A")
+        // Output should match the first execution
+        firstOutput.assertExists()
+        secondOutput.assertExists()
+        // Neither task can be loaded from the cache because the
+        // second task has a cache miss and the first task detects the overlap
+        result.assertTasksNotSkipped(second, first)
     }
 
-    def "overlapping output directory with A B then B"() {
-        useOverlappingOutputDirectories()
+    def "overlapping output directory with first, second then second only"() {
+        def (String first, TestFile firstOutput,
+             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // Only one task can be cached
+        firstOutput.assertExists()
+        secondOutput.assertExists()
+        // Only the first task can be cached since the second detects the overlap
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("B")
+        withBuildCache().succeeds(second)
         then:
-        file("build/A.txt").assertDoesNotExist()
-        file("build/B.txt").assertExists()
-        // B will not be from the cache
-        result.assertTasksNotSkipped(":B")
-        // B can be cached now
+        firstOutput.assertDoesNotExist()
+        secondOutput.assertExists()
+        // second cannot be loaded from the cache due to a cache miss
+        result.assertTasksNotSkipped(second)
+        // second should now be cached because there was no overlap since
+        // first did not execute
         listCacheFiles().size() == 2
     }
 
-    def "overlapping output directory with A cleanB B then A B"() {
-        useOverlappingOutputDirectories()
+    def "overlapping output directory with first cleanSecond second then first second"() {
+        def (String first, TestFile firstOutput,
+             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
+        def cleanSecond = ":cleanSecond"
 
         when:
-        withBuildCache().succeeds("A", "cleanB", "B")
+        withBuildCache().succeeds(first, cleanSecond, second)
         then:
-        // Both tasks can be cached
+        // Both tasks can be cached because clean removes the output from first
+        // before second executes.
         listCacheFiles().size() == 2
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // A can be from the cache
-        result.assertTaskSkipped(":A")
-        // B cannot be from the cache
-        result.assertTaskNotSkipped(":B")
+        firstOutput.assertExists()
+        secondOutput.assertExists()
+        // first is loaded from the cache
+        result.assertTaskSkipped(first)
+        // second is not loaded from the cache due to the overlap with first
+        result.assertTaskNotSkipped(second)
     }
 
-    private void useOverlappingOutputFileAndDirectory() {
+    private Object[] useOverlappingOutputFileAndDirectory() {
         buildFile << """
-            task A(type: OutputFileTask)
-            task B(type: OutputDirectoryTask)
-            task cleanB(type: Delete) {
-                delete B
+            task fileTask(type: OutputFileTask)
+            task dirTask(type: OutputDirectoryTask)
+            task cleanDirTask(type: Delete) {
+                delete dirTask
             }
         """
+        return [ ":fileTask", file("build/fileTask.txt"),
+                 ":dirTask", file("build/dirTask.txt") ]
     }
 
-    def "overlapping output directory and output file with A B then A B"() {
-        useOverlappingOutputFileAndDirectory()
+    def "overlapping output with fileTask, dirTask then fileTask, dirTask"() {
+        def (String fileTask, TestFile fileTaskOutput,
+             String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(fileTask, dirTask)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
         // Only one task can be cached
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(fileTask, dirTask)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // A can be from the cache
-        result.assertTaskSkipped(":A")
-        // B cannot be from the cache
-        result.assertTaskNotSkipped(":B")
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
+        // fileTask can be from the cache, but the dirTask cannot due to a cache miss
+        result.assertTaskSkipped(fileTask)
+        result.assertTaskNotSkipped(dirTask)
     }
 
-    def "overlapping output directory and output file with A B then B A"() {
-        useOverlappingOutputFileAndDirectory()
+    def "overlapping output with fileTask, dirTask then dirTask, fileTask"() {
+        def (String fileTask, TestFile fileTaskOutput,
+             String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(fileTask, dirTask)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
         // Only one task can be cached
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("B", "A")
+        withBuildCache().succeeds(dirTask, fileTask)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // A can be from the cache and B will not be in the cache
-        result.assertTaskSkipped(":A")
-        result.assertTaskNotSkipped(":B")
+        // Outcome should look the same as if the build was run in the opposite order (fileTask then dirTask)
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
+        // fileTask can be from the cache, but the dirTask cannot due to a cache miss
+        result.assertTaskSkipped(fileTask)
+        result.assertTaskNotSkipped(dirTask)
+        // Now the dirTask can be cached (since it executed first)
+        listCacheFiles().size() == 2
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("B", "A")
+        withBuildCache().succeeds(dirTask, fileTask)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // Both can be from the cache
-        result.assertTasksSkipped(":B", ":A")
+        // Outcome should look the same again
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
+        // Both can be from the cache because the dirTask ran first and the fileTask doesn't directly overlap with a file produced by dirTask
+        result.assertTasksSkipped(dirTask, fileTask)
     }
 
-    def "overlapping output directory and output file with A B then B"() {
-        useOverlappingOutputFileAndDirectory()
+    def "overlapping output with fileTask, dirTask then dirTask only"() {
+        def (String fileTask, TestFile fileTaskOutput,
+             String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(fileTask, dirTask)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
         // Only one task can be cached
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("B")
+        withBuildCache().succeeds(dirTask)
         then:
-        file("build/A.txt").assertDoesNotExist()
-        file("build/B.txt").assertExists()
-        // B will not be from the cache
-        result.assertTasksNotSkipped(":B")
-        // B can be cached now
+        // fileTask's outputs shouldn't exist since it didn't execute
+        fileTaskOutput.assertDoesNotExist()
+        dirTaskOutput.assertExists()
+        // dirTask will not be from the cache due to a cache miss
+        result.assertTasksNotSkipped(dirTask)
+        // dirTask is cached now (since fileTask didn't overlap this time)
         listCacheFiles().size() == 2
     }
 
-    // This fails because cleanB will remove A's outputs.
-    // So, unless we change this to only clean the *real* outputs of B, this won't work.
+    def "overlapping output with dirTask, fileTask"() {
+        def (String fileTask, TestFile fileTaskOutput,
+             String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
+
+        when:
+        withBuildCache().succeeds(dirTask, fileTask)
+        then:
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
+        // Both tasks can be cached because the dirTask doesn't use the same output file as fileTask
+        listCacheFiles().size() == 2
+
+        when:
+        cleanBuildDir()
+        withBuildCache().succeeds(fileTask)
+        then:
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertDoesNotExist()
+        result.assertTaskSkipped(fileTask)
+    }
+
+    // This fails because cleanDirTask will remove fileTask's outputs.
+    // So, unless we change this to only clean the *real* outputs of dirTask, this won't work.
     @NotYetImplemented
-    def "overlapping output directory and output file with A cleanB B then A B"() {
-        useOverlappingOutputFileAndDirectory()
-
+    def "overlapping output with fileTask, dirTask then fileTask, cleanDirTask, dirTask"() {
+        def cleanDirTask = ":cleanDirTask"
+        def (fileTask, fileTaskOutput,
+             dirTask, dirTaskOutput) = useOverlappingOutputFileAndDirectory()
         when:
-        withBuildCache().succeeds("A", "cleanB", "B")
+        withBuildCache().succeeds(fileTask, cleanDirTask, dirTask)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // Both tasks can be cached
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
+        // Both tasks can be cached since fileTask's outputs are removed before dirTask executes
         listCacheFiles().size() == 2
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(fileTask, dirTask)
         then:
-        file("build/A.txt").assertExists()
-        file("build/B.txt").assertExists()
-        // A can be from the cache
-        result.assertTaskSkipped(":A")
-        // B cannot be from the cache
-        result.assertTaskNotSkipped(":B")
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
+        // fileTask can be loaded from the cache
+        result.assertTaskSkipped(fileTask)
+        // dirTask cannot be loaded from the cache because fileTask's outputs overlap
+        result.assertTaskNotSkipped(dirTask)
     }
 
-    private void useOverlappingOutputFiles() {
+    private Object[] useOverlappingOutputFiles() {
         buildFile << """
-            task A(type: OutputFileTask)
-            task B(type: OutputFileTask) {
-                // B's message needs to be different so we don't detect the file has unchanged
+            task first(type: OutputFileTask)
+            task second(type: OutputFileTask) {
+                // second's message needs to be different so we don't detect the file has unchanged
                 message = "Generated by task " + path
             }
-            task cleanB(type: Delete) {
-                delete B
+            task cleanSecond(type: Delete) {
+                delete second
             }
             tasks.withType(OutputFileTask) {
                 outputFileName = "AB.txt"
             }
         """
+        return [":first", file("build/AB.txt"),
+                ":second", file("build/AB.txt")]
     }
 
-    def "overlapping output files with A B then A B"() {
-        useOverlappingOutputFiles()
+    def "overlapping output files with first, second then first, second"() {
+        def (String first, TestFile firstOutput,
+             String second, TestFile secondOutput) = useOverlappingOutputFiles()
+        // These should point to the same file
+        assert firstOutput == secondOutput
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/AB.txt").text == "Generated by task :B"
-        // Only A task can be cached
+        firstOutput.text == "Generated by task ${second}"
+        // Only first can be cached because second detects the overlap
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/AB.txt").text == "Generated by task :B"
-        // A can be from the cache
-        result.assertTaskSkipped(":A")
-        // B cannot be from the cache
-        result.assertTaskNotSkipped(":B")
+        firstOutput.text == "Generated by task ${second}"
+        // first can be loaded from the cache
+        result.assertTaskSkipped(first)
+        // second cannot be loaded from the cache because it overlaps with first
+        result.assertTaskNotSkipped(second)
 
         when:
-        withBuildCache().succeeds("A")
+        withBuildCache().succeeds(first)
         then:
-        // A overwrites B's output
-        file("build/AB.txt").text == "Generated by :A"
-        result.assertTaskSkipped(":A")
+        // first overwrites second's output if executed on its own
+        firstOutput.text == "Generated by ${first}"
+        // first is actually loaded from the cache since it just looks like its out-of-date (no overlap)
+        result.assertTaskSkipped(first)
     }
 
-    def "overlapping output files with A B then B A"() {
-        useOverlappingOutputFiles()
+    def "overlapping output files with first, second then second, first"() {
+        def (String first, TestFile firstOutput,
+             String second, TestFile secondOutput) = useOverlappingOutputFiles()
+        // These should point to the same file
+        assert firstOutput == secondOutput
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/AB.txt").text == "Generated by task :B"
-        // Only one task can be cached
+        firstOutput.text == "Generated by task ${second}"
+        // Only first can be cached because second detects the overlap
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("B", "A")
+        withBuildCache().succeeds(second, first)
         then:
-        file("build/AB.txt").text == "Generated by :A"
-        // A and B will not be from the cache
-        result.assertTaskNotSkipped(":B")
-        result.assertTaskSkipped(":A")
+        firstOutput.text == "Generated by ${first}"
+        // second will not be loaded from the cache due to a cache miss
+        result.assertTaskNotSkipped(second)
+        // first is loaded from the cache because second's effect just looks like the task is out-of-date
+        result.assertTaskSkipped(first)
     }
 
-    def "overlapping output files with A B then B"() {
-        useOverlappingOutputFiles()
+    def "overlapping output files with first, second then second only"() {
+        def (String first, TestFile firstOutput,
+             String second, TestFile secondOutput) = useOverlappingOutputFiles()
+        // These should point to the same file
+        assert firstOutput == secondOutput
 
         when:
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/AB.txt").text == "Generated by task :B"
-        // Only one task can be cached
+        firstOutput.text == "Generated by task ${second}"
+        // Only first can be cached because second detects the overlap
         listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("B")
+        withBuildCache().succeeds(second)
         then:
-        file("build/AB.txt").text == "Generated by task :B"
-        // B will not be from the cache
-        result.assertTasksNotSkipped(":B")
-        // B can be cached now
+        firstOutput.text == "Generated by task ${second}"
+        // second cannot be loaded from the cache due to cache miss
+        result.assertTasksNotSkipped(second)
+        // second can be cached now because first did not execute
         listCacheFiles().size() == 2
     }
 
-    def "overlapping output files with A cleanB B then A B"() {
-        useOverlappingOutputFiles()
+    def "overlapping output files with first, cleanSecond, second then first, second"() {
+        def (String first, TestFile firstOutput,
+             String second, TestFile secondOutput) = useOverlappingOutputFiles()
+        def cleanSecond = ":cleanSecond"
+        // These should point to the same file
+        assert firstOutput == secondOutput
 
         when:
-        withBuildCache().succeeds("A", "cleanB", "B")
+        withBuildCache().succeeds(first, cleanSecond, second)
         then:
-        file("build/AB.txt").text == "Generated by task :B"
-        // Both tasks can be cached
+        firstOutput.text == "Generated by task ${second}"
+        // Both tasks can be cached because cleanSecond removes the outputs of first
+        // before executing second
         listCacheFiles().size() == 2
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("A", "B")
+        withBuildCache().succeeds(first, second)
         then:
-        file("build/AB.txt").text == "Generated by task :B"
-        // A can be from the cache
-        result.assertTaskSkipped(":A")
-        // B cannot be from the cache
-        result.assertTaskSkipped(":B")
+        firstOutput.text == "Generated by task ${second}"
+        // first can be loaded from the cache and second can be loaded too
+        // because it just looks like second is out-of-date
+        result.assertTasksSkipped(first, second)
     }
 
     private void cleanBuildDir() {
@@ -388,79 +449,85 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     // @NotYetImplemented
     def "overlapping directory with external process and a pre-existing file"() {
         buildFile << """
-            task A(type: OutputDirectoryTask)
+            task someTask(type: OutputDirectoryTask)
         """
+        def someTask = ":someTask"
         def externalFile = file("build/external.txt")
+        def someTaskOutput = file("build/someTask.txt")
         externalFile.text = "Created by something else"
         when:
-        withBuildCache().succeeds("A")
+        withBuildCache().succeeds(someTask)
         then:
-        // A cannot be cached.
+        // someTask cannot be cached.
         listCacheFiles().size() == 0
         externalFile.assertExists()
-        file("build/A.txt").assertExists()
+        someTaskOutput.assertExists()
 
         when:
         externalFile.text = "changed"
-        file("build/A.txt").delete()
-        withBuildCache().succeeds("A")
+        someTaskOutput.delete()
+        withBuildCache().succeeds(someTask)
         then:
-        result.assertTaskNotSkipped(":A")
+        result.assertTaskNotSkipped(someTask)
         externalFile.text == "changed"
-        file("build/A.txt").assertExists()
+        someTaskOutput.assertExists()
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds("A")
+        withBuildCache().succeeds(someTask)
         then:
-        result.assertTaskNotSkipped(":A")
+        result.assertTaskNotSkipped(someTask)
         externalFile.assertDoesNotExist()
-        file("build/A.txt").assertExists()
-        // A can be cached now
+        someTaskOutput.assertExists()
+        // someTask can be cached now
         listCacheFiles().size() == 1
     }
 
     def "overlapping file with external process and a pre-existing file"() {
         buildFile << """
-            task A(type: OutputFileTask)
+            task someTask(type: OutputFileTask)
         """
-        file("build/A.txt").text = "Created by something else"
+        def someTask = ":someTask"
+        def someTaskOutput = file("build/someTask.txt")
+        someTaskOutput.text = "Created by something else"
+
         when:
-        withBuildCache().succeeds("A")
+        withBuildCache().succeeds(someTask)
         then:
-        // A cannot be cached.
+        // someTask cannot be cached because its outputs were created by something else
         listCacheFiles().size() == 0
-        file("build/A.txt").text == "Generated by :A"
+        someTaskOutput.text == "Generated by ${someTask}"
     }
 
     @Unroll
     def "overlapping #taskType with external process and a build-generated file"() {
         buildFile << """
-            task A(type: $taskType)
+            task someTask(type: $taskType)
         """
-        def generatedFile = file("build/A.txt")
+        def someTask = ":someTask"
+        def someTaskOutput = file("build/someTask.txt")
 
         when:
-        withBuildCache().succeeds("A")
+        withBuildCache().succeeds(someTask)
         then:
         // A can be cached.
         listCacheFiles().size() == 1
-        generatedFile.assertExists()
+        someTaskOutput.assertExists()
 
         when:
-        generatedFile.text = "changed"
-        withBuildCache().succeeds("A")
+        someTaskOutput.text = "changed"
+        withBuildCache().succeeds(someTask)
         then:
-        result.assertTaskSkipped(":A")
-        generatedFile.text == "Generated by :A"
+        result.assertTaskSkipped(someTask)
+        someTaskOutput.text == "Generated by ${someTask}"
 
         when:
         // Looks the same as clean
-        generatedFile.delete()
-        withBuildCache().succeeds("A")
+        someTaskOutput.delete()
+        withBuildCache().succeeds(someTask)
         then:
-        result.assertTaskSkipped(":A")
-        generatedFile.text == "Generated by :A"
+        result.assertTaskSkipped(someTask)
+        someTaskOutput.text == "Generated by ${someTask}"
 
         where:
         taskType << [ "OutputDirectoryTask", "OutputFileTask" ]
@@ -470,22 +537,24 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     @NotYetImplemented
     def "overlapping directory with external process that creates a directory"() {
         buildFile << """
-            task A(type: OutputDirectoryTask)
+            task someTask(type: OutputDirectoryTask)
         """
+        def someTask = ":someTask"
+        def someTaskOutput = file("build/someTask.txt")
 
         when:
-        withBuildCache().succeeds("A")
+        withBuildCache().succeeds(someTask)
         then:
         // A can be cached.
         listCacheFiles().size() == 1
-        file("build/A.txt").assertExists()
+        someTaskOutput.assertExists()
 
         when:
         cleanBuildDir()
         file("build/emptyDir").createDir()
-        withBuildCache().succeeds("A")
+        withBuildCache().succeeds(someTask)
         then:
-        result.assertTaskNotSkipped(":A")
-        file("build/A.txt").assertExists()
+        result.assertTaskNotSkipped(someTask)
+        someTaskOutput.assertExists()
     }
 }
