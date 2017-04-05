@@ -163,7 +163,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Removed the method `getProjectConfiguration()` from `ProjectDependency`.
 - Removed class `BuildCache`.
 - Removed class `MapBasedBuildCache`.
-- Removed class `Clock`.
 - Removed class `ActionBroadcast`.
 
 The deprecated `jetty` plugin has been removed. We recommend using the [Gretty plugin](https://github.com/akhikhl/gretty) for developing Java web applications.

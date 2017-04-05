@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.internal.time.Clock;
+import org.gradle.util.Clock;
 
 public class DefaultBuildRequestContext implements BuildRequestContext {
     private final BuildCancellationToken token;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
 
-import org.gradle.util.Clock;
+package org.gradle.util;
 
 /**
- * A bunch of information about the request which launched a build.
+ * This class remains for backward compatibility. Replaced by `org.gradle.internal.time.Clock`.
  */
-public interface BuildRequestMetaData {
-    /**
-     * Returns the meta-data about the client used to launch this build.
-     */
-    BuildClientMetaData getClient();
+@Deprecated
+public class Clock extends org.gradle.internal.time.Clock {
+    public Clock() {
+        super();
+    }
 
-    /**
-     * Returns a clock measuring the time since the request was made by the user of the client.
-     */
-    @Deprecated
-    Clock getBuildTimeClock();
+    public Clock(long startTime) {
+        super(startTime);
+    }
+
+    public String getTime() {
+        return getElapsed();
+    }
+
+    public long getTimeInMs() {
+        return getElapsedMillis();
+    }
 }
