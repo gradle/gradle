@@ -41,13 +41,13 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
     private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
-    private final StoppableExecutor executor;
+    private final StoppableExecutor fixedSizePool;
 
-    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory) {
+    public DefaultBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
         this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        this.executor = executorFactory.create("build operations");
+        this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
     }
 
     private <T extends BuildOperation> void doRun(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
-        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(buildOperationWorkerRegistry.getCurrent(), executor, new ParentBuildOperationAwareWorker<T>(worker));
+        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(buildOperationWorkerRegistry.getCurrent(), fixedSizePool, new ParentBuildOperationAwareWorker<T>(worker));
 
         List<GradleException> failures = Lists.newArrayList();
         try {
@@ -101,7 +101,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
     }
 
     public void stop() {
-        executor.stop();
+        fixedSizePool.stop();
     }
 
     private static String formatMultipleFailureMessage(List<GradleException> failures) {

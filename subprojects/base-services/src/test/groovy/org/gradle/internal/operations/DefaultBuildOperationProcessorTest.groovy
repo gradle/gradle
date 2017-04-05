@@ -33,7 +33,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
 
     def setupBuildOperationProcessor(int maxThreads) {
         workerRegistry = new DefaultBuildOperationWorkerRegistry(maxThreads)
-        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory())
+        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxThreads)
         outerOperationCompletion = workerRegistry.operationStart();
         outerOperation = workerRegistry.getCurrent()
     }
@@ -43,52 +43,6 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
             outerOperationCompletion.operationFinish()
             workerRegistry.stop()
         }
-    }
-
-    @Unroll
-    def "all (#operations + 16) operations spread across 8 nested usage levels run to completion when using #maxWorkers workers"() {
-        given:
-        setupBuildOperationProcessor(maxWorkers)
-        def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
-        def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
-
-        and:
-        def nest
-        nest = { BuildOperationQueue queue, int level ->
-            if (level < 8) {
-                queue.add(operation)
-                queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
-                    @Override
-                    void run() {
-                        buildOperationProcessor.run(worker, { q ->
-                            nest(q, level + 1)
-                        })
-                    }
-                })
-                queue.add(operation)
-            } else {
-                operations.times {
-                    queue.add(operation)
-                }
-            }
-        }
-
-        when:
-        buildOperationProcessor.run(worker, { queue ->
-            nest(queue, 0)
-        })
-
-        then:
-        (operations + 16) * operation.run()
-
-        where:
-        operations | maxWorkers
-        0          | 1
-        1          | 1
-        20         | 1
-        1          | 4
-        4          | 4
-        20         | 4
     }
 
     @Unroll
@@ -238,7 +192,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         def buildQueue = Mock(BuildOperationQueue)
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory)
 
-        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory))
+        buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -270,7 +224,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
             create(_, _, _) >> { buildQueue }
         }
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory))
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -300,7 +254,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
             create(_, _, _) >> { buildQueue }
         }
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory))
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(workerRegistry, new TestBuildOperationExecutor(), buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
