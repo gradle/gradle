@@ -28,11 +28,11 @@ import java.util.concurrent.Callable;
  * <pre autoTested=''>
  * public class MyTask extends DefaultTask {
  *   // injection into a constructor
- *   @javax.inject.Inject
+ *   {@literal @}javax.inject.Inject
  *   public MyTask(ProviderFactory providerFactory) { }
  *
  *   // injection into a method
- *   @javax.inject.Inject
+ *   {@literal @}javax.inject.Inject
  *   public ProviderFactory getProviderFactory() {
  *     throw new UnsupportedOperationException();
  *   }
