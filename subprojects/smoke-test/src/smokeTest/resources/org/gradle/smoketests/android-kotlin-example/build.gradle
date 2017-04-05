@@ -21,7 +21,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.0"
+    buildToolsVersion '$androidBuildToolsVersion'
     defaultConfig {
         applicationId "org.gradle.smoketest.kotlin.android"
         minSdkVersion 16

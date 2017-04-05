@@ -23,6 +23,7 @@ import org.gradle.testkit.runner.TaskOutcome
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     public static final ANDROID_PLUGIN_VERSION = '2.3.1'
+    public static final ANDROID_BUILD_TOOLS_VERSION = '25.0.0'
 
     def "android application plugin"() {
         given:
@@ -227,7 +228,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """
             android {
                 compileSdkVersion 22
-                buildToolsVersion "25.0.0"
+                buildToolsVersion "${ANDROID_BUILD_TOOLS_VERSION}"
 
                 defaultConfig {
                     minSdkVersion 22
