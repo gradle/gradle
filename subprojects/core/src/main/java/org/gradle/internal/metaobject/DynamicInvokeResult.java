@@ -16,58 +16,39 @@
 
 package org.gradle.internal.metaobject;
 
-public abstract class DynamicInvokeResult {
+public class DynamicInvokeResult {
+
+    private static final Object NO_VALUE = new Object();
+    private static final DynamicInvokeResult NOT_FOUND = new DynamicInvokeResult(NO_VALUE);
+    private static final DynamicInvokeResult NULL = new DynamicInvokeResult(null);
 
     public static DynamicInvokeResult found(Object value) {
-        return value == null ? found() : new Found(value);
+        return value == null ? found() : new DynamicInvokeResult(value);
     }
 
     public static DynamicInvokeResult found() {
-        return Found.NULL;
+        return DynamicInvokeResult.NULL;
     }
 
     public static DynamicInvokeResult notFound() {
-        return NotFound.INSTANCE;
+        return DynamicInvokeResult.NOT_FOUND;
     }
 
-    private DynamicInvokeResult() {
+    private final Object value;
+
+    private DynamicInvokeResult(Object value) {
+        this.value = value;
     }
 
-    public abstract Object getValue();
-
-    public abstract boolean isFound();
-
-    private static class NotFound extends DynamicInvokeResult {
-        private static final NotFound INSTANCE = new NotFound();
-
-        @Override
-        public Object getValue() {
+    public Object getValue() {
+        if (isFound()) {
+            return value;
+        } else {
             throw new IllegalStateException("Not found");
         }
-
-        @Override
-        public boolean isFound() {
-            return false;
-        }
     }
 
-    private static class Found extends DynamicInvokeResult {
-        private static final Found NULL = new Found(null);
-
-        private final Object value;
-
-        private Found(Object value) {
-            this.value = value;
-        }
-
-        @Override
-        public Object getValue() {
-            return value;
-        }
-
-        @Override
-        public boolean isFound() {
-            return true;
-        }
+    public boolean isFound() {
+        return value != NO_VALUE;
     }
 }
