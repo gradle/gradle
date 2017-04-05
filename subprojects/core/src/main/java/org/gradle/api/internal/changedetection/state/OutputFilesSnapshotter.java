@@ -39,6 +39,8 @@ public class OutputFilesSnapshotter {
             NormalizedFileSnapshot fileSnapshot = beforeSnapshot.getValue();
             NormalizedFileSnapshot previousSnapshot = previousSnapshots.get(path);
             // Missing files or just directories can be ignored
+            // It would be nice to consider directories too, but we can't distinguish between an existing _root_ directory of an output property
+            // and a directory inside the root directory. 
             if (fileSnapshot.getSnapshot().getType() == FileType.RegularFile && previousSnapshot == null) {
                 // created since last execution, possibly by another task
                 LOGGER.info("Detected overlap for property '{}' with path '{}'", propertyName, fileSnapshot.getNormalizedPath());
