@@ -71,9 +71,8 @@ public class GenerationPlanBuilder {
         for (GrammarMetadata grammarMetadata : grammarFileMetadata.getGrammars()) {
             final File generatedParserFile = new File(outputDirectory, grammarMetadata.determineGeneratedParserPath());
 
-            if (!generatedParserFile.exists()) {
-                generationPlan.markOutOfDate();
-            } else if (generatedParserFile.lastModified() < generationPlan.getSource().lastModified()) {
+            if (!generatedParserFile.exists()
+                || (generatedParserFile.lastModified() < generationPlan.getSource().lastModified())) {
                 generationPlan.markOutOfDate();
             }
 
@@ -84,10 +83,8 @@ public class GenerationPlanBuilder {
                 if (superGrammarGrammarFileMetadata != null) {
                     final GenerationPlan superGrammarGenerationPlan = locateOrBuildGenerationPlan(
                             superGrammarGrammarFileMetadata);
-                    if (superGrammarGenerationPlan.isOutOfDate()) {
-                        generationPlan.markOutOfDate();
-                    } else if (superGrammarGenerationPlan.getSource().lastModified() > generatedParserFile
-                            .lastModified()) {
+                    if (superGrammarGenerationPlan.isOutOfDate()
+                        || (superGrammarGenerationPlan.getSource().lastModified() > generatedParserFile.lastModified())) {
                         generationPlan.markOutOfDate();
                     }
                 }
@@ -105,10 +102,8 @@ public class GenerationPlanBuilder {
                             importVocabGrammarFileMetadata);
                     generationPlan.setImportVocabTokenTypesDirectory(
                             importVocabGrammarGenerationPlan.getGenerationDirectory());
-                    if (importVocabGrammarGenerationPlan.isOutOfDate()) {
-                        generationPlan.markOutOfDate();
-                    } else if (importVocabGrammarGenerationPlan.getSource().lastModified() > generatedParserFile
-                            .lastModified()) {
+                    if (importVocabGrammarGenerationPlan.isOutOfDate()
+                        || (importVocabGrammarGenerationPlan.getSource().lastModified() > generatedParserFile.lastModified())) {
                         generationPlan.markOutOfDate();
                     }
                 }

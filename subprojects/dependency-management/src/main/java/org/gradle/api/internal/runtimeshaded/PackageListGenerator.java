@@ -175,7 +175,7 @@ public class PackageListGenerator extends DefaultTask {
     }
 
     private void processClassFile(ZipEntry zipEntry, Trie.Builder builder) throws IOException {
-        int endIndex = zipEntry.getName().lastIndexOf("/");
+        int endIndex = zipEntry.getName().lastIndexOf('/');
         if (endIndex > 0) {
             String packageName = zipEntry.getName().substring(0, endIndex);
             for (String exclude : getExcludes()) {

@@ -133,7 +133,7 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
             List<Task> taskList = taskExecutionGraph.getAllTasks();
 
             this.totalTasksToExecute = taskList.size();
-            client.sendMessage(ProtocolConstants.NUMBER_OF_TASKS_TO_EXECUTE, null, new Integer(taskList.size()));
+            client.sendMessage(ProtocolConstants.NUMBER_OF_TASKS_TO_EXECUTE, null, taskList.size());
         }
 
         /**
@@ -165,14 +165,14 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
 
         public void beforeExecute(Task task) {
             String currentTaskName = task.getProject().getName() + ":" + task.getName();
-            client.sendMessage(ProtocolConstants.TASK_STARTED_TYPE, currentTaskName, new Float(percentComplete));
+            client.sendMessage(ProtocolConstants.TASK_STARTED_TYPE, currentTaskName, percentComplete);
         }
 
         public void afterExecute(Task task, TaskState state) {
             totalTasksExecuted++;
             percentComplete = (totalTasksExecuted / totalTasksToExecute) * 100;
             String currentTaskName = task.getProject().getName() + ":" + task.getName();
-            client.sendMessage(ProtocolConstants.TASK_COMPLETE_TYPE, currentTaskName, new Float(percentComplete));
+            client.sendMessage(ProtocolConstants.TASK_COMPLETE_TYPE, currentTaskName, percentComplete);
         }
 
         /**

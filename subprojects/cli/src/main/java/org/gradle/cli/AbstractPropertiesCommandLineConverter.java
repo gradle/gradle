@@ -31,7 +31,7 @@ public abstract class AbstractPropertiesCommandLineConverter extends AbstractCom
 
     public Map<String, String> convert(ParsedCommandLine options, Map<String, String> properties) throws CommandLineArgumentException {
         for (String keyValueExpression : options.option(getPropertyOption()).getValues()) {
-            int pos = keyValueExpression.indexOf("=");
+            int pos = keyValueExpression.indexOf('=');
             if (pos < 0) {
                 properties.put(keyValueExpression, "");
             } else {

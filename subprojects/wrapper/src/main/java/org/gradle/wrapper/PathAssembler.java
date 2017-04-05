@@ -72,7 +72,7 @@ public class PathAssembler {
     }
 
     private String removeExtension(String name) {
-        int p = name.lastIndexOf(".");
+        int p = name.lastIndexOf('.');
         if (p < 0) {
             return name;
         }
@@ -81,7 +81,7 @@ public class PathAssembler {
 
     private String getDistName(URI distUrl) {
         String path = distUrl.getPath();
-        int p = path.lastIndexOf("/");
+        int p = path.lastIndexOf('/');
         if (p < 0) {
             return path;
         }

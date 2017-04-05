@@ -124,8 +124,6 @@ public class ProjectBuilderImpl {
         if (projectDir == null) {
             TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
             projectDir = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
-            // TODO deleteOnExit won't clean up non-empty directories (and it leaks memory for long-running processes).
-            projectDir.deleteOnExit();
         } else {
             projectDir = FileUtils.canonicalize(projectDir);
         }

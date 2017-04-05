@@ -286,7 +286,7 @@ class RuntimeShadedJarCreator {
         String originalName = zipEntry.getName();
         byte[] resource = streamByteBuffer.readAsByteArray();
 
-        int i = originalName.lastIndexOf("/");
+        int i = originalName.lastIndexOf('/');
         String path = i == -1 ? null : originalName.substring(0, i);
 
         if (remapper.keepOriginalResource(path)) {

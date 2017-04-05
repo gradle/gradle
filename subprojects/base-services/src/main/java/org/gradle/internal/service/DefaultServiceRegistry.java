@@ -492,11 +492,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 return null;
             }
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
-            ServiceProvider unique = null;
             for (Provider provider : providers) {
                 ServiceProvider factory = provider.getFactory(context, type);
                 if (factory != null) {
-                    unique = factory;
                     candidates.add(factory);
                 }
             }
