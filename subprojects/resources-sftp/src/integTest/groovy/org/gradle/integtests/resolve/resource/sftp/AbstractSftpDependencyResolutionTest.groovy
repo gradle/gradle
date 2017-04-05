@@ -25,6 +25,11 @@ import org.junit.Rule
 class AbstractSftpDependencyResolutionTest extends AbstractDependencyResolutionTest {
     @Rule final SFTPServer server = new SFTPServer(temporaryFolder)
 
+    def setup() {
+        // SFTP test fixture doesn't seem to handle concurrent requests properly
+        executer.withArguments('--max-workers', '1')
+    }
+
     MavenSftpRepository getMavenSftpRepo() {
         new MavenSftpRepository(server, '/repo')
     }

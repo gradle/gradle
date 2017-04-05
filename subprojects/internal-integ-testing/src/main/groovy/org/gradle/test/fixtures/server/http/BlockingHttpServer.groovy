@@ -30,7 +30,7 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-public class BlockingHttpServer extends ExternalResource {
+class BlockingHttpServer extends ExternalResource {
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
 
@@ -194,8 +194,6 @@ server state: ${server.dump()}
     interface BlockingHandler {
         void release(int count)
 
-        boolean isNoMorePending()
-
         void waitForAllPendingCalls(int timeoutSeconds)
     }
 
@@ -208,7 +206,7 @@ server state: ${server.dump()}
         int pending
         boolean shortCircuit
 
-        CyclicBarrierAnyOfRequestHandler(int pending, Set calls) {
+        CyclicBarrierAnyOfRequestHandler(int pending, Set<String> calls) {
             this.expected = calls
             this.pending = pending
         }
@@ -225,28 +223,18 @@ server state: ${server.dump()}
                     request.handled = true
                     return
                 }
-                def path = target.replaceFirst('/', '')
-                if (!expected.remove(path)) {
-                    if (!noMorePending) {
-                        shortCircuit = true
-                        condition.signalAll()
-                        throw new AssertionError("Unexpected call to '$target' received. Waiting for $pending more concurrent calls, already received $received, still expecting $expected.")
-                    }
-                    // barrier open, let it travel on
-                    return
-                }
-
-                if (noMorePending) {
+                def call = target.replaceFirst('/', '')
+                if (!expected.contains(call) || pending == 0) {
                     shortCircuit = true
                     condition.signalAll()
-                    throw new AssertionError("Unexpected call to '$target' received. Waiting for $pending more concurrent calls, already received $received, still expecting $expected.")
+                    throw new AssertionError("Unexpected call to '$target' received. Waiting for $pending more concurrent calls, already received $received, released $released, still expecting $expected.")
                 }
-
+                expected.remove(call)
+                received.add(call)
                 pending--
-                received.add(path)
-                while (!released.contains(path) && !shortCircuit) {
+                while (!released.contains(call) && !shortCircuit) {
                     if (!condition.awaitUntil(expiry)) {
-                        throw new AssertionError("Timeout waiting for all concurrent requests. Waiting for $pending more concurrent calls, received $received, still expecting $expected.")
+                        throw new AssertionError("Timeout waiting for all concurrent requests. Waiting for $pending more concurrent calls, received $received, released $released, still expecting $expected.")
                     }
                 }
                 if (!shortCircuit) {
@@ -255,13 +243,17 @@ server state: ${server.dump()}
             } finally {
                 lock.unlock()
             }
-
             request.handled = true
         }
 
         void assertComplete() {
-            if (!expected.empty) {
-                throw new AssertionError("BlockingHttpServer: did not receive expected concurrent requests. Waiting for $pending more concurrent calls, received $received, still expecting $expected")
+            lock.lock()
+            try {
+                if (!expected.empty || received.sort() != released.sort()) {
+                    throw new AssertionError("BlockingHttpServer: did not handle all expected concurrent requests. Waiting for $pending more concurrent calls, received $received, released $released, still expecting $expected.")
+                }
+            } finally {
+                lock.unlock()
             }
         }
 
@@ -270,25 +262,23 @@ server state: ${server.dump()}
             lock.lock()
             try {
                 println "releasing ${count} pending call(s)..."
-                count.times {
-                    released.add((received-released)[0])
-                    condition.signalAll()
-                    pending++
-                }
+                released.addAll((received - released).take(count))
+                pending += count
+                condition.signalAll()
             } finally {
                 lock.unlock()
             }
         }
 
         @Override
-        boolean isNoMorePending() {
-            return pending == 0
-        }
-
-        @Override
-        void waitForAllPendingCalls(int timeoutSeconds=10) {
+        void waitForAllPendingCalls(int timeoutSeconds = 10) {
             ConcurrentTestUtil.poll(timeoutSeconds) {
-                assert noMorePending
+                lock.lock()
+                try {
+                    assert pending == 0
+                } finally {
+                    lock.unlock()
+                }
             }
         }
     }

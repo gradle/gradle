@@ -135,15 +135,6 @@ public interface ModuleDependency extends Dependency {
     ModuleDependency setTransitive(boolean transitive);
 
     /**
-     * Returns the configuration of this dependency module (not the configurations this dependency belongs too). Never
-     * returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}.
-     *
-     * @deprecated Use {@link #getTargetConfiguration()} instead
-     */
-    @Deprecated
-    String getConfiguration();
-
-    /**
      * Returns the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
      * selecting the matching configuration. If {@code null}, a default configuration should be used.
      */

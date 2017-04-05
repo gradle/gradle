@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.operations;
 
-plugins {
-    id "war"
-    id "org.akhikhl.gretty" version "1.4.2"
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
-}
-
-gretty {
-    servletContainer = 'jetty9'
-    contextPath = 'quickstart'
+/**
+ * Interface used by build operations which also provide a display name
+ * or an operation descriptor.
+ *
+ * @param <T> the type of the operation descriptor
+ */
+public interface DescribableBuildOperation<T> extends BuildOperation {
+    T getOperationDescriptor();
+    String getProgressDisplayName();
 }

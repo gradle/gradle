@@ -49,16 +49,6 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         projectDependency.version == "1.2"
     }
 
-    void "knows the configuration"() {
-        def conf = project.configurations.create("conf1")
-
-        when:
-        projectDependency = new DefaultProjectDependency(project, "conf1", null, true)
-
-        then:
-        projectDependency.projectConfiguration == conf
-    }
-
     void "transitive resolution resolves all dependencies"() {
         def context = Mock(DependencyResolveContext)
 

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     private final BuildOperationProcessor buildOperationProcessor;
@@ -54,9 +55,29 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             resolvedArtifactsById.put(id, resolvedArtifacts);
         }
 
+        if (allArtifactSets.isEmpty()) {
+            return NoArtifactResults.INSTANCE;
+        }
+
         ResolvedArtifactSet composite = CompositeArtifactSet.of(allArtifactSets);
         composite = new ParallelResolveArtifactSet(composite, buildOperationProcessor);
+
         return new DefaultSelectedArtifactResults(composite, resolvedArtifactsById.build());
+    }
+
+    private static class NoArtifactResults implements SelectedArtifactResults {
+
+        private static final NoArtifactResults INSTANCE = new NoArtifactResults();
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return EMPTY;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts(long id) {
+            return null;
+        }
     }
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {

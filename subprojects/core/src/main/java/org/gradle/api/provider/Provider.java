@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Internal;
 
 /**
  * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()} or {@code getOrNull()}.
@@ -40,6 +41,7 @@ public interface Provider<T> {
      *
      * @return Value
      */
+    @Internal
     T getOrNull();
 
     /**
@@ -47,5 +49,6 @@ public interface Provider<T> {
      *
      * @return {@code true} if there is a value present, otherwise {@code false}
      */
+    @Internal
     boolean isPresent();
 }

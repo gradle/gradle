@@ -99,9 +99,9 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * progressLogger.progress('1 KB/4 KB downloaded')
-        1 * progressLogger.progress('3 KB/4 KB downloaded')
-        1 * progressLogger.progress('4 KB/4 KB downloaded')
+        1 * progressLogger.progress('1 KB/4 KB downloaded: location')
+        1 * progressLogger.progress('3 KB/4 KB downloaded: location')
+        1 * progressLogger.progress('4 KB/4 KB downloaded: location')
         1 * progressLogger.completed()
         0 * progressLogger.progress(_)
     }
@@ -121,7 +121,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * progressLogger.progress('1 KB/4 KB downloaded')
+        1 * progressLogger.progress('1 KB/4 KB downloaded: location')
         1 * progressLogger.completed()
         0 * progressLogger.progress(_)
     }

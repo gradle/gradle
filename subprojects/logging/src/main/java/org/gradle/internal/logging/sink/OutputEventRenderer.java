@@ -32,7 +32,6 @@ import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
@@ -42,6 +41,7 @@ import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.OutputStream;
@@ -61,6 +61,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private int maxWorkerCount;
     private final ConsoleConfigureAction consoleConfigureAction;
+    private final TimeProvider timeProvider;
     private OutputStream originalStdOut;
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
@@ -68,11 +69,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private OutputEventListener console;
 
     public OutputEventRenderer() {
+        this(new TrueTimeProvider());
+    }
+
+    OutputEventRenderer(TimeProvider timeProvider) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
         formatters.add(stdErrChain);
         this.consoleConfigureAction = new ConsoleConfigureAction();
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -199,8 +205,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     new ProgressLogEventGenerator(
                         new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), true),
                     console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData),
-            new TrueTimeProvider());
+                console.getStatusBar(), console, consoleMetaData, timeProvider),
+            timeProvider);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;
@@ -221,7 +227,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     private OutputEventListener onError(final OutputEventListener listener) {
-        return new BatchOutputEventListener() {
+        return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
                 if (event.getLogLevel() == LogLevel.ERROR || event.getLogLevel() == null) {
                     listener.onOutput(event);
@@ -231,7 +237,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     private OutputEventListener onNonError(final OutputEventListener listener) {
-        return new BatchOutputEventListener() {
+        return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
                 if (event.getLogLevel() != LogLevel.ERROR || event.getLogLevel() == null) {
                     listener.onOutput(event);

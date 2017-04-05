@@ -16,32 +16,52 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.events.BatchOutputEventListener;
+import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.time.TimeProvider;
 
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
+    private static final long RENDER_NOW_PERIOD_MILLISECONDS = 250;
     private final BatchOutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
+    private final TimeProvider timeProvider;
+    private final ScheduledExecutorService executor;
+    private final DefaultTerseDurationFormatter elapsedTimeFormatter = new DefaultTerseDurationFormatter();
+    private final Object lock = new Object();
     private String currentBuildStatus;
     private OperationIdentifier rootOperationId;
+    private long buildStartTimestamp;
+    private ScheduledFuture future;
 
-    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider) {
+        this(listener, buildStatusLabel, console, consoleMetaData, timeProvider, Executors.newSingleThreadScheduledExecutor());
+    }
+
+    BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider, ScheduledExecutorService executor) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
         this.consoleMetaData = consoleMetaData;
+        this.timeProvider = timeProvider;
+        this.executor = executor;
+        this.buildStartTimestamp = timeProvider.getCurrentTime();
     }
 
     private void buildStarted(ProgressStartEvent progressStartEvent) {
@@ -76,14 +96,21 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
             if (progressEvent.getOperationId().equals(rootOperationId)) {
                 buildProgressed(progressEvent);
             }
+        } else if (event instanceof EndOutputEvent) {
+            if (future != null && !future.isCancelled()) {
+                future.cancel(false);
+            }
+            executor.shutdown();
         }
     }
 
     @Override
     public void onOutput(Iterable<OutputEvent> events) {
-        super.onOutput(events);
-        listener.onOutput(events);
-        renderNow();
+        synchronized (lock) {
+            super.onOutput(events);
+            listener.onOutput(events);
+            renderNow(timeProvider.getCurrentTime());
+        }
     }
 
     private String trimToConsole(String str) {
@@ -94,10 +121,26 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         return str;
     }
 
-    private void renderNow() {
-        if (currentBuildStatus != null) {
-            buildStatusLabel.setText(Arrays.asList(new Span(Style.of(Style.Emphasis.BOLD), trimToConsole(currentBuildStatus))));
+    private void renderNow(long now) {
+        if (currentBuildStatus != null && !currentBuildStatus.isEmpty()) {
+            if ((future == null || future.isCancelled()) && !executor.isShutdown()) {
+                future = executor.scheduleAtFixedRate(new Runnable() {
+                    @Override
+                    public void run() {
+                        synchronized (lock) {
+                            renderNow(timeProvider.getCurrentTime());
+                        }
+                    }
+                }, RENDER_NOW_PERIOD_MILLISECONDS, RENDER_NOW_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
+            }
+            String elapsedTime = elapsedTimeFormatter.format(now - buildStartTimestamp);
+            buildStatusLabel.setText(Arrays.asList(
+                new Span(Style.of(Style.Emphasis.BOLD), trimToConsole(format(currentBuildStatus, elapsedTime)))));
         }
         console.flush();
+    }
+
+    private static String format(String status, String elapsedTime) {
+        return status + " [" + elapsedTime + "]";
     }
 }

@@ -22,4 +22,9 @@ import org.junit.Rule
 class IvySftpLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
     @Rule
     final SFTPServer server = new SFTPServer(temporaryFolder)
+
+    def setup() {
+        // SFTP test fixture doesn't seem to handle concurrent requests properly
+        executer.withArguments('--max-workers', '1')
+    }
 }

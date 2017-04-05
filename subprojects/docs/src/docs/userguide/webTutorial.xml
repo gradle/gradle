@@ -53,7 +53,6 @@
             run your web application in an embedded servlet container. Running <userinput>gradle appRunWar</userinput>
             will build the WAR file, and then run it in an embedded web container.
         </para>
-        <para>TODO: which url, configure port, uses source files in place and can edit your files and reload.</para>
     </section>
 
     <section id="sec:web_tutorial_summary">

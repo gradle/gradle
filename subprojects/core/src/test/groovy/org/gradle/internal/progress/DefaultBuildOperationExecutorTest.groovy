@@ -22,6 +22,10 @@ import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
@@ -373,29 +377,17 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         e.message == "No operation is currently running."
     }
 
-    def "can query operation id when no operation running on current unmanaged thread"() {
+    def "cannot query current operation when no operation running on current unmanaged thread"() {
         when:
         BuildOperationExecutor.Operation op
         async {
-            start {
-                operationExecutor.run("operation", {
-                    instant.operationRunning
-                    thread.blockUntil.queried
-                } as Action)
-            }
-            thread.blockUntil.operationRunning
-            try {
-                op = operationExecutor.currentOperation
-            } finally {
-                instant.queried
-            }
+            assert !GradleThread.managed
+            op = operationExecutor.currentOperation
         }
 
         then:
-        op != null
-        (op.id as String).matches(/-\d+/)
-        op.parentId == null
-        op.toString().matches(/Unmanaged thread operation #-\d+ \(Test thread \d+\)/)
+        def ex = thrown(IllegalStateException)
+        ex.message == 'No operation is currently running.'
     }
 
 
@@ -403,9 +395,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         async {
             assert !GradleThread.managed
-            assert operationExecutor.currentOperation instanceof DefaultBuildOperationExecutor.UnmanagedThreadOperation
             operationExecutor.run('outer', {
                 assert operationExecutor.currentOperation instanceof DefaultBuildOperationExecutor.OperationDetails
+                assert operationExecutor.currentOperation.parentId.id < 0
                 operationExecutor.run('inner', {} as Action)
             } as Action)
         }
@@ -595,5 +587,22 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         cleanup:
         GradleThread.setUnmanaged()
+    }
+
+    def "can be used through BuildOperationProcessor on unmanaged threads"() {
+        given:
+        def maxWorkers = 2
+        def processor = new DefaultBuildOperationProcessor(new DefaultBuildOperationWorkerRegistry(maxWorkers), operationExecutor, new DefaultBuildOperationQueueFactory(), executorFactory, maxWorkers)
+        def operation = Mock(RunnableBuildOperation)
+
+        when:
+        async {
+            processor.run({ queue ->
+                5.times { queue.add(operation) }
+            })
+        }
+
+        then:
+        5 * operation.run()
     }
 }

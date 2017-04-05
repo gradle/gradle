@@ -6,28 +6,6 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-### More work avoidance when using `@Classpath` task properties
-
-For built-in and custom tasks that use the `@Classpath` annotation, Gradle now performs deeper inspection of the classpath to filter out some differences that do not affect task execution.  Gradle will ignore changes to timestamps within a jar file and the order of entries inside a jar file.
-
-In previous versions, for tasks like `Javadoc`, `Checkstyle` and `Test`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc).
-
-### Extensions now have a public type
-
-Extensions can now be registered in `ExtensionContainer`s with an explicit public type.
- This allows plugin authors to hide their implementation type from build scripts and
- allow `ExtensionContainer`s to expose a schema of all the registered extensions.
-
-For example, if you have a `FancyExtension` type, implemented by some `DefaultFancyExtension` type, here is how
- you should register it:
-
-    // If you want to delegate the extension instance creation to Gradle:
-    project.extensions.create FancyExtension, 'fancy', DefaultFancyExtension
-
-    // Or if you need to create the extension instance yourself:
-    FancyExtension fancyInstance = new DefaultFancyExtension(...)
-    project.extensions.add FancyExtension, 'fancy', fancyInstance
-
 ### Public type for representing lazily evaluated properties
 
 Because Gradle's build lifecycle clearly distinguishes between configuration phase and execution phase the evaluation of property
@@ -122,33 +100,12 @@ running into evaluation ordering issues:
         }
     }
 
-### BuildActionExecutor supports running tasks
+### Build Cache honors `--offline` 
 
-Tooling API clients can now run tasks before running a build action. This allows them to fetch tooling models which depend on the result of
-executing some task. This mirrors the existing `ModelBuilder.forTasks()` API.
-
-### Support for multi-value Javadoc options
-
-Gradle has added support for command-line options to doclets that can appear [multiple times and have multiple values](javadoc/org/gradle/external/javadoc/CoreJavadocOptions.html#addMultilineMultiValueOption-java.lang.String-).
-
-In previous versions of Gradle, it was not possible to supply command-line options like:
-
-    -myoption 'foo' 'bar'
-    -myoption 'baz'
-
-Gradle would produce a single `-myoption` or combine the option's value into a single argument.
-
-    javadoc {
-        options {
-            def myoption = addMultilineMultiValueOption("myoption")
-            myoption.setValue([
-                [ "foo", "bar" ],
-                [ "baz" ]
-            ])
-        }
-    }
+When running with `--offline`, Gradle will disable the remote build cache.
 
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
+
 This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases.
 
 <!--
@@ -189,12 +146,28 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
 - The `JacocoTaskExtension` methods `getClassDumpFile()`, `setClassDumpFile(File)`, `getAgent()` and `setAgent(JacocoAgentJar)` are removed.
+- Removed constructor `AccessRule(Object, Object)`.
+- Removed constructor `ProjectDependency(String, String)` and the methods `getGradlePath()`, `setGradlePath(String)`.
+- Removed constructor `WbDependentModule(Object)`.
+- Removed constructor `WbProperty(Object)`.
+- Removed constructor `WbResource(Object)`.
+- Removed constructor `JarDirectory(Object, Object)`.
+- Removed constructor `Jdk(Object, Object, Object, Object)`.
+- Removed constructor `ModuleDependency(Object, Object)`.
 - Moved classes `RhinoWorkerHandleFactory` and `RhinoWorkerUtils` into internal package.
 - Removed `RhinoWorker`.
 - Removed constructor `EarPluginConvention(Instantiator)`.
+- Removed the methods `isTaskOutputCacheEnabled()`, `setTaskOutputCacheEnabled(boolean)` from `StartParameter`.
+- Removed the method `registerWatchPoints(FileSystemSubset.Builder)` from `FileCollectionDependency`.
+- Removed the method `getConfiguration()` from `ModuleDependency`.
+- Removed the method `getProjectConfiguration()` from `ProjectDependency`.
+- Removed class `BuildCache`.
+- Removed class `MapBasedBuildCache`.
+- Removed class `ActionBroadcast`.
 - Removed the [Gradle GUI](https://docs.gradle.org/3.5/userguide/tutorial_gradle_gui.html). All classes for this feature have been removed as well as all leftovers supporting class from the Open API partly removed due to deprecation in Gradle 2.0.
 
 The deprecated `jetty` plugin has been removed. We recommend using the [Gretty plugin](https://github.com/akhikhl/gretty) for developing Java web applications.
+The deprecated `pluginRepositories` block for declaring custom plugin repositories has been removed in favor of `pluginManagement.repositories`.
 
 ## External contributions
 

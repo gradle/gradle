@@ -18,14 +18,11 @@ package org.gradle.api.internal.artifacts.dependencies;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
-import org.gradle.util.DeprecationLogger;
-import org.gradle.util.GUtil;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -51,11 +48,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     public ModuleDependency setTransitive(boolean transitive) {
         this.transitive = transitive;
         return this;
-    }
-
-    public String getConfiguration() {
-        DeprecationLogger.nagUserOfDeprecated("ModuleDependency.getConfiguration()", "Use ModuleDependency.getTargetConfiguration() instead");
-        return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
     }
 
     @Override

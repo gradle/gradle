@@ -103,7 +103,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
         return artifact.getClassifier();
     }
 
-    public File getFile() {
+    public synchronized File getFile() {
         if (file == null) {
             file = artifactSource.create();
             artifactSource = null;

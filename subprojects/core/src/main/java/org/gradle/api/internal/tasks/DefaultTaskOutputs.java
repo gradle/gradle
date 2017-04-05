@@ -47,6 +47,8 @@ import java.util.concurrent.Callable;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
+    private static final TaskOutputCachingState ENABLED = DefaultTaskOutputCachingState.enabled();
+    public static final TaskOutputCachingState DISABLED = DefaultTaskOutputCachingState.disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
     private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task");
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
     private static final TaskOutputCachingState OVERLAPPING_OUTPUTS = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS, "Overlapping output directories were detected");
@@ -129,7 +131,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 );
             }
         }
-        return DefaultTaskOutputCachingState.ENABLED;
+        return ENABLED;
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -202,6 +203,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
+    @Ignore("Must fix for 4.0")
     @Requires(TestPrecondition.ONLINE)
     def "Can opt-in to plugin portal"() {
         given:

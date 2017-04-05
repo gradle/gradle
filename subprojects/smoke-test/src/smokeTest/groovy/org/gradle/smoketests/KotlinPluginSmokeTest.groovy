@@ -21,6 +21,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
     private kotlinVersion = '1.0.3'
     private androidPluginVersion = AndroidPluginsSmokeTest.ANDROID_PLUGIN_VERSION
+    private androidBuildToolsVersion = AndroidPluginsSmokeTest.ANDROID_BUILD_TOOLS_VERSION
 
     def 'kotlin plugin'() {
         given:
@@ -39,7 +40,8 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         useSample("android-kotlin-example")
         replaceVariablesInBuildFile(
             kotlinVersion: kotlinVersion,
-            androidPluginVersion: androidPluginVersion)
+            androidPluginVersion: androidPluginVersion,
+            androidBuildToolsVersion: androidBuildToolsVersion)
 
         when:
         def build = runner('clean', 'testDebugUnitTestCoverage').build()

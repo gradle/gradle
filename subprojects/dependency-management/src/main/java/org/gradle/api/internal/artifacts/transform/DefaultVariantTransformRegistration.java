@@ -45,7 +45,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     private final ImmutableAttributes from;
     private final ImmutableAttributes to;
     private final Class<? extends ArtifactTransform> implementation;
-    private final HashCode inputsHash;
+    private final byte[] inputsHash;
     private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
     private final TransformedFileCache transformedFileCache;
     private final BiFunction<List<File>, File, File> transformer;
@@ -71,7 +71,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         }
 
         snapshot.appendToHasher(hasher);
-        inputsHash = hasher.hash();
+        inputsHash = hasher.hash().asBytes();
 
         this.transformer = new ArtifactTransformBackedTransformer(implementation, params, instantiator);
     }
@@ -97,7 +97,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
             FileCollectionSnapshot snapshot = fileCollectionSnapshotter.snapshot(new SimpleFileCollection(absoluteFile), TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
 
             DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-            hasher.putBytes(inputsHash.asBytes());
+            hasher.putBytes(inputsHash);
             snapshot.appendToHasher(hasher);
 
             HashCode resultHash = hasher.hash();

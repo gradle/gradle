@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -118,7 +119,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
         private final BuildOperationWorker<T> delegate;
 
         private ParentBuildOperationAwareWorker(BuildOperationWorker<T> delegate) {
-            this.parentOperation = buildOperationExecutor.getCurrentOperation();
+            this.parentOperation = GradleThread.isManaged() ? buildOperationExecutor.getCurrentOperation() : null;
             this.delegate = delegate;
         }
 
@@ -129,15 +130,24 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
 
         @Override
         public void execute(final T t) {
-            BuildOperationDetails operationDetails = BuildOperationDetails.displayName(t.getDescription())
-                .parent(parentOperation)
-                .build();
-            buildOperationExecutor.run(operationDetails, new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(createBuildOperationDetails(t), new Action<BuildOperationContext>() {
                 @Override
                 public void execute(BuildOperationContext buildOperationContext) {
                     delegate.execute(t);
                 }
             });
+        }
+
+        private BuildOperationDetails createBuildOperationDetails(T buildOperation) {
+            BuildOperationDetails.Builder builder = BuildOperationDetails.displayName(buildOperation.getDescription());
+            if (buildOperation instanceof DescribableBuildOperation) {
+                DescribableBuildOperation describableBuildOperation = (DescribableBuildOperation) buildOperation;
+                Object operationDescriptor = describableBuildOperation.getOperationDescriptor();
+                builder.operationDescriptor(operationDescriptor);
+                String displayName = describableBuildOperation.getProgressDisplayName();
+                builder.progressDisplayName(displayName);
+            }
+            return builder.parent(parentOperation).build();
         }
     }
 }

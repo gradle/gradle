@@ -32,6 +32,11 @@ public interface ArtifactVisitor {
     void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
 
     /**
+     * May the visitor preemptively download artifacts?
+     */
+    boolean canPerformPreemptiveDownload();
+
+    /**
      * Should {@link #visitFile(ComponentArtifactIdentifier, AttributeContainer, File)} be called?
      */
     boolean includeFiles();

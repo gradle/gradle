@@ -126,25 +126,21 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     public BeanDynamicObject withNoProperties() {
+        if (!includeProperties) {
+            return this;
+        }
         if (withNoProperties == null) {
-            withNoProperties = new BeanDynamicObject(bean, publicType, false, implementsMissing, propertySetTransformer, argsTransformer) {
-                @Override
-                public BeanDynamicObject withNoProperties() {
-                    return this;
-                }
-            };
+            withNoProperties = new BeanDynamicObject(bean, publicType, false, implementsMissing, propertySetTransformer, argsTransformer);
         }
         return withNoProperties;
     }
 
     public BeanDynamicObject withNotImplementsMissing() {
+        if (!implementsMissing) {
+            return this;
+        }
         if (withNoImplementsMissing == null) {
-            withNoImplementsMissing = new BeanDynamicObject(bean, publicType, includeProperties, false, propertySetTransformer, argsTransformer) {
-                @Override
-                public BeanDynamicObject withNotImplementsMissing() {
-                    return this;
-                }
-            };
+            withNoImplementsMissing = new BeanDynamicObject(bean, publicType, includeProperties, false, propertySetTransformer, argsTransformer);
         }
         return withNoImplementsMissing;
     }

@@ -14,20 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.caching;
+package org.gradle.internal.logging.console
 
-import java.util.concurrent.ConcurrentMap;
+import org.gradle.internal.logging.text.Span
 
-/**
- * Simple build cache implementation that delegates to a {@link ConcurrentMap}.
- *
- * @since 3.3
- *
- * @deprecated Use {@link MapBasedBuildCacheService} instead.
- */
-@Deprecated
-public class MapBasedBuildCache extends MapBasedBuildCacheService implements BuildCache {
-    public MapBasedBuildCache(String description, ConcurrentMap<String, byte[]> delegate) {
-        super(description, delegate);
+class TestStyledLabel implements StyledLabel {
+    String display = ""
+
+    @Override
+    void setText(String text) {
+        display = text;
+    }
+
+    @Override
+    void setText(List<Span> spans) {
+        String text = ""
+        for (Span span : spans) {
+            text += span.text
+        }
+
+        setText(text)
+    }
+
+    @Override
+    void setText(Span... spans) {
+        setText(Arrays.asList(spans))
     }
 }

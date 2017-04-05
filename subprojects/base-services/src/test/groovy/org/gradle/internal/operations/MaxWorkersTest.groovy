@@ -115,26 +115,24 @@ class MaxWorkersTest extends ConcurrentSpec {
             queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                 @Override
                 void run() {
-                    def cl = registry.operationStart()
+                    instant.child1Started
                     thread.block()
-                    cl.operationFinish()
                     instant.child1Finished
                 }
             })
             queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                 @Override
                 void run() {
-                    def cl = registry.operationStart()
                     instant.child2Started
                     thread.block()
-                    cl.operationFinish()
+                    instant.child2Finished
                 }
             })
         })
         outer.operationFinish()
 
         then:
-        instant.child2Started > instant.child1Finished
+        instant.child2Started > instant.child1Finished || instant.child1Started > instant.child2Finished
 
         cleanup:
         registry?.stop()

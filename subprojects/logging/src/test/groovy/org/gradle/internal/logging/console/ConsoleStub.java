@@ -15,11 +15,9 @@
  */
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.TestStyledTextOutput;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ConsoleStub implements Console {
@@ -51,9 +49,8 @@ public class ConsoleStub implements Console {
     protected class TestableBuildOutputTextArea extends TestStyledTextOutput implements TextArea {
     }
 
-    protected class TestableRedrawableLabel implements RedrawableLabel {
+    protected class TestableRedrawableLabel extends TestStyledLabel implements RedrawableLabel {
         String id; // Allows individual identification for debugging
-        String display = "";
         String buffer;
 
         public TestableRedrawableLabel(String id) {
@@ -67,25 +64,10 @@ public class ConsoleStub implements Console {
 
         @Override
         public void redraw(AnsiContext ansi) {
-            display = buffer;
-            buffer = null;
-        }
-
-        @Override
-        public void setText(List<Span> spans) {
-            buffer = "";
-            for (Span span : spans) {
-                buffer += span.getText();
+            if (buffer != null) {
+                super.setDisplay(buffer);
+                buffer = null;
             }
-        }
-
-        @Override
-        public void setText(Span... spans) {
-            setText(Arrays.asList(spans));
-        }
-
-        public String getDisplay() {
-            return display;
         }
     }
 

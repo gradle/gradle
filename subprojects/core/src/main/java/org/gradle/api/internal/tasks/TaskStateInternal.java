@@ -24,7 +24,7 @@ public class TaskStateInternal implements TaskState {
     private boolean executing;
     private boolean didWork;
     private Throwable failure;
-    private TaskOutputCachingState taskOutputCaching;
+    private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
 
     public boolean getDidWork() {
@@ -74,7 +74,7 @@ public class TaskStateInternal implements TaskState {
     }
 
     public TaskOutputCachingState getTaskOutputCaching() {
-        return taskOutputCaching == null ?  DefaultTaskOutputCachingState.DISABLED : taskOutputCaching;
+        return taskOutputCaching;
     }
 
     /**

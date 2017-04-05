@@ -47,6 +47,9 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     List<ServerExpectation> expectations = []
 
+    org.gradle.api.Action<HttpServletRequest> beforeHandle
+    org.gradle.api.Action<HttpServletRequest> afterHandle
+
     enum EtagStrategy {
         NONE({ null }),
         RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() }),
@@ -68,6 +71,14 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     boolean sendLastModified = true
     boolean sendSha1Header = false
+
+    void beforeHandle(org.gradle.api.Action<HttpServletRequest> r) {
+        beforeHandle = r
+    }
+
+    void afterHandle(org.gradle.api.Action<HttpServletRequest> r) {
+        afterHandle = r
+    }
 
     @Override
     Handler getCustomHandler() {
@@ -155,33 +166,42 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         }
 
         void handle(HttpServletRequest request, HttpServletResponse response) {
-            if (expectedUserAgent != null) {
-                String receivedUserAgent = request.getHeader("User-Agent")
-                if (!expectedUserAgent.matches(receivedUserAgent)) {
-                    response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent))
-                    return
+            if (beforeHandle) {
+                beforeHandle.execute(request)
+            }
+            try {
+                if (expectedUserAgent != null) {
+                    String receivedUserAgent = request.getHeader("User-Agent")
+                    if (!expectedUserAgent.matches(receivedUserAgent)) {
+                        response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent))
+                        return
+                    }
                 }
-            }
-            if (revalidate) {
-                String cacheControl = request.getHeader("Cache-Control")
-                if (!cacheControl.equals("max-age=0")) {
-                    response.sendError(412, String.format("Precondition Failed: Expected Cache-Control:max-age=0 but was '%s'", cacheControl))
-                    return
+                if (revalidate) {
+                    String cacheControl = request.getHeader("Cache-Control")
+                    if (!cacheControl.equals("max-age=0")) {
+                        response.sendError(412, String.format("Precondition Failed: Expected Cache-Control:max-age=0 but was '%s'", cacheControl))
+                        return
+                    }
                 }
-            }
-            def file
-            if (request.pathInfo == path) {
-                file = srcFile
-            } else {
-                def relativePath = request.pathInfo.substring(path.length() + 1)
-                file = new File(srcFile, relativePath)
-            }
-            if (file.isFile()) {
-                sendFile(response, file, null, null, interaction.contentType)
-            } else if (file.isDirectory()) {
-                sendDirectoryListing(response, file)
-            } else {
-                response.sendError(404, "'$request.pathInfo' does not exist")
+                def file
+                if (request.pathInfo == path) {
+                    file = srcFile
+                } else {
+                    def relativePath = request.pathInfo.substring(path.length() + 1)
+                    file = new File(srcFile, relativePath)
+                }
+                if (file.isFile()) {
+                    sendFile(response, file, null, null, interaction.contentType)
+                } else if (file.isDirectory()) {
+                    sendDirectoryListing(response, file)
+                } else {
+                    response.sendError(404, "'$request.pathInfo' does not exist")
+                }
+            } finally {
+                if (afterHandle) {
+                    afterHandle.execute(request)
+                }
             }
         }
     }
