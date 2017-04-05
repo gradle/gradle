@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -29,6 +29,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 
+import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -99,6 +100,11 @@ public class PackageListGenerator extends DefaultTask {
         this.excludes = excludes;
     }
 
+    @Inject
+    protected DirectoryFileTreeFactory getDirectoryFileTreeFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void generate() {
         IoActions.writeTextFile(getOutputFile(), new ErroringAction<BufferedWriter>() {
@@ -132,7 +138,7 @@ public class PackageListGenerator extends DefaultTask {
     }
 
     private void processDirectory(File file, final Trie.Builder builder) {
-        new DirectoryFileTree(file).visit(new FileVisitor() {
+        getDirectoryFileTreeFactory().create(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
             }

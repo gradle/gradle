@@ -21,6 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
 import org.cyberneko.html.xercesbridge.XercesBridge
 import org.gradle.api.Action
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.internal.IoActions
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLogger
@@ -51,8 +52,12 @@ class RuntimeShadedJarCreatorTest extends Specification {
 
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def progressLogger = Mock(ProgressLogger)
-    def relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API))
+    def relocatedJarCreator
     def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
+
+    def setup() {
+        relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API), new DefaultDirectoryFileTreeFactory())
+    }
 
     def "creates JAR file for input directory"() {
         given:

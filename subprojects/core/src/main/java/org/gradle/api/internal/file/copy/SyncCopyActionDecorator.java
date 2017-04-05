@@ -20,7 +20,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
@@ -37,15 +37,17 @@ public class SyncCopyActionDecorator implements CopyAction {
     private final File baseDestDir;
     private final CopyAction delegate;
     private final PatternFilterable preserveSpec;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public SyncCopyActionDecorator(File baseDestDir, CopyAction delegate) {
-        this(baseDestDir, delegate, null);
+    public SyncCopyActionDecorator(File baseDestDir, CopyAction delegate, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        this(baseDestDir, delegate, null, directoryFileTreeFactory);
     }
 
-    public SyncCopyActionDecorator(File baseDestDir, CopyAction delegate, PatternFilterable preserveSpec) {
+    public SyncCopyActionDecorator(File baseDestDir, CopyAction delegate, PatternFilterable preserveSpec, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.baseDestDir = baseDestDir;
         this.delegate = delegate;
         this.preserveSpec = preserveSpec;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
@@ -64,7 +66,7 @@ public class SyncCopyActionDecorator implements CopyAction {
 
         SyncCopyActionDecoratorFileVisitor fileVisitor = new SyncCopyActionDecoratorFileVisitor(visited, preserveSpec);
 
-        MinimalFileTree walker = new DirectoryFileTree(baseDestDir).postfix();
+        MinimalFileTree walker = directoryFileTreeFactory.create(baseDestDir).postfix();
         walker.visit(fileVisitor);
         visited.clear();
 

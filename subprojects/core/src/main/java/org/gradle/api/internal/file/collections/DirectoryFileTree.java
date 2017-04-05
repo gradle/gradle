@@ -63,14 +63,6 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
      * Use {@link DirectoryFileTreeFactory} instead.
      */
     @Deprecated
-    public DirectoryFileTree(File dir) {
-        this(dir, new PatternSet(), FileSystems.getDefault());
-    }
-
-    /**
-     * Use {@link DirectoryFileTreeFactory} instead.
-     */
-    @Deprecated
     public DirectoryFileTree(File dir, PatternSet patternSet) {
         this(dir, patternSet, FileSystems.getDefault());
     }

@@ -20,6 +20,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -41,7 +43,14 @@ public class MapFileTreeTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private TestFile rootDir = tmpDir.getTestDirectory();
-    private final MapFileTree tree = new MapFileTree(rootDir, TestFiles.fileSystem());
+    private MapFileTree tree;
+
+    @Before
+    public void setup() {
+        NativeServicesTestFixture.initialize();
+        DirectoryFileTreeFactory directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory();
+        tree = new MapFileTree(rootDir, TestFiles.fileSystem(), directoryFileTreeFactory);
+    }
 
     @Test
     public void isEmptyByDefault() {
