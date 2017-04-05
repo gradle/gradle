@@ -50,6 +50,7 @@ import org.jmock.Expectations;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,6 +71,7 @@ public class DefaultTaskGraphExecuterTest {
     final ListenerManager listenerManager = context.mock(ListenerManager.class);
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     final BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
+    final DefaultBuildOperationWorkerRegistry workerLeases = new DefaultBuildOperationWorkerRegistry(1);
     final TaskExecuter executer = context.mock(TaskExecuter.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
@@ -92,7 +94,12 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(taskExecutionListener));
             ignoring(taskExecutionListener);
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, buildOperationExecutor);
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor);
+    }
+
+    @After
+    public void tearDown() {
+        workerLeases.stop();
     }
 
     @Test

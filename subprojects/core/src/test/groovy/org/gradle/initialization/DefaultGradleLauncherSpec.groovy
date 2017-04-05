@@ -111,6 +111,10 @@ class DefaultGradleLauncherSpec extends Specification {
         buildServices.get(BuildOperationWorkerRegistry) >> buildOperationWorkerRegistry
     }
 
+    def cleanup() {
+        buildOperationWorkerRegistry.stop()
+    }
+
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
