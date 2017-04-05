@@ -166,6 +166,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Removed class `ActionBroadcast`.
 
 The deprecated `jetty` plugin has been removed. We recommend using the [Gretty plugin](https://github.com/akhikhl/gretty) for developing Java web applications.
+The deprecated `pluginRepositories` block for declaring custom plugin repositories has been removed in favor of `pluginManagement.repositories`.
 
 ## External contributions
 
