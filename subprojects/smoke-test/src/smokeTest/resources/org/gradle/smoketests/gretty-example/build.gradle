@@ -16,7 +16,7 @@
 
 plugins {
     id "war"
-    id "org.akhikhl.gretty" version "1.4.0"
+    id "org.akhikhl.gretty" version "1.4.2"
 }
 
 repositories {
