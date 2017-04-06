@@ -25,19 +25,16 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
 import java.util.Map;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    private static final Logger LOGGER = Logging.getLogger(OutputFilesTaskStateChanges.class);
     private final OutputFilesSnapshotter outputSnapshotter;
 
     public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter) {
         super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties());
         this.outputSnapshotter = outputSnapshotter;
-        detectOverlappingOutputs(task.getName());
+        detectOverlappingOutputs();
     }
 
     @Override
@@ -73,14 +70,13 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
         return FileCollectionSnapshot.EMPTY;
     }
 
-    private void detectOverlappingOutputs(String taskName) {
+    private void detectOverlappingOutputs() {
         for (Map.Entry<String, FileCollectionSnapshot> entry : getCurrent().entrySet()) {
             String propertyName = entry.getKey();
             FileCollectionSnapshot beforeExecution = entry.getValue();
             FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
             TaskExecutionHistory.OverlapOutputDetection overlapOutputDetection = outputSnapshotter.detectOverlappingOutputs(propertyName, afterPreviousExecution, beforeExecution);
             if (overlapOutputDetection!=null) {
-                LOGGER.info("Detected overlapping outputs for task '{}' output property '{}'", taskName, propertyName);
                 current.setDetectedOverlappingOutputs(overlapOutputDetection);
                 return;
             }

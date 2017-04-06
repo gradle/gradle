@@ -18,8 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskExecutionHistory;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.util.HashMap;
@@ -29,8 +27,6 @@ import java.util.Map;
  * Takes a snapshot of the output files of a task.
  */
 public class OutputFilesSnapshotter {
-    private static final Logger LOGGER = Logging.getLogger(OutputFilesSnapshotter.class);
-
     public TaskExecutionHistory.OverlapOutputDetection detectOverlappingOutputs(final String propertyName, final FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
         Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
         Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
@@ -44,7 +40,6 @@ public class OutputFilesSnapshotter {
             // and a directory inside the root directory.
             if (fileSnapshot.getSnapshot().getType() == FileType.RegularFile && previousSnapshot == null) {
                 // created since last execution, possibly by another task
-                LOGGER.info("Detected overlap for property '{}' with path '{}'", propertyName, fileSnapshot.getNormalizedPath());
                 return new TaskExecutionHistory.OverlapOutputDetection(propertyName, fileSnapshot.getNormalizedPath());
             }
         }
