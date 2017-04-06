@@ -37,6 +37,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.TestBuildOperationExecutor;
@@ -72,6 +73,7 @@ public class DefaultTaskGraphExecuterTest {
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     final BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
     final DefaultBuildOperationWorkerRegistry workerLeases = new DefaultBuildOperationWorkerRegistry(1);
+    private BuildOperationWorkerRegistry.Completion parentWorkerLease;
     final TaskExecuter executer = context.mock(TaskExecuter.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
@@ -94,11 +96,13 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(taskExecutionListener));
             ignoring(taskExecutionListener);
         }});
+        parentWorkerLease = workerLeases.operationStart();
         taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor);
     }
 
     @After
     public void tearDown() {
+        parentWorkerLease.operationFinish();
         workerLeases.stop();
     }
 
