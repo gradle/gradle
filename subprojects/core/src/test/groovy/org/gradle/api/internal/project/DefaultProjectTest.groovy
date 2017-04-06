@@ -65,6 +65,8 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.metaobject.BeanDynamicObject
+import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
@@ -137,6 +139,8 @@ class DefaultProjectTest {
     ManagedProxyFactory managedProxyFactory = context.mock(ManagedProxyFactory.class)
     AntLoggingAdapter antLoggingAdapter = context.mock(AntLoggingAdapter.class)
     AttributesSchema attributesSchema = context.mock(AttributesSchema)
+    BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    ProjectConfigurator projectConfigurator = new BuildOperationProjectConfigurator(buildOperationExecutor)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -193,6 +197,8 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
             allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
             allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
+            allowing(serviceRegistryMock).get(BuildOperationExecutor) ; will(returnValue(buildOperationExecutor))
+            allowing(serviceRegistryMock).get((Type) ProjectConfigurator) ; will(returnValue(projectConfigurator))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))
@@ -219,6 +225,8 @@ class DefaultProjectTest {
             allowing(build).getParent()
             will(returnValue(null))
 
+            allowing(build).findIdentityPath()
+            will(returnValue(Path.ROOT))
             allowing(build).getIdentityPath()
             will(returnValue(Path.ROOT))
             allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));

@@ -34,7 +34,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
-    @TargetGradleVersion(">=3.5 <3.6")
+    @TargetGradleVersion(">=3.5 <4.0")
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
@@ -95,7 +95,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
-    @TargetGradleVersion(">=3.5 <3.6")
+    @TargetGradleVersion(">=3.5 <4.0")
     @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
@@ -180,7 +180,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @Issue("gradle/gradle#1641")
-    @TargetGradleVersion(">=3.5 <3.6")
+    @TargetGradleVersion(">=3.5 <4.0")
     @LeaksFileHandles
     def "generates download events during maven publish"() {
         given:

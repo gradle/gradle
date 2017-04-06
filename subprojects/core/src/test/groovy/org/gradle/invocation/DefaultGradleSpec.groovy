@@ -23,8 +23,10 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.project.BuildOperationProjectConfigurator
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.DefaultProjectRegistry
+import org.gradle.api.internal.project.ProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.execution.TaskGraphExecuter
@@ -34,6 +36,8 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
+import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -50,6 +54,8 @@ class DefaultGradleSpec extends Specification {
 
     StartParameter parameter = new StartParameter()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
+    BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    ProjectConfigurator projectConfigurator = new BuildOperationProjectConfigurator(buildOperationExecutor)
 
     GradleInternal gradle
 
@@ -65,6 +71,8 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(Instantiator) >> Mock(Instantiator)
         _ * serviceRegistry.get(ListenerManager) >> listenerManager
         _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation
+        _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
+        _ * serviceRegistry.get(ProjectConfigurator) >> projectConfigurator
 
         gradle = classGenerator.newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
@@ -394,6 +402,7 @@ class DefaultGradleSpec extends Specification {
             gradle, serviceRegistryFactory,
             Stub(ClassLoaderScope), Stub(ClassLoaderScope)
         ])
+        project.getProjectConfigurator() >> projectConfigurator
         projectRegistry.addProject(project)
         _ * project.getProjectRegistry() >> projectRegistry
         return project

@@ -129,7 +129,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             listener.finished(operation, new OperationResult(startTime, endTime, context.failure));
 
             if (failure != null) {
-                throw UncheckedException.throwAsUncheckedException(failure);
+                throw UncheckedException.throwAsUncheckedException(failure, true);
             }
 
             LOGGER.debug("Build operation '{}' completed", operation.getDisplayName());

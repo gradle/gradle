@@ -51,6 +51,7 @@ import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.project.ProjectConfigurator;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -229,13 +230,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new InstantiatingBuildLoader(get(IProjectFactory.class)));
     }
 
-    protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
+    protected ProjectEvaluator createProjectEvaluator(ProjectConfigurator projectConfigurator, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
             PluginsProjectConfigureActions.from(cachingServiceLocator),
             new BuildScriptProcessor(scriptPluginFactory),
             new DelayedConfigurationActions()
         );
-        return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
+        return new LifecycleProjectEvaluator(projectConfigurator, withActionsEvaluator);
     }
 
     protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(ServiceRegistry registry) {

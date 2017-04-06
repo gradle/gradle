@@ -610,12 +610,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Action<? super Project> action) {
-        configure(getSubprojects(), action);
+        getProjectConfigurator().subprojects(getSubprojects(), action);
     }
 
     @Override
     public void allprojects(Action<? super Project> action) {
-        configure(getAllprojects(), action);
+        getProjectConfigurator().allprojects(getAllprojects(), action);
     }
 
     @Override
@@ -1085,22 +1085,22 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
-        configure(getSubprojects(), configureClosure);
+        getProjectConfigurator().subprojects(getSubprojects(), configureClosure);
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        configure(getAllprojects(), configureClosure);
+        getProjectConfigurator().allprojects(getAllprojects(), configureClosure);
     }
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, project(path));
+        return getProjectConfigurator().project(project(path), configureClosure);
     }
 
     @Override
     public Project project(String path, Action<? super Project> configureAction) {
-        return Actions.with(project(path), configureAction);
+        return getProjectConfigurator().project(project(path), configureAction);
     }
 
     @Override
@@ -1279,6 +1279,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Inject
     protected DeferredProjectConfiguration getDeferredProjectConfiguration() {
         // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProjectConfigurator getProjectConfigurator() {
         throw new UnsupportedOperationException();
     }
 
