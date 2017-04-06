@@ -100,9 +100,17 @@ running into evaluation ordering issues:
         }
     }
 
-### Build Cache honors `--offline` 
+### Build Cache Improvements
+
+#### Remote build cache honors `--offline` 
 
 When running with `--offline`, Gradle will disable the remote build cache.
+
+#### Detecting overlapping task outputs
+
+When two tasks write into the same directory, Gradle will now disable task output caching for the second task to execute. This prevents issues where task outputs for a different task are captured for the wrong build cache key. On subsequent builds, if overlapping outputs are detected, Gradle will also prevent you from loading task outputs from the cache if it would remove existing outputs from another task.
+
+You can diagnose overlapping task output issues by running Gradle at the `--info` log level. If you are using [Gradle Build Scans](https://gradle.com/scans/get-started), the same detailed reason for disabling task output caching will be included in the build timeline. 
 
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
