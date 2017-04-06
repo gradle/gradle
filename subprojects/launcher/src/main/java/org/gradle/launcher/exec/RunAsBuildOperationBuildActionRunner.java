@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.runner;
+package org.gradle.launcher.exec;
 
 import org.gradle.api.Action;
 import org.gradle.internal.invocation.BuildAction;
@@ -24,13 +24,13 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.progress.BuildOperationExecutor;
 
 /**
- * An {@link BuildActionRunner} that wraps all work in a build operation. Should be run after {@link SubscribableBuildActionRunner} which takes care of listener registration to forward the events back to the client.
+ * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
 public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    RunAsBuildOperationBuildActionRunner(BuildActionRunner delegate, BuildOperationExecutor buildOperationExecutor) {
+    public RunAsBuildOperationBuildActionRunner(BuildActionRunner delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }

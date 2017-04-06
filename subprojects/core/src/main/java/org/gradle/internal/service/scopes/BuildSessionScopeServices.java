@@ -81,7 +81,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     BuildOperationProcessor createBuildOperationProcessor(BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, StartParameter startParameter, ExecutorFactory executorFactory) {
-        return new DefaultBuildOperationProcessor(buildOperationWorkerRegistry, buildOperationExecutor, new DefaultBuildOperationQueueFactory(), executorFactory, startParameter.getMaxWorkerCount());
+        return new DefaultBuildOperationProcessor(buildOperationExecutor, new DefaultBuildOperationQueueFactory(buildOperationWorkerRegistry), executorFactory, startParameter.getMaxWorkerCount());
     }
 
     BuildOperationWorkerRegistry createBuildOperationWorkerRegistry(StartParameter startParameter) {

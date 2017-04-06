@@ -29,19 +29,19 @@ import static org.gradle.internal.time.Clock.prettyTime;
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
 
-    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
-        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
+    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry.Operation parentWorkerLease) {
+        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease);
     }
 
     private static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
-        private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+        private final BuildOperationWorkerRegistry.Operation parentWorkerLease;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry.Operation parentWorkerLease) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
-            this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+            this.parentWorkerLease = parentWorkerLease;
         }
 
         public void run() {
@@ -50,7 +50,7 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
             Timer taskTimer = Timers.startTimer();
             TaskInfo task;
             while ((task = taskExecutionPlan.getTaskToExecute()) != null) {
-                BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.operationStart();
+                BuildOperationWorkerRegistry.Completion completion = parentWorkerLease.operationStart();
                 try {
                     final String taskPath = task.getTask().getPath();
                     LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());

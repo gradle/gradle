@@ -29,7 +29,7 @@ class DefaultTaskPlanExecutor extends AbstractTaskPlanExecutor {
 
     @Override
     public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
-        taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry).run();
+        taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry.getCurrent()).run();
         taskExecutionPlan.awaitCompletion();
     }
 }

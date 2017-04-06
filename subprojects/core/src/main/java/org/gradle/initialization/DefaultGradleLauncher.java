@@ -28,6 +28,7 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -105,22 +106,28 @@ public class DefaultGradleLauncher implements GradleLauncher {
         return doBuild(Stage.Load);
     }
 
-    private BuildResult doBuild(final Stage upTo) {
-        Throwable failure = null;
+    private BuildResult doBuild(Stage upTo) {
+        // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
+        BuildOperationWorkerRegistry.Completion workerLease = buildServices.get(BuildOperationWorkerRegistry.class).operationStart();
         try {
-            buildListener.buildStarted(gradle);
-            doBuildStages(upTo);
-        } catch (Throwable t) {
-            failure = exceptionAnalyser.transform(t);
+            Throwable failure = null;
+            try {
+                buildListener.buildStarted(gradle);
+                doBuildStages(upTo);
+            } catch (Throwable t) {
+                failure = exceptionAnalyser.transform(t);
+            }
+            BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
+            buildListener.buildFinished(buildResult);
+            if (failure != null) {
+                throw new ReportedException(failure);
+            }
+            return buildResult;
+        } finally {
+            workerLease.operationFinish();
         }
-        BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
-        buildListener.buildFinished(buildResult);
-        if (failure != null) {
-            throw new ReportedException(failure);
-        }
-
-        return buildResult;
     }
+
 
     private void doBuildStages(Stage upTo) {
         if (stage == Stage.Build) {

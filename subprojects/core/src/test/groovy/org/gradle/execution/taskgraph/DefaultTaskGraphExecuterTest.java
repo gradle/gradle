@@ -37,6 +37,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.TestBuildOperationExecutor;
@@ -50,6 +51,7 @@ import org.jmock.Expectations;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,6 +72,8 @@ public class DefaultTaskGraphExecuterTest {
     final ListenerManager listenerManager = context.mock(ListenerManager.class);
     final BuildCancellationToken cancellationToken = context.mock(BuildCancellationToken.class);
     final BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
+    final DefaultBuildOperationWorkerRegistry workerLeases = new DefaultBuildOperationWorkerRegistry(1);
+    private BuildOperationWorkerRegistry.Completion parentWorkerLease;
     final TaskExecuter executer = context.mock(TaskExecuter.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
@@ -92,7 +96,14 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(taskExecutionListener));
             ignoring(taskExecutionListener);
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, buildOperationExecutor);
+        parentWorkerLease = workerLeases.operationStart();
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor);
+    }
+
+    @After
+    public void tearDown() {
+        parentWorkerLease.operationFinish();
+        workerLeases.stop();
     }
 
     @Test

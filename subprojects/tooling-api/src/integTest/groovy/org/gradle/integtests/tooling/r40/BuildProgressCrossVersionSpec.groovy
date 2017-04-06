@@ -452,5 +452,4 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     MavenFileRepository getMavenRepo(String name = "repo") {
         return new MavenFileRepository(file(name))
     }
-
 }

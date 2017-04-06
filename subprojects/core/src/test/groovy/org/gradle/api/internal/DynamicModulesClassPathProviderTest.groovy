@@ -21,41 +21,34 @@ import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.internal.classpath.DefaultClassPath
 import spock.lang.Specification
 
-class DependencyClassPathProviderTest extends Specification {
-    final ModuleRegistry moduleRegistry = Mock()
-    final PluginModuleRegistry pluginModuleRegistry = Mock()
-    final DependencyClassPathProvider provider = new DependencyClassPathProvider(moduleRegistry, pluginModuleRegistry)
+class DynamicModulesClassPathProviderTest extends Specification {
 
-    def "uses modules to determine gradle API classpath"() {
+    def moduleRegistry = Mock(ModuleRegistry)
+    def pluginModuleRegistry = Mock(PluginModuleRegistry)
+    def provider = new DynamicModulesClassPathProvider(moduleRegistry, pluginModuleRegistry)
+
+    def "uses plugins and extension plugins to determine gradle extensions classpath"() {
         when:
-        def classpath = provider.findClassPath("GRADLE_API")
+        def classpath = provider.findClassPath("GRADLE_EXTENSIONS")
 
         then:
-        classpath.asFiles.collect{it.name} == ["gradle-core-runtime", "gradle-cli-runtime", "gradle-workers-runtime", "gradle-dependency-management-runtime", "gradle-plugin-use-runtime", "gradle-tooling-api-runtime", "plugin1-runtime", "plugin2-runtime"]
+        classpath.asFiles.collect { it.name } == ["gradle-workers-runtime",
+                                                  "gradle-dependency-management-runtime",
+                                                  "gradle-plugin-use-runtime",
+                                                  "plugin1-runtime", "plugin2-runtime",
+                                                  "extension1-runtime", "extension2-runtime"]
 
         and:
         1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core", module("gradle-cli"))
         1 * moduleRegistry.getModule("gradle-workers") >> module("gradle-workers")
         1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")
         1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
-        1 * moduleRegistry.getModule("gradle-tooling-api") >> module("gradle-tooling-api")
         1 * pluginModuleRegistry.getApiModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
+        1 * pluginModuleRegistry.getImplementationModules() >> ([module("extension1"), module("extension2")] as LinkedHashSet)
     }
 
-    def "uses modules to determine Gradle test-kit classpath"() {
-        when:
-        def classpath = provider.findClassPath("GRADLE_TEST_KIT")
-
-        then:
-        classpath.asFiles.collect{it.name} == ["gradle-test-kit-runtime"]
-
-        and:
-        1 * moduleRegistry.getModule("gradle-test-kit") >> module("gradle-test-kit")
-        0 * pluginModuleRegistry.getApiModules()
-    }
-
-    def module(String name, Module ... requiredModules) {
-        Module module = Mock()
+    def module(String name, Module... requiredModules) {
+        def module = Mock(Module)
         _ * module.classpath >> new DefaultClassPath(new File("$name-runtime"))
         _ * module.implementationClasspath >> new DefaultClassPath(new File("$name-runtime"))
         _ * module.allRequiredModules >> (([module] + (requiredModules as List)) as LinkedHashSet)

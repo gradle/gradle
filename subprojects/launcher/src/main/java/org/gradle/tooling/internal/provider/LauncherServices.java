@@ -23,6 +23,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
@@ -31,6 +33,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.exec.RunAsBuildOperationBuildActionRunner;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DaemonSidePayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
@@ -38,8 +41,6 @@ import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactor
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
-
-import java.util.List;
 
 public class LauncherServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
     @Override
@@ -69,13 +70,25 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
     }
 
     static class ToolingGlobalScopeServices {
-        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
-            List<BuildActionRunner> buildActionRunners = globalServices.getAll(BuildActionRunner.class);
+        BuildExecuter createBuildExecuter(ServiceRegistry globalServices,
+                                          GradleLauncherFactory gradleLauncherFactory,
+                                          BuildOperationExecutor buildOperationExecutor,
+                                          BuildOperationService buildOperationService,
+                                          FileWatcherFactory fileWatcherFactory,
+                                          ListenerManager listenerManager,
+                                          StyledTextOutputFactory styledTextOutputFactory,
+                                          ExecutorFactory executorFactory,
+                                          GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
             return new GradleThreadBuildActionExecuter(
                 new ServicesSetupBuildActionExecuter(
                     new ContinuousBuildActionExecuter(
                         new InProcessBuildActionExecuter(gradleLauncherFactory,
-                            new ChainingBuildActionRunner(buildActionRunners)),
+                            new SubscribableBuildActionRunner(
+                                new RunAsBuildOperationBuildActionRunner(
+                                    new ValidatingBuildActionRunner(
+                                        new ChainingBuildActionRunner(globalServices.getAll(BuildActionRunner.class))),
+                                    buildOperationExecutor),
+                                buildOperationService, globalServices.getAll(SubscribableBuildActionRunnerRegistration.class))),
                         fileWatcherFactory,
                         listenerManager,
                         styledTextOutputFactory,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.tooling.internal.provider;
 
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 
-import java.util.List;
+public class ValidatingBuildActionRunner implements BuildActionRunner {
+    private final BuildActionRunner delegate;
 
-public class ChainingBuildActionRunner implements BuildActionRunner {
-    private List<? extends BuildActionRunner> runners;
-
-    public ChainingBuildActionRunner(List<? extends BuildActionRunner> runners) {
-        this.runners = runners;
+    public ValidatingBuildActionRunner(BuildActionRunner delegate) {
+        this.delegate = delegate;
     }
 
     @Override
     public void run(BuildAction action, BuildController buildController) {
-        for (BuildActionRunner runner : runners) {
-            runner.run(action, buildController);
-            if (buildController.hasResult()) {
-                return;
-            }
+        delegate.run(action, buildController);
+        if (!buildController.hasResult()) {
+            throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
         }
     }
 }

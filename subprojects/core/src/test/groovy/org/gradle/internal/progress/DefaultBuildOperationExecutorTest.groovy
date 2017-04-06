@@ -592,7 +592,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def "can be used through BuildOperationProcessor on unmanaged threads"() {
         given:
         def maxWorkers = 2
-        def processor = new DefaultBuildOperationProcessor(new DefaultBuildOperationWorkerRegistry(maxWorkers), operationExecutor, new DefaultBuildOperationQueueFactory(), executorFactory, maxWorkers)
+        def workerLeases = new DefaultBuildOperationWorkerRegistry(maxWorkers)
+        def processor = new DefaultBuildOperationProcessor(operationExecutor, new DefaultBuildOperationQueueFactory(workerLeases), executorFactory, maxWorkers)
         def operation = Mock(RunnableBuildOperation)
 
         when:
@@ -604,5 +605,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         5 * operation.run()
+
+        cleanup:
+        workerLeases?.stop()
     }
 }

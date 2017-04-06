@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.classpath;
 
-import java.util.Set;
+package org.gradle.tooling.internal.provider;
 
-/**
- * A registry of dynamically loaded plugin modules.
- */
-public interface PluginModuleRegistry {
-    /**
-     * Plugin modules exposed in the Gradle API.
-     */
-    Set<Module> getApiModules();
+import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.progress.BuildOperationListener;
 
-    /**
-     * Plugin modules exposed to the Gradle runtime only.
-     */
-    Set<Module> getImplementationModules();
+public interface SubscribableBuildActionRunnerRegistration {
+    Iterable<BuildOperationListener> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer);
 }
