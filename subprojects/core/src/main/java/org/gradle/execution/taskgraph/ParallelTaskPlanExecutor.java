@@ -46,19 +46,20 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
-            startAdditionalWorkers(taskExecutionPlan, taskWorker, executor);
-            taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry).run();
+            BuildOperationWorkerRegistry.Operation parentWorkerLease = buildOperationWorkerRegistry.getCurrent();
+            startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);
+            taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
             executor.stop();
         }
     }
 
-    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor) {
+    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor, BuildOperationWorkerRegistry.Operation parentWorkerLease) {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
+            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease);
             executor.execute(worker);
         }
     }
