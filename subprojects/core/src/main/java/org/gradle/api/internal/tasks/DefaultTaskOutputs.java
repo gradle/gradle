@@ -103,9 +103,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             return NO_OUTPUTS_DECLARED;
         }
 
-        TaskExecutionHistory.OverlappingOutputs overlappingOutputDetection = getOverlapOutputDetection();
-        if (overlappingOutputDetection!=null) {
-            return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS, String.format("Overlapping outputs were detected in %s", overlappingOutputDetection.getDisplayName()));
+        TaskExecutionHistory.OverlappingOutputs overlappingOutputs = getOverlapOutputs();
+        if (overlappingOutputs!=null) {
+            return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
+                String.format("Outputs created by something else (e.g. '%s') were found in output property '%s' before executing this task.",
+                    overlappingOutputs.getOverlappedFilePath(), overlappingOutputs.getPropertyName()));
         }
 
         for (TaskPropertySpec spec : getFileProperties()) {
@@ -139,7 +141,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return ENABLED;
     }
 
-    private TaskExecutionHistory.OverlappingOutputs getOverlapOutputDetection() {
+    private TaskExecutionHistory.OverlappingOutputs getOverlapOutputs() {
         return history!=null ? history.getOverlappingOutputDetection() : null;
     }
 
