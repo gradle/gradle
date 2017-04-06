@@ -20,28 +20,44 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.internal.cache.StringInterner;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
 public class Path implements Comparable<Path> {
+    public static final Path ROOT = new Path(new String[0], true);
+
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
+    private static final StringInterner SEGMENT_INTERNER = new StringInterner();
+
+    public static Path path(String path) {
+        if (Strings.isNullOrEmpty(path)) {
+            throw new InvalidUserDataException("A path must be specified!");
+        }
+        if (path.equals(Project.PATH_SEPARATOR)) {
+            return ROOT;
+        } else {
+            return parsePath(path);
+        }
+    }
+
+    private static Path parsePath(String path) {
+        String[] segments = StringUtils.split(path, Project.PATH_SEPARATOR);
+        for (int i = 0; i < segments.length; i++) {
+            segments[i] = SEGMENT_INTERNER.intern(segments[i]);
+        }
+        boolean absolute = path.startsWith(Project.PATH_SEPARATOR);
+        return new Path(segments, absolute);
+    }
+
     private final String[] segments;
     private final boolean absolute;
     private String fullPath;
-    public static final Path ROOT = new Path(Project.PATH_SEPARATOR);
-
-    private Path(String path) {
-        this(StringUtils.split(path, Project.PATH_SEPARATOR), path.startsWith(Project.PATH_SEPARATOR));
-    }
 
     private Path(String[] segments, boolean absolute) {
         this.segments = segments;
         this.absolute = absolute;
-    }
-
-    public static Path path(String path) {
-        return path.equals(Project.PATH_SEPARATOR) ? ROOT : new Path(path);
     }
 
     @Override
@@ -72,21 +88,27 @@ public class Path implements Comparable<Path> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
         }
-        if (obj == null || obj.getClass() != getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
-        Path other = (Path) obj;
-        return Arrays.equals(segments, other.segments);
+        Path path = (Path) o;
+
+        if (absolute != path.absolute) {
+            return false;
+        }
+        return Arrays.equals(segments, path.segments);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(segments);
+        int result = Arrays.hashCode(segments);
+        result = 31 * result + (absolute ? 1 : 0);
+        return result;
     }
 
     public int compareTo(Path other) {
@@ -147,54 +169,50 @@ public class Path implements Comparable<Path> {
     public Path child(String name) {
         String[] childSegments = new String[segments.length + 1];
         System.arraycopy(segments, 0, childSegments, 0, segments.length);
-        childSegments[segments.length] = name;
+        childSegments[segments.length] = SEGMENT_INTERNER.intern(name);
         return new Path(childSegments, absolute);
     }
 
     /**
      * Resolves the given name relative to this path. If an absolute path is provided, it is returned.
      */
-    public Path resolve(String path) {
-        return new Path(absolutePath(path));
+    public String absolutePath(String path) {
+        return absolutePath(path(path)).getPath();
     }
 
-    /**
-     * Resolves the given name relative to this path. If an absolute path is provided, it is returned.
-     */
-    public String absolutePath(String path) {
-        if (isAbsolutePath(path)) {
+    public Path absolutePath(Path path) {
+        if (path.absolute) {
             return path;
         }
-        String prefix = isRoot() ? getPath() : getPath() + Project.PATH_SEPARATOR;
-        return prefix + path;
-    }
-
-    private boolean isRoot() {
-        return this == ROOT;
+        String[] concat = new String[segments.length + path.segments.length];
+        System.arraycopy(segments, 0, concat, 0, segments.length);
+        System.arraycopy(path.segments, 0, concat, segments.length, path.segments.length);
+        return new Path(concat, absolute);
     }
 
     /**
      * Calculates a path relative to this path. If the given path is not a child of this path, it is returned unmodified.
      */
     public String relativePath(String path) {
-        if (isRoot()) {
-            if (path.startsWith(Project.PATH_SEPARATOR) && path.length() > 1) {
-                return path.substring(1);
-            }
-            return path;
-        }
-        String myPath = getPath();
-        int myLength = myPath.length();
-        if (path.startsWith(myPath) && path.length() > myLength + 1 && path.substring(myLength, myLength + 1).equals(Project.PATH_SEPARATOR)) {
-            return path.substring(myLength + 1);
-        }
-        return path;
+        return relativePath(path(path)).getPath();
     }
 
-    private boolean isAbsolutePath(String path) {
-        if (Strings.isNullOrEmpty(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
+    public Path relativePath(Path path) {
+        if (path.absolute != absolute) {
+            return path;
         }
-        return path.startsWith(Project.PATH_SEPARATOR);
+        if (path.segments.length < segments.length) {
+            return path;
+        }
+        for (int i = 0; i < segments.length; i++) {
+            if (path.segments[i] != segments[i]) {
+                return path;
+            }
+        }
+        if (path.segments.length == segments.length) {
+            return path;
+        }
+        String[] newSegments = Arrays.copyOfRange(path.segments, segments.length, path.segments.length);
+        return new Path(newSegments, false);
     }
 }

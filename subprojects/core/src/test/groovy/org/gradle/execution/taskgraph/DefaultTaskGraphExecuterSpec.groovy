@@ -153,7 +153,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def task(String name) {
         def mock = Mock(TaskInternal)
         _ * mock.name >> name
-        _ * mock.identityPath >> project.identityPath.resolve(name)
+        _ * mock.identityPath >> project.identityPath.child(name)
         _ * mock.project >> project
         _ * mock.state >> Stub(TaskStateInternal) {
             getFailure() >> null
@@ -172,7 +172,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def brokenTask(String name, RuntimeException failure) {
         def mock = Mock(TaskInternal)
         _ * mock.name >> name
-        _ * mock.identityPath >> project.identityPath.resolve(name)
+        _ * mock.identityPath >> project.identityPath.child(name)
         _ * mock.project >> project
         _ * mock.state >> Stub(TaskStateInternal) {
             getFailure() >> failure
