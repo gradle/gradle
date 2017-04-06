@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r36
+package org.gradle.integtests.tooling.r40
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -28,13 +28,12 @@ import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.*
 
 @ToolingApiVersion(">=2.5")
-@TargetGradleVersion(">=3.6")
+@TargetGradleVersion(">=4.0")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @Rule
@@ -137,7 +136,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @LeaksFileHandles
-    @Ignore("Must fix for 4.0")
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -376,7 +374,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("gradle/gradle#1641")
     @LeaksFileHandles
-    @Ignore("Must fix for 4.0")
     def "generates download events during maven publish"() {
         given:
         toolingApi.requireIsolatedUserHome()
