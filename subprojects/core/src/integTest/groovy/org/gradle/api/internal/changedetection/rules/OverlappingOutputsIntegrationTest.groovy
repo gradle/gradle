@@ -269,7 +269,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         listCacheFiles().size() == 2
     }
 
-    def "overlapping output with dirTask, fileTask"() {
+    def "overlapping output with dirTask, fileTask then fileTask then dirTask"() {
         def (String fileTask, TestFile fileTaskOutput,
              String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
@@ -286,8 +286,18 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         withBuildCache().succeeds(fileTask)
         then:
         fileTaskOutput.assertExists()
+        // dirTask didn't execute
         dirTaskOutput.assertDoesNotExist()
+        // fileTask can be loaded from the cache
         result.assertTaskSkipped(fileTask)
+
+        when:
+        withBuildCache().succeeds(dirTask)
+        then:
+        fileTaskOutput.assertExists()
+        dirTaskOutput.assertExists()
+        // dirTask cannot be loaded from the cache due to an overlap with fileTask
+        result.assertTaskNotSkipped(dirTask)
     }
 
     // This fails because cleanDirTask will remove fileTask's outputs.
