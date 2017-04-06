@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -46,6 +47,7 @@ import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +72,9 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
+    private final Set<Task> requestedTasks = Sets.newTreeSet();
+    private Spec<? super Task> filter;
+
     public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
@@ -85,6 +90,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void useFilter(Spec<? super Task> filter) {
+        this.filter = filter;
         taskExecutionPlan.useFilter(filter);
         taskGraphState = TaskGraphState.DIRTY;
     }
@@ -97,7 +103,9 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         Set<Task> taskSet = new LinkedHashSet<Task>();
         for (Task task : tasks) {
             taskSet.add(task);
+            requestedTasks.add(task);
         }
+
         taskExecutionPlan.addToTaskGraph(taskSet);
         taskGraphState = TaskGraphState.DIRTY;
 
@@ -197,7 +205,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         switch (taskGraphState) {
             case EMPTY:
                 throw new IllegalStateException(
-                        "Task information is not available, as this task execution graph has not been populated.");
+                    "Task information is not available, as this task execution graph has not been populated.");
             case DIRTY:
                 taskExecutionPlan.determineExecutionPlan();
                 taskGraphState = TaskGraphState.POPULATED;
@@ -240,5 +248,9 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 }
             });
         }
+    }
+
+    public Set<Task> getRequestedTasks() {
+        return filter == null ? requestedTasks : CollectionUtils.filter(requestedTasks, filter);
     }
 }
