@@ -27,7 +27,7 @@ import java.util.Map;
  * Takes a snapshot of the output files of a task.
  */
 public class OutputFilesSnapshotter {
-    public TaskExecutionHistory.OverlapOutputDetection detectOverlappingOutputs(final String propertyName, final FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
+    public TaskExecutionHistory.OverlappingOutputs detectOverlappingOutputs(final String propertyName, final FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
         Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
         Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
 
@@ -40,7 +40,7 @@ public class OutputFilesSnapshotter {
             // and a directory inside the root directory.
             if (fileSnapshot.getSnapshot().getType() == FileType.RegularFile && previousSnapshot == null) {
                 // created since last execution, possibly by another task
-                return new TaskExecutionHistory.OverlapOutputDetection(propertyName, fileSnapshot.getNormalizedPath());
+                return new TaskExecutionHistory.OverlappingOutputs(propertyName, fileSnapshot.getNormalizedPath());
             }
         }
         return null;

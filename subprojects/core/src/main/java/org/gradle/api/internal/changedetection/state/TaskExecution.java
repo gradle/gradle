@@ -33,7 +33,7 @@ public abstract class TaskExecution {
     private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
-    private TaskExecutionHistory.OverlapOutputDetection detectedOverlappingOutputs;
+    private TaskExecutionHistory.OverlappingOutputs detectedOverlappingOutputs;
 
     /**
      * Returns the names of all cacheable output property names that have a value set.
@@ -109,11 +109,11 @@ public abstract class TaskExecution {
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 
-    public TaskExecutionHistory.OverlapOutputDetection getDetectedOverlappingOutputs() {
+    public TaskExecutionHistory.OverlappingOutputs getDetectedOverlappingOutputs() {
         return detectedOverlappingOutputs;
     }
 
-    public void setDetectedOverlappingOutputs(TaskExecutionHistory.OverlapOutputDetection detectedOverlappingOutputs) {
+    public void setDetectedOverlappingOutputs(TaskExecutionHistory.OverlappingOutputs detectedOverlappingOutputs) {
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 }

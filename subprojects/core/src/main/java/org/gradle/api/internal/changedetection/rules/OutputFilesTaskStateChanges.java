@@ -75,9 +75,9 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
             String propertyName = entry.getKey();
             FileCollectionSnapshot beforeExecution = entry.getValue();
             FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-            TaskExecutionHistory.OverlapOutputDetection overlapOutputDetection = outputSnapshotter.detectOverlappingOutputs(propertyName, afterPreviousExecution, beforeExecution);
-            if (overlapOutputDetection!=null) {
-                current.setDetectedOverlappingOutputs(overlapOutputDetection);
+            TaskExecutionHistory.OverlappingOutputs overlappingOutputs = outputSnapshotter.detectOverlappingOutputs(propertyName, afterPreviousExecution, beforeExecution);
+            if (overlappingOutputs !=null) {
+                current.setDetectedOverlappingOutputs(overlappingOutputs);
                 return;
             }
         }

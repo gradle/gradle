@@ -103,7 +103,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             return NO_OUTPUTS_DECLARED;
         }
 
-        TaskExecutionHistory.OverlapOutputDetection overlappingOutputDetection = getOverlapOutputDetection();
+        TaskExecutionHistory.OverlappingOutputs overlappingOutputDetection = getOverlapOutputDetection();
         if (overlappingOutputDetection!=null) {
             return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS, String.format("Overlapping outputs were detected in %s", overlappingOutputDetection.getDisplayName()));
         }
@@ -139,7 +139,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return ENABLED;
     }
 
-    private TaskExecutionHistory.OverlapOutputDetection getOverlapOutputDetection() {
+    private TaskExecutionHistory.OverlappingOutputs getOverlapOutputDetection() {
         return history!=null ? history.getOverlappingOutputDetection() : null;
     }
 

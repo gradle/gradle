@@ -65,7 +65,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public TaskExecutionHistory.OverlapOutputDetection getOverlappingOutputDetection() {
+    public OverlappingOutputs getOverlappingOutputDetection() {
         return null;
     }
 }

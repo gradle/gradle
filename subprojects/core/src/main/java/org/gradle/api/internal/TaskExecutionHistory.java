@@ -29,19 +29,19 @@ public interface TaskExecutionHistory {
      * Returns if overlapping outputs were detected
      */
     @Nullable
-    OverlapOutputDetection getOverlappingOutputDetection();
+    OverlappingOutputs getOverlappingOutputDetection();
 
-    class OverlapOutputDetection implements Describable {
+    class OverlappingOutputs implements Describable {
         private final String propertyName;
         private final String overlappedFilePath;
 
-        public OverlapOutputDetection(String propertyName, String overlappedFilePath) {
+        public OverlappingOutputs(String propertyName, String overlappedFilePath) {
             this.propertyName = propertyName;
             this.overlappedFilePath = overlappedFilePath;
         }
 
         public String getDisplayName() {
-            return String.format("property '%s' with path '%s'", propertyName, overlappedFilePath);
+            return String.format("output property '%s' with path '%s'", propertyName, overlappedFilePath);
         }
     }
 }
