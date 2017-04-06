@@ -36,7 +36,7 @@ import java.util.Map;
 public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations, ProcessOperations, DynamicObjectAware {
     private StandardOutputCapture standardOutputCapture;
     private Object target;
-    private DynamicObject dynamicObject = new ScriptDynamicObject(this, null);
+    private ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
 
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
@@ -49,7 +49,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     private void setScriptTarget(Object target) {
         this.target = target;
-        this.dynamicObject = new ScriptDynamicObject(this, target);
+        this.dynamicObject.setTarget(target);
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
@@ -98,12 +98,16 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
         private final Binding binding;
         private final DynamicObject scriptObject;
-        private final DynamicObject dynamicTarget;
+        private DynamicObject dynamicTarget;
 
-        ScriptDynamicObject(BasicScript script, Object target) {
+        ScriptDynamicObject(BasicScript script) {
             this.binding = script.getBinding();
             scriptObject = new BeanDynamicObject(script).withNotImplementsMissing();
-            dynamicTarget = target == null ? scriptObject : DynamicObjectUtil.asDynamicObject(target);
+            dynamicTarget = scriptObject;
+        }
+
+        public void setTarget(Object target) {
+            dynamicTarget = DynamicObjectUtil.asDynamicObject(target);
         }
 
         @Override
