@@ -59,14 +59,6 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     private final FileSystem fileSystem;
     private final Factory<DirectoryWalker> directoryWalkerFactory;
 
-    /**
-     * Use {@link DirectoryFileTreeFactory} instead.
-     */
-    @Deprecated
-    public DirectoryFileTree(File dir, PatternSet patternSet) {
-        this(dir, patternSet, FileSystems.getDefault());
-    }
-
     public DirectoryFileTree(File dir, PatternSet patternSet, FileSystem fileSystem) {
         this(FileUtils.canonicalize(dir), patternSet, DEFAULT_DIRECTORY_WALKER_FACTORY, fileSystem, false);
     }
