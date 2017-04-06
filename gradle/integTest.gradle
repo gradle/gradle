@@ -5,8 +5,8 @@ apply from: "${rootDir}/gradle/distributionTesting.gradle"
 
 sourceSets {
     integTest {
-        compileClasspath += main.output + test.output
-        runtimeClasspath += main.output + test.output
+        compileClasspath += main.output
+        runtimeClasspath += main.output
     }
 }
 
