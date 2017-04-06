@@ -17,13 +17,16 @@
 package org.gradle.internal.resources;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
+import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService {
@@ -34,25 +37,24 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
             return Lists.newArrayList();
         }
     };
+    private final Map<Thread, DefaultResourceLockState> waiting = Maps.newHashMap();
+    private final Set<ResourceLockRegistry> lockRegistries = Sets.newConcurrentHashSet();
 
     @Override
-    public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> reasourceLockAction) {
+    public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> resourceLockAction) {
         while (true) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();
             ResourceLockState.Disposition disposition;
             synchronized (lock) {
                 try {
                     currentState.get().add(resourceLockState);
-                    disposition = reasourceLockAction.transform(resourceLockState);
+                    disposition = resourceLockAction.transform(resourceLockState);
 
                     switch (disposition) {
                         case RETRY:
                             releaseLocks(resourceLockState);
-                            try {
-                                lock.wait();
-                            } catch (InterruptedException e) {
-                                throw UncheckedException.throwAsUncheckedException(e);
-                            }
+                            checkForDeadlocks(resourceLockState);
+                            waitForLockStateChange(resourceLockState);
                             break;
                         case FINISHED:
                             return true;
@@ -89,22 +91,56 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
+    @Override
+    public void addRegistry(ResourceLockRegistry registry) {
+        lockRegistries.add(registry);
+    }
+
+    private void waitForLockStateChange(DefaultResourceLockState resourceLockState) {
+        waiting.put(Thread.currentThread(), resourceLockState);
+        try {
+            lock.wait();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            waiting.remove(Thread.currentThread());
+        }
+    }
+
     private void releaseLocks(DefaultResourceLockState stateLock) {
         for (ResourceLock resourceLock : stateLock.getResourceLocks()) {
             resourceLock.unlock();
         }
     }
 
-    private static class DefaultResourceLockState implements ResourceLockState {
+    private void checkForDeadlocks(DefaultResourceLockState resourceLockState) {
+        ResourceDeadlockDetector deadlockDetector = new ResourceDeadlockDetector(resourceLockState, waiting, lockRegistries);
+        List<Pair<Thread, Iterable<ResourceLock>>> cycle = deadlockDetector.checkForDeadlocks();
+        if (cycle != null) {
+            throw new ResourceDeadlockException(cycle);
+        }
+    }
+
+    static class DefaultResourceLockState implements ResourceLockState {
         private final Set<ResourceLock> resourceLocks = Sets.newHashSet();
+        private final Set<ResourceLock> resourceLockFailures = Sets.newHashSet();
 
         @Override
         public void registerLocked(ResourceLock resourceLock) {
             resourceLocks.add(resourceLock);
         }
 
+        @Override
+        public void registerFailed(ResourceLock resourceLock) {
+            resourceLockFailures.add(resourceLock);
+        }
+
         Set<ResourceLock> getResourceLocks() {
             return resourceLocks;
+        }
+
+        Set<ResourceLock> getResourceLockFailures() {
+            return resourceLockFailures;
         }
     }
 

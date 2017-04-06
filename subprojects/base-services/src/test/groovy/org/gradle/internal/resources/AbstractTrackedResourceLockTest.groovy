@@ -72,4 +72,20 @@ class AbstractTrackedResourceLockTest extends Specification {
         then:
         thrown(IllegalStateException)
     }
+
+    def "tracks lock owner"() {
+        when:
+        lock.tryLock()
+
+        then:
+        lock.owner == Thread.currentThread()
+        3 * coordinationService.current >> resourceLockState
+
+        when:
+        lock.unlock()
+
+        then:
+        lock.owner == null
+        2 * coordinationService.current >> resourceLockState
+    }
 }

@@ -20,9 +20,9 @@ import java.util.Collection;
 
 public interface ResourceLockRegistry {
     /**
-     * Get all of the resource locks held by the current thread.
+     * Get all of the resource locks held by the specified thread.
      */
-    Collection<? extends ResourceLock> getResourceLocksByCurrentThread();
+    Collection<? extends ResourceLock> getResourceLocksByThread(Thread thread);
 
     /**
      * Returns true if the registry has any locks that are being held by a thread.

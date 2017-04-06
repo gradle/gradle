@@ -36,6 +36,7 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
 
     public AbstractResourceLockRegistry(final ResourceLockCoordinationService coordinationService) {
         this.coordinationService = coordinationService;
+        coordinationService.addRegistry(this);
     }
 
     protected T getOrRegisterResourceLock(final String displayName, final ResourceLockProducer<T> producer) {
@@ -52,9 +53,8 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
     }
 
     @Override
-    public Collection<? extends ResourceLock> getResourceLocksByCurrentThread() {
-        final Long threadId = Thread.currentThread().getId();
-        return ImmutableList.copyOf(threadResourceLockMap.get(threadId));
+    public Collection<? extends ResourceLock> getResourceLocksByThread(Thread thread) {
+        return ImmutableList.copyOf(threadResourceLockMap.get(thread.getId()));
     }
 
     @Override
