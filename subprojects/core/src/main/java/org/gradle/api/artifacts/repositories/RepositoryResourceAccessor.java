@@ -25,7 +25,7 @@ import java.io.InputStream;
  * the resources locally. The scope of the cache may depend on the accessor: users should
  * refer to the javadocs of the methods providing an accessor to determine the scope.
  *
- * @since 3.6
+ * @since 4.0
  */
 @Incubating
 public interface RepositoryResourceAccessor {

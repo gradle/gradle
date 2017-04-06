@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
  * A component metadata rule details, giving access to the identifier of the component being
  * resolved, the metadata builder, and the repository resource accessor for this.
  *
- * @since 3.6
+ * @since 4.0
  */
 @Incubating
 public interface ComponentMetadataSupplierDetails {

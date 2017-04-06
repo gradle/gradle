@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 /**
  * A rule that determines whether a given attribute value is compatible some provided attribute value.
  *
- * @since 3.6
+ * @since 4.0
  * @param <T> The attribute value type.
  */
 @Incubating

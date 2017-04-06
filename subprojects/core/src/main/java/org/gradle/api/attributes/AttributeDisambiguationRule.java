@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 /**
  * A rule that selects the best value out of a set of two or more candidates.
  *
- * @since 3.6
+ * @since 4.0
  * @param <T> The attribute value type.
  */
 @Incubating

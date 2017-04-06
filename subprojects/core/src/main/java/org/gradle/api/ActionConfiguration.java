@@ -19,7 +19,7 @@ package org.gradle.api;
 /**
  * Allows specification of configuration for some action.
  *
- * @since 3.6
+ * @since 4.0
  */
 @Incubating
 public interface ActionConfiguration {

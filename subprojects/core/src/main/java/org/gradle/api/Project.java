@@ -1599,7 +1599,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </pre>
      *
      * @param action Action to configure the CopySpec.
-     * @since 3.6
+     * @since 4.0
      * @return {@link WorkResult} that can be used to check if the sync did any work.
      */
     WorkResult sync(Action<? super CopySpec> action);
