@@ -23,7 +23,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id "java"
-                id "nebula.dependency-recommender" version "3.3.0"
+                id "nebula.dependency-recommender" version "4.1.2"
             }
 
             repositories {
