@@ -45,4 +45,24 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         LARGE_MONOLITHIC_JAVA_PROJECT | _
         LARGE_JAVA_MULTI_PROJECT      | _
     }
+
+    @Unroll
+    def "cold daemon on #testProject"() {
+        given:
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = ['tasks']
+        runner.useDaemon = false
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject                   | _
+        LARGE_MONOLITHIC_JAVA_PROJECT | _
+        LARGE_JAVA_MULTI_PROJECT      | _
+    }
 }
