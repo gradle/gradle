@@ -83,7 +83,13 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
     public void stop() {
         synchronized (lock) {
             if (!threads.isEmpty()) {
-                throw new IllegalStateException("Some build operations have not been marked as completed.");
+                StringBuilder message = new StringBuilder("Some build operations have not been marked as completed:");
+                for (DefaultOperation operation : threads.values()) {
+                    message.append('\n');
+                    message.append(operation.getDisplayName());
+                }
+
+                throw new IllegalStateException(message.toString());
             }
         }
     }
