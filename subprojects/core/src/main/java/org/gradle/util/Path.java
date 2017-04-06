@@ -20,7 +20,6 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.internal.cache.StringInterner;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -29,7 +28,6 @@ public class Path implements Comparable<Path> {
     public static final Path ROOT = new Path(new String[0], true);
 
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
-    private static final StringInterner SEGMENT_INTERNER = new StringInterner();
 
     public static Path path(String path) {
         if (Strings.isNullOrEmpty(path)) {
@@ -44,9 +42,6 @@ public class Path implements Comparable<Path> {
 
     private static Path parsePath(String path) {
         String[] segments = StringUtils.split(path, Project.PATH_SEPARATOR);
-        for (int i = 0; i < segments.length; i++) {
-            segments[i] = SEGMENT_INTERNER.intern(segments[i]);
-        }
         boolean absolute = path.startsWith(Project.PATH_SEPARATOR);
         return new Path(segments, absolute);
     }
@@ -169,7 +164,7 @@ public class Path implements Comparable<Path> {
     public Path child(String name) {
         String[] childSegments = new String[segments.length + 1];
         System.arraycopy(segments, 0, childSegments, 0, segments.length);
-        childSegments[segments.length] = SEGMENT_INTERNER.intern(name);
+        childSegments[segments.length] = name;
         return new Path(childSegments, absolute);
     }
 
@@ -205,7 +200,7 @@ public class Path implements Comparable<Path> {
             return path;
         }
         for (int i = 0; i < segments.length; i++) {
-            if (path.segments[i] != segments[i]) {
+            if (!path.segments[i].equals(segments[i])) {
                 return path;
             }
         }
