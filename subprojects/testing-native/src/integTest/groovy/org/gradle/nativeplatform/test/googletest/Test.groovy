@@ -25,36 +25,41 @@ class Test extends AbstractIntegrationSpec {
         file("src/lib/cpp/lib.cc").text = "void fun2() {}"
 
         buildFile.text =  """
-        apply plugin: "cpp"
-        apply plugin: "google-test-test-suite"
+apply plugin: "cpp"
+apply plugin: "google-test-test-suite"
 
-        class Rules extends RuleSource {
-            @Finalize
-            void linkTestedComponentLibs(@Each GoogleTestTestSuiteSpec testSuite, ComponentSpecContainer components) {
-                testSuite.testedComponent.binaries.each { binary ->
-                    println binary.getLibs()
-                }
+class Rules extends RuleSource {
+    @Finalize
+    void linkTestedComponentLibs(@Each GoogleTestTestSuiteSpec testSuite) {
+
+        testSuite.testedComponent.binaries.each { binary ->
+            def delegateBinary = binary.metaClass.getAttribute(binary, '\$delegate')
+
+            def notationField = org.gradle.nativeplatform.internal.AbstractNativeBinarySpec.getDeclaredField("libs")
+            notationField.setAccessible(true)
+
+            println notationField.get(delegateBinary)
+            println binary.getLibs()
+        }
+    }
+}
+apply plugin: Rules
+
+model {
+    components {
+        lib(NativeLibrarySpec)
+        main(NativeLibrarySpec) {
+            binaries.withType(NativeBinarySpec) {
+                lib library: "lib", linkage: "static"
             }
         }
-        apply plugin: Rules
-
-        model {
-            components {
-                lib(NativeLibrarySpec) {
-
-                }
-                main(NativeLibrarySpec) {
-                    binaries.withType(NativeBinarySpec) {
-                        lib library: "lib", linkage: "static"
-                    }
-                }
-            }
-            testSuites {
-                mainTest(GoogleTestTestSuiteSpec) {
-                    testing \$.components.main
-                }
-            }
+    }
+    testSuites {
+        mainTest(GoogleTestTestSuiteSpec) {
+            testing \$.components.main
         }
+    }
+}
         """
 
 
