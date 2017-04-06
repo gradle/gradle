@@ -590,7 +590,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds ':build'
 
         then:
-        executedTasks == [':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build']
+        result.assertTasksExecutedInOrder(':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build')
     }
 
     @Issue(["gradle/gradle#769", "gradle/gradle#841"])
@@ -620,7 +620,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
 
-        executedTasks == [':a'] + (count..0).collect { ":d_$it" } + [':f']
+        result.assertTasksExecutedInOrder(([':a'] + (count..0).collect { ":d_$it" } + [':f']) as String[])
     }
 
     @NotYetImplemented
