@@ -133,8 +133,8 @@ class CommandLineActionFactoryTest extends Specification {
 
         where:
         expectedMaxWorkerCount | flags
-        1                      | []
-        1                      | ['--max-workers=4']
+        1                      | ['-Dorg.gradle.parallel='] // This is an ugly hack to disable --parallel, required because the running environment pollutes this test
+        1                      | ['-Dorg.gradle.parallel=', '--max-workers=4']
         4                      | ['--parallel', '--max-workers=4']
         4                      | ['--parallel', '-Dorg.gradle.workers.max=4']
         6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
