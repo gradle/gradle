@@ -32,9 +32,10 @@ public interface ArtifactVisitor {
     void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
 
     /**
-     * May the visitor preemptively download artifacts?
+     * Will the visitor benefit from pre-emptively downloaded artifacts?
+     * If the visitor is certain to require the artifacts, then it makes sense to download them up-front, in parallel.
      */
-    boolean canPerformPreemptiveDownload();
+    boolean shouldPerformPreemptiveDownload();
 
     /**
      * Should {@link #visitFile(ComponentArtifactIdentifier, AttributeContainer, File)} be called?

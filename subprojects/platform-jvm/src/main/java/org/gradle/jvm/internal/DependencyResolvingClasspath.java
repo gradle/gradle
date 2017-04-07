@@ -111,7 +111,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public boolean canPerformPreemptiveDownload() {
+            public boolean shouldPerformPreemptiveDownload() {
                 return true;
             }
 

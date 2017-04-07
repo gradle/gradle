@@ -44,7 +44,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public boolean canPerformPreemptiveDownload() {
+    public boolean shouldPerformPreemptiveDownload() {
         return true;
     }
 
