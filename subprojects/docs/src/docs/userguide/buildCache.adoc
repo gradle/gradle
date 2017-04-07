@@ -248,6 +248,10 @@ due to <<sec:java_compile_avoidance,compile avoidance>>.
 | Some tools are sensitive to the order of its inputs and will produce slightly different output. Gradle will usually provide the order of files from the filesystem, which will be different across operating systems.
 | Provide a stable order for tools affected by order.
 
+| Overlapping outputs between tasks
+| If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
+| Use separate output directories for each task.
+
 | Mixed source projects with Java and another JVM language.
 | If a project has both a Java source set and another source set for a different JVM language, the compilation tasks share an output directory.
 This causes Gradle to disable caching for these tasks when it detects overlapping outputs.
