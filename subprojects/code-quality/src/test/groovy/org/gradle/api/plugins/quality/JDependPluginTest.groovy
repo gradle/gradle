@@ -146,7 +146,7 @@ class JDependPluginTest extends AbstractProjectBuilderSpec {
             text {
                 enabled true
             }
-            xml.destination "foo"
+            xml.destination project.file("foo")
         }
 
         then:

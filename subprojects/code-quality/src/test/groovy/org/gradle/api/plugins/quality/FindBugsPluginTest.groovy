@@ -244,7 +244,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             html {
                 enabled true
             }
-            xml.destination "foo"
+            xml.destination project.file("foo")
         }
 
         then:

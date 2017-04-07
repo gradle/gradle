@@ -192,8 +192,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         when:
         buildFile << """
             checkstyleMain.reports {
-                xml.destination "foo.xml"
-                html.destination "bar.html"
+                xml.destination project.file("foo.xml")
+                html.destination project.file("bar.html")
             }
         """
 
