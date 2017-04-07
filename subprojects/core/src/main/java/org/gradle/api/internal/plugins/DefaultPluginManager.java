@@ -152,7 +152,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     private void addPluginWithBuildOperation(final Runnable adder, final PluginImplementation<?> plugin, final String pluginId, final Class<?> pluginClass) {
-        buildOperationExecutor.run(computeApplyPluginBuildOperationBuildOperationDetails(plugin), new Action<BuildOperationContext>() {
+        buildOperationExecutor.run(computeApplyPluginBuildOperationDetails(plugin), new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
                 addPlugin(adder, plugin, pluginId, pluginClass);
@@ -182,10 +182,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
         adder.run();
     }
 
-    private BuildOperationDetails computeApplyPluginBuildOperationBuildOperationDetails(PluginImplementation<?> pluginImplementation) {
-        String identifier = pluginImplementation.getDisplayName();
-        return BuildOperationDetails.displayName("Apply plugin " + identifier)
-            .name(identifier).operationDescriptor(pluginImplementation).build();
+    private BuildOperationDetails computeApplyPluginBuildOperationDetails(PluginImplementation<?> pluginImplementation) {
+        String identifier;
+        if (pluginImplementation.getPluginId() != null) {
+            identifier = pluginImplementation.getPluginId().toString();
+        } else {
+            identifier = pluginImplementation.asClass().getName();
+        }
+        String name = "Apply plugin " + identifier;
+        return BuildOperationDetails.displayName(name + " to " + applicator.toString()).name(name).operationDescriptor(pluginImplementation).build();
     }
 
     private Plugin<?> producePluginInstance(Class<?> pluginClass) {
