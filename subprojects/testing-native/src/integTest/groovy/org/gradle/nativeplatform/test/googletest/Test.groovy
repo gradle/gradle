@@ -17,8 +17,10 @@
 package org.gradle.nativeplatform.test.googletest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class Test extends AbstractIntegrationSpec {
+    @Ignore
     def "test"() {
         file("src/main/cpp/main.cc").text = "void fun1() {}"
         file("src/mainTest/cpp/mainTest.cc").text = "void test() {}"
