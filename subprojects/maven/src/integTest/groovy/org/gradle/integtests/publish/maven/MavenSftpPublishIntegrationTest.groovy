@@ -30,8 +30,10 @@ class MavenSftpPublishIntegrationTest extends AbstractMavenPublishIntegTest {
     }
 
     def setup() {
-        // SFTP test fixture doesn't seem to handle concurrent requests properly
-        executer.withArguments('--max-workers', '1')
+        // SFTP test fixture does not handle parallel resolution requests
+        executer.beforeExecute {
+            it.withArgument("--max-workers=1")
+        }
     }
 
     @Ignore
