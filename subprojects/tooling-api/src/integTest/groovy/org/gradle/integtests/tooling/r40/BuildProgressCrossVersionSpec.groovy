@@ -121,13 +121,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureRoot = events.operation("Configure project :")
 
-        def applyRootBuildScript = configureRoot.child("Apply build file '${buildFile}' to root project 'multi'")
+        def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
 
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies :compile")
         applyRootBuildScript.child("Resolve artifact a.jar (project :a)")
         applyRootBuildScript.child("Resolve artifact b.jar (project :b)")
 
-        def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply build file '${file('a/build.gradle')}' to project ':a'")
+        def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
 
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies :a:compile")
         applyProjectABuildScript.child("Resolve artifact b.jar (project :b)")
@@ -186,7 +186,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.assertIsABuild()
 
-        def applyBuildScript = events.operation "Apply build file '${buildFile}' to root project 'root'"
+        def applyBuildScript = events.operation "Apply script build.gradle to root project 'root'"
 
         applyBuildScript.child("Resolve dependencies :compile").with {
             it.child "Configure project :a"
@@ -233,8 +233,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         and:
         events.operation('Run init scripts').with {
-            it.child "Apply initialization script '${initScript1}' to build"
-            it.child "Apply initialization script '${initScript2}' to build"
+            it.child "Apply script init1.gradle to build"
+            it.child "Apply script init2.gradle to build"
         }
     }
 
@@ -247,7 +247,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def buildSrcFile = file('buildSrc/build.gradle')
         def aBuildFile = file('a/build.gradle')
         def bBuildFile = file('b/build.gradle')
-        [buildSrcFile, aBuildFile, bBuildFile].each { it << '' }
+        [buildSrcFile, buildFile, aBuildFile, bBuildFile].each { it << '' }
 
         when:
         def events = new ProgressEvents()
@@ -262,10 +262,27 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        events.operation('Configure project :buildSrc').child "Apply build file '${buildSrcFile}' to project ':buildSrc'"
-        events.operation('Configure project :').child "Apply build file '${buildFile}' to root project 'multi'"
-        events.operation('Configure project :a').child "Apply build file '${aBuildFile}' to project ':a'"
-        events.operation('Configure project :b').child "Apply build file '${bBuildFile}' to project ':b'"
+        events.operation('Configure project :buildSrc').child "Apply script build.gradle to project ':buildSrc'"
+        events.operation('Configure project :').child "Apply script build.gradle to root project 'multi'"
+        events.operation('Configure project :a').child "Apply script build.gradle to project ':a'"
+        events.operation('Configure project :b').child "Apply script build.gradle to project ':b'"
+    }
+
+    def "does not generate events for non-existing build scripts"() {
+        when:
+        def events = new ProgressEvents()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events)
+                    .run()
+        }
+
+        then:
+        events.assertIsABuild()
+
+        and:
+        events.operation('Configure project :').children.size() == 1 //only 'Apply plugin org.gradle.help-tasks'
     }
 
     def "generates events for applied script plugins"() {
@@ -306,34 +323,34 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         and:
         println events.describeOperationsTree()
 
-        events.operation("Apply initialization script '${initScript}' to build").with { applyInitScript ->
-            applyInitScript.child "Apply script '${scriptPlugin1}' to build"
-            applyInitScript.child "Apply script '${scriptPlugin2}' to build"
+        events.operation("Apply script ${initScript.name} to build").with { applyInitScript ->
+            applyInitScript.child "Apply script ${scriptPlugin1.name} to build"
+            applyInitScript.child "Apply script ${scriptPlugin2.name} to build"
         }
 
-        events.operation("Apply build file '${buildSrcScript}' to project ':buildSrc'").with { applyBuildSrc ->
-            applyBuildSrc.child "Apply script '${scriptPlugin1}' to project ':buildSrc'"
-            applyBuildSrc.child "Apply script '${scriptPlugin2}' to project ':buildSrc'"
+        events.operation("Apply script ${buildSrcScript.name} to project ':buildSrc'").with { applyBuildSrc ->
+            applyBuildSrc.child "Apply script ${scriptPlugin1.name} to project ':buildSrc'"
+            applyBuildSrc.child "Apply script ${scriptPlugin2.name} to project ':buildSrc'"
         }
 
-        events.operation("Apply settings file '${settingsFile}' to settings '${settingsFile.parentFile.name}'").with { applySettings ->
-            applySettings.child "Apply script '${scriptPlugin1}' to settings 'multi'"
-            applySettings.child "Apply script '${scriptPlugin2}' to settings 'multi'"
+        events.operation("Apply script ${settingsFile.name} to settings '${settingsFile.parentFile.name}'").with { applySettings ->
+            applySettings.child "Apply script ${scriptPlugin1.name} to settings 'multi'"
+            applySettings.child "Apply script ${scriptPlugin2.name} to settings 'multi'"
         }
 
-        events.operation("Apply build file '${buildFile}' to root project 'multi'").with { applyRootProject ->
-            applyRootProject.child "Apply script '${scriptPlugin1}' to root project 'multi'"
-            applyRootProject.child "Apply script '${scriptPlugin2}' to root project 'multi'"
+        events.operation("Apply script ${buildFile.name} to root project 'multi'").with { applyRootProject ->
+            applyRootProject.child "Apply script ${scriptPlugin1.name} to root project 'multi'"
+            applyRootProject.child "Apply script ${scriptPlugin2.name} to root project 'multi'"
         }
 
-        events.operation("Apply build file '${aBuildFile}' to project ':a'").with { applyProjectA ->
-            applyProjectA.child "Apply script '${scriptPlugin1}' to project ':a'"
-            applyProjectA.child "Apply script '${scriptPlugin2}' to project ':a'"
+        events.operation("Apply script ${aBuildFile.name} to project ':a'").with { applyProjectA ->
+            applyProjectA.child "Apply script ${scriptPlugin1.name} to project ':a'"
+            applyProjectA.child "Apply script ${scriptPlugin2.name} to project ':a'"
         }
 
-        events.operation("Apply build file '${bBuildFile}' to project ':b'").with { applyProjectB ->
-            applyProjectB.child "Apply script '${scriptPlugin1}' to project ':b'"
-            applyProjectB.child "Apply script '${scriptPlugin2}' to project ':b'"
+        events.operation("Apply script ${bBuildFile.name} to project ':b'").with { applyProjectB ->
+            applyProjectB.child "Apply script ${scriptPlugin1.name} to project ':b'"
+            applyProjectB.child "Apply script ${scriptPlugin2.name} to project ':b'"
         }
     }
 
@@ -363,10 +380,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.assertIsABuild()
 
-        events.operation("Apply build file '${buildFile.absolutePath}' to root project 'root'").with { applyRoot ->
-            applyRoot.child("Apply script '${scriptPluginGroovy1.absolutePath}' to root project 'root'").with { applyGroovy1 ->
-                applyGroovy1.child("Apply script '${scriptPluginKotlin.absolutePath}' to root project 'root'").with { applyKotlin ->
-                    applyKotlin.child("Apply script '${scriptPluginGroovy2.absolutePath}' to root project 'root'")
+        events.operation("Apply script ${buildFile.name} to root project 'root'").with { applyRoot ->
+            applyRoot.child("Apply script ${scriptPluginGroovy1.name} to root project 'root'").with { applyGroovy1 ->
+                applyGroovy1.child("Apply script ${scriptPluginKotlin.name} to root project 'root'").with { applyKotlin ->
+                    applyKotlin.child("Apply script ${scriptPluginGroovy2.name} to root project 'root'")
                 }
             }
         }
