@@ -118,14 +118,5 @@ public interface ResolvableDependencies extends ArtifactView {
      * @since 3.4
      */
     @Incubating
-    ArtifactView artifactView(Closure configAction);
-
-    /**
-     * Returns a builder that can be used to define and access a filtered view of the resolved artifacts.
-     * @return A view over the artifacts resolved for this set of dependencies.
-     *
-     * @since 3.4
-     */
-    @Incubating
     ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction);
 }

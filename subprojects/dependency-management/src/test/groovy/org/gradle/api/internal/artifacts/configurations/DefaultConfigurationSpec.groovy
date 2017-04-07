@@ -1517,8 +1517,8 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         conf.incoming.artifactView {
-            componentFilter { true }
-            componentFilter { true }
+            it.componentFilter { true }
+            it.componentFilter { true }
         }
 
         then:
@@ -1533,9 +1533,9 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         def artifactView = conf.incoming.artifactView {
-            attributes.attribute(a1, 1)
-            attributes { it.attribute(a2, "A") }
-            attributes.attribute(a1, 10)
+            it.attributes.attribute(a1, 1)
+            it.attributes { it.attribute(a2, "A") }
+            it.attributes.attribute(a1, 10)
         }
 
         then:

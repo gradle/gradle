@@ -96,7 +96,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
@@ -125,7 +124,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
-    private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
+    private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Instantiator instantiator;
@@ -214,6 +213,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = new DefaultMutableAttributeContainer(attributesFactory);
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+
+        this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -980,7 +981,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return reply.toString();
     }
 
-    private class ConfigurationResolvableDependencies implements ResolvableDependencies {
+    public class ConfigurationResolvableDependencies implements ResolvableDependencies {
         public String getName() {
             return name;
         }
@@ -1026,13 +1027,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public ArtifactCollection getArtifacts() {
             return new ConfigurationArtifactCollection();
-        }
-
-        @Override
-        public ArtifactView artifactView(Closure configAction) {
-            ArtifactViewConfiguration config = createArtifactViewConfiguration();
-            ConfigureUtil.configure(configAction, config);
-            return createArtifactView(config);
         }
 
         @Override
