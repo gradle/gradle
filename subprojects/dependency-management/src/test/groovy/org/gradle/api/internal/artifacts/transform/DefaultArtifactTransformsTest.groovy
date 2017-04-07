@@ -75,9 +75,9 @@ class DefaultArtifactTransformsTest extends Specification {
 
         then:
         def e = thrown(AmbiguousVariantSelectionException)
-        e.message == """More than one variant matches the consumer attributes:
+        e.message == toPlatformLineSeparators("""More than one variant matches the consumer attributes:
   - Variant: Required artifactType 'classes' and found incompatible value 'classes'.
-  - Variant: Required artifactType 'classes' and found incompatible value 'jar'."""
+  - Variant: Required artifactType 'classes' and found incompatible value 'jar'.""")
     }
 
     def "selects variant with attributes that can be transformed to requested format"() {
@@ -192,9 +192,9 @@ Found the following transforms:
 
         then:
         def e = thrown(NoMatchingVariantSelectionException)
-        e.message == """No variants match the consumer attributes:
+        e.message == toPlatformLineSeparators("""No variants match the consumer attributes:
   - Variant: Required artifactType 'dll' and found incompatible value 'jar'.
-  - Variant: Required artifactType 'dll' and found incompatible value 'classes'."""
+  - Variant: Required artifactType 'dll' and found incompatible value 'classes'.""")
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {
