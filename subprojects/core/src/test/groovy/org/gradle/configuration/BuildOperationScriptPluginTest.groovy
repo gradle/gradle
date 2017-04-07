@@ -18,6 +18,7 @@ package org.gradle.configuration
 
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.resource.TextResource
 import spock.lang.Specification
 
 class BuildOperationScriptPluginTest extends Specification {
@@ -26,6 +27,7 @@ class BuildOperationScriptPluginTest extends Specification {
         given:
         def buildOperationExecutor = new TestBuildOperationExecutor()
         def scriptSource = Mock(ScriptSource)
+        def scriptSourceResource = Mock(TextResource)
         def decoratedScriptPlugin = Mock(ScriptPlugin)
         def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor)
         def target = "Test Target"
@@ -34,11 +36,68 @@ class BuildOperationScriptPluginTest extends Specification {
         buildOperationScriptPlugin.apply(target)
 
         then:
-        1 * decoratedScriptPlugin.getSource() >> scriptSource
-        1 * scriptSource.getDisplayName() >> "Test Source"
+        2 * scriptSource.getResource() >> scriptSourceResource
+        1 * scriptSourceResource.isContentCached() >> true
+        1 * scriptSourceResource.getHasEmptyContent() >> false
+        2 * decoratedScriptPlugin.getSource() >> scriptSource
+        1 * scriptSource.getDisplayName() >> "test.source"
         1 * decoratedScriptPlugin.apply(target)
         0 * decoratedScriptPlugin._
+        
         buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).name == "Apply Test Source to Test Target"
+        buildOperationExecutor.operations.get(0).displayName == "Apply script test.source to Test Target"
+        buildOperationExecutor.operations.get(0).name == "Apply script test.source"
+    }
+
+    def "delegates to decorated script plugin and uses file name in build operation name"() {
+        given:
+        def buildOperationExecutor = new TestBuildOperationExecutor()
+        def scriptSource = Mock(ScriptSource)
+        def scriptSourceResource = Mock(TextResource)
+        def decoratedScriptPlugin = Mock(ScriptPlugin)
+        def scriptFile = Mock(File)
+        def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor)
+        def target = "Test Target"
+
+        when:
+        buildOperationScriptPlugin.apply(target)
+
+        then:
+        2 * scriptSource.getResource() >> scriptSourceResource
+        1 * scriptSourceResource.isContentCached() >> true
+        1 * scriptSourceResource.getHasEmptyContent() >> false
+        1 * scriptSourceResource.getFile() >> scriptFile
+        1 * scriptFile.getName() >> "build.gradle"
+        2 * decoratedScriptPlugin.getSource() >> scriptSource
+        0 * scriptSource.getDisplayName() >> "test.source"
+        1 * decoratedScriptPlugin.apply(target)
+        0 * decoratedScriptPlugin._
+
+        buildOperationExecutor.operations.size() == 1
+        buildOperationExecutor.operations.get(0).displayName == "Apply script build.gradle to Test Target"
+        buildOperationExecutor.operations.get(0).name == "Apply script build.gradle"
+    }
+
+    def "delegates to decorated script plugin without build operation in cached source has no content"() {
+        given:
+        def buildOperationExecutor = new TestBuildOperationExecutor()
+        def scriptSource = Mock(ScriptSource)
+        def scriptSourceResource = Mock(TextResource)
+        def decoratedScriptPlugin = Mock(ScriptPlugin)
+        def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor)
+        def target = "Test Target"
+
+        when:
+        buildOperationScriptPlugin.apply(target)
+
+        then:
+        1 * scriptSource.getResource() >> scriptSourceResource
+        1 * scriptSourceResource.isContentCached() >> true
+        1 * scriptSourceResource.getHasEmptyContent() >> true
+        1 * decoratedScriptPlugin.getSource() >> scriptSource
+        1 * decoratedScriptPlugin.apply(target)
+        0 * decoratedScriptPlugin._
+
+        buildOperationExecutor.operations.size() == 0
     }
 }
