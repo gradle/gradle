@@ -24,12 +24,6 @@ import java.util.List;
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     CompileOptions getCompileOptions();
 
-    @Deprecated
-    File getDependencyCacheDir();
-
-    @Deprecated
-    void setDependencyCacheDir(File dependencyCacheDir);
-
     @Override
     File getDestinationDir();
 

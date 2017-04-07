@@ -23,7 +23,6 @@ import java.util.List;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
     private CompileOptions compileOptions;
-    private File dependencyCacheDir;
     private List<File> annotationProcessorPath;
 
     @Override
@@ -33,18 +32,6 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
 
     public void setCompileOptions(CompileOptions compileOptions) {
         this.compileOptions = compileOptions;
-    }
-
-    @Deprecated
-    @Override
-    public File getDependencyCacheDir() {
-        return dependencyCacheDir;
-    }
-
-    @Deprecated
-    @Override
-    public void setDependencyCacheDir(File dependencyCacheDir) {
-        this.dependencyCacheDir = dependencyCacheDir;
     }
 
     @Override

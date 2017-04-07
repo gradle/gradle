@@ -42,7 +42,6 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -301,21 +300,6 @@ public class Javadoc extends SourceTask {
     @Nested
     public MinimalJavadocOptions getOptions() {
         return options;
-    }
-
-    /**
-     * Sets the Javadoc generation options.
-     *
-     * @param options The options. Must not be null.
-     */
-    @Deprecated
-    public void setOptions(MinimalJavadocOptions options) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Javadoc.setOptions(MinimalJavadocOptions)");
-        if (options instanceof StandardJavadocDocletOptions) {
-            this.options = (StandardJavadocDocletOptions) options;
-        } else {
-            this.options = new StandardJavadocDocletOptions(options);
-        }
     }
 
     /**

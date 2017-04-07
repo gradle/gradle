@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "incremental");
+            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "incremental");
 
     private boolean failOnError = true;
 
@@ -59,11 +58,6 @@ public class CompileOptions extends AbstractOptions {
     private boolean fork;
 
     private ForkOptions forkOptions = new ForkOptions();
-
-    private boolean useDepend;
-
-    @SuppressWarnings("deprecation")
-    private DependOptions dependOptions = new DependOptions();
 
     private String bootClasspath;
 
@@ -237,48 +231,6 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Tells whether to use the Ant {@code <depend>} task.
-     * Only takes effect if {@code useAnt} is {@code true}. Defaults to
-     * {@code false}.
-     */
-    @Input
-    @Deprecated
-    public boolean isUseDepend() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.isUseDepend()");
-        return useDepend;
-    }
-
-    /**
-     * Sets whether to use the Ant {@code <depend>} task.
-     * Only takes effect if {@code useAnt} is {@code true}. Defaults to
-     * {@code false}.
-     */
-    @Deprecated
-    public void setUseDepend(boolean useDepend) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.setUseDepend()");
-        this.useDepend = useDepend;
-    }
-
-    /**
-     * Returns options for using the Ant {@code <depend>} task.
-     */
-    @Nested
-    @Deprecated
-    public DependOptions getDependOptions() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.getDependOptions()");
-        return dependOptions;
-    }
-
-    /**
-     * Sets options for using the Ant {@code <depend>} task.
-     */
-    @Deprecated
-    public void setDependOptions(DependOptions dependOptions) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.setDependOptions()");
-        this.dependOptions = dependOptions;
-    }
-
-    /**
      * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
      */
     @Input
@@ -351,18 +303,6 @@ public class CompileOptions extends AbstractOptions {
     public CompileOptions debug(Map<String, Object> debugArgs) {
         debug = true;
         debugOptions.define(debugArgs);
-        return this;
-    }
-
-    /**
-     * Convenience method to set {@link DependOptions} with named parameter syntax.
-     * Calling this method will set {@code useDepend} to {@code true}.
-     */
-    @Deprecated
-    public CompileOptions depend(Map<String, Object> dependArgs) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileOptions.depend()");
-        useDepend = true;
-        dependOptions.define(dependArgs);
         return this;
     }
 

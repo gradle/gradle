@@ -46,7 +46,6 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.Classpath;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -65,7 +64,6 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -313,23 +311,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 conventionMapping.map("targetCompatibility", new Callable<Object>() {
                     public Object call() throws Exception {
                         return javaConvention.getTargetCompatibility().toString();
-                    }
-                });
-            }
-        });
-        project.getTasks().withType(JavaCompile.class, new Action<JavaCompile>() {
-            @Override
-            public void execute(final JavaCompile compile) {
-                ConventionMapping conventionMapping = compile.getConventionMapping();
-                conventionMapping.map("dependencyCacheDir", new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        return DeprecationLogger.whileDisabled(new Factory<Object>() {
-                            @Override
-                            public Object create() {
-                                return javaConvention.getDependencyCacheDir();
-                            }
-                        });
                     }
                 });
             }

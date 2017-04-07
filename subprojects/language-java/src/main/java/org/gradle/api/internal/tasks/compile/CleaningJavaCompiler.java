@@ -21,7 +21,6 @@ import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
-import org.gradle.util.DeprecationLogger;
 
 public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> compiler;
@@ -41,20 +40,7 @@ public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompil
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     protected StaleClassCleaner createCleaner(final JavaCompileSpec spec) {
-        boolean useDepend = DeprecationLogger.whileDisabled(new Factory<Boolean>() {
-            @Override
-            public Boolean create() {
-                return spec.getCompileOptions().isUseDepend();
-            }
-        });
-        if (useDepend) {
-            AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory, spec.getCompileOptions());
-            cleaner.setDependencyCacheDir(spec.getDependencyCacheDir());
-            return cleaner;
-        } else {
-            return new SimpleStaleClassCleaner(taskOutputs);
-        }
+        return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

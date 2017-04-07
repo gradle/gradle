@@ -653,20 +653,6 @@
                     The name of the directory to use to cache source dependency information, relative to the build directory.
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <literal>dependencyCacheDir</literal>
-                </td>
-                <td>
-                    <classname>File</classname> (read-only)
-                </td>
-                <td>
-                    <literal><replaceable>buildDir</replaceable>/<replaceable>dependencyCacheDirName</replaceable></literal>
-                </td>
-                <td>
-                    The directory to use to cache source dependency information.
-                </td>
-            </tr>
         </table>
 
         <table id='javaconventionNonDir'>

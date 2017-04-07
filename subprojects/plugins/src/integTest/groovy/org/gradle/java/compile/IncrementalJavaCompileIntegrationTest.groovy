@@ -100,36 +100,6 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         failure.assertHasDescription "Execution failed for task ':app:compileJava'."
     }
 
-    def "recompiles dependent classes when using ant depend"() {
-        given:
-        file('src/main/java/IPerson.java') << basicInterface
-        file('src/main/java/Person.java') << classImplementingBasicInterface
-        buildFile << '''
-            apply plugin: 'java'
-            compileJava.options.depend()
-        '''.stripIndent()
-
-        expect:
-        executer.expectDeprecationWarning() // incremental compiler
-        executer.expectDeprecationWarning() // ant
-        succeeds 'classes'
-
-        and: 'file system time stamp may not see change without this wait'
-        sleep 1000
-
-        when: 'update interface, compile should fail because depend deletes old class'
-        file('src/main/java/IPerson.java').text = extendedInterface
-
-        then:
-        executer.expectDeprecationWarning() // incremental compiler
-        executer.expectDeprecationWarning() // ant
-        def failure = fails 'classes'
-        failure.assertHasDescription "Execution failed for task ':compileJava'."
-
-        and: 'assert that dependency caching is on'
-        file('build/dependency-cache/dependencies.txt').assertExists()
-    }
-
     def "task outcome is UP-TO-DATE when no recompilation necessary"() {
         given:
         libraryAppProjectWithIncrementalCompilation()

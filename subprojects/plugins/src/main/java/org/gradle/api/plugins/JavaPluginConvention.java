@@ -29,7 +29,6 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -91,12 +90,6 @@ public class JavaPluginConvention {
      */
     public Object sourceSets(Closure closure) {
         return sourceSets.configure(closure);
-    }
-
-    @Deprecated
-    public File getDependencyCacheDir() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDir()");
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(dependencyCacheDirName);
     }
 
     /**
@@ -205,21 +198,6 @@ public class JavaPluginConvention {
 
     private Manifest createManifest() {
         return new DefaultManifest(project.getFileResolver());
-    }
-
-    /**
-     * The name of the dependency cache dir.
-     */
-    @Deprecated
-    public String getDependencyCacheDirName() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDirName()");
-        return dependencyCacheDirName;
-    }
-
-    @Deprecated
-    public void setDependencyCacheDirName(String dependencyCacheDirName) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDirName()");
-        this.dependencyCacheDirName = dependencyCacheDirName;
     }
 
     /**
