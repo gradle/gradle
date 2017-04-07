@@ -37,9 +37,4 @@ public class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport impl
             return new File(getDestination(), relativeEntryPath);
         }
     }
-
-    @Override
-    public void setDestination(Object destination) {
-        super.setDestination(destination);
-    }
 }

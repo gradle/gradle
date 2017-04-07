@@ -131,7 +131,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             pmdMain {
                 reports {
                     xml.enabled false
-                    html.destination "htmlReport.html"
+                    html.destination project.file("htmlReport.html")
                 }
             }
         """

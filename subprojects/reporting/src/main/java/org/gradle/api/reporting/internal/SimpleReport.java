@@ -28,7 +28,6 @@ import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 public class SimpleReport implements ConfigurableReport {
 
@@ -69,15 +68,6 @@ public class SimpleReport implements ConfigurableReport {
 
     public File getDestination() {
         return destination.getOrNull();
-    }
-
-    public void setDestination(final Object destination) {
-        this.destination.set(project.provider(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return resolveToFile(destination);
-            }
-        }));
     }
 
     @Override

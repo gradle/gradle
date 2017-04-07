@@ -48,18 +48,6 @@ public interface ConfigurableReport extends Report {
     /**
      * Sets the destination for the report.
      *
-     * The file parameter is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     *
-     * @param file The destination for the report.
-     * @see #getDestination()
-     * @deprecated Replaced by {@link #setDestination(java.io.File)} and {@link #setDestination(org.gradle.api.provider.Provider)}.
-     */
-    @Deprecated
-    void setDestination(Object file);
-
-    /**
-     * Sets the destination for the report.
-     *
      * @param file The destination for the report.
      * @see #getDestination()
      * @since 4.0
