@@ -249,7 +249,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.2'
+                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.6'
             }
             """.stripIndent()
 
@@ -282,7 +282,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             repositories.jcenter()
 
             dependencies {
-                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'
             }
             """.stripIndent()
 
