@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -25,7 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -33,8 +33,8 @@ import java.util.Set;
 
 public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     public final Collection<? super ResolvedArtifactResult> artifacts;
-    public final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
-    public final List<Throwable> failures = new ArrayList<Throwable>();
+    public final List<Throwable> failures = Lists.newArrayList();
+    private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
 
     public ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> artifacts) {
         this.artifacts = artifacts;

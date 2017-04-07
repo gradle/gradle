@@ -1157,7 +1157,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super ComponentIdentifier> componentFilter;
         private final boolean lenient;
         private Set<ResolvedArtifactResult> artifactResults;
-        private Set<Throwable> failures;
+        private List<Throwable> failures;
 
         ConfigurationArtifactCollection() {
             this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll(), false, false);
@@ -1199,15 +1199,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 return;
             }
             artifactResults = Sets.newLinkedHashSet();
-            failures = Sets.newLinkedHashSet();
 
             ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(artifactResults);
             fileCollection.getSelectedArtifacts().visitArtifacts(visitor);
 
+            failures = visitor.failures;
+
             if (!lenient) {
-                rethrowFailure("artifacts", visitor.failures);
+                rethrowFailure("artifacts", failures);
             }
-            failures.addAll(visitor.failures);
         }
     }
 
