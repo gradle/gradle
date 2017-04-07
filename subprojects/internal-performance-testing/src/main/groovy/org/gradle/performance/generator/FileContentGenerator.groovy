@@ -30,6 +30,8 @@ class FileContentGenerator {
             return ""
         }
         """
+        import org.gradle.util.GradleVersion
+
         def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')
 
         ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ") }
