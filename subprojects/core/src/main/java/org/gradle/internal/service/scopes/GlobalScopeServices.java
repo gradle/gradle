@@ -88,6 +88,7 @@ import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -174,8 +175,10 @@ public class GlobalScopeServices {
         return new BuildOperationProjectConfigurator(buildOperationExecutor);
     }
 
-    BuildOperationService createBuildOperationService(ListenerManager listenerManager) {
-        return new DefaultBuildOperationService(listenerManager);
+    BuildOperationService createBuildOperationService(ListenerManager listenerManager, OutputEventRenderer renderer) {
+        BuildOperationService s = new DefaultBuildOperationService(listenerManager);
+        s.addListener(renderer);
+        return s;
     }
 
     TemporaryFileProvider createTemporaryFileProvider() {

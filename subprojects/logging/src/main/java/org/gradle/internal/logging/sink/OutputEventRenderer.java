@@ -37,10 +37,15 @@ import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.TrueTimeProvider;
 
@@ -52,7 +57,7 @@ import java.io.OutputStreamWriter;
  * destinations. This implementation is thread-safe.
  */
 @ThreadSafe
-public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
+public class OutputEventRenderer implements OutputEventListener, BuildOperationListener, LoggingRouter {
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -286,6 +291,26 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     @Override
     public void configureMaxWorkerCount(int maxWorkerCount) {
         onOutput(new MaxWorkerCountChangeEvent(maxWorkerCount));
+    }
+
+    @Override
+    public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+        onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), "CAT", LogLevel.LIFECYCLE,
+            String.format(
+                "\n-[%s->%s] Started %s\n",
+                buildOperation.getParentId() == null ? -1: buildOperation.getParentId().toString(),
+                buildOperation.getId().toString(),
+                buildOperation.getName())));
+    }
+
+    @Override
+    public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+        onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), "CAT", LogLevel.LIFECYCLE,
+            String.format(
+                "\n-[%s->%s] Finished %s\n",
+                buildOperation.getParentId() == null ? -1: buildOperation.getParentId().toString(),
+                buildOperation.getId().toString(),
+                buildOperation.getName())));
     }
 
     @Override
