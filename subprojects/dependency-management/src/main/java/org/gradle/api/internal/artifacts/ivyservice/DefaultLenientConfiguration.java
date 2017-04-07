@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
@@ -28,7 +27,6 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -136,45 +134,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
             }
 
-            /**
-             * Collects files reachable from first level dependencies that satisfy the given spec. Fails when any file cannot be resolved
-             */
-            @Override
-            public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
-                rethrowFailure();
-                ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
-                try {
-                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
-                    // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts.
-                    // This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
-                    // File dependencies and artifacts are currently treated separately as a migration step
-                    visitor.addArtifacts();
-                } catch (Throwable t) {
-                    visitor.failures.add(t);
-                }
-                if (!visitor.failures.isEmpty()) {
-                    throw new ArtifactResolveException("files", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
-                }
-                return dest;
-            }
-
-            /**
-             * Collects all resolved artifacts. Fails when any artifact cannot be resolved.
-             */
-            @Override
-            public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
-                rethrowFailure();
-                ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(dest);
-                try {
-                    DefaultLenientConfiguration.this.visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
-                } catch (Throwable t) {
-                    visitor.failures.add(t);
-                }
-                if (!visitor.failures.isEmpty()) {
-                    throw new ArtifactResolveException("artifacts", configuration.getPath(), configuration.getDisplayName(), visitor.failures);
-                }
-                return dest;
-            }
         };
     }
 
@@ -313,7 +272,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         walker.findValues();
     }
 
-    public Configuration getConfiguration() {
+    public ConfigurationInternal getConfiguration() {
         return configuration;
     }
 

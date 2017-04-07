@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
@@ -108,15 +107,6 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         public void visitArtifacts(ArtifactVisitor visitor) {
         }
 
-        @Override
-        public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
-            return dest;
-        }
-
-        @Override
-        public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
-            return dest;
-        }
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {

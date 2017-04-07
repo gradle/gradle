@@ -1597,7 +1597,7 @@ All Artifacts:
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def selectedArtifactSet = Stub(SelectedArtifactSet)
         _ * visitedArtifactSet.select(_, _, _, _) >> selectedArtifactSet
-        _ *selectedArtifactSet.collectBuildDependencies(_) >> { Collection<Object> deps -> deps }
+        _ * selectedArtifactSet.collectBuildDependencies(_) >> { Collection<Object> deps -> deps }
         visitedArtifactSet
     }
 

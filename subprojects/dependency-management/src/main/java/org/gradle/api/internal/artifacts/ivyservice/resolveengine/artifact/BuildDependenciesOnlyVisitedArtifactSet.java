@@ -17,15 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
-import java.io.File;
 import java.util.Collection;
 
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
@@ -68,14 +65,5 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
             throw new UnsupportedOperationException("Artifacts have not been resolved.");
         }
 
-        @Override
-        public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
-            throw new UnsupportedOperationException("Artifacts have not been resolved.");
-        }
-
-        @Override
-        public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
-            throw new UnsupportedOperationException("Artifacts have not been resolved.");
-        }
     }
 }
