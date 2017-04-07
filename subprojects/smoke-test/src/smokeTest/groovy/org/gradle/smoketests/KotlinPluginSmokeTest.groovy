@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
@@ -37,6 +38,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     def 'kotlin android plugin'() {
         given:
+        assertAndroidHomeSet()
         useSample("android-kotlin-example")
         replaceVariablesInBuildFile(
             kotlinVersion: kotlinVersion,
