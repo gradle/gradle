@@ -203,10 +203,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      * Recursive but excludes unsuccessfully resolved artifacts.
      */
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
-        Set<File> files = Sets.newLinkedHashSet();
-        FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor(files);
+        FilesAndArtifactCollectingVisitor visitor = new FilesAndArtifactCollectingVisitor();
         visitArtifacts(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor);
-        files.addAll(getFiles(filterUnresolved(visitor.artifacts)));
+
+        Set<File> files = visitor.getFiles();
+        files.addAll(getFiles(filterUnresolved(visitor.getArtifacts())));
         return files;
     }
 
@@ -221,7 +222,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         visitArtifacts(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor);
-        return filterUnresolved(visitor.artifacts);
+        return filterUnresolved(visitor.getArtifacts());
     }
 
     private Set<ResolvedArtifact> filterUnresolved(final Set<ResolvedArtifact> artifacts) {
@@ -281,11 +282,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private static class FilesAndArtifactCollectingVisitor extends ArtifactCollectingVisitor {
-        final Collection<File> files;
-
-        FilesAndArtifactCollectingVisitor(Collection<File> files) {
-            this.files = files;
-        }
+        private final Set<File> files = Sets.newLinkedHashSet();
 
         @Override
         public boolean includeFiles() {
@@ -296,13 +293,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
             this.files.add(file);
         }
+
+        public Set<File> getFiles() {
+            return files;
+        }
     }
 
     public static class ArtifactResolveException extends ResolveException {
         private final String type;
         private final String displayName;
 
-        public ArtifactResolveException(String type, String path, String displayName, List<Throwable> failures) {
+        public ArtifactResolveException(String type, String path, String displayName, Iterable<Throwable> failures) {
             super(path, failures);
             this.type = type;
             this.displayName = displayName;

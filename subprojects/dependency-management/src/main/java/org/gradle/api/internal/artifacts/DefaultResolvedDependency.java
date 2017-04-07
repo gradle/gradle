@@ -119,10 +119,9 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
-        Set<ResolvedArtifact> result = new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator());
-        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(result);
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator()));
         artifacts.visit(visitor);
-        return result;
+        return visitor.getArtifacts();
     }
 
     @Override

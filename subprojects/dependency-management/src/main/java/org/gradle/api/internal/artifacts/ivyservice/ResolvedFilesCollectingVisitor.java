@@ -16,26 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
-    public final Collection<? super File> files;
-    public final List<Throwable> failures = new ArrayList<Throwable>();
-    public final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-
-    public ResolvedFilesCollectingVisitor(Collection<? super File> files) {
-        this.files = files;
-    }
+    private final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
+    private final Set<File> files = Sets.newLinkedHashSet();
+    private final Set<Throwable> failures = Sets.newLinkedHashSet();
 
     @Override
     public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
@@ -63,13 +57,26 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
         this.files.add(file);
     }
 
-    public void addArtifacts() {
-        for (ResolvedArtifact artifact : artifacts) {
-            try {
-                this.files.add(artifact.getFile());
-            } catch (Throwable t) {
-                failures.add(t);
+    public Set<File> getFiles() {
+        addArtifactFiles();
+        return files;
+    }
+
+    public Collection<Throwable> getFailures() {
+        addArtifactFiles();
+        return failures;
+    }
+
+    private void addArtifactFiles() {
+        if (!artifacts.isEmpty()) {
+            for (ResolvedArtifact artifact : artifacts) {
+                try {
+                    this.files.add(artifact.getFile());
+                } catch (Throwable t) {
+                    failures.add(t);
+                }
             }
+            artifacts.clear();
         }
     }
 }

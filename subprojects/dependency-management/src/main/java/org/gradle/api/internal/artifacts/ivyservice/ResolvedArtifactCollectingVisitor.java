@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -26,19 +26,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
-    public final Collection<? super ResolvedArtifactResult> artifacts;
-    public final List<Throwable> failures = Lists.newArrayList();
+    private final Set<ResolvedArtifactResult> artifacts = Sets.newLinkedHashSet();
+    private final Set<Throwable> failures = Sets.newLinkedHashSet();
     private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<ComponentArtifactIdentifier>();
-
-    public ResolvedArtifactCollectingVisitor(Collection<? super ResolvedArtifactResult> artifacts) {
-        this.artifacts = artifacts;
-    }
 
     @Override
     public void visitFailure(Throwable failure) {
@@ -73,5 +67,13 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
         if (seenArtifacts.add(artifactIdentifier)) {
             artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, variant, Artifact.class, file));
         }
+    }
+
+    public Set<ResolvedArtifactResult> getArtifacts() {
+        return artifacts;
+    }
+
+    public Set<Throwable> getFailures() {
+        return failures;
     }
 }

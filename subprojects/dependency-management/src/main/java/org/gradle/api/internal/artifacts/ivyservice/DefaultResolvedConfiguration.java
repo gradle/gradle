@@ -26,7 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
 import java.io.File;
-import java.util.LinkedHashSet;
+import java.util.Collection;
 import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
@@ -57,21 +57,17 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        LinkedHashSet<File> dest = new LinkedHashSet<File>();
-        ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(dest);
+        ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         try {
             configuration.select(dependencySpec).visitArtifacts(visitor);
-            // The visitor adds file dependencies directly to the destination collection however defers adding the artifacts.
-            // This is to ensure a fixed order regardless of whether the first level dependencies are filtered or not
-            // File dependencies and artifacts are currently treated separately as a migration step
-            visitor.addArtifacts();
         } catch (Throwable t) {
-            visitor.failures.add(t);
+            visitor.visitFailure(t);
         }
-        if (!visitor.failures.isEmpty()) {
-            throw new DefaultLenientConfiguration.ArtifactResolveException("files", configuration.getConfiguration().getPath(), configuration.getConfiguration().getDisplayName(), visitor.failures);
+        Collection<Throwable> failures = visitor.getFailures();
+        if (!failures.isEmpty()) {
+            throw new DefaultLenientConfiguration.ArtifactResolveException("files", configuration.getConfiguration().getPath(), configuration.getConfiguration().getDisplayName(), failures);
         }
-        return dest;
+        return visitor.getFiles();
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
@@ -88,6 +84,6 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         rethrowFailure();
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         configuration.select().visitArtifacts(visitor);
-        return visitor.artifacts;
+        return visitor.getArtifacts();
     }
 }

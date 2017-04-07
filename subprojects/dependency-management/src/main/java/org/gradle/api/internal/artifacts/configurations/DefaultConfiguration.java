@@ -846,15 +846,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            LinkedHashSet<File> files = new LinkedHashSet<File>();
-            ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor(files);
+            ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
             getSelectedArtifacts().visitArtifacts(visitor);
-            visitor.addArtifacts();
 
             if (!lenient) {
-                rethrowFailure("files", visitor.failures);
+                rethrowFailure("files", visitor.getFailures());
             }
-            return files;
+            return visitor.getFiles();
         }
 
         private SelectedArtifactSet getSelectedArtifacts() {
@@ -867,12 +865,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void rethrowFailure(String type, List<Throwable> failures) {
+    private void rethrowFailure(String type, Collection<Throwable> failures) {
         if (failures.isEmpty()) {
             return;
         }
-        if (failures.size() == 1 && failures.get(0) instanceof ResolveException) {
-            throw UncheckedException.throwAsUncheckedException(failures.get(0));
+        if (failures.size() == 1) {
+            Throwable failure = failures.iterator().next();
+            if (failure instanceof ResolveException) {
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
         }
         throw new DefaultLenientConfiguration.ArtifactResolveException(type, getPath(), getDisplayName(), failures);
     }
@@ -1047,7 +1048,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             boolean allowNoMatchingVariants = config.attributesUsed;
             return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
         }
-    
+
         private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
             return instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes);
         }
@@ -1157,7 +1158,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super ComponentIdentifier> componentFilter;
         private final boolean lenient;
         private Set<ResolvedArtifactResult> artifactResults;
-        private List<Throwable> failures;
+        private Set<Throwable> failures;
 
         ConfigurationArtifactCollection() {
             this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll(), false, false);
@@ -1198,12 +1199,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (artifactResults != null) {
                 return;
             }
-            artifactResults = Sets.newLinkedHashSet();
 
-            ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor(artifactResults);
+            ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
             fileCollection.getSelectedArtifacts().visitArtifacts(visitor);
 
-            failures = visitor.failures;
+            artifactResults = visitor.getArtifacts();
+            failures = visitor.getFailures();
 
             if (!lenient) {
                 rethrowFailure("artifacts", failures);

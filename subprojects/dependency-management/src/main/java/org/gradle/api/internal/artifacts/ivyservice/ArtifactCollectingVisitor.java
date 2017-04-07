@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.Set;
 
 public class ArtifactCollectingVisitor implements ArtifactVisitor {
-    final Set<ResolvedArtifact> artifacts;
+    private final Set<ResolvedArtifact> artifacts;
 
     public ArtifactCollectingVisitor() {
         this(Sets.<ResolvedArtifact>newLinkedHashSet());
@@ -60,5 +60,9 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
         throw new UnsupportedOperationException();
+    }
+
+    public Set<ResolvedArtifact> getArtifacts() {
+        return artifacts;
     }
 }
