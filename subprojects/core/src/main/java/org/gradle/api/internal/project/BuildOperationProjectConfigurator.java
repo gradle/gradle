@@ -140,7 +140,7 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
     }
 
     private BuildOperationDetails computeProjectBuildOperationDetails(Project project) {
-        String identityPath = ((ProjectInternal) project).getIdentityPath().toString();
-        return BuildOperationDetails.displayName("Configure project " + identityPath).name("Project " + identityPath).build();
+        String name = "Configure project " + ((ProjectInternal) project).getIdentityPath().toString();
+        return BuildOperationDetails.displayName(name).name(name).build();
     }
 }
