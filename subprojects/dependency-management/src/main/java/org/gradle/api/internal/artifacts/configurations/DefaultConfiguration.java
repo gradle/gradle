@@ -46,7 +46,6 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -97,6 +96,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
@@ -1029,17 +1029,27 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ArtifactView artifactView(Closure configAction) {
-            return artifactView(new ClosureBackedAction<ArtifactView.ViewConfiguration>(configAction));
+            ArtifactViewConfiguration config = createArtifactViewConfiguration();
+            ConfigureUtil.configure(configAction, config);
+            return createArtifactView(config);
         }
 
         @Override
         public ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction) {
-            ArtifactViewConfiguration config = new ArtifactViewConfiguration(attributesFactory, configurationAttributes);
+            ArtifactViewConfiguration config = createArtifactViewConfiguration();
             configAction.execute(config);
+            return createArtifactView(config);
+        }
+
+        private ArtifactView createArtifactView(ArtifactViewConfiguration config) {
             ImmutableAttributes viewAttributes = config.lockViewAttributes();
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
             return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
+        }
+    
+        private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
+            return instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes);
         }
 
         @Override
@@ -1085,7 +1095,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private boolean lenient;
         private boolean attributesUsed;
 
-        ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
+        public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
             this.attributesFactory = attributesFactory;
             this.configurationAttributes = configurationAttributes;
         }

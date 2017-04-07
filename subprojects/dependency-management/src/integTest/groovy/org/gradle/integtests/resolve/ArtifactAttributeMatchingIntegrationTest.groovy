@@ -147,7 +147,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     @Unroll
     def "can filter for variant artifacts with useTransform=#useTransformOnConsumerSide"() {
         given:
-        setupWith("it.attribute(variant, 'variant2')", useTransformOnConsumerSide, true, "['producer.variant2']")
+        setupWith("attribute(variant, 'variant2')", useTransformOnConsumerSide, true, "['producer.variant2']")
 
         buildFile << """
             project(':producer') {
@@ -183,7 +183,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     @Unroll
     def "uses same attributes and compatibility rules in configurations and variants for variant=#variant with useTransform=#useTransformOnConsumerSide and useView=#useView"() {
         given:
-        setupWith("it.attribute(variant, '$variant')", useTransformOnConsumerSide, useView, "['producer.${variant.toLowerCase()}', 'producer2.${variant.toLowerCase()}']")
+        setupWith("attribute(variant, '$variant')", useTransformOnConsumerSide, useView, "['producer.${variant.toLowerCase()}', 'producer2.${variant.toLowerCase()}']")
         settingsFile << """
             include 'producer2'
         """
@@ -279,7 +279,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     @Unroll
     def "honors consumer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
         given:
-        setupWith("it.attribute(variant, 'variant2'); it.attribute(required, 'thisValueIsRequired')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
+        setupWith("attribute(variant, 'variant2'); attribute(required, 'thisValueIsRequired')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
 
         String assumeCompatibleWhenMissingRequiredAttribute = assumeCompatibleWhenMissing ? "compatibilityRules.assumeCompatibleWhenMissing()" : ""
 
@@ -322,7 +322,7 @@ class ArtifactAttributeMatchingIntegrationTest extends AbstractHttpDependencyRes
     @Unroll
     def "honors producer's assumeCompatibleWhenMissing=#assumeCompatibleWhenMissing with useView=#useView"() {
         given:
-        setupWith("it.attribute(variant, 'variant2')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
+        setupWith("attribute(variant, 'variant2')", false, useView, assumeCompatibleWhenMissing ? "['producer.variant2']" : "[]")
         // TODO - should fail with 'no matching variant'
 
         String assumeCompatibleWhenMissingRequiredAttribute = assumeCompatibleWhenMissing ? "compatibilityRules.assumeCompatibleWhenMissing()" : ""
