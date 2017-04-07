@@ -44,4 +44,8 @@ public class ImperativeOnlyPluginApplicator<T> implements PluginApplicator {
         applyRules(pluginId, plugin.getClass());
     }
 
+    @Override
+    public String toString() {
+        return target.toString();
+    }
 }

@@ -60,4 +60,8 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
         applyRules(pluginId, plugin.getClass());
     }
 
+    @Override
+    public String toString() {
+        return target.toString();
+    }
 }
