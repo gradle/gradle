@@ -58,7 +58,6 @@ import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -165,13 +164,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
                 compile.setDescription("Compiles " + javaSourceSet + ".");
                 compile.setDestinationDir(conventionalCompilationOutputDirFor(assembly));
-                DeprecationLogger.whileDisabled(new Runnable() {
-                    @Override
-                    @SuppressWarnings("deprecation")
-                    public void run() {
-                        compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
-                    }
-                });
                 compile.dependsOn(javaSourceSet);
                 compile.setSource(javaSourceSet.getSource());
 

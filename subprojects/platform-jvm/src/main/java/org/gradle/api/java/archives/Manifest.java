@@ -18,7 +18,6 @@ package org.gradle.api.java.archives;
 import groovy.lang.Closure;
 import org.gradle.internal.HasInternalProtocol;
 
-import java.io.Writer;
 import java.util.Map;
 
 /**
@@ -68,21 +67,6 @@ public interface Manifest {
      * The returned manifest also contains all the attributes of the to be merged manifests specified in {@link #from(Object...)}.
      */
     Manifest getEffectiveManifest();
-
-    /**
-     * Writes the manifest into a writer.
-     *
-     * If writing to bytes, prefer using the UTF-8 character set for encoding.
-     *
-     * Note that using this method will break your Manifest if it contains long
-     * attribute names or values that may produce split multi-bytes characters.
-     * Prefer {@link #writeTo(Object)} instead.
-     *
-     * @param writer The writer to write the manifest to
-     * @return this
-     */
-    @Deprecated
-    Manifest writeTo(Writer writer);
 
     /**
      * Writes the manifest into a file. The path's are resolved as defined by {@link org.gradle.api.Project#files(Object...)}

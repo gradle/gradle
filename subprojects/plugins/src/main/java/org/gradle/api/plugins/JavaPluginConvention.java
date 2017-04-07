@@ -29,7 +29,6 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -91,12 +90,6 @@ public class JavaPluginConvention {
      */
     public Object sourceSets(Closure closure) {
         return sourceSets.configure(closure);
-    }
-
-    @Deprecated
-    public File getDependencyCacheDir() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDir()");
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(dependencyCacheDirName);
     }
 
     /**
@@ -208,21 +201,6 @@ public class JavaPluginConvention {
     }
 
     /**
-     * The name of the dependency cache dir.
-     */
-    @Deprecated
-    public String getDependencyCacheDirName() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDirName()");
-        return dependencyCacheDirName;
-    }
-
-    @Deprecated
-    public void setDependencyCacheDirName(String dependencyCacheDirName) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDirName()");
-        this.dependencyCacheDirName = dependencyCacheDirName;
-    }
-
-    /**
      * The name of the docs directory. Can be a name or a path relative to the build dir.
      */
     public String getDocsDirName() {
@@ -264,14 +242,5 @@ public class JavaPluginConvention {
 
     public ProjectInternal getProject() {
         return project;
-    }
-
-    /**
-     * project
-     * @deprecated Project should be considered final.
-     */
-    @Deprecated
-    public void setProject(ProjectInternal project) {
-        this.project = project;
     }
 }
