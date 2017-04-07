@@ -185,10 +185,6 @@ These issues may affect the correctness of your build when using the build cache
 |===
 | Description | Impact | Workaround
 
-| Stale outputs left behind by older versions of a plugin or Gradle.
-| Gradle does not automatically clean up outputs from other versions of Gradle. In some cases, changing the version of Gradle or changing the version of a plugin can lead to inconsistent builds.
-| Use `clean` builds when publishing to a remote build cache.
-
 | Tracking the Java vendor implementation
 | Gradle currently tracks the major version of Java that is used for compilation and test execution. If your build uses several Java implementations (IBM, OpenJDK, Oracle, etc) that are the same major version, Gradle will treat them all as equivalent and re-use outputs from any implementation.
 | Only enable caching for builds that all use the same Java implementation or manually add the Java vendor as an input to compilation and test execution tasks by using <<sec:task_input_output_runtime_api,the runtime api>> for adding task inputs.
@@ -214,6 +210,21 @@ These issues may affect the number of cache hits you get between machines.
 .Caveats
 |===
 | Description | Impact | Workaround
+
+| Stale outputs left behind by previous task execution
+| Gradle does not automatically clean up outputs from other versions of Gradle. In some cases, changing the version of Gradle,
+changing the version of a plugin or changing the output directory can lead to inconsistent builds and orphaned output files.
+Gradle disables caching for a task when it detects stale outputs.
+| Use `clean` when cache misses are caused by stale outputs (e.g., after upgrading Gradle, changing plugin versions).
+
+| Overlapping outputs between tasks
+| If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
+| Use separate output directories for each task.
+
+| Mixed source projects with Java and another JVM language.
+| If a project has both a Java source set and another source set for a different JVM language, the compilation tasks share an output directory.
+This causes Gradle to disable caching for these tasks when it detects overlapping outputs.
+| Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in `src/main/groovy`.
 
 | Line endings in build scripts files.
 | Gradle calculates the build cache key based on the MD5 hash of the build script contents. If the line endings are different between developers and the CI servers, Gradle will calculate different build cache keys even when all other inputs to a task are the same.
@@ -247,15 +258,6 @@ due to <<sec:java_compile_avoidance,compile avoidance>>.
 | Order of input files affects outputs.
 | Some tools are sensitive to the order of its inputs and will produce slightly different output. Gradle will usually provide the order of files from the filesystem, which will be different across operating systems.
 | Provide a stable order for tools affected by order.
-
-| Overlapping outputs between tasks
-| If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
-| Use separate output directories for each task.
-
-| Mixed source projects with Java and another JVM language.
-| If a project has both a Java source set and another source set for a different JVM language, the compilation tasks share an output directory.
-This causes Gradle to disable caching for these tasks when it detects overlapping outputs.
-| Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in `src/main/groovy`.
 
 | ANTLR3 produces output with a timestamp.
 | When generating Java source code with ANTLR3 and the <<antlr_plugin>>, the generated sources contain a timestamp that reduces how often Java compilation will be cached. ANTLR2 and ANTLR4 are not affected.
