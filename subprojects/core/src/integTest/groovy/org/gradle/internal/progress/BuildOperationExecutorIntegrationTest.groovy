@@ -39,6 +39,6 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        buildOperations.operation('Resolve dependencies :compile').parentId == buildOperations.operation("Apply build file '$buildFile' to root project 'root'").id
+        buildOperations.operation('Resolve dependencies :compile').parentId == buildOperations.operation("Apply script build.gradle to root project 'root'").id
     }
 }

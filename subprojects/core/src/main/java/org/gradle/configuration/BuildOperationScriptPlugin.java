@@ -19,7 +19,11 @@ package org.gradle.configuration;
 import org.gradle.api.Action;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.resource.TextResource;
+
+import java.io.File;
 
 /**
  * A decorating {@link ScriptPlugin} implementation that delegates to a given
@@ -43,12 +47,25 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
 
     @Override
     public void apply(final Object target) {
-        String operationDisplayNamePrefix = "Apply " + getSource().getDisplayName() + " to " + target;
-        buildOperationExecutor.run(operationDisplayNamePrefix, new Action<BuildOperationContext>() {
-            @Override
-            public void execute(BuildOperationContext buildOperationContext) {
-                decorated.apply(target);
-            }
-        });
+        TextResource resource = getSource().getResource();
+        if (resource.isContentCached() && resource.getHasEmptyContent()) {
+            //no operation, if there is no script code provided
+            decorated.apply(target);
+        } else {
+            buildOperationExecutor.run(computeBuildOperationDetails(target), new Action<BuildOperationContext>() {
+                @Override
+                public void execute(BuildOperationContext buildOperationContext) {
+                    decorated.apply(target);
+                }
+            });
+        }
+    }
+
+    private BuildOperationDetails computeBuildOperationDetails(Object target) {
+        ScriptSource source = getSource();
+        File file = source.getResource().getFile();
+        String name = "Apply script " + (file != null ? file.getName() : source.getDisplayName());
+        String displayName = name + " to " + target;
+        return BuildOperationDetails.displayName(displayName).name(name).operationDescriptor(source).build();
     }
 }
