@@ -17,9 +17,12 @@
 package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
@@ -45,6 +48,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
@@ -161,12 +165,18 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
+        final OperationIdentifier operationId = DefaultProgressLoggerFactory.instance.getCurrentProgressLogger() == null? new OperationIdentifier(-22) : DefaultProgressLoggerFactory.instance.getCurrentProgressLogger().getId();
         ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
             public void execute(final ObjectConnection connection) {
                 workerProcess.onConnect(connection, new Runnable() {
                     @Override
                     public void run() {
-                        DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
+                        DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener, new Callable<OperationIdentifier>() {
+                            @Override
+                            public OperationIdentifier call() throws Exception {
+                                return workerProcess.getOperationId();
+                            }
+                        });
                         connection.useParameterSerializers(WorkerLoggingSerializer.create());
                         connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);
                         if (shouldPublishJvmMemoryInfo) {
@@ -210,6 +220,16 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
             this.delegate = delegate;
             this.memoryResourceManager = memoryResourceManager;
             this.memoryAmount = memoryAmount;
+        }
+
+        @Override
+        public OperationIdentifier getOperationId() {
+            return delegate.getOperationId();
+        }
+
+        @Override
+        public void setOperationId(OperationIdentifier operationId) {
+            delegate.setOperationId(operationId);
         }
 
         @Override

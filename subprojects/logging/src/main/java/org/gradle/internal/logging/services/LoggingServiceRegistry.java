@@ -130,9 +130,9 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
-        LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
+        LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class), get(ProgressLoggerFactory.class));
         stdout.setLevel(LogLevel.QUIET);
-        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
+        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class), get(ProgressLoggerFactory.class));
         stderr.setLevel(LogLevel.ERROR);
         return new DefaultLoggingManagerFactory(
                 renderer,

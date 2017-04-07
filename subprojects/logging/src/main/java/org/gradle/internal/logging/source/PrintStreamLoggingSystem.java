@@ -26,7 +26,7 @@ import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
-import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.TimeProvider;
 
 import java.io.PrintStream;
@@ -53,9 +53,9 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     private final StandardOutputListener listener;
     private final OutputEventListener outputEventListener;
 
-    protected PrintStreamLoggingSystem(OutputEventListener listener, String category, TimeProvider timeProvider) {
+    protected PrintStreamLoggingSystem(OutputEventListener listener, String category, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
         outputEventListener = listener;
-        this.listener = new OutputEventDestination(listener, category, timeProvider);
+        this.listener = new OutputEventDestination(listener, category, timeProvider, progressLoggerFactory);
     }
 
     /**
@@ -153,20 +153,21 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         private final OutputEventListener listener;
         private final String category;
         private final TimeProvider timeProvider;
+        private final ProgressLoggerFactory progressLoggerFactory;
 
-        public OutputEventDestination(OutputEventListener listener, String category, TimeProvider timeProvider) {
+        public OutputEventDestination(OutputEventListener listener, String category, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
             this.listener = listener;
             this.category = category;
             this.timeProvider = timeProvider;
+            this.progressLoggerFactory = progressLoggerFactory;
         }
 
         public void onOutput(CharSequence output) {
-            OperationIdentifier operationId = new OperationIdentifier(-7);
-            if (null != DefaultProgressLoggerFactory.instance) {
-                operationId = new OperationIdentifier(-8);
-                if (null != DefaultProgressLoggerFactory.instance.getCurrentProgressLogger()) {
-                    operationId = DefaultProgressLoggerFactory.instance.getCurrentProgressLogger().getId();
-                }
+            OperationIdentifier operationId = new OperationIdentifier(-42);
+            if (null != progressLoggerFactory.getCurrentProgressLogger()) {
+                operationId = progressLoggerFactory.getCurrentProgressLogger().getId();
+            } else {
+                long d = 4+ 3;
             }
             listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, operationId, output.toString()));
         }

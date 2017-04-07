@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
@@ -35,4 +36,7 @@ public interface WorkerProcess {
     ExecResult waitForStop();
 
     JvmMemoryStatus getJvmMemoryStatus();
+
+    OperationIdentifier getOperationId();
+    void setOperationId(OperationIdentifier operationId);
 }

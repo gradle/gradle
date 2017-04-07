@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.source;
 
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 
@@ -23,8 +24,8 @@ import java.io.PrintStream;
 
 public class DefaultStdErrLoggingSystem extends PrintStreamLoggingSystem implements StdErrLoggingSystem {
 
-    public DefaultStdErrLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
-        super(listener, "system.err", timeProvider);
+    public DefaultStdErrLoggingSystem(OutputEventListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
+        super(listener, "system.err", timeProvider, progressLoggerFactory);
     }
 
     @Override

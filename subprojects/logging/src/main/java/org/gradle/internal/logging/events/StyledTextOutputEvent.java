@@ -28,7 +28,7 @@ import java.util.List;
 public class StyledTextOutputEvent extends RenderableOutputEvent {
     private static final OperationIdentifier INVALID = new OperationIdentifier(-1);
     private final List<Span> spans;
-    private final OperationIdentifier operationId;
+    private /*final*/ OperationIdentifier operationId;
 
     public StyledTextOutputEvent(long timestamp, String category, String text) {
         this(timestamp, category, StyledTextOutput.Style.Normal, text);
@@ -93,13 +93,17 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         return operationId;
     }
 
+    public void setOperationId(OperationIdentifier operationId) {
+        this.operationId = operationId;
+    }
+
     public List<Span> getSpans() {
         return spans;
     }
 
     @Override
     public void render(StyledTextOutput output) {
-        output.text(operationId.toString() + "  ");
+        output.text(operationId == null ? "null" : operationId.toString() + "  ");
         for (Span span : spans) {
             output.style(span.style);
             output.text(span.text);

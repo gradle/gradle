@@ -18,6 +18,8 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
@@ -44,11 +46,13 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, BuildOperationExecutor.Operation parentBuildOperation) {
         WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
         try {
-            BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
+            BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).progressDisplayName(spec.getDisplayName()).parent(parentBuildOperation).build();
             return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
                 @Override
                 public DefaultWorkResult transform(BuildOperationContext buildOperationContext) {
                     uses++;
+                    ProgressLogger pl = DefaultProgressLoggerFactory.instance.getCurrentProgressLogger();
+                    workerProcess.setOperationId(pl.getId());
                     return workerDaemonProcess.execute(spec);
                 }
             });
