@@ -35,6 +35,9 @@
                 <td>outputs</td>
             </tr>
             <tr>
+                <td>destroys</td>
+            </tr>
+            <tr>
                 <td>temporaryDir</td>
             </tr>
             <tr>

@@ -16,6 +16,7 @@ task processTemplatesAdHoc {
     inputs.property("templateData.name", "docs")
     inputs.property("templateData.variables", [year: 2013])
     outputs.dir("$buildDir/genOutput2")
+    destroys.file("$buildDir/tempdir")
 
     doLast {
         // Process the templates here

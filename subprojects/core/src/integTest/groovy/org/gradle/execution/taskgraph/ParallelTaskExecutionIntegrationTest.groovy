@@ -216,4 +216,127 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         run ":a:aSerialPing", ":b:aPing", ":b:bPing"
     }
+
+    def "tasks are not run in parallel if destroy files overlap with output files"() {
+        given:
+        withParallelThreads(2)
+        buildFile << """
+            aPing.destroys.file rootProject.file("dir")
+        
+            bPing.outputs.file rootProject.file("dir")
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrentExecution(":bPing")
+
+        run ":aPing", ":bPing"
+
+        and:
+        output.contains "Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}"
+    }
+
+    def "tasks are not run in parallel if destroy files overlap with input files (destroy first)"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            aPing.destroys.file file("foo")
+        
+            bPing.outputs.file file("foo")
+            bPing.doLast { file("foo") << "foo" }
+            
+            cPing.inputs.file file("foo")
+            cPing.dependsOn bPing
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrentExecution(":cPing")
+
+        run ":aPing", ":cPing"
+
+        and:
+        output.contains "Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("foo")}"
+    }
+
+    def "tasks are not run in parallel if destroy files overlap with input files (create/use first)"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            aPing.destroys.file file("foo")
+        
+            bPing.outputs.file file("foo")
+            bPing.doLast { file("foo") << "foo" }
+            
+            cPing.inputs.file file("foo")
+            cPing.dependsOn bPing
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrentExecution(":cPing")
+        blockingServer.expectConcurrentExecution(":aPing")
+
+        run ":cPing", ":aPing"
+
+        and:
+        output.contains "Cannot execute task :aPing in parallel with task :bPing due to overlapping output: ${file("foo")}"
+
+        and:
+        output.contains "Cannot execute task :aPing in parallel with task :cPing due to overlapping input/destroy: ${file("foo")}"
+    }
+
+    def "explicit task dependency relationships are honored even if it violates destroys/creates/consumes relationships"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            aPing.destroys.file file("foo")
+            aPing.dependsOn ":bPing"
+            
+            task aIntermediate { dependsOn aPing }
+        
+            bPing.outputs.file file("foo")
+            bPing.doLast { file("foo") << "foo" }
+            
+            cPing.inputs.file file("foo")
+            cPing.dependsOn bPing, aIntermediate
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrentExecution(":cPing")
+
+        run ":cPing", ":aPing"
+    }
+
+    def "explicit ordering relationships are honored even if it violates destroys/creates/consumes relationships"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            aPing.destroys.file file("foo")
+            aPing.mustRunAfter ":bPing"
+            
+            task aIntermediate { dependsOn aPing }
+        
+            bPing.outputs.file file("foo")
+            bPing.doLast { file("foo") << "foo" }
+            
+            cPing.inputs.file file("foo")
+            cPing.dependsOn bPing
+            cPing.mustRunAfter aPing
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":bPing")
+        blockingServer.expectConcurrentExecution(":aPing")
+        blockingServer.expectConcurrentExecution(":cPing")
+
+        run ":cPing", ":aPing"
+    }
 }
