@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
@@ -44,7 +46,6 @@ import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +75,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         boolean replace = replaceStr != null && "true".equals(replaceStr.toString());
 
         Task task = taskFactory.createTask(mutableOptions);
+        return addTask(task, replace);
+    }
+
+    private <T extends Task> T addTask(T task, boolean replaceExisting) {
         String name = task.getName();
 
         if (placeholders.remove(name)) {
@@ -82,7 +87,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         Task existing = findByNameWithoutRules(name);
         if (existing != null) {
-            if (replace) {
+            if (replaceExisting) {
                 remove(existing);
             } else {
                 throw new InvalidUserDataException(String.format(
@@ -108,11 +113,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public <T extends Task> T create(String name, Class<T> type) {
-        return type.cast(create(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type)));
+        T task = instantiator.create(name, type);
+        return addTask(task, false);
     }
 
     public Task create(String name) {
-        return create(GUtil.map(Task.TASK_NAME, name));
+        return create(name, DefaultTask.class);
     }
 
     public Task create(String name, Action<? super Task> configureAction) throws InvalidUserDataException {
@@ -130,7 +136,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task replace(String name) {
-        return create(GUtil.map(Task.TASK_NAME, name, Task.TASK_OVERWRITE, true));
+        return replace(name, DefaultTask.class);
     }
 
     public Task create(String name, Closure configureClosure) {
@@ -144,11 +150,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
-        return type.cast(create(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true)));
+        T task = instantiator.create(name, type);
+        return addTask(task, true);
     }
 
     public Task findByPath(String path) {
-        if (!GUtil.isTrue(path)) {
+        if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
         if (!path.contains(Project.PATH_SEPARATOR)) {
@@ -156,7 +163,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
-        ProjectInternal project = this.project.findProject(!GUtil.isTrue(projectPath) ? Project.PATH_SEPARATOR : projectPath);
+        ProjectInternal project = this.project.findProject(Strings.isNullOrEmpty(projectPath) ? Project.PATH_SEPARATOR : projectPath);
         if (project == null) {
             return null;
         }
@@ -166,7 +173,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task resolveTask(String path) {
-        if (!GUtil.isTrue(path)) {
+        if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
         return getByPath(path);
