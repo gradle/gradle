@@ -491,16 +491,18 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.found(metaMethod.doMethodInvoke(bean, arguments));
             }
 
-            List<MetaMethod> metaMethods = metaClass.respondsTo(bean, name);
-            for (MetaMethod method : metaMethods) {
-                if (method.getParameterTypes().length != arguments.length) {
-                    continue;
+            if (argsTransformer.canTransform(arguments)) {
+                List<MetaMethod> metaMethods = metaClass.respondsTo(bean, name);
+                for (MetaMethod method : metaMethods) {
+                    if (method.getParameterTypes().length != arguments.length) {
+                        continue;
+                    }
+                    Object[] transformed = argsTransformer.transform(method.getParameterTypes(), arguments);
+                    if (transformed == arguments) {
+                        continue;
+                    }
+                    return DynamicInvokeResult.found(method.doMethodInvoke(bean, transformed));
                 }
-                Object[] transformed = argsTransformer.transform(method.getParameterTypes(), arguments);
-                if (transformed == arguments) {
-                    continue;
-                }
-                return DynamicInvokeResult.found(method.doMethodInvoke(bean, transformed));
             }
 
             if (bean instanceof MethodMixIn) {

@@ -745,6 +745,11 @@ class BeanDynamicObjectTest extends Specification {
             }
             return result
         }
+
+        @Override
+        boolean canTransform(Object[] args) {
+            return true
+        }
     }
 
     static class Bean {
