@@ -248,7 +248,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
             
             task resolve {
                 doLast {
-                    configurations.${configuration}${artifactsAccessor}.forEach { }
+                    configurations.${configuration}${artifactsAccessor}.each { }
                 }
             }
         """
