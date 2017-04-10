@@ -65,7 +65,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        final List<FileDetails> fileTreeElements = Lists.newLinkedList();
+        List<FileDetails> fileTreeElements = Lists.newLinkedList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
         fileCollection.visitRootElements(visitor);
