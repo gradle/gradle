@@ -21,7 +21,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 /**
- * An immutable snapshot of file meta-data and content, possibly a file that does not exist.
+ * An immutable snapshot of file meta-data and content. The file may not exist.
  */
 public interface FileSnapshot {
 
