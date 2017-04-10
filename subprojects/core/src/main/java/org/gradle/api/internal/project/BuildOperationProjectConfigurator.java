@@ -141,6 +141,6 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
 
     private BuildOperationDetails computeProjectBuildOperationDetails(Project project) {
         String name = "Configure project " + ((ProjectInternal) project).getIdentityPath().toString();
-        return BuildOperationDetails.displayName(name).name(name).build();
+        return BuildOperationDetails.displayName(name).build();
     }
 }
