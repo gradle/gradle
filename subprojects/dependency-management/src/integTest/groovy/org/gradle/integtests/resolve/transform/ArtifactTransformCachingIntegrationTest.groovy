@@ -571,7 +571,7 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    def "transform is run again after it failed in previous build and old output is removed"() {
+    def "transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << """
             allprojects {
@@ -667,7 +667,7 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    def "transform is supplied with a different output directory when input file content changes"() {
+    def "transform is supplied with a different output directory when input file content changes between builds"() {
         given:
         buildFile << """
             allprojects {
@@ -767,7 +767,93 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    def "transform is rerun when output is removed"() {
+    def "transform is supplied with a different output directory when input file content changed by a task during the build"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    output.text = "transformed"
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                dependencies {
+                    compile files("lib1.jar")
+                }
+                artifacts {
+                    compile file("dir1.classes")
+                }
+                task src1 { 
+                    doLast {
+                        projectDir.mkdirs()
+                        file("lib1.jar").text = '123'
+                        file("dir1.classes").mkdirs()
+                        file("dir1.classes/file1.txt").text = 'abc'
+                    }
+                }
+                task src2 {
+                    doLast {
+                        projectDir.mkdirs()
+                        file("lib1.jar").text = '1234'
+                        file("dir1.classes").mkdirs()
+                        file("dir1.classes/file2.txt").text = 'new file'
+                    }
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+                tasks.resolve.mustRunAfter(':lib:src2')
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+                tasks.resolve.mustRunAfter(':lib:src1')
+            }
+        """
+
+        when:
+        run "src1", ":app:resolve", "src2", ":util:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("Transforming") == 4
+
+        when:
+        run ":app:resolve", ":util:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("Transforming") == 0
+    }
+
+    def "transform is rerun when output is removed between builds"() {
         given:
         buildFile << """
             allprojects {

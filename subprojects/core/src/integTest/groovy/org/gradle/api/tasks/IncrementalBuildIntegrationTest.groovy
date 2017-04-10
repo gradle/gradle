@@ -949,6 +949,67 @@ task generate(type: TransformerTask) {
         outputContains("file name: input.txt content: 'input-file'")
     }
 
+    def "directory can be changed by another task between execution of two tasks that use the directory as input"() {
+        writeDirTransformerTask()
+        buildFile << """
+            def srcDir = file('src')
+            // Note: task mutates inputs _without_ declaring any inputs or outputs
+            task src1 {
+                doLast {
+                    srcDir.mkdirs()
+                    new File(srcDir, "src.txt").text = "123"
+                }
+            }
+            task transform1(type: DirTransformerTask) {
+                mustRunAfter src1
+                inputDir = srcDir
+                outputDir = file("out-1")
+            }
+            // Note: task mutates inputs _without_ declaring any inputs or outputs
+            task src2 {
+                mustRunAfter transform1
+                doLast {
+                    srcDir.mkdirs()
+                    new File(srcDir, "src.txt").text = "abcd"
+                    new File(srcDir, "src2.txt").text = "123"
+                }
+            }
+            task transform2(type: DirTransformerTask) {
+                mustRunAfter src1, src2
+                inputDir = srcDir
+                outputDir = file("out-2")
+            }
+"""
+
+        when:
+        run "src1", "transform1", "src2", "transform2"
+
+        then:
+        result.assertTasksExecuted(":src1", ":transform1", ":src2", ":transform2")
+        result.assertTasksNotSkipped(":src1", ":transform1", ":src2", ":transform2")
+
+        when:
+        run "transform2"
+
+        then:
+        result.assertTasksExecuted(":transform2")
+        result.assertTasksSkipped(":transform2")
+
+        when:
+        run "transform1"
+
+        then:
+        result.assertTasksExecuted(":transform1")
+        result.assertTasksNotSkipped(":transform1")
+
+        when:
+        run "transform1", "transform2"
+
+        then:
+        result.assertTasksExecuted(":transform1", ":transform2")
+        result.assertTasksSkipped(":transform1", ":transform2")
+    }
+
     def "can use outputs and inputs from other task"() {
         buildFile << """
             class TaskA extends DefaultTask {
