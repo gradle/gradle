@@ -18,9 +18,8 @@ package org.gradle.api.internal.cache;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -29,8 +28,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
@@ -45,18 +42,14 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultFileContentCacheFactory implements FileContentCacheFactory, Closeable {
     private final ListenerManager listenerManager;
-    private final FileHasher fileHasher;
-    private final FileSystem fileSystem;
-    private final FileSystemMirror fileSystemMirror;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle) {
         this.listenerManager = listenerManager;
-        this.fileHasher = fileHasher;
-        this.fileSystem = fileSystem;
-        this.fileSystemMirror = fileSystemMirror;
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
             .cache(gradle, "fileContent")
@@ -76,7 +69,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
                 .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
         PersistentIndexedCache<HashCode, V> store = cache.createCache(parameters);
 
-        DefaultFileContentCache<V> cache = new DefaultFileContentCache<V>(name, fileHasher, fileSystem, fileSystemMirror, store, calculator);
+        DefaultFileContentCache<V> cache = new DefaultFileContentCache<V>(name, fileSystemSnapshotter, store, calculator);
         listenerManager.addListener(cache);
         return cache;
     }
@@ -88,18 +81,14 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
      */
     private static class DefaultFileContentCache<V> implements FileContentCache<V>, TaskOutputsGenerationListener {
         private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
-        private final FileSystemMirror fileSystemMirror;
+        private final FileSystemSnapshotter fileSystemSnapshotter;
         private final PersistentIndexedCache<HashCode, V> contentCache;
         private final String name;
-        private final FileHasher fileHasher;
-        private final FileSystem fileSystem;
         private final Calculator<? extends V> calculator;
 
-        DefaultFileContentCache(String name, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+        DefaultFileContentCache(String name, FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
             this.name = name;
-            this.fileHasher = fileHasher;
-            this.fileSystem = fileSystem;
-            this.fileSystemMirror = fileSystemMirror;
+            this.fileSystemSnapshotter = fileSystemSnapshotter;
             this.contentCache = contentCache;
             this.calculator = calculator;
         }
@@ -115,22 +104,10 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             // TODO - don't calculate the same value concurrently
             V value = cache.get(file);
             if (value == null) {
-                FileType fileType;
-                HashCode hashCode;
-                FileSnapshot mirrorDetails = fileSystemMirror.getFile(file.getAbsolutePath());
-                if (mirrorDetails != null) {
-                    fileType = mirrorDetails.getType();
-                    hashCode = mirrorDetails.getContent().getContentMd5();
-                } else {
-                    FileMetadataSnapshot fileDetails = fileSystem.stat(file);
-                    fileType = fileDetails.getType();
-                    if (fileType == FileType.RegularFile) {
-                        hashCode = fileHasher.hash(file, fileDetails);
-                    } else {
-                        hashCode = null;
-                    }
-                }
+                FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotFile(file);
+                FileType fileType = fileSnapshot.getType();
                 if (fileType == FileType.RegularFile) {
+                    HashCode hashCode = fileSnapshot.getContent().getContentMd5();
                     value = contentCache.get(hashCode);
                     if (value == null) {
                         value = calculator.calculate(file, fileType);
