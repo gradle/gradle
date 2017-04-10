@@ -17,7 +17,9 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -767,6 +769,7 @@ allprojects {
         output.count("Transforming") == 0
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "transform is supplied with a different output directory when input file content changed by a task during the build"() {
         given:
         buildFile << """
