@@ -28,8 +28,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
-import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
-import org.gradle.api.internal.plugins.PluginApplicator;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
+import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -166,8 +166,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
-        PluginApplicator applicator = new ImperativeOnlyPluginApplicator<Gradle>(gradleInternal);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), applicator, buildOperationExecutor);
+        PluginTarget target = new ImperativeOnlyPluginTarget<Gradle>(gradleInternal);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor);
     }
 
     FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle) {

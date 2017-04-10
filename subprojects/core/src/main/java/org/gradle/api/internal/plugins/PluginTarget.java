@@ -19,7 +19,7 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 
-public interface PluginApplicator {
+public interface PluginTarget {
 
     // Implementations should not wrap exceptions, this is done in DefaultObjectConfigurationAction
 

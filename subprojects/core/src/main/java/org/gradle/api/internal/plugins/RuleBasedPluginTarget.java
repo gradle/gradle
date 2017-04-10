@@ -25,22 +25,22 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
-public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwareInternal> implements PluginApplicator {
+public class RuleBasedPluginTarget<T extends ModelRegistryScope & PluginAwareInternal> implements PluginTarget {
 
     private final T target;
-    private final PluginApplicator imperativeApplicator;
+    private final PluginTarget imperativeTarget;
     private final ModelRuleExtractor ruleInspector;
     private final ModelRuleSourceDetector ruleDetector;
 
-    public RuleBasedPluginApplicator(T target, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
+    public RuleBasedPluginTarget(T target, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
         this.target = target;
         this.ruleInspector = ruleInspector;
         this.ruleDetector = ruleDetector;
-        this.imperativeApplicator = new ImperativeOnlyPluginApplicator<T>(target);
+        this.imperativeTarget = new ImperativeOnlyPluginTarget<T>(target);
     }
 
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
-        imperativeApplicator.applyImperative(pluginId, plugin);
+        imperativeTarget.applyImperative(pluginId, plugin);
     }
 
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {

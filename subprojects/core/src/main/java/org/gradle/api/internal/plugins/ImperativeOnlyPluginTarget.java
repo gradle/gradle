@@ -21,11 +21,11 @@ import org.gradle.api.Plugin;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class ImperativeOnlyPluginApplicator<T> implements PluginApplicator {
+public class ImperativeOnlyPluginTarget<T> implements PluginTarget {
 
     private final T target;
 
-    public ImperativeOnlyPluginApplicator(T target) {
+    public ImperativeOnlyPluginTarget(T target) {
         this.target = target;
     }
 

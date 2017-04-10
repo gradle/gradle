@@ -48,7 +48,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + DefaultPluginId.SEPARATOR;
 
     private final Instantiator instantiator;
-    private final PluginApplicator applicator;
+    private final PluginTarget target;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
@@ -57,9 +57,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor) {
         this.instantiator = instantiator;
-        this.applicator = applicator;
+        this.target = target;
         this.pluginRegistry = pluginRegistry;
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
         this.buildOperationExecutor = buildOperationExecutor;
@@ -167,16 +167,16 @@ public class DefaultPluginManager implements PluginManagerInternal {
             instances.put(pluginClass, pluginInstance);
 
             if (plugin.isHasRules()) {
-                applicator.applyImperativeRulesHybrid(pluginId, pluginInstance);
+                target.applyImperativeRulesHybrid(pluginId, pluginInstance);
             } else {
-                applicator.applyImperative(pluginId, pluginInstance);
+                target.applyImperative(pluginId, pluginInstance);
             }
 
             // Important not to add until after it has been applied as there can be
             // plugins.withType() callbacks waiting to build on what the plugin did
             pluginContainer.add(pluginInstance);
         } else {
-            applicator.applyRules(pluginId, pluginClass);
+            target.applyRules(pluginId, pluginClass);
         }
 
         adder.run();
@@ -190,7 +190,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             identifier = pluginImplementation.asClass().getName();
         }
         String name = "Apply plugin " + identifier;
-        return BuildOperationDetails.displayName(name + " to " + applicator.toString()).name(name).operationDescriptor(pluginImplementation).build();
+        return BuildOperationDetails.displayName(name + " to " + target.toString()).name(name).operationDescriptor(pluginImplementation).build();
     }
 
     private Plugin<?> producePluginInstance(Class<?> pluginClass) {
