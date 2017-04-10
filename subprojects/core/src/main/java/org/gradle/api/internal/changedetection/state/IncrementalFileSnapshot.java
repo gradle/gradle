@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 
 /**
- * An immutable snapshot of the type and content of a file.
+ * An immutable snapshot of the type and content of a file. Does not include any information about the identity of the file.
  *
  * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these.
  */
