@@ -90,9 +90,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private BuildOperationDetails computeResolveAllBuildOperationDetails(AttributeContainer requestedAttributes) {
-        String displayName = "Resolve artifacts " + configuration.getPath()
-            + (requestedAttributes == null || requestedAttributes.isEmpty() ? "" : " with attributes " + requestedAttributes);
-        return BuildOperationDetails.displayName(displayName).name(displayName).build();
+        String displayName = "Resolve artifacts "
+            + (requestedAttributes == null || requestedAttributes.isEmpty() ? "" : "view ") + configuration.getPath();
+        return BuildOperationDetails.displayName(displayName).operationDescriptor(requestedAttributes).build();
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
@@ -218,7 +218,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor, null);
-        visitor.addArtifacts();
+        visitor.addArtifactsFiles();
 
         Set<File> files = visitor.getFiles();
         files.addAll(getFiles(filterUnresolved(visitor.getArtifacts())));
@@ -308,7 +308,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         private final Set<File> files = Sets.newLinkedHashSet();
 
         public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-            // Defer adding the artifacts until after all the file dependencies have been visited
             if (isExternalModuleArtifact(artifact)) {
                 try {
                     artifact.getFile();
@@ -339,7 +338,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             return files;
         }
 
-        public void addArtifacts() {
+        public void addArtifactsFiles() {
             for (ResolvedArtifact artifact : getArtifacts()) {
                 this.files.add(artifact.getFile());
             }
