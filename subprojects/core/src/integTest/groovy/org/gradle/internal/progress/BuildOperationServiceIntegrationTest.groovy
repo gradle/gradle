@@ -90,7 +90,6 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
                         println "requested task: \${tsk.path}"
                     }
                 }
-            
             }
         """
         when:
@@ -115,6 +114,16 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains 'requested task: :someTask'
         result.output.contains 'requested task: :a:someTask'
         result.output.contains 'requested task: :a:c:someTask'
+        !result.output.contains('requested task: :b:someTask')
+
+
+        when:
+        succeeds(':a:someTask')
+
+        then:
+        result.output.contains('requested task: :a:someTask')
+        !result.output.contains('requested task: :someTask')
+        !result.output.contains('requested task: :a:c:someTask')
         !result.output.contains('requested task: :b:someTask')
 
     }

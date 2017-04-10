@@ -32,6 +32,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
@@ -73,7 +74,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
     private final Set<Task> requestedTasks = Sets.newTreeSet();
-    private Spec<? super Task> filter;
+    private Spec<? super Task> filter = Specs.SATISFIES_ALL;
 
     public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
         this.taskPlanExecutor = taskPlanExecutor;
@@ -90,8 +91,8 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void useFilter(Spec<? super Task> filter) {
-        this.filter = filter;
-        taskExecutionPlan.useFilter(filter);
+        this.filter = (Spec<? super Task>) (filter != null ? filter : Specs.SATISFIES_ALL);
+        taskExecutionPlan.useFilter(this.filter);
         taskGraphState = TaskGraphState.DIRTY;
     }
 
@@ -251,6 +252,6 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public Set<Task> getRequestedTasks() {
-        return filter == null ? requestedTasks : CollectionUtils.filter(requestedTasks, filter);
+        return CollectionUtils.filter(requestedTasks, filter);
     }
 }
