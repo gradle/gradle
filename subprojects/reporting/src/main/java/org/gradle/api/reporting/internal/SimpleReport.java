@@ -26,6 +26,7 @@ import org.gradle.api.reporting.Report;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -72,6 +73,7 @@ public class SimpleReport implements ConfigurableReport {
     }
 
     public void setDestination(final Object destination) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ConfigurableReport.setDestination(Object)", String.format("Please use the method ConfigurableReport.setDestination(File) instead."));
         this.destination.set(project.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
