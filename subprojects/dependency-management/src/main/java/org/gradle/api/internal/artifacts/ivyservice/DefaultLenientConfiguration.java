@@ -312,7 +312,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 try {
                     artifact.getFile();
                     getArtifacts().add(artifact);
-                } catch (ArtifactResolveException e) {
+                } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
                     //ignore
                 }
             } else {
