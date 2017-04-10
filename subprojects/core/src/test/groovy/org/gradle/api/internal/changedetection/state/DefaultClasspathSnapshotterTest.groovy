@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.hash.DefaultFileHasher
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -48,9 +49,9 @@ class DefaultClasspathSnapshotterTest extends Specification {
     }
     def fileSystem = TestFiles.fileSystem()
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
-    def fileSystemMirror = Mock(FileSystemMirror)
+    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror())
     def classpathHasher = new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher())
-    def snapshotter = new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror, classpathHasher)
+    def snapshotter = new DefaultClasspathSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter, classpathHasher)
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
         given:

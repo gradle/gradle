@@ -28,7 +28,7 @@ public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemM
     // Map from interned absolute path for a file to known details for the file. Currently not shared with trees
     private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
     // Map from interned absolute path for a directory to known details for the directory.
-    private final Map<String, DirectoryTreeDetails> trees = new ConcurrentHashMap<String, DirectoryTreeDetails>();
+    private final Map<String, FileTreeSnapshot> trees = new ConcurrentHashMap<String, FileTreeSnapshot>();
 
     @Nullable
     @Override
@@ -43,13 +43,13 @@ public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemM
 
     @Nullable
     @Override
-    public DirectoryTreeDetails getDirectoryTree(String path) {
+    public FileTreeSnapshot getDirectoryTree(String path) {
         return trees.get(path);
     }
 
     @Override
-    public void putDirectory(DirectoryTreeDetails directory) {
-        trees.put(directory.path, directory);
+    public void putDirectory(FileTreeSnapshot directory) {
+        trees.put(directory.getPath(), directory);
     }
 
     @Override

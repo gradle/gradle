@@ -36,6 +36,11 @@ class DefaultFileSnapshot implements FileSnapshot {
     }
 
     @Override
+    public String toString() {
+        return type + " " + path;
+    }
+
+    @Override
     public String getPath() {
         return path;
     }

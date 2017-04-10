@@ -21,14 +21,24 @@ import java.util.List;
 /**
  * Represents the state of a directory tree.
  */
-public class DirectoryTreeDetails {
+public class DirectoryTreeDetails implements FileTreeSnapshot {
     // Interned path
-    final String path;
+    private final String path;
     // All elements, not just direct children
-    final List<FileSnapshot> elements;
+    private final List<FileSnapshot> elements;
 
     public DirectoryTreeDetails(String path, List<FileSnapshot> elements) {
         this.path = path;
         this.elements = elements;
+    }
+
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    @Override
+    public List<FileSnapshot> getDescendents() {
+        return elements;
     }
 }

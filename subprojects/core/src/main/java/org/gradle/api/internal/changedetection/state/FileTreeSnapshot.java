@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,19 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import net.rubygrapefruit.platform.ThreadSafe;
-import org.gradle.api.Nullable;
+import java.util.List;
 
 /**
- * Maintains an in-memory mirror of the state of the filesystem.
+ * An immutable snapshot of the content and meta-data of some part of the file system. The file may be a regular file, directory or missing.
  */
-@ThreadSafe
-public interface FileSystemMirror {
-    @Nullable
-    FileSnapshot getFile(String path);
+public interface FileTreeSnapshot {
+    /**
+     * The absolute path of this file. Can safely be used as a cache key.
+     */
+    String getPath();
 
-    void putFile(FileSnapshot file);
-
-    @Nullable
-    FileTreeSnapshot getDirectoryTree(String path);
-
-    void putDirectory(FileTreeSnapshot directory);
+    /**
+     * The descendents of this file, if any. Includes direct and indirect children. Does not include the root file.
+     */
+    List<FileSnapshot> getDescendents();
 }
