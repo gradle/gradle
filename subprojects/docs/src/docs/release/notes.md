@@ -1,13 +1,14 @@
 The Gradle team is pleased to announce Gradle 3.5.
 
-First and foremost, we're excited to announce the new [Build Cache](userguide/build_cache.html)!
+First and foremost, we're excited to announce the new [Build Cache](https://blog.gradle.org/introducing-gradle-build-cache)!
 Beyond [incremental builds](https://blog.gradle.org/introducing-incremental-build-support), Gradle can save time by reusing outputs from previous executions of a task, resolving them _locally_ or _remotely_.
 We’ve worked hard to ensure many built-in tasks are cacheable and safe to try; however, this feature should not be used in production without fully understanding [its current limitations](userguide/build_cache.html#sec:task_output_caching_known_issues), so it is not enabled by default.
 
 We have been testing this feature at scale for quite some time on the Gradle build itself and with enterprise partners, and the feedback has been very positive.
 While this feature is incubating, we are improving the user experience, documentation, and debuggability so that everyone can enable the Build Cache eventually.
+[Gradle Enterprise](https://gradle.com/build-cache) will include a high-performance, plug n' play build cache.
 
-We would like your feedback. Please read the [Build Cache user manual](userguide/build_cache.html), try it in non-critical environments, and submit GitHub issues with build scans if you encounter problems.
+Your feedback is very important to us. Please read the [Build Cache introductory blog post](https://blog.gradle.org/introducing-gradle-build-cache) and follow the steps to try it out and submit feedback!
 
 Next, we lamented that sometimes Gradle console output did not show all work-in-progress during a build (especially with `--parallel`), so we’ve developed brand new console output!
 
@@ -18,7 +19,7 @@ usability. It brings a more consistent DSL, convenient and type-safe access to c
 conventions, much better error reporting, bug fixes and, of course, the latest and greatest Kotlin release.
 
 Finally, [plugin resolution rules](userguide/plugins.html#sec:plugin_management) give you tighter control over how plugins
-are resolved through the new `pluginManagement {}` block. 
+are resolved through the new `pluginManagement {}` block.
 
 We hope you will build happiness with Gradle 3.5, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
 
@@ -32,7 +33,7 @@ Add-->
 
 ### Console upgrade
 
-When attached to a terminal, Gradle will now show you a _build summary_ and more detailed _work-in-progress_. The build summary tells you how much of the task graph has been completed. 
+When attached to a terminal, Gradle will now show you a _build summary_ and more detailed _work-in-progress_. The build summary tells you how much of the task graph has been completed.
 The work-in-progress section tells you which tasks are being processed. It gets much more interesting when you turn on `--parallel`.
 
 If you encounter any problems, use the `--console plain` option and please file an issue with your environment and terminal information.
@@ -60,12 +61,12 @@ In this simple example it was the same build in the same workspace which produce
 Without any extra configuration, your build will use a local directory in your `GRADLE_USER_HOME` to store task outputs.
 To take this to another level, you can configure your build to pull task outputs from a build cache _shared with your team_.
 You can [configure nginx](userguide/build_cache.html#sec:build_cache_setup_http_backend) to act as a shared build cache.
-A scalable, highly-available build cache backend is coming soon in [Gradle Enterprise](https://gradle.com/enterprise).
+A scalable, highly-available [build cache backend](https://gradle.com/build-cache) is coming soon in [Gradle Enterprise](https://gradle.com/enterprise).
 
 We provide a [recommended configuration](userguide/build_cache.html#sec:build_cache_configure) that uses your continuous integration builds to populate a shared build cache and allows all developers to pull from that build cache.
 Our recommended configuration does not directly share task outputs among developer builds.
 
-Task output caching is an opt-in feature for tasks, so not every task will be cacheable yet. For example, tasks from the Gradle Android and Kotlin plugins are not cacheable _yet_. Further, some tasks like a simple `Copy` task are not and _should not_ be cached. 
+Task output caching is an opt-in feature for tasks, so not every task will be cacheable yet. For example, tasks from the Gradle Android and Kotlin plugins are not cacheable _yet_. Further, some tasks like a simple `Copy` task are not and _should not_ be cached.
 Look at [the build cache user guide chapter](userguide/build_cache.html#sec:task_output_caching_known_issues) to see all of the current limitations with using the build cache.
 
 ### Plugin resolution rules
@@ -104,16 +105,16 @@ Updates since v0.5.1:
 - Many methods in the Gradle API previously only available to Groovy have been overloaded with versions better suited to Kotlin.
 
 ... and a lot more. Full details are available in the Gradle Script Kotlin
-[v0.6.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.6.0), 
-[v0.7.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.7.0) and 
+[v0.6.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.6.0),
+[v0.7.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.7.0) and
 [v0.8.0](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.8.0)
 release notes.
 
 ### More work avoidance when using `@Classpath` task properties
 
 For built-in and custom tasks that use the `@Classpath` annotation, Gradle now performs deeper inspection of the classpath to filter out some differences that do not affect task execution.  Gradle will ignore changes to timestamps within a jar file and the order of entries inside a jar file.
- 
-In previous versions, for tasks like `Javadoc`, `Checkstyle` and `Test`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc). 
+
+In previous versions, for tasks like `Javadoc`, `Checkstyle` and `Test`, Gradle would consider the task out-of-date if the content of the classpath changed in any way (order of classes in a jar, timestamps of class files, etc).
 
 ### Extensions now have a public type
 
@@ -144,7 +145,7 @@ Tooling API clients can now specify environment variables to use when invoking a
 
 #### Progress events for Gradle distribution download
 
-The Tooling API can now report progress when it downloads of the Gradle distribution. A new type of `ProgressEvent`, called `StatusEvent`, is passed to the `ProgressListener.statusChanged()` method as the download proceeds. 
+The Tooling API can now report progress when it downloads of the Gradle distribution. A new type of `ProgressEvent`, called `StatusEvent`, is passed to the `ProgressListener.statusChanged()` method as the download proceeds.
 
 ### Support for multi-value Javadoc options
 
@@ -154,7 +155,7 @@ In previous versions of Gradle, it was not possible to supply command-line optio
 
     -myoption 'foo' 'bar'
     -myoption 'baz'
-    
+
 Gradle would produce a single `-myoption` or combine the option's value into a single argument.
 
     javadoc {
@@ -171,7 +172,7 @@ Gradle would produce a single `-myoption` or combine the option's value into a s
 
 For selecting a Java toolchain for cross compilation you can now use [ForkOptions.javaHome](javadoc/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome\(\)).
 Gradle will detect the version of the Java installation and use the right compiler from the installation.
-Setting `ForkOptions.executable` has been deprecated in favor of this new way of choosing the Java compiler for cross-compilation. 
+Setting `ForkOptions.executable` has been deprecated in favor of this new way of choosing the Java compiler for cross-compilation.
 
 For more information on how to use this feature see the [documentation on cross-compilation](userguide/java_plugin.html#sec:java_cross_compilation).
 
@@ -248,7 +249,7 @@ See [gradle/gradle#1378](https://github.com/gradle/gradle/issues/1378) for more 
 ### Version of Checkstyle has been upgraded
 
 By default, Gradle now uses [Checkstyle 6.19](http://checkstyle.sourceforge.net/releasenotes.html#Release_6.19). Previously, Gradle used Checkstyle 5.9.
-We cannot upgrade to the latest release because Checkstyle 7.0+ require Java 8. Gradle has been tested against Checkstyle 7.0 and 7.6. 
+We cannot upgrade to the latest release because Checkstyle 7.0+ require Java 8. Gradle has been tested against Checkstyle 7.0 and 7.6.
 
 Newer versions of Checkstyle usually bring new rules, better inspections and bug fixes.  Your build may fail due to these changes.
 
