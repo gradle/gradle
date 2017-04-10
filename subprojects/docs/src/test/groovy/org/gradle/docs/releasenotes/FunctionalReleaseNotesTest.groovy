@@ -22,13 +22,15 @@ import geb.spock.GebReportingSpec
 import groovy.json.JsonSlurper
 import org.gradle.util.GradleVersion
 import org.openqa.selenium.htmlunit.HtmlUnitDriver
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Shared
 
 /**
  * These tests actually open the release notes in a browser and test the JS.
  */
-@IgnoreIf({ !FunctionalReleaseNotesTest.canReachServices() })
+@Ignore
+// @IgnoreIf({ !FunctionalReleaseNotesTest.canReachServices() })
 class FunctionalReleaseNotesTest extends GebReportingSpec {
 
     static private final String FIXED_ISSUES_URL = "https://services.gradle.org/fixed-issues/${GradleVersion.current().baseVersion.version}"
