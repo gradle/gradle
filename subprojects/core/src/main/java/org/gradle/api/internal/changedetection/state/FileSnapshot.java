@@ -23,7 +23,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 /**
  * An immutable snapshot of file meta-data and content, possibly a file that does not exist.
  */
-public interface FileDetails {
+public interface FileSnapshot {
 
     /**
      * The absolute path of this file. Can safely be used as a cache key.
@@ -53,10 +53,10 @@ public interface FileDetails {
     /**
      * Returns a snapshot of the contents of this file.
      */
-    IncrementalFileSnapshot getContent();
+    FileContentSnapshot getContent();
 
     /**
      * Creates a copy of this file details, replacing the content hash with the given value;
      */
-    FileDetails withContentHash(HashCode contentHash);
+    FileSnapshot withContentHash(HashCode contentHash);
 }

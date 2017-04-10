@@ -77,10 +77,10 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                     Entry<String, NormalizedFileSnapshot> currentEntry = currentEntries.next();
                     String currentAbsolutePath = currentEntry.getKey();
                     NormalizedFileSnapshot currentNormalizedSnapshot = currentEntry.getValue();
-                    IncrementalFileSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
+                    FileContentSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
                     if (unaccountedForPreviousSnapshots.remove(currentAbsolutePath)) {
                         NormalizedFileSnapshot previousNormalizedSnapshot = previous.get(currentAbsolutePath);
-                        IncrementalFileSnapshot previousSnapshot = previousNormalizedSnapshot.getSnapshot();
+                        FileContentSnapshot previousSnapshot = previousNormalizedSnapshot.getSnapshot();
                         if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
                             return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
                         }
@@ -132,14 +132,14 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                     Entry<String, NormalizedFileSnapshot> entry = currentEntries.next();
                     String currentAbsolutePath = entry.getKey();
                     NormalizedFileSnapshot currentNormalizedSnapshot = entry.getValue();
-                    IncrementalFileSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
+                    FileContentSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
                     List<IncrementalFileSnapshotWithAbsolutePath> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentNormalizedSnapshot);
                     if (previousSnapshotsForNormalizedPath.isEmpty()) {
                         IncrementalFileSnapshotWithAbsolutePath currentSnapshotWithAbsolutePath = new IncrementalFileSnapshotWithAbsolutePath(currentAbsolutePath, currentSnapshot);
                         addedFiles.put(currentNormalizedSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
                     } else {
                         IncrementalFileSnapshotWithAbsolutePath previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
-                        IncrementalFileSnapshot previousSnapshot = previousSnapshotWithAbsolutePath.getSnapshot();
+                        FileContentSnapshot previousSnapshot = previousSnapshotWithAbsolutePath.getSnapshot();
                         if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
                             return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
                         }
@@ -204,9 +204,9 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
     private static class IncrementalFileSnapshotWithAbsolutePath {
         private final String absolutePath;
-        private final IncrementalFileSnapshot snapshot;
+        private final FileContentSnapshot snapshot;
 
-        public IncrementalFileSnapshotWithAbsolutePath(String absolutePath, IncrementalFileSnapshot snapshot) {
+        public IncrementalFileSnapshotWithAbsolutePath(String absolutePath, FileContentSnapshot snapshot) {
             this.absolutePath = absolutePath;
             this.snapshot = snapshot;
         }
@@ -215,7 +215,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
             return absolutePath;
         }
 
-        public IncrementalFileSnapshot getSnapshot() {
+        public FileContentSnapshot getSnapshot() {
             return snapshot;
         }
 

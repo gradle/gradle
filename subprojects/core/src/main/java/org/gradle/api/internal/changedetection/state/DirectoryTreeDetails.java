@@ -25,9 +25,9 @@ public class DirectoryTreeDetails {
     // Interned path
     final String path;
     // All elements, not just direct children
-    final List<FileDetails> elements;
+    final List<FileSnapshot> elements;
 
-    public DirectoryTreeDetails(String path, List<FileDetails> elements) {
+    public DirectoryTreeDetails(String path, List<FileSnapshot> elements) {
         this.path = path;
         this.elements = elements;
     }

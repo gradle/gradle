@@ -25,9 +25,9 @@ import org.gradle.api.Nullable;
 @ThreadSafe
 public interface FileSystemMirror {
     @Nullable
-    FileDetails getFile(String path);
+    FileSnapshot getFile(String path);
 
-    void putFile(FileDetails file);
+    void putFile(FileSnapshot file);
 
     @Nullable
     DirectoryTreeDetails getDirectoryTree(String path);

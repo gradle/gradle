@@ -23,5 +23,5 @@ package org.gradle.api.internal.changedetection.state;
  */
 public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Snapshot {
     String getNormalizedPath();
-    IncrementalFileSnapshot getSnapshot();
+    FileContentSnapshot getSnapshot();
 }

@@ -23,8 +23,8 @@ import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
  *
  * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these.
  */
-public interface IncrementalFileSnapshot extends ResourceContentMetadataSnapshot {
-    boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
+public interface FileContentSnapshot extends ResourceContentMetadataSnapshot {
+    boolean isContentUpToDate(FileContentSnapshot snapshot);
 
-    boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);
+    boolean isContentAndMetadataUpToDate(FileContentSnapshot snapshot);
 }

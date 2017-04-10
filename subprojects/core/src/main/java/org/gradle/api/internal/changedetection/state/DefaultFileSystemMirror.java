@@ -26,18 +26,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemMirror, TaskOutputsGenerationListener {
     // Map from interned absolute path for a file to known details for the file. Currently not shared with trees
-    private final Map<String, FileDetails> files = new ConcurrentHashMap<String, FileDetails>();
+    private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
     // Map from interned absolute path for a directory to known details for the directory.
     private final Map<String, DirectoryTreeDetails> trees = new ConcurrentHashMap<String, DirectoryTreeDetails>();
 
     @Nullable
     @Override
-    public FileDetails getFile(String path) {
+    public FileSnapshot getFile(String path) {
         return files.get(path);
     }
 
     @Override
-    public void putFile(FileDetails file) {
+    public void putFile(FileSnapshot file) {
         files.put(file.getPath(), file);
     }
 

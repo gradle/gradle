@@ -58,7 +58,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
 
     private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder, StringInterner stringInterner) throws IOException {
         byte fileSnapshotKind = decoder.readByte();
-        IncrementalFileSnapshot snapshot;
+        FileContentSnapshot snapshot;
         switch (fileSnapshotKind) {
             case DIR_SNAPSHOT:
                 snapshot = DirSnapshot.getInstance();
@@ -116,7 +116,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     }
 
     private void writeSnapshot(Encoder encoder, NormalizedFileSnapshot value) throws IOException {
-        IncrementalFileSnapshot snapshot = value.getSnapshot();
+        FileContentSnapshot snapshot = value.getSnapshot();
         if (snapshot instanceof DirSnapshot) {
             encoder.writeByte(DIR_SNAPSHOT);
         } else if (snapshot instanceof MissingFileSnapshot) {

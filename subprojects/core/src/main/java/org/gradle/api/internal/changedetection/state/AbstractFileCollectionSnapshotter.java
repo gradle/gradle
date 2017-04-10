@@ -65,7 +65,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        List<FileDetails> fileTreeElements = Lists.newLinkedList();
+        List<FileSnapshot> fileTreeElements = Lists.newLinkedList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
         fileCollection.visitRootElements(visitor);
@@ -75,10 +75,10 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         }
 
         Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
-        for (FileDetails fileDetails : fileTreeElements) {
-            String absolutePath = fileDetails.getPath();
+        for (FileSnapshot fileSnapshot : fileTreeElements) {
+            String absolutePath = fileSnapshot.getPath();
             if (!snapshots.containsKey(absolutePath)) {
-                NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails, stringInterner);
+                NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
                 if (normalizedSnapshot != null) {
                     snapshots.put(absolutePath, normalizedSnapshot);
                 }
@@ -110,28 +110,28 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     /**
      * Normalises the elements of a directory tree. Does not include the root directory.
      */
-    protected List<FileDetails> normaliseTreeElements(List<FileDetails> treeNonRootElements) {
+    protected List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> treeNonRootElements) {
         return treeNonRootElements;
     }
 
     /**
      * Normalises a root file. Invoked only for top level elements that are regular files.
      */
-    protected FileDetails normaliseFileElement(FileDetails details) {
+    protected FileSnapshot normaliseFileElement(FileSnapshot details) {
         return details;
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final List<FileDetails> fileTreeElements;
+        private final List<FileSnapshot> fileTreeElements;
 
-        FileCollectionVisitorImpl(List<FileDetails> fileTreeElements) {
+        FileCollectionVisitorImpl(List<FileSnapshot> fileTreeElements) {
             this.fileTreeElements = fileTreeElements;
         }
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
-                FileDetails details = fileSystemMirror.getFile(file.getPath());
+                FileSnapshot details = fileSystemMirror.getFile(file.getPath());
                 if (details == null) {
                     details = calculateDetails(file);
                     fileSystemMirror.putFile(details);
@@ -154,16 +154,16 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
             }
         }
 
-        private DefaultFileDetails calculateDetails(File file) {
+        private DefaultFileSnapshot calculateDetails(File file) {
             String path = getPath(file);
             FileMetadataSnapshot stat = fileSystem.stat(file);
             switch (stat.getType()) {
                 case Missing:
-                    return new DefaultFileDetails(path, new RelativePath(true, file.getName()), Missing, true, missingFileSnapshot());
+                    return new DefaultFileSnapshot(path, new RelativePath(true, file.getName()), Missing, true, missingFileSnapshot());
                 case Directory:
-                    return new DefaultFileDetails(path, new RelativePath(false, file.getName()), Directory, true, dirSnapshot());
+                    return new DefaultFileSnapshot(path, new RelativePath(false, file.getName()), Directory, true, dirSnapshot());
                 case RegularFile:
-                    return new DefaultFileDetails(path, new RelativePath(true, file.getName()), RegularFile, true, fileSnapshot(file, stat));
+                    return new DefaultFileSnapshot(path, new RelativePath(true, file.getName()), RegularFile, true, fileSnapshot(file, stat));
                 default:
                     throw new IllegalArgumentException("Unrecognized file type: " + stat.getType());
             }
@@ -171,7 +171,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            List<FileDetails> elements = Lists.newArrayList();
+            List<FileSnapshot> elements = Lists.newArrayList();
             fileTree.visitTreeOrBackingFile(new FileVisitorImpl(elements));
             elements = normaliseTreeElements(elements);
             fileTreeElements.addAll(elements);
@@ -179,7 +179,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            List<FileDetails> elements;
+            List<FileSnapshot> elements;
             if (!directoryTree.getPatterns().isEmpty()) {
                 // Currently handle only those trees where we want everything from a directory
                 elements = Lists.newArrayList();
@@ -205,20 +205,20 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
     }
 
     private class FileVisitorImpl implements FileVisitor {
-        private final List<FileDetails> fileTreeElements;
+        private final List<FileSnapshot> fileTreeElements;
 
-        FileVisitorImpl(List<FileDetails> fileTreeElements) {
+        FileVisitorImpl(List<FileSnapshot> fileTreeElements) {
             this.fileTreeElements = fileTreeElements;
         }
 
         @Override
         public void visitDir(FileVisitDetails dirDetails) {
-            fileTreeElements.add(new DefaultFileDetails(getPath(dirDetails.getFile()), dirDetails.getRelativePath(), Directory, false, dirSnapshot()));
+            fileTreeElements.add(new DefaultFileSnapshot(getPath(dirDetails.getFile()), dirDetails.getRelativePath(), Directory, false, dirSnapshot()));
         }
 
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
-            fileTreeElements.add(new DefaultFileDetails(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), RegularFile, false, fileSnapshot(fileDetails)));
+            fileTreeElements.add(new DefaultFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), RegularFile, false, fileSnapshot(fileDetails)));
         }
     }
 }

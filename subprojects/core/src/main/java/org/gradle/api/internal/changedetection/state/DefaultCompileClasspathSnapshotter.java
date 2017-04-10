@@ -31,9 +31,9 @@ import java.util.Comparator;
 import java.util.List;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
-    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
+    private static final Comparator<FileSnapshot> FILE_DETAILS_COMPARATOR = new Comparator<FileSnapshot>() {
         @Override
-        public int compare(FileDetails o1, FileDetails o2) {
+        public int compare(FileSnapshot o1, FileSnapshot o2) {
             return o1.getPath().compareTo(o2.getPath());
         }
     };
@@ -56,13 +56,13 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     }
 
     @Override
-    protected List<FileDetails> normaliseTreeElements(List<FileDetails> fileDetails) {
-        // TODO: We could rework this to produce a FileDetails for the directory that
+    protected List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
+        // TODO: We could rework this to produce a FileSnapshot for the directory that
         // has a hash for the contents of this directory vs returning a list of the contents
         // of the directory with their hashes
         // Collect the signatures of each class file
-        List<FileDetails> sorted = new ArrayList<FileDetails>(fileDetails.size());
-        for (FileDetails details : fileDetails) {
+        List<FileSnapshot> sorted = new ArrayList<FileSnapshot>(fileDetails.size());
+        for (FileSnapshot details : fileDetails) {
             if (details.getType() == FileType.RegularFile) {
                 HashCode signatureForClass = classpathEntryHasher.hash(details);
                 if (signatureForClass == null) {
@@ -79,7 +79,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     }
 
     @Override
-    protected FileDetails normaliseFileElement(FileDetails details) {
+    protected FileSnapshot normaliseFileElement(FileSnapshot details) {
         if (FileUtils.isJar(details.getName())) {
             HashCode signature = classpathEntryHasher.hash(details);
             if (signature != null) {

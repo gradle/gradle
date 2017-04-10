@@ -17,7 +17,7 @@
 package org.gradle.api.internal.cache;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.state.FileDetails;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.hash.FileHasher;
@@ -117,7 +117,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             if (value == null) {
                 FileType fileType;
                 HashCode hashCode;
-                FileDetails mirrorDetails = fileSystemMirror.getFile(file.getAbsolutePath());
+                FileSnapshot mirrorDetails = fileSystemMirror.getFile(file.getAbsolutePath());
                 if (mirrorDetails != null) {
                     fileType = mirrorDetails.getType();
                     hashCode = mirrorDetails.getContent().getContentMd5();

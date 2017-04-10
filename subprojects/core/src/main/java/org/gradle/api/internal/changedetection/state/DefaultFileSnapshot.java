@@ -20,14 +20,14 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-class DefaultFileDetails implements FileDetails {
+class DefaultFileSnapshot implements FileSnapshot {
     final String path;
     final FileType type;
     private final RelativePath relativePath;
     private final boolean root;
-    private final IncrementalFileSnapshot content;
+    private final FileContentSnapshot content;
 
-    DefaultFileDetails(String path, RelativePath relativePath, FileType type, boolean root, IncrementalFileSnapshot content) {
+    DefaultFileSnapshot(String path, RelativePath relativePath, FileType type, boolean root, FileContentSnapshot content) {
         this.path = path;
         this.relativePath = relativePath;
         this.type = type;
@@ -56,7 +56,7 @@ class DefaultFileDetails implements FileDetails {
     }
 
     @Override
-    public IncrementalFileSnapshot getContent() {
+    public FileContentSnapshot getContent() {
         return content;
     }
 
@@ -66,9 +66,9 @@ class DefaultFileDetails implements FileDetails {
     }
 
     @Override
-    public FileDetails withContentHash(HashCode contentHash) {
+    public FileSnapshot withContentHash(HashCode contentHash) {
         if (!contentHash.equals(getContent().getContentMd5())) {
-            return new DefaultFileDetails(path, relativePath, type, root, new FileHashSnapshot(contentHash));
+            return new DefaultFileSnapshot(path, relativePath, type, root, new FileHashSnapshot(contentHash));
         }
         return this;
     }

@@ -54,21 +54,21 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
     }
 
     protected def normalizeWith(SnapshotNormalizationStrategy type) {
-        List<FileDetails> fileTreeElements = []
+        List<FileSnapshot> fileTreeElements = []
         files.each { f ->
             if (f.file) {
-                fileTreeElements.add(new DefaultFileDetails(f.path, new RelativePath(true, f.name), FileType.RegularFile, true, new FileHashSnapshot(HashCode.fromInt(1))))
+                fileTreeElements.add(new DefaultFileSnapshot(f.path, new RelativePath(true, f.name), FileType.RegularFile, true, new FileHashSnapshot(HashCode.fromInt(1))))
             } else {
-                fileTreeElements.add(new DefaultFileDetails(f.path, new RelativePath(false, f.name), FileType.Directory, true, DirSnapshot.instance))
+                fileTreeElements.add(new DefaultFileSnapshot(f.path, new RelativePath(false, f.name), FileType.Directory, true, DirSnapshot.instance))
                 project.fileTree(f).visit(new FileVisitor() {
                     @Override
                     void visitDir(FileVisitDetails dirDetails) {
-                        fileTreeElements.add(new DefaultFileDetails(dirDetails.file.path, dirDetails.relativePath, FileType.Directory, false, DirSnapshot.instance))
+                        fileTreeElements.add(new DefaultFileSnapshot(dirDetails.file.path, dirDetails.relativePath, FileType.Directory, false, DirSnapshot.instance))
                     }
 
                     @Override
                     void visitFile(FileVisitDetails fileDetails) {
-                        fileTreeElements.add(new DefaultFileDetails(fileDetails.file.path, fileDetails.relativePath, FileType.RegularFile, false, new FileHashSnapshot(HashCode.fromInt(1))))
+                        fileTreeElements.add(new DefaultFileSnapshot(fileDetails.file.path, fileDetails.relativePath, FileType.RegularFile, false, new FileHashSnapshot(HashCode.fromInt(1))))
                     }
                 })
             }

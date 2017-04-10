@@ -21,7 +21,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-class DirSnapshot implements IncrementalFileSnapshot {
+class DirSnapshot implements FileContentSnapshot {
     private static final DirSnapshot INSTANCE = new DirSnapshot();
     private static final HashCode SIGNATURE = Hashing.md5().hashString(DirSnapshot.class.getName(), Charsets.UTF_8);
 
@@ -33,11 +33,11 @@ class DirSnapshot implements IncrementalFileSnapshot {
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot) {
+    public boolean isContentAndMetadataUpToDate(FileContentSnapshot snapshot) {
         return isContentUpToDate(snapshot);
     }
 
-    public boolean isContentUpToDate(IncrementalFileSnapshot snapshot) {
+    public boolean isContentUpToDate(FileContentSnapshot snapshot) {
         return snapshot instanceof DirSnapshot;
     }
 

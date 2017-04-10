@@ -113,8 +113,8 @@ public enum TaskFilePropertyCompareStrategy {
         NormalizedFileSnapshot normalizedPrevious = previousEntry.getValue();
         NormalizedFileSnapshot normalizedCurrent = currentEntry.getValue();
         if (normalizedCurrent.getNormalizedPath().equals(normalizedPrevious.getNormalizedPath())) {
-            IncrementalFileSnapshot previousSnapshot = normalizedPrevious.getSnapshot();
-            IncrementalFileSnapshot currentSnapshot = normalizedCurrent.getSnapshot();
+            FileContentSnapshot previousSnapshot = normalizedPrevious.getSnapshot();
+            FileContentSnapshot currentSnapshot = normalizedCurrent.getSnapshot();
             if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
                 String path = currentEntry.getKey();
                 TaskStateChange change = new FileChange(path, ChangeType.MODIFIED, fileType);

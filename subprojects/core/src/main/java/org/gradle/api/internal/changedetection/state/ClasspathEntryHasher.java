@@ -24,12 +24,12 @@ import org.gradle.api.Nullable;
  */
 public interface ClasspathEntryHasher {
     /**
-     * Returns a hash based on the contents of the given fileDetails.
+     * Returns a hash based on the contents of the given fileSnapshot.
      *
      * May return <code>null</code>, if the file contributes nothing to the classpath.
      *
      * e.g., an empty jar file or a class file with no public API (for compile classpaths).
      */
     @Nullable
-    HashCode hash(FileDetails fileDetails);
+    HashCode hash(FileSnapshot fileSnapshot);
 }

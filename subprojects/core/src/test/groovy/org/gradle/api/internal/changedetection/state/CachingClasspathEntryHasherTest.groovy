@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class CachingClasspathEntryHasherTest extends Specification {
     def delegate = Mock(ClasspathEntryHasher)
-    def fileDetails = new DefaultFileDetails("path", RelativePath.parse(true, "path"), FileType.RegularFile, false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
+    def fileDetails = new DefaultFileSnapshot("path", RelativePath.parse(true, "path"), FileType.RegularFile, false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
     def cachingHasher = new CachingClasspathEntryHasher(delegate, new InMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {
