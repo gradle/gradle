@@ -81,13 +81,14 @@ public class DefaultTestExecuter implements TestExecuter {
                 return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testTask.getForkEvery());
             }
         };
-        Factory<TestClassProcessor> maxNParallelTestProcessorFactory = new Factory<TestClassProcessor>() {
+        final Factory<TestClassProcessor> workerLeaseHolderProcessorFactory = new Factory<TestClassProcessor>() {
+            @Override
             public TestClassProcessor create() {
-                return new MaxNParallelTestClassProcessor(getMaxParallelForks(testTask), reforkingProcessorFactory, actorFactory);
+                return new WorkerLeaseHolderTestClassProcessor(currentOperation, reforkingProcessorFactory);
             }
         };
 
-        TestClassProcessor processor = new WorkerLeaseHolderTestClassProcessor(currentOperation, maxNParallelTestProcessorFactory);
+        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testTask), workerLeaseHolderProcessorFactory, actorFactory);
 
         final FileTree testClassFiles = testTask.getCandidateClassFiles();
 
