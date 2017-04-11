@@ -16,14 +16,13 @@
 
 package org.gradle.internal.operations;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorkerRegistry, Stoppable {
@@ -31,7 +30,14 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
     private final int maxWorkerCount;
     private final Object lock = new Object();
     private final AtomicInteger counter = new AtomicInteger();
-    private final ListMultimap<Thread, DefaultOperation> threads = ArrayListMultimap.create();
+    private final ThreadLocal<LinkedList<DefaultOperation>> operationsPerThread = new ThreadLocal<LinkedList<DefaultOperation>>() {
+        @Override
+        protected LinkedList<DefaultOperation> initialValue() {
+            return Lists.newLinkedList();
+        }
+    };
+    private int operationCount;
+
     private final Root root = new Root();
 
     public DefaultBuildOperationWorkerRegistry(int maxWorkerCount) {
@@ -41,24 +47,23 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
 
     @Override
     public Operation getCurrent() {
-        List<DefaultOperation> operations = threads.get(Thread.currentThread());
+        LinkedList<DefaultOperation> operations = operationsPerThread.get();
         if (operations.isEmpty()) {
             throw new IllegalStateException("No build operation associated with the current thread");
         }
-        return operations.get(operations.size() - 1);
+        return operations.getLast();
     }
 
     @Override
     public Completion operationStart() {
-        List<DefaultOperation> operations = threads.get(Thread.currentThread());
-        LeaseHolder parent = operations.isEmpty() ? root : operations.get(operations.size() - 1);
+        LinkedList<DefaultOperation> operations = operationsPerThread.get();
+        LeaseHolder parent = operations.isEmpty() ? root : operations.getLast();
         return doStartOperation(parent);
     }
 
     private BuildOperationWorkerRegistry.Completion doStartOperation(LeaseHolder parent) {
-        Thread ownerThread = Thread.currentThread();
         int workerId = counter.incrementAndGet();
-        DefaultOperation operation = new DefaultOperation(parent, workerId, ownerThread);
+        DefaultOperation operation = new DefaultOperation(parent, workerId, Thread.currentThread());
 
         synchronized (lock) {
             while (!parent.grantLease()) {
@@ -72,7 +77,8 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
                 }
             }
 
-            threads.put(ownerThread, operation);
+            operationsPerThread.get().add(operation);
+            operationCount++;
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Build operation {} started ({} worker(s) in use).", operation.getDisplayName(), root.leasesInUse);
             }
@@ -83,7 +89,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
     @Override
     public void stop() {
         synchronized (lock) {
-            if (!threads.isEmpty()) {
+            if (operationCount>0) {
                 throw new IllegalStateException("Some build operations have not been marked as completed.");
             }
         }
@@ -166,9 +172,13 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
             }
             synchronized (lock) {
                 parent.releaseLease();
-                threads.remove(ownerThread, this);
+                LinkedList<DefaultOperation> operations = operationsPerThread.get();
+                operations.remove(this);
+                if (operations.isEmpty()) {
+                    operationsPerThread.remove();
+                }
+                operationCount--;
                 lock.notifyAll();
-
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Build operation {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
                 }
