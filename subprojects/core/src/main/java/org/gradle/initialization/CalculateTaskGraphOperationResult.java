@@ -20,6 +20,12 @@ import org.gradle.api.Task;
 
 import java.util.Set;
 
+/*
+ * Representing the result of he CalculateTaskGraph build operation.
+ * This class is intentionally internal and consumed by the build scan plugin.
+ *
+ * @since 4.0
+ */
 public class CalculateTaskGraphOperationResult {
     private final Set<Task> requestedTasks;
 
