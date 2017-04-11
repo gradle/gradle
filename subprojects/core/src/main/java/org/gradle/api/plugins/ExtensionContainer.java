@@ -223,6 +223,17 @@ public interface ExtensionContainer {
     <T> void configure(TypeOf<T> type, Action<? super T> action);
 
     /**
+     * Looks for the extension with the specified name and configures it with the supplied action.
+     *
+     * @param name extension name
+     * @param action the configure action
+     * @throws UnknownDomainObjectException if no extension is found.
+     * @since 4.0
+     */
+    @Incubating
+    <T> void configure(String name, Action<? super T> action);
+
+    /**
      * The extra properties extension in this extension container.
      *
      * This extension is always present in the container, with the name “ext”.
