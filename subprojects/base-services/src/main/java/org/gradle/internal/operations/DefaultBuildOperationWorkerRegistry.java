@@ -24,12 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorkerRegistry, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationWorkerRegistry.class);
     private final int maxWorkerCount;
     private final Object lock = new Object();
-    private int counter = 1;
+    private final AtomicInteger counter = new AtomicInteger();
     private final ListMultimap<Thread, DefaultOperation> threads = ArrayListMultimap.create();
     private final Root root = new Root();
 
@@ -55,11 +56,11 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
     }
 
     private BuildOperationWorkerRegistry.Completion doStartOperation(LeaseHolder parent) {
-        synchronized (lock) {
-            int workerId = counter++;
-            Thread ownerThread = Thread.currentThread();
+        Thread ownerThread = Thread.currentThread();
+        int workerId = counter.incrementAndGet();
+        DefaultOperation operation = new DefaultOperation(parent, workerId, ownerThread);
 
-            DefaultOperation operation = new DefaultOperation(parent, workerId, ownerThread);
+        synchronized (lock) {
             while (!parent.grantLease()) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Build operation {} waiting for a lease. Currently {} worker(s) in use", operation.getDisplayName(), root.leasesInUse);
@@ -166,7 +167,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
             synchronized (lock) {
                 parent.releaseLease();
                 threads.remove(ownerThread, this);
-                lock.notifyAll();
+                lock.notify();
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Build operation {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
