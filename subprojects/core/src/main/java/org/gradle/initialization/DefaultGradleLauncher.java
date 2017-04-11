@@ -27,6 +27,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor;
+import org.gradle.execution.taskgraph.CalculateTaskGraphOperationResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationContext;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 
