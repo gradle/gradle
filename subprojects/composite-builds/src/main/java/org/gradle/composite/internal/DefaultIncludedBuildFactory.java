@@ -107,6 +107,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
             includedBuildStartParam.setProjectDir(buildDirectory);
             includedBuildStartParam.setSearchUpwards(false);
             includedBuildStartParam.setConfigureOnDemand(false);
+            includedBuildStartParam.setInitScripts(buildStartParam.getInitScripts());
             return includedBuildStartParam;
         }
     }
