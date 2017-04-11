@@ -56,10 +56,11 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 """
 
         given:
-        server.expectSerialExecution(server.file(m1.pom.path, m1.pom.file))
-        server.expectSerialExecution(server.file(m2.pom.path, m2.pom.file))
-        server.expectSerialExecution(server.file(m3.pom.path, m3.pom.file))
-        server.expectSerialExecution(server.file(m4.pom.path, m4.pom.file))
+        server.expectConcurrentExecutionTo([
+            server.file(m1.pom.path, m1.pom.file),
+            server.file(m2.pom.path, m2.pom.file),
+            server.file(m3.pom.path, m3.pom.file),
+            server.file(m4.pom.path, m4.pom.file)])
         server.expectConcurrentExecutionTo([
             server.file(m1.artifact.path, m1.artifact.file),
             server.file(m2.artifact.path, m2.artifact.file),
@@ -106,10 +107,11 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 """
 
         given:
-        server.expectSerialExecution(server.file(m1.ivy.path, m1.ivy.file))
-        server.expectSerialExecution(server.file(m2.ivy.path, m2.ivy.file))
-        server.expectSerialExecution(server.file(m3.ivy.path, m3.ivy.file))
-        server.expectSerialExecution(server.file(m4.ivy.path, m4.ivy.file))
+        server.expectConcurrentExecutionTo([
+            server.file(m1.ivy.path, m1.ivy.file),
+            server.file(m2.ivy.path, m2.ivy.file),
+            server.file(m3.ivy.path, m3.ivy.file),
+            server.file(m4.ivy.path, m4.ivy.file)])
         server.expectConcurrentExecutionTo([
             server.file(m1.jar.path, m1.jar.file),
             server.file(m2.jar.path, m2.jar.file),
@@ -148,10 +150,11 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 """
 
         given:
-        server.expectSerialExecution(server.file(m1.pom.path, m1.pom.file))
-        server.expectSerialExecution(server.file(m2.pom.path, m2.pom.file))
-        server.expectSerialExecution(server.file(m3.pom.path, m3.pom.file))
-        server.expectSerialExecution(server.file(m4.pom.path, m4.pom.file))
+        def metadataRequests = server.blockOnConcurrentExecutionAnyOfToResources(2, [
+            server.file(m1.pom.path, m1.pom.file),
+            server.file(m2.pom.path, m2.pom.file),
+            server.file(m3.pom.path, m3.pom.file),
+            server.file(m4.pom.path, m4.pom.file)])
         def requests = server.blockOnConcurrentExecutionAnyOfToResources(2, [
             server.file(m1.artifact.path, m1.artifact.file),
             server.file(m2.artifact.path, m2.artifact.file),
@@ -162,6 +165,12 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         expect:
         executer.withArguments('--max-workers', '2')
         def build = executer.withTasks("resolve").start()
+
+        metadataRequests.waitForAllPendingCalls()
+        metadataRequests.release(2)
+
+        metadataRequests.waitForAllPendingCalls()
+        metadataRequests.release(2)
 
         requests.waitForAllPendingCalls()
         requests.release(2)

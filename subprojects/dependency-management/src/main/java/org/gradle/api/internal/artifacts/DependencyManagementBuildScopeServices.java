@@ -271,8 +271,10 @@ class DependencyManagementBuildScopeServices {
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
                                                                 ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                ModuleExclusions moduleExclusions) {
+                                                                ModuleExclusions moduleExclusions,
+                                                                BuildOperationExecutor buildOperationExecutor) {
         return new DefaultArtifactDependencyResolver(
+            buildOperationExecutor,
             resolverFactories,
             resolveIvyFactory,
             dependencyDescriptorFactory,

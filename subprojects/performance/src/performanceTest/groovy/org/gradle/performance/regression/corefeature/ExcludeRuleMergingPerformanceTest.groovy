@@ -32,4 +32,18 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
         then:
         result.assertCurrentVersionHasNotRegressed()
     }
+
+    def "merge exclude rules (parallel)"() {
+        given:
+        runner.testProject = "excludeRuleMergingBuild"
+        runner.tasksToRun = ['resolveDependencies']
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.args = ["--parallel"]
+        runner.targetVersions = ["3.5"]
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
 }
