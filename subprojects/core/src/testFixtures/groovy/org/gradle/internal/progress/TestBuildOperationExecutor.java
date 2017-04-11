@@ -74,5 +74,9 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         @Override
         public void failed(@Nullable Throwable failure) {
         }
+
+        @Override
+        public void setResult(@Nullable Object result) {
+        }
     }
 }

@@ -16,14 +16,25 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Task;
+import org.gradle.TaskExecutionRequest;
 
+import java.util.List;
 import java.util.Set;
 
-public interface CalculateTaskGraphDescriptor {
+public class CalculateTaskGraphDescriptor {
+    private final List<TaskExecutionRequest> taskRequests;
+    private final Set<String> excludedTaskNames;
 
-    Set<Task> getRequestedTasks();
+    public CalculateTaskGraphDescriptor(List<TaskExecutionRequest> taskRequests, Set<String> excludedTaskNames) {
+        this.taskRequests = taskRequests;
+        this.excludedTaskNames = excludedTaskNames;
+    }
 
-    boolean requestedTasksPopulated();
+    public List<TaskExecutionRequest> getTaskRequests() {
+        return taskRequests;
+    }
 
+    public Set<String> getExcludedTaskNames() {
+        return excludedTaskNames;
+    }
 }

@@ -245,7 +245,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                     taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
                     taskListeners.getSource().afterExecute(task, state);
                     buildOperationContext.failed(state.getFailure());
-                    internalTaskListener.afterExecute(legacyOperation, new OperationResult(0, 0, state.getFailure()));
+                    internalTaskListener.afterExecute(legacyOperation, new OperationResult(0, 0, state.getFailure(), null));
                 }
             });
         }

@@ -25,4 +25,6 @@ public interface BuildOperationContext {
      * @param failure Can be null, in which case this method does nothing.
      */
     void failed(@Nullable Throwable failure);
+
+    void setResult(Object result);
 }

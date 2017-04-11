@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.initialization;
 
 import org.gradle.api.Task;
 
 import java.util.Set;
 
-public interface CalculateTaskGraphDescriptorInternal extends CalculateTaskGraphDescriptor {
-    void populateTasks(Set<Task> requestedTasks);
+public class CalculateTaskGraphOperationResult {
+    private final Set<Task> requestedTasks;
+
+    public CalculateTaskGraphOperationResult(Set<Task> requestedTasks) {
+        this.requestedTasks = requestedTasks;
+    }
+
+    public Set<Task> getRequestedTasks() {
+        return requestedTasks;
+    }
+
 }

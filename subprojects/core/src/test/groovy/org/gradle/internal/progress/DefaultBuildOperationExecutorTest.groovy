@@ -169,6 +169,29 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         GradleThread.setUnmanaged()
     }
 
+    def "action can provide operation result"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
+        def action = Mock(Transformer)
+        def result = "SomeResult"
+
+        when:
+        operationExecutor.run("<some-operation>", action)
+
+        then:
+        1 * action.transform(_) >> { BuildOperationContext context -> context.result = result }
+
+        then:
+        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+            assert opResult.result == result
+        }
+
+        cleanup:
+        GradleThread.setUnmanaged()
+    }
+
     def "does not generate progress logging when operation has no progress display name"() {
         def action = Mock(Transformer)
 

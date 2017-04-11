@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
@@ -25,8 +26,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.taskgraph.CalculateTaskGraphDescriptorInternal;
-import org.gradle.execution.taskgraph.DefaultCalculateTaskGraphDescriptor;
+import org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -164,10 +164,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
         // After this point, the GradleLauncher cannot be reused
         stage = Stage.Build;
 
-        // Populate task graph
-        CalculateTaskGraphDescriptorInternal calculateTaskGraphDescriptor = new DefaultCalculateTaskGraphDescriptor();
+        // marker descriptor class for identifying build operation
+        StartParameter startParameter = gradle.getStartParameter();
+        CalculateTaskGraphDescriptor calculateTaskGraphDescriptor = new CalculateTaskGraphDescriptor(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames());
         BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Calculate task graph").operationDescriptor(calculateTaskGraphDescriptor).build();
-        buildOperationExecutor.run(buildOperationDetails, new CalculateTaskGraphAction(calculateTaskGraphDescriptor));
+        buildOperationExecutor.run(buildOperationDetails, new CalculateTaskGraphAction());
 
         // Execute build
         buildOperationExecutor.run("Run tasks", new RunTasksAction());
@@ -227,12 +228,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private class CalculateTaskGraphAction implements Action<BuildOperationContext> {
-        private final CalculateTaskGraphDescriptorInternal descriptorInternal;
-
-        public CalculateTaskGraphAction(CalculateTaskGraphDescriptorInternal descriptorInternal) {
-            this.descriptorInternal = descriptorInternal;
-        }
-
         @Override
         public void execute(BuildOperationContext buildOperationContext) {
             buildConfigurationActionExecuter.select(gradle);
@@ -240,7 +235,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                 projectsEvaluated();
             }
             // make requested tasks available from according build operation.
-            descriptorInternal.populateTasks(gradle.getTaskGraph().getRequestedTasks());
+            buildOperationContext.setResult(new CalculateTaskGraphOperationResult(gradle.getTaskGraph().getRequestedTasks()));
         }
     }
 

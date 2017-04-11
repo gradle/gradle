@@ -126,7 +126,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             }
 
             long endTime = timeProvider.getCurrentTime();
-            listener.finished(operation, new OperationResult(startTime, endTime, context.failure));
+            listener.finished(operation, new OperationResult(startTime, endTime, context.failure, context.result));
 
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure, true);
@@ -140,7 +140,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
                 currentOperation.setRunning(false);
                 UnmanagedThreadOperation unmanagedParent = (UnmanagedThreadOperation) parent;
                 try {
-                    listener.finished(unmanagedParent.internal, new OperationResult(unmanagedParent.startTime, timeProvider.getCurrentTime(), null));
+                    listener.finished(unmanagedParent.internal, new OperationResult(unmanagedParent.startTime, timeProvider.getCurrentTime(), null, null));
                 } finally {
                     unmanagedParent.setRunning(false);
                 }
@@ -216,10 +216,16 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
     private static class BuildOperationContextImpl implements BuildOperationContext {
         Throwable failure;
+        Object result;
 
         @Override
         public void failed(Throwable t) {
             failure = t;
+        }
+
+        @Override
+        public void setResult(Object result) {
+            this.result = result;
         }
     }
 

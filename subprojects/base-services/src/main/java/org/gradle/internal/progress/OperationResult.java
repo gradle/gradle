@@ -24,11 +24,13 @@ public class OperationResult {
     private final long startTime;
     private final long endTime;
     private final Throwable failure;
+    private final Object result;
 
-    public OperationResult(long startTime, long endTime, Throwable failure) {
+    public OperationResult(long startTime, long endTime, Throwable failure, Object result) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failure = failure;
+        this.result = result;
     }
 
     public long getStartTime() {
@@ -42,5 +44,11 @@ public class OperationResult {
     @Nullable
     public Throwable getFailure() {
         return failure;
+    }
+
+
+    @Nullable
+    public Object getResult() {
+        return result;
     }
 }

@@ -86,7 +86,7 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
 
             operFinishedAction = { op, result -> 
                 if(op.operationDescriptor != null && org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor.class.isAssignableFrom(op.operationDescriptor.getClass())){
-                    op.operationDescriptor.requestedTasks.each { tsk ->
+                    result.result.requestedTasks.each { tsk ->
                         println "requested task: \${tsk.path}"
                     }
                 }
