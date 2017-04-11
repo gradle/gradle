@@ -55,7 +55,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
                 reports {
                     xml.enabled true
                     csv.enabled true
-                    html.destination "\${buildDir}/jacocoHtml"
+                    html.destination file("\${buildDir}/jacocoHtml")
                 }
             }
             """
@@ -216,7 +216,7 @@ public class ThingTest {
             reports {
                 xml.enabled false
                 csv.enabled false
-                html.destination "\${buildDir}/reports/jacoco/integ"
+                html.destination file("\${buildDir}/reports/jacoco/integ")
             }
             executionData test
         }
