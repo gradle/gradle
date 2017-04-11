@@ -199,7 +199,6 @@ We would like to thank the following community members for making contributions 
 - [Shintaro Katafuchi](https://github.com/hotchemi) - Issue: #952 Make project.sync() a public API ([gradle/gradle#1137](https://github.com/gradle/gradle/pull/1137))
 - [Lari Hotari](https://github.com/lhtorai) - Issue: #1730 Memory leak in Gradle daemon
  ([gradle/gradle#1736](https://github.com/gradle/gradle/pull/1736))
-- [Sebastian Schuberth](https://github.com/sschuberth) - Update PMD version used by the PMD plugin to 5.5.5 ([gradle/gradle#1623](https://github.com/gradle/gradle/pull/1623))
 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
