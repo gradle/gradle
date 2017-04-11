@@ -77,13 +77,14 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
                 }
             }
 
-            operationsPerThread.get().add(operation);
             operationCount++;
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Build operation {} started ({} worker(s) in use).", operation.getDisplayName(), root.leasesInUse);
             }
-            return operation;
         }
+        // this can be done out of locking, because it's for the current thread in any case
+        operationsPerThread.get().add(operation);
+        return operation;
     }
 
     @Override
@@ -172,11 +173,6 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
             }
             synchronized (lock) {
                 parent.releaseLease();
-                LinkedList<DefaultOperation> operations = operationsPerThread.get();
-                operations.remove(this);
-                if (operations.isEmpty()) {
-                    operationsPerThread.remove();
-                }
                 operationCount--;
                 lock.notifyAll();
                 if (LOGGER.isDebugEnabled()) {
@@ -186,6 +182,16 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
                 if (children != 0) {
                     throw new IllegalStateException("Some child operations have not yet completed.");
                 }
+            }
+            // doesn't have to be done under lock, since it's all done for the current thread
+            popOperation();
+        }
+
+        private void popOperation() {
+            LinkedList<DefaultOperation> operations = operationsPerThread.get();
+            operations.remove(this);
+            if (operations.isEmpty()) {
+                operationsPerThread.remove();
             }
         }
     }
