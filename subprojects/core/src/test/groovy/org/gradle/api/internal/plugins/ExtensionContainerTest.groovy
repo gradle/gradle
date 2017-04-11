@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.ExtensionAware
@@ -250,6 +251,17 @@ class ExtensionContainerTest extends Specification {
                              foo: typeOf(Parent),
                              bar: typeOf(Capability),
                              baz: new TypeOf<List<String>>() {}]
+    }
+
+    def "can configure extensions by name"() {
+        given:
+        container.add "foo", extension
+
+        when:
+        container.configure "foo", { FooExtension foo -> foo.message = "bar" } as Action
+
+        then:
+        extension.message == "bar"
     }
 }
 

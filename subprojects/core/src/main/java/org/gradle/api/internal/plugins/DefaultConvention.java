@@ -203,6 +203,11 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     @Override
+    public <T> void configure(String name, Action<? super T> action) {
+        extensionsStorage.configureExtension(name, action);
+    }
+
+    @Override
     public Map<String, Object> getAsMap() {
         return extensionsStorage.getAsMap();
     }
