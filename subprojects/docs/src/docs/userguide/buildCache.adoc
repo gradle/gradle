@@ -32,8 +32,6 @@ When using a shared build cache for task output caching this even works across d
 
 Apart from task output caching, we expect other features to use the build cache in the future.
 
-[Gradle Enterprise](https://gradle.com/build-cache) will include a high-performance, plug n' play build cache.
-
 [[sec:build_cache_enable]]
 === Enable the Build Cache
 
@@ -334,6 +332,7 @@ your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via api:org.gradle.caching.configuration.BuildCacheConfiguration#registerBuildCacheService(java.lang.Class,java.lang.Class)[].
 For an example of what this could look like see the https://github.com/gradle/gradle-hazelcast-plugin[Gradle Hazelcast plugin].
 
+https://gradle.com/build-cache[Gradle Enterprise] will include a high-performance, easy to install and operate, shared build cache.
 
 [[sec:build_cache_known_issues]]
 === Known issues with built-in Build Caches

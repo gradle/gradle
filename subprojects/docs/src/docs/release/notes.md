@@ -6,7 +6,6 @@ We’ve worked hard to ensure many built-in tasks are cacheable and safe to try;
 
 We have been testing this feature at scale for quite some time on the Gradle build itself and with enterprise partners, and the feedback has been very positive.
 While this feature is incubating, we are improving the user experience, documentation, and debuggability so that everyone can enable the Build Cache eventually.
-[Gradle Enterprise](https://gradle.com/build-cache) will include a high-performance, plug n' play build cache.
 
 Your feedback is very important to us. Please read the [Build Cache introductory blog post](https://blog.gradle.org/introducing-gradle-build-cache) and follow the steps to try it out and submit feedback!
 
