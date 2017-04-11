@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
+public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final boolean pathIsAbsolute;

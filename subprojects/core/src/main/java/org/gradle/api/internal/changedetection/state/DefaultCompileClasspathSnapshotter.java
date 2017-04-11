@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
@@ -35,10 +36,12 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         }
     };
     private static final HashCode IGNORED = HashCode.fromInt((DefaultCompileClasspathSnapshotter.class.getName() + " : ignored").hashCode());
+    private final StringInterner stringInterner;
     private final ClasspathEntryHasher classpathEntryHasher;
 
     public DefaultCompileClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, ClasspathEntryHasher classpathEntryHasher) {
         super(fileSnapshotTreeFactory, stringInterner);
+        this.stringInterner = stringInterner;
         this.classpathEntryHasher = classpathEntryHasher;
     }
 
@@ -53,7 +56,16 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     }
 
     @Override
-    protected List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
+    protected SnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new SnapshotCollector(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
+    }
+
+    @Override
+    protected ResourceSnapshotter createSnapshotter() {
+        return new CompileClasspathResourceSnapshotter();
+    }
+
+    private List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
         // TODO: We could rework this to produce a FileSnapshot for the directory that
         // has a hash for the contents of this directory vs returning a list of the contents
         // of the directory with their hashes
@@ -75,8 +87,25 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         return sorted;
     }
 
-    @Override
-    protected FileSnapshot normaliseFileElement(FileSnapshot details) {
+    private class CompileClasspathResourceSnapshotter implements ResourceSnapshotter {
+        @Override
+        public void snapshot(FileSnapshotTree fileTreeSnapshot, SnapshotCollector collector) {
+            FileSnapshot root = fileTreeSnapshot.getRoot();
+            if (root != null) {
+                if (root.getType() == FileType.RegularFile) {
+                    root = normaliseFileElement(root);
+                }
+                collector.recordSnapshot(root);
+            }
+            Iterable<? extends FileSnapshot> elements = fileTreeSnapshot.getElements();
+            List<FileSnapshot> normalisedElements = normaliseTreeElements(Lists.newArrayList(elements));
+            for (FileSnapshot element : normalisedElements) {
+                collector.recordSnapshot(element);
+            }
+        }
+    }
+
+    private FileSnapshot normaliseFileElement(FileSnapshot details) {
         if (FileUtils.isJar(details.getName())) {
             HashCode signature = classpathEntryHasher.hash(details);
             if (signature != null) {

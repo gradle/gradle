@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
@@ -34,10 +34,12 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         }
     };
 
+    private final StringInterner stringInterner;
     private final ClasspathEntryHasher classpathEntryHasher;
 
     public DefaultClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, ClasspathEntryHasher classpathEntryHasher) {
         super(fileSnapshotTreeFactory, stringInterner);
+        this.stringInterner = stringInterner;
         this.classpathEntryHasher = classpathEntryHasher;
     }
 
@@ -47,12 +49,16 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        return super.snapshot(input, TaskFilePropertyCompareStrategy.ORDERED, snapshotNormalizationStrategy);
+    protected SnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new SnapshotCollector(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
     }
 
     @Override
-    protected List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
+    protected ResourceSnapshotter createSnapshotter() {
+        return new ClasspathResourceSnapshotter();
+    }
+
+    private List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
         // TODO: We could rework this to produce a FileSnapshot for the directory that
         // has a hash for the contents of this directory vs returning a list of the contents
         // of the directory with their hashes
@@ -74,12 +80,29 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         return sorted;
     }
 
-    @Override
-    protected FileSnapshot normaliseFileElement(FileSnapshot details) {
+    private FileSnapshot normaliseFileElement(FileSnapshot details) {
         HashCode signature = classpathEntryHasher.hash(details);
-        if (signature!=null) {
+        if (signature != null) {
             return details.withContentHash(signature);
         }
         return details;
+    }
+
+    private class ClasspathResourceSnapshotter implements ResourceSnapshotter {
+        @Override
+        public void snapshot(FileSnapshotTree fileTreeSnapshot, SnapshotCollector collector) {
+            FileSnapshot root = fileTreeSnapshot.getRoot();
+            if (root != null) {
+                if (root.getType() == FileType.RegularFile) {
+                    root = normaliseFileElement(root);
+                }
+                collector.recordSnapshot(root);
+            }
+            Iterable<? extends FileSnapshot> elements = fileTreeSnapshot.getElements();
+            List<FileSnapshot> normalisedElements = normaliseTreeElements(Lists.newArrayList(elements));
+            for (FileSnapshot element : normalisedElements) {
+                collector.recordSnapshot(element);
+            }
+        }
     }
 }

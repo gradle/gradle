@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
@@ -50,46 +46,15 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
             return FileCollectionSnapshot.EMPTY;
         }
 
-        Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
+        SnapshotCollector collector = createCollector(snapshotNormalizationStrategy, compareStrategy);
+        ResourceSnapshotter snapshotter = createSnapshotter();
         for (FileSnapshotTree fileTreeSnapshot : fileTreeElements) {
-            FileSnapshot root = fileTreeSnapshot.getRoot();
-            if (root != null) {
-                 if (root.getType() == FileType.RegularFile) {
-                     root = normaliseFileElement(root);
-                 }
-                addNormalizedSnapshot(snapshotNormalizationStrategy, snapshots, root);
-            }
-            Iterable<? extends FileSnapshot> elements = fileTreeSnapshot.getElements();
-            List<FileSnapshot> normalisedElements = normaliseTreeElements(Lists.newArrayList(elements));
-            for (FileSnapshot element : normalisedElements) {
-                addNormalizedSnapshot(snapshotNormalizationStrategy, snapshots, element);
-            }
-
+            snapshotter.snapshot(fileTreeSnapshot, collector);
         }
-        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
+        return collector.finish();
     }
 
-    private void addNormalizedSnapshot(SnapshotNormalizationStrategy snapshotNormalizationStrategy, Map<String, NormalizedFileSnapshot> snapshots, FileSnapshot fileSnapshot) {
-        String absolutePath = fileSnapshot.getPath();
-        if (!snapshots.containsKey(absolutePath)) {
-            NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
-            if (normalizedSnapshot != null) {
-                snapshots.put(absolutePath, normalizedSnapshot);
-            }
-        }
-    }
+    protected abstract SnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy);
 
-    /**
-     * Normalises the elements of a directory tree. Does not include the root directory.
-     */
-    protected List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> treeNonRootElements) {
-        return treeNonRootElements;
-    }
-
-    /**
-     * Normalises a root file. Invoked only for top level elements that are regular files.
-     */
-    protected FileSnapshot normaliseFileElement(FileSnapshot details) {
-        return details;
-    }
+    protected abstract ResourceSnapshotter createSnapshotter();
 }

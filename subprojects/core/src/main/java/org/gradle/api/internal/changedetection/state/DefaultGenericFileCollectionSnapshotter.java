@@ -19,12 +19,38 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.cache.StringInterner;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
+    private final StringInterner stringInterner;
+
     public DefaultGenericFileCollectionSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner) {
         super(fileSnapshotTreeFactory, stringInterner);
+        this.stringInterner = stringInterner;
+    }
+
+    @Override
+    protected SnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new SnapshotCollector(normalizationStrategy, compareStrategy, stringInterner);
+    }
+
+    @Override
+    protected ResourceSnapshotter createSnapshotter() {
+        return new GenericResourceSnapshotter();
     }
 
     @Override
     public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
         return GenericFileCollectionSnapshotter.class;
+    }
+
+    public static class GenericResourceSnapshotter implements ResourceSnapshotter {
+        @Override
+        public void snapshot(FileSnapshotTree resource, SnapshotCollector collector) {
+            FileSnapshot root = resource.getRoot();
+            if (root != null) {
+                collector.recordSnapshot(root);
+            }
+            for (FileSnapshot element : resource.getElements()) {
+                collector.recordSnapshot(element);
+            }
+        }
     }
 }
