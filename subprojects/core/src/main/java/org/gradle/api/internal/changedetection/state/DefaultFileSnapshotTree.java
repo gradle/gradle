@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,25 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
+import java.util.List;
 
-public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
-    public DefaultGenericFileCollectionSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner) {
-        super(fileSnapshotTreeFactory, stringInterner);
+public class DefaultFileSnapshotTree implements FileSnapshotTree {
+
+    private final FileSnapshot root;
+    private final List<FileSnapshot> elements;
+
+    public DefaultFileSnapshotTree(FileSnapshot root, List<FileSnapshot> elements) {
+        this.root = root;
+        this.elements = elements;
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
-        return GenericFileCollectionSnapshotter.class;
+    public FileSnapshot getRoot() {
+        return root;
+    }
+
+    @Override
+    public Iterable<? extends FileSnapshot> getElements() {
+        return elements;
     }
 }

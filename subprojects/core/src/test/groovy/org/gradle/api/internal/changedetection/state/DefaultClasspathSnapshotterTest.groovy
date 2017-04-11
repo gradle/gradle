@@ -51,7 +51,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror([]))
     def classpathHasher = new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher())
-    def snapshotter = new DefaultClasspathSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter, classpathHasher)
+    def snapshotter = new DefaultClasspathSnapshotter(new FileSnapshotTreeFactory(fileSystemSnapshotter, directoryFileTreeFactory), stringInterner, classpathHasher)
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
         given:
@@ -65,10 +65,11 @@ class DefaultClasspathSnapshotterTest extends Specification {
         when:
         def snapshotInOriginalOrder = snapshotter.snapshot(files(rootFile1, rootDir, rootFile2), UNORDERED, ClasspathSnapshotNormalizationStrategy.INSTANCE)
         then:
+        println snapshotInOriginalOrder.elements*.getName()
         snapshotInOriginalOrder.elements == [rootFile1, rootDir, subFile1, subFile2, rootFile2]
-        1 * directoryFileTreeFactory.create(rootDir) >> rootDirTree
+        1 * directoryFileTreeFactory.create(_ as File) >> rootDirTree
         _ * rootDirTree.patterns >> new PatternSet()
-        _ * rootDirTree.dir >> rootFile1
+        _ * rootDirTree.getDir() >> rootFile1
         1 * rootDirTree.visit(_) >> { FileVisitor visitor ->
             visitor.visitFile(new DefaultFileVisitDetails(subFile1, fileSystem, fileSystem))
             visitor.visitFile(new DefaultFileVisitDetails(subFile2, fileSystem, fileSystem))

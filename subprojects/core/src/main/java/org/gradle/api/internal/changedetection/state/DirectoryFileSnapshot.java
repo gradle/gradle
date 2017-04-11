@@ -20,6 +20,8 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
+import java.util.Collections;
+
 class DirectoryFileSnapshot implements FileSnapshot {
     final String path;
     private final RelativePath relativePath;
@@ -69,5 +71,15 @@ class DirectoryFileSnapshot implements FileSnapshot {
     @Override
     public FileSnapshot withContentHash(HashCode contentHash) {
         throw new UnsupportedOperationException("Cannot change the content of a directory");
+    }
+
+    @Override
+    public FileSnapshot getRoot() {
+        return this;
+    }
+
+    @Override
+    public Iterable<? extends FileSnapshot> getElements() {
+        return Collections.singleton(this);
     }
 }

@@ -66,7 +66,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.fileSystem = fileSystem;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemMirror = fileSystemMirror;
-        snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, this);
+        this.snapshotter = new DefaultGenericFileCollectionSnapshotter(new FileSnapshotTreeFactory(this, directoryFileTreeFactory), stringInterner);
     }
 
     @Override

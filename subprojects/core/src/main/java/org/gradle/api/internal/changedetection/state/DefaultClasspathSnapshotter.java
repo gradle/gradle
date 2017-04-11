@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.util.ArrayList;
@@ -37,8 +36,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     private final ClasspathEntryHasher classpathEntryHasher;
 
-    public DefaultClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, ClasspathEntryHasher classpathEntryHasher) {
-        super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    public DefaultClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, ClasspathEntryHasher classpathEntryHasher) {
+        super(fileSnapshotTreeFactory, stringInterner);
         this.classpathEntryHasher = classpathEntryHasher;
     }
 
