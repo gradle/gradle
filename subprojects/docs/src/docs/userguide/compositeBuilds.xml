@@ -107,6 +107,37 @@
             </para>
         </section>
     </section>
+    <section id="interacting_with_composite_builds">
+        <title>Interacting with a composite build</title>
+        <para>
+            In general, interacting with a composite build is much the same as a regular multi-project build. Tasks can be executed, tests can be run, and builds can be imported into the IDE.
+        </para>
+        <section id="composite_build_executing_tasks">
+            <title>Executing tasks</title>
+            <para>
+                Tasks from the composite build can be executed from the command line, or from you IDE. Executing a task will result in direct task dependencies being executed, as well as those tasks required to build dependency artifacts from included builds.
+            </para>
+            <note>
+                <para>
+                    There is not (yet) any means to directly execute a task from an included build via the command line. Included build tasks are automatically executed in order to generate required dependency artifacts, or the <link linkend="included_build_task_dependencies">including build can declare a dependency on a task from an included build</link>.
+                </para>
+            </note>
+        </section>
+        <section id="composite_build_ide_integration">
+            <title>
+                Importing into the IDE
+            </title>
+            <para>
+                One of the most useful features of composite builds is IDE integration. By applying the <link linkend="idea_plugin">idea</link> or <link linkend="eclipse_plugin">eclipse</link> plugin to your build, it is possible to generate a single IDEA or Eclipse project that permits all builds in the composite to be developed together.
+            </para>
+            <para>
+                In addition to these Gradle plugins, recent versions of <link linkend="https://www.jetbrains.com/idea/">IntelliJ IDEA</link> and <link linkend="https://projects.eclipse.org/projects/tools.buildship">Eclipse Buildship</link> support direct import of a composite build.
+            </para>
+            <para>
+                Importing a composite build permits sources from separate Gradle builds to be easily developed together. For every included build, each sub-project is included as an IDEA Module or Eclipse Project. Source dependencies are configured, providing cross-build navigation and refactoring.
+            </para>
+        </section>
+    </section>
     <section id="included_build_declaring_substitutions">
         <title>Declaring the dependencies substituted by an included build</title>
         <para>
