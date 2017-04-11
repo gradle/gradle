@@ -74,12 +74,9 @@ fun Project.applyFrom(script: Any) =
  * @param configuration the configuration block.
  * @see Convention.getPlugin
  */
-inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) =
-    configure(T::class, configuration)
-
-
-inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) =
-    the(extensionType).configuration()
+inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
+    convention.findPlugin(T::class.java)?.let(configuration)
+        ?: convention.configure(T::class.java, configuration)
 
 
 /**
