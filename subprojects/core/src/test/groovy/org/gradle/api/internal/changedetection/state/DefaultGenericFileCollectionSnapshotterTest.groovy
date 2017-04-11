@@ -56,7 +56,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, dir, noExist), UNORDERED, ABSOLUTE)
 
         then:
-        snapshot.files as List == [file, file2]
+        snapshot.files as List == [file2, file]
     }
 
     def "retains order of files in the snapshot"() {
@@ -96,7 +96,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, dir, noExist), UNORDERED, ABSOLUTE)
 
         then:
-        snapshot.elements == [file, dir, dir2, file2, noExist]
+        snapshot.elements == [dir, dir2, file2, file, noExist]
     }
 
     def "retains order of elements in the snapshot"() {

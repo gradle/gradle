@@ -21,7 +21,7 @@ public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
     private final int index;
 
     public IndexedNormalizedFileSnapshot(String absolutePath, int index, FileContentSnapshot snapshot) {
-        super(snapshot);
+        super(absolutePath, snapshot);
         this.absolutePath = absolutePath;
         this.index = index;
     }

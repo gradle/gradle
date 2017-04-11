@@ -27,13 +27,13 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
     }
 
     @Override
-    protected SnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new SnapshotCollector(normalizationStrategy, compareStrategy, stringInterner);
+    protected FileCollectionSnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new FileCollectionSnapshotCollector(normalizationStrategy, compareStrategy);
     }
 
     @Override
-    protected ResourceSnapshotter createSnapshotter() {
-        return new GenericResourceSnapshotter();
+    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new GenericResourceSnapshotter(normalizationStrategy, compareStrategy, stringInterner);
     }
 
     @Override
@@ -41,15 +41,15 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
         return GenericFileCollectionSnapshotter.class;
     }
 
-    public static class GenericResourceSnapshotter implements ResourceSnapshotter {
+    public static class GenericResourceSnapshotter extends AbstractResourceSnapshotter {
+        public GenericResourceSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
+            super(normalizationStrategy, compareStrategy, stringInterner);
+        }
+
         @Override
-        public void snapshot(FileSnapshotTree resource, SnapshotCollector collector) {
-            FileSnapshot root = resource.getRoot();
-            if (root != null) {
-                collector.recordSnapshot(root);
-            }
+        public void snapshot(FileSnapshotTree resource) {
             for (FileSnapshot element : resource.getElements()) {
-                collector.recordSnapshot(element);
+                recordSnapshot(element);
             }
         }
     }

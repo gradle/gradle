@@ -49,7 +49,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
             // Ignore path of root directories, use base name of root files
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
-                return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
+                return new IgnoredPathFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
             }
             return getRelativeSnapshot(fileSnapshot, fileSnapshot.getContent(), stringInterner);
         }
@@ -68,7 +68,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
             // Ignore path of root directories
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
-                return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
+                return new IgnoredPathFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
             }
             return getRelativeSnapshot(fileSnapshot, fileSnapshot.getName(), fileSnapshot.getContent(), stringInterner);
         }
@@ -88,7 +88,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
             if (fileSnapshot.getType() == FileType.Directory) {
                 return null;
             }
-            return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
+            return new IgnoredPathFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
         }
     };
 
@@ -124,7 +124,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         if (absolutePath.endsWith(normalizedPath)) {
             return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), snapshot);
         } else {
-            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), snapshot);
+            return new DefaultNormalizedFileSnapshot(absolutePath, stringInterner.intern(normalizedPath), snapshot);
         }
     }
 

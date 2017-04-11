@@ -25,6 +25,7 @@ import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -51,6 +52,10 @@ public enum TaskFilePropertyCompareStrategy {
         return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute);
     }
 
+    public List<NormalizedFileSnapshot> sort(List<NormalizedFileSnapshot> snapshots) {
+        return delegate.sort(snapshots);
+    }
+
     public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
         delegate.appendToHasher(hasher, snapshots);
     }
@@ -59,6 +64,7 @@ public enum TaskFilePropertyCompareStrategy {
         Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute);
         void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots);
         boolean isIncludeAdded();
+        List<NormalizedFileSnapshot> sort(List<NormalizedFileSnapshot> snapshots);
     }
 
     /**

@@ -46,15 +46,16 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
             return FileCollectionSnapshot.EMPTY;
         }
 
-        SnapshotCollector collector = createCollector(snapshotNormalizationStrategy, compareStrategy);
-        ResourceSnapshotter snapshotter = createSnapshotter();
+        ResourceSnapshotter snapshotter = createSnapshotter(snapshotNormalizationStrategy, compareStrategy);
         for (FileSnapshotTree fileTreeSnapshot : fileTreeElements) {
-            snapshotter.snapshot(fileTreeSnapshot, collector);
+            snapshotter.snapshot(fileTreeSnapshot);
         }
+        FileCollectionSnapshotCollector collector = createCollector(snapshotNormalizationStrategy, compareStrategy);
+        snapshotter.finish(collector);
         return collector.finish();
     }
 
-    protected abstract SnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy);
+    protected abstract FileCollectionSnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy);
 
-    protected abstract ResourceSnapshotter createSnapshotter();
+    protected abstract ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy);
 }

@@ -35,7 +35,6 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
             return o1.getPath().compareTo(o2.getPath());
         }
     };
-    private static final HashCode IGNORED = HashCode.fromInt((DefaultCompileClasspathSnapshotter.class.getName() + " : ignored").hashCode());
     private final StringInterner stringInterner;
     private final ClasspathEntryHasher classpathEntryHasher;
 
@@ -56,13 +55,13 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     }
 
     @Override
-    protected SnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new SnapshotCollector(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
+    protected FileCollectionSnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new FileCollectionSnapshotCollector(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED);
     }
 
     @Override
-    protected ResourceSnapshotter createSnapshotter() {
-        return new CompileClasspathResourceSnapshotter();
+    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new CompileClasspathResourceSnapshotter(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED);
     }
 
     private List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
@@ -87,32 +86,27 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         return sorted;
     }
 
-    private class CompileClasspathResourceSnapshotter implements ResourceSnapshotter {
+    private class CompileClasspathResourceSnapshotter extends AbstractResourceSnapshotter {
+        public CompileClasspathResourceSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+            super(normalizationStrategy, compareStrategy, stringInterner);
+        }
+
         @Override
-        public void snapshot(FileSnapshotTree fileTreeSnapshot, SnapshotCollector collector) {
+        public void snapshot(FileSnapshotTree fileTreeSnapshot) {
             FileSnapshot root = fileTreeSnapshot.getRoot();
             if (root != null) {
-                if (root.getType() == FileType.RegularFile) {
-                    root = normaliseFileElement(root);
+                if (root.getType() == FileType.RegularFile && FileUtils.isJar(root.getName())) {
+                    HashCode signature = classpathEntryHasher.hash(root);
+                    if (signature != null) {
+                        recordSnapshot(root.withContentHash(signature));
+                    }
                 }
-                collector.recordSnapshot(root);
             }
             Iterable<? extends FileSnapshot> elements = fileTreeSnapshot.getElements();
             List<FileSnapshot> normalisedElements = normaliseTreeElements(Lists.newArrayList(elements));
             for (FileSnapshot element : normalisedElements) {
-                collector.recordSnapshot(element);
+                recordSnapshot(element);
             }
         }
-    }
-
-    private FileSnapshot normaliseFileElement(FileSnapshot details) {
-        if (FileUtils.isJar(details.getName())) {
-            HashCode signature = classpathEntryHasher.hash(details);
-            if (signature != null) {
-                return details.withContentHash(signature);
-            }
-        }
-
-        return details.withContentHash(IGNORED);
     }
 }

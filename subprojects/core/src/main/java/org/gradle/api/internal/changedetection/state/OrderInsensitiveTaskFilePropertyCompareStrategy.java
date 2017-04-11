@@ -21,6 +21,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Ordering;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
@@ -201,6 +202,10 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
     @Override
     public boolean isIncludeAdded() {
         return includeAdded;
+    }
+
+    public List<NormalizedFileSnapshot> sort(List<NormalizedFileSnapshot> snapshots) {
+        return Ordering.natural().immutableSortedCopy(snapshots);
     }
 
     private static class IncrementalFileSnapshotWithAbsolutePath {

@@ -16,34 +16,33 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
 
-import java.util.Map;
+import java.util.List;
 
-public class SnapshotCollector {
+public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter {
     private final SnapshotNormalizationStrategy normalizationStrategy;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final StringInterner stringInterner;
-    Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
+    private final List<NormalizedFileSnapshot> normalizedFileSnapshots;
 
-    public SnapshotCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
+    public AbstractResourceSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
         this.normalizationStrategy = normalizationStrategy;
         this.compareStrategy = compareStrategy;
         this.stringInterner = stringInterner;
+        this.normalizedFileSnapshots = Lists.newArrayList();
     }
 
-    public void recordSnapshot(FileSnapshot fileSnapshot) {
-        String absolutePath = fileSnapshot.getPath();
-        if (!snapshots.containsKey(absolutePath)) {
-            NormalizedFileSnapshot normalizedSnapshot = normalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
-            if (normalizedSnapshot != null) {
-                snapshots.put(absolutePath, normalizedSnapshot);
-            }
+    protected void recordSnapshot(FileSnapshot snapshot) {
+        normalizedFileSnapshots.add(normalizationStrategy.getNormalizedSnapshot(snapshot, stringInterner));
+    }
+
+    @Override
+    public void finish(NormalizedSnapshotCollector collector) {
+        List<NormalizedFileSnapshot> sorted = compareStrategy.sort(normalizedFileSnapshots);
+        for (NormalizedFileSnapshot normalizedFileSnapshot : sorted) {
+            collector.collectSnapshot(normalizedFileSnapshot);
         }
-    }
-
-    public FileCollectionSnapshot finish() {
-        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, normalizationStrategy.isPathAbsolute());
     }
 }

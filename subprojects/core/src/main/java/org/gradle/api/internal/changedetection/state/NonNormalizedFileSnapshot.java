@@ -20,7 +20,7 @@ public class NonNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
     private final String absolutePath;
 
     public NonNormalizedFileSnapshot(String absolutePath, FileContentSnapshot snapshot) {
-        super(snapshot);
+        super(absolutePath, snapshot);
         this.absolutePath = absolutePath;
     }
 

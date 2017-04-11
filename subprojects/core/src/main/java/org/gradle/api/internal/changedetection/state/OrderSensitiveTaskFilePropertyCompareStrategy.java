@@ -24,6 +24,7 @@ import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
@@ -89,5 +90,10 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
     @Override
     public boolean isIncludeAdded() {
         return true;
+    }
+
+    @Override
+    public List<NormalizedFileSnapshot> sort(List<NormalizedFileSnapshot> snapshots) {
+        return snapshots;
     }
 }

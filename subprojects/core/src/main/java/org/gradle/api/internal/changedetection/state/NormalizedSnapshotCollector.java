@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-/**
- * An immutable snapshot of some aspects of a file's metadata and content.
- *
- * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these aspects.
- */
-public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Snapshot {
-    String getPath();
-    String getNormalizedPath();
-    FileContentSnapshot getSnapshot();
+public interface NormalizedSnapshotCollector {
+    void collectSnapshot(NormalizedFileSnapshot snapshot);
 }

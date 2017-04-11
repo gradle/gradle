@@ -49,13 +49,13 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected SnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new SnapshotCollector(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
+    protected FileCollectionSnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new FileCollectionSnapshotCollector(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED);
     }
 
     @Override
-    protected ResourceSnapshotter createSnapshotter() {
-        return new ClasspathResourceSnapshotter();
+    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new ClasspathResourceSnapshotter(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED);
     }
 
     private List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
@@ -88,20 +88,24 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         return details;
     }
 
-    private class ClasspathResourceSnapshotter implements ResourceSnapshotter {
+    private class ClasspathResourceSnapshotter extends AbstractResourceSnapshotter {
+        public ClasspathResourceSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+            super(normalizationStrategy, compareStrategy, stringInterner);
+        }
+
         @Override
-        public void snapshot(FileSnapshotTree fileTreeSnapshot, SnapshotCollector collector) {
+        public void snapshot(FileSnapshotTree fileTreeSnapshot) {
             FileSnapshot root = fileTreeSnapshot.getRoot();
             if (root != null) {
                 if (root.getType() == FileType.RegularFile) {
                     root = normaliseFileElement(root);
                 }
-                collector.recordSnapshot(root);
+                recordSnapshot(root);
             }
             Iterable<? extends FileSnapshot> elements = fileTreeSnapshot.getElements();
             List<FileSnapshot> normalisedElements = normaliseTreeElements(Lists.newArrayList(elements));
             for (FileSnapshot element : normalisedElements) {
-                collector.recordSnapshot(element);
+                recordSnapshot(element);
             }
         }
     }

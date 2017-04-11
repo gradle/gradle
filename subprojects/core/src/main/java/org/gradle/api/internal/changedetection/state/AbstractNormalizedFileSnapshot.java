@@ -20,9 +20,11 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashUtil;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {
+    private final String path;
     private final FileContentSnapshot snapshot;
 
-    public AbstractNormalizedFileSnapshot(FileContentSnapshot snapshot) {
+    public AbstractNormalizedFileSnapshot(String path, FileContentSnapshot snapshot) {
+        this.path = path;
         this.snapshot = snapshot;
     }
 
@@ -44,6 +46,11 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
             result = HashUtil.compareHashCodes(getSnapshot().getContentMd5(), o.getSnapshot().getContentMd5());
         }
         return result;
+    }
+
+    @Override
+    public String getPath() {
+        return path;
     }
 
     @Override

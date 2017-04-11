@@ -35,7 +35,7 @@ public class ClasspathSnapshotNormalizationStrategy implements SnapshotNormaliza
     public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
         // Ignore path of root files and directories
         if (fileSnapshot.isRoot()) {
-            return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
+            return new IgnoredPathFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
         }
         return getRelativeSnapshot(fileSnapshot, fileSnapshot.getContent(), stringInterner);
     }
