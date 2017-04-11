@@ -16,15 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private static final Comparator<FileSnapshot> FILE_DETAILS_COMPARATOR = new Comparator<FileSnapshot>() {
@@ -55,42 +52,12 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new ClasspathResourceSnapshotter(ClasspathSnapshotNormalizationStrategy.INSTANCE, TaskFilePropertyCompareStrategy.ORDERED);
-    }
-
-    private List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
-        // TODO: We could rework this to produce a FileSnapshot for the directory that
-        // has a hash for the contents of this directory vs returning a list of the contents
-        // of the directory with their hashes
-        // Collect the signatures of each class file
-        List<FileSnapshot> sorted = new ArrayList<FileSnapshot>(fileDetails.size());
-        for (FileSnapshot details : fileDetails) {
-            if (details.getType() == FileType.RegularFile) {
-                HashCode signatureForClass = classpathEntryHasher.hash(details);
-                if (signatureForClass == null) {
-                    // Should be excluded
-                    continue;
-                }
-                sorted.add(details.withContentHash(signatureForClass));
-            }
-        }
-
-        // Sort as their order is not important
-        Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
-        return sorted;
-    }
-
-    private FileSnapshot normaliseFileElement(FileSnapshot details) {
-        HashCode signature = classpathEntryHasher.hash(details);
-        if (signature != null) {
-            return details.withContentHash(signature);
-        }
-        return details;
+        return new ClasspathResourceSnapshotter();
     }
 
     private class ClasspathResourceSnapshotter extends AbstractResourceSnapshotter {
-        public ClasspathResourceSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-            super(normalizationStrategy, compareStrategy, stringInterner);
+        public ClasspathResourceSnapshotter() {
+            super(TaskFilePropertySnapshotNormalizationStrategy.NONE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
         }
 
         @Override
@@ -98,14 +65,36 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
             FileSnapshot root = fileTreeSnapshot.getRoot();
             if (root != null) {
                 if (root.getType() == FileType.RegularFile) {
-                    root = normaliseFileElement(root);
+                    HashCode signature = classpathEntryHasher.hash(root);
+                    if (signature != null) {
+                        recordSnapshot(root.withContentHash(signature));
+                    }
+                } else if (root.getType() == FileType.Directory) {
+                    ClasspathEntrySnapshotter entrySnapshotter = new ClasspathEntrySnapshotter();
+                    for (FileSnapshot fileSnapshot : fileTreeSnapshot.getElements()) {
+                        entrySnapshotter.snapshot(fileSnapshot);
+                    }
+                    entrySnapshotter.finish(this);
                 }
-                recordSnapshot(root);
+            } else {
+                throw new GradleException("Tree without root file on Classpath");
             }
-            Iterable<? extends FileSnapshot> elements = fileTreeSnapshot.getElements();
-            List<FileSnapshot> normalisedElements = normaliseTreeElements(Lists.newArrayList(elements));
-            for (FileSnapshot element : normalisedElements) {
-                recordSnapshot(element);
+        }
+    }
+
+    private class ClasspathEntrySnapshotter extends AbstractResourceSnapshotter {
+        public ClasspathEntrySnapshotter() {
+            super(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
+        }
+
+        @Override
+        public void snapshot(FileSnapshotTree details) {
+            FileSnapshot root = details.getRoot();
+            if (root != null && root.getType() == FileType.RegularFile) {
+                HashCode signatureForClass = classpathEntryHasher.hash(root);
+                if (signatureForClass != null) {
+                    recordSnapshot(root.withContentHash(signatureForClass));
+                }
             }
         }
     }

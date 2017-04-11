@@ -253,7 +253,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     def snapshot(String normalizedPath, String hashCode = "1234abcd") {
-        return new DefaultNormalizedFileSnapshot(normalizedPath, new FileHashSnapshot(HashCode.fromString(hashCode)))
+        return new DefaultNormalizedFileSnapshot(normalizedPath, normalizedPath, new FileHashSnapshot(HashCode.fromString(hashCode)))
     }
 
     def change(String path, ChangeType type) {

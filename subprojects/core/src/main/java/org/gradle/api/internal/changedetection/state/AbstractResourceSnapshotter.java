@@ -21,7 +21,7 @@ import org.gradle.api.internal.cache.StringInterner;
 
 import java.util.List;
 
-public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter {
+public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter, NormalizedSnapshotCollector {
     private final SnapshotNormalizationStrategy normalizationStrategy;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final StringInterner stringInterner;
@@ -35,7 +35,15 @@ public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter
     }
 
     protected void recordSnapshot(FileSnapshot snapshot) {
-        normalizedFileSnapshots.add(normalizationStrategy.getNormalizedSnapshot(snapshot, stringInterner));
+        NormalizedFileSnapshot normalizedSnapshot = normalizationStrategy.getNormalizedSnapshot(snapshot, stringInterner);
+        if (normalizedSnapshot != null) {
+            normalizedFileSnapshots.add(normalizedSnapshot);
+        }
+    }
+
+    @Override
+    public void collectSnapshot(NormalizedFileSnapshot snapshot) {
+        normalizedFileSnapshots.add(snapshot);
     }
 
     @Override

@@ -28,12 +28,12 @@ class DefaultFileCollectionSnapshotTest extends Specification {
     def "order-insensitive collection snapshot ignores order when hashing"() {
         def hasher = Mock(BuildCacheHasher)
         def oldSnapshot = new DefaultFileCollectionSnapshot([
-            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
-            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
+            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", "file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
+            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", "file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
         ], UNORDERED, false)
         def newSnapshot = new DefaultFileCollectionSnapshot([
-            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
-            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
+            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", "file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
+            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", "file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
         ], UNORDERED, false)
         when:
         oldSnapshot.appendToHasher(hasher)
@@ -57,12 +57,12 @@ class DefaultFileCollectionSnapshotTest extends Specification {
     def "order-sensitive collection snapshot considers order when hashing"() {
         def hasher = Mock(BuildCacheHasher)
         def oldSnapshot = new DefaultFileCollectionSnapshot([
-            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
-            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
+            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", "file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
+            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", "file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
         ], ORDERED, false)
         def newSnapshot = new DefaultFileCollectionSnapshot([
-            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
-            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
+            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", "file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
+            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", "file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
         ], ORDERED, false)
         when:
         oldSnapshot.appendToHasher(hasher)
