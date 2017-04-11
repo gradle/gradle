@@ -167,7 +167,7 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
             synchronized (lock) {
                 parent.releaseLease();
                 threads.remove(ownerThread, this);
-                lock.notify();
+                lock.notifyAll();
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Build operation {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
