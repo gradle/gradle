@@ -130,8 +130,8 @@ public class DefaultListenerManager implements ListenerManager {
         private final Set<ListenerDetails> listeners = new LinkedHashSet<ListenerDetails>();
         private ListenerDetails logger;
         private Dispatch<MethodInvocation> parentDispatch;
-        private ImmutableList<Dispatch<MethodInvocation>> allWithLogger;
-        private ImmutableList<Dispatch<MethodInvocation>> allWithNoLogger;
+        private ImmutableList<Dispatch<MethodInvocation>> allWithLogger = ImmutableList.of();
+        private ImmutableList<Dispatch<MethodInvocation>> allWithNoLogger = ImmutableList.of();
         private Thread owner;
 
         EventBroadcast(Class<T> type) {
@@ -140,6 +140,7 @@ public class DefaultListenerManager implements ListenerManager {
             dispatchNoLogger = new ListenerDispatch(type, false);
             if (parent != null) {
                 parentDispatch = parent.getBroadcasterInternal(type).getDispatch(true);
+                invalidateDispatchCache();
             }
         }
 
@@ -161,23 +162,23 @@ public class DefaultListenerManager implements ListenerManager {
         }
 
         // Must be holding lock
-        private void markDirty() {
-            allWithLogger = null;
-            allWithNoLogger = null;
+        private void invalidateDispatchCache() {
+            ensureAllWithLoggerInitialized();
+            ensureAllWithoutLoggerInitialized();
         }
 
         // Must be holding lock
         void maybeAdd(ListenerDetails listener) {
             if (type.isInstance(listener.listener)) {
                 listeners.add(listener);
-                markDirty();
+                invalidateDispatchCache();
             }
         }
 
         // Must be holding lock
         void maybeRemove(ListenerDetails listener) {
             if (listeners.remove(listener)) {
-                markDirty();
+                invalidateDispatchCache();
             }
             // Another thread may be using listener
         }
@@ -189,59 +190,78 @@ public class DefaultListenerManager implements ListenerManager {
                     parentDispatch = parent.getBroadcasterInternal(type).getDispatch(false);
                 }
                 logger = candidate;
-                markDirty();
+                invalidateDispatchCache();
             }
         }
 
         private ImmutableList<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
             synchronized (lock) {
-                // Mark this listener type as being notified
-                while (owner != null) {
-                    if (owner == Thread.currentThread()) {
-                        throw new IllegalStateException(String.format("Cannot notify listeners of type %s as these listeners are already being notified.", type.getSimpleName()));
-                    }
-                    try {
-                        lock.wait();
-                    } catch (InterruptedException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-                owner = Thread.currentThread();
+                takeOwnership();
 
                 // Take a snapshot while holding lock
-                ImmutableList<Dispatch<MethodInvocation>> result;
-                if (includeLogger) {
-                    if (allWithLogger == null) {
-                        ImmutableList.Builder<Dispatch<MethodInvocation>> dispatchers = ImmutableList.builder();
-                        if (logger != null) {
-                            dispatchers.add(logger);
-                        }
-                        if (parentDispatch != null) {
-                            dispatchers.add(parentDispatch);
-                        }
-                        dispatchers.addAll(listeners);
-                        allWithLogger = dispatchers.build();
-                    }
-                    result = allWithLogger;
-                } else {
-                    if (allWithNoLogger == null) {
-                        ImmutableList.Builder<Dispatch<MethodInvocation>> dispatchers = ImmutableList.builder();
-                        if (parentDispatch != null) {
-                            dispatchers.add(parentDispatch);
-                        }
-                        dispatchers.addAll(listeners);
-                        allWithNoLogger = dispatchers.build();
-                    }
-                    result = allWithNoLogger;
-                }
-                for (Dispatch<MethodInvocation> dispatch : result) {
-                    if (dispatch instanceof ListenerDetails) {
-                        ListenerDetails listenerDetails = (ListenerDetails) dispatch;
-                        listenerDetails.startNotification(owner);
-                    }
-                }
+                ImmutableList<Dispatch<MethodInvocation>> result = includeLogger ? allWithLogger : allWithNoLogger;
+                doStartNotification(result);
                 return result;
             }
+        }
+
+        private void doStartNotification(ImmutableList<Dispatch<MethodInvocation>> result) {
+            for (Dispatch<MethodInvocation> dispatch : result) {
+                if (dispatch instanceof ListenerDetails) {
+                    ListenerDetails listenerDetails = (ListenerDetails) dispatch;
+                    listenerDetails.startNotification(owner);
+                }
+            }
+        }
+
+        private void ensureAllWithoutLoggerInitialized() {
+            if (parentDispatch == null && listeners.isEmpty()) {
+                allWithNoLogger = ImmutableList.of();
+            } else {
+                ImmutableList.Builder<Dispatch<MethodInvocation>> dispatchers = ImmutableList.builder();
+                if (parentDispatch != null) {
+                    dispatchers.add(parentDispatch);
+                }
+                dispatchers.addAll(listeners);
+                allWithNoLogger = dispatchers.build();
+            }
+        }
+
+        private void ensureAllWithLoggerInitialized() {
+            if (logger == null && parentDispatch == null && listeners.isEmpty()) {
+                allWithLogger = ImmutableList.of();
+            } else {
+                allWithLogger = buildAllWithLogger();
+            }
+        }
+
+        private void takeOwnership() {
+            // Mark this listener type as being notified
+            while (owner != null) {
+                if (owner == Thread.currentThread()) {
+                    throw new IllegalStateException(String.format("Cannot notify listeners of type %s as these listeners are already being notified.", type.getSimpleName()));
+                }
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+            owner = Thread.currentThread();
+        }
+
+        private ImmutableList<Dispatch<MethodInvocation>> buildAllWithLogger() {
+            ImmutableList<Dispatch<MethodInvocation>> result;
+            ImmutableList.Builder<Dispatch<MethodInvocation>> dispatchers = ImmutableList.builder();
+            if (logger != null) {
+                dispatchers.add(logger);
+            }
+            if (parentDispatch != null) {
+                dispatchers.add(parentDispatch);
+            }
+            dispatchers.addAll(listeners);
+            result = dispatchers.build();
+            return result;
         }
 
         private void endNotification(List<Dispatch<MethodInvocation>> dispatchers) {
@@ -329,7 +349,6 @@ public class DefaultListenerManager implements ListenerManager {
                 throw new IllegalStateException("Unexpected owner for listener.");
             }
             this.owner = null;
-            lock.notifyAll();
         }
     }
 }
