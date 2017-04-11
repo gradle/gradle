@@ -315,7 +315,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    private class SnapshotImpl implements Snapshot {
+    private static class SnapshotImpl implements Snapshot {
         private final LogLevel logLevel;
         private final OutputEventListener console;
         private final int maxWorkerCount;
