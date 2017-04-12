@@ -74,11 +74,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     private void addArtifactFiles() {
         if (!artifacts.isEmpty()) {
             for (ResolvedArtifact artifact : artifacts) {
-                try {
-                    this.files.add(artifact.getFile());
-                } catch (Throwable t) {
-                    failures.add(t);
-                }
+                this.files.add(artifact.getFile());
             }
             artifacts.clear();
         }
