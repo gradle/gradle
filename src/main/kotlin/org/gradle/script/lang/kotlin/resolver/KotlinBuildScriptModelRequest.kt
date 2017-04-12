@@ -29,23 +29,13 @@ import java.net.URI
 internal
 sealed class GradleInstallation {
 
-    abstract fun apply(connector: GradleConnector): GradleConnector
+    data class Local(val dir: File) : GradleInstallation()
 
-    data class Local(val dir: File) : GradleInstallation() {
-        override fun apply(connector: GradleConnector) = connector.useInstallation(dir)!!
-    }
+    data class Remote(val uri: URI) : GradleInstallation()
 
-    data class Remote(val uri: URI) : GradleInstallation() {
-        override fun apply(connector: GradleConnector) = connector.useDistribution(uri)!!
-    }
+    data class Version(val number: String) : GradleInstallation()
 
-    data class Version(val number: String): GradleInstallation() {
-        override fun apply(connector: GradleConnector) = connector.useGradleVersion(number)!!
-    }
-
-    object Wrapper : GradleInstallation() {
-        override fun apply(connector: GradleConnector) = connector.useBuildDistribution()!!
-    }
+    object Wrapper : GradleInstallation()
 }
 
 
@@ -93,7 +83,9 @@ fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
         .newConnector()
         .forProjectDirectory(request.projectDir)
         .useGradleUserHomeDir(request.gradleUserHome)
-        .let(request.gradleInstallation::apply)
+        .let { connector ->
+            applyGradleInstallationTo(connector, request)
+        }
 
 
 internal
@@ -109,3 +101,16 @@ inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
         close()
     }
 }
+
+
+private
+fun applyGradleInstallationTo(connector: GradleConnector, request: KotlinBuildScriptModelRequest): GradleConnector =
+    request.gradleInstallation.run {
+        when (this) {
+            is GradleInstallation.Local   -> connector.useInstallation(dir)
+            is GradleInstallation.Remote  -> connector.useDistribution(uri)
+            is GradleInstallation.Version -> connector.useGradleVersion(number)
+            GradleInstallation.Wrapper    -> connector.useBuildDistribution()
+        }
+    }
+
