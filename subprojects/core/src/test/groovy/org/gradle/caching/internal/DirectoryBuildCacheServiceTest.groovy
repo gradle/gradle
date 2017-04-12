@@ -37,7 +37,7 @@ class DirectoryBuildCacheServiceTest extends Specification {
     }
     def temporaryFileProvider = Mock(TemporaryFileProvider) {
         createTemporaryFile(_, _) >> { prefix, suffix, path ->
-            return cacheDir.file(*path, "$prefix-xxx-$suffix")
+            return temporaryFolder.file(*path, "$prefix-xxx-$suffix")
         }
     }
     def service = new DirectoryBuildCacheService(cacheRepository, temporaryFileProvider, cacheDir)
