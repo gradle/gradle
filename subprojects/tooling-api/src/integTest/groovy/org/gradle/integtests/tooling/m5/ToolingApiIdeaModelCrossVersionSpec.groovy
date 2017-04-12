@@ -319,7 +319,7 @@ project(':impl') {
             libs.size() == 1
         }
         libs.each {
-            it.dependencyModule == project.modules.find { it.name == 'api' }
+            it.targetModuleName == project.modules.find { it.name == 'api' }.getName()
         }
     }
 }
