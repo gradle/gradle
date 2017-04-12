@@ -67,7 +67,7 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
 
     def supportsCategoriesAndNullTestClassDescription() {
         when:
-        run "test"
+        succeeds("test")
 
         then:
         ":test" in nonSkippedTasks
