@@ -51,9 +51,9 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractProjectB
         snapshots[file("dir/libs/library-a.jar")]      == "IGNORED"
         snapshots[file("dir/libs/library-b.jar")]      == "IGNORED"
         snapshots[file("dir/resources/input.txt")]     == "IGNORED"
-        snapshots[file("dir/resources/a")]             == "NO SNAPSHOT"
+        snapshots[file("dir/resources/a")]             == "IGNORED"
         snapshots[file("dir/resources/a/input-1.txt")] == "IGNORED"
-        snapshots[file("dir/resources/b")]             == "NO SNAPSHOT"
+        snapshots[file("dir/resources/b")]             == "IGNORED"
         snapshots[file("dir/resources/b/input-2.txt")] == "IGNORED"
     }
 
