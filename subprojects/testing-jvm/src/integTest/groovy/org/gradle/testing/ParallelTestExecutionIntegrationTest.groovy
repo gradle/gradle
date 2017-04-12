@@ -23,7 +23,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(60)
+@Timeout(240)
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
 class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -73,17 +73,17 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         def gradle = executer.withTasks('test').start()
 
         then:
-        handler.waitForAllPendingCalls(30)
+        handler.waitForAllPendingCalls(120)
         handler.release(1)
 
         and:
         if (maxConcurrency - 1 > 0) {
-            handler.waitForAllPendingCalls(30)
+            handler.waitForAllPendingCalls(120)
             handler.release(maxConcurrency - 1)
         }
 
         and:
-        handler.waitForAllPendingCalls(30)
+        handler.waitForAllPendingCalls(120)
         handler.release(maxConcurrency)
 
         then:
