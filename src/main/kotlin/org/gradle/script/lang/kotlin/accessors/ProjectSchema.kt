@@ -114,7 +114,7 @@ fun extensionAccessorFor(name: String, type: String): String? =
             /**
              * Retrieves the [$name][$type] project extension.
              */
-            fun Project.`$name`(): $type =
+            val Project.`$name`: $type get() =
                 extensions.getByName("$name") as $type
 
             /**
@@ -131,9 +131,15 @@ fun conventionAccessorFor(name: String, type: String): String? =
     if (isLegalExtensionName(name))
         """
             /**
-             * Retrieves or configures the [$name][$type] project convention.
+             * Retrieves the [$name][$type] project convention.
              */
-            fun Project.`$name`(configure: $type.() -> Unit = {}) =
+            val Project.`$name`: $type get() =
+                convention.getPluginByName<$type>("$name")
+
+            /**
+             * Configures the [$name][$type] project convention.
+             */
+            fun Project.`$name`(configure: $type.() -> Unit) =
                 convention.getPluginByName<$type>("$name").apply { configure() }
 
         """.replaceIndent()

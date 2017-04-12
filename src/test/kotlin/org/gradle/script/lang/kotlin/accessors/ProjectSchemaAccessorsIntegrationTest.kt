@@ -78,7 +78,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
         buildFile.appendText("""
 
-            (`the books`()) {
+            (`the books`) {
                 "quickStart" {
                 }
                 "userGuide" {
@@ -87,7 +87,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
             tasks {
                 "books" {
-                    doLast { println(`the books`().joinToString { it.name }) }
+                    doLast { println(`the books`.joinToString { it.name }) }
                 }
             }
 
@@ -119,7 +119,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             application { mainClassName = "App" }
 
             task("mainClassName") {
-                doLast { println("*" + application().mainClassName + "*") }
+                doLast { println("*" + application.mainClassName + "*") }
             }
         """)
 
