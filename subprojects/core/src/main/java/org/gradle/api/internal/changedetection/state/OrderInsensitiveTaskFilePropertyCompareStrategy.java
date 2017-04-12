@@ -21,7 +21,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Ordering;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
@@ -191,9 +190,9 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+        public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
         List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots);
-        Collections.sort(normalizedSnapshots);
+        sort(normalizedSnapshots);
         for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
             normalizedSnapshot.appendToHasher(hasher);
         }
@@ -204,8 +203,9 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
         return includeAdded;
     }
 
-    public List<NormalizedFileSnapshot> sort(List<NormalizedFileSnapshot> snapshots) {
-        return Ordering.natural().immutableSortedCopy(snapshots);
+    @Override
+    public void sort(List<NormalizedFileSnapshot> snapshots) {
+        Collections.sort(snapshots);
     }
 
     private static class IncrementalFileSnapshotWithAbsolutePath {

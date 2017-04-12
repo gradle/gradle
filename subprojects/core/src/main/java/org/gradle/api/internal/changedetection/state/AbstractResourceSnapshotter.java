@@ -31,7 +31,7 @@ public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter
         this.normalizationStrategy = normalizationStrategy;
         this.compareStrategy = compareStrategy;
         this.stringInterner = stringInterner;
-        this.normalizedFileSnapshots = Lists.newArrayList();
+        this.normalizedFileSnapshots = Lists.newLinkedList();
     }
 
     protected void recordSnapshot(FileSnapshot snapshot) {
@@ -48,8 +48,8 @@ public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter
 
     @Override
     public void finish(NormalizedSnapshotCollector collector) {
-        List<NormalizedFileSnapshot> sorted = compareStrategy.sort(normalizedFileSnapshots);
-        for (NormalizedFileSnapshot normalizedFileSnapshot : sorted) {
+        compareStrategy.sort(normalizedFileSnapshots);
+        for (NormalizedFileSnapshot normalizedFileSnapshot : normalizedFileSnapshots) {
             collector.collectSnapshot(normalizedFileSnapshot);
         }
     }

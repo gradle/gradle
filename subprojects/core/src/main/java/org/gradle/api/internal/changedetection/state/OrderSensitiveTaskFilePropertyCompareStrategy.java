@@ -93,7 +93,6 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
     }
 
     @Override
-    public List<NormalizedFileSnapshot> sort(List<NormalizedFileSnapshot> snapshots) {
-        return snapshots;
+    public void sort(List<NormalizedFileSnapshot> snapshots) {
     }
 }
