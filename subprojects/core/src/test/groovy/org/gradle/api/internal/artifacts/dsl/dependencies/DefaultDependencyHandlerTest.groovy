@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
+import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -31,7 +32,10 @@ import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
 import spock.lang.Specification
 
 class DefaultDependencyHandlerTest extends Specification {
+
     private static final String TEST_CONF_NAME = "someConf"
+    private static final String UNKNOWN_TEST_CONF_NAME = "unknown"
+
     private ConfigurationContainer configurationContainer = Mock()
     private DependencyFactory dependencyFactory = Mock()
     private Configuration configuration = Mock()
@@ -44,7 +48,8 @@ class DefaultDependencyHandlerTest extends Specification {
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration
-        _ * configurationContainer.getAt(TEST_CONF_NAME) >> configuration
+        _ * configurationContainer.getByName(TEST_CONF_NAME) >> configuration
+        _ * configurationContainer.getByName(UNKNOWN_TEST_CONF_NAME) >> { throw new UnknownDomainObjectException("") }
         _ * configuration.dependencies >> dependencySet
     }
 
@@ -299,10 +304,10 @@ class DefaultDependencyHandlerTest extends Specification {
 
     void "cannot add dependency to unknown configuration"() {
         when:
-        dependencyHandler.unknown("someNotation")
+        dependencyHandler.add(UNKNOWN_TEST_CONF_NAME, "someNotation")
 
         then:
-        thrown(MissingMethodException)
+        thrown(UnknownDomainObjectException)
     }
 
     void "reasonable error when supplying null as a dependency notation"() {
