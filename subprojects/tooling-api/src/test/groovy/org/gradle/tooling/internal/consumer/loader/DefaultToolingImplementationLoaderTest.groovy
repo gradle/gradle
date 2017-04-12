@@ -23,7 +23,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection
+
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
@@ -39,7 +39,7 @@ import org.gradle.tooling.internal.protocol.ConfigurableConnection
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.InternalBuildAction
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor
+
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection
@@ -99,7 +99,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         connectionImplementation  | adapter                                          | wrappedToNonCancellableAdapter
         TestConnection.class      | ShutdownAwareConsumerConnection.class            | false
         TestR21Connection.class   | CancellableConsumerConnection.class              | false
-        TestR18Connection.class   | ActionAwareConsumerConnection.class              | true
         TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class       | true
     }
 
@@ -186,7 +185,7 @@ class TestR21Connection extends TestR18Connection implements InternalCancellable
     }
 }
 
-class TestR18Connection extends TestR16Connection implements InternalBuildActionExecutor {
+class TestR18Connection extends TestR16Connection {
     def <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
