@@ -113,13 +113,13 @@ task block2 {
         // Start build 1 then wait until it has run task 'a'. Should see 'a' is up-to-date
         executer.withTasks("block1")
         def build1 = executer.start()
-        def server1WaitForResult = server1.waitFor(false)
+        def server1WaitForResult = server1.waitFor(false, 120)
 
         // Change content and start build 2 then wait until it has run task 'a'. Should see 'a' is not up-to-date
         inputFile.text = 'new content'
         executer.withTasks("block2")
         def build2 = executer.start()
-        def server2WaitForResult = server2.waitFor(false)
+        def server2WaitForResult = server2.waitFor(false, 120)
 
         // Finish up build 1
         server1.release()
@@ -177,12 +177,12 @@ block2.mustRunAfter b
         // Start build 1 then wait until it has run task 'a'.
         executer.withTasks("a", "block1", "b")
         def build1 = executer.start()
-        def server1WaitForResult = server1.waitFor(false)
+        def server1WaitForResult = server1.waitFor(false, 120)
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         executer.withTasks("a", "b", "block2")
         def build2 = executer.start()
-        def server2WaitForResult = server2.waitFor(false)
+        def server2WaitForResult = server2.waitFor(false, 120)
 
         // Finish up build 1 and 2
         server1.release() // finish build 1 while build 2 is still running
