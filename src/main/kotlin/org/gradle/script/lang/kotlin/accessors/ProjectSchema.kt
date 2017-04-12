@@ -98,25 +98,43 @@ fun loadMultiProjectSchemaFrom(file: File) =
 internal
 fun ProjectSchema<String>.forEachAccessor(action: (String) -> Unit) {
     extensions.forEach { (name, type) ->
-        accessorFor(name, type, "extension", "extensions.getByName")?.let(action)
+        extensionAccessorFor(name, type)?.let(action)
     }
     conventions.forEach { (name, type) ->
         if (name !in extensions) {
-            accessorFor(name, type, "convention", "convention.getPluginByName")?.let(action)
+            conventionAccessorFor(name, type)?.let(action)
         }
     }
 }
 
-
 private
-fun accessorFor(name: String, type: String, kind: String, getter: String): String? =
+fun extensionAccessorFor(name: String, type: String): String? =
     if (isLegalExtensionName(name))
         """
             /**
-             * Retrieves or configures the [$name][$type] project $kind.
+             * Retrieves the [$name][$type] project extension.
+             */
+            fun Project.`$name`(): $type =
+                extensions.getByName("$name") as $type
+
+            /**
+             * Configures the [$name][$type] project extension.
+             */
+            fun Project.`$name`(configure: $type.() -> Unit) =
+                extensions.configure("$name", configure)
+
+        """.replaceIndent()
+    else null
+
+private
+fun conventionAccessorFor(name: String, type: String): String? =
+    if (isLegalExtensionName(name))
+        """
+            /**
+             * Retrieves or configures the [$name][$type] project convention.
              */
             fun Project.`$name`(configure: $type.() -> Unit = {}) =
-                $getter<$type>("$name").apply { configure() }
+                convention.getPluginByName<$type>("$name").apply { configure() }
 
         """.replaceIndent()
     else null

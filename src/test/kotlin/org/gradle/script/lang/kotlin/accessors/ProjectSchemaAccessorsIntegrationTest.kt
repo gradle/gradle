@@ -14,6 +14,43 @@ import java.io.File
 class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
+    fun `can configure deferred configurable extension`() {
+
+        withBuildScript("""
+
+            import org.gradle.api.publish.maven.MavenPublication
+
+            plugins {
+                `java-library`
+                `maven-publish`
+            }
+
+            dependencies {
+                "api"("com.google.guava:guava:21.0")
+            }
+
+            publishing {
+                publications.create<MavenPublication>("mavenJavaLibrary") {
+                    from(components["java"])
+                }
+            }
+
+            dependencies {
+                "api"("org.apache.commons:commons-lang3:3.5")
+            }
+
+        """)
+
+        withAutomaticAccessors()
+
+        build("generatePom")
+
+        val pom = existing("build/publications/mavenJavaLibrary/pom-default.xml").readText()
+        assertThat(pom, containsString("com.google.guava"))
+        assertThat(pom, containsString("commons-lang3"))
+    }
+
+    @Test
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
         val buildFile = withBuildScript("""
