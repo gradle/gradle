@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.AbstractResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
@@ -62,10 +64,10 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
                     }
                 } else if (root.getType() == FileType.Directory) {
                     CompileClasspathEntrySnapshotter entrySnapshotter = new CompileClasspathEntrySnapshotter();
+                    recordSnapshotter(root, entrySnapshotter);
                     for (FileSnapshot fileSnapshot : fileTreeSnapshot.getElements()) {
                         entrySnapshotter.snapshot(fileSnapshot);
                     }
-                    entrySnapshotter.finish(this);
                 }
             } else {
                 throw new GradleException("Non-root file on compile classpath");

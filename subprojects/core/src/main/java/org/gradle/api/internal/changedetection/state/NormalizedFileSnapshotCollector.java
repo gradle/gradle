@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.NormalizedPath;
-import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
-
-public interface SnapshotNormalizationStrategy {
-    /**
-     * Returns true when the normalized path is an absolute path and so uniquely identifies each file in a collection snapshot.
-     */
-    boolean isPathAbsolute();
-
-    NormalizedPath getNormalizedPath(SnapshottableResource fileSnapshot, StringInterner stringInterner);
+public interface NormalizedFileSnapshotCollector {
+    void collectSnapshot(NormalizedFileSnapshot snapshot);
 }

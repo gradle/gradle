@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.util.List;

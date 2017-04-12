@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.resources;
 
-public interface NormalizedSnapshotCollector {
-    void collectSnapshot(NormalizedFileSnapshot snapshot);
+import com.google.common.hash.HashCode;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
+
+/**
+ * An immutable snapshot of some aspects of a resource's metadata and content.
+ *
+ * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these aspects.
+ */
+public interface NormalizedSnapshot extends Comparable<NormalizedSnapshot> {
+    SnapshottableResource getResource();
+    NormalizedPath getNormalizedPath();
+    HashCode getHash(NormalizedFileSnapshotCollector collector);
 }

@@ -18,12 +18,13 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 /**
  * An immutable snapshot of file meta-data and content. The file may not exist.
  */
-public interface FileSnapshot extends FileSnapshotTree {
+public interface FileSnapshot extends FileSnapshotTree, SnapshottableResource {
 
     /**
      * The absolute path of this file. Can safely be used as a cache key.

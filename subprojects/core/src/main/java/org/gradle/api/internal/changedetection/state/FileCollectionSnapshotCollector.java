@@ -20,7 +20,7 @@ import com.google.common.collect.Maps;
 
 import java.util.Map;
 
-public class FileCollectionSnapshotCollector implements NormalizedSnapshotCollector {
+public class FileCollectionSnapshotCollector implements NormalizedFileSnapshotCollector {
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final SnapshotNormalizationStrategy normalizationStrategy;
     Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();

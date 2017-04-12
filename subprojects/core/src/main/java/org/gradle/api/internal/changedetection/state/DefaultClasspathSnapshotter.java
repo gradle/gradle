@@ -19,18 +19,11 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.AbstractResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-import java.util.Comparator;
-
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private static final Comparator<FileSnapshot> FILE_DETAILS_COMPARATOR = new Comparator<FileSnapshot>() {
-        @Override
-        public int compare(FileSnapshot o1, FileSnapshot o2) {
-            return o1.getPath().compareTo(o2.getPath());
-        }
-    };
-
     private final StringInterner stringInterner;
     private final ClasspathEntryHasher classpathEntryHasher;
 
@@ -71,10 +64,10 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
                     }
                 } else if (root.getType() == FileType.Directory) {
                     ClasspathEntrySnapshotter entrySnapshotter = new ClasspathEntrySnapshotter();
+                    recordSnapshotter(root, entrySnapshotter);
                     for (FileSnapshot fileSnapshot : fileTreeSnapshot.getElements()) {
                         entrySnapshotter.snapshot(fileSnapshot);
                     }
-                    entrySnapshotter.finish(this);
                 }
             } else {
                 throw new GradleException("Tree without root file on Classpath");

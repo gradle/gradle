@@ -20,6 +20,10 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 
 /**
@@ -89,5 +93,16 @@ class RegularFileSnapshot implements FileSnapshot {
     @Override
     public Iterable<? extends FileSnapshot> getElements() {
         return Collections.singleton(this);
+    }
+
+    @Override
+    public InputStream read() throws IOException {
+        //noinspection Since15
+        return Files.newInputStream(Paths.get(getPath()));
+    }
+
+    @Override
+    public String getDisplayName() {
+        return getPath();
     }
 }

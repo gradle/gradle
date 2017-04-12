@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.resources;
+
+import com.google.common.hash.HashCode;
+import org.gradle.api.internal.changedetection.state.FileSnapshotTree;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 
 public interface ResourceSnapshotter {
     void snapshot(FileSnapshotTree resource);
-    void finish(NormalizedSnapshotCollector collector);
+    HashCode finish(NormalizedFileSnapshotCollector collector);
 }

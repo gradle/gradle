@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.resources.DefaultRelativePath;
 import org.gradle.api.internal.changedetection.resources.IgnoredPath;
 import org.gradle.api.internal.changedetection.resources.IndexedRelativePath;
 import org.gradle.api.internal.changedetection.resources.NormalizedPath;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
@@ -36,7 +37,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         }
 
         @Override
-        public NormalizedPath getNormalizedPath(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+        public NormalizedPath getNormalizedPath(SnapshottableResource fileSnapshot, StringInterner stringInterner) {
             return new AbsolutePath(fileSnapshot.getPath());
         }
     },
@@ -51,7 +52,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         }
 
         @Override
-        public NormalizedPath getNormalizedPath(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+        public NormalizedPath getNormalizedPath(SnapshottableResource fileSnapshot, StringInterner stringInterner) {
             // Ignore path of root directories, use base name of root files
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
                 return IgnoredPath.getInstance();
@@ -70,7 +71,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         }
 
         @Override
-        public NormalizedPath getNormalizedPath(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+        public NormalizedPath getNormalizedPath(SnapshottableResource fileSnapshot, StringInterner stringInterner) {
             // Ignore path of root directories
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
                 return IgnoredPath.getInstance();
@@ -89,10 +90,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         }
 
         @Override
-        public NormalizedPath getNormalizedPath(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            if (fileSnapshot.getType() == FileType.Directory) {
-                return null;
-            }
+        public NormalizedPath getNormalizedPath(SnapshottableResource fileSnapshot, StringInterner stringInterner) {
             return IgnoredPath.getInstance();
         }
     };
@@ -112,7 +110,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         }
     }
 
-    public static NormalizedPath getRelativePath(FileSnapshot fileSnapshot, StringInterner stringInterner) {
+    public static NormalizedPath getRelativePath(SnapshottableResource fileSnapshot, StringInterner stringInterner) {
         String[] segments = fileSnapshot.getRelativePath().getSegments();
         StringBuilder builder = new StringBuilder();
         for (int i = 0, len = segments.length; i < len; i++) {
@@ -124,7 +122,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         return getRelativePath(fileSnapshot, builder.toString(), stringInterner);
     }
 
-    public static NormalizedPath getRelativePath(FileSnapshot fileSnapshot, String normalizedPath, StringInterner stringInterner) {
+    public static NormalizedPath getRelativePath(SnapshottableResource fileSnapshot, String normalizedPath, StringInterner stringInterner) {
         String absolutePath = fileSnapshot.getPath();
         if (absolutePath.endsWith(normalizedPath)) {
             return new IndexedRelativePath(absolutePath, absolutePath.length() - normalizedPath.length());
