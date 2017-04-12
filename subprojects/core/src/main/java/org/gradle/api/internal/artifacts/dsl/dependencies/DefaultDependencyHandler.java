@@ -82,7 +82,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
 
     @Override
     public Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure) {
-        return doAdd(configurationContainer.findByName(configurationName), dependencyNotation, configureClosure);
+        return doAdd(configurationContainer.getByName(configurationName), dependencyNotation, configureClosure);
     }
 
     @Override
