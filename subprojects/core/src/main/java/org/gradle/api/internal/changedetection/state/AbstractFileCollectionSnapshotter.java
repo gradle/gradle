@@ -42,14 +42,14 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        List<FileSnapshotTree> fileTreeElements = fileSnapshotTreeFactory.fileCollection(input);
+        List<SnapshotTree> fileTreeElements = fileSnapshotTreeFactory.fileCollection(input);
 
         if (fileTreeElements.isEmpty()) {
             return FileCollectionSnapshot.EMPTY;
         }
 
         ResourceSnapshotter snapshotter = createSnapshotter(snapshotNormalizationStrategy, compareStrategy);
-        for (FileSnapshotTree fileTreeSnapshot : fileTreeElements) {
+        for (SnapshotTree fileTreeSnapshot : fileTreeElements) {
             snapshotter.snapshot(fileTreeSnapshot);
         }
         FileCollectionSnapshotCollector collector = createCollector(snapshotNormalizationStrategy, compareStrategy);

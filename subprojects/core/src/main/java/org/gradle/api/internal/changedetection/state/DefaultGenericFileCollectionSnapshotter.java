@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.AbstractResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
@@ -53,10 +54,10 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
         }
 
         @Override
-        public void snapshot(FileSnapshotTree resource) {
-            for (FileSnapshot element : resource.getElements()) {
+        public void snapshot(SnapshotTree resource) {
+            for (SnapshottableResource element : resource.getElements()) {
                 if (!noneNormalizationStrategy || element.getType() != FileType.Directory || resource.getRoot() != element) {
-                    recordSnapshot(element);
+                    recordSnapshot(element, element.getContent().getContentMd5());
                 }
             }
         }

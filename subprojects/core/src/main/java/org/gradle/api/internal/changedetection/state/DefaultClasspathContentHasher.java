@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.Funnels;
 import com.google.common.hash.Hasher;
 import com.google.common.io.ByteStreams;
@@ -32,7 +31,6 @@ public class DefaultClasspathContentHasher implements ClasspathContentHasher {
         // TODO: Sort entries in META-INF/ignore some entries
         // TODO: Sort entries in .properties/ignore some entries
         try {
-            hasher.putString(name, Charsets.UTF_8);
             ByteStreams.copy(inputStream, Funnels.asOutputStream(hasher));
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to hash file '%s' found on classpath", name), e);

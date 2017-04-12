@@ -24,6 +24,7 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.util.DeprecationLogger;
@@ -48,7 +49,7 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
     }
 
     @Override
-    public HashCode hash(FileSnapshot fileSnapshot) {
+    public HashCode hash(SnapshottableResource fileSnapshot) {
         if (fileSnapshot.getType() == FileType.Directory || fileSnapshot.getType() == FileType.Missing) {
             return null;
         }
@@ -62,7 +63,7 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         }
     }
 
-    private HashCode hashJar(FileSnapshot fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+    private HashCode hashJar(SnapshottableResource fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
         File jarFilePath = new File(fileSnapshot.getPath());
         ZipInputStream zipInput = null;
         try {
@@ -103,7 +104,7 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         }
     }
 
-    private HashCode hashMalformedZip(FileSnapshot fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+    private HashCode hashMalformedZip(SnapshottableResource fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
         DeprecationLogger.nagUserWith("Malformed jar [" + fileSnapshot.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
         return hashFile(fileSnapshot, hasher, classpathContentHasher);
     }
@@ -114,10 +115,10 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         return hasher.hash();
     }
 
-    private HashCode hashFile(FileSnapshot fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+    private HashCode hashFile(SnapshottableResource fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
         InputStream inputStream = null;
         try {
-            inputStream = new FileInputStream(fileSnapshot.getPath());
+            inputStream = fileSnapshot.read();
             classpathContentHasher.appendContent(fileSnapshot.getName(), inputStream, hasher);
             return hasher.hash();
         } catch (IOException e) {

@@ -21,6 +21,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.AbstractResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.zip.ZipSnapshotTree;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
@@ -54,20 +57,22 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         }
 
         @Override
-        public void snapshot(FileSnapshotTree fileTreeSnapshot) {
-            FileSnapshot root = fileTreeSnapshot.getRoot();
+        public void snapshot(SnapshotTree fileTreeSnapshot) {
+            SnapshottableResource root = fileTreeSnapshot.getRoot();
             if (root != null) {
-                if (root.getType() == FileType.RegularFile) {
-                    HashCode signature = classpathEntryHasher.hash(root);
-                    if (signature != null) {
-                        recordSnapshot(root.withContentHash(signature));
-                    }
-                } else if (root.getType() == FileType.Directory) {
-                    ClasspathEntrySnapshotter entrySnapshotter = new ClasspathEntrySnapshotter();
+                if (root.getType() == FileType.Missing) {
+                    return;
+                }
+                SnapshotTree contents = (root.getType() == FileType.RegularFile) ? new ZipSnapshotTree(root) : fileTreeSnapshot;
+                ClasspathEntrySnapshotter entrySnapshotter = null;
+                try {
+                    entrySnapshotter = new ClasspathEntrySnapshotter();
                     recordSnapshotter(root, entrySnapshotter);
-                    for (FileSnapshot fileSnapshot : fileTreeSnapshot.getElements()) {
-                        entrySnapshotter.snapshot(fileSnapshot);
+                    for (SnapshottableResource resource : contents.getElements()) {
+                        entrySnapshotter.snapshot(resource);
                     }
+                } finally {
+                    IoActions.closeQuietly(contents);
                 }
             } else {
                 throw new GradleException("Tree without root file on Classpath");
@@ -81,12 +86,12 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         }
 
         @Override
-        public void snapshot(FileSnapshotTree details) {
-            FileSnapshot root = details.getRoot();
+        public void snapshot(SnapshotTree details) {
+            SnapshottableResource root = details.getRoot();
             if (root != null && root.getType() == FileType.RegularFile) {
-                HashCode signatureForClass = classpathEntryHasher.hash(root);
+                HashCode signatureForClass = root.getContent().getContentMd5();
                 if (signatureForClass != null) {
-                    recordSnapshot(root.withContentHash(signatureForClass));
+                    recordSnapshot(root, signatureForClass);
                 }
             }
         }

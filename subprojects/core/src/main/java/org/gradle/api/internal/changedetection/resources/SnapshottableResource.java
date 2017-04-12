@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.resources;
 
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.changedetection.state.SnapshotTree;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.resource.Resource;
 import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
@@ -24,7 +25,7 @@ import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 import java.io.IOException;
 import java.io.InputStream;
 
-public interface SnapshottableResource extends Resource {
+public interface SnapshottableResource extends Resource, SnapshotTree {
     /**
      * The absolute path of this resource. Can safely be used as a cache key.
      */

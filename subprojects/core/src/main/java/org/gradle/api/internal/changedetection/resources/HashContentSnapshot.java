@@ -17,10 +17,25 @@
 package org.gradle.api.internal.changedetection.resources;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
-import org.gradle.api.internal.changedetection.state.SnapshotTree;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 
-public interface ResourceSnapshotter {
-    void snapshot(SnapshotTree resource);
-    HashCode finish(NormalizedFileSnapshotCollector collector);
+public class HashContentSnapshot implements ResourceContentMetadataSnapshot {
+    private final FileType type;
+    private final HashCode contentMd5;
+
+    public HashContentSnapshot(FileType type, HashCode contentMd5) {
+        this.type = type;
+        this.contentMd5 = contentMd5;
+    }
+
+    @Override
+    public FileType getType() {
+        return type;
+    }
+
+    @Override
+    public HashCode getContentMd5() {
+        return contentMd5;
+    }
 }

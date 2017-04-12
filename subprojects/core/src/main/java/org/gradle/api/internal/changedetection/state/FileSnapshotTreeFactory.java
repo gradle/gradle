@@ -37,18 +37,18 @@ public class FileSnapshotTreeFactory {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
-    public DefaultFileSnapshotTree fileTree(FileTreeInternal fileTree) {
+    public DefaultSnapshotTree fileTree(FileTreeInternal fileTree) {
         // TODO: If we could get the backing file we could add it as root element
-        return new DefaultFileSnapshotTree(null, fileSystemSnapshotter.snapshotTree(fileTree));
+        return new DefaultSnapshotTree(null, fileSystemSnapshotter.snapshotTree(fileTree));
     }
 
-    public DefaultFileSnapshotTree directoryTree(DirectoryFileTree directoryFileTree) {
+    public DefaultSnapshotTree directoryTree(DirectoryFileTree directoryFileTree) {
         FileTreeSnapshot root = fileSystemSnapshotter.snapshotDirectoryTree(directoryFileTree.getDir());
-        return new DefaultFileSnapshotTree(fileSystemSnapshotter.snapshotSelf(new File(root.getPath())), root.getDescendants());
+        return new DefaultSnapshotTree(fileSystemSnapshotter.snapshotSelf(new File(root.getPath())), root.getDescendants());
     }
 
-    public List<FileSnapshotTree> fileCollection(FileCollection input) {
-        LinkedList<FileSnapshotTree> fileTreeElements = Lists.newLinkedList();
+    public List<SnapshotTree> fileCollection(FileCollection input) {
+        LinkedList<SnapshotTree> fileTreeElements = Lists.newLinkedList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
         fileCollection.visitRootElements(visitor);
@@ -56,9 +56,9 @@ public class FileSnapshotTreeFactory {
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final List<FileSnapshotTree> fileTreeElements;
+        private final List<SnapshotTree> fileTreeElements;
 
-        FileCollectionVisitorImpl(List<FileSnapshotTree> fileTreeElements) {
+        FileCollectionVisitorImpl(List<SnapshotTree> fileTreeElements) {
             this.fileTreeElements = fileTreeElements;
         }
 

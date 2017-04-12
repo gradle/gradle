@@ -16,25 +16,32 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+
+import java.io.IOException;
 import java.util.List;
 
-public class DefaultFileSnapshotTree implements FileSnapshotTree {
+public class DefaultSnapshotTree implements SnapshotTree {
 
-    private final FileSnapshot root;
-    private final List<FileSnapshot> elements;
+    private final SnapshottableResource root;
+    private final List<? extends SnapshottableResource> elements;
 
-    public DefaultFileSnapshotTree(FileSnapshot root, List<FileSnapshot> elements) {
+    public DefaultSnapshotTree(SnapshottableResource root, List<? extends SnapshottableResource> elements) {
         this.root = root;
         this.elements = elements;
     }
 
     @Override
-    public FileSnapshot getRoot() {
+    public SnapshottableResource getRoot() {
         return root;
     }
 
     @Override
-    public Iterable<? extends FileSnapshot> getElements() {
+    public Iterable<? extends SnapshottableResource> getElements() {
         return elements;
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 }

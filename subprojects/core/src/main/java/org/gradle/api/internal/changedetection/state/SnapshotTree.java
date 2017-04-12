@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-public interface FileSnapshotTree {
-    FileSnapshot getRoot();
-    Iterable<? extends FileSnapshot> getElements();
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+
+import java.io.Closeable;
+
+public interface SnapshotTree extends Closeable {
+    SnapshottableResource getRoot();
+    Iterable<? extends SnapshottableResource> getElements();
 }

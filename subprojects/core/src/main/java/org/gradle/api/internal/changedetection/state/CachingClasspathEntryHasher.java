@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.cache.PersistentIndexedCache;
 
 public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
@@ -32,7 +33,11 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
     }
 
     @Override
-    public HashCode hash(FileSnapshot fileSnapshot) {
+    public HashCode hash(SnapshottableResource resource) {
+        if (!(resource instanceof FileSnapshot)) {
+            return delegate.hash(resource);
+        }
+        FileSnapshot fileSnapshot = (FileSnapshot) resource;
         HashCode contentMd5 = fileSnapshot.getContent().getContentMd5();
 
         HashCode signature = persistentCache.get(contentMd5);

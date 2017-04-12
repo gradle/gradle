@@ -19,16 +19,17 @@ package org.gradle.api.internal.changedetection.resources;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
 
-public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter {
+public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter, Closeable {
     private final SnapshotNormalizationStrategy normalizationStrategy;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final StringInterner stringInterner;
@@ -41,9 +42,9 @@ public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter
         this.normalizedSnapshots = Lists.newLinkedList();
     }
 
-    protected void recordSnapshot(FileSnapshot snapshot) {
+    protected void recordSnapshot(SnapshottableResource snapshot, HashCode hash) {
         NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(snapshot, stringInterner);
-        normalizedSnapshots.add(new DefaultNormalizedSnapshot(snapshot, normalizedPath, snapshot.getContent().getContentMd5()));
+        normalizedSnapshots.add(new DefaultNormalizedSnapshot(snapshot, normalizedPath, hash));
     }
 
     protected void recordSnapshotter(SnapshottableResource resource, ResourceSnapshotter snapshotter) {
@@ -59,6 +60,12 @@ public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter
             hasher.putString(normalizedFileSnapshot.getNormalizedPath().getPath());
             hasher.putBytes(normalizedFileSnapshot.getHash(collector).asBytes());
         }
+        normalizedSnapshots.clear();
         return hasher.hash();
+    }
+
+    @Override
+    public void close() throws IOException {
+        normalizedSnapshots.clear();
     }
 }

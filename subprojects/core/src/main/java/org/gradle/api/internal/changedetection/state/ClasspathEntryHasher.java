@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 
 /**
  * Calculates a hash for a classpath entry (a jar or class file)
@@ -31,5 +32,5 @@ public interface ClasspathEntryHasher {
      * e.g., an empty jar file or a class file with no public API (for compile classpaths).
      */
     @Nullable
-    HashCode hash(FileSnapshot fileSnapshot);
+    HashCode hash(SnapshottableResource fileSnapshot);
 }
