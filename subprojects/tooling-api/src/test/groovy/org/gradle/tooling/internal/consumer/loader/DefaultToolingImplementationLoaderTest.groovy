@@ -31,7 +31,7 @@ import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerCon
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+
 import org.gradle.tooling.internal.protocol.BuildParameters
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import org.gradle.tooling.internal.protocol.BuildResult
@@ -227,10 +227,6 @@ class TestR12Connection extends TestR10M8Connection implements ConfigurableConne
 }
 
 class TestR10M8Connection extends TestR10M3Connection implements InternalConnection {
-    def <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
-
     void configureLogging(boolean verboseLogging) {
         configured = verboseLogging
     }
@@ -253,13 +249,5 @@ class TestR10M3Connection implements ConnectionVersion4 {
 
     ConnectionMetaDataVersion1 getMetaData() {
         return new TestMetaData('1.0-milestone-3')
-    }
-
-    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
-
-    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
     }
 }

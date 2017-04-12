@@ -64,36 +64,4 @@ public interface ConnectionVersion4 {
      * @since 1.0-milestone-3
      */
     ConnectionMetaDataVersion1 getMetaData();
-
-    /**
-     * <p>Fetches a snapshot of the model for the project.
-     *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3 to 1.0-milestone-7. It is also used by later consumers when the provider
-     * does not implement newer interfaces. It is not used by consumer versions 2.0 and later.
-     * </p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Provider versions 2.0 and later fail with a 'no longer supported' exception.</p>
-     *
-     * @throws UnsupportedOperationException When the given model type is not supported.
-     * @throws IllegalStateException When this connection has been stopped.
-     * @since 1.0-milestone-3
-     * @deprecated 1.0-milestone-8. Use {@link InternalCancellableConnection#getModel(ModelIdentifier, InternalCancellationToken, BuildParameters)} instead.
-     */
-    @Deprecated
-    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
-
-    /**
-     * <p>Executes a build.
-     *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3 to 1.1. It is also used by later consumers when the provider
-     * does not implement newer interfaces. It is not used by consumer versions 2.0 and later.
-     * </p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Provider versions 2.0 and later fail with a 'no longer supported' exception.</p>
-     *
-     * @param buildParameters The parameters for the build.
-     * @throws IllegalStateException When this connection has been stopped.
-     * @since 1.0-milestone-3
-     * @deprecated 1.2-rc-1. Use {@link InternalCancellableConnection#getModel(ModelIdentifier, InternalCancellationToken, BuildParameters)} instead.
-     */
-    @Deprecated
-    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws IllegalStateException;
 }

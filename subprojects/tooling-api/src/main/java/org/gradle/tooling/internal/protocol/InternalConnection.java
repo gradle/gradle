@@ -29,21 +29,4 @@ package org.gradle.tooling.internal.protocol;
  */
 @Deprecated
 public interface InternalConnection extends ConnectionVersion4, InternalProtocolInterface {
-    /**
-     * Fetches a snapshot of the model for the project. This method is generic so that we're not locked
-     * to building particular model type.
-     * <p>
-     * The other method on the interface, e.g. {@link #getModel(Class, BuildOperationParametersVersion1)} should be considered deprecated
-     *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-8 to 1.1. It is also used by later consumers when the
-     * provider does not implement newer interfaces. It is not used by provider versions 3.0 and later.</p>
-     * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-8. Provider versions 2.0 and later fail with a 'no longer supported' exception.</p>
-     *
-     * @throws UnsupportedOperationException When the given model type is not supported.
-     * @throws IllegalStateException When this connection has been stopped.
-     * @since 1.0-milestone-8
-     * @deprecated 1.2-rc-1 Use {@link InternalCancellableConnection#getModel(ModelIdentifier, InternalCancellationToken, BuildParameters)} instead.
-     */
-    @Deprecated
-    <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }
