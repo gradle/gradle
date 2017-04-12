@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.Lists
 import com.google.common.hash.HashCode
+import org.gradle.api.internal.changedetection.resources.DefaultRelativePath
 import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
 import spock.lang.Specification
@@ -253,7 +254,7 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     def snapshot(String normalizedPath, String hashCode = "1234abcd") {
-        return new DefaultNormalizedFileSnapshot(normalizedPath, normalizedPath, new FileHashSnapshot(HashCode.fromString(hashCode)))
+        return new DefaultNormalizedFileSnapshot(normalizedPath, new DefaultRelativePath(normalizedPath), new FileHashSnapshot(HashCode.fromString(hashCode)))
     }
 
     def change(String path, ChangeType type) {

@@ -40,7 +40,7 @@ public class OutputFilesSnapshotter {
             // and a directory inside the root directory.
             if (fileSnapshot.getSnapshot().getType() == FileType.RegularFile && previousSnapshot == null) {
                 // created since last execution, possibly by another task
-                return new TaskExecutionHistory.OverlappingOutputs(propertyName, fileSnapshot.getNormalizedPath());
+                return new TaskExecutionHistory.OverlappingOutputs(propertyName, fileSnapshot.getPath());
             }
         }
         return null;

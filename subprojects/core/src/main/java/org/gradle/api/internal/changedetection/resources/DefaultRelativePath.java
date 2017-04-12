@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.resources;
 
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.NormalizedPath;
+public class DefaultRelativePath extends AbstractPath {
+    private final String relativePath;
 
-public interface SnapshotNormalizationStrategy {
-    /**
-     * Returns true when the normalized path is an absolute path and so uniquely identifies each file in a collection snapshot.
-     */
-    boolean isPathAbsolute();
+    public DefaultRelativePath(String relativePath) {
+        this.relativePath = relativePath;
+    }
 
-    NormalizedPath getNormalizedPath(FileSnapshot fileSnapshot, StringInterner stringInterner);
+    @Override
+    public String getPath() {
+        return relativePath;
+    }
 }

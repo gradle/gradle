@@ -52,8 +52,8 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                             Map.Entry<String, NormalizedFileSnapshot> other = previousEntries.next();
                             NormalizedFileSnapshot normalizedSnapshot = current.getValue();
                             NormalizedFileSnapshot otherNormalizedSnapshot = other.getValue();
-                            String normalizedPath = normalizedSnapshot.getNormalizedPath();
-                            String otherNormalizedPath = otherNormalizedSnapshot.getNormalizedPath();
+                            String normalizedPath = normalizedSnapshot.getNormalizedPath().getPath();
+                            String otherNormalizedPath = otherNormalizedSnapshot.getNormalizedPath().getPath();
                             if (normalizedPath.equals(otherNormalizedPath)) {
                                 if (normalizedSnapshot.getSnapshot().isContentUpToDate(otherNormalizedSnapshot.getSnapshot())) {
                                     continue;

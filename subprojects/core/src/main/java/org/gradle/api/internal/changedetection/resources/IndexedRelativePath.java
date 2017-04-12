@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.resources;
 
-public class NonNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
+public class IndexedRelativePath extends AbstractPath {
     private final String absolutePath;
+    private final int index;
 
-    public NonNormalizedFileSnapshot(String absolutePath, FileContentSnapshot snapshot) {
-        super(absolutePath, snapshot);
+    public IndexedRelativePath(String absolutePath, int index) {
         this.absolutePath = absolutePath;
+        this.index = index;
     }
 
     @Override
-    public String getNormalizedPath() {
+    public String getPath() {
+        return absolutePath.substring(index);
+    }
+
+    public String getAbsolutePath() {
         return absolutePath;
+    }
+
+    public int getIndex() {
+        return index;
     }
 }

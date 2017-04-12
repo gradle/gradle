@@ -16,9 +16,34 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.hash.HashCode
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.resources.IgnoredPath
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.*
 
-class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractSnapshotNormalizationStrategyTest {
+class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractProjectBuilderSpec {
+    StringInterner interner
+    FileCollectionInternal files
+
+    def setup() {
+        interner = Mock(StringInterner) {
+            intern(_) >> { String string -> string }
+        }
+
+        createFile("dir/libs/library-a.jar") << "JAR file #1"
+        createFile("dir/libs/library-b.jar") << "JAR file #2"
+        createFile("dir/resources/input.txt") << "main input"
+        createFile("dir/resources/a/input-1.txt") << "input #1"
+        createFile("dir/resources/b/input-2.txt") << "input #2"
+
+        files = project.files("dir/libs/library-a.jar", "dir/libs/library-b.jar", "dir/resources")
+    }
 
     def "sensitivity NONE"() {
         def snapshots = normalizeWith NONE
@@ -66,5 +91,52 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractSnapshot
         snapshots[file("dir/resources/a/input-1.txt")] == file("dir/resources/a/input-1.txt").absolutePath
         snapshots[file("dir/resources/b")]             == file("dir/resources/b").absolutePath
         snapshots[file("dir/resources/b/input-2.txt")] == file("dir/resources/b/input-2.txt").absolutePath
+    }
+
+    private def createFile(String path) {
+        def file = file(path)
+        file.parentFile.mkdirs()
+        return file
+    }
+
+    protected def file(String path) {
+        project.file(path)
+    }
+
+    protected def normalizeWith(SnapshotNormalizationStrategy type) {
+        List<FileSnapshot> fileTreeElements = []
+        files.each { f ->
+            if (f.file) {
+                fileTreeElements.add(new RegularFileSnapshot(f.path, new RelativePath(true, f.name), true, new FileHashSnapshot(HashCode.fromInt(1))))
+            } else {
+                fileTreeElements.add(new DirectoryFileSnapshot(f.path, new RelativePath(false, f.name), true))
+                project.fileTree(f).visit(new FileVisitor() {
+                    @Override
+                    void visitDir(FileVisitDetails dirDetails) {
+                        fileTreeElements.add(new DirectoryFileSnapshot(dirDetails.file.path, dirDetails.relativePath, false))
+                    }
+
+                    @Override
+                    void visitFile(FileVisitDetails fileDetails) {
+                        fileTreeElements.add(new RegularFileSnapshot(fileDetails.file.path, fileDetails.relativePath, false, new FileHashSnapshot(HashCode.fromInt(1))))
+                    }
+                })
+            }
+        }
+
+        Map<File, String> snapshots = [:]
+        fileTreeElements.each { details ->
+            def normalizedSnapshot = type.getNormalizedPath(details, interner)
+            String normalizedPath
+            if (normalizedSnapshot == null) {
+                normalizedPath = "NO SNAPSHOT"
+            } else if (normalizedSnapshot instanceof IgnoredPath) {
+                normalizedPath = "IGNORED"
+            } else {
+                normalizedPath = normalizedSnapshot.getPath()
+            }
+            snapshots.put(new File(details.path), normalizedPath)
+        }
+        return snapshots
     }
 }

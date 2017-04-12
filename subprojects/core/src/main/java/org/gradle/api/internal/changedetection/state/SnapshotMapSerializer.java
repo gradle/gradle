@@ -18,6 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.AbsolutePath;
+import org.gradle.api.internal.changedetection.resources.DefaultRelativePath;
+import org.gradle.api.internal.changedetection.resources.IgnoredPath;
+import org.gradle.api.internal.changedetection.resources.IndexedRelativePath;
+import org.gradle.api.internal.changedetection.resources.NormalizedPath;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -74,20 +79,26 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
         }
 
         int normalizedSnapshotKind = decoder.readByte();
+        NormalizedPath normalizedPath;
         switch (normalizedSnapshotKind) {
             case NO_NORMALIZATION:
-                return new NonNormalizedFileSnapshot(absolutePath, snapshot);
+                normalizedPath = new AbsolutePath(absolutePath);
+                break;
             case DEFAULT_NORMALIZATION:
-                String normalizedPath = stringInterner.intern(decoder.readString());
-                return new DefaultNormalizedFileSnapshot(absolutePath, normalizedPath, snapshot);
+                String normalizedPathString = stringInterner.intern(decoder.readString());
+                normalizedPath = new DefaultRelativePath(normalizedPathString);
+                break;
             case INDEXED_NORMALIZATION:
                 int index = decoder.readSmallInt();
-                return new IndexedNormalizedFileSnapshot(absolutePath, index, snapshot);
+                normalizedPath = new IndexedRelativePath(absolutePath, index);
+                break;
             case IGNORED_PATH_NORMALIZATION:
-                return new IgnoredPathFileSnapshot(absolutePath, snapshot);
+                normalizedPath = IgnoredPath.getInstance();
+                break;
             default:
                 throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
         }
+        return new DefaultNormalizedFileSnapshot(absolutePath, normalizedPath, snapshot);
     }
 
     @Override
@@ -128,15 +139,16 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
             throw new AssertionError();
         }
 
-        if (value instanceof NonNormalizedFileSnapshot) {
+        NormalizedPath normalizedPath = value.getNormalizedPath();
+        if (normalizedPath instanceof AbsolutePath) {
             encoder.writeByte(NO_NORMALIZATION);
-        } else if (value instanceof DefaultNormalizedFileSnapshot) {
+        } else if (normalizedPath instanceof DefaultRelativePath) {
             encoder.writeByte(DEFAULT_NORMALIZATION);
-            encoder.writeString(value.getNormalizedPath());
-        } else if (value instanceof IndexedNormalizedFileSnapshot) {
+            encoder.writeString(normalizedPath.getPath());
+        } else if (normalizedPath instanceof IndexedRelativePath) {
             encoder.writeByte(INDEXED_NORMALIZATION);
-            encoder.writeSmallInt(((IndexedNormalizedFileSnapshot) value).getIndex());
-        } else if (value instanceof IgnoredPathFileSnapshot) {
+            encoder.writeSmallInt(((IndexedRelativePath) normalizedPath).getIndex());
+        } else if (normalizedPath instanceof IgnoredPath) {
             encoder.writeByte(IGNORED_PATH_NORMALIZATION);
         } else {
             throw new AssertionError();

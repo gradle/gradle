@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.NormalizedPath;
 
 import java.util.List;
 
@@ -35,9 +36,9 @@ public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter
     }
 
     protected void recordSnapshot(FileSnapshot snapshot) {
-        NormalizedFileSnapshot normalizedSnapshot = normalizationStrategy.getNormalizedSnapshot(snapshot, stringInterner);
-        if (normalizedSnapshot != null) {
-            normalizedFileSnapshots.add(normalizedSnapshot);
+        NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(snapshot, stringInterner);
+        if (normalizedPath != null) {
+            normalizedFileSnapshots.add(new DefaultNormalizedFileSnapshot(snapshot.getPath(), normalizedPath, snapshot.getContent()));
         }
     }
 
