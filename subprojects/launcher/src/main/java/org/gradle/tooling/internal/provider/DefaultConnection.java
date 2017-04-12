@@ -28,7 +28,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParameters;
@@ -63,7 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
+public class DefaultConnection implements ConnectionVersion4, InternalConnection,
     ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("2.0");

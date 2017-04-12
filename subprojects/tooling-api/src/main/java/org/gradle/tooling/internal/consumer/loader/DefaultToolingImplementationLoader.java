@@ -30,7 +30,6 @@ import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.AbstractConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection;
@@ -42,7 +41,6 @@ import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConn
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
@@ -94,8 +92,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 adaptedConnection = new ActionAwareConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof ModelBuilder) {
                 adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, modelMapping, adapter);
-            } else if (connection instanceof BuildActionRunner) {
-                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
                 return new UnsupportedOlderVersionConnection(connection, adapter);
             }

@@ -24,14 +24,12 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection
-import org.gradle.tooling.internal.protocol.BuildActionRunner
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import org.gradle.tooling.internal.protocol.BuildParameters
@@ -104,7 +102,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         TestR21Connection.class   | CancellableConsumerConnection.class              | false
         TestR18Connection.class   | ActionAwareConsumerConnection.class              | true
         TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class       | true
-        TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class  | true
     }
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
@@ -210,7 +207,7 @@ class TestR16Connection extends TestR12Connection implements ModelBuilder {
     }
 }
 
-class TestR12Connection extends TestR10M8Connection implements BuildActionRunner, ConfigurableConnection {
+class TestR12Connection extends TestR10M8Connection implements ConfigurableConnection {
     void configure(org.gradle.tooling.internal.protocol.ConnectionParameters parameters) {
         configured = parameters.verboseLogging
     }
