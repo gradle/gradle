@@ -36,17 +36,11 @@ public class DefaultWorkerLoggingProtocol implements WorkerLoggingProtocol {
 
     @Override
     public void sendOutputEvent(LogEvent event) {
-        try {
-            event.setOperationId(operationId.call());
-        } catch (Exception e) {}
         outputEventListener.onOutput(event);
     }
 
     @Override
     public void sendOutputEvent(StyledTextOutputEvent event) {
-        try {
-            event.setOperationId(operationId.call());
-        } catch (Exception e) {}
         outputEventListener.onOutput(event);
     }
 
