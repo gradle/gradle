@@ -34,11 +34,13 @@ import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildScopeServices
+import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -68,7 +70,8 @@ class DefaultGradleLauncherSpec extends Specification {
     private ModelConfigurationListener modelListenerMock = Mock(ModelConfigurationListener.class);
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class);
     private TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
-    private BuildOperationWorkerRegistry buildOperationWorkerRegistry = new DefaultBuildOperationWorkerRegistry(1)
+    private ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
+    private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, true, 1)
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class);
     private Stoppable otherService = Mock(Stoppable)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -109,11 +112,11 @@ class DefaultGradleLauncherSpec extends Specification {
         0 * gradleMock._
 
         buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
-        buildServices.get(BuildOperationWorkerRegistry) >> buildOperationWorkerRegistry
+        buildServices.get(WorkerLeaseService) >> workerLeaseService
     }
 
     def cleanup() {
-        buildOperationWorkerRegistry.stop()
+        workerLeaseService.stop()
     }
 
     DefaultGradleLauncher launcher() {

@@ -33,12 +33,13 @@ import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
-import org.gradle.internal.operations.DefaultBuildOperationProcessor
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
@@ -77,8 +78,14 @@ class BuildSessionScopeServicesTest extends Specification {
 
     def "provides a BuildOperationWorkerRegistry"() {
         expect:
-        registry.get(BuildOperationWorkerRegistry) instanceof DefaultBuildOperationWorkerRegistry
-        registry.get(BuildOperationWorkerRegistry) == registry.get(BuildOperationWorkerRegistry)
+        registry.get(WorkerLeaseRegistry) instanceof DefaultWorkerLeaseService
+        registry.get(WorkerLeaseRegistry) == registry.get(WorkerLeaseRegistry)
+    }
+
+    def "provides a ProjectLockService"() {
+        expect:
+        registry.get(ProjectLeaseRegistry) instanceof DefaultWorkerLeaseService
+        registry.get(ProjectLeaseRegistry) == registry.get(ProjectLeaseRegistry)
     }
 
     def "provides a BuildOperationProcessor"() {

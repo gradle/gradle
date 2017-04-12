@@ -18,8 +18,8 @@ package org.gradle.workers.internal;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
+import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
@@ -34,28 +34,28 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     private final WorkerDaemonClientsManager clientsManager;
     private final MemoryManager memoryManager;
     private final WorkerDaemonExpiration workerDaemonExpiration;
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.clientsManager = clientsManager;
         this.memoryManager = memoryManager;
         this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, getTotalPhysicalMemory());
         memoryManager.addMemoryHolder(workerDaemonExpiration);
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final File workingDir, final DaemonForkOptions forkOptions) {
         return new Worker<T>() {
-            public DefaultWorkResult execute(T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
+            public DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, BuildOperationExecutor.Operation parentBuildOperation) {
                 WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
                     client = clientsManager.reserveNewClient(workerImplementationClass, workingDir, forkOptions);
                 }
                 try {
-                    return client.execute(spec, parentWorkerOperation, parentBuildOperation);
+                    return client.execute(spec, parentWorkerWorkerLease, parentBuildOperation);
                 } finally {
                     clientsManager.release(client);
                 }
@@ -63,7 +63,7 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
 
             @Override
             public DefaultWorkResult execute(T spec) {
-                return execute(spec, buildOperationWorkerRegistry.getCurrent(), buildOperationExecutor.getCurrentOperation());
+                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
         };
     }

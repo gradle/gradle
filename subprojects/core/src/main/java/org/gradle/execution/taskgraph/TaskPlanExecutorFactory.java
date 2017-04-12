@@ -18,26 +18,24 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 
 public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
     private final int parallelThreads;
     private final ExecutorFactory executorFactory;
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final WorkerLeaseService workerLeaseService;
 
-    public TaskPlanExecutorFactory(int parallelThreads, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+    public TaskPlanExecutorFactory(int parallelThreads, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.parallelThreads = parallelThreads;
         this.executorFactory = executorFactory;
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        this.workerLeaseService = workerLeaseService;
     }
 
     public TaskPlanExecutor create() {
         if (parallelThreads < 1) {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
-        if (parallelThreads > 1) {
-            return new ParallelTaskPlanExecutor(parallelThreads, executorFactory, buildOperationWorkerRegistry);
-        }
-        return new DefaultTaskPlanExecutor(buildOperationWorkerRegistry);
+
+        return new DefaultTaskPlanExecutor(parallelThreads, executorFactory, workerLeaseService);
     }
 }

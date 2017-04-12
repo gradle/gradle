@@ -30,7 +30,6 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
@@ -42,6 +41,7 @@ import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.ProjectScopeServices
 import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TestUtil
@@ -100,11 +100,12 @@ class ToolingApiDistributionResolver {
         def topLevelRegistry = BuildScopeServices.forSession(sessionServices)
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
-        def workerLease = sessionServices.get(BuildOperationWorkerRegistry).operationStart()
+        def workerLeaseService = sessionServices.get(WorkerLeaseService)
+        def workerLeaseCompletion = workerLeaseService.getWorkerLease().start()
         stopLater.add(new Stoppable() {
             @Override
             void stop() {
-                workerLease.operationFinish()
+                workerLeaseCompletion.leaseFinish()
             }
         })
 

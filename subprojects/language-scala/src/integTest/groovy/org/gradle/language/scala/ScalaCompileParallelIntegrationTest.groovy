@@ -17,7 +17,6 @@
 package org.gradle.language.scala
 
 import org.gradle.api.internal.tasks.scala.ZincScalaCompilerUtil
-import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -27,6 +26,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -85,6 +85,8 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         leakedTempFiles.isEmpty()
     }
 
+    // This can be re-enabled once scala compile task uses the worker api
+    @Ignore
     def "multiple tasks in a single build are multi-process safe"() {
         given:
         buildFile << scalaBuild
@@ -100,7 +102,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         buildFile << blockUntilAllCompilersAreReady('$path')
         buildFile << userProvidedZincDirSystemProperty
         buildFile << lockTimeoutLoggerListenerSource
-        expectTasksWithIntraProjectParallelExecuter()
+        expectTasksWithParallelExecuter()
 
         when:
         succeeds("build")
@@ -115,12 +117,17 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
     def "multiple independent builds are multi-process safe" () {
         given:
+        def projects = (1..MAX_PARALLEL_COMPILERS)
+        projects.each {
+            def projectName = "project$it"
+            settingsFile << """
+                include '${projectName}Build'
+            """
+        }
         buildFile << """
             task buildAll
-            $parallelizableGradleBuildClass
         """
 
-        def projects = (1..MAX_PARALLEL_COMPILERS)
         projects.each {
             def projectName = "project$it"
             populateProject(projectName)
@@ -129,11 +136,16 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             projectBuildFile(projectName) << userProvidedZincDirSystemProperty
             projectBuildFile(projectName) << lockTimeoutLoggerListenerSource
 
-            buildFile << gradleBuildTask(projectName)
+            buildFile << """
+                project(':${projectName}Build') {
+                    ${gradleBuildTask(projectName)}
+                }
+                buildAll.dependsOn ":${projectName}Build:${projectName}Build"
+            """
 
             compileTasks << ":${projectName}:compileMainJarMainScala".toString()
         }
-        expectTasksWithIntraProjectParallelExecuter()
+        expectTasksWithParallelExecuter()
 
         when:
         succeeds("buildAll")
@@ -183,10 +195,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         // as this is the root of parallelism issues with the Zinc compiler
         return executer.withArgument("--parallel")
                        .withArgument("--max-workers=${MAX_PARALLEL_COMPILERS}")
-    }
-
-    GradleExecuter expectTasksWithIntraProjectParallelExecuter() {
-        return expectTasksWithParallelExecuter().withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
     }
 
     def getScalaBuild() {
@@ -300,15 +308,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         return projectDir(projectName).file("build.gradle")
     }
 
-    String getParallelizableGradleBuildClass() {
-        return """
-            @ParallelizableTask
-            class ParallelGradleBuild extends GradleBuild {
-
-            }
-        """
-    }
-
     String getIsolatedZincCacheHome() {
         return """
             tasks.withType(PlatformScalaCompile) {
@@ -341,13 +340,12 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     String gradleBuildTask(String projectName) {
         File projectDir = projectDir(projectName)
         return """
-                task("${projectName}Build", type: ParallelGradleBuild) {
+                task("${projectName}Build", type: GradleBuild) {
                     startParameter.searchUpwards = false
                     startParameter.projectDir = file("${TextUtil.normaliseFileSeparators(projectDir.absolutePath)}")
                     startParameter.currentDir = file("${TextUtil.normaliseFileSeparators(projectDir.absolutePath)}")
                     startParameter.taskNames = [ "build" ]
                 }
-                buildAll.dependsOn "${projectName}Build"
             """
     }
 

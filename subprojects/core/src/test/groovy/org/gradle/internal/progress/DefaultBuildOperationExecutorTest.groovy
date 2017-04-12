@@ -24,9 +24,10 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
-import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
@@ -615,7 +616,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def "can be used through BuildOperationProcessor on unmanaged threads"() {
         given:
         def maxWorkers = 2
-        def workerLeases = new DefaultBuildOperationWorkerRegistry(maxWorkers)
+        def workerLeases = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, maxWorkers)
         def processor = new DefaultBuildOperationProcessor(operationExecutor, new DefaultBuildOperationQueueFactory(workerLeases), executorFactory, maxWorkers)
         def operation = Mock(RunnableBuildOperation)
 

@@ -35,11 +35,13 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
 
 import java.io.File;
@@ -90,7 +92,9 @@ public class ProjectBuilderImpl {
         gradle.setDefaultProject(project);
 
         // Take a root worker lease, it won't ever be released as ProjectBuilder has no lifecycle
-        topLevelRegistry.get(BuildOperationWorkerRegistry.class).operationStart();
+        ResourceLockCoordinationService coordinationService = topLevelRegistry.get(ResourceLockCoordinationService.class);
+        WorkerLeaseService workerLeaseService = topLevelRegistry.get(WorkerLeaseService.class);
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLeaseService.getWorkerLease()));
 
         return project;
     }

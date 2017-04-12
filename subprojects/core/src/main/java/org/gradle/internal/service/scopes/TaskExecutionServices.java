@@ -92,7 +92,6 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -103,6 +102,7 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.work.AsyncWorkTracker;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -233,9 +233,9 @@ public class TaskExecutionServices {
         return new TaskCacheKeyCalculator();
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
-        int parallelThreads = startParameter.isParallelProjectExecutionEnabled() ? startParameter.getMaxWorkerCount() : 1;
-        return new TaskPlanExecutorFactory(parallelThreads, executorFactory, buildOperationWorkerRegistry).create();
+    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+        int parallelThreads = startParameter.getMaxWorkerCount();
+        return new TaskPlanExecutorFactory(parallelThreads, executorFactory, workerLeaseService).create();
     }
 
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem) {

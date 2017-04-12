@@ -31,8 +31,8 @@ import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
+import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -52,13 +52,13 @@ import java.util.concurrent.Callable;
 public class InProcessWorkerFactory implements WorkerFactory {
 
     private final ClassLoaderFactory classLoaderFactory;
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
 
-    public InProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public InProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.classLoaderFactory = classLoaderFactory;
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -67,12 +67,12 @@ public class InProcessWorkerFactory implements WorkerFactory {
         return new Worker<T>() {
             @Override
             public DefaultWorkResult execute(T spec) {
-                return execute(spec, buildOperationWorkerRegistry.getCurrent(), buildOperationExecutor.getCurrentOperation());
+                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
             @Override
-            public DefaultWorkResult execute(final T spec, Operation parentWorkerOperation, BuildOperationExecutor.Operation parentBuildOperation) {
-                BuildOperationWorkerRegistry.Completion workerLease = parentWorkerOperation.operationStart();
+            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, BuildOperationExecutor.Operation parentBuildOperation) {
+                WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
                     BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
                     return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
@@ -82,7 +82,7 @@ public class InProcessWorkerFactory implements WorkerFactory {
                         }
                     });
                 } finally {
-                    workerLease.operationFinish();
+                    workerLease.leaseFinish();
                 }
             }
         };

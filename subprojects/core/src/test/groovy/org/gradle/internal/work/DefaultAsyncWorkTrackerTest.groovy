@@ -18,24 +18,25 @@ package org.gradle.internal.work
 
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ProjectLeaseRegistry
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 
 class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
-    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker()
+    ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
+    WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, true, 1)
+    AsyncWorkTracker asyncWorkTracker = new DefaultAsyncWorkTracker(workerLeaseService)
 
     def "can wait for async work to complete"() {
+        def operation = Mock(BuildOperationExecutor.Operation)
+
         when:
         async {
-            def operation = Mock(BuildOperationExecutor.Operation)
             5.times { i ->
                 start {
-                    asyncWorkTracker.registerWork(operation, new AsyncWorkCompletion() {
-                        @Override
-                        void waitForCompletion() {
-                            thread.blockUntil.allStarted
-                        }
-                    })
+                    asyncWorkTracker.registerWork(operation, blockingWorkCompletion("allStarted"))
                     instant."worker${i}Started"
                 }
             }
@@ -62,12 +63,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
-                    @Override
-                    void waitForCompletion() {
-                        thread.blockUntil.completeWorker1
-                    }
-                })
+                asyncWorkTracker.registerWork(operation1, blockingWorkCompletion("completeWorker1"))
                 instant.worker1Started
             }
             start {
@@ -75,6 +71,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                     @Override
                     void waitForCompletion() {
                         throw new IllegalStateException()
+                    }
+
+                    @Override
+                    boolean isComplete() {
+                        return false
                     }
                 })
                 instant.worker2Started
@@ -99,12 +100,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
-                    @Override
-                    void waitForCompletion() {
-                        thread.blockUntil.completeWorker1
-                    }
-                })
+                asyncWorkTracker.registerWork(operation1, blockingWorkCompletion("completeWorker1"))
                 instant.worker1Started
             }
             thread.blockUntil.worker1Started
@@ -115,12 +111,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
             }
             start {
                 thread.blockUntil.waitStarted
-                asyncWorkTracker.registerWork(operation2, new AsyncWorkCompletion() {
-                    @Override
-                    void waitForCompletion() {
-                        thread.blockUntil.completeWorker1
-                    }
-                })
+                asyncWorkTracker.registerWork(operation2, blockingWorkCompletion("completeWorker1"))
                 instant.worker2Started
             }
             thread.blockUntil.worker2Started
@@ -142,16 +133,16 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                     void waitForCompletion() {
                         throw new RuntimeException("BOOM!")
                     }
+
+                    @Override
+                    boolean isComplete() {
+                        return false
+                    }
                 })
                 instant.worker1Started
             }
             start {
-                asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
-                    @Override
-                    void waitForCompletion() {
-                        thread.blockUntil.completeWorker2
-                    }
-                })
+                asyncWorkTracker.registerWork(operation1, blockingWorkCompletion("completeWorker2"))
                 instant.worker2Started
             }
             thread.blockUntil.worker1Started
@@ -190,6 +181,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                         instant.waitStarted
                         thread.blockUntil.completeWait
                     }
+
+                    @Override
+                    boolean isComplete() {
+                        return false
+                    }
                 })
                 instant.registered
             }
@@ -203,6 +199,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                     asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
                         @Override
                         void waitForCompletion() {
+                        }
+
+                        @Override
+                        boolean isComplete() {
+                            return false
                         }
                     })
                 } finally {
@@ -218,5 +219,81 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
         and:
         e.message == "Another thread is currently waiting on the completion of work for the provided operation"
+    }
+
+    def "releases a project lock before waiting on async work"() {
+        def projectLockService = Mock(ProjectLeaseRegistry)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        asyncWorkTracker.registerWork(operation1, new AsyncWorkCompletion() {
+            @Override
+            void waitForCompletion() {
+            }
+
+            @Override
+            boolean isComplete() {
+                return false
+            }
+        })
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        1 * projectLockService.withoutProjectLock(_)
+    }
+
+    def "does not release a project lock before waiting on async work when no work is registered"() {
+        def projectLockService = Mock(ProjectLeaseRegistry)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        0 * projectLockService.withoutProjectLock(_)
+    }
+
+    def "does not release a project lock when all async work is already completed"() {
+        def projectLockService = Mock(ProjectLeaseRegistry)
+        def asyncWorkTracker = new DefaultAsyncWorkTracker(projectLockService)
+        def operation1 = Mock(BuildOperationExecutor.Operation)
+
+        when:
+        asyncWorkTracker.registerWork(operation1, completedWorkCompletion())
+        asyncWorkTracker.registerWork(operation1, completedWorkCompletion())
+        asyncWorkTracker.registerWork(operation1, completedWorkCompletion())
+        asyncWorkTracker.waitForCompletion(operation1)
+
+        then:
+        0 * projectLockService.withoutProjectLock(_)
+    }
+
+    AsyncWorkCompletion blockingWorkCompletion(String instant) {
+        return new AsyncWorkCompletion() {
+            @Override
+            void waitForCompletion() {
+                thread.blockUntil."${instant}"
+            }
+
+            @Override
+            boolean isComplete() {
+                return false
+            }
+        }
+    }
+
+    AsyncWorkCompletion completedWorkCompletion() {
+        new AsyncWorkCompletion() {
+            @Override
+            void waitForCompletion() {
+            }
+
+            @Override
+            boolean isComplete() {
+                return true
+            }
+        }
     }
 }
