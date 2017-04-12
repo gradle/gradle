@@ -311,10 +311,10 @@ class ProgressEvents implements ProgressListener {
             return result.failures
         }
 
-        Operation child(String displayName) {
-            def child = children.find { it.descriptor.displayName == displayName }
+        Operation child(String... displayNames) {
+            def child = children.find { it.descriptor.displayName in displayNames }
             if (child == null) {
-                throw new AssertionFailedError("No operation with display name '$displayName' found in children of '$descriptor.displayName':\n${describeList(children)}")
+                throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in children of '$descriptor.displayName':\n${describeList(children)}")
             }
             return child
         }

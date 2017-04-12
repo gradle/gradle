@@ -211,7 +211,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveDependencies = events.operation('Resolve dependencies :configurationWithoutDependency')
+        def resolveDependencies = events.operation('Resolve dependencies of :configurationWithoutDependency')
         resolveDependencies.parent.descriptor.name.startsWith("Execute task action")
         resolveDependencies.parent.children.size() == 1
     }

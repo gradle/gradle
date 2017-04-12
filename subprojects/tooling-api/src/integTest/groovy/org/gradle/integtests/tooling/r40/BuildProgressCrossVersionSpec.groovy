@@ -123,13 +123,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
         def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve artifacts of :compile")
-        def resolveCompile = applyRootBuildScript.child("Resolve dependencies :compile")
+        def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compile")
         resolveArtifactsInRoot.child("Resolve artifact a.jar (project :a)")
         resolveArtifactsInRoot.child("Resolve artifact b.jar (project :b)")
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
         def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve artifacts of :a:compile")
-        def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies :a:compile")
+        def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compile")
         resolveArtifactsInProjectA.child("Resolve artifact b.jar (project :b)")
 
         resolveCompileA.child("Configure project :b")
@@ -189,7 +189,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def applyBuildScript = events.operation "Apply script build.gradle to root project 'root'"
         def resolveArtifacts = applyBuildScript.child("Resolve artifacts of :compile")
 
-        applyBuildScript.child("Resolve dependencies :compile").with {
+        applyBuildScript.child("Resolve dependencies of :compile").with {
             it.child "Configure project :a"
             it.child "Download http://localhost:${server.port}${projectB.pomPath}"
             it.child "Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml"
