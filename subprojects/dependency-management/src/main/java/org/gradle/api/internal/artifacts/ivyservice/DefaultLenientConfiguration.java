@@ -304,6 +304,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private static class LenientFilesAndArtifactResolveVisitor extends ArtifactCollectingVisitor {
+        private final Set<File> artifactFiles = Sets.newLinkedHashSet();
         private final Set<File> files = Sets.newLinkedHashSet();
 
         public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
@@ -326,13 +327,16 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         public Set<File> getFiles() {
-            addArtifactsFiles();
+            addArtifactFiles();
             return files;
         }
 
-        public void addArtifactsFiles() {
-            for (ResolvedArtifact artifact : getArtifacts()) {
-                this.files.add(artifact.getFile());
+        private void addArtifactFiles() {
+            if (!artifactFiles.isEmpty()) {
+                for (File artifactFile : artifactFiles) {
+                    artifactFiles.add(artifactFile);
+                }
+                artifactFiles.clear();
             }
         }
     }

@@ -27,15 +27,15 @@ import java.util.Collection;
 import java.util.Set;
 
 public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
-    private final Set<ResolvedArtifact> artifacts = Sets.newLinkedHashSet();
+    private final Set<File> artifactFiles = Sets.newLinkedHashSet();
     private final Set<File> files = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
 
     @Override
     public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
         try {
-            artifact.getFile(); // triggering file resolve
-            this.artifacts.add(artifact);
+            File file = artifact.getFile();// triggering file resolve
+            this.artifactFiles.add(file);
         } catch (Throwable t) {
             failures.add(t);
         }
@@ -72,11 +72,11 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     private void addArtifactFiles() {
-        if (!artifacts.isEmpty()) {
-            for (ResolvedArtifact artifact : artifacts) {
-                this.files.add(artifact.getFile());
+        if (!artifactFiles.isEmpty()) {
+            for (File artifactFile : artifactFiles) {
+                this.files.add(artifactFile);
             }
-            artifacts.clear();
+            artifactFiles.clear();
         }
     }
 }
