@@ -55,14 +55,13 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
 
     @Unroll
     def "clean #tasks on #testProject with local cache (parallel: #parallel)"() {
-        def testId = "clean $tasks on $testProject with local cache"
         def tasksToRun = tasks.split(' ') as List
         if (parallel) {
-            testId += " with parallel"
             tasksToRun.add("--parallel")
         }
+
         given:
-        runner.testId = testId
+        runner.previousTestIds = ["clean $tasks on $testProject with local cache"]
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasksToRun
