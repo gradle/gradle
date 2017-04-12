@@ -100,11 +100,11 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         }
     }
 
-    private List getSubprojectNames() {
+    protected List getSubprojectNames() {
         return getSubprojects().collect { it.name }
     }
 
-    private TestProject getRootProject() {
+    protected TestProject getRootProject() {
         return projects[0]
     }
 
@@ -118,7 +118,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         return repo;
     }
 
-    private List<TestProject> getSubprojects() {
+    protected List<TestProject> getSubprojects() {
         return projects.subList(1, projects.size())
     }
 
