@@ -53,11 +53,19 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         })
     }
 
-    def "clean #tasks on #testProject with local cache"() {
+    @Unroll
+    def "clean #tasks on #testProject with local cache (parallel: #parallel)"() {
+        def testId = "clean $tasks on $testProject with local cache"
+        def tasksToRun = tasks.split(' ') as List
+        if (parallel) {
+            testId += " with parallel"
+            tasksToRun.add("--parallel")
+        }
         given:
+        runner.testId = testId
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ')
+        runner.tasksToRun = tasksToRun
 
         when:
         def result = runner.run()
@@ -67,6 +75,7 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
 
         where:
         [testProject, tasks] << scenarios
+        parallel << [true, false]
     }
 
     def "clean #tasks on #testProject with empty local cache"() {
