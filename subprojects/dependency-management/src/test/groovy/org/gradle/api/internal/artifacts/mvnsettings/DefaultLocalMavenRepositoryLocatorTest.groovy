@@ -33,7 +33,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     File repo1 = tmpDir.file("repo1")
     File repo2 = tmpDir.file("repo2")
     File userHome1 = tmpDir.file("user_home_1")
-    File userHome2 = tmpDir.file("user_home_2")
+    File defaultM2Repo = new File(userHome1, ".m2/repository")
 
     def setup() {
         locations = new SimpleMavenFileLocations()
@@ -44,10 +44,11 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         when:
         1 * system.getProperty("user.home") >> userHome1.absolutePath
         then:
-        locator.localMavenRepository == new File(userHome1, ".m2/repository")
+        locator.localMavenRepository == defaultM2Repo
 
         // Ensure that modified user.home is honoured (see http://forums.gradle.org/gradle/topics/override_location_of_the_local_maven_repo)
         when:
+        File userHome2 = tmpDir.file("user_home_2")
         1 * system.getProperty("user.home") >> userHome2.absolutePath
         then:
         locator.localMavenRepository == new File(userHome2, ".m2/repository")
@@ -97,6 +98,48 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository == repo1
     }
 
+    def "honors location specified in global settings file"() {
+        writeSettingsFile(locations.globalSettingsFile, repo1)
+
+        expect:
+        locator.localMavenRepository == repo1
+    }
+
+    def "returns default location if user settings file specifies empty local repository"() {
+        when:
+        writeSettingsFile(locations.userSettingsFile, "")
+        1 * system.getProperty("user.home") >> userHome1.absolutePath
+
+        then:
+        locator.localMavenRepository == defaultM2Repo
+    }
+
+    def "returns default location if global settings file specifies empty local repository"() {
+        when:
+        writeSettingsFile(locations.globalSettingsFile, "")
+        1 * system.getProperty("user.home") >> userHome1.absolutePath
+
+        then:
+        locator.localMavenRepository == defaultM2Repo
+    }
+
+    def "returns global location if user settings file specifies empty local repository"() {
+        when:
+        writeSettingsFile(locations.userSettingsFile, "")
+        writeSettingsFile(locations.globalSettingsFile, repo2)
+
+        then:
+        locator.localMavenRepository == repo2
+    }
+
+    def "prefers location specified in user settings file over that in global settings file"() {
+        writeSettingsFile(locations.userSettingsFile, repo1)
+        writeSettingsFile(locations.globalSettingsFile, repo2)
+
+        expect:
+        locator.localMavenRepository == repo1
+    }
+
     def "ignores changes to maven settings file after initial load"() {
         when:
         writeSettingsFile(locations.userSettingsFile, repo1)
@@ -111,21 +154,6 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository == repo1
     }
 
-    def "honors location specified in global settings file"() {
-        writeSettingsFile(locations.globalSettingsFile, repo1)
-
-        expect:
-        locator.localMavenRepository == repo1
-    }
-
-    def "prefers location specified in user settings file over that in global settings file"() {
-        writeSettingsFile(locations.userSettingsFile, repo1)
-        writeSettingsFile(locations.globalSettingsFile, repo2)
-
-        expect:
-        locator.localMavenRepository == repo1
-    }
-
     def "handles the case where (potential) location of global settings file cannot be determined"() {
         locations.globalSettingsFile = null
 
@@ -133,7 +161,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         system.getProperty("user.home") >> userHome1.absolutePath
 
         then:
-        locator.localMavenRepository == new File(userHome1, ".m2/repository")
+        locator.localMavenRepository == defaultM2Repo
 
         when:
         writeSettingsFile(locations.userSettingsFile, repo1)
