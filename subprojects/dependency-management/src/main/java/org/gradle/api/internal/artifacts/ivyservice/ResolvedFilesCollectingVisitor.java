@@ -34,7 +34,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     @Override
     public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
         try {
-            File file = artifact.getFile();// triggering file resolve
+            File file = artifact.getFile(); // triggering file resolve
             this.artifactFiles.add(file);
         } catch (Throwable t) {
             failures.add(t);
