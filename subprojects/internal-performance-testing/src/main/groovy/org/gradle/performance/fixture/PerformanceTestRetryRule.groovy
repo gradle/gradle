@@ -16,9 +16,11 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.testing.internal.util.RetryRule
 
+@CompileStatic
 class PerformanceTestRetryRule extends RetryRule {
     PerformanceTestRetryRule() {
         super(null, { Throwable failure ->
