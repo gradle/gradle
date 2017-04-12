@@ -307,20 +307,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         private final Set<File> files = Sets.newLinkedHashSet();
 
         public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-            if (isExternalModuleArtifact(artifact)) {
-                try {
-                    artifact.getFile();
-                    getArtifacts().add(artifact);
-                } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
-                    //ignore
-                }
-            } else {
+            try {
+                artifact.getFile();
                 getArtifacts().add(artifact);
+            } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
+                //ignore
             }
-        }
-
-        boolean isExternalModuleArtifact(ResolvedArtifact element) {
-            return element.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier;
         }
 
         @Override
