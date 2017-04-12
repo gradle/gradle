@@ -1,5 +1,6 @@
 package org.gradle.script.lang.kotlin.integration
 
+import org.gradle.script.lang.kotlin.concurrent.future
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 
 import org.gradle.script.lang.kotlin.matching
@@ -94,7 +95,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         val barJar    = withFixture("bar")
 
         fun String.withBuildscriptDependencyOn(fixture: File) =
-             withFile(this, """
+            withFile(this, """
                 buildscript {
                     dependencies { classpath(files("${normaliseFileSeparators(fixture.path)}")) }
                 }
@@ -179,7 +180,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         val fileNameSet = files.map { it.name }.toSet().toTypedArray()
         assert(fileNameSet.size == files.size)
         assertThat(
-            canonicalClassPath().map { it.name},
+            canonicalClassPath().map { it.name },
             hasItems(*fileNameSet))
     }
 
@@ -207,17 +208,17 @@ fun classPathFor(projectDir: File, scriptFile: File?) =
 internal
 fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
     withDaemonRegistry(customDaemonRegistry()) {
+        future {
+            fetchKotlinBuildScriptModelFor(
+                KotlinBuildScriptModelRequest(
+                    projectDir = projectDir,
+                    scriptFile = scriptFile,
+                    gradleInstallation = GradleInstallation.Local(customInstallation()))) {
 
-        fetchKotlinBuildScriptModelFor(
-            KotlinBuildScriptModelRequest(
-                projectDir = projectDir,
-                scriptFile = scriptFile,
-                gradleInstallation = GradleInstallation.Local(customInstallation()))) {
-
-            setStandardOutput(System.out)
-            setStandardError(System.err)
-
-        }!!
+                setStandardOutput(System.out)
+                setStandardError(System.err)
+            }
+        }.get()
     }
 
 

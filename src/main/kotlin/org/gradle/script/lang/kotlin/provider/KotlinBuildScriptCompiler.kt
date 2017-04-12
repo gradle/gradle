@@ -34,6 +34,7 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
 import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
 import org.gradle.script.lang.kotlin.support.compilerMessageFor
+import org.gradle.script.lang.kotlin.support.userHome
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
 
@@ -294,8 +295,6 @@ class KotlinBuildScriptCompiler(
         add(label + '/' to dir.toURI().toURL().toString())
         add(label to dir.canonicalPath)
     }
-
-    private fun userHome() = File(System.getProperty("user.home"))
 
 }
 

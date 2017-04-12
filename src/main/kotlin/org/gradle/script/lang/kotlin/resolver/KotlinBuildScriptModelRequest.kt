@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin.resolver
 
+import org.gradle.script.lang.kotlin.concurrent.tapi
 import org.gradle.script.lang.kotlin.provider.KotlinScriptPluginFactory
 
 import org.gradle.tooling.GradleConnector
@@ -24,6 +25,8 @@ import org.gradle.tooling.ProjectConnection
 
 import java.io.File
 import java.net.URI
+
+import kotlin.concurrent.thread
 
 
 internal
@@ -50,21 +53,37 @@ data class KotlinBuildScriptModelRequest(
     val jvmOptions: List<String> = emptyList())
 
 
-internal
-fun fetchKotlinBuildScriptModelFor(
-    request: KotlinBuildScriptModelRequest,
-    modelBuilderCustomization: ModelBuilder<KotlinBuildScriptModel>.() -> Unit = {}): KotlinBuildScriptModel? =
+typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() -> Unit
 
-    withConnectionFrom(connectorFor(request)) {
-        model(KotlinBuildScriptModel::class.java)?.run {
-            setJavaHome(request.javaHome)
-            setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
-            request.scriptFile?.let {
-                withArguments(request.options + "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}")
-            } ?: withArguments(request.options)
-            modelBuilderCustomization()
-            get()
-        }
+
+internal
+suspend fun fetchKotlinBuildScriptModelFor(
+    request: KotlinBuildScriptModelRequest,
+    modelBuilderCustomization: ModelBuilderCustomization = {}): KotlinBuildScriptModel {
+
+    val connection = projectConnectionFor(request)
+    try {
+        return tapi { connection.modelBuilderFor(request).apply(modelBuilderCustomization).get(it) }
+    } finally {
+        // Run close on a separate thread as TAPI doesn't allow closing the connection from an executor thread
+        thread { connection.close() }
+    }
+}
+
+
+private
+fun projectConnectionFor(request: KotlinBuildScriptModelRequest): ProjectConnection =
+    connectorFor(request).connect()
+
+
+private
+fun ProjectConnection.modelBuilderFor(request: KotlinBuildScriptModelRequest) =
+    model(KotlinBuildScriptModel::class.java).apply {
+        setJavaHome(request.javaHome)
+        setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
+        request.scriptFile?.let {
+            withArguments(request.options + "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}")
+        } ?: withArguments(request.options)
     }
 
 
@@ -86,21 +105,6 @@ fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
         .let { connector ->
             applyGradleInstallationTo(connector, request)
         }
-
-
-internal
-inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
-    connector.connect().use(block)
-
-
-internal
-inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
-    try {
-        return block(this)
-    } finally {
-        close()
-    }
-}
 
 
 private

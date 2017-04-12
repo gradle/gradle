@@ -18,3 +18,15 @@ fun <T : Throwable> assertFailsWith(exception: KClass<out T>, block: () -> Unit)
     fail("Expecting exception of type `$exception`, got none.")
     throw IllegalStateException()
 }
+
+inline
+fun <reified T> withInstanceOf(o: Any, block: T.() -> Unit) {
+    block(assertInstanceOf<T>(o))
+}
+
+inline
+fun <reified T> assertInstanceOf(o: Any): T {
+    assertThat(o, instanceOf(T::class.java))
+    return o as T
+}
+

@@ -11,6 +11,8 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.jvm.tasks.Jar
 
+import org.jetbrains.kotlin.gradle.dsl.Coroutines
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
@@ -65,6 +67,9 @@ dependencies {
     testCompile("org.ow2.asm:asm-all:5.1")
 }
 
+configure<KotlinProjectExtension> {
+    experimental.coroutines = Coroutines.ENABLE
+}
 
 val sourceSets = java.sourceSets
 

@@ -106,7 +106,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 }
 
 
-class StandardKotlinBuildScriptModel(
+data class StandardKotlinBuildScriptModel(
     override val classPath: List<File>) : KotlinBuildScriptModel, Serializable
 
 

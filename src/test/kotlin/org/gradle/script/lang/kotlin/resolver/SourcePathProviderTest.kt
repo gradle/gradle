@@ -7,7 +7,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
-class DefaultSourcePathProviderTest : FolderBasedTest() {
+class SourcePathProviderTest : FolderBasedTest() {
 
     @Test
     fun `given buildSrc folder, it will include buildSrc source roots`() {
@@ -31,7 +31,7 @@ class DefaultSourcePathProviderTest : FolderBasedTest() {
             gradleInstallation = GradleInstallation.Local(folder("gradle")))
 
         val emptyModel = StandardKotlinBuildScriptModel(emptyList())
-        val sourcePath = DefaultSourcePathProvider.sourcePathFor(request, emptyModel)
+        val sourcePath = SourcePathProvider.sourcePathFor(request, emptyModel)
         assertThat(
             sourcePath,
             hasItems(
