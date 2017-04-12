@@ -44,6 +44,7 @@ import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestGradleDistribution
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.fixture.PerformanceTestJvmOptions
+import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.results.BuildDisplayInfo
@@ -88,9 +89,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     @Rule
-    RetryRule retry = RetryRule.retryIf(this) { Throwable failure ->
-        failure.message?.contains("slower")  && !ResultsStoreHelper.isAdhocPerformanceTest()
-    }
+    RetryRule retry = new PerformanceTestRetryRule()
 
     public <T> Class<T> tapiClass(Class<T> clazz) {
         tapiClassLoader.loadClass(clazz.name)

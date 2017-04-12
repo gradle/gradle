@@ -39,7 +39,7 @@ class RetryRule implements MethodRule {
     private Closure<Boolean> shouldRetry
     private Specification specification
 
-    private RetryRule(Specification specification, Closure<Boolean> shouldRetry) {
+    protected RetryRule(Specification specification, Closure<Boolean> shouldRetry) {
         this.specification = specification
         this.shouldRetry = shouldRetry
     }
@@ -54,6 +54,9 @@ class RetryRule implements MethodRule {
 
     @Override
     Statement apply(Statement base, FrameworkMethod method, Object target) {
+        if (specification == null) {
+            specification = target as Specification
+        }
         return {
             try {
                 base.evaluate()
