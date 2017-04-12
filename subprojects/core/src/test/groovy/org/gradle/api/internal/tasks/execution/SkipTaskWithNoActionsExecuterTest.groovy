@@ -42,7 +42,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
 
     def skipsTaskWithNoActionsAndMarksUpToDateIfAllItsDependenciesWereSkipped() {
         given:
-        task.actions >> []
+        task.taskActions >> []
         dependencyState.skipped >> true
 
         when:
@@ -57,7 +57,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
 
     def skipsTaskWithNoActionsAndMarksOutOfDateDateIfAnyOfItsDependenciesWereNotSkipped() {
         given:
-        task.actions >> []
+        task.taskActions >> []
         dependencyState.skipped >> false
 
         when:
@@ -72,7 +72,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
 
     def executesTaskWithActions() {
         given:
-        task.actions >> [{} as TaskAction]
+        task.taskActions >> [{} as TaskAction]
 
         when:
         executor.execute(task, state, executionContext)

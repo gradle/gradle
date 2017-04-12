@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
@@ -27,7 +28,6 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -39,7 +39,7 @@ import static com.google.common.collect.Iterables.toArray;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskDependency extends AbstractTaskDependency {
-    private final Set<Object> values = new HashSet<Object>();
+    private Set<Object> values;
     private final TaskResolver resolver;
 
     public DefaultTaskDependency() {
@@ -52,10 +52,10 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        if (values.isEmpty()) {
+        if (getValues().isEmpty()) {
             return;
         }
-        Deque<Object> queue = new ArrayDeque<Object>(values);
+        Deque<Object> queue = new ArrayDeque<Object>(getValues());
         while (!queue.isEmpty()) {
             Object dependency = queue.removeFirst();
             if (dependency instanceof Buildable) {
@@ -130,11 +130,14 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     public Set<Object> getValues() {
+        if (values == null) {
+            values = Sets.newHashSet();
+        }
         return values;
     }
 
     public void setValues(Iterable<?> values) {
-        this.values.clear();
+        getValues().clear();
         for (Object value : values) {
             addValue(value);
         }
@@ -151,6 +154,6 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         if (dependency == null) {
             throw new InvalidUserDataException("A dependency must not be empty");
         }
-        this.values.add(dependency);
+        getValues().add(dependency);
     }
 }

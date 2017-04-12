@@ -54,14 +54,6 @@ import java.util.Map;
  */
 public class BeanDynamicObject extends AbstractDynamicObject {
     private static final Method META_PROP_METHOD;
-    private static final ThreadLocal<Object[]> META_PROP_ARGUMENT_ARRAY = new ThreadLocal<Object[]>() {
-        @Override
-        protected Object[] initialValue() {
-            Object[] args = new Object[2];
-            args[1] = false;
-            return args;
-        }
-    };
     private static final Field MISSING_PROPERTY_GET_METHOD;
     private static final Field MISSING_PROPERTY_SET_METHOD;
     private static final Field MISSING_METHOD_METHOD;
@@ -342,11 +334,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
             if (metaClass instanceof MetaClassImpl) {
                 try {
-                    Object[] args = META_PROP_ARGUMENT_ARRAY.get();
-                    args[0] = name;
-                    MetaProperty result = (MetaProperty) META_PROP_METHOD.invoke(metaClass, args);
-                    args[0] = null;
-                    return result;
+                    return (MetaProperty) META_PROP_METHOD.invoke(metaClass, name, false);
                 } catch (Throwable e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -468,7 +456,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return false;
         }
 
-        private Class[] inferTypes(Object... arguments) {
+        private Class[] inferTypes(Object[] arguments) {
             if (arguments == null || arguments.length == 0) {
                 return MetaClassHelper.EMPTY_CLASS_ARRAY;
             }
@@ -491,16 +479,18 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.found(metaMethod.doMethodInvoke(bean, arguments));
             }
 
-            List<MetaMethod> metaMethods = metaClass.respondsTo(bean, name);
-            for (MetaMethod method : metaMethods) {
-                if (method.getParameterTypes().length != arguments.length) {
-                    continue;
+            if (argsTransformer.canTransform(arguments)) {
+                List<MetaMethod> metaMethods = metaClass.respondsTo(bean, name);
+                for (MetaMethod method : metaMethods) {
+                    if (method.getParameterTypes().length != arguments.length) {
+                        continue;
+                    }
+                    Object[] transformed = argsTransformer.transform(method.getParameterTypes(), arguments);
+                    if (transformed == arguments) {
+                        continue;
+                    }
+                    return DynamicInvokeResult.found(method.doMethodInvoke(bean, transformed));
                 }
-                Object[] transformed = argsTransformer.transform(method.getParameterTypes(), arguments);
-                if (transformed == arguments) {
-                    continue;
-                }
-                return DynamicInvokeResult.found(method.doMethodInvoke(bean, transformed));
             }
 
             if (bean instanceof MethodMixIn) {
