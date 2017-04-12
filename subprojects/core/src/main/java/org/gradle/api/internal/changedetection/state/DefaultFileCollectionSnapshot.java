@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
@@ -78,11 +77,6 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
             return Iterators.emptyIterator();
         }
         return compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType, pathIsAbsolute);
-    }
-
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putBytes(hash.asBytes());
     }
 
     @Override

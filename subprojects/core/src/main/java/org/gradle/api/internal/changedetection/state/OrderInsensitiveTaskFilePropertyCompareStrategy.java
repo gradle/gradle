@@ -25,12 +25,9 @@ import org.gradle.api.internal.changedetection.resources.NormalizedSnapshot;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,14 +36,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
-
-    private static final Comparator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> ENTRY_COMPARATOR = new Comparator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>>() {
-        @Override
-        public int compare(Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o1, Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o2) {
-            return o1.getKey().compareTo(o2.getKey());
-        }
-    };
-
     private final boolean includeAdded;
 
     public OrderInsensitiveTaskFilePropertyCompareStrategy(boolean includeAdded) {
@@ -154,7 +143,6 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                         unaccountedForPreviousSnapshotsIterator = Iterators.emptyIterator();
                     } else {
                         List<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> entries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
-                        Collections.sort(entries, ENTRY_COMPARATOR);
                         unaccountedForPreviousSnapshotsIterator = entries.iterator();
                     }
                 }
@@ -188,16 +176,6 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                 return endOfData();
             }
         };
-    }
-
-    @Override
-    // TODO wolfs: Remove this method
-    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
-        List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots);
-        Collections.sort(normalizedSnapshots);
-        for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
-            normalizedSnapshot.appendToHasher(hasher);
-        }
     }
 
     @Override

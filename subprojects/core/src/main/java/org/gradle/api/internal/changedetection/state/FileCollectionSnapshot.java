@@ -32,7 +32,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 /**
  * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
  */
-public interface FileCollectionSnapshot extends Snapshot {
+public interface FileCollectionSnapshot {
     FileCollectionSnapshot EMPTY = new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), UNORDERED, true, Hashing.md5().hashString("Empty" + FileCollectionSnapshot.class.getName(), Charsets.UTF_8));
 
     boolean isEmpty();
