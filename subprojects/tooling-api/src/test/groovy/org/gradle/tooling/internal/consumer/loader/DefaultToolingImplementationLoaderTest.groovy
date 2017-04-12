@@ -33,7 +33,7 @@ import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionCo
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 
 import org.gradle.tooling.internal.protocol.BuildParameters
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
+
 import org.gradle.tooling.internal.protocol.BuildResult
 import org.gradle.tooling.internal.protocol.ConfigurableConnection
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
@@ -48,7 +48,6 @@ import org.gradle.tooling.internal.protocol.InternalConnection
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelBuilder
 import org.gradle.tooling.internal.protocol.ModelIdentifier
-import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ShutdownParameters
 import org.gradle.tooling.internal.protocol.StoppableConnection
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException
