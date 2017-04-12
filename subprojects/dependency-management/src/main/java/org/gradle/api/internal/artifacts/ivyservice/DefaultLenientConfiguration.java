@@ -218,7 +218,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), getSelectedFiles(), visitor, null);
-        visitor.addArtifactsFiles();
 
         Set<File> files = visitor.getFiles();
         files.addAll(getFiles(filterUnresolved(visitor.getArtifacts())));
@@ -335,6 +334,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         public Set<File> getFiles() {
+            addArtifactsFiles();
             return files;
         }
 
