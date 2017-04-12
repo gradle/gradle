@@ -28,10 +28,12 @@ import java.util.List;
 public class StyledTextOutputEventSerializer implements Serializer<StyledTextOutputEvent> {
     private final Serializer<LogLevel> logLevelSerializer;
     private final Serializer<List<StyledTextOutputEvent.Span>> spanSerializer;
+    private final Serializer<OperationIdentifier> operationIdSerializer;
 
-    public StyledTextOutputEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<List<StyledTextOutputEvent.Span>> spanSerializer) {
+    public StyledTextOutputEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<List<StyledTextOutputEvent.Span>> spanSerializer, Serializer<OperationIdentifier> operationIdSerializer) {
         this.logLevelSerializer = logLevelSerializer;
         this.spanSerializer = spanSerializer;
+        this.operationIdSerializer = operationIdSerializer;
     }
 
     @Override
@@ -39,7 +41,7 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
-        encoder.writeLong(event.getOperationId().getId());
+        operationIdSerializer.write(encoder, event.getOperationId());
         spanSerializer.write(encoder, event.getSpans());
     }
 
@@ -48,7 +50,7 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
         long timestamp = decoder.readLong();
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
-        OperationIdentifier operationId = new OperationIdentifier(decoder.readLong());
+        OperationIdentifier operationId = operationIdSerializer.read(decoder);
         List<StyledTextOutputEvent.Span> spans = spanSerializer.read(decoder);
         return new StyledTextOutputEvent(timestamp, category, logLevel, operationId, spans);
     }

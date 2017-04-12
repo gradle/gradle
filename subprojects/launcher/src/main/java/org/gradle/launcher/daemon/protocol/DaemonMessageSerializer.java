@@ -45,6 +45,7 @@ public class DaemonMessageSerializer {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
+        Serializer<OperationIdentifier> operationIdSerializer = factory.getSerializerFor(OperationIdentifier.class);
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
         registry.register(BuildEvent.class, new BuildEventSerializer());
@@ -55,8 +56,8 @@ public class DaemonMessageSerializer {
         registry.register(CloseInput.class, new CloseInputSerializer());
 
         // Output events
-        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
-        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer, operationIdSerializer));
+        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class))), operationIdSerializer));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
         registry.register(ProgressEvent.class, new ProgressEventSerializer());

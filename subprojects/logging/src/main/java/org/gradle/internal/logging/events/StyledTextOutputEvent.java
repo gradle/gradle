@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class StyledTextOutputEvent extends RenderableOutputEvent {
-    private static final OperationIdentifier INVALID = new OperationIdentifier(-1);
     private final List<Span> spans;
     private final OperationIdentifier operationId;
 
@@ -43,7 +42,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     }
 
     public StyledTextOutputEvent(long timestamp, String category, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, null, INVALID, style, text);
+        this(timestamp, category, null, null, style, text);
     }
 
     public StyledTextOutputEvent(long timestamp, String category, OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
@@ -55,7 +54,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     }
 
     public StyledTextOutputEvent(long timestamp, String category, List<Span> spans) {
-        this(timestamp, category, null, INVALID, spans);
+        this(timestamp, category, null, null, spans);
     }
 
     public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, Span... spans) {

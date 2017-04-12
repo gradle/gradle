@@ -26,10 +26,12 @@ import org.gradle.internal.serialize.Serializer;
 public class LogEventSerializer implements Serializer<LogEvent> {
     private final Serializer<Throwable> throwableSerializer;
     private final Serializer<LogLevel> logLevelSerializer;
+    private final Serializer<OperationIdentifier> operationIdSerializer;
 
-    public LogEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<Throwable> throwableSerializer) {
+    public LogEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<Throwable> throwableSerializer, Serializer<OperationIdentifier> operationIdSerializer) {
         this.logLevelSerializer = logLevelSerializer;
         this.throwableSerializer = throwableSerializer;
+        this.operationIdSerializer = operationIdSerializer;
     }
 
     @Override
@@ -37,7 +39,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
-        encoder.writeLong(event.getOperationId().getId());
+        operationIdSerializer.write(encoder, event.getOperationId());
         encoder.writeString(event.getMessage());
         throwableSerializer.write(encoder, event.getThrowable());
     }
@@ -47,7 +49,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         long timestamp = decoder.readLong();
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
-        OperationIdentifier operationId = new OperationIdentifier(decoder.readLong());
+        OperationIdentifier operationId = operationIdSerializer.read(decoder);
         String message = decoder.readString();
         Throwable throwable = throwableSerializer.read(decoder);
         return new LogEvent(timestamp, category, logLevel, operationId, message, throwable);

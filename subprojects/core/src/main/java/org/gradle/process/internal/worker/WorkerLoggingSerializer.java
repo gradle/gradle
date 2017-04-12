@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.serializer.LogEventSerializer;
 import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
@@ -39,10 +40,11 @@ public class WorkerLoggingSerializer {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
+        Serializer<OperationIdentifier> operationIdSerializer = factory.getSerializerFor(OperationIdentifier.class);
 
         // Log events
-        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
-        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer, operationIdSerializer));
+        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class))), operationIdSerializer));
         registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
 
         return registry;

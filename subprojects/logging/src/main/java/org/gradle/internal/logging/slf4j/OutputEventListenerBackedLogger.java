@@ -19,11 +19,10 @@ package org.gradle.internal.logging.slf4j;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.progress.OperationIdentifierRegistry;
+import org.gradle.internal.time.TimeProvider;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
@@ -129,14 +128,7 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
-        OperationIdentifier operationId = new OperationIdentifier(-3);
-        if (null != DefaultProgressLoggerFactory.instance) {
-            operationId = new OperationIdentifier(-4);
-            if (null != DefaultProgressLoggerFactory.instance.getCurrentProgressLogger()) {
-                operationId = DefaultProgressLoggerFactory.instance.getCurrentProgressLogger().getId();
-            }
-        }
-        LogEvent logEvent = new LogEvent(timeProvider.getCurrentTime(), name, logLevel, operationId, message, throwable);
+        LogEvent logEvent = new LogEvent(timeProvider.getCurrentTime(), name, logLevel, OperationIdentifierRegistry.getCurrentOperationId(), message, throwable);
         OutputEventListener outputEventListener = context.getOutputEventListener();
         try {
             outputEventListener.onOutput(logEvent);

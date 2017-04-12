@@ -17,12 +17,11 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.progress.OperationIdentifierRegistry;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
+import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,15 +65,7 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
         spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
         buffer.setLength(0);
 
-        OperationIdentifier operationId = new OperationIdentifier(-11);
-        if (null != DefaultProgressLoggerFactory.instance) {
-            operationId = new OperationIdentifier(-12);
-            if (null != DefaultProgressLoggerFactory.instance.getCurrentProgressLogger()) {
-                operationId = DefaultProgressLoggerFactory.instance.getCurrentProgressLogger().getId();
-            }
-        }
-
-        listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, operationId, spans));
+        listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, OperationIdentifierRegistry.getCurrentOperationId(), spans));
         spans = new ArrayList<StyledTextOutputEvent.Span>();
     }
 }
