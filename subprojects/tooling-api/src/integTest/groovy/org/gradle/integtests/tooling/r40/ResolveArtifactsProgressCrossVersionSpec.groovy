@@ -41,7 +41,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve artifacts :configurationWithDependency')
+        def resolveArtifacts = events.operation('Resolve artifacts of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve artifact a.jar (project :provider)")
@@ -62,7 +62,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve artifacts :configurationWithDependency')
+        def resolveArtifacts = events.operation('Resolve artifacts of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve artifact a.jar (project :provider)")
@@ -83,7 +83,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve artifacts :configurationWithDependency')
+        def resolveArtifacts = events.operation('Resolve artifacts of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve artifact a.jar (project :provider)")
@@ -104,7 +104,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve artifacts :configurationWithDependency')
+        def resolveArtifacts = events.operation('Resolve artifacts of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve artifact a.jar (project :provider)")
@@ -126,7 +126,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve artifacts view :configurationWithDependency')
+        def resolveArtifacts = events.operation('Resolve artifacts view of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve artifact b.jar (project :provider)")
@@ -148,7 +148,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve artifacts view :configurationWithDependency')
+        def resolveArtifacts = events.operation('Resolve artifacts view of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve artifact b.jar (project :provider)")
@@ -169,7 +169,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve artifacts :configurationWithDependency')
+        def resolveArtifacts = events.operation('Resolve artifacts of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 0
     }
@@ -190,7 +190,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve artifacts view :configurationWithDependency')
+        def resolveArtifacts = events.operation('Resolve artifacts view of :configurationWithDependency')
         resolveArtifacts.parent.descriptor.name.startsWith("Execute task action")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve artifact b.jar (project :provider)")

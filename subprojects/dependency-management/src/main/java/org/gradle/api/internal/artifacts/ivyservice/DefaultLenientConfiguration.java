@@ -91,7 +91,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private BuildOperationDetails computeResolveAllBuildOperationDetails(AttributeContainer requestedAttributes) {
         String displayName = "Resolve artifacts "
-            + (requestedAttributes == null || requestedAttributes.isEmpty() ? "" : "view ") + configuration.getPath();
+            + (requestedAttributes == null || requestedAttributes.isEmpty() ? "of " : "view of ") + configuration.getPath();
         return BuildOperationDetails.displayName(displayName).operationDescriptor(requestedAttributes).build();
     }
 
