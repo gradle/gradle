@@ -52,7 +52,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public FileSnapshot snapshotFile(File file) {
-        FileSnapshot snapshot = fileSystemMirror.getFile(file.getPath());
+        FileSnapshot snapshot = fileSystemMirror.getFile(file.getAbsolutePath());
         if (snapshot == null) {
             snapshot = calculateDetails(file);
             fileSystemMirror.putFile(snapshot);
