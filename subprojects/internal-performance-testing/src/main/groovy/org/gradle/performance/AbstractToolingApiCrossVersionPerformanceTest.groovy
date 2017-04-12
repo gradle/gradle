@@ -38,7 +38,6 @@ import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.DefaultBuildExperimentInvocationInfo
-import org.gradle.performance.util.Git
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
@@ -52,6 +51,7 @@ import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStoreHelper
+import org.gradle.performance.util.Git
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -89,7 +89,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     @Rule
     RetryRule retry = RetryRule.retryIf(this) { Throwable failure ->
-        failure.message?.contains("slower")
+        failure.message?.contains("slower")  && !ResultsStoreHelper.isAdhocPerformanceTest()
     }
 
     public <T> Class<T> tapiClass(Class<T> clazz) {
