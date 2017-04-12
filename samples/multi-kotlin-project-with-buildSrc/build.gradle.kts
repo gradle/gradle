@@ -14,7 +14,7 @@ plugins {
 }
 
 dependencies {
-    // Make the root project archives configuration depend on every subproject
+    // Make the root project archives configuration depend on every sub-project
     subprojects.forEach {
         archives(it)
     }
