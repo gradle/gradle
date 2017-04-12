@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
@@ -52,8 +53,8 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
             snapshotter.snapshot(fileTreeSnapshot);
         }
         FileCollectionSnapshotCollector collector = createCollector(snapshotNormalizationStrategy, compareStrategy);
-        snapshotter.finish(collector);
-        return collector.finish();
+        HashCode hash = snapshotter.finish(collector);
+        return collector.finish(hash);
     }
 
     protected abstract FileCollectionSnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy);

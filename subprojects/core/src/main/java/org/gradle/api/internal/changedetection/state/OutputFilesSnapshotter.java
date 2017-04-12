@@ -74,7 +74,10 @@ public class OutputFilesSnapshotter {
             if (newEntryCount == afterSnapshots.size()) {
                 filesSnapshot = afterExecution;
             } else {
-                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.OUTPUT, true);
+                // We do not calculate a new hash here as we never use the hash of the output file collection.
+                // If we are here, then task output caching is turned off, since we have files in the output directories which are not outputs of this task -> overlapping outputs.
+                // This means that we will not use the hash for task output caching anyway.
+                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.OUTPUT, true, null);
             }
         } else {
             filesSnapshot = afterExecution;

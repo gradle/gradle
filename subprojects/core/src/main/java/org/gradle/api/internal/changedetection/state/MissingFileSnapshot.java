@@ -20,6 +20,8 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 
 /**
@@ -55,6 +57,11 @@ class MissingFileSnapshot implements FileSnapshot {
     }
 
     @Override
+    public InputStream read() throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public RelativePath getRelativePath() {
         return relativePath;
     }
@@ -82,5 +89,10 @@ class MissingFileSnapshot implements FileSnapshot {
     @Override
     public Iterable<? extends FileSnapshot> getElements() {
         return Collections.singleton(this);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return getPath();
     }
 }

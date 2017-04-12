@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 
 import java.io.File;
@@ -30,7 +33,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
  * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionSnapshot extends Snapshot {
-    FileCollectionSnapshot EMPTY = new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), UNORDERED, true);
+    FileCollectionSnapshot EMPTY = new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), UNORDERED, true, Hashing.md5().hashString("Empty" + FileCollectionSnapshot.class.getName(), Charsets.UTF_8));
 
     boolean isEmpty();
 
@@ -50,4 +53,6 @@ public interface FileCollectionSnapshot extends Snapshot {
     Collection<File> getFiles();
 
     Map<String, NormalizedFileSnapshot> getSnapshots();
+
+    HashCode getHash();
 }

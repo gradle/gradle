@@ -49,10 +49,7 @@ public class TaskCacheKeyCalculator {
         SortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = execution.getInputFilesSnapshot();
         for (Map.Entry<String, FileCollectionSnapshot> entry : inputFilesSnapshots.entrySet()) {
             FileCollectionSnapshot snapshot = entry.getValue();
-            DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
-            snapshot.appendToHasher(newHasher);
-            HashCode hash = newHasher.hash();
-            builder.appendInputPropertyHash(entry.getKey(), hash);
+            builder.appendInputPropertyHash(entry.getKey(), snapshot.getHash());
         }
 
         SortedSet<String> outputPropertyNamesForCacheKey = execution.getOutputPropertyNamesForCacheKey();

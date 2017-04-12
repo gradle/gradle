@@ -22,8 +22,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
 
@@ -38,8 +36,6 @@ public class DefaultClasspathHasher implements ClasspathHasher {
     @Override
     public HashCode hash(ClassPath classpath) {
         FileCollectionSnapshot snapshot = snapshotter.snapshot(new SimpleFileCollection(classpath.getAsFiles()), TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE);
-        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        snapshot.appendToHasher(hasher);
-        return hasher.hash();
+        return snapshot.getHash();
     }
 }

@@ -17,7 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -27,6 +29,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.File;
 import java.util.Iterator;
@@ -36,6 +39,9 @@ import java.util.Map;
 public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final TaskFilePropertyCompareStrategy compareStrategy;
+
+    private final HashCode hash;
+
     private final boolean pathIsAbsolute;
     private final Factory<List<File>> cachedElementsFactory = Factories.softReferenceCache(new Factory<List<File>>() {
         @Override
@@ -49,11 +55,11 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
             return doGetFiles();
         }
     });
-
-    public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareStrategy compareStrategy, boolean pathIsAbsolute) {
+    public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareStrategy compareStrategy, boolean pathIsAbsolute, HashCode hash) {
         this.snapshots = snapshots;
         this.compareStrategy = compareStrategy;
         this.pathIsAbsolute = pathIsAbsolute;
+        this.hash = hash;
     }
 
     @Override
@@ -68,12 +74,20 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
+        if (hash != null && oldSnapshot.getHash() != null && hash.equals(oldSnapshot.getHash())) {
+            return Iterators.emptyIterator();
+        }
         return compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType, pathIsAbsolute);
     }
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        compareStrategy.appendToHasher(hasher, snapshots.values());
+        hasher.putBytes(hash.asBytes());
+    }
+
+    @Override
+    public HashCode getHash() {
+        return hash;
     }
 
     @Override
@@ -106,22 +120,32 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
     public static class SerializerImpl extends AbstractSerializer<DefaultFileCollectionSnapshot> {
         private final SnapshotMapSerializer snapshotMapSerializer;
+        private final HashCodeSerializer hashCodeSerializer;
 
         public SerializerImpl(StringInterner stringInterner) {
             this.snapshotMapSerializer = new SnapshotMapSerializer(stringInterner);
+            this.hashCodeSerializer = new HashCodeSerializer();
         }
 
         public DefaultFileCollectionSnapshot read(Decoder decoder) throws Exception {
             TaskFilePropertyCompareStrategy compareStrategy = TaskFilePropertyCompareStrategy.values()[decoder.readSmallInt()];
             Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
+
             boolean pathIsUnique = decoder.readBoolean();
-            return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, pathIsUnique);
+            boolean hashIsPresent = decoder.readBoolean();
+            HashCode hash = hashIsPresent ? hashCodeSerializer.read(decoder) : null;
+            return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, pathIsUnique, hash);
         }
 
         public void write(Encoder encoder, DefaultFileCollectionSnapshot value) throws Exception {
             encoder.writeSmallInt(value.compareStrategy.ordinal());
             snapshotMapSerializer.write(encoder, value.snapshots);
             encoder.writeBoolean(value.pathIsAbsolute);
+            boolean hashPresent = value.hash != null;
+            encoder.writeBoolean(hashPresent);
+            if (hashPresent) {
+                hashCodeSerializer.write(encoder, value.hash);
+            }
         }
 
         @Override
@@ -131,12 +155,12 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
             }
 
             SerializerImpl rhs = (SerializerImpl) obj;
-            return Objects.equal(snapshotMapSerializer, rhs.snapshotMapSerializer);
+            return Objects.equal(snapshotMapSerializer, rhs.snapshotMapSerializer) && Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(super.hashCode(), snapshotMapSerializer);
+            return Objects.hashCode(super.hashCode(), snapshotMapSerializer, hashCodeSerializer);
         }
     }
 }

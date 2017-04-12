@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.base.Charsets
+import com.google.common.hash.HashCode
 import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.resources.DefaultRelativePath
@@ -28,15 +29,17 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
     def serializer = new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner)
+    def hashCode = stringHash("1")
 
     def "reads and writes the snapshot"() {
         when:
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
+        def overallHash = stringHash("123")
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
             "/1": new DefaultNormalizedFileSnapshot("/1", new DefaultRelativePath("1"), DirContentSnapshot.getInstance()),
             "/2": new DefaultNormalizedFileSnapshot("/2", new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
             "/3": new DefaultNormalizedFileSnapshot("/3", new DefaultRelativePath("3"), new FileHashSnapshot(hash))
-        ], UNORDERED, true), serializer)
+        ], UNORDERED, true, overallHash), serializer)
 
         then:
         out.snapshots.size() == 3
@@ -49,6 +52,7 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         out.snapshots['/3'].snapshot.hash == hash
         out.compareStrategy == UNORDERED
         out.pathIsAbsolute
+        out.getHash() == overallHash
     }
 
     def "should retain order in serialization"() {
@@ -58,9 +62,26 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
             "/3": new DefaultNormalizedFileSnapshot("/3", new DefaultRelativePath("3"), new FileHashSnapshot(hash)),
             "/2": new DefaultNormalizedFileSnapshot("/2", new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
             "/1": new DefaultNormalizedFileSnapshot("/1", new DefaultRelativePath("1"), DirContentSnapshot.getInstance())
-        ], ORDERED, true), serializer)
+        ], ORDERED, true, stringHash("321")), serializer)
 
         then:
         out.snapshots.keySet() as List == ['/3', '/2', '/1']
+    }
+
+    def "should support `null` as a hash"() {
+        when:
+        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
+        DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
+            "/3": new DefaultNormalizedFileSnapshot("/3", new DefaultRelativePath("3"), new FileHashSnapshot(hash)),
+            "/2": new DefaultNormalizedFileSnapshot("/2", new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
+            "/1": new DefaultNormalizedFileSnapshot("/1", new DefaultRelativePath("1"), DirContentSnapshot.getInstance())
+        ], ORDERED, true, null), serializer)
+
+        then:
+        out.hash == null
+    }
+
+    private static HashCode stringHash(String input) {
+        Hashing.md5().hashUnencodedChars(input)
     }
 }

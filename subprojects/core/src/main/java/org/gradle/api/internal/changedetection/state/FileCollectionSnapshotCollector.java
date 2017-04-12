@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Maps;
+import com.google.common.hash.HashCode;
 
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public class FileCollectionSnapshotCollector implements NormalizedFileSnapshotCo
         }
     }
 
-    public FileCollectionSnapshot finish() {
-        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, normalizationStrategy.isPathAbsolute());
+    public FileCollectionSnapshot finish(HashCode hash) {
+        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, normalizationStrategy.isPathAbsolute(), hash);
     }
 }
