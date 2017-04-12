@@ -230,6 +230,45 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
+    def "pluginManagement block supports defining repositories with layouts"() {
+        given:
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    ivy {
+                        url "http://repo.internal.net/ivy"
+                        layout("pattern") {
+                            ivy = '[organisation]/[module]/[revision]/[module]-[revision].ivy'
+                            artifact = '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+                            m2compatible true
+                        }
+                    }
+                    ivy {
+                        url "http://repo.internal.net/ivy"
+                        layout("maven")
+                    }
+                    ivy {
+                        url "http://repo.internal.net/ivy"
+                        layout("ivy")
+                    }
+                    ivy {
+                        url "http://repo.internal.net/ivy"
+                        layout("gradle")
+                    }
+                    ivy {
+                        url "http://repo.internal.net/ivy"
+                        artifactPattern '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+                        ivyPattern '[organisation]/[module]/[revision]/[module]-[revision].ivy'
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+
     void includesLinkToUserguide() {
         failure.assertThatCause(containsString("https://docs.gradle.org/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugin_management"))
     }

@@ -16,20 +16,28 @@
 
 package org.gradle.plugin.repository.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.plugin.repository.IvyPluginRepository;
+import org.gradle.util.ConfigureUtil;
 
 class DefaultIvyPluginRepository extends AbstractArtifactPluginRepository implements IvyPluginRepository {
     private static final String IVY = "ivy";
+
+    private String layoutName;
+    private Action<? extends RepositoryLayout> layoutAction;
+    private String artifactPattern;
+    private String ivyPattern;
 
     public DefaultIvyPluginRepository(
         FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices,
@@ -54,7 +62,46 @@ class DefaultIvyPluginRepository extends AbstractArtifactPluginRepository implem
                         }
                     });
                 }
+
+                if(layoutName != null) {
+                    if(layoutAction != null) {
+                        ivyArtifactRepository.layout(layoutName, layoutAction);
+                    } else {
+                        ivyArtifactRepository.layout(layoutName);
+                    }
+                }
+
+                if(artifactPattern != null) {
+                    ivyArtifactRepository.artifactPattern(artifactPattern);
+                }
+
+                if(ivyPattern != null) {
+                    ivyArtifactRepository.ivyPattern(ivyPattern);
+                }
             }
         });
+    }
+
+    @Override
+    public void artifactPattern(String pattern) {
+        this.artifactPattern = pattern;
+    }
+
+    @Override
+    public void ivyPattern(String pattern) {
+        this.ivyPattern = pattern;
+    }
+
+    public void layout(String layoutName) {
+        this.layoutName = layoutName;
+    }
+
+    public void layout(String layoutName, Closure config) {
+        layout(layoutName, ConfigureUtil.<RepositoryLayout>configureUsing(config));
+    }
+
+    public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
+        layout(layoutName);
+        layoutAction = config;
     }
 }
