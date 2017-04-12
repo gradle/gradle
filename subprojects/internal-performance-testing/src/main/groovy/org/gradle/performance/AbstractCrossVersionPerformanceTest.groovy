@@ -25,6 +25,7 @@ import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -43,9 +44,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
     @Rule
-    RetryRule retry = RetryRule.retryIf(this) { Throwable failure ->
-        failure.message?.contains("slower")
-    }
+    RetryRule retry = new PerformanceTestRetryRule()
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 

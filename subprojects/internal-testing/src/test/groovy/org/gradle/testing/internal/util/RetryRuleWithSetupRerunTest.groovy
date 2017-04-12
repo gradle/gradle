@@ -24,7 +24,7 @@ import static org.gradle.testing.internal.util.RetryRule.retryIf
 class RetryRuleWithSetupRerunTest extends SuperSpecification {
 
     @Rule
-    RetryRule retryRule = retryIf(this, { t -> t instanceof IOException })
+    RetryRule retryRule = retryIf({ t -> t instanceof IOException })
 
     int iteration = 0
 
