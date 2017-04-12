@@ -23,25 +23,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorkerRegistry, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationWorkerRegistry.class);
-    private final int maxWorkerCount;
-    private final Object lock = new Object();
+    private final Semaphore semaphore;
     private final AtomicInteger counter = new AtomicInteger();
+    private final AtomicInteger busyCount = new AtomicInteger();
+    private final WaitingForLeaseQueue waitingForLease = new WaitingForLeaseQueue();
+
     private final ThreadLocal<LinkedList<DefaultOperation>> operationsPerThread = new ThreadLocal<LinkedList<DefaultOperation>>() {
         @Override
         protected LinkedList<DefaultOperation> initialValue() {
             return Lists.newLinkedList();
         }
     };
-    private int operationCount;
 
     private final Root root = new Root();
 
     public DefaultBuildOperationWorkerRegistry(int maxWorkerCount) {
-        this.maxWorkerCount = maxWorkerCount;
+        this.semaphore = new Semaphore(maxWorkerCount);
         LOGGER.info("Using {} worker leases.", maxWorkerCount);
     }
 
@@ -62,25 +65,13 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
     }
 
     private BuildOperationWorkerRegistry.Completion doStartOperation(LeaseHolder parent) {
+
+        parent.waitForLease();
+        busyCount.incrementAndGet();
         int workerId = counter.incrementAndGet();
         DefaultOperation operation = new DefaultOperation(parent, workerId, Thread.currentThread());
-
-        synchronized (lock) {
-            while (!parent.grantLease()) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Build operation {} waiting for a lease. Currently {} worker(s) in use", operation.getDisplayName(), root.leasesInUse);
-                }
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-
-            operationCount++;
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Build operation {} started ({} worker(s) in use).", operation.getDisplayName(), root.leasesInUse);
-            }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Build operation {} started ({} worker(s) in use).", operation.getDisplayName(), busyCount);
         }
         // this can be done out of locking, because it's for the current thread in any case
         operationsPerThread.get().add(operation);
@@ -89,40 +80,33 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
 
     @Override
     public void stop() {
-        synchronized (lock) {
-            if (operationCount>0) {
-                throw new IllegalStateException("Some build operations have not been marked as completed.");
-            }
+        if (busyCount.get() > 0) {
+            throw new IllegalStateException("Some build operations have not been marked as completed.");
         }
     }
 
     private abstract class LeaseHolder {
         abstract String getDisplayName();
 
-        abstract boolean grantLease();
+        abstract void waitForLease();
 
         abstract void releaseLease();
     }
 
     private class Root extends LeaseHolder {
-        int leasesInUse;
-
         public String getDisplayName() {
             return "root";
         }
 
         @Override
-        boolean grantLease() {
-            if (leasesInUse >= maxWorkerCount) {
-                return false;
-            }
-            leasesInUse++;
-            return true;
+        void waitForLease() {
+            semaphore.acquireUninterruptibly();
         }
 
         @Override
         void releaseLease() {
-            leasesInUse--;
+            semaphore.release();
+            waitingForLease.wakeUpFirst();
         }
     }
 
@@ -130,7 +114,8 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
         private final LeaseHolder parent;
         private final int workerId;
         private final Thread ownerThread;
-        int children;
+        private volatile int children;
+        private final Object lock = new Object();
 
         DefaultOperation(LeaseHolder parent, int workerId, Thread ownerThread) {
             this.parent = parent;
@@ -144,20 +129,31 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
         }
 
         @Override
-        boolean grantLease() {
-            if (children == 0 || root.grantLease()) {
-                children++;
-                return true;
+        void waitForLease() {
+            while (children != 0 && !semaphore.tryAcquire()) {
+                synchronized (lock) {
+                    waitingForLease.add(this);
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+
             }
-            return false;
+            synchronized (lock) {
+                children++;
+            }
         }
 
         @Override
         void releaseLease() {
-            children--;
-            if (children > 0) {
-                root.releaseLease();
+            synchronized (lock) {
+                if (--children > 0) {
+                    semaphore.release();
+                }
             }
+            waitingForLease.wakeUpFirst();
         }
 
         @Override
@@ -171,18 +167,18 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
                 // Not implemented - not yet required. Please implement if required
                 throw new UnsupportedOperationException("Must complete operation from owner thread.");
             }
-            synchronized (lock) {
-                parent.releaseLease();
-                operationCount--;
-                lock.notifyAll();
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Build operation {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
-                }
 
-                if (children != 0) {
-                    throw new IllegalStateException("Some child operations have not yet completed.");
-                }
+            busyCount.decrementAndGet();
+            parent.releaseLease();
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Build operation {} completed ({} worker(s) in use)", getDisplayName(), busyCount);
             }
+
+            if (children != 0) {
+                throw new IllegalStateException("Some child operations have not yet completed.");
+            }
+
             // doesn't have to be done under lock, since it's all done for the current thread
             popOperation();
         }
@@ -192,6 +188,17 @@ public class DefaultBuildOperationWorkerRegistry implements BuildOperationWorker
             operations.remove(this);
             if (operations.isEmpty()) {
                 operationsPerThread.remove();
+            }
+        }
+    }
+
+    private class WaitingForLeaseQueue extends LinkedBlockingQueue<DefaultOperation> {
+        public void wakeUpFirst() {
+            DefaultOperation operation = waitingForLease.poll();
+            if (operation != null) {
+                synchronized (operation.lock) {
+                    operation.lock.notify();
+                }
             }
         }
     }
