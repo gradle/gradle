@@ -165,11 +165,10 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    @Ignore("Failure under investigation - net.rubygrapefruit.platform.NativeException: Unexpected native library version loaded. Expected 19, was 24.")
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
-        val differentKotlinVersion = "1.0.6"
-        val expectedKotlinCompilerVersionString = "1.0.6-release-127"
+        val differentKotlinVersion = "1.0.7"
+        val expectedKotlinCompilerVersionString = "1.0.7-release-1"
 
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
