@@ -16,8 +16,6 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Task;
-
 import java.util.Set;
 
 /*
@@ -27,14 +25,14 @@ import java.util.Set;
  * @since 4.0
  */
 public class CalculateTaskGraphOperationResult {
-    private final Set<Task> requestedTasks;
+    private final Set<String> requestedTaskPaths;
 
-    public CalculateTaskGraphOperationResult(Set<Task> requestedTasks) {
-        this.requestedTasks = requestedTasks;
+    public CalculateTaskGraphOperationResult(Set<String> requestedTaskPaths) {
+        this.requestedTaskPaths = requestedTaskPaths;
     }
 
-    public Set<Task> getRequestedTasks() {
-        return requestedTasks;
+    public Set<String> getRequestedTaskPaths() {
+        return requestedTaskPaths;
     }
 
 }

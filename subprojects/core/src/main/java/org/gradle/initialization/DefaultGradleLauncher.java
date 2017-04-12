@@ -19,6 +19,8 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -35,6 +37,7 @@ import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
@@ -236,7 +239,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
                 projectsEvaluated();
             }
             // make requested tasks available from according build operation.
-            buildOperationContext.setResult(new CalculateTaskGraphOperationResult(gradle.getTaskGraph().getRequestedTasks()));
+            buildOperationContext.setResult(new CalculateTaskGraphOperationResult(CollectionUtils.collect(gradle.getTaskGraph().getRequestedTasks(), new Transformer<String, Task>() {
+                @Override
+                public String transform(Task task) {
+                    return task.getPath();
+                }
+            })));
         }
     }
 
