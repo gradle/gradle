@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
@@ -48,8 +49,7 @@ public class MapFileTreeTest {
     @Before
     public void setup() {
         NativeServicesTestFixture.initialize();
-        DirectoryFileTreeFactory directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory();
-        tree = new MapFileTree(rootDir, TestFiles.fileSystem(), directoryFileTreeFactory);
+        tree = new MapFileTree(rootDir, TestFiles.fileSystem(), directoryFileTreeFactory());
     }
 
     @Test

@@ -64,7 +64,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         super.setUp()
         NativeServicesTestFixture.initialize()
         fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
-        fileCopier = new FileCopier(DirectInstantiator.INSTANCE, fileResolverStub, context.mock(FileLookup), new DefaultDirectoryFileTreeFactory())
+        fileCopier = new FileCopier(DirectInstantiator.INSTANCE, fileResolverStub, context.mock(FileLookup), directoryFileTreeFactory())
     }
 
     @Test public void testFileSetConstructionWithBaseDir() {
