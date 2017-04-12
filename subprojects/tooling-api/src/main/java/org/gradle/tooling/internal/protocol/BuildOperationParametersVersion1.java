@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @deprecated 1.2-rc-1. Use {@link BuildParameters} instead.
  */
 @Deprecated
-public interface BuildOperationParametersVersion1 extends LongRunningOperationParametersVersion1 {
+public interface BuildOperationParametersVersion1 {
     /**
      * @since 1.0-milestone-3
      */
