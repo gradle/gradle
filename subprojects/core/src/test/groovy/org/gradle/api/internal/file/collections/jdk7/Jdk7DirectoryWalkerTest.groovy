@@ -41,6 +41,8 @@ import spock.lang.Unroll
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
 
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
+
 @UsesNativeServices
 class Jdk7DirectoryWalkerTest extends Specification {
     @Rule
@@ -62,7 +64,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         setup:
         System.setProperty("file.encoding", fileEncoding)
         Charset.defaultCharset = null
-        def directoryWalkerFactory = new DirectoryFileTree(tmpDir.createDir("root")).directoryWalkerFactory
+        def directoryWalkerFactory = directoryFileTreeFactory().create(tmpDir.createDir("root")).directoryWalkerFactory
         directoryWalkerFactory.reset()
         expect:
         directoryWalkerFactory.create().class.simpleName == expectedClassName
