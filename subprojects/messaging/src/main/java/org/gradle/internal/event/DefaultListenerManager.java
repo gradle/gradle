@@ -17,6 +17,7 @@
 package org.gradle.internal.event;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
@@ -48,50 +49,58 @@ public class DefaultListenerManager implements ListenerManager {
     }
 
     public void addListener(Object listener) {
+        ListenerDetails details = null;
         synchronized (lock) {
             if (!allListeners.containsKey(listener)) {
-                ListenerDetails details = new ListenerDetails(listener);
+                details = new ListenerDetails(listener);
                 allListeners.put(listener, details);
-                for (EventBroadcast<?> broadcaster : broadcasters.values()) {
-                    broadcaster.maybeAdd(details);
-                }
+            }
+        }
+        if (details != null) {
+            for (EventBroadcast<?> broadcaster : broadcasters.values()) {
+                broadcaster.maybeAdd(details);
             }
         }
     }
 
     public void removeListener(Object listener) {
+        ListenerDetails details;
         synchronized (lock) {
-            ListenerDetails details = allListeners.remove(listener);
+            details = allListeners.remove(listener);
             if (details != null) {
                 details.disconnect();
-                details.listenerLock.lock();
-                try {
-                    for (EventBroadcast<?> broadcaster : broadcasters.values()) {
-                        broadcaster.maybeRemove(details);
-                    }
-                } finally {
-                    details.listenerLock.unlock();
+            }
+        }
+        if (details != null) {
+            // block until the listener has finished notifying.
+            details.notifyingLock.lock();
+            try {
+                for (EventBroadcast<?> broadcaster : broadcasters.values()) {
+                    broadcaster.maybeRemove(details);
                 }
+            } finally {
+                details.notifyingLock.unlock();
             }
         }
     }
 
     public void useLogger(Object logger) {
+        ListenerDetails details = null;
         synchronized (lock) {
             if (!allLoggers.containsKey(logger)) {
-                ListenerDetails details = new ListenerDetails(logger);
+                details = new ListenerDetails(logger);
                 allLoggers.put(logger, details);
-                for (EventBroadcast<?> broadcaster : broadcasters.values()) {
-                    broadcaster.maybeSetLogger(details);
-                }
+            }
+        }
+        if (details != null) {
+            for (EventBroadcast<?> broadcaster : broadcasters.values()) {
+                broadcaster.maybeSetLogger(details);
             }
         }
     }
 
     public <T> T getBroadcaster(Class<T> listenerClass) {
-        synchronized (lock) {
-            return getBroadcasterInternal(listenerClass).getBroadcaster();
-        }
+        return getBroadcasterInternal(listenerClass).getBroadcaster();
     }
 
     public <T> ListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
@@ -129,10 +138,10 @@ public class DefaultListenerManager implements ListenerManager {
         private final ListenerDispatch dispatch;
         private final ListenerDispatch dispatchNoLogger;
 
-        // The following state is protected by lock
-        private ProxyDispatchAdapter<T> source;
+        private volatile ProxyDispatchAdapter<T> source;
         private final Set<ListenerDetails> listeners = new LinkedHashSet<ListenerDetails>();
-        private final ReentrantLock dispatchLock = new ReentrantLock();
+        private final List<Runnable> queuedOperations = Lists.newLinkedList();
+        private final ReentrantLock broadcasterLock = new ReentrantLock();
         private ListenerDetails logger;
         private Dispatch<MethodInvocation> parentDispatch;
         private ImmutableList<Dispatch<MethodInvocation>> allWithLogger = ImmutableList.of();
@@ -157,45 +166,92 @@ public class DefaultListenerManager implements ListenerManager {
             return includeLogger ? dispatch : dispatchNoLogger;
         }
 
-        // Must be holding lock
         T getBroadcaster() {
             if (source == null) {
-                source = new ProxyDispatchAdapter<T>(this, type);
+                synchronized (this) {
+                    if (source == null) {
+                        source = new ProxyDispatchAdapter<T>(this, type);
+                    }
+                }
             }
             return source.getSource();
         }
 
-        // Must be holding lock
         private void invalidateDispatchCache() {
             ensureAllWithLoggerInitialized();
             ensureAllWithoutLoggerInitialized();
         }
 
-        // Must be holding lock
-        void maybeAdd(ListenerDetails listener) {
+        void maybeAdd(final ListenerDetails listener) {
             if (type.isInstance(listener.listener)) {
-                listeners.add(listener);
-                invalidateDispatchCache();
-            }
-        }
-
-        // Must be holding lock
-        void maybeRemove(ListenerDetails listener) {
-            if (listeners.remove(listener)) {
-                invalidateDispatchCache();
-            }
-            // Another thread may be using listener
-        }
-
-        // Must be holding lock
-        void maybeSetLogger(ListenerDetails candidate) {
-            if (type.isInstance(candidate.listener)) {
-                if (logger == null && parent != null) {
-                    parentDispatch = parent.getBroadcasterInternal(type).getDispatch(false);
+                if (broadcasterLock.tryLock()) {
+                    try {
+                        listeners.add(listener);
+                        invalidateDispatchCache();
+                    } finally {
+                        broadcasterLock.unlock();
+                    }
+                } else {
+                    synchronized (queuedOperations) {
+                        queuedOperations.add(new Runnable() {
+                            @Override
+                            public void run() {
+                                listeners.add(listener);
+                            }
+                        });
+                    }
                 }
-                logger = candidate;
-                invalidateDispatchCache();
             }
+        }
+
+        void maybeRemove(final ListenerDetails listener) {
+            if (broadcasterLock.tryLock()) {
+                try {
+                    if (listeners.remove(listener)) {
+                        invalidateDispatchCache();
+                    }
+                } finally {
+                    broadcasterLock.unlock();
+                }
+            } else {
+                synchronized (queuedOperations) {
+                    queuedOperations.add(new Runnable() {
+                        @Override
+                        public void run() {
+                            listeners.remove(listener);
+                        }
+                    });
+                }
+            }
+        }
+
+        void maybeSetLogger(final ListenerDetails candidate) {
+            if (type.isInstance(candidate.listener)) {
+                if (broadcasterLock.tryLock()) {
+                    try {
+                        doSetLogger(candidate);
+                        invalidateDispatchCache();
+                    } finally {
+                        broadcasterLock.unlock();
+                    }
+                } else {
+                    synchronized (queuedOperations) {
+                        queuedOperations.add(new Runnable() {
+                            @Override
+                            public void run() {
+                                doSetLogger(candidate);
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        private void doSetLogger(ListenerDetails candidate) {
+            if (logger == null && parent != null) {
+                parentDispatch = parent.getBroadcasterInternal(type).getDispatch(false);
+            }
+            logger = candidate;
         }
 
         private ImmutableList<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
@@ -239,11 +295,11 @@ public class DefaultListenerManager implements ListenerManager {
 
         private void takeOwnership() {
             // Mark this listener type as being notified
-            if (dispatchLock.isHeldByCurrentThread()) {
+            if (broadcasterLock.isHeldByCurrentThread()) {
                 throw new IllegalStateException(String.format("Cannot notify listeners of type %s as these listeners are already being notified.", type.getSimpleName()));
             }
 
-            dispatchLock.lock();
+            broadcasterLock.lock();
         }
 
         private ImmutableList<Dispatch<MethodInvocation>> buildAllWithLogger() {
@@ -267,7 +323,18 @@ public class DefaultListenerManager implements ListenerManager {
                     listener.endNotification();
                 }
             }
-            dispatchLock.unlock();
+            try {
+                synchronized (queuedOperations) {
+                    if (!queuedOperations.isEmpty()) {
+                        for (Runnable queuedOperation : queuedOperations) {
+                            queuedOperation.run();
+                        }
+                        invalidateDispatchCache();
+                    }
+                }
+            } finally {
+                broadcasterLock.unlock();
+            }
         }
 
         private class ListenerDispatch extends AbstractBroadcastDispatch<T> {
@@ -299,7 +366,7 @@ public class DefaultListenerManager implements ListenerManager {
         final Object listener;
         final Dispatch<MethodInvocation> dispatch;
         final AtomicBoolean removed = new AtomicBoolean();
-        final ReentrantLock listenerLock = new ReentrantLock();
+        final ReentrantLock notifyingLock = new ReentrantLock();
 
         public ListenerDetails(Object listener) {
             this.listener = listener;
@@ -318,11 +385,11 @@ public class DefaultListenerManager implements ListenerManager {
         }
 
         public void startNotification() {
-            listenerLock.lock();
+            notifyingLock.lock();
         }
 
         public void endNotification() {
-            listenerLock.unlock();
+            notifyingLock.unlock();
         }
     }
 }
