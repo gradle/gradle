@@ -233,12 +233,12 @@ class DependencyManagementBuildScopeServices {
                                                                 ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
                                                                 CacheLockingManager cacheLockingManager,
-                                                                ServiceRegistry serviceRegistry,
+                                                                List<ResourceConnectorFactory> resourceConnectorFactories,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ProducerGuard<URI> producerGuard) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new RepositoryTransportFactory(
-            serviceRegistry.getAll(ResourceConnectorFactory.class),
+            resourceConnectorFactories,
             progressLoggerFactory,
             temporaryFileProvider,
             externalResourceIndex,
@@ -270,12 +270,14 @@ class DependencyManagementBuildScopeServices {
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
-                                                                ServiceRegistry serviceRegistry,
+                                                                BuildOperationExecutor buildOperationExecutor,
+                                                                List<ResolverProviderFactory> resolverFactories,
                                                                 ImmutableAttributesFactory cache,
                                                                 ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                 ModuleExclusions moduleExclusions) {
         return new DefaultArtifactDependencyResolver(
-            serviceRegistry,
+            buildOperationExecutor,
+            resolverFactories,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,
@@ -297,16 +299,12 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectLocalComponentProvider(projectRegistry, metaDataBuilder, moduleIdentifierFactory);
     }
 
-    LocalComponentRegistry createLocalComponentRegistry(ServiceRegistry serviceRegistry) {
-        List<LocalComponentProvider> providers = serviceRegistry.getAll(LocalComponentProvider.class);
+    LocalComponentRegistry createLocalComponentRegistry(List<LocalComponentProvider> providers) {
         return new DefaultLocalComponentRegistry(providers);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry,
+    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, List<ProjectArtifactBuilder> delegateBuilders,
                                                               ComponentIdentifierFactory componentIdentifierFactory) {
-        // This doesn't seem to consistently load all ProjectArtifactBuilder instances provided by modules.
-        // For embedded integration tests, I'm not convinced that the CompositeProjectArtifactBuilder will always be registered.
-        List<ProjectArtifactBuilder> delegateBuilders = serviceRegistry.getAll(ProjectArtifactBuilder.class);
         ProjectArtifactBuilder artifactBuilder = new AggregatingProjectArtifactBuilder(delegateBuilders);
         return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder, componentIdentifierFactory);
     }

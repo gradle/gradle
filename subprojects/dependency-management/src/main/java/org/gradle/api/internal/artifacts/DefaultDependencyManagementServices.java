@@ -89,6 +89,8 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.List;
+
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 
     private final ServiceRegistry parent;
@@ -209,8 +211,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 
-        GlobalDependencyResolutionRules createModuleMetadataHandler(ComponentMetadataProcessor componentMetadataProcessor, ComponentModuleMetadataProcessor moduleMetadataProcessor, ServiceRegistry serviceRegistry) {
-            return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor, serviceRegistry.getAll(DependencySubstitutionRules.class));
+        GlobalDependencyResolutionRules createModuleMetadataHandler(ComponentMetadataProcessor componentMetadataProcessor, ComponentModuleMetadataProcessor moduleMetadataProcessor, List<DependencySubstitutionRules> rules) {
+            return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor, rules);
         }
 
         ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver,

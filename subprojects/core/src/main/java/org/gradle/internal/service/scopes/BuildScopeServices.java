@@ -66,8 +66,8 @@ import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
-import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
+import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.provider.ProviderFactory;
@@ -239,8 +239,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new LifecycleProjectEvaluator(projectConfigurator, withActionsEvaluator);
     }
 
-    protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(ServiceRegistry registry) {
-        return new DefaultTaskClassValidatorExtractor(registry.getAll(PropertyAnnotationHandler.class));
+    protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(List<PropertyAnnotationHandler> annotationHandlers) {
+        return new DefaultTaskClassValidatorExtractor(annotationHandlers);
     }
 
     protected TaskClassInfoStore createTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {
@@ -449,8 +449,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildScanRequest();
     }
 
-    BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator, StartParameter startParameter) {
-        List<BuildCacheServiceRegistration> allBuildCacheServiceFactories = getAll(BuildCacheServiceRegistration.class);
+    BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator, StartParameter startParameter, List<BuildCacheServiceRegistration> allBuildCacheServiceFactories) {
         return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories, startParameter);
     }
 

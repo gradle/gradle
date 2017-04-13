@@ -66,6 +66,8 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
+import java.util.List;
+
 /**
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
  */
@@ -144,7 +146,7 @@ public class GradleUserHomeScopeServices {
         return new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, ServiceRegistry serviceRegistry) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), serviceRegistry.getAll(CachedJarFileStore.class));
+    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, List<CachedJarFileStore> fileStores) {
+        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), fileStores);
     }
 }

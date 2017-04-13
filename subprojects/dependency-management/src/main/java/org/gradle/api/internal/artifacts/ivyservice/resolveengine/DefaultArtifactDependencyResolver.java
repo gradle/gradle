@@ -51,7 +51,6 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,17 +58,18 @@ import java.util.List;
 
 public class DefaultArtifactDependencyResolver implements ArtifactDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultArtifactDependencyResolver.class);
-    private final ServiceRegistry serviceRegistry;
     private final DependencyDescriptorFactory dependencyDescriptorFactory;
+    private final List<ResolverProviderFactory> resolverFactories;
     private final ResolveIvyFactory ivyFactory;
     private final VersionComparator versionComparator;
     private final ImmutableAttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ModuleExclusions moduleExclusions;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultArtifactDependencyResolver(ServiceRegistry serviceRegistry, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
-                                             VersionComparator versionComparator, ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
-        this.serviceRegistry = serviceRegistry;
+    public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor, List<ResolverProviderFactory> resolverFactories, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory, VersionComparator versionComparator, ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
         this.versionComparator = versionComparator;
@@ -85,7 +85,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, consumerSchema, moduleIdentifierFactory, moduleExclusions);
 
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(resolvers.getArtifactResolver());
-        BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
         DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, artifactResolver, attributesFactory, buildOperationExecutor, moduleExclusions);
 
         // Resolve the dependency graph
@@ -104,7 +103,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     private ComponentResolversChain createResolvers(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler) {
-        List<ResolverProviderFactory> resolverFactories = allServices(ResolverProviderFactory.class);
         List<ComponentResolvers> resolvers = Lists.newArrayList();
         for (ResolverProviderFactory factory : resolverFactories) {
             if (factory.canCreate(resolveContext)) {
@@ -133,10 +131,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         }
         conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
-    }
-
-    private <T> List<T> allServices(Class<T> serviceType) {
-        return Lists.newArrayList(serviceRegistry.getAll(serviceType));
     }
 
     private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {

@@ -26,7 +26,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -41,6 +40,8 @@ import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactor
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
+
+import java.util.List;
 
 public class LauncherServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
     @Override
@@ -70,7 +71,8 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
     }
 
     static class ToolingGlobalScopeServices {
-        BuildExecuter createBuildExecuter(ServiceRegistry globalServices,
+        BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
+                                          List<SubscribableBuildActionRunnerRegistration> registrations,
                                           GradleLauncherFactory gradleLauncherFactory,
                                           BuildOperationExecutor buildOperationExecutor,
                                           BuildOperationService buildOperationService,
@@ -86,9 +88,9 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
                             new SubscribableBuildActionRunner(
                                 new RunAsBuildOperationBuildActionRunner(
                                     new ValidatingBuildActionRunner(
-                                        new ChainingBuildActionRunner(globalServices.getAll(BuildActionRunner.class))),
+                                        new ChainingBuildActionRunner(buildActionRunners)),
                                     buildOperationExecutor),
-                                buildOperationService, globalServices.getAll(SubscribableBuildActionRunnerRegistration.class))),
+                                buildOperationService, registrations)),
                         fileWatcherFactory,
                         listenerManager,
                         styledTextOutputFactory,
