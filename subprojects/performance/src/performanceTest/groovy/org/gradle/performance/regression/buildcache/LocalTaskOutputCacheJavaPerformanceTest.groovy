@@ -55,16 +55,14 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
 
     @Unroll
     def "clean #tasks on #testProject with local cache (parallel: #parallel)"() {
-        def tasksToRun = tasks.split(' ') as List
-        if (parallel) {
-            tasksToRun.add("--parallel")
-        }
-
         given:
         runner.previousTestIds = ["clean $tasks on $testProject with local cache"]
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasksToRun
+        runner.tasksToRun = tasks.split(' ') as List
+        if (parallel) {
+            runner.args += "--parallel"
+        }
 
         when:
         def result = runner.run()
@@ -73,8 +71,8 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, tasks] << scenarios
-        parallel << [true, false]
+        [testProject, tasks] << scenarios * 2
+        parallel << [true] * scenarios.size() + [false] * scenarios.size()
     }
 
     def "clean #tasks on #testProject with empty local cache"() {
