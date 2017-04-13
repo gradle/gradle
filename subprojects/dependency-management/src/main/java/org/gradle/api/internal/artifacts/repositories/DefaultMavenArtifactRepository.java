@@ -73,6 +73,10 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return url == null ? null : fileResolver.resolveUri(url);
     }
 
+    public void setUrl(URI url) {
+        this.url = url;
+    }
+
     public void setUrl(Object url) {
         this.url = url;
     }
