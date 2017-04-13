@@ -167,6 +167,22 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertThat(s1, equalTo(s4))      // application ⊇ java
     }
 
+    @Test
+    fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
+        withFile("settings.gradle", """
+            include 'a'
+            project(':a').buildFileName = 'build.gradle.kts'
+        """)
+        withFile("a/build.gradle.kts")
+
+        val aTasks = build(":a:tasks").output
+        assertThat(aTasks, containsString("gskProjectAccessors"))
+        assertThat(aTasks, not(containsString("gskGenerateAccessors")))
+
+        val rootTasks = build(":tasks").output
+        assertThat(rootTasks, allOf(containsString("gskProjectAccessors"), containsString("gskGenerateAccessors")))
+    }
+
     private fun withAutomaticAccessors() {
         withFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
     }
