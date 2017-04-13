@@ -136,6 +136,24 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         e.message == 'You must specify a URL for a Maven repository.'
     }
 
+    def "create repository from strongly typed URI"() {
+        given:
+        def uri = new URI("http://localhost:9090/repo")
+        _ * resolver.resolveUri(_) >> uri
+        transportFactory.createTransport(_, 'repo', _) >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = uri
+
+        when:
+        def repo = repository.createRealResolver()
+
+        then:
+        repo instanceof MavenResolver
+        repo.root == uri
+    }
+
     private RepositoryTransport transport() {
         return Mock(RepositoryTransport) {
             getRepository() >> resourceRepository
