@@ -175,7 +175,7 @@ public class ZipSnapshotTree implements SnapshotTree {
                 snapshot = new HashContentSnapshot(getType(), hasher.hash());
                 return snapshot;
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw new UncheckedIOException(String.format("Failed to hash file '%s' in Jar found on classpath", getPath()), e);
             }
         }
 

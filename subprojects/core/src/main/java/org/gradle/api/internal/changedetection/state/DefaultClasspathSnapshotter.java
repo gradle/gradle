@@ -55,15 +55,12 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     private class ClasspathEntrySnapshotter implements ResourceSnapshotter {
-
         @Override
         public void snapshot(SnapshotTree details, SnapshotCollector collector) {
             SnapshottableResource root = details.getRoot();
             if (root != null && root.getType() == FileType.RegularFile) {
                 HashCode signatureForClass = root.getContent().getContentMd5();
-                if (signatureForClass != null) {
-                    collector.recordSnapshot(root, signatureForClass);
-                }
+                collector.recordSnapshot(root, signatureForClass);
             }
         }
     }
