@@ -223,14 +223,6 @@ allprojects {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
     }
-
-    //make sure all tasks run after delete tasks
-    def deleteTasks = tasks.withType(Delete)
-    tasks.matching { task ->
-        !(task instanceof Delete) && !(task.name in [ 'killExistingDaemons', 'tasks' ])
-    }.all {
-        mustRunAfter deleteTasks
-    }
 }
 
 subprojects {
