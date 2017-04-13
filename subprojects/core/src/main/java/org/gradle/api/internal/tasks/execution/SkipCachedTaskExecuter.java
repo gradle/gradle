@@ -76,7 +76,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         @Override
                         public void readFrom(final InputStream input) {
                             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-                            packer.unpack(taskOutputs, input, taskOutputOriginFactory.createReader(task));
+                            packer.unpack(taskOutputs.getFileProperties(), input, taskOutputOriginFactory.createReader(task));
                             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
                         }
                     });
@@ -101,7 +101,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         @Override
                         public void writeTo(OutputStream output) {
                             LOGGER.info("Packing {}", task.getPath());
-                            packer.pack(taskOutputs, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+                            packer.pack(taskOutputs.getFileProperties(), output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
                         }
                     });
                 } else {

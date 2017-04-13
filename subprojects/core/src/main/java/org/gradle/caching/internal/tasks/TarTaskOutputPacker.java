@@ -34,7 +34,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
@@ -51,7 +50,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -76,7 +77,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(final TaskOutputsInternal taskOutputs, OutputStream output, final TaskOutputOriginWriter writeOrigin) {
+    public void pack(final SortedSet<TaskOutputFilePropertySpec> propertySpecs, OutputStream output, final TaskOutputOriginWriter writeOrigin) {
         IoActions.withResource(new TarOutputStream(output, "utf-8"), new Action<TarOutputStream>() {
             @Override
             public void execute(TarOutputStream outputStream) {
@@ -85,7 +86,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 outputStream.setAddPaxHeadersForNonAsciiNames(true);
                 try {
                     packMetadata(writeOrigin, outputStream);
-                    pack(taskOutputs, outputStream);
+                    pack(propertySpecs, outputStream);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -107,8 +108,8 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private void pack(TaskOutputsInternal taskOutputs, TarOutputStream outputStream) {
-        for (TaskOutputFilePropertySpec spec : taskOutputs.getFileProperties()) {
+    private void pack(Collection<TaskOutputFilePropertySpec> propertySpecs, TarOutputStream outputStream) {
+        for (TaskOutputFilePropertySpec spec : propertySpecs) {
             try {
                 packProperty((CacheableTaskOutputFilePropertySpec) spec, outputStream);
             } catch (Exception ex) {
@@ -117,7 +118,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     }
 
-    private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final TarOutputStream outputStream) throws IOException {
+    private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, TarOutputStream outputStream) throws IOException {
         String propertyName = propertySpec.getPropertyName();
         File outputFile = propertySpec.getOutputFile();
         if (outputFile == null) {
@@ -207,12 +208,12 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(final TaskOutputsInternal taskOutputs, InputStream input, final TaskOutputOriginReader readOrigin) {
+    public void unpack(final SortedSet<TaskOutputFilePropertySpec> propertySpecs, InputStream input, final TaskOutputOriginReader readOrigin) {
         IoActions.withResource(new TarInputStream(input), new Action<TarInputStream>() {
             @Override
             public void execute(TarInputStream tarInput) {
                 try {
-                    unpack(taskOutputs, tarInput, readOrigin);
+                    unpack(propertySpecs, tarInput, readOrigin);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -220,8 +221,8 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         });
     }
 
-    private void unpack(TaskOutputsInternal taskOutputs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
-        Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
+    private void unpack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
+        Map<String, TaskOutputFilePropertySpec> propertySpecsMap = Maps.uniqueIndex(propertySpecs, new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
@@ -244,7 +245,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 }
 
                 String propertyName = matcher.group(2);
-                CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
+                CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecsMap.get(propertyName);
                 if (propertySpec == null) {
                     throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
                 }
