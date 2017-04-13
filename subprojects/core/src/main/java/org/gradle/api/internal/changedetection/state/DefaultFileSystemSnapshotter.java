@@ -97,12 +97,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private FileTreeSnapshot doSnapshot(DirectoryFileTree directoryTree) {
-        FileTreeSnapshot snapshot;
         String path = getPath(directoryTree.getDir());
         List<FileSnapshot> elements = Lists.newArrayList();
         directoryTree.visit(new FileVisitorImpl(elements));
-        snapshot = new DirectoryTreeDetails(path, ImmutableList.copyOf(elements));
-        return snapshot;
+        return new DirectoryTreeDetails(path, ImmutableList.copyOf(elements));
     }
 
     private String getPath(File file) {

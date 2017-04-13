@@ -45,7 +45,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         cache(_) >> cacheBuilder
     }
     CachedJarFileStore jarFileStore = Stub(CachedJarFileStore) {
-        getJarFileStoreDirectory() >> testDir.file("other-store")
+        getFileStoreRoots() >> [testDir.file("other-store")]
     }
     JarCache jarCache = Mock(JarCache)
 

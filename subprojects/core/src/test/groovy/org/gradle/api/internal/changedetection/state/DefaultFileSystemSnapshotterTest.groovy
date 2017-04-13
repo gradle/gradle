@@ -27,7 +27,8 @@ import spock.lang.Specification
 class DefaultFileSystemSnapshotterTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileHasher = new DefaultFileHasher()
-    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), new DefaultFileSystemMirror())
+    def cacheDir = tmpDir.createDir("cached-things")
+    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), new DefaultFileSystemMirror([]))
 
     def "snapshots a file and caches the result"() {
         def f = tmpDir.createFile("f")

@@ -49,7 +49,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     }
     def fileSystem = TestFiles.fileSystem()
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
-    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror())
+    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror([]))
     def classpathHasher = new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher())
     def snapshotter = new DefaultClasspathSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter, classpathHasher)
 

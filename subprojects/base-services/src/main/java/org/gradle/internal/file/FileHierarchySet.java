@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.file;
 
 import java.io.File;
-import java.util.List;
 
 /**
- * Represents a store of cached and immutable files. Once added to a file store, files should not be mutated in place.
+ * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
  */
-public interface CachedJarFileStore {
+public interface FileHierarchySet {
+    boolean contains(File file);
+
+    boolean contains(String path);
+
     /**
-     * Returns the root directories of the store.
+     * Returns a set that contains the union of this set and the given directory. The set contains the directory itself, plus all its descendants.
      */
-    List<File> getFileStoreRoots();
+    FileHierarchySet plus(File dir);
 }

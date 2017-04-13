@@ -20,52 +20,86 @@ import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.internal.classpath.CachedJarFileStore;
+import org.gradle.internal.file.DefaultFileHierarchySet;
+import org.gradle.internal.file.FileHierarchySet;
 
+import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemMirror, TaskOutputsGenerationListener {
-    // Map from interned absolute path for a file to known details for the file. Currently not shared with trees
+    // Maps from interned absolute path for a file to known details for the file. Currently not shared with trees
     private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
-    // Map from interned absolute path for a directory to known details for the directory.
+    private final Map<String, FileSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSnapshot>();
+    // Maps from interned absolute path for a directory to known details for the directory.
     private final Map<String, FileTreeSnapshot> trees = new ConcurrentHashMap<String, FileTreeSnapshot>();
+    private final Map<String, FileTreeSnapshot> cacheTrees = new ConcurrentHashMap<String, FileTreeSnapshot>();
+    private final FileHierarchySet cachedDirectories;
+
+    public DefaultFileSystemMirror(List<CachedJarFileStore> fileStores) {
+        FileHierarchySet cachedDirectories = DefaultFileHierarchySet.of();
+        for (CachedJarFileStore fileStore : fileStores) {
+            for (File file : fileStore.getFileStoreRoots()) {
+                cachedDirectories = cachedDirectories.plus(file);
+            }
+        }
+        this.cachedDirectories = cachedDirectories;
+    }
 
     @Nullable
     @Override
     public FileSnapshot getFile(String path) {
-        return files.get(path);
+        if (cachedDirectories.contains(path)) {
+            return cacheFiles.get(path);
+        } else {
+            return files.get(path);
+        }
     }
 
     @Override
     public void putFile(FileSnapshot file) {
-        files.put(file.getPath(), file);
+        if (cachedDirectories.contains(file.getPath())) {
+            cacheFiles.put(file.getPath(), file);
+        } else {
+            files.put(file.getPath(), file);
+        }
     }
 
     @Nullable
     @Override
     public FileTreeSnapshot getDirectoryTree(String path) {
-        return trees.get(path);
+        if (cachedDirectories.contains(path)) {
+            return cacheTrees.get(path);
+        } else {
+            return trees.get(path);
+        }
     }
 
     @Override
     public void putDirectory(FileTreeSnapshot directory) {
-        trees.put(directory.getPath(), directory);
+        if (cachedDirectories.contains(directory.getPath())) {
+            cacheTrees.put(directory.getPath(), directory);
+        } else {
+            trees.put(directory.getPath(), directory);
+        }
     }
 
     @Override
     public void beforeTaskOutputsGenerated() {
-        // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
-        throwAwayAllCachedState();
+        // When the task outputs are generated, throw away all state for files that do not live in an append-only cache.
+        // This is intentionally very simple, to be improved later
+        files.clear();
+        trees.clear();
     }
 
     @Override
     public void buildFinished(BuildResult result) {
-        // We throw away all cached state between builds
-        throwAwayAllCachedState();
-    }
-
-    private void throwAwayAllCachedState() {
+        // We throw away all state between builds
         files.clear();
+        cacheFiles.clear();
         trees.clear();
+        cacheTrees.clear();
     }
 }

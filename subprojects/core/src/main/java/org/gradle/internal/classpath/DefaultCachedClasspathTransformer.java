@@ -94,7 +94,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             prefixes = new ArrayList<String>(fileStores.size() + 1);
             prefixes.add(cache.getBaseDir().getAbsolutePath() + File.separator);
             for (CachedJarFileStore fileStore : fileStores) {
-                prefixes.add(fileStore.getJarFileStoreDirectory().getAbsolutePath() + File.separator);
+                for (File rootDir : fileStore.getFileStoreRoots()) {
+                    prefixes.add(rootDir.getAbsolutePath() + File.separator);
+                }
             }
         }
 

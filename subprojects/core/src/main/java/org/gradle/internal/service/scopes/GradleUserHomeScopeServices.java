@@ -116,8 +116,8 @@ public class GradleUserHomeScopeServices {
         return new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher()), signatureCache);
     }
 
-    FileSystemMirror createFileSystemMirror(ListenerManager listenerManager) {
-        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
+    FileSystemMirror createFileSystemMirror(ListenerManager listenerManager, List<CachedJarFileStore> fileStores) {
+        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(fileStores);
         listenerManager.addListener(fileSystemMirror);
         return fileSystemMirror;
     }

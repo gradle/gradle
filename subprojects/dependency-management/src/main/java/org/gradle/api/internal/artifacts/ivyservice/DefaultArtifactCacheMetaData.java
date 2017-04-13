@@ -21,6 +21,8 @@ import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 public class DefaultArtifactCacheMetaData implements ArtifactCacheMetaData, CachedJarFileStore {
 
@@ -44,8 +46,8 @@ public class DefaultArtifactCacheMetaData implements ArtifactCacheMetaData, Cach
     }
 
     @Override
-    public File getJarFileStoreDirectory() {
-        return getFileStoreDirectory();
+    public List<File> getFileStoreRoots() {
+        return Arrays.asList(getFileStoreDirectory(), getTransformsStoreDirectory());
     }
 
     @Override
