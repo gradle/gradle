@@ -106,7 +106,12 @@ public class DefaultFileHierarchySet {
         private String toPath(File rootDir) {
             assert rootDir.isAbsolute();
             String absolutePath = rootDir.getAbsolutePath();
-            return absolutePath.equals("/") ? "" : absolutePath;
+            if (absolutePath.equals("/")) {
+                absolutePath = "";
+            } else if (absolutePath.endsWith(File.separator)) {
+                absolutePath = absolutePath.substring(0, absolutePath.length() - 1);
+            }
+            return absolutePath;
         }
     }
 
