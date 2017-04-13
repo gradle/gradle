@@ -55,7 +55,7 @@ public class ZipSnapshotTree implements SnapshotTree {
     }
 
     @Override
-    public Iterable<? extends SnapshottableResource> getElements() {
+    public Iterable<? extends SnapshottableResource> getElements() throws IOException {
         return new Iterable<SnapshottableResource>() {
             @Override
             public Iterator<SnapshottableResource> iterator() {

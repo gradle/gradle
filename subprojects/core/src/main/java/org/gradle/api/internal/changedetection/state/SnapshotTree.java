@@ -19,8 +19,9 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 public interface SnapshotTree extends Closeable {
     SnapshottableResource getRoot();
-    Iterable<? extends SnapshottableResource> getElements();
+    Iterable<? extends SnapshottableResource> getElements() throws IOException;
 }
