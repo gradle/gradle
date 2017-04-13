@@ -107,29 +107,38 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     def "returns default location if user settings file specifies empty local repository"() {
         when:
-        writeSettingsFile(locations.userSettingsFile, "")
+        writeSettingsFile(locations.userSettingsFile, localRepository)
         1 * system.getProperty("user.home") >> userHome1.absolutePath
 
         then:
         locator.localMavenRepository == defaultM2Repo
+
+        where:
+        localRepository << ["<localRepository/>", "<localRepository></localRepository>", ""]
     }
 
     def "returns default location if global settings file specifies empty local repository"() {
         when:
-        writeSettingsFile(locations.globalSettingsFile, "")
+        writeSettingsFile(locations.globalSettingsFile, localRepository)
         1 * system.getProperty("user.home") >> userHome1.absolutePath
 
         then:
         locator.localMavenRepository == defaultM2Repo
+
+        where:
+        localRepository << ["<localRepository/>", "<localRepository></localRepository>", ""]
     }
 
     def "returns global location if user settings file specifies empty local repository"() {
         when:
-        writeSettingsFile(locations.userSettingsFile, "")
+        writeSettingsFile(locations.userSettingsFile, localRepository)
         writeSettingsFile(locations.globalSettingsFile, repo2)
 
         then:
         locator.localMavenRepository == repo2
+
+        where:
+        localRepository << ["<localRepository/>", "<localRepository></localRepository>", ""]
     }
 
     def "prefers location specified in user settings file over that in global settings file"() {
@@ -197,15 +206,16 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         'env.unknown.ENV_VAR' |   "environment variable"
     }
 
-    private void writeSettingsFile(File settings, File repo) {
-        writeSettingsFile(settings, repo.absolutePath)
+    private static void writeSettingsFile(File settings, File repo) {
+        writeSettingsFile(settings, "<localRepository>${repo.absolutePath}</localRepository>")
     }
 
-    private void writeSettingsFile(File settings, String repo) {
+
+    private static void writeSettingsFile(File settings, String localRepositoryElement) {
         settings.text = """
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <localRepository>$repo</localRepository>
+  $localRepositoryElement
 </settings>"""
     }
 
