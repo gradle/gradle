@@ -18,20 +18,24 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshotCollector;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
     private final StringInterner stringInterner;
     private final ClasspathEntryHasher classpathEntryHasher;
+    private final PersistentIndexedCache<HashCode, HashCode> signatureCache;
 
-    public DefaultCompileClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, ClasspathEntryHasher classpathEntryHasher) {
+    public DefaultCompileClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, ClasspathEntryHasher classpathEntryHasher, PersistentIndexedCache<HashCode, HashCode> signatureCache) {
         super(fileSnapshotTreeFactory, stringInterner);
         this.stringInterner = stringInterner;
         this.classpathEntryHasher = classpathEntryHasher;
+        this.signatureCache = signatureCache;
     }
 
     @Override
@@ -46,7 +50,12 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
 
     @Override
     protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(classpathEntryHasher), stringInterner);
+        return new CachingResourceSnapshotter(
+            new ClasspathResourceSnapshotter(
+                new CompileClasspathEntrySnapshotter(classpathEntryHasher), stringInterner
+            ),
+            signatureCache
+        );
     }
 
     public static class CompileClasspathEntrySnapshotter implements ResourceSnapshotter {

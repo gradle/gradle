@@ -56,7 +56,7 @@ public class ClasspathResourceSnapshotter implements ResourceSnapshotter {
     private void snapshotElements(SnapshottableResource root, SnapshotTree contents, SnapshotCollector collector) {
         try {
             SnapshotCollector entryCollector = new DefaultSnapshotCollector(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
-            collector.recordSubCollector(root, entryCollector);
+            entryCollector = collector.recordSubCollector(root, entryCollector);
             for (SnapshottableResource resource : contents.getElements()) {
                 entrySnapshotter.snapshot(resource, entryCollector);
             }

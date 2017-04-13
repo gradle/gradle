@@ -20,9 +20,9 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 
 public interface SnapshotCollector {
-    void recordSnapshot(SnapshottableResource snapshot, HashCode hash);
+    void recordSnapshot(SnapshottableResource resource, HashCode hash);
 
-    void recordSubCollector(SnapshottableResource resource, SnapshotCollector collector);
+    SnapshotCollector recordSubCollector(SnapshottableResource resource, SnapshotCollector collector);
 
     HashCode getHash(NormalizedFileSnapshotCollector collector);
 }

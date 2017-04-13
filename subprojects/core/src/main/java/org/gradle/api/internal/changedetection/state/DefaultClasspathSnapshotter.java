@@ -18,18 +18,22 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshotCollector;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private final StringInterner stringInterner;
+    private final PersistentIndexedCache<HashCode, HashCode> jarSignatureCache;
 
-    public DefaultClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner) {
+    public DefaultClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> jarSignatureCache) {
         super(fileSnapshotTreeFactory, stringInterner);
         this.stringInterner = stringInterner;
+        this.jarSignatureCache = jarSignatureCache;
     }
 
     @Override
@@ -44,7 +48,10 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), stringInterner);
+        return new CachingResourceSnapshotter(
+            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), stringInterner),
+            jarSignatureCache
+        );
     }
 
     private class ClasspathEntrySnapshotter implements ResourceSnapshotter {

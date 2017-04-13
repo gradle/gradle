@@ -210,14 +210,15 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGenericFileCollectionSnapshotter(fileSnapshotTreeFactory, stringInterner);
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner) {
-        return new DefaultClasspathSnapshotter(fileSnapshotTreeFactory, stringInterner);
+    ClasspathSnapshotter createClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, TaskHistoryStore store) {
+        PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        return new DefaultClasspathSnapshotter(fileSnapshotTreeFactory, stringInterner, jarCache);
     }
 
     CompileClasspathSnapshotter createCompileClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, TaskHistoryStore store) {
         PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
         ClasspathEntryHasher classpathEntryHasher = new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new AbiExtractingClasspathContentHasher(new DefaultClasspathContentHasher())), signatureCache);
-        return new DefaultCompileClasspathSnapshotter(fileSnapshotTreeFactory, stringInterner, classpathEntryHasher);
+        return new DefaultCompileClasspathSnapshotter(fileSnapshotTreeFactory, stringInterner, classpathEntryHasher, signatureCache);
     }
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {

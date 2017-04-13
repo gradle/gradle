@@ -40,15 +40,16 @@ public class DefaultSnapshotCollector implements SnapshotCollector {
     }
 
     @Override
-    public void recordSnapshot(SnapshottableResource snapshot, HashCode hash) {
-        NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(snapshot, stringInterner);
-        normalizedSnapshots.add(new DefaultNormalizedSnapshot(snapshot, normalizedPath, hash));
+    public void recordSnapshot(SnapshottableResource resource, HashCode hash) {
+        NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(resource, stringInterner);
+        normalizedSnapshots.add(new DefaultNormalizedSnapshot(resource, normalizedPath, hash));
     }
 
     @Override
-    public void recordSubCollector(SnapshottableResource resource, SnapshotCollector collector) {
+    public SnapshotCollector recordSubCollector(SnapshottableResource resource, SnapshotCollector collector) {
         NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(resource, stringInterner);
         normalizedSnapshots.add(new SnapshotterCollectorSnapshot(resource, normalizedPath, collector));
+        return collector;
     }
 
     @Override
