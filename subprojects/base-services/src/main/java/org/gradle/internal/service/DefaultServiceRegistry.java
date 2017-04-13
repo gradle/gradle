@@ -1321,20 +1321,15 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                     }
                 }
                 if (rawType instanceof Class && ((Class<?>) rawType).isAssignableFrom(List.class)) {
-                    final Type typeArg = parameterizedType.getActualTypeArguments()[0];
+                    Type typeArg = parameterizedType.getActualTypeArguments()[0];
                     if (typeArg instanceof Class) {
-                        return new BiFunction<ServiceProvider, LookupContext, Provider>() {
-                            @Override
-                            public ServiceProvider apply(final LookupContext lookupContext, final Provider provider) {
-                                List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
-                                provider.getAll(lookupContext, (Class) typeArg, providers);
-                                List<Object> services = new ArrayList<Object>(providers.size());
-                                for (ServiceProvider serviceProvider : providers) {
-                                    services.add(serviceProvider.get());
-                                }
-                                return new CollectionServiceProvider(typeArg, services, providers);
-                            }
-                        };
+                        return new ServicesWithTypeLookup((Class<?>) typeArg);
+                    }
+                    if (typeArg instanceof WildcardType) {
+                        WildcardType wildcardType = (WildcardType) typeArg;
+                        if (wildcardType.getUpperBounds()[0] instanceof Class && wildcardType.getLowerBounds().length == 0) {
+                            return new ServicesWithTypeLookup((Class<?>) wildcardType.getUpperBounds()[0]);
+                        }
                     }
                 }
             }
@@ -1396,6 +1391,25 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 for (ServiceProvider serviceProvider : providers) {
                     serviceProvider.requiredBy(provider);
                 }
+            }
+        }
+
+        private static class ServicesWithTypeLookup implements BiFunction<ServiceProvider, LookupContext, Provider> {
+            private final Class<?> elementClass;
+
+            ServicesWithTypeLookup(Class<?> elementClass) {
+                this.elementClass = elementClass;
+            }
+
+            @Override
+            public ServiceProvider apply(final LookupContext lookupContext, final Provider provider) {
+                List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
+                provider.getAll(lookupContext, elementClass, providers);
+                List<Object> services = new ArrayList<Object>(providers.size());
+                for (ServiceProvider serviceProvider : providers) {
+                    services.add(serviceProvider.get());
+                }
+                return new CollectionServiceProvider(elementClass, services, providers);
             }
         }
     }

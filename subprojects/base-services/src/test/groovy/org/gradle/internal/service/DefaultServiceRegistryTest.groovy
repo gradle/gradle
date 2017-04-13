@@ -670,7 +670,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.getAll(Number) == [12]
     }
 
-    def canGetAllServicesOfAGivenTypeAsACollection() {
+    def canGetAllServicesOfAGivenTypeUsingCollectionType() {
         registry.addProvider(new Object() {
             String createOtherString() {
                 return "hi"
@@ -680,6 +680,9 @@ class DefaultServiceRegistryTest extends Specification {
         expect:
         registry.get(new TypeToken<List<String>>() {}.type) == ["12", "hi"]
         registry.get(new TypeToken<List<Number>>() {}.type) == [12]
+        registry.get(new TypeToken<List<?>>() {}.type) == registry.getAll(Object)
+        registry.get(new TypeToken<List<? extends CharSequence>>() {}.type) == ["12", "hi"]
+        registry.get(new TypeToken<List<? extends Number>>() {}.type) == [12]
     }
 
     def canGetAllServicesOfARawType() {
@@ -752,6 +755,37 @@ class DefaultServiceRegistryTest extends Specification {
 
         expect:
         registry.get(ServiceWithMultipleDependencies).services.empty
+    }
+
+    def canUseWildcardsToInjectAllServicesWithType() {
+        def parent = new DefaultServiceRegistry()
+        parent.register { ServiceRegistration registration ->
+            registration.add(TestServiceImpl)
+        }
+        def registry = new DefaultServiceRegistry(parent)
+        registry.register { ServiceRegistration registration ->
+            registration.add(ServiceWithWildCardDependencies)
+            registration.add(TestServiceImpl)
+        }
+
+        expect:
+        registry.get(ServiceWithWildCardDependencies).services.size() == 2
+        registry.get(ServiceWithWildCardDependencies).services == registry.getAll(TestService)
+    }
+
+    def cannotUseLowerBoundWildcardToInjectAllServicesWithType() {
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.addProvider(new UnsupportedWildcardProvider())
+
+        when:
+        registry.get(Number)
+
+        then:
+        def e = thrown(ServiceCreationException)
+        e.message == 'Cannot create service of type Number using UnsupportedWildcardProvider.create() as there is a problem with parameter #1 of type List<? super java.lang.String>.'
+        e.cause.message == 'Locating services with type ? super java.lang.String is not supported.'
     }
 
     def canGetServiceAsFactoryWhenTheServiceImplementsFactoryInterface() {
@@ -1225,6 +1259,14 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
+    private static class ServiceWithWildCardDependencies {
+        final List<?> services
+
+        ServiceWithWildCardDependencies(List<? extends TestService> services) {
+            this.services = services
+        }
+    }
+
     private interface StringFactory extends Factory<String> {
     }
 
@@ -1295,6 +1337,12 @@ class DefaultServiceRegistryTest extends Specification {
 
     private static class UnsupportedInjectionProvider {
         Number create(String[] values) {
+            return values.length
+        }
+    }
+
+    private static class UnsupportedWildcardProvider {
+        Number create(List<? super String> values) {
             return values.length
         }
     }
