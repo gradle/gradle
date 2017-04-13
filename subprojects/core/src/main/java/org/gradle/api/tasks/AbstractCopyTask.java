@@ -30,6 +30,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.copy.ClosureBackedTransformer;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
@@ -169,6 +170,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     @Inject
     protected FileLookup getFileLookup() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected DirectoryFileTreeFactory getDirectoryFileTreeFactory() {
         throw new UnsupportedOperationException();
     }
 

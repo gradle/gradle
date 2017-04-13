@@ -106,7 +106,7 @@ public class Ear extends Jar {
             public FileTreeAdapter call() {
                 final DeploymentDescriptor descriptor = getDeploymentDescriptor();
                 if (descriptor != null) {
-                    MapFileTree descriptorSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem());
+                    MapFileTree descriptorSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem(), getDirectoryFileTreeFactory());
                     if (descriptor.getLibraryDirectory() == null) {
                         descriptor.setLibraryDirectory(getLibDirName());
                     }
