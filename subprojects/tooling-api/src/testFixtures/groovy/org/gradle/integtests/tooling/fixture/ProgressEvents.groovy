@@ -76,7 +76,8 @@ class ProgressEvents implements ProgressListener {
                     // Display name should be mostly unique
                     if (!skipValidation && uniqueBuildOperation(descriptor)) {
                         if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']
-                            || descriptor.displayName.contains('/maven-metadata.xml') || descriptor.displayName.startsWith('Apply plugin ') || descriptor.displayName.startsWith('Configure project ')  || descriptor.displayName.startsWith('Executing ')) {
+                            || descriptor.displayName.contains('/maven-metadata.xml') || descriptor.displayName.startsWith('Apply plugin ') || descriptor.displayName.startsWith('Configure project ')
+                            || descriptor.displayName.startsWith('Resolve artifacts') || descriptor.displayName.startsWith('Executing ')) {
                             // Ignore this for now
                         } else {
                             def duplicateName = operations.find({
@@ -310,10 +311,10 @@ class ProgressEvents implements ProgressListener {
             return result.failures
         }
 
-        Operation child(String displayName) {
-            def child = children.find { it.descriptor.displayName == displayName }
+        Operation child(String... displayNames) {
+            def child = children.find { it.descriptor.displayName in displayNames }
             if (child == null) {
-                throw new AssertionFailedError("No operation with display name '$displayName' found in children of '$descriptor.displayName':\n${describeList(children)}")
+                throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in children of '$descriptor.displayName':\n${describeList(children)}")
             }
             return child
         }

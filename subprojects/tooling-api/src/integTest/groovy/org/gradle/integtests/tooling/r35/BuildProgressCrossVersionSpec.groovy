@@ -74,7 +74,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureRoot.parent == configureBuild
         configureBuild.children.contains(configureRoot)
 
-        def resolveCompile = events.operation("Resolve dependencies :compile")
+        def resolveCompile = events.operation("Resolve dependencies :compile", "Resolve dependencies of :compile")
         def resolveArtifactAinRoot = events.operation(configureRoot, "Resolve artifact a.jar (project :a)")
         def resolveArtifactBinRoot = events.operation(configureRoot, "Resolve artifact b.jar (project :b)")
         resolveCompile.parent == configureRoot
@@ -84,7 +84,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureA.parent == resolveCompile
         resolveCompile.children == [configureA]
 
-        def resolveCompileA = events.operation("Resolve dependencies :a:compile")
+        def resolveCompileA = events.operation("Resolve dependencies :a:compile", "Resolve dependencies of :a:compile")
         def resolveArtifactBinA = events.operation(configureA, "Resolve artifact b.jar (project :b)")
 
         resolveCompileA.parent == configureA
@@ -153,7 +153,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureRoot.parent == configureBuild
         configureBuild.children.contains(configureRoot)
 
-        def resolveCompile = events.operation("Resolve dependencies :compile")
+        def resolveCompile = events.operation("Resolve dependencies :compile", "Resolve dependencies of :compile")
         def resolveArtifactA = events.operation("Resolve artifact a.jar (project :a)")
         def resolveArtifactB = events.operation("Resolve artifact projectB.jar (group:projectB:1.0)")
         def resolveArtifactC = events.operation("Resolve artifact projectC.jar (group:projectC:1.5)")
