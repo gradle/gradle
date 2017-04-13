@@ -230,7 +230,7 @@ public class DefaultFileHierarchySet {
             if (depth == 0) {
                 prefixes.add(prefix);
             } else {
-                prefixes.add(depth + ":" + prefix);
+                prefixes.add(depth + ":" + prefix.replace(File.separatorChar, '/'));
             }
             for (Node child : children) {
                 child.collect(depth + 1, prefixes);
