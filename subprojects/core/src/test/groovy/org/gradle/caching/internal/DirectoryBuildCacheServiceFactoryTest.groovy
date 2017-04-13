@@ -17,7 +17,6 @@
 package org.gradle.caching.internal
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
@@ -35,8 +34,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheRepository = Mock(CacheRepository)
     def cacheScopeMapping = Mock(CacheScopeMapping)
     def resolver = Mock(FileResolver)
-    def temporaryFileProvider = Mock(TemporaryFileProvider)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver, temporaryFileProvider)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
 

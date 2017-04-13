@@ -16,9 +16,9 @@
 
 package org.gradle.caching.internal
 
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.PersistentCache
 import org.gradle.caching.BuildCacheKey
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,21 +31,31 @@ import spock.lang.Specification
 class DirectoryBuildCacheServiceTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.createDir("cache")
-    def cacheBuilder = Stub(CacheBuilder)
+    def persistentCache = Mock(PersistentCache) {
+        getBaseDir() >> cacheDir
+    }
+    def cacheBuilder = Mock(CacheBuilder) {
+        open() >> persistentCache
+        _ * _(_) >> { cacheBuilder }
+    }
     def cacheRepository = Mock(CacheRepository) {
         cache(cacheDir) >> cacheBuilder
     }
-    def temporaryFileProvider = Mock(TemporaryFileProvider) {
-        createTemporaryFile(_, _) >> { prefix, suffix, path ->
-            return temporaryFolder.file(*path, "$prefix-xxx-$suffix")
-        }
-    }
-    def service = new DirectoryBuildCacheService(cacheRepository, temporaryFileProvider, cacheDir)
+    def service = new DirectoryBuildCacheService(cacheRepository, cacheDir)
     def key = Mock(BuildCacheKey)
 
     def "does not store partial result"() {
+        def hashCode = "1234abcd"
         when:
-        service.store(key) {OutputStream output ->
+        service.store(key) { OutputStream output ->
+            // Check that partial result file is created inside the cache directory
+            def cacheDirFiles = cacheDir.listFiles()
+            assert cacheDirFiles.length == 1
+
+            def partialCacheFile = cacheDirFiles[0]
+            assert partialCacheFile.name.startsWith(hashCode)
+            assert partialCacheFile.name.endsWith(".part")
+
             output << "abcd"
             throw new RuntimeException("Simulated write error")
         }
@@ -53,5 +63,6 @@ class DirectoryBuildCacheServiceTest extends Specification {
         def ex = thrown RuntimeException
         ex.message == "Simulated write error"
         cacheDir.listFiles() as List == []
+        1 * key.getHashCode() >> hashCode
     }
 }

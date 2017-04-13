@@ -17,7 +17,6 @@
 package org.gradle.caching.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
@@ -35,14 +34,12 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
     private final FileResolver resolver;
-    private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, FileResolver resolver, TemporaryFileProvider temporaryFileProvider) {
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, FileResolver resolver) {
         this.cacheRepository = cacheRepository;
         this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
-        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     @Override
@@ -54,6 +51,6 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         } else {
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
-        return new DirectoryBuildCacheService(cacheRepository, temporaryFileProvider, target);
+        return new DirectoryBuildCacheService(cacheRepository, target);
     }
 }

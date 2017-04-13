@@ -17,8 +17,8 @@
 package org.gradle.caching.internal;
 
 import com.google.common.io.Closer;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -41,12 +41,10 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DirectoryBuildCacheService implements BuildCacheService {
-    private final TemporaryFileProvider temporaryFileProvider;
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
 
-    public DirectoryBuildCacheService(CacheRepository cacheRepository, TemporaryFileProvider temporaryFileProvider, File baseDir) {
-        this.temporaryFileProvider = temporaryFileProvider;
+    public DirectoryBuildCacheService(CacheRepository cacheRepository, File baseDir) {
         this.fileStore = new PathKeyFileStore(baseDir);
         this.persistentCache = cacheRepository
             .cache(checkDirectory(baseDir))
@@ -81,7 +79,7 @@ public class DirectoryBuildCacheService implements BuildCacheService {
         return persistentCache.withFileLock(new Factory<Boolean>() {
             @Override
             public Boolean create() {
-                LocallyAvailableResource resource = fileStore.get(toPath(key));
+                LocallyAvailableResource resource = fileStore.get(key.getHashCode());
                 if (resource == null) {
                     return false;
                 }
@@ -104,28 +102,35 @@ public class DirectoryBuildCacheService implements BuildCacheService {
 
     @Override
     public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws BuildCacheException {
-        final File tempFile = temporaryFileProvider.createTemporaryFile("build-cache", "bin");
+        final String hashCode = key.getHashCode();
+        final File tempFile;
         try {
-            Closer closer = Closer.create();
-            OutputStream output = closer.register(new FileOutputStream(tempFile));
-            try {
-                result.writeTo(output);
-            } finally {
-                closer.close();
-            }
+            tempFile = File.createTempFile(hashCode, ".part", persistentCache.getBaseDir());
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
-        persistentCache.useCache(new Runnable() {
-            @Override
-            public void run() {
-                fileStore.move(toPath(key), tempFile);
-            }
-        });
-    }
 
-    private static String toPath(BuildCacheKey key) {
-        return key.getHashCode();
+        try {
+            try {
+                Closer closer = Closer.create();
+                OutputStream output = closer.register(new FileOutputStream(tempFile));
+                try {
+                    result.writeTo(output);
+                } finally {
+                    closer.close();
+                }
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+            persistentCache.useCache(new Runnable() {
+                @Override
+                public void run() {
+                    fileStore.move(hashCode, tempFile);
+                }
+            });
+        } finally {
+            FileUtils.deleteQuietly(tempFile);
+        }
     }
 
     @Override
