@@ -26,9 +26,6 @@ package org.gradle.tooling.internal.protocol;
  * <li>Implementations should implement {@link ConfigurableConnection}. This is used by all consumer versions from 1.2-rc-1.
  * <li>Implementations should implement {@link StoppableConnection}. This is used by all consumer versions from 2.2-rc-1.
  * <li>Implementations should provide a zero-args constructor. This is used by all consumer versions from 1.0-milestone-3.
- * <li>For backwards compatibility, implementations should implement {@link InternalBuildActionExecutor}. This is used by all consumer versions from 1.8-rc-1 to 2.0.
- * <li>For backwards compatibility, implementations should implement {@link ModelBuilder}. This is used by all consumer versions from 1.6-rc-1 to 2.0.
- * <li>For backwards compatibility, implementations should implement {@link InternalConnection}. This is used by consumer versions from 1.0-milestone-8 to 1.1.
  * <li>For backwards compatibility, implementations should provide a {@code void configureLogging(boolean verboseLogging)} method. This is used by consumer versions
  * 1.0-rc-1 to 1.1.
  * </ul>

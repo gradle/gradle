@@ -44,7 +44,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection
 import org.gradle.tooling.internal.protocol.InternalCancellationToken
-import org.gradle.tooling.internal.protocol.InternalConnection
+
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelBuilder
 import org.gradle.tooling.internal.protocol.ModelIdentifier
@@ -224,7 +224,7 @@ class TestR12Connection extends TestR10M8Connection implements ConfigurableConne
     }
 }
 
-class TestR10M8Connection extends TestR10M3Connection implements InternalConnection {
+class TestR10M8Connection extends TestR10M3Connection {
     void configureLogging(boolean verboseLogging) {
         configured = verboseLogging
     }
