@@ -57,9 +57,7 @@ public class DefaultListenerManager implements ListenerManager {
             }
         }
         if (details != null) {
-            for (EventBroadcast<?> broadcaster : broadcasters.values()) {
-                broadcaster.maybeAdd(details);
-            }
+            details.useAsListener();
         }
     }
 
@@ -72,15 +70,7 @@ public class DefaultListenerManager implements ListenerManager {
             }
         }
         if (details != null) {
-            // block until the listener has finished notifying.
-            details.notifyingLock.lock();
-            try {
-                for (EventBroadcast<?> broadcaster : broadcasters.values()) {
-                    broadcaster.maybeRemove(details);
-                }
-            } finally {
-                details.notifyingLock.unlock();
-            }
+            details.remove();
         }
     }
 
@@ -93,9 +83,7 @@ public class DefaultListenerManager implements ListenerManager {
             }
         }
         if (details != null) {
-            for (EventBroadcast<?> broadcaster : broadcasters.values()) {
-                broadcaster.maybeSetLogger(details);
-            }
+            details.useAsLogger();
         }
     }
 
@@ -384,12 +372,36 @@ public class DefaultListenerManager implements ListenerManager {
             }
         }
 
-        public void startNotification() {
+        void startNotification() {
             notifyingLock.lock();
         }
 
-        public void endNotification() {
+        void endNotification() {
             notifyingLock.unlock();
+        }
+
+        void remove() {
+            // block until the listener has finished notifying.
+            notifyingLock.lock();
+            try {
+                for (EventBroadcast<?> broadcaster : broadcasters.values()) {
+                    broadcaster.maybeRemove(this);
+                }
+            } finally {
+                notifyingLock.unlock();
+            }
+        }
+
+        void useAsLogger() {
+            for (EventBroadcast<?> broadcaster : broadcasters.values()) {
+                broadcaster.maybeSetLogger(this);
+            }
+        }
+
+        void useAsListener() {
+            for (EventBroadcast<?> broadcaster : broadcasters.values()) {
+                broadcaster.maybeAdd(this);
+            }
         }
     }
 }
