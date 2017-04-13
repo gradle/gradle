@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
@@ -78,7 +79,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         }
         1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
         1 * taskOutputOriginFactory.createReader(task) >> originReader
-        1 * taskOutputPacker.unpack(outputs, inputStream, originReader)
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * taskOutputPacker.unpack(_, inputStream, originReader)
 
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
