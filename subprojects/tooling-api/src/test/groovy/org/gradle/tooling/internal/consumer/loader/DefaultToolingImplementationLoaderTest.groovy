@@ -25,7 +25,7 @@ import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection
+
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection
@@ -46,7 +46,7 @@ import org.gradle.tooling.internal.protocol.InternalCancellableConnection
 import org.gradle.tooling.internal.protocol.InternalCancellationToken
 
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
-import org.gradle.tooling.internal.protocol.ModelBuilder
+
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.internal.protocol.ShutdownParameters
 import org.gradle.tooling.internal.protocol.StoppableConnection
@@ -99,7 +99,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         connectionImplementation  | adapter                                          | wrappedToNonCancellableAdapter
         TestConnection.class      | ShutdownAwareConsumerConnection.class            | false
         TestR21Connection.class   | CancellableConsumerConnection.class              | false
-        TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class       | true
     }
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
@@ -195,7 +194,7 @@ class TestR18Connection extends TestR16Connection {
     }
 }
 
-class TestR16Connection extends TestR12Connection implements ModelBuilder {
+class TestR16Connection extends TestR12Connection {
     BuildResult<Object> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw new UnsupportedOperationException()
     }

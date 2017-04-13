@@ -31,7 +31,6 @@ import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.AbstractConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection;
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter;
 import org.gradle.tooling.internal.consumer.connection.ParameterValidatingConsumerConnection;
@@ -43,7 +42,6 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
-import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.StoppableConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.slf4j.Logger;
@@ -86,8 +84,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 adaptedConnection = new ShutdownAwareConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof InternalCancellableConnection) {
                 adaptedConnection = new CancellableConsumerConnection(connection, modelMapping, adapter);
-            } else if (connection instanceof ModelBuilder) {
-                adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
                 return new UnsupportedOlderVersionConnection(connection, adapter);
             }
