@@ -151,7 +151,7 @@ class FileContentGenerator {
                                 <goals>
                                     <goal>report-only</goal>
                                 </goals>
-                                <phase>verify</phase>
+                                <phase>test</phase>
                             </execution>
                         </executions>
                     </plugin>
