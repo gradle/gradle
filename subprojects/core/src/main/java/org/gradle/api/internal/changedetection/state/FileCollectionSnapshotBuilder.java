@@ -18,15 +18,18 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Maps;
 import com.google.common.hash.HashCode;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.DefaultSnapshotCollector;
 
 import java.util.Map;
 
-public class FileCollectionSnapshotCollector implements NormalizedFileSnapshotCollector {
+public class FileCollectionSnapshotBuilder extends DefaultSnapshotCollector implements NormalizedFileSnapshotCollector {
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final SnapshotNormalizationStrategy normalizationStrategy;
     Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
 
-    public FileCollectionSnapshotCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+    public FileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
+        super(normalizationStrategy, compareStrategy, stringInterner);
         this.compareStrategy = compareStrategy;
         this.normalizationStrategy = normalizationStrategy;
     }
@@ -39,7 +42,8 @@ public class FileCollectionSnapshotCollector implements NormalizedFileSnapshotCo
         }
     }
 
-    public FileCollectionSnapshot finish(HashCode hash) {
+    public FileCollectionSnapshot build() {
+        HashCode hash = getHash(this);
         return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, normalizationStrategy.isPathAbsolute(), hash);
     }
 }

@@ -16,8 +16,19 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
-import org.gradle.api.internal.changedetection.state.SnapshotTree;
+import com.google.common.hash.HashCode;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 
-public interface ResourceSnapshotter {
-    void snapshot(SnapshotTree resource, SnapshotCollector collector);
+public class SnapshotterCollectorSnapshot extends AbstractNormalizedSnapshot {
+    private final SnapshotCollector collector;
+
+    public SnapshotterCollectorSnapshot(SnapshottableResource resource, NormalizedPath normalizedPath, SnapshotCollector collector) {
+        super(resource, normalizedPath);
+        this.collector = collector;
+    }
+
+    @Override
+    protected HashCode getHashInternal(NormalizedFileSnapshotCollector fileSnapshotCollector) {
+        return collector.getHash(fileSnapshotCollector);
+    }
 }

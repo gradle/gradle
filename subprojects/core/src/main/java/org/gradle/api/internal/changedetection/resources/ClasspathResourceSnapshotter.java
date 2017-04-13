@@ -23,7 +23,6 @@ import org.gradle.api.internal.changedetection.resources.zip.ZipSnapshotTree;
 import org.gradle.api.internal.changedetection.state.SnapshotTree;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
-import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.util.DeprecationLogger;
@@ -31,51 +30,52 @@ import org.gradle.util.DeprecationLogger;
 import java.io.IOException;
 import java.util.zip.ZipException;
 
-public class ClasspathResourceSnapshotter extends AbstractResourceSnapshotter {
-    private final Factory<ResourceSnapshotter> entrySnapshotterFactory;
+public class ClasspathResourceSnapshotter implements ResourceSnapshotter {
+    private final ResourceSnapshotter entrySnapshotter;
+    private final StringInterner stringInterner;
 
-    public ClasspathResourceSnapshotter(Factory<ResourceSnapshotter> entrySnapshotterFactory, StringInterner stringInterner) {
-        super(TaskFilePropertySnapshotNormalizationStrategy.NONE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
-        this.entrySnapshotterFactory = entrySnapshotterFactory;
+    public ClasspathResourceSnapshotter(ResourceSnapshotter entrySnapshotter, StringInterner stringInterner) {
+        this.stringInterner = stringInterner;
+        this.entrySnapshotter = entrySnapshotter;
     }
 
     @Override
-    public void snapshot(SnapshotTree fileTreeSnapshot) {
+    public void snapshot(SnapshotTree fileTreeSnapshot, SnapshotCollector collector) {
         SnapshottableResource root = fileTreeSnapshot.getRoot();
         if (root != null) {
             if (root.getType() == FileType.Missing) {
                 return;
             }
             SnapshotTree elements = (root.getType() == FileType.RegularFile) ? new ZipSnapshotTree(root) : fileTreeSnapshot;
-            snapshotElements(root, elements);
+            snapshotElements(root, elements, collector);
         } else {
             throw new GradleException("Tree without root file on Classpath");
         }
     }
 
-    private void snapshotElements(SnapshottableResource root, SnapshotTree contents) {
+    private void snapshotElements(SnapshottableResource root, SnapshotTree contents, SnapshotCollector collector) {
         try {
-            ResourceSnapshotter entrySnapshotter = entrySnapshotterFactory.create();
-            recordSnapshotter(root, entrySnapshotter);
+            SnapshotCollector entryCollector = new DefaultSnapshotCollector(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
+            collector.recordSubCollector(root, entryCollector);
             for (SnapshottableResource resource : contents.getElements()) {
-                entrySnapshotter.snapshot(resource);
+                entrySnapshotter.snapshot(resource, entryCollector);
             }
         } catch (ZipException e) {
             // ZipExceptions point to a problem with the Zip, we try to be lenient for now.
-            hashMalformedZip(root);
+            hashMalformedZip(root, collector);
         } catch (IOException e) {
             // IOExceptions other than ZipException are failures.
             throw new UncheckedIOException("Error snapshotting jar [" + root.getName() + "]", e);
         } catch (Exception e) {
             // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
-            hashMalformedZip(root);
+            hashMalformedZip(root, collector);
         } finally {
             IoActions.closeQuietly(contents);
         }
     }
 
-    private void hashMalformedZip(SnapshottableResource zipFile) {
+    private void hashMalformedZip(SnapshottableResource zipFile, SnapshotCollector collector) {
         DeprecationLogger.nagUserWith("Malformed jar [" + zipFile.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
-        recordSnapshot(zipFile, zipFile.getContent().getContentMd5());
+        collector.recordSnapshot(zipFile, zipFile.getContent().getContentMd5());
     }
 }

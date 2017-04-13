@@ -18,11 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.AbstractResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.SnapshotCollector;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
-import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
@@ -39,32 +38,24 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected FileCollectionSnapshotCollector createCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new FileCollectionSnapshotCollector(TaskFilePropertySnapshotNormalizationStrategy.NONE, TaskFilePropertyCompareStrategy.ORDERED);
+    protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return new FileCollectionSnapshotBuilder(TaskFilePropertySnapshotNormalizationStrategy.NONE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
     }
 
     @Override
     protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new ClasspathResourceSnapshotter(new Factory<ResourceSnapshotter>() {
-            @Override
-            public ResourceSnapshotter create() {
-                return new ClasspathEntrySnapshotter();
-            }
-        }, stringInterner);
+        return new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), stringInterner);
     }
 
-    private class ClasspathEntrySnapshotter extends AbstractResourceSnapshotter {
-        public ClasspathEntrySnapshotter() {
-            super(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
-        }
+    private class ClasspathEntrySnapshotter implements ResourceSnapshotter {
 
         @Override
-        public void snapshot(SnapshotTree details) {
+        public void snapshot(SnapshotTree details, SnapshotCollector collector) {
             SnapshottableResource root = details.getRoot();
             if (root != null && root.getType() == FileType.RegularFile) {
                 HashCode signatureForClass = root.getContent().getContentMd5();
                 if (signatureForClass != null) {
-                    recordSnapshot(root, signatureForClass);
+                    collector.recordSnapshot(root, signatureForClass);
                 }
             }
         }

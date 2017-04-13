@@ -25,35 +25,34 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStra
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.List;
 
-public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter, Closeable {
+public class DefaultSnapshotCollector implements SnapshotCollector {
     private final SnapshotNormalizationStrategy normalizationStrategy;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final StringInterner stringInterner;
-    private final List<NormalizedSnapshot> normalizedSnapshots;
+    private final List<NormalizedSnapshot> normalizedSnapshots = Lists.newLinkedList();
 
-    public AbstractResourceSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
+    public DefaultSnapshotCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
         this.normalizationStrategy = normalizationStrategy;
         this.compareStrategy = compareStrategy;
         this.stringInterner = stringInterner;
-        this.normalizedSnapshots = Lists.newLinkedList();
     }
 
-    protected void recordSnapshot(SnapshottableResource snapshot, HashCode hash) {
+    @Override
+    public void recordSnapshot(SnapshottableResource snapshot, HashCode hash) {
         NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(snapshot, stringInterner);
         normalizedSnapshots.add(new DefaultNormalizedSnapshot(snapshot, normalizedPath, hash));
     }
 
-    protected void recordSnapshotter(SnapshottableResource resource, ResourceSnapshotter snapshotter) {
+    @Override
+    public void recordSubCollector(SnapshottableResource resource, SnapshotCollector collector) {
         NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(resource, stringInterner);
-        normalizedSnapshots.add(new SubSnapshotterNormalizedSnapshot(resource, normalizedPath, snapshotter));
+        normalizedSnapshots.add(new SnapshotterCollectorSnapshot(resource, normalizedPath, collector));
     }
 
     @Override
-    public HashCode finish(NormalizedFileSnapshotCollector collector) {
+    public HashCode getHash(NormalizedFileSnapshotCollector collector) {
         compareStrategy.sort(normalizedSnapshots);
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         for (NormalizedSnapshot normalizedFileSnapshot : normalizedSnapshots) {
@@ -62,10 +61,5 @@ public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter
         }
         normalizedSnapshots.clear();
         return hasher.hash();
-    }
-
-    @Override
-    public void close() throws IOException {
-        normalizedSnapshots.clear();
     }
 }
