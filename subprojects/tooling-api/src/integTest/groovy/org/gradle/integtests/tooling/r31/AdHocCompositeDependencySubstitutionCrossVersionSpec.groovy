@@ -63,7 +63,6 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         assert eclipseProject.projectDependencies.size() == 1
         with(eclipseProject.projectDependencies.first()) {
             it.path == 'b1'
-            it.targetProject == null
         }
     }
 
