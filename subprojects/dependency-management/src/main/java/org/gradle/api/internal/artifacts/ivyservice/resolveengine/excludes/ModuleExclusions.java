@@ -216,7 +216,8 @@ public class ModuleExclusions {
             AbstractModuleExclusion merged = null;
             // See if we can merge any of the following specs into one
             for (int j = i + 1; j < specs.size(); j++) {
-                merged = maybeMergeIntoUnion(spec, specs.get(j));
+                AbstractModuleExclusion other = specs.get(j);
+                merged = maybeMergeIntoUnion(spec, other);
                 if (merged != null) {
                     specs.remove(j);
                     break;
@@ -238,7 +239,10 @@ public class ModuleExclusions {
      * Attempt to merge 2 exclusions into a single filter that is the union of both.
      * Currently this is only implemented when both exclusions are `IntersectionExclusion`s.
      */
-    private AbstractModuleExclusion maybeMergeIntoUnion(ModuleExclusion one, ModuleExclusion two) {
+    private AbstractModuleExclusion maybeMergeIntoUnion(AbstractModuleExclusion one, AbstractModuleExclusion two) {
+        if (one.equals(two)) {
+            return one;
+        }
         if (one instanceof IntersectionExclusion && two instanceof IntersectionExclusion) {
             return maybeMergeIntoUnion((IntersectionExclusion) one, (IntersectionExclusion) two);
         }
@@ -246,6 +250,9 @@ public class ModuleExclusions {
     }
 
     private AbstractModuleExclusion maybeMergeIntoUnion(IntersectionExclusion one, IntersectionExclusion other) {
+        if (one.equals(other)) {
+            return one;
+        }
         if (one.canMerge() && other.canMerge()) {
             AbstractModuleExclusion[] oneFilters = one.getFilters().elements;
             AbstractModuleExclusion[] otherFilters = other.getFilters().elements;
