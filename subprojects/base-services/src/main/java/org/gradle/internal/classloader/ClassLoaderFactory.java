@@ -36,9 +36,4 @@ public interface ClassLoaderFactory {
      * @return The ClassLoader
      */
     ClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec);
-
-    /**
-     * Creates a {@link ClassLoader} with the given parent and classpath.
-     */
-    ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath);
 }
