@@ -33,8 +33,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import java.io.File;
 import java.util.List;
 
-import static org.gradle.internal.nativeintegration.filesystem.FileType.*;
-
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileHasher hasher;
     private final StringInterner stringInterner;
@@ -112,11 +110,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         FileMetadataSnapshot stat = fileSystem.stat(file);
         switch (stat.getType()) {
             case Missing:
-                return new DefaultFileSnapshot(path, new RelativePath(true, file.getName()), Missing, true, MissingFileSnapshot.getInstance());
+                return new MissingFileSnapshot(path, new RelativePath(true, file.getName()));
             case Directory:
-                return new DefaultFileSnapshot(path, new RelativePath(false, file.getName()), Directory, true, DirSnapshot.getInstance());
+                return new DirectoryFileSnapshot(path, new RelativePath(false, file.getName()), true);
             case RegularFile:
-                return new DefaultFileSnapshot(path, new RelativePath(true, file.getName()), RegularFile, true, fileSnapshot(file, stat));
+                return new RegularFileSnapshot(path, new RelativePath(true, file.getName()), true, fileSnapshot(file, stat));
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + stat.getType());
         }
@@ -139,12 +137,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
         @Override
         public void visitDir(FileVisitDetails dirDetails) {
-            fileTreeElements.add(new DefaultFileSnapshot(getPath(dirDetails.getFile()), dirDetails.getRelativePath(), Directory, false, DirSnapshot.getInstance()));
+            fileTreeElements.add(new DirectoryFileSnapshot(getPath(dirDetails.getFile()), dirDetails.getRelativePath(), false));
         }
 
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
-            fileTreeElements.add(new DefaultFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), RegularFile, false, fileSnapshot(fileDetails)));
+            fileTreeElements.add(new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
         }
     }
 }

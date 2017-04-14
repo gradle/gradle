@@ -20,24 +20,25 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-class DefaultFileSnapshot implements FileSnapshot {
-    final String path;
-    final FileType type;
+/**
+ * Snapshot for a regular file.
+ */
+class RegularFileSnapshot implements FileSnapshot {
+    private final String path;
     private final RelativePath relativePath;
     private final boolean root;
     private final FileContentSnapshot content;
 
-    DefaultFileSnapshot(String path, RelativePath relativePath, FileType type, boolean root, FileContentSnapshot content) {
+    RegularFileSnapshot(String path, RelativePath relativePath, boolean root, FileContentSnapshot content) {
         this.path = path;
         this.relativePath = relativePath;
-        this.type = type;
         this.root = root;
         this.content = content;
     }
 
     @Override
     public String toString() {
-        return type + " " + path;
+        return getType() + " " + path;
     }
 
     @Override
@@ -67,13 +68,13 @@ class DefaultFileSnapshot implements FileSnapshot {
 
     @Override
     public FileType getType() {
-        return type;
+        return FileType.RegularFile;
     }
 
     @Override
     public FileSnapshot withContentHash(HashCode contentHash) {
         if (!contentHash.equals(getContent().getContentMd5())) {
-            return new DefaultFileSnapshot(path, relativePath, type, root, new FileHashSnapshot(contentHash));
+            return new RegularFileSnapshot(path, relativePath, root, new FileHashSnapshot(contentHash));
         }
         return this;
     }

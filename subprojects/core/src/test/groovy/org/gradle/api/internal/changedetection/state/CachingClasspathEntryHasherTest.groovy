@@ -18,14 +18,13 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.Hashing
 import org.gradle.api.file.RelativePath
-import org.gradle.internal.nativeintegration.filesystem.FileType
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
 
 class CachingClasspathEntryHasherTest extends Specification {
     def delegate = Mock(ClasspathEntryHasher)
-    def fileDetails = new DefaultFileSnapshot("path", RelativePath.parse(true, "path"), FileType.RegularFile, false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
+    def fileDetails = new RegularFileSnapshot("path", RelativePath.parse(true, "path"), false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
     def cachingHasher = new CachingClasspathEntryHasher(delegate, new InMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {

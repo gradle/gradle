@@ -20,16 +20,15 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-/**
- * Snapshot for a missing file. Note that currently a missing file is always a root file.
- */
-class MissingFileSnapshot implements FileSnapshot {
-    private final String path;
+class DirectoryFileSnapshot implements FileSnapshot {
+    final String path;
     private final RelativePath relativePath;
+    private final boolean root;
 
-    MissingFileSnapshot(String path, RelativePath relativePath) {
+    DirectoryFileSnapshot(String path, RelativePath relativePath, boolean root) {
         this.path = path;
         this.relativePath = relativePath;
+        this.root = root;
     }
 
     @Override
@@ -49,7 +48,7 @@ class MissingFileSnapshot implements FileSnapshot {
 
     @Override
     public boolean isRoot() {
-        return true;
+        return root;
     }
 
     @Override
@@ -59,16 +58,16 @@ class MissingFileSnapshot implements FileSnapshot {
 
     @Override
     public FileContentSnapshot getContent() {
-        return MissingFileContentSnapshot.getInstance();
+        return DirContentSnapshot.getInstance();
     }
 
     @Override
     public FileType getType() {
-        return FileType.Missing;
+        return FileType.Directory;
     }
 
     @Override
     public FileSnapshot withContentHash(HashCode contentHash) {
-        throw new UnsupportedOperationException("Cannot change the content of a missing file");
+        throw new UnsupportedOperationException("Cannot change the content of a directory");
     }
 }

@@ -56,7 +56,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot.type == FileType.Directory
         snapshot.root
         snapshot.relativePath.toString() == "d"
-        snapshot.content == DirSnapshot.instance
+        snapshot.content == DirContentSnapshot.instance
 
         def snapshot2 = snapshotter.snapshotFile(d)
         snapshot2.is(snapshot)
@@ -72,7 +72,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot.type == FileType.Missing
         snapshot.root
         snapshot.relativePath.toString() == "f"
-        snapshot.content == MissingFileSnapshot.instance
+        snapshot.content == MissingFileContentSnapshot.instance
 
         def snapshot2 = snapshotter.snapshotFile(f)
         snapshot2.is(snapshot)
