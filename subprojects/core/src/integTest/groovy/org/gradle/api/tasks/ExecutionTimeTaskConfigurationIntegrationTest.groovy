@@ -87,8 +87,6 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "inputs.dir('a')"                                           | "TaskInputs.dir(Object)"
         "inputs.property('key', 'value')"                           | "TaskInputs.property(String, Object)"
         "inputs.properties([key: 'value'])"                         | "TaskInputs.properties(Map)"
-        "inputs.source('a')"                                        | "TaskInputs.source(Object)"
-        "inputs.sourceDir('a')"                                     | "TaskInputs.sourceDir(Object)"
         "outputs.upToDateWhen { }"                                  | "TaskOutputs.upToDateWhen(Closure)"
         "outputs.upToDateWhen({ } as Spec)"                         | "TaskOutputs.upToDateWhen(Spec)"
         "outputs.cacheIf({ } as Spec)"                              | "TaskOutputs.cacheIf(Spec)"

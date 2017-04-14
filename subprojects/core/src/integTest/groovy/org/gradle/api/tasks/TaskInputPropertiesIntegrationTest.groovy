@@ -207,29 +207,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
-    @Ignore("Must fix for 4.0")
-    @Unroll("deprecation warning printed when TaskInputs.#method is called")
-    def "deprecation warning printed when deprecated source method is used"() {
-        buildFile << """
-            task test {
-                inputs.${call}
-            }
-        """
-        executer.expectDeprecationWarning()
-        executer.requireGradleDistribution()
-
-        expect:
-        succeeds "test"
-        outputContains "The TaskInputs.${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use TaskInputs.${replacementMethod}.skipWhenEmpty() instead."
-
-        where:
-        method              | replacementMethod  | call
-        "source(Object)"    | "file(Object)"     | 'source("a")'
-        "sourceDir(Object)" | "dir(Object)"      | 'sourceDir("a")'
-        "source(Object...)" | "files(Object...)" | 'source("a", "b")'
-    }
-
     def "no deprecation warning printed when @Classpath annotation is used"() {
         buildFile << """
             class TaskWithClasspathProperty extends DefaultTask {

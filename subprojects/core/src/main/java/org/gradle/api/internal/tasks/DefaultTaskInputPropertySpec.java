@@ -39,9 +39,8 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     private SnapshotNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
     private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
 
-    public DefaultTaskInputPropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
+    public DefaultTaskInputPropertySpec(String taskName, FileResolver resolver, Object paths) {
         this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
-        this.skipWhenEmpty = skipWhenEmpty;
     }
 
     @Override
@@ -176,21 +175,6 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     @Override
     public FileCollection getSourceFiles() {
         throw failWithUnsupportedMethod("getSourceFiles()");
-    }
-
-    @Override
-    public TaskInputs source(Object... paths) {
-        throw failWithUnsupportedMethod("source(Object...)");
-    }
-
-    @Override
-    public TaskInputs source(Object path) {
-        throw failWithUnsupportedMethod("source(Object)");
-    }
-
-    @Override
-    public TaskInputs sourceDir(Object path) {
-        throw failWithUnsupportedMethod("sourceDir(Object)");
     }
 
     @Override
