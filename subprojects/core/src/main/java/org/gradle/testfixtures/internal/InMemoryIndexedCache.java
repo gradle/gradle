@@ -88,4 +88,8 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
     public void remove(K key) {
         entries.remove(key);
     }
+
+    public Map<K, V> getAllEntries() {
+        return (Map<K, V>) entries;
+    }
 }
