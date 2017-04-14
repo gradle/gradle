@@ -17,20 +17,15 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
-import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.file.DefaultFileVisitDetails
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultFileHasher
-import org.gradle.api.internal.hash.FileHasher
-import org.gradle.api.tasks.util.PatternSet
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -45,14 +40,13 @@ class DefaultClasspathSnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def hasher = Stub(FileHasher)
     def stringInterner = Stub(StringInterner) {
         intern(_) >> { String s -> s }
     }
     def fileSystem = TestFiles.fileSystem()
-    def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
+    def directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror([]))
-    PersistentIndexedCache<HashCode, HashCode> jarCache = Mock()
+    PersistentIndexedCache<HashCode, HashCode> jarCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def snapshotter = new DefaultClasspathSnapshotter(
         new FileSnapshotTreeFactory(
             fileSystemSnapshotter, directoryFileTreeFactory
@@ -64,36 +58,21 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
         given:
         def rootFile1 = tmpDir.file("root1.txt") << "root1"
-        def rootDir = Spy(TestFile, constructorArgs: [tmpDir.file("dir").absolutePath]).createDir()
+        def rootDir = tmpDir.file("dir").createDir()
         def subFile1 = rootDir.file("file1.txt") << "file1"
         def subFile2 = rootDir.file("file2.txt") << "file2"
         def rootFile2 = tmpDir.file("root2.txt") << "root2"
-        def rootDirTree = Mock(DirectoryFileTree)
 
         when:
         def snapshotInOriginalOrder = snapshotter.snapshot(files(rootFile1, rootDir, rootFile2), UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE)
         then:
         println snapshotInOriginalOrder.elements*.getName()
         snapshotInOriginalOrder.elements == [rootFile1, rootDir, subFile1, subFile2, rootFile2]
-        1 * directoryFileTreeFactory.create(_ as File) >> rootDirTree
-        _ * rootDirTree.patterns >> new PatternSet()
-        _ * rootDirTree.getDir() >> rootFile1
-        1 * rootDirTree.visit(_) >> { FileVisitor visitor ->
-            visitor.visitFile(new DefaultFileVisitDetails(subFile1, fileSystem, fileSystem))
-            visitor.visitFile(new DefaultFileVisitDetails(subFile2, fileSystem, fileSystem))
-        }
 
         when:
         def snapshotInReverseOrder = snapshotter.snapshot(files(rootFile2, rootFile1, rootDir), UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE)
         then:
         snapshotInReverseOrder.elements == [rootFile2, rootFile1, rootDir, subFile1, subFile2]
-        1 * directoryFileTreeFactory.create(rootDir) >> rootDirTree
-        _ * rootDirTree.patterns >> new PatternSet()
-        _ * rootDirTree.dir >> rootFile2
-        1 * rootDirTree.visit(_) >> { FileVisitor visitor ->
-            visitor.visitFile(new DefaultFileVisitDetails(subFile2, fileSystem, fileSystem))
-            visitor.visitFile(new DefaultFileVisitDetails(subFile1, fileSystem, fileSystem))
-        }
     }
 
     def files(File... files) {
