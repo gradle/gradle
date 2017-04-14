@@ -16,20 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
-import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 
 public class DependencyManagementGradleUserHomeScopeServices {
     DefaultArtifactCacheMetaData createArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
         return new DefaultArtifactCacheMetaData(cacheScopeMapping);
-    }
-
-    TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
-        return new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepository, cacheDecoratorFactory);
     }
 }

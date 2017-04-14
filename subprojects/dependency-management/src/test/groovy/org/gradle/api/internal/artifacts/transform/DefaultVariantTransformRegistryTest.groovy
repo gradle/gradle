@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
@@ -81,8 +80,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         transformed.first() == new File(outputDirectory, "OUTPUT_FILE")
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
-        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
+        1 * transformedFileCache.getResult(TEST_INPUT, _, fileCollectionSnapshotter, _) >> { file, impl, snapshotter, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "creates registration with configuration"() {
@@ -119,8 +117,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
-        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
+        1 * transformedFileCache.getResult(TEST_INPUT, _, fileCollectionSnapshotter, _) >> { file, impl, snapshotter, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "fails when artifactTransform cannot be instantiated"() {
@@ -148,8 +145,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause.message == "Could not create an instance of type $AbstractArtifactTransform.name."
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
-        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
+        1 * transformedFileCache.getResult(TEST_INPUT, _, fileCollectionSnapshotter, _) >> { file, impl, snapshotter, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "fails when incorrect number of artifactTransform parameters supplied for registration"() {
@@ -182,8 +178,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
-        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
+        1 * transformedFileCache.getResult(TEST_INPUT, _, fileCollectionSnapshotter, _) >> { file, impl, snapshotter, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "fails when artifactTransform throws exception"() {
@@ -211,8 +206,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause.message == 'broken'
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
-        1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
+        1 * transformedFileCache.getResult(TEST_INPUT, _, fileCollectionSnapshotter, _) >> { file, impl, snapshotter, transform -> return transform.apply(file, outputDirectory) }
     }
 
     def "fails when artifactTransform configuration action fails for registration"() {
