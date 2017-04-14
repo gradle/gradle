@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.initialization.GradleLauncher;
@@ -58,8 +59,8 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     }
 
     private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
-        if (!new File(settings.getSettingsDir(), "settings.gradle").exists()) {
-            throw new InvalidUserDataException(String.format("Included build '%s' must have a 'settings.gradle' file.", includedBuild.getName()));
+        if (!new File(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE).exists()) {
+            throw new InvalidUserDataException(String.format("Included build '%s' must have a '%s' file.", includedBuild.getName(), Settings.DEFAULT_SETTINGS_FILE));
         }
         if (!settings.getIncludedBuilds().isEmpty()) {
             throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", includedBuild.getName()));
