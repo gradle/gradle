@@ -22,7 +22,6 @@ import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based
@@ -44,13 +43,14 @@ import org.gradle.internal.service.ServiceRegistry;
 public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
     private final ScriptPluginFactory defaultScriptPluginFactory;
-    private final ServiceRegistry serviceRegistry;
+    private final DependencyInjectingServiceLoader serviceLoader;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public ScriptPluginFactorySelector(ScriptPluginFactory defaultScriptPluginFactory,
-                                       ServiceRegistry serviceRegistry, BuildOperationExecutor buildOperationExecutor) {
+                                       DependencyInjectingServiceLoader serviceLoader,
+                                       BuildOperationExecutor buildOperationExecutor) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
-        this.serviceRegistry = serviceRegistry;
+        this.serviceLoader = serviceLoader;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -79,10 +79,6 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private Iterable<ScriptPluginFactoryProvider> scriptPluginFactoryProviders() {
-        return serviceLoader().load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
-    }
-
-    private DependencyInjectingServiceLoader serviceLoader() {
-        return new DependencyInjectingServiceLoader(serviceRegistry);
+        return serviceLoader.load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
     }
 }
