@@ -241,6 +241,25 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         "files(Object...)"  | 'files("a", "b")'
     }
 
+    @Unroll
+    def "fails when outputs calls are chained (#method)"() {
+        buildFile << """
+            task test {
+                outputs.${call}.${call}
+            }
+        """
+
+        expect:
+        fails "test"
+        failureCauseContains "Chaining of the TaskOutputs.$method method is not supported since Gradle 4.0."
+
+        where:
+        method             | call
+        "file(Object)"     | 'file("a")'
+        "dir(Object)"      | 'dir("a")'
+        "files(Object...)" | 'files("a", "b")'
+    }
+
     def "task depends on other task whose outputs are its inputs"() {
         buildFile << """
             task a {

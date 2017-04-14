@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -33,8 +32,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     private final String taskName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, CacheableTaskOutputFilePropertySpec.OutputType outputType, Object[] paths) {
-        super(taskOutputs);
+    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, CacheableTaskOutputFilePropertySpec.OutputType outputType, Object[] paths) {
         this.taskName = taskName;
         this.resolver = resolver;
         this.outputType = outputType;
@@ -71,7 +69,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
             };
         } else {
             return Iterators.<TaskOutputFilePropertySpec>singletonIterator(
-                new NonCacheableTaskOutputPropertySpec(taskOutputs, taskName, this, resolver, unpackedPaths)
+                new NonCacheableTaskOutputPropertySpec(taskName, this, resolver, unpackedPaths)
             );
         }
     }

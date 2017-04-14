@@ -22,79 +22,72 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.util.DeprecationLogger;
 
 abstract class AbstractTaskOutputsDeprecatingTaskPropertyBuilder extends AbstractTaskPropertyBuilder implements TaskOutputs {
-    protected final TaskOutputs taskOutputs;
+    // --- See CompatibilityAdapterForTaskOutputs for an explanation for why these methods are here
 
-    public AbstractTaskOutputsDeprecatingTaskPropertyBuilder(TaskOutputs taskOutputs) {
-        this.taskOutputs = taskOutputs;
-    }
-
-    private TaskOutputs getTaskOutputs(String method) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Use '%s' on TaskOutputs directly instead.", method));
-        return taskOutputs;
+    private UnsupportedOperationException failWithUnsupportedMethod(String method) {
+        throw new UnsupportedOperationException(String.format("Chaining of the TaskOutputs.%s method is not supported since Gradle 4.0.", method));
     }
 
     @Override
     public void upToDateWhen(Closure upToDateClosure) {
-        getTaskOutputs("upToDateWhen(Closure)").upToDateWhen(upToDateClosure);
+        throw failWithUnsupportedMethod("upToDateWhen(Closure)");
     }
 
     @Override
     public void upToDateWhen(Spec<? super Task> upToDateSpec) {
-        getTaskOutputs("upToDateWhen(Spec)").upToDateWhen(upToDateSpec);
+        throw failWithUnsupportedMethod("upToDateWhen(Spec)");
     }
 
     @Override
     public void cacheIf(Spec<? super Task> spec) {
-        getTaskOutputs("cacheIf(Spec)").cacheIf(spec);
+        throw failWithUnsupportedMethod("cacheIf(Spec)");
     }
 
     @Override
     public void cacheIf(String cachingEnabledReason, Spec<? super Task> spec) {
-        getTaskOutputs("cacheIf(String, Spec)").cacheIf(cachingEnabledReason, spec);
+        throw failWithUnsupportedMethod("cacheIf(String, Spec)");
     }
 
-    @Override
     public void doNotCacheIf(Spec<? super Task> spec) {
-        getTaskOutputs("doNotCacheIf(Spec)").doNotCacheIf(spec);
+        throw failWithUnsupportedMethod("doNotCacheIf(Spec)");
     }
 
     @Override
     public void doNotCacheIf(String cachingDisabledReason, Spec<? super Task> spec) {
-        getTaskOutputs("doNotCacheIf(String, Spec)").doNotCacheIf(cachingDisabledReason, spec);
+        throw failWithUnsupportedMethod("doNotCacheIf(String, Spec)");
     }
 
     @Override
     public boolean getHasOutput() {
-        return getTaskOutputs("getHasOutput()").getHasOutput();
+        throw failWithUnsupportedMethod("getHasOutput()");
     }
 
     @Override
     public FileCollection getFiles() {
-        return getTaskOutputs("getFiles()").getFiles();
+        throw failWithUnsupportedMethod("getFiles()");
     }
 
     @Override
     @Deprecated
     public TaskOutputFilePropertyBuilder files(Object... paths) {
-        return getTaskOutputs("files(Object...)").files(paths);
+        throw failWithUnsupportedMethod("files(Object...)");
     }
 
     @Override
     @Deprecated
     public TaskOutputFilePropertyBuilder dirs(Object... paths) {
-        return getTaskOutputs("dirs(Object...)").dirs(paths);
+        throw failWithUnsupportedMethod("dirs(Object...)");
     }
 
     @Override
     public TaskOutputFilePropertyBuilder file(Object path) {
-        return getTaskOutputs("file(Object)").file(path);
+        throw failWithUnsupportedMethod("file(Object)");
     }
 
     @Override
     public TaskOutputFilePropertyBuilder dir(Object path) {
-        return getTaskOutputs("dir(Object)").dir(path);
+        throw failWithUnsupportedMethod("dir(Object)");
     }
 }
