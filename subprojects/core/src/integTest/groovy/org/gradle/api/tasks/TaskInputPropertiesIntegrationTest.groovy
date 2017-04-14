@@ -207,21 +207,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
-    def "no deprecation warning printed when @Classpath annotation is used"() {
-        buildFile << """
-            class TaskWithClasspathProperty extends DefaultTask {
-                @Classpath @InputFiles def classpath = project.files()
-                @TaskAction void action() {}
-            }
-
-            task test(type: TaskWithClasspathProperty) {
-            }
-        """
-
-        expect:
-        succeeds "test"
-    }
-
     @Unroll
     def "fails when inputs calls are chained (#method)"() {
         buildFile << """
