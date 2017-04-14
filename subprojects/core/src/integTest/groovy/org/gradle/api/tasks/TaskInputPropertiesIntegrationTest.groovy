@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.Actions
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -184,8 +183,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skipped ':test'
     }
 
-    @Ignore("Must fix for 4.0")
-    def "no deprecation warning printed when @OutputDirectories or @OutputFiles is used on Map property"() {
+    def "can annotate Map property with @OutputDirectories and @OutputFiles"() {
         file("buildSrc/src/main/groovy/TaskWithOutputFilesProperty.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
