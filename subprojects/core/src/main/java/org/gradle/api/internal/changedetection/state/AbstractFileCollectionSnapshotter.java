@@ -126,7 +126,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
             FileTreeSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            List<FileSnapshot> elements = treeSnapshot.getDescendents();
+            List<FileSnapshot> elements = treeSnapshot.getDescendants();
             elements = normaliseTreeElements(elements);
             fileTreeElements.addAll(elements);
         }
