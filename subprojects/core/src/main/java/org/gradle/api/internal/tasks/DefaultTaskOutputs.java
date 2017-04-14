@@ -37,7 +37,6 @@ import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -157,12 +156,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 cacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingEnabledReason));
             }
         });
-    }
-
-    @Override
-    public void doNotCacheIf(final Spec<? super Task> spec) {
-        DeprecationLogger.nagUserOfReplacedMethod("doNotCacheIf(Spec)", "doNotCacheIf(String, Spec)");
-        doNotCacheIf("Task outputs not cacheable", spec);
     }
 
     @Override

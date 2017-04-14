@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -300,23 +299,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         skippedTasks.containsAll ":compileJava"
         file("build/classes/main/Hello.class").exists()
-    }
-
-    @Ignore("Must fix for 4.0")
-    def "using `doNotCacheIf` without reason is deprecated"() {
-        given:
-        buildFile << """
-            task adHocTask {
-                outputs.doNotCacheIf { true }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        withBuildCache().succeeds 'adHocTask'
-
-        then:
-        output.contains "The doNotCacheIf(Spec) method has been deprecated and is scheduled to be removed in Gradle 4.0. Please use the doNotCacheIf(String, Spec) method instead."
     }
 
     def "error message contains spec which failed to evaluate"() {

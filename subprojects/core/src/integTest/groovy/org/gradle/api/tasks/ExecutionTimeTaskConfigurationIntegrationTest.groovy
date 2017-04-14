@@ -90,7 +90,6 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "outputs.upToDateWhen { }"                                  | "TaskOutputs.upToDateWhen(Closure)"
         "outputs.upToDateWhen({ } as Spec)"                         | "TaskOutputs.upToDateWhen(Spec)"
         "outputs.cacheIf({ } as Spec)"                              | "TaskOutputs.cacheIf(Spec)"
-        "outputs.doNotCacheIf({ } as Spec)"                         | "TaskOutputs.doNotCacheIf(Spec)"
         "outputs.file('a')"                                         | "TaskOutputs.file(Object)"
         "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"
         "outputs.dirs(['prop':'a'])"                                | "TaskOutputs.dirs(Object...)"
