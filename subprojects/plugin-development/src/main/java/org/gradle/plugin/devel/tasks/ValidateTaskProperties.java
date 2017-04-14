@@ -35,6 +35,8 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.project.taskfactory.TaskClassInfo;
+import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -47,9 +49,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.internal.Java9ClassReader;
@@ -60,8 +60,6 @@ import org.objectweb.asm.Opcodes;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
@@ -108,7 +106,6 @@ import java.util.Map;
  */
 @Incubating
 @CacheableTask
-@SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends DefaultTask implements VerificationTask {
     private File classesDir;
     private FileCollection classpath;
@@ -118,32 +115,14 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
 
     @TaskAction
     public void validateTaskClasses() throws IOException {
-        ClassLoader previousContextClassLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader baseClassLoader = Thread.currentThread().getContextClassLoader();
         ClassPath classPath = new DefaultClassPath(Iterables.concat(Collections.singleton(getClassesDir()), getClasspath()));
-        ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader(classPath);
-        Thread.currentThread().setContextClassLoader(classLoader);
-        try {
-            validateTaskClasses(classLoader);
-        } finally {
-            Thread.currentThread().setContextClassLoader(previousContextClassLoader);
-            ClassLoaderUtils.tryClose(classLoader);
-        }
+        ClassLoader classLoader = getClassLoaderFactory().createChildClassLoader(baseClassLoader, classPath);
+        validateTaskClasses(classLoader);
     }
 
     private void validateTaskClasses(final ClassLoader classLoader) throws IOException {
         final Map<String, Boolean> taskValidationProblems = Maps.newTreeMap();
-        final Class<?> taskInterface;
-        final Method validatorMethod;
-        try {
-            taskInterface = classLoader.loadClass(Task.class.getName());
-            Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.project.taskfactory.TaskPropertyValidationAccess");
-            validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-
         getServices().get(DirectoryFileTreeFactory.class).create(getClassesDir()).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
@@ -179,23 +158,26 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
                     if (Modifier.isAbstract(clazz.getModifiers())) {
                         continue;
                     }
-                    if (!taskInterface.isAssignableFrom(clazz)) {
+                    if (!Task.class.isAssignableFrom(clazz)) {
                         continue;
                     }
-                    Class<? extends Task> taskClass = Cast.uncheckedCast(clazz);
-                    try {
-                        validatorMethod.invoke(null, taskClass, taskValidationProblems);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
+
+                    Class<? extends Task> taskClass = clazz.asSubclass(Task.class);
+                    validateTask(taskClass, taskValidationProblems);
                 }
             }
         });
+
         List<String> problemMessages = toProblemMessages(taskValidationProblems);
         storeResults(problemMessages, getOutputFile());
         communicateResult(problemMessages, taskValidationProblems.values().contains(Boolean.TRUE));
+    }
+
+    private void validateTask(Class<? extends Task> taskClass, Map<String, Boolean> taskValidationProblems) {
+        TaskClassInfo info = getTaskClassInfoStore().getTaskClassInfo(taskClass);
+        for (String nonAnnotatedPropertyName : info.getNonAnnotatedPropertyNames()) {
+            taskValidationProblems.put(String.format("Task type '%s' declares property that is not annotated: '%s'.", taskClass.getName(), nonAnnotatedPropertyName), Boolean.FALSE);
+        }
     }
 
     private void storeResults(List<String> problemMessages, File outputFile) throws IOException {
@@ -341,6 +323,11 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
 
     @Inject
     protected DocumentationRegistry getDocumentationRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected TaskClassInfoStore getTaskClassInfoStore() {
         throw new UnsupportedOperationException();
     }
 

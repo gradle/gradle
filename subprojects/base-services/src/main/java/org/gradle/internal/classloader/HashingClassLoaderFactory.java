@@ -24,6 +24,12 @@ import org.gradle.internal.classpath.ClassPath;
  */
 public interface HashingClassLoaderFactory extends ClassLoaderFactory, ClassLoaderHasher {
     /**
+     * Creates a {@link ClassLoader} with the given parent and classpath. The hash of the classloader
+     * will be calculated from the given classpath.
+     */
+    ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath);
+
+    /**
      * Creates a {@link ClassLoader} with the given parent and classpath. Use the given hash
      * code, or calculate it from the given classpath when hash code is {@code null}.
      */

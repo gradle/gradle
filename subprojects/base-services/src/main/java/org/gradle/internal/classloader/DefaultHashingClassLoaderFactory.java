@@ -50,11 +50,11 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
 
     @Override
     public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
-        HashCode hashCode = implementationHash != null
-            ? implementationHash
-            : calculateClassLoaderHash(classPath);
+        if (implementationHash == null) {
+            return createChildClassLoader(parent, classPath);
+        }
         ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
-        hashCodes.put(classLoader, hashCode);
+        hashCodes.put(classLoader, calculateClassLoaderHash(classPath));
         return classLoader;
     }
 

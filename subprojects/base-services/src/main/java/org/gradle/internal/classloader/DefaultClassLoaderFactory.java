@@ -61,6 +61,11 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     }
 
     @Override
+    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath) {
+        return doCreateClassLoader(parent, classPath);
+    }
+
+    @Override
     public ClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
         // See the comment for {@link #createIsolatedClassLoader} above
         FilteringClassLoader.Spec classLoaderSpec = new FilteringClassLoader.Spec(spec);
