@@ -42,17 +42,17 @@ public class FileSnapshotTreeFactory {
         return new DefaultSnapshotTree(null, fileSystemSnapshotter.snapshotTree(fileTree));
     }
 
-    public DefaultSnapshotTree directoryTree(DirectoryFileTree directoryFileTree) {
-        FileTreeSnapshot root = fileSystemSnapshotter.snapshotDirectoryTree(directoryFileTree.getDir());
-        return new DefaultSnapshotTree(fileSystemSnapshotter.snapshotSelf(new File(root.getPath())), root.getDescendants());
-    }
-
     public List<SnapshotTree> fileCollection(FileCollection input) {
         LinkedList<SnapshotTree> fileTreeElements = Lists.newLinkedList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
         fileCollection.visitRootElements(visitor);
         return fileTreeElements;
+    }
+
+    private DefaultSnapshotTree directoryTree(DirectoryFileTree directoryFileTree) {
+        FileTreeSnapshot root = fileSystemSnapshotter.snapshotDirectoryTree(directoryFileTree);
+        return new DefaultSnapshotTree(fileSystemSnapshotter.snapshotSelf(new File(root.getPath())), root.getDescendants());
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
