@@ -24,14 +24,14 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStra
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultSnapshotCollector implements SnapshotCollector {
     private final SnapshotNormalizationStrategy normalizationStrategy;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final StringInterner stringInterner;
-    private final List<NormalizedSnapshot> normalizedSnapshots = new ArrayList<NormalizedSnapshot>();
+    private final List<NormalizedSnapshot> normalizedSnapshots = new LinkedList<NormalizedSnapshot>();
 
     public DefaultSnapshotCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
         this.normalizationStrategy = normalizationStrategy;
