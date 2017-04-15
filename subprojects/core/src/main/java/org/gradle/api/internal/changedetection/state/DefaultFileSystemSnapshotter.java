@@ -97,7 +97,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 if (snapshot == null) {
                     FileCollectionSnapshot fileCollectionSnapshot = snapshotter.snapshot(new SimpleFileCollection(file), TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
                     DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-                    fileCollectionSnapshot.appendToHasher(hasher);
+                    hasher.putBytes(fileCollectionSnapshot.getHash().asBytes());
                     HashCode hashCode = hasher.hash();
                     snapshot = new HashBackedSnapshot(hashCode);
                     String internedPath = getPath(file);
