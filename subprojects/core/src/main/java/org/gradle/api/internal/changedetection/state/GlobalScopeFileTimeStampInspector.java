@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Used for the global file hash cache, which is in-memory only.
+ * Used for the global file hash cache
  */
 public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements BuildListener {
     private CachingFileHasher fileHasher;
