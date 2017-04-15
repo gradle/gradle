@@ -86,7 +86,7 @@ public class GradleUserHomeScopeServices {
     }
 
     CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new CrossBuildFileHashCache(cacheRepository, inMemoryCacheDecoratorFactory);
+        return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
     GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping) {

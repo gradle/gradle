@@ -23,8 +23,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
-import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
 import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
@@ -162,7 +162,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     @Inject
-    protected CachingFileHasher getCachingFileHasher() {
+    protected FileHasher getCachingFileHasher() {
         throw new UnsupportedOperationException();
     }
 

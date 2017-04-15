@@ -40,15 +40,10 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.api.logging.configuration.LoggingConfiguration
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.configuration.DefaultBuildConfigurer
 import org.gradle.configuration.ImportsReader
-import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.configuration.ScriptPluginFactorySelector
-import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
-import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildLoader
@@ -57,11 +52,8 @@ import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.DefaultExceptionAnalyser
 import org.gradle.initialization.DefaultGradlePropertiesLoader
 import org.gradle.initialization.IGradlePropertiesLoader
-import org.gradle.initialization.InitScriptHandler
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser
-import org.gradle.initialization.NotifyingSettingsProcessor
 import org.gradle.initialization.ProjectPropertySettingBuildLoader
-import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
@@ -208,52 +200,6 @@ public class BuildScopeServicesTest extends Specification {
         ListenerManager listenerManager = expectListenerManagerCreated()
         expect:
         assertThat(registry.get(ListenerManager), sameInstance(listenerManager))
-    }
-
-    def providesAScriptCompilerFactory() {
-        setup:
-        expectListenerManagerCreated()
-        expectParentServiceLocated(CacheFactory)
-
-        expect:
-        registry.get(ScriptCompilerFactory) instanceof DefaultScriptCompilerFactory
-        registry.get(ScriptCompilerFactory) == registry.get(ScriptCompilerFactory)
-    }
-
-    def providesAnInitScriptHandler() {
-        setup:
-        expectListenerManagerCreated()
-        allowGetGradleInstallation()
-        expectParentServiceLocated(ProviderFactory)
-        expectParentServiceLocated(BuildOperationExecutor)
-        expectParentServiceLocated(CacheFactory)
-
-        expect:
-        registry.get(InitScriptHandler) instanceof InitScriptHandler
-        registry.get(InitScriptHandler) == registry.get(InitScriptHandler)
-    }
-
-    def providesAScriptObjectConfigurerFactory() {
-        setup:
-        expectListenerManagerCreated()
-        expectParentServiceLocated(ProviderFactory)
-        expectParentServiceLocated(CacheFactory)
-
-        expect:
-        assertThat(registry.get(ScriptPluginFactory), instanceOf(ScriptPluginFactorySelector))
-        assertThat(registry.get(ScriptPluginFactory), sameInstance(registry.get(ScriptPluginFactory)))
-    }
-
-    def providesASettingsProcessor() {
-        setup:
-        expectListenerManagerCreated()
-        expectParentServiceLocated(ProviderFactory)
-        expectParentServiceLocated(CacheFactory)
-        expectParentServiceLocated(BuildOperationExecutor)
-
-        expect:
-        assertThat(registry.get(SettingsProcessor), instanceOf(NotifyingSettingsProcessor))
-        assertThat(registry.get(SettingsProcessor), sameInstance(registry.get(SettingsProcessor)))
     }
 
     def providesAnExceptionAnalyser() {

@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.BuildListener;
+import org.gradle.BuildResult;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.internal.concurrent.Stoppable;
 
-public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector implements Stoppable {
+import java.io.File;
 
-    public BuildScopeFileTimeStampInspector(Gradle gradle, CacheScopeMapping cacheScopeMapping) {
-        super(cacheScopeMapping.getBaseDirectory(gradle, "file-changes", VersionStrategy.CachePerVersion));
-        updateOnStartBuild();
+public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector implements BuildListener {
+    public BuildScopeFileTimeStampInspector(File workDir) {
+        super(workDir);
     }
 
     @Override
@@ -34,7 +34,30 @@ public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector imp
     }
 
     @Override
-    public void stop() {
+    public void buildStarted(Gradle gradle) {
+        if (gradle.getParent() != null) {
+            return;
+        }
+        updateOnStartBuild();
+    }
+
+    @Override
+    public void buildFinished(BuildResult result) {
+        if (result.getGradle().getParent() != null) {
+            return;
+        }
         updateOnFinishBuild();
+    }
+
+    @Override
+    public void settingsEvaluated(Settings settings) {
+    }
+
+    @Override
+    public void projectsLoaded(Gradle gradle) {
+    }
+
+    @Override
+    public void projectsEvaluated(Gradle gradle) {
     }
 }
