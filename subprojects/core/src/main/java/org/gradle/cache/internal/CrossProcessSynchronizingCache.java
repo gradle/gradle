@@ -32,6 +32,11 @@ public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePer
         this.cacheAccess = cacheAccess;
     }
 
+    @Override
+    public String toString() {
+        return target.toString();
+    }
+
     @Nullable
     @Override
     public V get(final K key) {

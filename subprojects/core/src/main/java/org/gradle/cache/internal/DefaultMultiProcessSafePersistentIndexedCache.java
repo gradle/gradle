@@ -30,6 +30,11 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     }
 
     @Override
+    public String toString() {
+        return fileAccess.toString();
+    }
+
+    @Override
     public V get(final K key) {
         final BTreePersistentIndexedCache<K, V> cache = getCache();
         try {
