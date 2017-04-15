@@ -23,7 +23,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
@@ -39,7 +38,6 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
-import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -126,17 +124,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
 
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
-        LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
-        loggingManager.setLevelInternal(startParameter.getLogLevel());
-        if (startParameter.isParallelProjectExecutionEnabled()) {
-            loggingManager.setMaxWorkerCount(startParameter.getMaxWorkerCount());
-        } else {
-            loggingManager.setMaxWorkerCount(1);
-        }
-
-        //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
-        loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
-        loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
         LoggerProvider loggerProvider = (parent == null) ? buildProgressLogger : LoggerProvider.NO_OP;
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
@@ -192,7 +179,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             settingsLoader,
             serviceRegistry.get(BuildConfigurer.class),
             serviceRegistry.get(ExceptionAnalyser.class),
-            loggingManager,
             gradle.getBuildListenerBroadcaster(),
             listenerManager.getBroadcaster(ModelConfigurationListener.class),
             listenerManager.getBroadcaster(BuildCompletionListener.class),

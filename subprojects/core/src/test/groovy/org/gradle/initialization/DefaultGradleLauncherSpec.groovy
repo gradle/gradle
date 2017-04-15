@@ -33,7 +33,6 @@ import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.internal.concurrent.Stoppable
-import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
@@ -66,7 +65,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private ClassLoaderScope baseClassLoaderScope = Mock(ClassLoaderScope.class);
     private ExceptionAnalyser exceptionAnalyserMock = Mock(ExceptionAnalyser);
-    private LoggingManagerInternal loggingManagerMock = Mock(LoggingManagerInternal.class);
     private ModelConfigurationListener modelListenerMock = Mock(ModelConfigurationListener.class);
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class);
     private TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
@@ -121,14 +119,13 @@ class DefaultGradleLauncherSpec extends Specification {
 
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
-            buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
+            buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
             buildServices, [otherService]);
     }
 
     void testRun() {
         when:
-        expectLoggingStarted();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
@@ -146,7 +143,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testGetBuildAnalysis() {
         when:
-        expectLoggingStarted();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
@@ -163,7 +159,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOfBuildAnalysisStages() {
         when:
-        expectLoggingStarted();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
@@ -176,7 +171,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOfBuildStages() {
         when:
-        expectLoggingStarted();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
@@ -190,9 +184,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOnBuildListenerFailure() {
         given:
-        expectLoggingStarted();
-
-        and:
         1 * buildBroadcaster.buildStarted(gradleMock) >> { throw failure }
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
@@ -207,7 +198,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOnSettingsInitWithFailure() {
         given:
-        expectLoggingStarted();
         expectInitScriptsExecuted();
 
         and:
@@ -226,7 +216,6 @@ class DefaultGradleLauncherSpec extends Specification {
 
     void testNotifiesListenerOnBuildCompleteWithFailure() {
         given:
-        expectLoggingStarted();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
@@ -248,15 +237,11 @@ class DefaultGradleLauncherSpec extends Specification {
     }
 
     void testCleansUpOnStop() throws IOException {
-        given:
-        expectLoggingStarted();
-
         when:
         DefaultGradleLauncher gradleLauncher = launcher();
         gradleLauncher.stop();
 
         then:
-        1 * loggingManagerMock.stop()
         1 * buildServices.close()
         1 * otherService.stop()
         1 * buildCompletionListener.completed()
@@ -267,10 +252,6 @@ class DefaultGradleLauncherSpec extends Specification {
         assert buildOperationExecutor.operations[0].displayName == "Configure build"
         assert buildOperationExecutor.operations[1].displayName == "Calculate task graph"
         assert buildOperationExecutor.operations[2].displayName == "Run tasks"
-    }
-
-    private void expectLoggingStarted() {
-        1 * loggingManagerMock.start()
     }
 
     private void expectInitScriptsExecuted() {
