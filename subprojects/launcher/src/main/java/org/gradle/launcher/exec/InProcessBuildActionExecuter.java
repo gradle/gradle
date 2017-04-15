@@ -35,8 +35,6 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
         try {
-            gradleLauncher.addStandardOutputListener(buildRequestContext.getOutputListener());
-            gradleLauncher.addStandardErrorListener(buildRequestContext.getErrorListener());
             GradleBuildController buildController = new GradleBuildController(gradleLauncher);
             buildActionRunner.run(action, buildController);
             return buildController.getResult();
