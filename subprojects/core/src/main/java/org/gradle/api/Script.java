@@ -340,7 +340,7 @@ public interface Script {
     ExecResult exec(Action<? super ExecSpec> action);
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to control the logging level and
+     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this script. By default, System.out is redirected to the Gradle logging system
      * at the QUIET log level, and System.err is redirected at the ERROR log level.
      *
