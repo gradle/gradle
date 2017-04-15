@@ -96,6 +96,10 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
     }
 
+    ListenerManager createListenerManager(ListenerManager parent) {
+        return parent.createChild();
+    }
+
     DeploymentRegistry createDeploymentRegistry() {
         return new DefaultDeploymentRegistry();
     }
