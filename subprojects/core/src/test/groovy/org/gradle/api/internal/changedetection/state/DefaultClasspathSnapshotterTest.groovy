@@ -77,13 +77,13 @@ class DefaultClasspathSnapshotterTest extends Specification {
             'dir': [
                 'file1.txt': '60c913683cc577eae172594b76316d06',
                 'file2.txt': 'e0d9760b191a5dc21838e8a16f956bb0',
-                'total': '9d47e46923d97f1938e7689be6cef03a'
+                hash: '9d47e46923d97f1938e7689be6cef03a'
             ],
             'root2.txt': [
-                'total': 'd41d8cd98f00b204e9800998ecf8427e'
+                hash: 'd41d8cd98f00b204e9800998ecf8427e'
             ],
             'root1.txt': [
-                total: 'd41d8cd98f00b204e9800998ecf8427e'
+                hash: 'd41d8cd98f00b204e9800998ecf8427e'
             ],
         ]
         snapshots == expectedEntrySnapshots
@@ -144,13 +144,13 @@ class DefaultClasspathSnapshotterTest extends Specification {
                 'firstFile.txt': '9db5682a4d778ca2cb79580bdb67083f',
                 'secondFile.txt': '82e72efeddfca85ddb625e88af3fe973',
                 'subdir/someOtherFile.log': 'a9cca315f4b8650dccfa3d93284998ef',
-                total: 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
+                hash: 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
             ],
             classes: [
                 'fourthFile.txt': '8fd6978401143ae9adc277e9ce819f7e',
                 'subdir/build.log': 'abf951c0fe2b682313add34f016bcb30',
                 'thirdFile.txt': '728271a3405e112740bfd3198cfa70de',
-                total: 'fa5654d3c632f8b6e29ecaee439a5f15',
+                hash: 'fa5654d3c632f8b6e29ecaee439a5f15',
             ],
         ]
         jarCache.allEntries.size() == 1
@@ -205,7 +205,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
         @Override
         HashCode getHash(NormalizedFileSnapshotCollector collector) {
             def hash = delegate.getHash(collector)
-            snapshots['total'] = hash.toString()
+            snapshots['hash'] = hash.toString()
             return hash
         }
 
@@ -266,7 +266,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
         @Override
         HashCode getHash(NormalizedFileSnapshotCollector collector) {
             def hash = delegate.getHash(collector)
-            snapshots['total'] = hash.toString()
+            snapshots['hash'] = hash.toString()
             return hash
         }
     }
