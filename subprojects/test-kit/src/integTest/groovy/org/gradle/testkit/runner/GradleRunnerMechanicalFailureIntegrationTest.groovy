@@ -110,11 +110,11 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
 
         then:
         def t = thrown(UnexpectedBuildFailure)
-        t.message.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
+        t.message.contains("The specified project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
         !t.message.contains(':helloWorld')
         def result = t.buildResult
         result.output.contains('BUILD FAILED')
-        result.output.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
+        result.output.contains("The specified project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
         result.tasks.empty
     }
 
