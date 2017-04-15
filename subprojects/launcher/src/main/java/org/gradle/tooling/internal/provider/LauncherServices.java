@@ -81,21 +81,24 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
                                           StyledTextOutputFactory styledTextOutputFactory,
                                           ExecutorFactory executorFactory,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
-            return new GradleThreadBuildActionExecuter(
-                new ServicesSetupBuildActionExecuter(
-                    new ContinuousBuildActionExecuter(
-                        new InProcessBuildActionExecuter(gradleLauncherFactory,
-                            new SubscribableBuildActionRunner(
-                                new RunAsBuildOperationBuildActionRunner(
-                                    new ValidatingBuildActionRunner(
-                                        new ChainingBuildActionRunner(buildActionRunners)),
-                                    buildOperationExecutor),
-                                buildOperationService, registrations)),
-                        fileWatcherFactory,
-                        listenerManager,
-                        styledTextOutputFactory,
-                        executorFactory),
-                    userHomeServiceRegistry));
+            return new SessionFailureReportingActionExecuter(
+                new StartParamsValidatingActionExecuter(
+                    new GradleThreadBuildActionExecuter(
+                        new ServicesSetupBuildActionExecuter(
+                            new ContinuousBuildActionExecuter(
+                                new InProcessBuildActionExecuter(gradleLauncherFactory,
+                                    new SubscribableBuildActionRunner(
+                                        new RunAsBuildOperationBuildActionRunner(
+                                            new ValidatingBuildActionRunner(
+                                                new ChainingBuildActionRunner(buildActionRunners)),
+                                            buildOperationExecutor),
+                                        buildOperationService, registrations)),
+                                fileWatcherFactory,
+                                listenerManager,
+                                styledTextOutputFactory,
+                                executorFactory),
+                            userHomeServiceRegistry))),
+                styledTextOutputFactory);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

@@ -22,7 +22,6 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.startsWith;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
@@ -113,23 +112,41 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void buildFailsWhenSpecifiedBuildFileIsNotAFile() {
-        ExecutionFailure result = usingBuildFile(testFile("unknown build file")).runWithFailure();
-        result.assertThatDescription(startsWith("Build file"));
-        result.assertThatDescription(endsWith("does not exist."));
+        TestFile file = testFile("unknown");
+
+        ExecutionFailure result = usingBuildFile(file).runWithFailure();
+        result.assertHasDescription("The specified build file '" + file + "' does not exist.");
+
+        file.createDir();
+
+        result = usingBuildFile(file).runWithFailure();
+        result.assertHasDescription("The specified build file '" + file + "' is not a file.");
     }
 
     @Test
     public void buildFailsWhenSpecifiedProjectDirectoryIsNotADirectory() {
-        ExecutionFailure result = usingProjectDir(testFile("unknown dir")).runWithFailure();
-        result.assertThatDescription(startsWith("Project directory"));
-        result.assertThatDescription(endsWith("does not exist."));
+        TestFile file = testFile("unknown");
+
+        ExecutionFailure result = usingProjectDir(file).runWithFailure();
+        result.assertHasDescription("The specified project directory '" + file + "' does not exist.");
+
+        file.createFile();
+
+        result = usingProjectDir(file).runWithFailure();
+        result.assertHasDescription("The specified project directory '" + file + "' is not a directory.");
     }
 
     @Test
     public void buildFailsWhenSpecifiedSettingsFileIsNotAFile() {
-        ExecutionFailure result = inTestDirectory().usingSettingsFile(testFile("unknown")).runWithFailure();
-        result.assertThatDescription(startsWith("Could not read settings file"));
-        result.assertThatDescription(endsWith("as it does not exist."));
+        TestFile file = testFile("unknown");
+
+        ExecutionFailure result = inTestDirectory().usingSettingsFile(file).runWithFailure();
+        result.assertHasDescription("The specified settings file '" + file + "' does not exist.");
+
+        file.createDir();
+
+        result = inTestDirectory().usingSettingsFile(file).runWithFailure();
+        result.assertHasDescription("The specified settings file '" + file + "' is not a file.");
     }
 
     @Test
@@ -304,13 +321,5 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
         inTestDirectory().withArguments("-p", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
                 .assertHasDescription("Task 'thing' not found in root project 'gradle'.");
-    }
-
-    @Test
-    public void cannotUseDirectoryAsBuildFile() {
-        TestFile settingsDir = testFile("gradle").createDir();
-
-        inTestDirectory().withArguments("-b", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
-                .assertHasDescription(String.format("Build file '%s' is not a file.", settingsDir.getAbsolutePath()));
     }
 }
