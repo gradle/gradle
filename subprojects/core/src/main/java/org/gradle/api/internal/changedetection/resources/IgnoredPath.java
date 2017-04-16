@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
+import org.gradle.caching.internal.BuildCacheHasher;
+
 public class IgnoredPath implements NormalizedPath {
     private static final IgnoredPath INSTANCE = new IgnoredPath();
 
@@ -27,7 +29,7 @@ public class IgnoredPath implements NormalizedPath {
     }
 
     @Override
-    public String getPath() {
+    public CharSequence getPath() {
         return "";
     }
 
@@ -47,5 +49,9 @@ public class IgnoredPath implements NormalizedPath {
     @Override
     public int hashCode() {
         return 1;
+    }
+
+    @Override
+    public void appendToHasher(BuildCacheHasher hasher) {
     }
 }

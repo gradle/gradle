@@ -127,7 +127,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                     List<IncrementalFileSnapshotWithAbsolutePath> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentNormalizedSnapshot);
                     if (previousSnapshotsForNormalizedPath.isEmpty()) {
                         IncrementalFileSnapshotWithAbsolutePath currentSnapshotWithAbsolutePath = new IncrementalFileSnapshotWithAbsolutePath(currentAbsolutePath, currentSnapshot);
-                        addedFiles.put(currentNormalizedSnapshot.getNormalizedPath().getPath(), currentSnapshotWithAbsolutePath);
+                        addedFiles.put(currentNormalizedSnapshot.getNormalizedPath().getPath().toString(), currentSnapshotWithAbsolutePath);
                     } else {
                         IncrementalFileSnapshotWithAbsolutePath previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
                         FileContentSnapshot previousSnapshot = previousSnapshotWithAbsolutePath.getSnapshot();
@@ -149,7 +149,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
                 if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
                     Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshotEntry = unaccountedForPreviousSnapshotsIterator.next();
-                    String normalizedPath = unaccountedForPreviousSnapshotEntry.getKey().getNormalizedPath().getPath();
+                    String normalizedPath = unaccountedForPreviousSnapshotEntry.getKey().getNormalizedPath().getPath().toString();
                     List<IncrementalFileSnapshotWithAbsolutePath> addedFilesForNormalizedPath = addedFiles.get(normalizedPath);
                     if (!addedFilesForNormalizedPath.isEmpty()) {
                         // There might be multiple files with the same normalized path, here we choose one of them

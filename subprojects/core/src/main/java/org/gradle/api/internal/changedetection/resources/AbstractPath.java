@@ -16,10 +16,20 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
+import org.gradle.caching.internal.BuildCacheHasher;
+
+import java.nio.CharBuffer;
+
 public abstract class AbstractPath implements NormalizedPath {
     @Override
     public int compareTo(NormalizedPath o) {
-        return getPath().compareTo(o.getPath());
+
+        CharSequence path = getPath();
+        CharSequence otherPath = o.getPath();
+        if (path instanceof CharBuffer && otherPath instanceof CharBuffer) {
+            return ((CharBuffer) path).compareTo((CharBuffer) otherPath);
+        }
+        return path.toString().compareTo(otherPath.toString());
     }
 
     @Override
@@ -39,5 +49,10 @@ public abstract class AbstractPath implements NormalizedPath {
     @Override
     public int hashCode() {
         return getPath().hashCode();
+    }
+
+    @Override
+    public void appendToHasher(BuildCacheHasher hasher) {
+        hasher.putString(getPath());
     }
 }

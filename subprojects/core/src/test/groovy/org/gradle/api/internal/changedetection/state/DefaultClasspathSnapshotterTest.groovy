@@ -169,7 +169,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
             fileCollectionSnapshot.hash.toString(),
             snapshots,
             fileCollectionSnapshot.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
-                [new File(path).getName(), normalizedFileSnapshot.normalizedPath.path, normalizedFileSnapshot.snapshot.toString()]
+                [new File(path).getName(), normalizedFileSnapshot.normalizedPath.path.toString(), normalizedFileSnapshot.snapshot.toString()]
             }
         ]
     }
