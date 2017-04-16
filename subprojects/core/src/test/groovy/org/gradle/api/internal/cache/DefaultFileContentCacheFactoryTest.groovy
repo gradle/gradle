@@ -72,7 +72,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
@@ -98,7 +98,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.Directory
         1 * calculator.calculate(file, FileType.Directory) >> 12
         0 * _
@@ -123,7 +123,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
@@ -136,7 +136,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
         0 * _
@@ -154,7 +154,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
@@ -168,7 +168,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
         0 * _
@@ -186,7 +186,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.Directory
         1 * calculator.calculate(file, FileType.Directory) >> 12
         0 * _
@@ -199,7 +199,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.Directory
         1 * calculator.calculate(file, FileType.Directory) >> 10
         0 * _
@@ -217,7 +217,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 12
@@ -231,7 +231,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * fileSystemSnapshotter.snapshotFile(file) >> fileSnapshot
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(321), 123)
         1 * calculator.calculate(file, FileType.RegularFile) >> 10

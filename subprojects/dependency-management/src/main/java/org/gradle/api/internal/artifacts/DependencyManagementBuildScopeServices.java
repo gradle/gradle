@@ -65,6 +65,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -84,7 +85,6 @@ import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -254,8 +254,8 @@ class DependencyManagementBuildScopeServices {
             producerGuard);
     }
 
-    TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, List<CachedJarFileStore> fileStores) {
-        return new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepository, cacheDecoratorFactory, fileStores);
+    TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+        return new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,

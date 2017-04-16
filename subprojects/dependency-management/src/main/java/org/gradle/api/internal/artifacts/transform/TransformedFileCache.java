@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.hash.HashCode;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
@@ -31,8 +30,7 @@ public interface TransformedFileCache {
      *
      * @param inputFile The file to transform
      * @param inputsHash The hash of the other inputs of the transform, such as transform implementation and configuration, but excluding the input file.
-     * @param fileCollectionSnapshotter Snapshotter to use to snapshot the input files
      * @param transformer The transformer to apply to produce the output, if not already available
      */
-    List<File> getResult(File inputFile, HashCode inputsHash, FileCollectionSnapshotter fileCollectionSnapshotter, BiFunction<List<File>, File, File> transformer);
+    List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer);
 }

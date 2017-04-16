@@ -31,9 +31,14 @@ import java.util.List;
 @ThreadSafe
 public interface FileSystemSnapshotter {
     /**
-     * Returns the current snapshot of the contents and meta-data of the given file. The file may or may not be a regular file. When the specified file is a directory, details about the directory itself is returned, rather than details about the children of the directory.
+     * Returns the current snapshot of the contents and meta-data of the given file. The file may be a regular file, a directory or missing. When the specified file is a directory, details about the directory itself is returned, rather than details about the children of the directory.
      */
-    FileSnapshot snapshotFile(File file);
+    FileSnapshot snapshotSelf(File file);
+
+    /**
+     * Returns a simple snapshot of the contents and meta-data of the given file. The file may or may not be a regular file, a directory or missing. When the specified file is a directory, the directory and all its children are hashed.
+     */
+    Snapshot snapshotAll(File file);
 
     /**
      * Returns the current snapshot of the contents and meta-data of the given directory. The provided directory must exist and be a directory.
