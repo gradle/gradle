@@ -37,14 +37,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
+import static com.google.common.base.Charsets.UTF_8;
+
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
     private final StringInterner stringInterner;
-    private final PersistentIndexedCache<HashCode, HashCode> signatureCache;
+    private final ResourceSnapshotter resourceSnapshotter;
 
     public DefaultCompileClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> signatureCache) {
         super(fileSnapshotTreeFactory, stringInterner);
         this.stringInterner = stringInterner;
-        this.signatureCache = signatureCache;
+        this.resourceSnapshotter = new CachingResourceSnapshotter(
+            new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(signatureCache), stringInterner),
+            signatureCache
+        );
     }
 
     @Override
@@ -59,19 +64,32 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
 
     @Override
     protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new CachingResourceSnapshotter(
-            new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(), stringInterner),
-            signatureCache
-        );
+        return resourceSnapshotter;
     }
 
     private static class CompileClasspathEntrySnapshotter implements ResourceSnapshotter {
-        private ApiClassExtractor apiClassExtractor = new ApiClassExtractor(Collections.<String>emptySet());
+        private final PersistentIndexedCache<HashCode, HashCode> signatureCache;
+        private final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(Collections.<String>emptySet());
+        private static final HashCode IGNORED = Hashing.md5().hashString("Ignored ABI", UTF_8);
+
+        CompileClasspathEntrySnapshotter(PersistentIndexedCache<HashCode, HashCode> signatureCache) {
+            this.signatureCache = signatureCache;
+        }
 
         @Override
         public void snapshot(SnapshotTree details, SnapshotCollector collector) {
             SnapshottableResource root = details.getRoot();
             if (root != null && root.getType() == FileType.RegularFile && root.getName().endsWith(".class")) {
+                if (root instanceof FileSnapshot) {
+                    HashCode hashCode = root.getContent().getContentMd5();
+                    HashCode signatureHash = signatureCache.get(hashCode);
+                    if (signatureHash != null) {
+                        if (signatureHash != IGNORED) {
+                            collector.recordSnapshot(root, signatureHash);
+                        }
+                        return;
+                    }
+                }
                 hashClassSignature(root, collector);
             }
         }
@@ -91,17 +109,29 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
 
         private void hashApi(SnapshottableResource resource, byte[] classBytes, SnapshotCollector collector) {
             try {
-                ApiClassExtractor extractor = apiClassExtractor;
                 Java9ClassReader reader = new Java9ClassReader(classBytes);
-                if (extractor.shouldExtractApiClassFrom(reader)) {
-                    byte[] signature = extractor.extractApiClassFrom(reader);
+                if (apiClassExtractor.shouldExtractApiClassFrom(reader)) {
+                    byte[] signature = apiClassExtractor.extractApiClassFrom(reader);
                     if (signature != null) {
-                        collector.recordSnapshot(resource, Hashing.md5().hashBytes(signature));
+                        HashCode signatureHash = Hashing.md5().hashBytes(signature);
+                        collector.recordSnapshot(resource, signatureHash);
+                        putToCache(resource, signatureHash);
                     }
+                    return;
                 }
+                putToCache(resource, IGNORED);
             } catch (Exception e) {
-                collector.recordSnapshot(resource, Hashing.md5().hashBytes(classBytes));
+                HashCode contentsHash = Hashing.md5().hashBytes(classBytes);
+                collector.recordSnapshot(resource, contentsHash);
+                putToCache(resource, contentsHash);
                 DeprecationLogger.nagUserWith("Malformed class file [" + resource.getName() + "] found on compile classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
+            }
+        }
+
+        private void putToCache(SnapshottableResource resource, HashCode signatureHash) {
+            if (resource instanceof FileSnapshot) {
+                HashCode hashCode = resource.getContent().getContentMd5();
+                signatureCache.put(hashCode, signatureHash);
             }
         }
     }

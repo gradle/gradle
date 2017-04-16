@@ -28,12 +28,15 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private final StringInterner stringInterner;
-    private final PersistentIndexedCache<HashCode, HashCode> jarSignatureCache;
+    private final ResourceSnapshotter resourceSnapshotter;
 
     public DefaultClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> jarSignatureCache) {
         super(fileSnapshotTreeFactory, stringInterner);
         this.stringInterner = stringInterner;
-        this.jarSignatureCache = jarSignatureCache;
+        this.resourceSnapshotter = new CachingResourceSnapshotter(
+            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), stringInterner),
+            jarSignatureCache
+        );
     }
 
     @Override
@@ -48,10 +51,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new CachingResourceSnapshotter(
-            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), stringInterner),
-            jarSignatureCache
-        );
+        return resourceSnapshotter;
     }
 
     private class ClasspathEntrySnapshotter implements ResourceSnapshotter {

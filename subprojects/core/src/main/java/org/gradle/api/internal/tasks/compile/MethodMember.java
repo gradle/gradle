@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.SortedSet;
 
 public class MethodMember extends TypedMember implements Comparable<MethodMember> {
+    private static final Ordering<Iterable<String>> LEXICOGRAPHICAL = Ordering.<String>natural().lexicographical();
 
     private final SortedSet<String> exceptions = Sets.newTreeSet();
     private final SortedSet<AnnotationMember> parameterAnnotations = Sets.newTreeSet();
@@ -52,7 +53,7 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
     @Override
     public int compareTo(MethodMember o) {
         return super.compare(o)
-            .compare(exceptions, o.exceptions, Ordering.<String>natural().lexicographical())
+            .compare(exceptions, o.exceptions, LEXICOGRAPHICAL)
             .result();
     }
 
