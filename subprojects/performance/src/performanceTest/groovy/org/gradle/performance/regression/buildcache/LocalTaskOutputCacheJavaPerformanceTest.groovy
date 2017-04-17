@@ -37,14 +37,10 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
                     cacheDir.deleteDir().mkdirs()
                     def settingsFile = new TestFile(invocationInfo.getProjectDir()).file('settings.gradle')
                     settingsFile << """
-                        if (GradleVersion.current() > GradleVersion.version('3.4')) {
-                            buildCache {
-                                local {
-                                    directory = '${cacheDir.absoluteFile.toURI()}'
-                                }
+                        buildCache {
+                            local {
+                                directory = '${cacheDir.absoluteFile.toURI()}'
                             }
-                        } else {    
-                            System.setProperty('org.gradle.cache.tasks.directory', '${cacheDir.absolutePath}')
                         }
                     """.stripIndent()
                 }

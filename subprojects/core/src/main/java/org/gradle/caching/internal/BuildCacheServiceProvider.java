@@ -81,21 +81,6 @@ public class BuildCacheServiceProvider {
             return new NoOpBuildCacheService();
         }
 
-        // TODO Remove this when the system properties are removed
-        if (buildCacheConfiguration.isPullDisabled() || buildCacheConfiguration.isPushDisabled()) {
-            if (buildCacheConfiguration.isPushDisabled()) {
-                LOGGER.warn("Pushing to any build cache is globally disabled.");
-            }
-            if (buildCacheConfiguration.isPullDisabled()) {
-                LOGGER.warn("Pulling from any build cache is globally disabled.");
-            }
-            buildCacheService = new PushOrPullPreventingBuildCacheServiceDecorator(
-                buildCacheConfiguration.isPushDisabled(),
-                buildCacheConfiguration.isPullDisabled(),
-                buildCacheService
-            );
-        }
-
         return buildCacheService;
     }
 

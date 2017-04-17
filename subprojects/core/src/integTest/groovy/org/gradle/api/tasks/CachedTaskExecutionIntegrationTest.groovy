@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -162,34 +161,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "jar"
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar"
-    }
-
-    def "task results don't get loaded when pulling is disabled"() {
-        expect:
-        cacheDir.listFiles() as List == []
-
-        when:
-        withBuildCache().succeeds "jar"
-        def originalCacheContents = listCacheFiles()
-        def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
-        then:
-        skippedTasks.empty
-        originalCacheContents.size() > 0
-
-        expect:
-        withBuildCache().succeeds "clean"
-
-        when:
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-        withBuildCache().succeeds "jar", "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false"
-        def updatedCacheContents = listCacheFiles()
-        def updatedModificationTimes = updatedCacheContents*.lastModified()
-        then:
-        nonSkippedTasks.containsAll ":compileJava", ":jar"
-        updatedCacheContents == originalCacheContents
-        originalModificationTimes.size().times { i ->
-            assert originalModificationTimes[i] < updatedModificationTimes[i]
-        }
     }
 
     def "outputs are correctly loaded from cache"() {

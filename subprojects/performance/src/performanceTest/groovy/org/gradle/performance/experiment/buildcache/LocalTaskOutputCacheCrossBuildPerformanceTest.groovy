@@ -16,10 +16,11 @@
 
 package org.gradle.performance.experiment.buildcache
 
-import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
-import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -29,31 +30,61 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 @Category(PerformanceExperiment)
 class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
+    TestFile cacheDir
+    TestFile noPushInitScript
+
     @Unroll
     def "#tasks on #testProject with local cache (build comparison)"() {
         when:
+        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if (cacheDir == null) {
+                    cacheDir = temporaryFolder.file("local-cache")
+                }
+                cacheDir.deleteDir().mkdirs()
+                if (noPushInitScript == null) {
+                    noPushInitScript = temporaryFolder.file("no-push.gradle")
+                    noPushInitScript << """
+                        settingsEvaluated {
+                            buildCache {
+                                local {
+                                    push = false
+                                }
+                            }
+                        }
+                    """.stripIndent()
+                }
+                def settingsFile = new TestFile(invocationInfo.getProjectDir()).file('settings.gradle')
+                settingsFile << """
+                    buildCache {
+                        local {
+                            directory = '${cacheDir.absoluteFile.toURI()}'
+                        }
+                    }
+                """.stripIndent()
+            }
+        }
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName(testProject.projectName).displayName("always-miss pull-only cache").invocation {
                 tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
-                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
-                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true",
-                    "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
+                    "--build-cache",
+                    "--init-script", noPushInitScript.absolutePath.replace('\\', '/'))
             }
         }
-        runner.buildSpec {
-            projectName(testProject.projectName).displayName("push-only cache").invocation {
-                tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
-                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
-                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true",
-                    "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
-            }
-        }
+        // TODO Is this useful to have?
+        // runner.buildSpec {
+        //     projectName(testProject.projectName).displayName("push-only cache").invocation {
+        //         tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
+        //             "--build-cache",
+        //             "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
+        //     }
+        // }
         runner.buildSpec {
             projectName(testProject.projectName).displayName("fully cached").invocation {
                 tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
-                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
-                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true")
+                    "--build-cache")
             }
         }
         runner.baseline {

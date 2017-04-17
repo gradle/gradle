@@ -18,7 +18,6 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
-import org.gradle.util.SingleMessageLogger;
 
 import java.util.Map;
 
@@ -31,13 +30,6 @@ public class PropertiesToStartParameterConverter {
         startParameter.setConfigureOnDemand(isTrue(properties.get(GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY)));
 
         propertiesToParallelismConfigurationConverter.convert(properties, startParameter);
-
-        // Warn anyone using the old property to stop
-        String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);
-        if (taskOutputCache != null) {
-            SingleMessageLogger.nagUserOfDiscontinuedProperty(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY, "Use " + GradleProperties.BUILD_CACHE_PROPERTY + " instead.");
-            startParameter.setBuildCacheEnabled(isTrue(taskOutputCache));
-        }
 
         // If they use both, the newer property wins.
         String buildCacheEnabled = properties.get(GradleProperties.BUILD_CACHE_PROPERTY);

@@ -29,7 +29,6 @@ class PropertiesToStartParameterConverterTest extends Specification {
         expect:
         converter.convert([(WORKERS_PROPERTY): "37"], new StartParameter()).maxWorkerCount == 37
         converter.convert([(PARALLEL_PROPERTY): "true"], new StartParameter()).parallelProjectExecutionEnabled
-        converter.convert([(TASK_OUTPUT_CACHE_PROPERTY): "true"], new StartParameter()).buildCacheEnabled
         converter.convert([(BUILD_CACHE_PROPERTY): "true"], new StartParameter()).buildCacheEnabled
         converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "TRUE"], new StartParameter()).configureOnDemand
         !converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "xxx"], new StartParameter()).configureOnDemand

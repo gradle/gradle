@@ -16,7 +16,6 @@
 
 package org.gradle.performance.regression.buildcache
 
-import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.GradleInvocationSpec
@@ -103,7 +102,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
                         .useDaemon(false)
                         // We run one iteration without the cache to download artifacts from Maven central.
                         // We can't download with the cache since we set the trust store and Maven central uses https.
-                        .args("-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=false", "-D${GradleProperties.BUILD_CACHE_PROPERTY}=false")
+                        .args("--no-build-cache")
                         .build() as T
                 }
             }
@@ -120,25 +119,16 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
     }
 
     private String getRemoteCacheSettingsScript() {
-        """                                
-            if (GradleVersion.current().baseVersion >= GradleVersion.version('3.5')) {
-                def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
-                buildCache {
-                    local {
-                        enabled = false
-                    }
-                    remote(httpCacheClass) {
-                        url = '${buildCache.uri}/' 
-                        push = true
-                    }
+        """
+            def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
+            buildCache {
+                local {
+                    enabled = false
                 }
-            } else {
-                def httpCacheClass = Class.forName('org.gradle.caching.http.internal.HttpBuildCacheFactory')
-                gradle.buildCache.useCacheFactory(
-                    httpCacheClass.getConstructor(URI.class).newInstance(
-                        new URI('${buildCache.uri}/')
-                    )
-                )
+                remote(httpCacheClass) {
+                    url = '${buildCache.uri}/' 
+                    push = true
+                }
             }
         """.stripIndent()
     }
