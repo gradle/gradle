@@ -27,15 +27,16 @@ import java.io.File;
  */
 public interface ArtifactVisitor {
     /**
-     * Visits an artifact. Artifacts are resolved but not necessarily downloaded.
+     * Visits an artifact. Artifacts are resolved but not necessarily downloaded unless {@link #requireArtifactFiles()} returns true.
      */
     void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact);
 
     /**
-     * Will the visitor benefit from pre-emptively downloaded artifacts?
-     * If the visitor is certain to require the artifacts, then it makes sense to download them up-front, in parallel.
+     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(AttributeContainer, ResolvedArtifact)}?
+     *
+     * Returns true here allows the collection to pre-emptively resolve the files in parallel.
      */
-    boolean shouldPerformPreemptiveDownload();
+    boolean requireArtifactFiles();
 
     /**
      * Should {@link #visitFile(ComponentArtifactIdentifier, AttributeContainer, File)} be called?

@@ -54,7 +54,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
 
     @Override
     public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
-        if (visitor.shouldPerformPreemptiveDownload()) {
+        if (visitor.requireArtifactFiles()) {
             for (ResolvedArtifact artifact : artifacts) {
                 if (!isFromIncludedBuild(artifact)) {
                     actions.add(new DownloadArtifactFile(artifact, this));
@@ -128,7 +128,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
 
         @Override
         public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
-            if (visitor.shouldPerformPreemptiveDownload() && !isFromIncludedBuild(artifact))  {
+            if (visitor.requireArtifactFiles() && !isFromIncludedBuild(artifact))  {
                 actions.add(new DownloadArtifactFile(artifact, this));
             }
         }
