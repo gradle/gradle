@@ -74,7 +74,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val getScriptSectionTokens = environment["getScriptSectionTokens"] as? ScriptSectionTokensProvider
         return when {
             getScriptSectionTokens != null ->
-                with(MessageDigest.getInstance("MD5")) {
+                MessageDigest.getInstance("MD5").run {
                     val text = script.text ?: script.file?.readText()
                     text?.let { text ->
                         fun updateWith(section: String) =

@@ -47,7 +47,7 @@ class KotlinScriptPluginFactory(
         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
         topLevelScript: Boolean): (Project) -> Unit =
 
-        with(compilerFor(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript)) {
+        compilerFor(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript).run {
             if (topLevelScript && inClassPathMode())
                 compileForClassPath()
             else

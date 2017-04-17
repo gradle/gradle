@@ -26,7 +26,7 @@ import org.gradle.script.lang.kotlin.invoke
 class ProjectExtensionsTaskRegistrationAction : ProjectConfigureAction {
 
     override fun execute(project: ProjectInternal) {
-        with (project) {
+        project.run {
             if (isRootProjectOfBuildContainingKotlinBuildScripts()) {
                 tasks {
                     "gskGenerateAccessors"(GenerateProjectSchema::class) {

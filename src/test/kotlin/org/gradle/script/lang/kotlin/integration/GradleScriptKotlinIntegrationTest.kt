@@ -90,7 +90,7 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
             open class DeepThoughtPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
-                    with (project) {
+                    project.run {
                         task("compute") {
                             doLast {
                                 DeepThought().compute { answer ->
