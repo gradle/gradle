@@ -68,7 +68,7 @@ dependencies {
 }
 
 
-val sourceSets = java().sourceSets
+val sourceSets = java.sourceSets
 
 val mainSourceSet = sourceSets["main"]
 
