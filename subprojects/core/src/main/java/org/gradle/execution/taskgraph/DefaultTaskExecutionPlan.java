@@ -77,6 +77,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
+    private final Map<TaskInfo, ResourceLock> projectLocks = Maps.newHashMap();
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
     private boolean tasksCancelled;
@@ -538,10 +539,16 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private ResourceLock getProjectLock(TaskInfo taskInfo) {
+        if (projectLocks.containsKey(taskInfo)) {
+            return projectLocks.get(taskInfo);
+        }
+
         Project project = taskInfo.getTask().getProject();
         String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
         String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
-        return workerLeaseService.getProjectLock(gradlePath, projectPath);
+        ResourceLock projectLock = workerLeaseService.getProjectLock(gradlePath, projectPath);
+        projectLocks.put(taskInfo, projectLock);
+        return projectLock;
     }
 
     private boolean canRunWithWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
