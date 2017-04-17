@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
@@ -82,7 +81,7 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     @Override
     public DefaultBuildCacheHasher putString(CharSequence charSequence) {
         hasher.putInt(charSequence.length());
-        hasher.putString(charSequence, Charsets.UTF_8);
+        hasher.putUnencodedChars(charSequence);
         return this;
     }
 
