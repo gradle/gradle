@@ -16,8 +16,6 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.internal.logging.events.OperationIdentifier;
-
 /**
  * Used to log the progress of a potentially long running operation.
  *
@@ -94,8 +92,6 @@ public interface ProgressLogger {
      * @return this logger instance
      */
     ProgressLogger start(String description, String shortDescription);
-
-    OperationIdentifier getId();
 
     /**
      * Logs the start of the operation, with no initial status.

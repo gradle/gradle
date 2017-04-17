@@ -37,6 +37,4 @@ public interface ProgressLoggerFactory {
     ProgressLogger newOperation(Class<?> loggerCategory);
 
     ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent);
-
-    ProgressLogger getCurrentProgressLogger();
 }

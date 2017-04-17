@@ -16,11 +16,11 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GUtil;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,16 +30,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final TimeProvider timeProvider;
     private final AtomicLong nextId = new AtomicLong();
     private final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
-    public static DefaultProgressLoggerFactory instance;
 
     public DefaultProgressLoggerFactory(ProgressListener progressListener, TimeProvider timeProvider) {
         this.progressListener = progressListener;
         this.timeProvider = timeProvider;
-        instance = this;
-    }
-
-    public ProgressLogger getCurrentProgressLogger() {
-        return current.get();
     }
 
     public ProgressLogger newOperation(Class loggerCategory) {
@@ -85,11 +79,6 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         @Override
         public String toString() {
             return category + " - " + description;
-        }
-
-        @Override
-        public OperationIdentifier getId() {
-            return id;
         }
 
         public String getDescription() {

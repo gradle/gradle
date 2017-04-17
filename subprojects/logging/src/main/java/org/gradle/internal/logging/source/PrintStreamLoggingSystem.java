@@ -23,11 +23,9 @@ import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.progress.OperationIdentifierRegistry;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.TimeProvider;
 
 import java.io.PrintStream;
@@ -54,9 +52,9 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     private final StandardOutputListener listener;
     private final OutputEventListener outputEventListener;
 
-    protected PrintStreamLoggingSystem(OutputEventListener listener, String category, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
+    protected PrintStreamLoggingSystem(OutputEventListener listener, String category, TimeProvider timeProvider) {
         outputEventListener = listener;
-        this.listener = new OutputEventDestination(listener, category, timeProvider, progressLoggerFactory);
+        this.listener = new OutputEventDestination(listener, category, timeProvider);
     }
 
     /**
@@ -154,13 +152,11 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         private final OutputEventListener listener;
         private final String category;
         private final TimeProvider timeProvider;
-        private final ProgressLoggerFactory progressLoggerFactory;
 
-        public OutputEventDestination(OutputEventListener listener, String category, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
+        public OutputEventDestination(OutputEventListener listener, String category, TimeProvider timeProvider) {
             this.listener = listener;
             this.category = category;
             this.timeProvider = timeProvider;
-            this.progressLoggerFactory = progressLoggerFactory;
         }
 
         public void onOutput(CharSequence output) {

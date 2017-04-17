@@ -36,7 +36,4 @@ public interface WorkerProcess {
     ExecResult waitForStop();
 
     JvmMemoryStatus getJvmMemoryStatus();
-
-    OperationIdentifier getOperationId();
-    void setOperationId(OperationIdentifier operationId);
 }

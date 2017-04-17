@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
@@ -50,21 +49,10 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private Throwable processFailure;
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
-    private OperationIdentifier operationId;
 
     public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
         this.jvmMemoryStatus = jvmMemoryStatus;
-    }
-
-    @Override
-    public OperationIdentifier getOperationId() {
-        return operationId;
-    }
-
-    @Override
-    public void setOperationId(OperationIdentifier operationId) {
-        this.operationId = operationId;
     }
 
     @Override

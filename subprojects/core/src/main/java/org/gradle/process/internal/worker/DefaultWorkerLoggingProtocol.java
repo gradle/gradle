@@ -17,21 +17,15 @@
 package org.gradle.process.internal.worker;
 
 import org.gradle.internal.logging.events.LogEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
-import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
-
-import java.util.concurrent.Callable;
 
 public class DefaultWorkerLoggingProtocol implements WorkerLoggingProtocol {
     private OutputEventListener outputEventListener;
-    private final Callable<OperationIdentifier> operationId;
 
-    public DefaultWorkerLoggingProtocol(OutputEventListener outputEventListener, Callable<OperationIdentifier> operationId) {
+    public DefaultWorkerLoggingProtocol(OutputEventListener outputEventListener) {
         this.outputEventListener = outputEventListener;
-        this.operationId = operationId;
     }
 
     @Override
@@ -44,14 +38,4 @@ public class DefaultWorkerLoggingProtocol implements WorkerLoggingProtocol {
         outputEventListener.onOutput(event);
     }
 
-    private OperationIdentifier getId() {
-        OperationIdentifier operationId = new OperationIdentifier(-55);
-        if (null != DefaultProgressLoggerFactory.instance) {
-            operationId = new OperationIdentifier(-54);
-            if (null != DefaultProgressLoggerFactory.instance.getCurrentProgressLogger()) {
-                operationId = DefaultProgressLoggerFactory.instance.getCurrentProgressLogger().getId();
-            }
-        }
-        return operationId;
-    }
 }
