@@ -19,6 +19,8 @@ package org.gradle.workers.internal;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.logging.progress.OperationIdentifierRegistry;
 
 public class WorkerDaemonServer implements WorkerProtocol<ActionExecutionSpec> {
     private final InstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator());
@@ -26,12 +28,15 @@ public class WorkerDaemonServer implements WorkerProtocol<ActionExecutionSpec> {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
+            OperationIdentifierRegistry.setParentOperationId(spec.getOperationId());
             Class<? extends Runnable> implementationClass = spec.getImplementationClass();
             Runnable runnable = instantiatorFactory.inject().newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));
             runnable.run();
             return new DefaultWorkResult(true, null);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
+        } finally {
+            OperationIdentifierRegistry.setParentOperationId(null);
         }
     }
 

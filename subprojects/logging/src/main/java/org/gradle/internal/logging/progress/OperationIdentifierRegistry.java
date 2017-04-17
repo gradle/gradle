@@ -20,12 +20,25 @@ import org.gradle.internal.logging.events.OperationIdentifier;
 
 public class OperationIdentifierRegistry {
     private static ThreadLocal<OperationIdentifier> operationIdThreadLocal = new ThreadLocal<OperationIdentifier>();
+    private static volatile OperationIdentifier parentOperationId;
 
     public static OperationIdentifier getCurrentOperationId() {
-        return operationIdThreadLocal.get();
+        OperationIdentifier operationId = operationIdThreadLocal.get();
+        if (operationId == null) {
+            operationId = parentOperationId;
+        }
+        return operationId;
     }
 
     public static void setCurrentOperationId(OperationIdentifier operationId) {
-        operationIdThreadLocal.set(operationId);
+        if (operationId == null) {
+            operationIdThreadLocal.remove();
+        } else {
+            operationIdThreadLocal.set(operationId);
+        }
+    }
+
+    public static void setParentOperationId(OperationIdentifier operationId) {
+        parentOperationId = operationId;
     }
 }
