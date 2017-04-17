@@ -484,13 +484,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 final Iterator<TaskInfo> iterator = executionQueue.iterator();
                 while (iterator.hasNext()) {
                     final TaskInfo taskInfo = iterator.next();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
+                    if (taskInfo.isReady()) {
                         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                             @Override
                             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                                 ResourceLock projectLock = getProjectLock(taskInfo);
                                 // TODO: convert output file checks to a resource lock
-                                if (projectLock.tryLock() && workerLease.tryLock() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                                if (projectLock.tryLock() && workerLease.tryLock() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
                                     selected.set(taskInfo);
                                     iterator.remove();
                                     if (taskInfo.allDependenciesSuccessful()) {
