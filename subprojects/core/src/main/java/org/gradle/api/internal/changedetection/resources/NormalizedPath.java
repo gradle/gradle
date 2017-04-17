@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
-import org.gradle.api.internal.changedetection.state.Snapshot;
-
-public interface NormalizedPath extends Comparable<NormalizedPath>, Snapshot {
-    CharSequence getPath();
+public interface NormalizedPath extends Comparable<NormalizedPath> {
+    String getPath();
 }

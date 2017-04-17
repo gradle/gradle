@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
-import java.nio.CharBuffer;
-
 public class IndexedRelativePath extends AbstractPath {
     private final String absolutePath;
     private final int index;
@@ -28,8 +26,8 @@ public class IndexedRelativePath extends AbstractPath {
     }
 
     @Override
-    public CharSequence getPath() {
-        return CharBuffer.wrap(absolutePath, index, absolutePath.length());
+    public String getPath() {
+        return absolutePath.substring(index);
     }
 
     public String getAbsolutePath() {
