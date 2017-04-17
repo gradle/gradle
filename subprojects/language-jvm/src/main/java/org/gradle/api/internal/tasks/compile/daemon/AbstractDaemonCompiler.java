@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -75,6 +76,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
             return compiler.getClass().getName();
         }
 
+        @Nullable
         @Override
         public OperationIdentifier getOperationId() {
             return operationId;

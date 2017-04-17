@@ -94,7 +94,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
         lock.lock();
         try {
             LOGGER.debug("Received connection {} from {}", connection, execHandle);
-
+            
             if (connectionHandler != null && running) {
                 connectionHandler.run();
             }

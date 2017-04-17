@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -51,6 +52,7 @@ public class ActionExecutionSpec implements WorkSpec {
         return displayName;
     }
 
+    @Nullable
     @Override
     public OperationIdentifier getOperationId() {
         return operationId;

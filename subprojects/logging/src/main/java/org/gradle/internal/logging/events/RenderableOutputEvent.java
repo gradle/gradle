@@ -16,13 +16,16 @@
 
 package org.gradle.internal.logging.events;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
+    private final OperationIdentifier operationId;
 
-    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel) {
+    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId) {
         super(timestamp, category, logLevel);
+        this.operationId = operationId;
     }
 
     /**
@@ -33,4 +36,9 @@ public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
      * @param output The output to render to.
      */
     public abstract void render(StyledTextOutput output);
+
+    @Nullable
+    public OperationIdentifier getOperationId() {
+        return operationId;
+    }
 }

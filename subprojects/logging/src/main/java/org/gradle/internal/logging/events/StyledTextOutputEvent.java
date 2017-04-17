@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.events;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
@@ -27,17 +28,16 @@ import java.util.List;
 
 public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final List<Span> spans;
-    private final OperationIdentifier operationId;
 
     public StyledTextOutputEvent(long timestamp, String category, String text) {
         this(timestamp, category, StyledTextOutput.Style.Normal, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, OperationIdentifier operationId, String text) {
+    public StyledTextOutputEvent(long timestamp, String category, @Nullable OperationIdentifier operationId, String text) {
         this(timestamp, category, operationId, StyledTextOutput.Style.Normal, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, String text) {
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier operationId, String text) {
         this(timestamp, category, logLevel, operationId, StyledTextOutput.Style.Normal, text);
     }
 
@@ -45,11 +45,11 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         this(timestamp, category, null, null, style, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
+    public StyledTextOutputEvent(long timestamp, String category, @Nullable OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
         this(timestamp, category, null, operationId, style, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
         this(timestamp, category, logLevel, operationId, Collections.singletonList(new Span(style, text)));
     }
 
@@ -57,13 +57,12 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         this(timestamp, category, null, null, spans);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, Span... spans) {
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier operationId, Span... spans) {
         this(timestamp, category, logLevel, operationId, Arrays.asList(spans));
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, OperationIdentifier operationId, List<Span> spans) {
-        super(timestamp, category, logLevel);
-        this.operationId = operationId;
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier operationId, List<Span> spans) {
+        super(timestamp, category, logLevel, operationId);
         this.spans = new ArrayList<Span>(spans);
     }
 
@@ -85,11 +84,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     }
 
     public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, operationId, spans);
-    }
-
-    public OperationIdentifier getOperationId() {
-        return operationId;
+        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, getOperationId(), spans);
     }
 
     public List<Span> getSpans() {
@@ -98,7 +93,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
 
     @Override
     public void render(StyledTextOutput output) {
-        output.text(operationId == null ? "null " : operationId.toString() + "  ");
+        output.text(getOperationId() == null ? "null " : getOperationId().toString() + "  ");
         for (Span span : spans) {
             output.style(span.style);
             output.text(span.text);

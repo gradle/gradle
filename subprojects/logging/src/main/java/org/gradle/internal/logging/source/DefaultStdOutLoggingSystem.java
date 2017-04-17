@@ -16,8 +16,8 @@
 
 package org.gradle.internal.logging.source;
 
-import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.PrintStream;
 
