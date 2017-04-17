@@ -95,7 +95,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         eclipseProject.projectDependencies.find { it.path == 'b2-renamed' }
     }
 
-    @ToolingApiVersion(">=4.0")
+    @ToolingApiVersion(">=3.2")
     def "Idea model has dependencies substituted in composite"() {
         when:
         def ideaModule = loadToolingModel(IdeaProject).modules[0]
