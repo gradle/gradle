@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
@@ -58,7 +59,12 @@ project(':contrib:impl') {
         IdeaModule impl = project.modules.find { it.name == 'root-impl' }
         IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
 
-        impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'root-api' }
-        contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+        if (targetVersion >= GradleVersion.version("3.5")) {
+            impl.dependencies[0].targetModuleName == project.modules.find { it.name == 'root-api' }.getName()
+            contribImpl.dependencies[0].targetModuleName == project.modules.find { it.name == 'contrib-api' }.getName()
+        } else {
+            impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'root-api' }
+            contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+        }
     }
 }

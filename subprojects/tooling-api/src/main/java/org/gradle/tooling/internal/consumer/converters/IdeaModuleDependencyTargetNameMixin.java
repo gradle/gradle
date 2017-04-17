@@ -29,7 +29,7 @@ public class IdeaModuleDependencyTargetNameMixin {
     public String getTargetModuleName() {
         if (ideaModuleDependency instanceof IdeaModuleDependency) {
             IdeaModuleDependency dependency = (IdeaModuleDependency) ideaModuleDependency;
-            return dependency.getDependencyModule().getName();
+            return dependency.getTargetModuleName();
         }
         return null;
     }
