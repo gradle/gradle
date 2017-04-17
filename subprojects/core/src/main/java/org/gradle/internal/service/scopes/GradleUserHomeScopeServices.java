@@ -85,6 +85,10 @@ public class GradleUserHomeScopeServices {
         }
     }
 
+    ListenerManager createListenerManager(ListenerManager parent) {
+        return parent.createChild();
+    }
+
     CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory);
     }
