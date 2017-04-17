@@ -75,6 +75,39 @@ project(':shared:model') {
         dependencies.assertHasModule("TEST", "util")
     }
 
+
+    @Test
+    void buildsCorrectModuleDependenciesForDependencyOnRoot() {
+        file("settings.gradle") << """
+rootProject.name = 'root-project-1'
+include 'api'
+        """
+
+        file("build.gradle") << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+project(':api') {
+    dependencies {
+        compile project(':')
+    }
+}
+"""
+
+        //when
+        executer.withTasks("ideaModule").run()
+
+        //then
+        def dependencies = parseIml("api/api.iml").dependencies
+        assert dependencies.modules.size() == 3
+        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "root-project-1")
+
+        dependencies = parseIml("root-project-1.iml").dependencies
+        assert dependencies.modules.size() == 0
+    }
+
     @Test
     void respectsApiOfJavaLibraries() {
         def settingsFile = file("master/settings.gradle")
@@ -126,15 +159,17 @@ project(":application") {
 
     @Test
     void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
-        def settingsFile = file("settings.gradle")
-        settingsFile << """
+        file("settings.gradle") << """
+rootProject.name = 'root-project-1'
+
 include 'api'
 include 'util'
 include 'other'
         """
 
-        def buildFile = file("build.gradle")
-        buildFile << """
+        file("build.gradle") << """
+apply plugin: 'java'
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
@@ -150,16 +185,28 @@ project(':api') {
 project(':other') {
     idea.module.name = 'other-renamed'
 }
+
+project(':util') {
+    dependencies {
+        testCompile project(':')
+    }
+}
+
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        executer.withTasks("ideaModule").run()
 
         //then
         def dependencies = parseIml("api/api.iml").dependencies
         assert dependencies.modules.size() == 6
         dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "util")
         dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "other-renamed")
+
+        def utilDependencies = parseIml("util/util.iml").dependencies
+        assert utilDependencies.modules.size() == 1
+        // TODO:DAZ This name is incorrect
+        utilDependencies.assertHasModule(['TEST'], ":")
     }
 
     @Test
