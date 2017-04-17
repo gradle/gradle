@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildListener;
-import org.gradle.BuildResult;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.initialization.RootBuildLifecycleListener;
 
 import java.io.File;
 
-public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector implements BuildListener {
+public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
     public BuildScopeFileTimeStampInspector(File workDir) {
         super(workDir);
     }
@@ -34,30 +31,12 @@ public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector imp
     }
 
     @Override
-    public void buildStarted(Gradle gradle) {
-        if (gradle.getParent() != null) {
-            return;
-        }
+    public void afterStart() {
         updateOnStartBuild();
     }
 
     @Override
-    public void buildFinished(BuildResult result) {
-        if (result.getGradle().getParent() != null) {
-            return;
-        }
+    public void beforeComplete() {
         updateOnFinishBuild();
-    }
-
-    @Override
-    public void settingsEvaluated(Settings settings) {
-    }
-
-    @Override
-    public void projectsLoaded(Gradle gradle) {
-    }
-
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
     }
 }

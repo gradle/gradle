@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
@@ -32,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * See {@link DefaultFileSystemSnapshotter} for some more details
  */
-public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemMirror, TaskOutputsGenerationListener {
+public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGenerationListener, RootBuildLifecycleListener {
     // Maps from interned absolute path for a file to known details for the file.
     private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
     private final Map<String, FileSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSnapshot>();
@@ -125,11 +124,12 @@ public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemM
     }
 
     @Override
-    public void buildFinished(BuildResult result) {
+    public void afterStart() {
+    }
+
+    @Override
+    public void beforeComplete() {
         // We throw away all state between builds
-        if (result.getGradle().getParent() != null) {
-            return;
-        }
         files.clear();
         cacheFiles.clear();
         trees.clear();

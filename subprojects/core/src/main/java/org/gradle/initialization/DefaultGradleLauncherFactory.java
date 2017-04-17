@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -106,9 +105,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
-
-        GlobalScopeFileTimeStampInspector timeStampInspector = sessionScopeServices.get(GlobalScopeFileTimeStampInspector.class);
-        launcher.addListener(timeStampInspector);
 
         return launcher;
     }

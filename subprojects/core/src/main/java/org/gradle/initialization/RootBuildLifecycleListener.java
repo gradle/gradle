@@ -17,20 +17,20 @@
 package org.gradle.initialization;
 
 /**
- * A listener that is notified when a session is started and completed. No more than one session may be active at any time.
+ * A listener that is notified when a root build is started and completed. No more than one root build may run at a given time.
  *
- * One or more builds may be run during a session. For example, when running in continuous mode, multiple builds are run during a single session.
+ * A root build may contain zero or more nested builds, such as `buildSrc` or included builds.
  *
  * This listener type is available to session services up to global services.
  */
-public interface SessionLifecycleListener {
+public interface RootBuildLifecycleListener {
     /**
-     * Called at the start of the session, immediately after initializing the session services.
+     * Called at the start of the root build, immediately after the creation of the root build services.
      */
     void afterStart();
 
     /**
-     * Called at the completion of the session, immediately prior to tearing down the session services.
+     * Called at the completion of the root build, immediately before destruction of the root build services.
      */
     void beforeComplete();
 }

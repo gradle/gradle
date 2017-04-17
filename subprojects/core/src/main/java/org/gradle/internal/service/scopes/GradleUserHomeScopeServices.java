@@ -89,8 +89,10 @@ public class GradleUserHomeScopeServices {
         return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping) {
-        return new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
+    GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
+        GlobalScopeFileTimeStampInspector timeStampInspector = new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
+        listenerManager.addListener(timeStampInspector);
+        return timeStampInspector;
     }
 
     FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {

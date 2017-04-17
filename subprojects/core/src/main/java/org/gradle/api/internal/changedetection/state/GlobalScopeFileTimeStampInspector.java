@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildListener;
-import org.gradle.BuildResult;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.initialization.RootBuildLifecycleListener;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,7 +26,7 @@ import java.util.Set;
 /**
  * Used for the global file hash cache
  */
-public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements BuildListener {
+public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
     private CachingFileHasher fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
@@ -44,7 +41,7 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
     }
 
     @Override
-    public void buildStarted(Gradle gradle) {
+    public void afterStart() {
         updateOnStartBuild();
         currentTimestamp = currentTimestamp();
     }
@@ -65,7 +62,7 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
     }
 
     @Override
-    public void buildFinished(BuildResult result) {
+    public void beforeComplete() {
         updateOnFinishBuild();
         synchronized (lock) {
             try {
@@ -79,17 +76,5 @@ public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector im
                 filesWithCurrentTimestamp.clear();
             }
         }
-    }
-
-    @Override
-    public void settingsEvaluated(Settings settings) {
-    }
-
-    @Override
-    public void projectsLoaded(Gradle gradle) {
-    }
-
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
     }
 }
