@@ -325,6 +325,73 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         imlHasDependencies "b1", "buildC", "c2"
     }
 
+    def "de-duplicates module names for included builds"() {
+        given:
+        def buildC = multiProjectBuild("buildC", ['b1']) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    apply plugin: 'idea'
+                    version = '3.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        def buildD = singleProjectBuild("b1") {
+            buildFile << """
+                apply plugin: 'java'
+                apply plugin: 'idea'
+"""
+        }
+        includedBuilds << buildD
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml",
+            "../buildB/buildB.iml",
+            "../buildB/b1/buildB-b1.iml",
+            "../buildB/b2/b2.iml",
+            "../buildC/buildC.iml",
+            "../buildC/b1/buildC-b1.iml",
+            "../b1/b1.iml"
+    }
+
+    def "de-duplicates module names between including and included builds"() {
+        given:
+        buildA.addChildDir("b1")
+        buildA.settingsFile << """
+            include 'b1'
+"""
+        buildA.buildFile << """
+            subprojects { apply plugin: 'idea' }
+"""
+
+        def buildC = multiProjectBuild("buildC", ["buildA"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    apply plugin: 'idea'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml",
+            "b1/buildA-b1.iml",
+            "../buildB/buildB.iml",
+            "../buildB/b1/buildB-b1.iml",
+            "../buildB/b2/b2.iml",
+            "../buildC/buildC.iml",
+            "../buildC/buildA/buildC-buildA.iml"
+    }
+
     def idea(BuildTestFile projectDir = buildA) {
         execute(projectDir, ":idea")
     }
