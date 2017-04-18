@@ -16,8 +16,10 @@
 
 package org.gradle.internal.progress;
 
-public interface BuildOperationState {
-    Object getId();
+import org.gradle.internal.operations.OperationIdentifier;
 
-    Object getParentId();
+public interface BuildOperationState {
+    OperationIdentifier getId();
+
+    OperationIdentifier getParentId();
 }

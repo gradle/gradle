@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.operations;
 
-package org.gradle.process.internal.worker.request;
+public class BuildOperationIdentifierRegistry {
+    private static ThreadLocal<OperationIdentifier> localOperationId = new ThreadLocal<OperationIdentifier>();
 
-import org.gradle.internal.operations.OperationIdentifier;
+    public static OperationIdentifier getCurrentOperationIdentifier() {
+        return localOperationId.get();
+    }
 
-public interface RequestProtocol {
-    void run(String methodName, Class<?>[] paramTypes, Object[] args, OperationIdentifier operationIdentifier);
-    void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, OperationIdentifier operationIdentifier);
-    void stop();
+    public static void setCurrentOperationIdentifier(OperationIdentifier operationId) {
+        if (operationId == null) {
+            localOperationId.remove();
+        } else {
+            localOperationId.set(operationId);
+        }
+    }
 }

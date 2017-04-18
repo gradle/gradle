@@ -18,19 +18,20 @@ package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.OperationIdentifier;
 
 /**
  * Meta-data about a build operation.
  */
 public class BuildOperationDescriptor {
-    private final Object id;
-    private final Object parentId;
+    private final OperationIdentifier id;
+    private final OperationIdentifier parentId;
     private final String displayName;
     private final String name;
     private final String progressDisplayName;
     private final Object details;
 
-    protected BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details) {
+    protected BuildOperationDescriptor(OperationIdentifier id, OperationIdentifier parentId, String name, String displayName, String progressDisplayName, Object details) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -39,7 +40,7 @@ public class BuildOperationDescriptor {
         this.details = details;
     }
 
-    public Object getId() {
+    public OperationIdentifier getId() {
         return id;
     }
 
@@ -83,7 +84,7 @@ public class BuildOperationDescriptor {
      * The parent for the operation, if any. When null, the operation of the current thread is used.
      */
     @Nullable
-    public Object getParentId() {
+    public OperationIdentifier getParentId() {
         return parentId;
     }
 
@@ -136,7 +137,7 @@ public class BuildOperationDescriptor {
             return parent;
         }
 
-        BuildOperationInternal build(@Nullable Object id, @Nullable Object defaultParentId) {
+        BuildOperationInternal build(@Nullable OperationIdentifier id, @Nullable OperationIdentifier defaultParentId) {
             return new BuildOperationInternal(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details);
         }
     }

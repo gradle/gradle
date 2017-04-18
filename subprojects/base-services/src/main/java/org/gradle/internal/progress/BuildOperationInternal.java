@@ -16,6 +16,7 @@
 package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.operations.OperationIdentifier;
 
 /**
  *
@@ -25,7 +26,7 @@ import org.gradle.api.Nullable;
  * */
 public final class BuildOperationInternal extends BuildOperationDescriptor {
 
-    protected BuildOperationInternal(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details) {
+    protected BuildOperationInternal(OperationIdentifier id, OperationIdentifier parentId, String name, String displayName, String progressDisplayName, Object details) {
         super(id, parentId, name, displayName, progressDisplayName, details);
     }
 
