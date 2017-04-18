@@ -161,11 +161,15 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
+        // TODO(daniel): The execution context here have access to the right BuildOperation for the thread.
         ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
             public void execute(final ObjectConnection connection) {
                 workerProcess.onConnect(connection, new Runnable() {
                     @Override
                     public void run() {
+                        // TODO(daniel): This is were the protocol class for receiving log event from the worker is created.
+                        // TODO(daniel): The execution context here is already outside of the thread with the BuildOperation.
+                        // TODO(daniel): The worker may be reuse so we can't just statically set the `OperationIdentifier` or `BuildOperation#getId()` here.
                         DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
                         connection.useParameterSerializers(WorkerLoggingSerializer.create());
                         connection.addIncoming(WorkerLoggingProtocol.class, defaultWorkerLoggingProtocol);

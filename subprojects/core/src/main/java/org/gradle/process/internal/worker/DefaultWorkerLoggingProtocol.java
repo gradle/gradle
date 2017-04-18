@@ -30,11 +30,14 @@ public class DefaultWorkerLoggingProtocol implements WorkerLoggingProtocol {
 
     @Override
     public void sendOutputEvent(LogEvent event) {
+        // TODO(daniel): The events received here are from the worker process.
+        // TODO(daniel): This code is executed in a different thread than the worker client (the thread with the current BuildOperation) therefore we can't get the OperationIdentifier or BuildOperation#getId()
         outputEventListener.onOutput(event);
     }
 
     @Override
     public void sendOutputEvent(StyledTextOutputEvent event) {
+        // TODO(daniel): See above.
         outputEventListener.onOutput(event);
     }
 
