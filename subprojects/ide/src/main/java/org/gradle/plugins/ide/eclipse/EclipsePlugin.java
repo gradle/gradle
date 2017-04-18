@@ -50,7 +50,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
-import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper;
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
@@ -58,6 +57,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Link;
+import org.gradle.plugins.ide.idea.internal.ProjectNameDeduplicator;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
@@ -112,13 +112,8 @@ public class EclipsePlugin extends IdePlugin {
     }
 
     public void performPostEvaluationActions() {
-        makeSureProjectNamesAreUnique();
-        // This needs to happen after de-duplication
+        // This needs to happen after user configuration
         registerEclipseArtifacts();
-    }
-
-    private void makeSureProjectNamesAreUnique() {
-        new EclipseNameDeduper().configureRoot(project.getRootProject());
     }
 
     private void registerEclipseArtifacts() {
@@ -157,7 +152,10 @@ public class EclipsePlugin extends IdePlugin {
 
                 //model:
                 model.setProject(projectModel);
-                projectModel.setName(project.getName());
+
+                // TODO:DAZ Avoid duplicating the de-duplication work for every project.
+                final String defaultModuleName = new ProjectNameDeduplicator().getModuleName(project);
+                projectModel.setName(defaultModuleName);
 
                 final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
                 convention.map("comment", new Callable<String>() {

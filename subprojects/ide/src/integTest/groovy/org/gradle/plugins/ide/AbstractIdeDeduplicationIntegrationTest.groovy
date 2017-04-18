@@ -279,10 +279,10 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("foo") == "foo"
         projectName("foo/app") == "custom-app"
         projectName("bar") == "bar"
-        projectName("bar/app") == "app"
+        projectName("bar/app") == "bar-app"
     }
 
-    def "will de-duplicate module that conflicts with configured module name"() {
+    def "will not de-duplicate module that conflicts with configured module name"() {
         given:
         project("root") {
             project("foo") {
@@ -300,9 +300,9 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
 
         then:
         projectName("foo") == "foo"
-        projectName("foo/other") == "foo-app"
+        projectName("foo/other") == "app"
         projectName("bar") == "bar"
-        projectName("bar/app") == "bar-app"
+        projectName("bar/app") == "app"
     }
 
     Project project(String projectName, boolean allProjects = true, Closure configClosure) {

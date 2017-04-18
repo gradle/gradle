@@ -47,8 +47,8 @@ import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMet
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
+import org.gradle.plugins.ide.idea.internal.ProjectNameDeduplicator;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -136,13 +136,8 @@ public class IdeaPlugin extends IdePlugin {
     }
 
     public void performPostEvaluationActions() {
-        makeSureModuleNamesAreUnique();
-        // This needs to happen after de-duplication
+        // This needs to happen after user configuration
         registerImlArtifacts();
-    }
-
-    private void makeSureModuleNamesAreUnique() {
-        new IdeaNameDeduper().configureRoot(project.getRootProject());
     }
 
     private void registerImlArtifacts() {
@@ -273,19 +268,17 @@ public class IdeaPlugin extends IdePlugin {
         IdeaModuleIml iml = new IdeaModuleIml(task.getXmlTransformer(), project.getProjectDir());
         final IdeaModule module = instantiator.newInstance(IdeaModule.class, project, iml);
         task.setModule(module);
-
         ideaModel.setModule(module);
+
+        // TODO:DAZ Avoid duplicating the de-duplication work for every project.
+        final String defaultModuleName = new ProjectNameDeduplicator().getModuleName(project);
+        module.setName(defaultModuleName);
+
         ConventionMapping conventionMapping = ((IConventionAware) module).getConventionMapping();
         conventionMapping.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
                 return Sets.newHashSet();
-            }
-        });
-        conventionMapping.map("name", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return project.getName();
             }
         });
         conventionMapping.map("contentRoot", new Callable<File>() {
