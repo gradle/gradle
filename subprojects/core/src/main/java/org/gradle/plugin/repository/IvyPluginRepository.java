@@ -34,6 +34,14 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
     URI getUrl();
 
     /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     * @since 4.0
+     */
+    void setUrl(URI url);
+
+    /**
      * Sets the base URL of this repository. This URL is used to find Gradle plugins.
      *
      * <p>The provided value is evaluated relative to the build's directory. This

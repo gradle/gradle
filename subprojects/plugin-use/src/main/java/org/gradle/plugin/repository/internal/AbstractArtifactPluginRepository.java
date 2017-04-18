@@ -72,6 +72,11 @@ abstract class AbstractArtifactPluginRepository extends AbstractPluginRepository
         return fileResolver.resolveUri(url);
     }
 
+    public void setUrl(URI url) {
+        checkMutable();
+        this.url = url;
+    }
+
     public void setUrl(Object url) {
         checkMutable();
         this.url = url;
