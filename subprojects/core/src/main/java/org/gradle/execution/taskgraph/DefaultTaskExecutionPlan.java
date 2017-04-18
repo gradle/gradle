@@ -77,7 +77,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
-    private final Map<TaskInfo, ResourceLock> projectLocks = Maps.newHashMap();
+    private final Map<TaskInfo, ResourceLock> projectLocks = Maps.newConcurrentMap();
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
     private boolean tasksCancelled;
