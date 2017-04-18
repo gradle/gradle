@@ -21,31 +21,21 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 
 public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements BuildListener, TaskExecutionListener {
     private final TaskExecutionStatisticsListener listener;
     private int executedTasksCount;
     private int avoidedTasksCount;
-    private Gradle gradle;
 
     public TaskExecutionStatisticsEventAdapter(TaskExecutionStatisticsListener listener) {
         this.listener = listener;
     }
 
     @Override
-    public void buildStarted(Gradle gradle) {
-        if (gradle.getParent() == null) {
-            this.gradle = gradle;
-        }
-    }
-
-    @Override
     public void buildFinished(BuildResult result) {
         // Do not report stats for nested builds
-        if (result.getGradle() == gradle) {
-            gradle = null;
+        if (result.getGradle().getParent() == null) {
             listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, avoidedTasksCount));
         }
     }
@@ -68,6 +58,6 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
     }
 
     private boolean taskIsForNestedBuild(Task task) {
-        return task.getProject().getGradle() != gradle;
+        return task.getProject().getGradle().getParent() != null;
     }
 }
