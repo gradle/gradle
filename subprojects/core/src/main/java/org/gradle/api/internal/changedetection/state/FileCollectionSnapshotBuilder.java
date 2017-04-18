@@ -19,11 +19,11 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.Maps;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.DefaultSnapshotCollector;
+import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 
 import java.util.Map;
 
-public class FileCollectionSnapshotBuilder extends DefaultSnapshotCollector implements NormalizedFileSnapshotCollector {
+public class FileCollectionSnapshotBuilder extends DefaultSnapshottingResultRecorder implements NormalizedFileSnapshotCollector {
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final SnapshotNormalizationStrategy normalizationStrategy;
     Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();

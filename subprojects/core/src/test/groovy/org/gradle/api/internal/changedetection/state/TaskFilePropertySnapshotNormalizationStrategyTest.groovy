@@ -21,7 +21,7 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.resources.IgnoredPath
+import org.gradle.api.internal.changedetection.resources.paths.IgnoredPath
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 

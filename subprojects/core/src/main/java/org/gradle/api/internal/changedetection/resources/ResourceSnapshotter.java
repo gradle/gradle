@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
+import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
+
 public interface ResourceSnapshotter {
-    void snapshot(Snapshottable snapshottable, SnapshotCollector collector);
+    void snapshot(Snapshottable snapshottable, SnapshottingResultRecorder recorder);
 }

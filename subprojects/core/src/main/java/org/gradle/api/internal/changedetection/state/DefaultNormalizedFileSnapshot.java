@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.resources.NormalizedPath;
+import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashUtil;
 

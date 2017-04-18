@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.Lists
 import com.google.common.hash.HashCode
-import org.gradle.api.internal.changedetection.resources.DefaultRelativePath
+import org.gradle.api.internal.changedetection.resources.paths.DefaultRelativePath
 import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
 import spock.lang.Specification

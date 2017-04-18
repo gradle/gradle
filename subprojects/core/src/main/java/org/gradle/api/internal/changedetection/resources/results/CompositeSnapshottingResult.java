@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.results;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
+import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 
-public class NormalizedCollectionResource extends AbstractNormalizedResource {
-    private final SnapshotCollector collector;
+public class CompositeSnapshottingResult extends AbstractSnapshottingResult {
+    private final SnapshottingResultRecorder recorder;
 
-    public NormalizedCollectionResource(SnapshottableResource resource, NormalizedPath normalizedPath, SnapshotCollector collector) {
+    public CompositeSnapshottingResult(SnapshottableResource resource, NormalizedPath normalizedPath, SnapshottingResultRecorder recorder) {
         super(resource, normalizedPath);
-        this.collector = collector;
+        this.recorder = recorder;
     }
 
     @Override
     protected HashCode getHashInternal(NormalizedFileSnapshotCollector fileSnapshotCollector) {
-        return collector.getHash(fileSnapshotCollector);
+        return recorder.getHash(fileSnapshotCollector);
     }
 }

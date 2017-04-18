@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.resources.SnapshotCollector
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource
+import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultFileHasher
@@ -55,7 +55,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     ) {
         @Override
         protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-            return new RecordingFileCollectionSnapshotBuilder(super.createFileCollectionSnapshotBuilder(normalizationStrategy, compareStrategy), snapshots)
+            return new ReportingFileCollectionSnapshotBuilder(super.createFileCollectionSnapshotBuilder(normalizationStrategy, compareStrategy), snapshots)
         }
     }
 
@@ -172,24 +172,24 @@ class DefaultClasspathSnapshotterTest extends Specification {
         return new TestFile(tmpDir.getTestDirectory(), path)
     }
 
-    trait RecordingCollector implements SnapshotCollector {
+    trait ReportingResultRecorder implements SnapshottingResultRecorder {
         abstract Map getSnapshots()
-        abstract SnapshotCollector getDelegate()
+        abstract SnapshottingResultRecorder getDelegate()
         abstract String getPath()
 
         @Override
-        void recordSnapshot(SnapshottableResource resource, HashCode hash) {
+        void recordResult(SnapshottableResource resource, HashCode hash) {
             report("Snapshot taken", resource.getRelativePath().toString(), hash)
             snapshots[resource.getRelativePath().toString()] = hash.toString()
-            delegate.recordSnapshot(resource, hash)
+            delegate.recordResult(resource, hash)
         }
 
         @Override
-        SnapshotCollector recordSubCollector(SnapshottableResource resource, SnapshotCollector collector) {
+        SnapshottingResultRecorder recordCompositeResult(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
             def subSnapshots = [:]
-            def subCollector = delegate.recordSubCollector(resource, new TotalReportingSnapshotCollector(subSnapshots, collector))
+            def compositeRecorder = delegate.recordCompositeResult(resource, new TotalReportingResultRecorder(subSnapshots, recorder))
             snapshots[resource.getRelativePath().toString()] = subSnapshots
-            return new RecordingSnapshotCollector(getFullPath(resource.getRelativePath().toString()), subCollector, subSnapshots)
+            return new ReportingSnapshottingResultRecorder(getFullPath(resource.getRelativePath().toString()), compositeRecorder, subSnapshots)
         }
 
         private String getFullPath(String filePath) {
@@ -209,11 +209,11 @@ class DefaultClasspathSnapshotterTest extends Specification {
         }
     }
 
-    static class RecordingFileCollectionSnapshotBuilder extends FileCollectionSnapshotBuilder implements RecordingCollector {
+    static class ReportingFileCollectionSnapshotBuilder extends FileCollectionSnapshotBuilder implements ReportingResultRecorder {
         final Map snapshots
         final FileCollectionSnapshotBuilder delegate
 
-        RecordingFileCollectionSnapshotBuilder(FileCollectionSnapshotBuilder delegate, snapshots) {
+        ReportingFileCollectionSnapshotBuilder(FileCollectionSnapshotBuilder delegate, snapshots) {
             super(null, null, null)
             this.snapshots = snapshots
             this.delegate = delegate
@@ -235,24 +235,24 @@ class DefaultClasspathSnapshotterTest extends Specification {
         }
     }
 
-    static class RecordingSnapshotCollector implements RecordingCollector {
+    static class ReportingSnapshottingResultRecorder implements ReportingResultRecorder {
         String path
-        final SnapshotCollector delegate
+        final SnapshottingResultRecorder delegate
         final Map snapshots
 
-        RecordingSnapshotCollector(String path, SnapshotCollector delegate, Map snapshots) {
+        ReportingSnapshottingResultRecorder(String path, SnapshottingResultRecorder delegate, Map snapshots) {
             this.snapshots = snapshots
             this.path = path
             this.delegate = delegate
         }
     }
 
-    static class TotalReportingSnapshotCollector implements SnapshotCollector {
+    static class TotalReportingResultRecorder implements SnapshottingResultRecorder {
         @Delegate(excludes = "getHash")
-        private final SnapshotCollector delegate
+        private final SnapshottingResultRecorder delegate
         private final Map snapshots
 
-        TotalReportingSnapshotCollector(Map snapshots, SnapshotCollector delegate) {
+        TotalReportingResultRecorder(Map snapshots, SnapshottingResultRecorder delegate) {
             this.snapshots = snapshots
             this.delegate = delegate
         }

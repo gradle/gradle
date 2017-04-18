@@ -20,7 +20,7 @@ import com.google.common.base.Charsets
 import com.google.common.hash.HashCode
 import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.resources.DefaultRelativePath
+import org.gradle.api.internal.changedetection.resources.paths.DefaultRelativePath
 import org.gradle.internal.serialize.SerializerSpec
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED

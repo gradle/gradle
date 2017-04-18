@@ -18,11 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.AbsolutePath;
-import org.gradle.api.internal.changedetection.resources.DefaultRelativePath;
-import org.gradle.api.internal.changedetection.resources.IgnoredPath;
-import org.gradle.api.internal.changedetection.resources.IndexedRelativePath;
-import org.gradle.api.internal.changedetection.resources.NormalizedPath;
+import org.gradle.api.internal.changedetection.resources.paths.AbsolutePath;
+import org.gradle.api.internal.changedetection.resources.paths.DefaultRelativePath;
+import org.gradle.api.internal.changedetection.resources.paths.IgnoredPath;
+import org.gradle.api.internal.changedetection.resources.paths.IndexedRelativePath;
+import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;

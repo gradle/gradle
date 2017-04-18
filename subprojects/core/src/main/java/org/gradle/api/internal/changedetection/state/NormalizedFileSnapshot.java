@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.resources.NormalizedPath;
+import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
 
 /**
  * An immutable snapshot of some aspects of a file's metadata and content.

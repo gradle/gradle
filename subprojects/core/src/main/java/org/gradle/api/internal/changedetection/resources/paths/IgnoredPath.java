@@ -14,30 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.paths;
 
-public abstract class AbstractPath implements NormalizedPath {
+public class IgnoredPath implements NormalizedPath {
+    private static final IgnoredPath INSTANCE = new IgnoredPath();
+
+    public static IgnoredPath getInstance() {
+        return INSTANCE;
+    }
+
+    private IgnoredPath() {
+    }
+
+    @Override
+    public String getPath() {
+        return "";
+    }
+
     @Override
     public int compareTo(NormalizedPath o) {
-        return getPath().compareTo(o.getPath());
+        if (!(o instanceof IgnoredPath)) {
+            return -1;
+        }
+        return 0;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        AbstractPath that = (AbstractPath) o;
-
-        return getPath().equals(that.getPath());
+        return this == o;
     }
 
     @Override
     public int hashCode() {
-        return getPath().hashCode();
+        return 1;
     }
 }

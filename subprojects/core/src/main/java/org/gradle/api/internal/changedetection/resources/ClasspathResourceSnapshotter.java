@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.resources;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
+import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.zip.SnapshottableZipTree;
 import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
@@ -38,11 +40,11 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     }
 
     @Override
-    protected void snapshotResource(SnapshottableResource resource, SnapshotCollector collector) {
+    protected void snapshotResource(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
         if (resource instanceof SnapshottableReadableResource) {
             SnapshottableZipTree zipTree = new SnapshottableZipTree((SnapshottableReadableResource) resource);
             try {
-                snapshotTree(zipTree, collector);
+                snapshotTree(zipTree, recorder);
             } finally {
                 IoActions.closeQuietly(zipTree);
             }
@@ -50,32 +52,32 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     }
 
     @Override
-    protected void snapshotTree(SnapshottableResourceTree tree, SnapshotCollector collector) {
+    protected void snapshotTree(SnapshottableResourceTree tree, SnapshottingResultRecorder recorder) {
         try {
-            SnapshotCollector entryCollector = new DefaultSnapshotCollector(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
+            SnapshottingResultRecorder entryRecorder = new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
             if (!(tree instanceof SnapshottableZipTree)) {
-                entryCollector = collector.recordSubCollector(tree.getRoot(), entryCollector);
+                entryRecorder = recorder.recordCompositeResult(tree.getRoot(), entryRecorder);
             }
             for (SnapshottableResource resource : tree.getDescendants()) {
-                entrySnapshotter.snapshot(resource, entryCollector);
+                entrySnapshotter.snapshot(resource, entryRecorder);
             }
             if (tree instanceof SnapshottableZipTree) {
-                collector.recordSnapshot(tree.getRoot(), entryCollector.getHash(null));
+                recorder.recordResult(tree.getRoot(), entryRecorder.getHash(null));
             }
         } catch (ZipException e) {
             // ZipExceptions point to a problem with the Zip, we try to be lenient for now.
-            hashMalformedZip(tree.getRoot(), collector);
+            hashMalformedZip(tree.getRoot(), recorder);
         } catch (IOException e) {
             // IOExceptions other than ZipException are failures.
             throw new UncheckedIOException("Error snapshotting jar [" + tree.getRoot().getName() + "]", e);
         } catch (Exception e) {
             // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
-            hashMalformedZip(tree.getRoot(), collector);
+            hashMalformedZip(tree.getRoot(), recorder);
         }
     }
 
-    private void hashMalformedZip(SnapshottableResource zipFile, SnapshotCollector collector) {
+    private void hashMalformedZip(SnapshottableResource zipFile, SnapshottingResultRecorder recorder) {
         DeprecationLogger.nagUserWith("Malformed jar [" + zipFile.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
-        collector.recordSnapshot(zipFile, zipFile.getContent().getContentMd5());
+        recorder.recordResult(zipFile, zipFile.getContent().getContentMd5());
     }
 }

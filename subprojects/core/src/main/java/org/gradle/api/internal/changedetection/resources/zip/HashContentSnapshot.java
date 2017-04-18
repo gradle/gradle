@@ -14,38 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.zip;
 
-public class IgnoredPath implements NormalizedPath {
-    private static final IgnoredPath INSTANCE = new IgnoredPath();
+import com.google.common.hash.HashCode;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 
-    public static IgnoredPath getInstance() {
-        return INSTANCE;
-    }
+public class HashContentSnapshot implements ResourceContentMetadataSnapshot {
+    private final FileType type;
+    private final HashCode contentMd5;
 
-    private IgnoredPath() {
-    }
-
-    @Override
-    public String getPath() {
-        return "";
-    }
-
-    @Override
-    public int compareTo(NormalizedPath o) {
-        if (!(o instanceof IgnoredPath)) {
-            return -1;
-        }
-        return 0;
+    public HashContentSnapshot(FileType type, HashCode contentMd5) {
+        this.type = type;
+        this.contentMd5 = contentMd5;
     }
 
     @Override
-    public boolean equals(Object o) {
-        return this == o;
+    public FileType getType() {
+        return type;
     }
 
     @Override
-    public int hashCode() {
-        return 1;
+    public HashCode getContentMd5() {
+        return contentMd5;
     }
 }

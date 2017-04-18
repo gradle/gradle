@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.paths;
 
 public interface NormalizedPath extends Comparable<NormalizedPath> {
     String getPath();

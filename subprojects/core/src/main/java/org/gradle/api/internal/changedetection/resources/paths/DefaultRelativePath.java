@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.paths;
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
+public class DefaultRelativePath extends AbstractPath {
+    private final String relativePath;
 
-/**
- * An immutable snapshot of some aspects of a resource's metadata and content.
- *
- * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these aspects.
- */
-public interface NormalizedResource extends Comparable<NormalizedResource> {
-    SnapshottableResource getResource();
-    NormalizedPath getNormalizedPath();
-    HashCode getHash(NormalizedFileSnapshotCollector collector);
+    public DefaultRelativePath(String relativePath) {
+        this.relativePath = relativePath;
+    }
+
+    @Override
+    public String getPath() {
+        return relativePath;
+    }
 }

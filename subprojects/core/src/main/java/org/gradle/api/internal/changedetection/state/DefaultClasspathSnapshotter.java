@@ -22,9 +22,9 @@ import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
 import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
-import org.gradle.api.internal.changedetection.resources.SnapshotCollector;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.cache.PersistentIndexedCache;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
@@ -57,15 +57,15 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     private class ClasspathEntrySnapshotter extends AbstractSnapshotter {
         @Override
-        protected void snapshotResource(SnapshottableResource resource, SnapshotCollector collector) {
+        protected void snapshotResource(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
             if (resource instanceof SnapshottableReadableResource) {
                 HashCode signatureForClass = resource.getContent().getContentMd5();
-                collector.recordSnapshot(resource, signatureForClass);
+                recorder.recordResult(resource, signatureForClass);
             }
         }
 
         @Override
-        protected void snapshotTree(SnapshottableResourceTree snapshottable, SnapshotCollector collector) {
+        protected void snapshotTree(SnapshottableResourceTree snapshottable, SnapshottingResultRecorder recorder) {
             throw new UnsupportedOperationException("Trees cannot be classpath entries");
         }
     }

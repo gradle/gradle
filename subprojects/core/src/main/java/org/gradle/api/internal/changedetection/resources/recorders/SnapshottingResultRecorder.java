@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.recorders;
 
-public class AbsolutePath extends AbstractPath {
-    private final String absolutePath;
+import com.google.common.hash.HashCode;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 
-    public AbsolutePath(String absolutePath) {
-        this.absolutePath = absolutePath;
-    }
-
-    @Override
-    public String getPath() {
-        return absolutePath;
-    }
+public interface SnapshottingResultRecorder {
+    void recordResult(SnapshottableResource resource, HashCode hash);
+    SnapshottingResultRecorder recordCompositeResult(SnapshottableResource resource, SnapshottingResultRecorder recorder);
+    HashCode getHash(NormalizedFileSnapshotCollector collector);
 }

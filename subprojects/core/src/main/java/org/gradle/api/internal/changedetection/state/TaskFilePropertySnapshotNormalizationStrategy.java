@@ -17,12 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.AbsolutePath;
-import org.gradle.api.internal.changedetection.resources.DefaultRelativePath;
-import org.gradle.api.internal.changedetection.resources.IgnoredPath;
-import org.gradle.api.internal.changedetection.resources.IndexedRelativePath;
-import org.gradle.api.internal.changedetection.resources.NormalizedPath;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.paths.AbsolutePath;
+import org.gradle.api.internal.changedetection.resources.paths.DefaultRelativePath;
+import org.gradle.api.internal.changedetection.resources.paths.IgnoredPath;
+import org.gradle.api.internal.changedetection.resources.paths.IndexedRelativePath;
+import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 

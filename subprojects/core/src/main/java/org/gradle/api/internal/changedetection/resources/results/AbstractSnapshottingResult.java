@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.results;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-public abstract class AbstractNormalizedResource implements NormalizedResource {
+public abstract class AbstractSnapshottingResult implements SnapshottingResult {
     protected final SnapshottableResource resource;
     protected final NormalizedPath normalizedPath;
 
-    public AbstractNormalizedResource(SnapshottableResource resource, NormalizedPath normalizedPath) {
+    public AbstractSnapshottingResult(SnapshottableResource resource, NormalizedPath normalizedPath) {
         this.resource = resource;
         this.normalizedPath = normalizedPath;
     }
@@ -60,7 +62,7 @@ public abstract class AbstractNormalizedResource implements NormalizedResource {
     protected abstract HashCode getHashInternal(NormalizedFileSnapshotCollector collector);
 
     @Override
-    public int compareTo(NormalizedResource o) {
+    public int compareTo(SnapshottingResult o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
             result = HashUtil.compareHashCodes(getHash(null), o.getHash(null));

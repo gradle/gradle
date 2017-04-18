@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.paths;
 
-public class DefaultRelativePath extends AbstractPath {
-    private final String relativePath;
+public class AbsolutePath extends AbstractPath {
+    private final String absolutePath;
 
-    public DefaultRelativePath(String relativePath) {
-        this.relativePath = relativePath;
+    public AbsolutePath(String absolutePath) {
+        this.absolutePath = absolutePath;
     }
 
     @Override
     public String getPath() {
-        return relativePath;
+        return absolutePath;
     }
 }

@@ -19,8 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
-import org.gradle.api.internal.changedetection.resources.SnapshotCollector;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.IOException;
@@ -56,15 +56,15 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
         }
 
         @Override
-        protected void snapshotTree(SnapshottableResourceTree tree, SnapshotCollector collector) throws IOException {
+        protected void snapshotTree(SnapshottableResourceTree tree, SnapshottingResultRecorder recorder) throws IOException {
             for (SnapshottableResource descendant : tree.getDescendants()) {
-                snapshotResource(descendant, collector);
+                snapshotResource(descendant, recorder);
             }
         }
 
-        protected void snapshotResource(SnapshottableResource snapshottable, SnapshotCollector collector) {
+        protected void snapshotResource(SnapshottableResource snapshottable, SnapshottingResultRecorder recorder) {
             if (!noneNormalizationStrategy || snapshottable.getType() != FileType.Directory || !snapshottable.isRoot()) {
-                collector.recordSnapshot(snapshottable, snapshottable.getContent().getContentMd5());
+                recorder.recordResult(snapshottable, snapshottable.getContent().getContentMd5());
             }
         }
     }

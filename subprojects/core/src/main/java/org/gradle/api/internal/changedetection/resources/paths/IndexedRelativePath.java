@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.paths;
 
 public class IndexedRelativePath extends AbstractPath {
     private final String absolutePath;

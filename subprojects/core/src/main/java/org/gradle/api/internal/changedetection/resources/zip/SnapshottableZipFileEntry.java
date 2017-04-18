@@ -22,7 +22,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.changedetection.resources.HashContentSnapshot;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.resource.ResourceContentMetadataSnapshot;

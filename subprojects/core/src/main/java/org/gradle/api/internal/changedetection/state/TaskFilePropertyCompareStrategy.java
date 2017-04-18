@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
-import org.gradle.api.internal.changedetection.resources.NormalizedResource;
+import org.gradle.api.internal.changedetection.resources.results.SnapshottingResult;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
@@ -51,14 +51,14 @@ public enum TaskFilePropertyCompareStrategy {
         return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute);
     }
 
-    public void sort(List<NormalizedResource> snapshots) {
+    public void sort(List<SnapshottingResult> snapshots) {
         delegate.sort(snapshots);
     }
 
     interface Impl {
         Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute);
         boolean isIncludeAdded();
-        void sort(List<NormalizedResource> snapshots);
+        void sort(List<SnapshottingResult> snapshots);
     }
 
     /**

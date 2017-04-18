@@ -14,28 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.internal.changedetection.resources.paths;
 
-import com.google.common.hash.HashCode;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
-import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
-
-public class HashContentSnapshot implements ResourceContentMetadataSnapshot {
-    private final FileType type;
-    private final HashCode contentMd5;
-
-    public HashContentSnapshot(FileType type, HashCode contentMd5) {
-        this.type = type;
-        this.contentMd5 = contentMd5;
+public abstract class AbstractPath implements NormalizedPath {
+    @Override
+    public int compareTo(NormalizedPath o) {
+        return getPath().compareTo(o.getPath());
     }
 
     @Override
-    public FileType getType() {
-        return type;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractPath that = (AbstractPath) o;
+
+        return getPath().equals(that.getPath());
     }
 
     @Override
-    public HashCode getContentMd5() {
-        return contentMd5;
+    public int hashCode() {
+        return getPath().hashCode();
     }
 }
