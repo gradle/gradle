@@ -24,6 +24,8 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
 
     protected abstract String getIdeName()
 
+    protected abstract String getConfiguredModule()
+
     def "unique project names are not deduplicated"() {
         given:
         project("root") {
@@ -255,6 +257,52 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("impl/myproject") == "impl-myproject"
         projectName("impl/myproject/myproject-foo") == "impl-myproject-foo"
         projectName("impl/myproject/myproject-foo/app") == "impl-myproject-foo-app"
+    }
+
+    def "will use configured module name"() {
+        given:
+        project("root") {
+            project("foo") {
+                project("app") {
+                    buildFile << "${configuredModule}.name = 'custom-app'"
+                }
+            }
+            project("bar") {
+                project("app") {}
+            }
+        }
+
+        when:
+        run ideName
+
+        then:
+        projectName("foo") == "foo"
+        projectName("foo/app") == "custom-app"
+        projectName("bar") == "bar"
+        projectName("bar/app") == "app"
+    }
+
+    def "will de-duplicate module that conflicts with configured module name"() {
+        given:
+        project("root") {
+            project("foo") {
+                project("other") {
+                    buildFile << "${configuredModule}.name = 'app'"
+                }
+            }
+            project("bar") {
+                project("app") {}
+            }
+        }
+
+        when:
+        run ideName
+
+        then:
+        projectName("foo") == "foo"
+        projectName("foo/other") == "foo-app"
+        projectName("bar") == "bar"
+        projectName("bar/app") == "bar-app"
     }
 
     Project project(String projectName, boolean allProjects = true, Closure configClosure) {
