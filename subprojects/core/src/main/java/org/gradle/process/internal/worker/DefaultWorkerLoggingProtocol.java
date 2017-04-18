@@ -38,6 +38,7 @@ public class DefaultWorkerLoggingProtocol implements WorkerLoggingProtocol {
 
         // TODO(ew): presumably this is sent from worker to client.
         // What is receiving these events?
+        //    <daniel> The events (or anything getting communicated between the build process and worker process will go through MessageHub (ConnectionDispatch and ConnectionReceive)
         // Can it know what the Parent Build Operation ID is?
         // Because it knows which worker the event is coming from and maintains a mapping from worker to operation ID?
         outputEventListener.onOutput(event);

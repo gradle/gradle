@@ -128,6 +128,7 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
+        // FIXME(daniel): Add some test coverage for this in OutputEventListenerBackedLoggerTest
         LogEvent logEvent = new LogEvent(timeProvider.getCurrentTime(), name, logLevel, OperationIdentifierRegistry.getCurrentOperationId(), message, throwable);
         OutputEventListener outputEventListener = context.getOutputEventListener();
         try {

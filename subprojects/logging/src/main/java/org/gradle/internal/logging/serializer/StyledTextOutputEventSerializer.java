@@ -30,6 +30,8 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
     private final Serializer<List<StyledTextOutputEvent.Span>> spanSerializer;
     private final Serializer<OperationIdentifier> operationIdSerializer;
 
+    // FIXME(daniel): The coverage for this class and LogEventSerializer is over in the unit test for DaemonMessageSerializer and didn't move when the serializer code did.
+    //      Adam recommends adding unit test for this stuff
     public StyledTextOutputEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<List<StyledTextOutputEvent.Span>> spanSerializer, Serializer<OperationIdentifier> operationIdSerializer) {
         this.logLevelSerializer = logLevelSerializer;
         this.spanSerializer = spanSerializer;

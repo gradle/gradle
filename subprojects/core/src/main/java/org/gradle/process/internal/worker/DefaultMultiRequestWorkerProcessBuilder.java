@@ -135,6 +135,8 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                     workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
                     workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
                     requestProtocol = workerProcess.getConnection().addOutgoing(RequestProtocol.class);
+                    // TODO(daniel): The code for operationIdentifierProtocol can be migrated to a wrapper class to avoid shoving the code inside
+                    //      this class.
                     operationIdentifierProtocol = workerProcess.getConnection().addOutgoing(WorkerOperationIdentifierProtocol.class);
                     workerProcess.getConnection().connect();
                     return workerProcess;

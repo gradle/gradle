@@ -111,6 +111,8 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
                     WorkerProcess workerProcess = builder.build();
                     workerProcess.start();
                     ObjectConnection connection = workerProcess.getConnection();
+                    // TODO(daniel): The code for operationIdentifierProtocol can be migrated to a wrapper class to avoid shoving the code inside
+                    //      this class.
                     WorkerOperationIdentifierProtocol operationIdentifierProtocol = connection.addOutgoing(WorkerOperationIdentifierProtocol.class);
                     RequestProtocol requestProtocol = connection.addOutgoing(RequestProtocol.class);
                     connection.addIncoming(ResponseProtocol.class, receiver);

@@ -131,6 +131,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             assert state == State.None;
             if (hasLoggingHeader) {
                 state = State.HeaderStarted;
+                // FIXME(daniel): Coverage for the new parameter have been added to all the test for this class as the various scenario are quite complex.
                 doOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, operationId, loggingHeader));
             } else {
                 state = State.HeaderCompleted;

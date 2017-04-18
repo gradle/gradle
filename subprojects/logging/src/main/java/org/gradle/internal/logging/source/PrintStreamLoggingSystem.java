@@ -160,6 +160,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         }
 
         public void onOutput(CharSequence output) {
+            // FIXME(daniel): Should have some test coverage in PrintStreamLoggingSystemTest
             listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, OperationIdentifierRegistry.getCurrentOperationId(), output.toString()));
         }
     }

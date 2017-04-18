@@ -54,6 +54,8 @@ public class WorkerDaemonStarter {
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(workingDir);
+        // TODO(daniel): We could wrap workerDaemonProcess in to a class that communicate the OperationIdentifier before delegating to the original class.
+        //      This will help decoupling the code from inside DefaultMultiRequestWorkerProcessBuilder and DefaultSingleRequestWorkerProcessBuilder
         WorkerDaemonProcess workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
 

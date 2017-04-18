@@ -28,6 +28,8 @@ public class LogEventSerializer implements Serializer<LogEvent> {
     private final Serializer<LogLevel> logLevelSerializer;
     private final Serializer<OperationIdentifier> operationIdSerializer;
 
+    // FIXME(daniel): The coverage for this class and StyledTextOutputEventSerializer is over in the unit test for DaemonMessageSerializer and didn't move when the serializer code did.
+    //      Adam recommends adding unit test for this stuff
     public LogEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<Throwable> throwableSerializer, Serializer<OperationIdentifier> operationIdSerializer) {
         this.logLevelSerializer = logLevelSerializer;
         this.throwableSerializer = throwableSerializer;
