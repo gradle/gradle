@@ -43,6 +43,7 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
 
     @Override
     public void buildFinished(BuildResult result) {
+        // Do not report stats for nested builds
         if (result.getGradle() == gradle) {
             gradle = null;
             listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, avoidedTasksCount));
@@ -56,7 +57,7 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
 
     @Override
     public void afterExecute(Task task, TaskState state) {
-        if (task.getProject().getGradle() == gradle) {
+        if (!taskIsForNestedBuild(task)) {
             TaskStateInternal stateInternal = (TaskStateInternal) state;
             if (stateInternal.isAvoided()) {
                 avoidedTasksCount++;
@@ -64,5 +65,9 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
                 executedTasksCount++;
             }
         }
+    }
+
+    private boolean taskIsForNestedBuild(Task task) {
+        return task.getProject().getGradle() != gradle;
     }
 }
