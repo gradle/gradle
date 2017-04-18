@@ -42,7 +42,6 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
         fails "copy"
 
         then:
-        failure.assertHasCause("It is not allowed to modify child specs of the task at execution time. " +
-            "Consider configuring the spec during configuration time, or using a separate task to do the configuration.")
+        failure.assertHasCause("You cannot add child specs at execution time. Consider configuring this task during configuration time or using a separate task to do the configuration.")
     }
 }

@@ -181,18 +181,21 @@ The following are the newly deprecated items in this Gradle release. If you have
 The deprecated `jetty` plugin has been removed. We recommend using the [Gretty plugin](https://github.com/akhikhl/gretty) for developing Java web applications.
 The deprecated `pluginRepositories` block for declaring custom plugin repositories has been removed in favor of `pluginManagement.repositories`.
 
-### Modifying a copy specs during task execution is not allowed anymore
+### Adding copy specs is not allowed during task execution of a `AbstractCopyTask` task
 
-Starting with Gradle 4.0 modifying the specs of a copy task (like `Copy` and `Sync`) or archive task (like `Zip` and `Tar`) while the task is executing will result in a failed build. Previously we only failed a build if the task was cacheable. Example:
+You can no longer add copy specs to a copy (like `Copy` and `Sync`) or archive task (like `Zip` and `Tar`) when the task is executing. Tasks that used this behavior could produce incorrect results and not honor task dependencies. 
+
+Starting with Gradle 4.0, builds that rely on this behavior will fail.  Previously, Gradle only failed if the task was cacheable and emitted a warning otherwise. 
 
 ```groovy
+// This task adds a copy spec during the execution phase.
 task copy(type: Copy) {
-    outputs.cacheIf { true }
     from ("some-dir")
     into ("build/output")
 
     doFirst {
-        // Modifying specs during runtime is not allowed anymore
+        // Adding copy specs during runtime is not allowed anymore
+        // The build will fail with 4.0
         from ("some-other-dir") {
             exclude "non-existent-file"
         }
