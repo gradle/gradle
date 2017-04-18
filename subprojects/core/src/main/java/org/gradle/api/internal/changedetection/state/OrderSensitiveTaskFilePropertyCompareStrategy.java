@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.internal.changedetection.resources.NormalizedSnapshot;
+import org.gradle.api.internal.changedetection.resources.NormalizedResource;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
@@ -85,6 +85,6 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
     }
 
     @Override
-    public void sort(List<NormalizedSnapshot> snapshots) {
+    public void sort(List<NormalizedResource> snapshots) {
     }
 }

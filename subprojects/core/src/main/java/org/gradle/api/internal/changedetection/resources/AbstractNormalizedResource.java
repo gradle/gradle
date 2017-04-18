@@ -23,11 +23,11 @@ import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemReso
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-public abstract class AbstractNormalizedSnapshot implements NormalizedSnapshot {
+public abstract class AbstractNormalizedResource implements NormalizedResource {
     protected final SnapshottableResource resource;
     protected final NormalizedPath normalizedPath;
 
-    public AbstractNormalizedSnapshot(SnapshottableResource resource, NormalizedPath normalizedPath) {
+    public AbstractNormalizedResource(SnapshottableResource resource, NormalizedPath normalizedPath) {
         this.resource = resource;
         this.normalizedPath = normalizedPath;
     }
@@ -60,7 +60,7 @@ public abstract class AbstractNormalizedSnapshot implements NormalizedSnapshot {
     protected abstract HashCode getHashInternal(NormalizedFileSnapshotCollector collector);
 
     @Override
-    public int compareTo(NormalizedSnapshot o) {
+    public int compareTo(NormalizedResource o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
             result = HashUtil.compareHashCodes(getHash(null), o.getHash(null));

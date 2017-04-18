@@ -19,12 +19,12 @@ package org.gradle.api.internal.changedetection.resources;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 
-public class DefaultNormalizedSnapshot extends AbstractNormalizedSnapshot {
+public class DefaultNormalizedResource extends AbstractNormalizedResource {
     private final HashCode hash;
 
-    public DefaultNormalizedSnapshot(SnapshottableResource resource, NormalizedPath normalizedPath, HashCode snapshot) {
+    public DefaultNormalizedResource(SnapshottableResource resource, NormalizedPath normalizedPath, HashCode hash) {
         super(resource, normalizedPath);
-        this.hash = snapshot;
+        this.hash = hash;
     }
 
     @Override

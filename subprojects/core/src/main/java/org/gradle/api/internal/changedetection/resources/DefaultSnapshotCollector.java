@@ -31,7 +31,7 @@ public class DefaultSnapshotCollector implements SnapshotCollector {
     private final SnapshotNormalizationStrategy normalizationStrategy;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final StringInterner stringInterner;
-    private final List<NormalizedSnapshot> normalizedSnapshots = new LinkedList<NormalizedSnapshot>();
+    private final List<NormalizedResource> normalizedResources = new LinkedList<NormalizedResource>();
 
     public DefaultSnapshotCollector(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
         this.normalizationStrategy = normalizationStrategy;
@@ -42,25 +42,25 @@ public class DefaultSnapshotCollector implements SnapshotCollector {
     @Override
     public void recordSnapshot(SnapshottableResource resource, HashCode hash) {
         NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(resource, stringInterner);
-        normalizedSnapshots.add(new DefaultNormalizedSnapshot(resource, normalizedPath, hash));
+        normalizedResources.add(new DefaultNormalizedResource(resource, normalizedPath, hash));
     }
 
     @Override
     public SnapshotCollector recordSubCollector(SnapshottableResource resource, SnapshotCollector collector) {
         NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(resource, stringInterner);
-        normalizedSnapshots.add(new SnapshotterCollectorSnapshot(resource, normalizedPath, collector));
+        normalizedResources.add(new NormalizedCollectionResource(resource, normalizedPath, collector));
         return collector;
     }
 
     @Override
     public HashCode getHash(NormalizedFileSnapshotCollector collector) {
-        compareStrategy.sort(normalizedSnapshots);
+        compareStrategy.sort(normalizedResources);
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        for (NormalizedSnapshot normalizedFileSnapshot : normalizedSnapshots) {
+        for (NormalizedResource normalizedFileSnapshot : normalizedResources) {
             hasher.putString(normalizedFileSnapshot.getNormalizedPath().getPath());
             hasher.putBytes(normalizedFileSnapshot.getHash(collector).asBytes());
         }
-        normalizedSnapshots.clear();
+        normalizedResources.clear();
         return hasher.hash();
     }
 }

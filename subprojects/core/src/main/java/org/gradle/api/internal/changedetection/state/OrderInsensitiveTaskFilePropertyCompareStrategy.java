@@ -21,7 +21,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
-import org.gradle.api.internal.changedetection.resources.NormalizedSnapshot;
+import org.gradle.api.internal.changedetection.resources.NormalizedResource;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
@@ -184,7 +184,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
     }
 
     @Override
-    public void sort(List<NormalizedSnapshot> snapshots) {
+    public void sort(List<NormalizedResource> snapshots) {
         Collections.sort(snapshots);
     }
 
