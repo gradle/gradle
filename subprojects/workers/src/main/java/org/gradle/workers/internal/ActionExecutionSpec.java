@@ -16,10 +16,8 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.internal.logging.events.OperationIdentifier;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,13 +32,11 @@ public class ActionExecutionSpec implements WorkSpec {
     private final String displayName;
     private final Class<? extends Runnable> implementationClass;
     private final byte[] params;
-    private final OperationIdentifier operationId;
 
-    ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, Object[] params, OperationIdentifier operationId) {
+    ActionExecutionSpec(Class<? extends Runnable> implementationClass, String displayName, Object[] params) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.params = serialize(params);
-        this.operationId = operationId;
     }
 
     public Class<? extends Runnable> getImplementationClass() {
@@ -50,12 +46,6 @@ public class ActionExecutionSpec implements WorkSpec {
     @Override
     public String getDisplayName() {
         return displayName;
-    }
-
-    @Nullable
-    @Override
-    public OperationIdentifier getOperationId() {
-        return operationId;
     }
 
     public Object[] getParams(ClassLoader classLoader) {

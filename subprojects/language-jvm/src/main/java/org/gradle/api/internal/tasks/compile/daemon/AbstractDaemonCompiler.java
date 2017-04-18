@@ -15,12 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.logging.progress.OperationIdentifierRegistry;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -51,7 +47,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     public WorkResult execute(T spec) {
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
         Worker<WorkerCompileSpec<?>> worker = workerFactory.getWorker(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
-        DefaultWorkResult result = worker.execute(new WorkerCompileSpec<T>(delegate, spec, OperationIdentifierRegistry.getCurrentOperationId()));
+        DefaultWorkResult result = worker.execute(new WorkerCompileSpec<T>(delegate, spec));
         if (result.isSuccess()) {
             return result;
         }
@@ -63,23 +59,15 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
     private static class WorkerCompileSpec<T extends CompileSpec> implements WorkSpec {
         private final Compiler<T> compiler;
         private final T spec;
-        private final OperationIdentifier operationId;
 
-        WorkerCompileSpec(Compiler<T> compiler, T spec, OperationIdentifier operationId) {
+        WorkerCompileSpec(Compiler<T> compiler, T spec) {
             this.compiler = compiler;
             this.spec = spec;
-            this.operationId = operationId;
         }
 
         @Override
         public String getDisplayName() {
             return compiler.getClass().getName();
-        }
-
-        @Nullable
-        @Override
-        public OperationIdentifier getOperationId() {
-            return operationId;
         }
 
         public DefaultWorkResult compile() {
@@ -91,12 +79,9 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         @Override
         public DefaultWorkResult execute(WorkerCompileSpec<?> spec) {
             try {
-                OperationIdentifierRegistry.setParentOperationId(spec.getOperationId());
                 return spec.compile();
             } catch (Throwable t) {
                 return new DefaultWorkResult(true, t);
-            } finally {
-                OperationIdentifierRegistry.setParentOperationId(null);
             }
         }
     }

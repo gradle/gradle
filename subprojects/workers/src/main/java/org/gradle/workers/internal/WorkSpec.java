@@ -17,11 +17,8 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Nullable;
-import org.gradle.internal.logging.events.OperationIdentifier;
 
 import java.io.Serializable;
 
 public interface WorkSpec extends Serializable, Describable {
-    OperationIdentifier getOperationId();
 }
