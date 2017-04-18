@@ -26,10 +26,10 @@ import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshot
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshotCollector;
+import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.internal.Java9ClassReader;
 
@@ -79,7 +79,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         @Override
         public void snapshot(SnapshotTree details, SnapshotCollector collector) {
             SnapshottableResource root = details.getRoot();
-            if (root != null && root.getType() == FileType.RegularFile && root.getName().endsWith(".class")) {
+            if (root instanceof SnapshottableReadableResource && root.getName().endsWith(".class")) {
                 if (root instanceof FileSnapshot) {
                     HashCode hashCode = root.getContent().getContentMd5();
                     HashCode signatureHash = signatureCache.get(hashCode);
@@ -90,11 +90,11 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
                         return;
                     }
                 }
-                hashClassSignature(root, collector);
+                hashClassSignature((SnapshottableReadableResource) root, collector);
             }
         }
 
-        private void hashClassSignature(SnapshottableResource resource, SnapshotCollector collector) {
+        private void hashClassSignature(SnapshottableReadableResource resource, SnapshotCollector collector) {
             // Use the ABI as the hash
             InputStream inputStream = null;
             try {

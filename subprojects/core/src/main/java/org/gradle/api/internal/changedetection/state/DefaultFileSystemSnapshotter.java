@@ -32,7 +32,6 @@ import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -96,9 +95,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 Snapshot snapshot = fileSystemMirror.getContent(path);
                 if (snapshot == null) {
                     FileCollectionSnapshot fileCollectionSnapshot = snapshotter.snapshot(new SimpleFileCollection(file), TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
-                    DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-                    hasher.putBytes(fileCollectionSnapshot.getHash().asBytes());
-                    HashCode hashCode = hasher.hash();
+                    HashCode hashCode = fileCollectionSnapshot.getHash();
                     snapshot = new HashBackedSnapshot(hashCode);
                     String internedPath = getPath(file);
                     fileSystemMirror.putContent(internedPath, snapshot);

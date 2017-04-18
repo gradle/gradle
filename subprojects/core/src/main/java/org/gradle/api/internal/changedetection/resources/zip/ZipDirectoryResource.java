@@ -14,55 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.resources.zip;
 
-import com.google.common.hash.HashCode;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.changedetection.resources.SnapshottableDirectoryResource;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.zip.ZipEntry;
 
-class DirectoryFileSnapshot implements FileSnapshot, SnapshottableDirectoryResource {
-    final String path;
-    private final RelativePath relativePath;
-    private final boolean root;
+class ZipDirectoryResource implements SnapshottableDirectoryResource {
+    private final String name;
 
-    DirectoryFileSnapshot(String path, RelativePath relativePath, boolean root) {
-        this.path = path;
-        this.relativePath = relativePath;
-        this.root = root;
-    }
-
-    @Override
-    public String toString() {
-        return getType() + " " + path;
+    public ZipDirectoryResource(ZipEntry zipEntry) {
+        this.name = zipEntry.getName();
     }
 
     @Override
     public String getPath() {
-        return path;
+        return name.substring(0, name.length() - 1);
     }
 
     @Override
     public String getName() {
-        return relativePath.getLastName();
-    }
-
-    @Override
-    public boolean isRoot() {
-        return root;
+        return FilenameUtils.getName(getPath());
     }
 
     @Override
     public RelativePath getRelativePath() {
-        return relativePath;
-    }
-
-    @Override
-    public FileContentSnapshot getContent() {
-        return DirContentSnapshot.getInstance();
+        return new RelativePath(false, getPath());
     }
 
     @Override
@@ -71,17 +56,22 @@ class DirectoryFileSnapshot implements FileSnapshot, SnapshottableDirectoryResou
     }
 
     @Override
-    public FileSnapshot withContentHash(HashCode contentHash) {
-        throw new UnsupportedOperationException("Cannot change the content of a directory");
+    public boolean isRoot() {
+        return false;
     }
 
     @Override
-    public FileSnapshot getRoot() {
+    public ResourceContentMetadataSnapshot getContent() {
+        return DirContentSnapshot.getInstance();
+    }
+
+    @Override
+    public SnapshottableResource getRoot() {
         return this;
     }
 
     @Override
-    public Iterable<? extends FileSnapshot> getElements() {
+    public Iterable<? extends SnapshottableResource> getElements() {
         return Collections.singleton(this);
     }
 

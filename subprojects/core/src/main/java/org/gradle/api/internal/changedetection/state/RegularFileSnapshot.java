@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ import java.util.Collections;
 /**
  * Snapshot for a regular file.
  */
-class RegularFileSnapshot implements FileSnapshot {
+class RegularFileSnapshot implements FileSnapshot, SnapshottableReadableResource {
     private final String path;
     private final RelativePath relativePath;
     private final boolean root;

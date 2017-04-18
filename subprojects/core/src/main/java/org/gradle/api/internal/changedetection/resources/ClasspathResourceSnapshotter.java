@@ -46,7 +46,7 @@ public class ClasspathResourceSnapshotter implements ResourceSnapshotter {
             if (root.getType() == FileType.Missing) {
                 return;
             }
-            SnapshotTree elements = (root.getType() == FileType.RegularFile) ? new ZipSnapshotTree(root) : fileTreeSnapshot;
+            SnapshotTree elements = (root.getType() == FileType.RegularFile) ? new ZipSnapshotTree((SnapshottableReadableResource) root) : fileTreeSnapshot;
             snapshotElements(root, elements, collector);
         } else {
             throw new GradleException("Tree without root file on Classpath");

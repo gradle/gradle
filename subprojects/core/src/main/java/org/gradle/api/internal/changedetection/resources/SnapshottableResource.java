@@ -22,9 +22,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.resource.Resource;
 import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 public interface SnapshottableResource extends Resource, SnapshotTree {
     /**
      * The absolute path of this resource. Can safely be used as a cache key.
@@ -51,14 +48,6 @@ public interface SnapshottableResource extends Resource, SnapshotTree {
      * TODO wolfs: remove this
      */
     boolean isRoot();
-
-    /**
-     * Returns an unbuffered {@link InputStream} that provides means to read the resource. It is the caller's responsibility to close this stream.
-     * Some resources may only allow that the stream is read once.
-     *
-     * @return An input stream.
-     */
-    InputStream read() throws IOException;
 
     /**
      * Returns a snapshot of the contents of this resource.

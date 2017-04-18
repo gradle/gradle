@@ -21,14 +21,14 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-class DirContentSnapshot implements FileContentSnapshot {
+public class DirContentSnapshot implements FileContentSnapshot {
     private static final DirContentSnapshot INSTANCE = new DirContentSnapshot();
     private static final HashCode SIGNATURE = Hashing.md5().hashString(DirContentSnapshot.class.getName(), Charsets.UTF_8);
 
     private DirContentSnapshot() {
     }
 
-    static DirContentSnapshot getInstance() {
+    public static DirContentSnapshot getInstance() {
         return INSTANCE;
     }
 
