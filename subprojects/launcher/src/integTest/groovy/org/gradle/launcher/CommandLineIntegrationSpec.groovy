@@ -232,6 +232,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         expectedMaxWorkerCount | flags
         1                      | []
         1                      | ['--max-workers=4']
+        1                      | ['-Dorg.gradle.parallel=false', '--max-workers=4']
         4                      | ['--parallel', '--max-workers=4']
         4                      | ['--parallel', '-Dorg.gradle.workers.max=4']
         6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
