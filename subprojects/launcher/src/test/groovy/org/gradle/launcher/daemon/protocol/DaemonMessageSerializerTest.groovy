@@ -26,6 +26,8 @@ import org.gradle.internal.serialize.SerializerSpec
 class DaemonMessageSerializerTest extends SerializerSpec {
     def serializer = DaemonMessageSerializer.create()
 
+    // TODO(ew): fix tests/add coverage here
+
     def "can serialize BuildEvent messages"() {
         expect:
         def event = new BuildEvent(["a", "b", "c"])

@@ -17,7 +17,6 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Describable;
-
 import java.io.Serializable;
 
 public interface WorkSpec extends Serializable, Describable {

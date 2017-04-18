@@ -48,6 +48,23 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
         Worker<WorkerCompileSpec<?>> worker = workerFactory.getWorker(CompilerDaemonServer.class, daemonWorkingDir, daemonForkOptions);
         DefaultWorkResult result = worker.execute(new WorkerCompileSpec<T>(delegate, spec));
+        // FIXME(ADAM): "We're duplicating logic here that should belong in BuildOperationExecutor."
+        // This worker daemon code is already using BuildOperationExecutor to define its work, so should not change.
+        // Regardless, this shouldn't be visible to clients of BuildOperationExecutor.
+
+        // FIXME(ADAM): Whatever the solution, we should do it at a lower level than AbstractDaemonCompiler, so that it works for all worker processed,
+        // and so that it is transparent to those things that use the worker process infrastructure (e.g test execution).
+
+        // TODO(ew): Initialize build operation executor very early on (similar to configuring logging from StartParameter)
+        // early in request lifecycle
+        // on request, we initialize it's build operation executor with it's build operation
+        //   when it logs, attach
+
+        // Notes from Daniel: once you're in worker process, process can spawn multiple threads. So, if we only set build operation
+        // only set build operation id on one of many threads?
+        // this is why build operation registry has parent and current
+        //   the use of singleton helps fill the gaps here
+        // perhaps we could have multiple threads assoc with build operation id
         if (result.isSuccess()) {
             return result;
         }

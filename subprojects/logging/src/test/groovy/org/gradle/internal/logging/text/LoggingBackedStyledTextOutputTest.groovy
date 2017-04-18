@@ -28,6 +28,8 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
     private final TimeProvider timeProvider = { 1200L } as TimeProvider
     private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', LogLevel.INFO, timeProvider)
 
+    // TODO(EW): Add test coverage here
+
     def forwardsLineOfTextToListener() {
         when:
         output.println('message')

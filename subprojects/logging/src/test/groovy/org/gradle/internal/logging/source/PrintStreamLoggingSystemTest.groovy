@@ -40,6 +40,8 @@ class PrintStreamLoggingSystemTest extends Specification {
         }
     }
 
+    // TODO(ew): add test coverage here
+
     def onReplacesOriginalStreamAndRemovesWhenRestored() {
         when:
         def snapshot = loggingSystem.startCapture()

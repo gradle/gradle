@@ -26,6 +26,9 @@ public class WorkerDaemonServer implements WorkerProtocol<ActionExecutionSpec> {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
+            // FIXME(ADAM): SHOULD NOT change
+            // TODO(ew): why wouldn't we want to set this here?
+            //   ok to pass build operation id here?
             Class<? extends Runnable> implementationClass = spec.getImplementationClass();
             Runnable runnable = instantiatorFactory.inject().newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));
             runnable.run();

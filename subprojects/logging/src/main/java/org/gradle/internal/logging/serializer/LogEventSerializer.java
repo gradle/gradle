@@ -36,6 +36,8 @@ public class LogEventSerializer implements Serializer<LogEvent> {
 
     @Override
     public void write(Encoder encoder, LogEvent event) throws Exception {
+        // FIXME(ADAM): The coverage is over in the unit test for DaemonMessageSerializer and for some reason didn't move when the serializer code did.
+        // TODO(ew): Write test coverage in DaemonMessageSerializer and consider moving
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());

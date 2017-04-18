@@ -24,6 +24,8 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent
 class ProgressLogEventGeneratorTest extends OutputSpecification {
     private final OutputEventListener target = Mock()
 
+    // TODO(ew): Add test changes here for build operation ids
+
     def insertsLogHeaderForOperation() {
         ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target, false)
         def startEvent = start(loggingHeader: 'description')
