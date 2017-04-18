@@ -221,7 +221,7 @@ project(':impl') {
             mod.targetModuleName == project.modules.find { it.name == 'api'}.getName()
         }
 
-        if (currentVersion < GradleVersion.version("3.99")) {
+        if (currentVersion.baseVersion < GradleVersion.version("4.0")) {
             mod.dependencyModule == project.modules.find { it.name == 'api'}
         }
 
