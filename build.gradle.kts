@@ -25,7 +25,7 @@ buildscript {
     kotlinRepo = "https://repo.gradle.org/gradle/repo"
 
     repositories {
-        maven { setUrl(kotlinRepo) }
+        maven { url = uri(kotlinRepo) }
     }
 
     dependencies {
