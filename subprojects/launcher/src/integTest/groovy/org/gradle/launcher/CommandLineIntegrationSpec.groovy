@@ -212,6 +212,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Unroll
     def "set logging max worker count to #expectedMaxWorkerCount according to command line flags #flags"() {
         buildFile << """
@@ -230,7 +231,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         expectedMaxWorkerCount | flags
-        1                      | ['-Dorg.gradle.parallel=false']
+        1                      | []
+        1                      | ['--max-workers=4']
         1                      | ['-Dorg.gradle.parallel=false', '--max-workers=4']
         4                      | ['--parallel', '--max-workers=4']
         4                      | ['--parallel', '-Dorg.gradle.workers.max=4']
