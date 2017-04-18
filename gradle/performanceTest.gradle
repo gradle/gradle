@@ -206,6 +206,8 @@ task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
 }
 
 configure([performanceTest, performanceExperiment, fullPerformanceTest, performanceAdhocTest]) {
+    group = 'verification'
+
     if (project.hasProperty('org.gradle.performance.use_yourkit')) {
         testLogging.showStandardStreams = true
         systemProperties['org.gradle.performance.use_yourkit'] = '1'
