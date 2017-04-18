@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.resources.zip.SnapshottableZipTre
 import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
+import org.gradle.internal.IoActions;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.IOException;
@@ -39,7 +40,12 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     @Override
     protected void snapshotResource(SnapshottableResource resource, SnapshotCollector collector) {
         if (resource instanceof SnapshottableReadableResource) {
-            snapshotTree(new SnapshottableZipTree((SnapshottableReadableResource) resource), collector);
+            SnapshottableZipTree zipTree = new SnapshottableZipTree((SnapshottableReadableResource) resource);
+            try {
+                snapshotTree(zipTree, collector);
+            } finally {
+                IoActions.closeQuietly(zipTree);
+            }
         }
     }
 
