@@ -38,13 +38,13 @@ import static com.google.common.hash.Funnels.asOutputStream;
 import static com.google.common.hash.Hashing.md5;
 import static com.google.common.io.ByteStreams.copy;
 
-class ZipFileResource implements SnapshottableReadableResource {
+class ZipFileEntry implements SnapshottableReadableResource {
     private final ZipInputStream input;
     private final String path;
     private boolean used;
     private HashContentSnapshot snapshot;
 
-    public ZipFileResource(ZipInputStream input, ZipEntry zipEntry) {
+    public ZipFileEntry(ZipInputStream input, ZipEntry zipEntry) {
         this.input = input;
         this.path = zipEntry.getName();
     }

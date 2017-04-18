@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.resources;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.zip.ZipSnapshotTree;
+import org.gradle.api.internal.changedetection.resources.zip.ZipTreeSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TreeSnapshot;
@@ -46,7 +46,7 @@ public class ClasspathResourceSnapshotter implements ResourceSnapshotter {
             if (root.getType() == FileType.Missing) {
                 return;
             }
-            TreeSnapshot elements = (root.getType() == FileType.RegularFile) ? new ZipSnapshotTree((SnapshottableReadableResource) root) : fileTreeSnapshot;
+            TreeSnapshot elements = (root.getType() == FileType.RegularFile) ? new ZipTreeSnapshot((SnapshottableReadableResource) root) : fileTreeSnapshot;
             snapshotElements(root, elements, collector);
         } else {
             throw new GradleException("Tree without root file on Classpath");

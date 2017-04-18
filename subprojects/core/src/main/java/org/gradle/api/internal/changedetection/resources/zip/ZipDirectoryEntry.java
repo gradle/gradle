@@ -28,10 +28,10 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
 
-class ZipDirectoryResource implements SnapshottableDirectoryResource {
+class ZipDirectoryEntry implements SnapshottableDirectoryResource {
     private final String name;
 
-    public ZipDirectoryResource(ZipEntry zipEntry) {
+    public ZipDirectoryEntry(ZipEntry zipEntry) {
         this.name = zipEntry.getName();
     }
 
