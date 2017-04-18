@@ -62,9 +62,9 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
             return;
         }
 
-        if (buildOperation.getOperationDescriptor() instanceof TaskOperationDescriptor) {
+        if (buildOperation.getDetails() instanceof TaskOperationDescriptor) {
             if (clientSubscriptions.isSendTaskProgressEvents()) {
-                TaskInternal task = ((TaskOperationDescriptor) buildOperation.getOperationDescriptor()).getTask();
+                TaskInternal task = ((TaskOperationDescriptor) buildOperation.getDetails()).getTask();
                 eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, task)));
             } else {
                 // Discard this operation and all children
@@ -81,8 +81,8 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
             return;
         }
 
-        if (buildOperation.getOperationDescriptor() instanceof TaskOperationDescriptor) {
-            TaskInternal task = ((TaskOperationDescriptor) buildOperation.getOperationDescriptor()).getTask();
+        if (buildOperation.getDetails() instanceof TaskOperationDescriptor) {
+            TaskInternal task = ((TaskOperationDescriptor) buildOperation.getDetails()).getTask();
             eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), toTaskResult(task, finishEvent)));
         } else {
             delegate.finished(buildOperation, finishEvent);

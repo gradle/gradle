@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -46,12 +46,12 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private final Long id;
     private final String name;
     private final ResolvedConfigurationIdentifier resolvedConfigId;
-    private final BuildOperationProcessor buildOperationProcessor;
+    private final BuildOperationExecutor buildOperationProcessor;
     private final Set<ResolvedArtifactSet> moduleArtifacts;
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
-    public DefaultResolvedDependency(Long id, ResolvedConfigurationIdentifier resolvedConfigurationIdentifier, BuildOperationProcessor buildOperationProcessor) {
+    public DefaultResolvedDependency(Long id, ResolvedConfigurationIdentifier resolvedConfigurationIdentifier, BuildOperationExecutor buildOperationProcessor) {
         this.id = id;
         this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
         this.resolvedConfigId = resolvedConfigurationIdentifier;

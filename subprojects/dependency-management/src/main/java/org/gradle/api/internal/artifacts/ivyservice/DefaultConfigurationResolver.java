@@ -57,8 +57,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -79,13 +78,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ArtifactTransforms artifactTransforms;
     private final ImmutableAttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final BuildOperationProcessor buildOperationProcessor;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler,
                                         ResolutionResultsStoreFactory storeFactory, boolean buildProjectDependencies,
-                                        AttributesSchemaInternal attributesSchema, BuildOperationProcessor buildOperationProcessor,
+                                        AttributesSchemaInternal attributesSchema,
                                         ArtifactTransforms artifactTransforms,
                                         ImmutableAttributesFactory attributesFactory,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -96,7 +94,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.storeFactory = storeFactory;
         this.buildProjectDependencies = buildProjectDependencies;
         this.attributesSchema = attributesSchema;
-        this.buildOperationProcessor = buildOperationProcessor;
         this.artifactTransforms = artifactTransforms;
         this.attributesFactory = attributesFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -118,7 +115,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         BinaryStore oldModelStore = stores.nextBinaryStore();
         Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
-        TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache, moduleIdentifierFactory, buildOperationProcessor);
+        TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache, moduleIdentifierFactory, buildOperationExecutor);
         DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
         ResolvedConfigurationDependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
 
@@ -151,7 +148,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor, buildOperationProcessor);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, graphResults.getUnresolvedDependencies(), artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor);
         results.artifactsResolved(new DefaultResolvedConfiguration(result, configuration.getAttributes()), result);
     }
 

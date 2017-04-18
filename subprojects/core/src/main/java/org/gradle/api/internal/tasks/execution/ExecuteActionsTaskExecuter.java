@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
@@ -35,7 +34,10 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.ArrayList;
@@ -104,12 +106,17 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         return null;
     }
 
-    private void executeAction(String displayName, final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
+    private void executeAction(final String displayName, final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
         action.contextualise(context);
-        buildOperationExecutor.run(displayName, new Action<BuildOperationContext>() {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
-            public void execute(BuildOperationContext buildOperationContext) {
-                BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(displayName);
+            }
+
+            @Override
+            public void run(BuildOperationContext context) {
+                BuildOperationState currentOperation = buildOperationExecutor.getCurrentOperation();
                 Throwable actionFailure = null;
                 try {
                     action.execute(task);

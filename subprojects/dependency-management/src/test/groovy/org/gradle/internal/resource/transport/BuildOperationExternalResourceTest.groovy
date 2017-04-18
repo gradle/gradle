@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.resource.transfer.DownloadBuildOperationDescriptor
@@ -38,9 +38,9 @@ class BuildOperationExternalResourceTest extends Specification {
     def "delegates method call #methodName"() {
         given:
         def delegate = Mock(ExternalResource)
-        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def buildOperationExecutor = Mock(BuildOperationExecutor)
 
-        def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
+        def resource = new BuildOperationExternalResource(buildOperationExecutor, delegate)
 
         when:
         resource."$methodName"()
@@ -59,12 +59,13 @@ class BuildOperationExternalResourceTest extends Specification {
         def buildOperationExecuter = Mock(BuildOperationExecutor)
         def uri = new URI("http://some/uri")
         def metaData = new DefaultExternalResourceMetaData(uri, 0, 1024)
-        def operation = Mock(BuildOperationExecutor.Operation)
         def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
+        def buildOperationContext = Mock(BuildOperationContext)
 
         1 * delegate.getMetaData() >> metaData
-        1 * buildOperationExecuter.run(_, _) >> { details, action ->
-            invokeAction(action, Mock(BuildOperationContext))
+        1 * buildOperationExecuter."$opType"(_) >> { args ->
+            def details = args[0].description().build()
+            args[0]."$opType"(buildOperationContext)
 
             assert details.name == "Download http://some/uri"
             assert details.displayName == "Download http://some/uri"
@@ -82,27 +83,28 @@ class BuildOperationExternalResourceTest extends Specification {
         1 * delegate."$methodName"(parameter)
 
         where:
-        methodName    | parameter                            | methodSignature
-        'writeTo'     | tmpDir.createFile("tempFile")        | "writeTo(File)"
-        'writeTo'     | Mock(OutputStream)                   | "writeTo(OutputStream)"
-        'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
-        'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
-        'withContent' | Mock(Transformer)                    | "withContent(Transformer<T, ? extends InputStream)"
+        methodName    | parameter                            | opType | methodSignature
+        'writeTo'     | tmpDir.createFile("tempFile")        | "run"  | "writeTo(File)"
+        'writeTo'     | Mock(OutputStream)                   | "run"  | "writeTo(OutputStream)"
+        'withContent' | Mock(Action)                         | "run"  | "withContent(Action<InputStream>)"
+        'withContent' | Mock(ExternalResource.ContentAction) | "call" | "withContent(ContentAction<InputStream>)"
+        'withContent' | Mock(Transformer)                    | "call" | "withContent(Transformer<T, ? extends InputStream)"
     }
 
     @Unroll
     def "fails build operation if ResourceException is thrown in #methodSignature "() {
         given:
         def delegate = Mock(ExternalResource)
-        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def buildOperationExecutor = Mock(BuildOperationExecutor)
         def uri = new URI("http://some/uri")
         def metaData = new DefaultExternalResourceMetaData(uri, 0, 1024)
-        def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
+        def resource = new BuildOperationExternalResource(buildOperationExecutor, delegate)
         def buildOperationContext = Mock(BuildOperationContext)
 
         1 * delegate.getMetaData() >> metaData
-        1 * buildOperationExecuter.run(_, _) >> { details, action ->
-            invokeAction(action, buildOperationContext)
+        1 * buildOperationExecutor."$opType"(_) >> { args ->
+            args[0].description().build()
+            args[0]."$opType"(buildOperationContext)
         }
 
         when:
@@ -114,20 +116,12 @@ class BuildOperationExternalResourceTest extends Specification {
         1 * delegate."$methodName"(parameter) >> { throw new ResourceException("test resource exception") }
 
         where:
-        methodName    | parameter                            | methodSignature
-        'writeTo'     | tmpDir.createFile("tempFile")        | "writeTo(File)"
-        'writeTo'     | Mock(OutputStream)                   | "writeTo(OutputStream)"
-        'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
-        'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
-        'withContent' | Mock(Transformer)                    | "withContent(Transformer<T, ? extends InputStream)"
-    }
-
-    def invokeAction(Action action, BuildOperationContext buildOperationContext) {
-        action.execute(buildOperationContext)
-    }
-
-    def invokeAction(def transformer, BuildOperationContext buildOperationContext) {
-        transformer.transform(buildOperationContext)
+        methodName    | parameter                            | opType | methodSignature
+        'writeTo'     | tmpDir.createFile("tempFile")        | "run"  | "writeTo(File)"
+        'writeTo'     | Mock(OutputStream)                   | "run"  | "writeTo(OutputStream)"
+        'withContent' | Mock(Action)                         | "run"  | "withContent(Action<InputStream>)"
+        'withContent' | Mock(ExternalResource.ContentAction) | "call" | "withContent(ContentAction<InputStream>)"
+        'withContent' | Mock(Transformer)                    | "call" | "withContent(Transformer<T, ? extends InputStream)"
     }
 
 }

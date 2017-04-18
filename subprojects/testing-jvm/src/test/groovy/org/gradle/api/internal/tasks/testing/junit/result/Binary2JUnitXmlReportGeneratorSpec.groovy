@@ -18,11 +18,13 @@ package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.MultipleBuildOperationFailures
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -35,13 +37,15 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private resultsProvider = Mock(TestResultsProvider)
-    BuildOperationProcessor buildOperationProcessor
+    BuildOperationExecutor buildOperationExecutor
     Binary2JUnitXmlReportGenerator generator
     final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
 
     def generatorWithMaxThreads(int numThreads) {
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
-        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationProcessor, "localhost")
+        buildOperationExecutor = new DefaultBuildOperationExecutor(
+            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
+        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationExecutor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
     }

@@ -91,7 +91,9 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -482,9 +484,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (resolvedState != UNRESOLVED) {
             throw new IllegalStateException("Graph resolution already performed");
         }
-        buildOperationExecutor.run("Resolve dependencies of " + identityPath, new Action<BuildOperationContext>() {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
-            public void execute(BuildOperationContext buildOperationContext) {
+            public void run(BuildOperationContext context) {
                 lockAttributes();
 
                 ResolvableDependencies incoming = getIncoming();
@@ -501,6 +503,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath);
             }
         });
     }

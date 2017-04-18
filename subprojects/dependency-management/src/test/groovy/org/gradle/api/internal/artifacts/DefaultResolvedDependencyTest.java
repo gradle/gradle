@@ -25,8 +25,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.progress.TestBuildOperationExecutor;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -48,7 +48,7 @@ import static org.junit.Assert.assertThat;
 
 public class DefaultResolvedDependencyTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
-    private BuildOperationProcessor buildOperationProcessor = new TestBuildOperationProcessor();
+    private BuildOperationExecutor buildOperationProcessor = new TestBuildOperationExecutor();
 
     @Test
     public void init() {

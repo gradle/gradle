@@ -36,8 +36,10 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -208,7 +210,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void run() {
+        public void run(BuildOperationContext context) {
             try {
                 result = transform.transform(artifact.getFile());
             } catch (Throwable t) {
@@ -217,8 +219,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public String getDescription() {
-            return "Apply " + transform + " to " + artifact;
+        public BuildOperationDescriptor.Builder description() {
+           return BuildOperationDescriptor.displayName("Apply " + transform + " to " + artifact);
         }
     }
 
@@ -234,17 +236,16 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void run() {
+        public void run(BuildOperationContext context) {
             try {
                 result = transform.transform(file);
             } catch (Throwable t) {
                 failure = t;
             }
         }
-
         @Override
-        public String getDescription() {
-            return "Apply " + transform + " to " + file;
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Apply " + transform + " to " + file);
         }
     }
 

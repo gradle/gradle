@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -33,8 +33,7 @@ public abstract class ParallelResolveArtifactSet {
     private static final EmptySet EMPTY = new EmptySet();
 
     public abstract void visit(ArtifactVisitor visitor);
-
-    public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationProcessor buildOperationProcessor) {
+    public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
         if (artifacts == ResolvedArtifactSet.EMPTY) {
             return EMPTY;
         }
@@ -49,9 +48,9 @@ public abstract class ParallelResolveArtifactSet {
 
     private static class VisitingSet extends ParallelResolveArtifactSet {
         private final ResolvedArtifactSet artifacts;
-        private final BuildOperationProcessor buildOperationProcessor;
+        private final BuildOperationExecutor buildOperationProcessor;
 
-        VisitingSet(ResolvedArtifactSet artifacts, BuildOperationProcessor buildOperationProcessor) {
+        VisitingSet(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
             this.artifacts = artifacts;
             this.buildOperationProcessor = buildOperationProcessor;
         }
@@ -59,7 +58,7 @@ public abstract class ParallelResolveArtifactSet {
         public void visit(final ArtifactVisitor visitor) {
             // Start preparing the result
             StartVisitAction visitAction = new StartVisitAction(visitor);
-            buildOperationProcessor.run(visitAction);
+            buildOperationProcessor.runAll(visitAction);
 
             // Now visit the result in order
             visitAction.result.visit(visitor);

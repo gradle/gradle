@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
@@ -31,8 +30,9 @@ import org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor;
 import org.gradle.execution.taskgraph.CalculateTaskGraphOperationResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
@@ -154,7 +154,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         if (stage == Stage.Load) {
             // Configure build
-            buildOperationExecutor.run("Configure build", new ConfigureBuildAction());
+            buildOperationExecutor.run(new ConfigureBuildBuildOperation());
             stage = Stage.Configure;
         }
 
@@ -166,13 +166,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stage = Stage.Build;
 
         // marker descriptor class for identifying build operation
-        StartParameter startParameter = gradle.getStartParameter();
-        CalculateTaskGraphDescriptor calculateTaskGraphDescriptor = new CalculateTaskGraphDescriptor(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames());
-        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Calculate task graph").operationDescriptor(calculateTaskGraphDescriptor).build();
-        buildOperationExecutor.run(buildOperationDetails, new CalculateTaskGraphAction());
+        buildOperationExecutor.run(new CalculateTaskGraphBuildOperation());
 
         // Execute build
-        buildOperationExecutor.run("Run tasks", new RunTasksAction());
+        buildOperationExecutor.run(new RunTasksBuildOperation());
     }
 
     /**
@@ -194,9 +191,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private class ConfigureBuildAction implements Action<BuildOperationContext> {
+    private class ConfigureBuildBuildOperation implements RunnableBuildOperation {
         @Override
-        public void execute(BuildOperationContext buildOperationContext) {
+        public void run(BuildOperationContext context) {
             buildConfigurer.configure(gradle);
 
             if (!isConfigureOnDemand()) {
@@ -205,11 +202,16 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             modelConfigurationListener.onConfigure(gradle);
         }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Configure build");
+        }
     }
 
-    private class CalculateTaskGraphAction implements Action<BuildOperationContext> {
+    private class CalculateTaskGraphBuildOperation implements RunnableBuildOperation {
         @Override
-        public void execute(BuildOperationContext buildOperationContext) {
+        public void run(BuildOperationContext buildOperationContext) {
             buildConfigurationActionExecuter.select(gradle);
             if (isConfigureOnDemand()) {
                 projectsEvaluated();
@@ -222,12 +224,24 @@ public class DefaultGradleLauncher implements GradleLauncher {
                 }
             })));
         }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            StartParameter startParameter = gradle.getStartParameter();
+            CalculateTaskGraphDescriptor calculateTaskGraphDescriptor = new CalculateTaskGraphDescriptor(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames());
+            return BuildOperationDescriptor.displayName("Calculate task graph").details(calculateTaskGraphDescriptor);
+        }
     }
 
-    private class RunTasksAction implements Action<BuildOperationContext> {
+    private class RunTasksBuildOperation implements RunnableBuildOperation {
         @Override
-        public void execute(BuildOperationContext buildOperationContext) {
+        public void run(BuildOperationContext context) {
             buildExecuter.execute(gradle);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Run tasks");
         }
     }
 

@@ -16,14 +16,14 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,16 +58,21 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends AbstractRole
 
         @Override
         public void readFrom(final InputStream input) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName("Load entry " + key + " from " + getRole() + " build cache").build(), new Action<BuildOperationContext>() {
-                @Override
-                public void execute(BuildOperationContext buildOperationContext) {
-                    try {
-                        delegate.readFrom(input);
-                    } catch (IOException e) {
-                        buildOperationContext.failed(e);
-                    }
-                }
-            });
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+               @Override
+               public void run(BuildOperationContext buildOperationContext) {
+                   try {
+                       delegate.readFrom(input);
+                   } catch (IOException e) {
+                       buildOperationContext.failed(e);
+                   }
+               }
+
+               @Override
+               public BuildOperationDescriptor.Builder description() {
+                   return BuildOperationDescriptor.displayName("Load entry " + key + " from " + getRole() + " build cache");
+               }
+           });
         }
     }
 
@@ -82,14 +87,19 @@ public class BuildOperationFiringBuildCacheServiceDecorator extends AbstractRole
 
         @Override
         public void writeTo(final OutputStream output) throws IOException {
-            buildOperationExecutor.run(BuildOperationDetails.displayName("Store entry " + key + " in " + getRole() + " build cache").build(), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
-                public void execute(BuildOperationContext buildOperationContext) {
+                public void run(BuildOperationContext buildOperationContext) {
                     try {
                         delegate.writeTo(output);
                     } catch (IOException e) {
                         buildOperationContext.failed(e);
                     }
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Store entry " + key + " in " + getRole() + " build cache");
                 }
             });
         }

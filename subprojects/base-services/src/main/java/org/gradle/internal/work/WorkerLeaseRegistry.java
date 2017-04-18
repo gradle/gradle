@@ -16,7 +16,6 @@
 
 package org.gradle.internal.work;
 
-import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.resources.ResourceLock;
 
 /**
@@ -24,8 +23,6 @@ import org.gradle.internal.resources.ResourceLock;
  *
  * Used where the operation cannot be packaged as a unit of work, for example when the operation is started and completed in response to separate
  * events.
- *
- * Where possible, use {@link BuildOperationProcessor} instead of this type.
  */
 public interface WorkerLeaseRegistry {
     /**
@@ -36,14 +33,14 @@ public interface WorkerLeaseRegistry {
     /**
      * Gets a {@link ResourceLock} that can be used to reserve a worker lease.  Note that this does not actually reserve a lease,
      * it simply creates a {@link ResourceLock} representing the worker lease.  The worker lease can be reserved only when
-     * {@link ResourceLock#tryLock()} is called from a {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(Transformer)}
+     * {@link ResourceLock#tryLock()} is called from a {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)}
      * transform.
      */
     WorkerLease getWorkerLease();
 
     interface WorkerLease extends ResourceLock {
         /**
-         * Creates a child lease of the current worker lease, but does not acquire the lease.  For use with {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(Transformer)}
+         * Creates a child lease of the current worker lease, but does not acquire the lease.  For use with {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)}
          * to coordinate the locking of multiple resources.
          */
         WorkerLease createChild();

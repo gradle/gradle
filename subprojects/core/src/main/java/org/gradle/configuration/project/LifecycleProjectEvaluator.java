@@ -15,7 +15,6 @@
  */
 package org.gradle.configuration.project;
 
-import org.gradle.api.Action;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectConfigurator;
@@ -44,9 +43,9 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             return;
         }
 
-        projectConfigurator.projectBuildOperationAction(project, new Action<BuildOperationContext>() {
+        projectConfigurator.projectBuildOperation(new ProjectConfigurator.ConfigureProjectBuildOperation(project) {
             @Override
-            public void execute(BuildOperationContext buildOperationContext) {
+            public void run(BuildOperationContext context) {
                 doConfigure(project, state);
                 state.rethrowFailure();
             }

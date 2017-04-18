@@ -29,7 +29,7 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.time.Timer;
@@ -58,11 +58,11 @@ public class TransientConfigurationResultsBuilder {
 
     private BinaryStore binaryStore;
     private Store<TransientConfigurationResults> cache;
-    private final BuildOperationProcessor buildOperationProcessor;
+    private final BuildOperationExecutor buildOperationProcessor;
     private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer;
     private BinaryStore.BinaryData binaryData;
 
-    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationProcessor buildOperationProcessor) {
+    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationExecutor buildOperationProcessor) {
         this.resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer(moduleIdentifierFactory);
         this.binaryStore = binaryStore;
         this.cache = cache;
@@ -135,7 +135,7 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationProcessor buildOperationProcessor) {
+    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
         Timer clock = Timers.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
         Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();

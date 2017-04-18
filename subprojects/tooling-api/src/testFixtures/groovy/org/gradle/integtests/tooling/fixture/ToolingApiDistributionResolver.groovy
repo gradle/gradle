@@ -30,7 +30,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry

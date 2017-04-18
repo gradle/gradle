@@ -16,11 +16,11 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
@@ -52,20 +52,22 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             //no operation, if there is no script code provided
             decorated.apply(target);
         } else {
-            buildOperationExecutor.run(computeBuildOperationDetails(target), new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
-                public void execute(BuildOperationContext buildOperationContext) {
+                public void run(BuildOperationContext context) {
                     decorated.apply(target);
+
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    ScriptSource source = getSource();
+                    File file = source.getResource().getFile();
+                    String name = "Apply script " + (file != null ? file.getName() : source.getDisplayName());
+                    String displayName = name + " to " + target;
+                    return BuildOperationDescriptor.displayName(displayName).name(name).details(source);
                 }
             });
         }
-    }
-
-    private BuildOperationDetails computeBuildOperationDetails(Object target) {
-        ScriptSource source = getSource();
-        File file = source.getResource().getFile();
-        String name = "Apply script " + (file != null ? file.getName() : source.getDisplayName());
-        String displayName = name + " to " + target;
-        return BuildOperationDetails.displayName(displayName).name(name).operationDescriptor(source).build();
     }
 }
