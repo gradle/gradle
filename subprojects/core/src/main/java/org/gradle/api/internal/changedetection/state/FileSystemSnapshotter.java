@@ -35,7 +35,7 @@ public interface FileSystemSnapshotter {
     /**
      * Returns the current snapshot of the contents and meta-data of the given file. The file may be a regular file, a directory or missing. When the specified file is a directory, details about the directory itself is returned, rather than details about the children of the directory.
      */
-    FileSnapshot snapshotSelf(File file);
+    SnapshottableFileSystemResource snapshotSelf(File file);
 
     /**
      * Returns a simple snapshot of the contents and meta-data of the given file. The file may or may not be a regular file, a directory or missing. When the specified file is a directory, the directory and all its children are hashed.
@@ -45,12 +45,12 @@ public interface FileSystemSnapshotter {
     /**
      * Returns the current snapshot of the contents and meta-data of the given directory. The provided directory must exist and be a directory.
      */
-    FileTreeSnapshot snapshotDirectoryTree(File dir);
+    SnapshottableDirectoryTree snapshotDirectoryTree(File dir);
 
     /**
      * Returns the current snapshot of the contents and meta-data of the given directory tree.
      */
-    FileTreeSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree);
+    SnapshottableDirectoryTree snapshotDirectoryTree(DirectoryFileTree dirTree);
 
     /**
      * Returns the current snapshot of the contents and meta-data of the given file tree. Note: currently does not include the root elements, if any.

@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.resources;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.zip.ZipTreeSnapshot;
+import org.gradle.api.internal.changedetection.resources.zip.SnapshottableZipTree;
 import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
@@ -39,7 +39,7 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     @Override
     protected void snapshotResource(SnapshottableResource resource, SnapshotCollector collector) {
         if (resource instanceof SnapshottableReadableResource) {
-            snapshotTree(new ZipTreeSnapshot((SnapshottableReadableResource) resource), collector);
+            snapshotTree(new SnapshottableZipTree((SnapshottableReadableResource) resource), collector);
         }
     }
 
@@ -47,13 +47,13 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     protected void snapshotTree(SnapshottableResourceTree tree, SnapshotCollector collector) {
         try {
             SnapshotCollector entryCollector = new DefaultSnapshotCollector(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
-            if (!(tree instanceof ZipTreeSnapshot)) {
+            if (!(tree instanceof SnapshottableZipTree)) {
                 entryCollector = collector.recordSubCollector(tree.getRoot(), entryCollector);
             }
             for (SnapshottableResource resource : tree.getDescendants()) {
                 entrySnapshotter.snapshot(resource, entryCollector);
             }
-            if (tree instanceof ZipTreeSnapshot) {
+            if (tree instanceof SnapshottableZipTree) {
                 collector.recordSnapshot(tree.getRoot(), entryCollector.getHash(null));
             }
         } catch (ZipException e) {

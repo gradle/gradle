@@ -27,9 +27,9 @@ import org.gradle.api.Nullable;
 @ThreadSafe
 public interface FileSystemMirror {
     @Nullable
-    FileSnapshot getFile(String path);
+    SnapshottableFileSystemResource getFile(String path);
 
-    void putFile(FileSnapshot file);
+    void putFile(SnapshottableFileSystemResource file);
 
     @Nullable
     Snapshot getContent(String path);
@@ -37,7 +37,7 @@ public interface FileSystemMirror {
     void putContent(String path, Snapshot snapshot);
 
     @Nullable
-    FileTreeSnapshot getDirectoryTree(String path);
+    SnapshottableDirectoryTree getDirectoryTree(String path);
 
-    void putDirectory(FileTreeSnapshot directory);
+    void putDirectory(SnapshottableDirectoryTree directory);
 }

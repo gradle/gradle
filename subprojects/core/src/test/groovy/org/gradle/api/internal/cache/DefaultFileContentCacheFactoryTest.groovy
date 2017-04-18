@@ -18,9 +18,9 @@ package org.gradle.api.internal.cache
 
 import com.google.common.hash.HashCode
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot
-import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.internal.AsyncCacheAccess
@@ -62,7 +62,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates entry value for file when not seen before and reuses result"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
+        def fileSnapshot = Stub(SnapshottableFileSystemResource)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -88,7 +88,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates entry value for directory when not seen before and reuses result"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
+        def fileSnapshot = Stub(SnapshottableFileSystemResource)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -113,7 +113,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "reuses calculated value for file across cache instances"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
+        def fileSnapshot = Stub(SnapshottableFileSystemResource)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -144,7 +144,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "reuses result when file content has not changed after task outputs may have changed"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
+        def fileSnapshot = Stub(SnapshottableFileSystemResource)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -176,7 +176,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates result for directory content after task outputs may have changed"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
+        def fileSnapshot = Stub(SnapshottableFileSystemResource)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -207,7 +207,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates result when file content has changed"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
+        def fileSnapshot = Stub(SnapshottableFileSystemResource)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:

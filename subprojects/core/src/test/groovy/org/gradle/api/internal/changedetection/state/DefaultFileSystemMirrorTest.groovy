@@ -40,12 +40,12 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "keeps state about a file until task outputs are generated"() {
         def file = tmpDir.file("a")
-        def fileSnapshot = Stub(FileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileSystemResource = Stub(SnapshottableFileSystemResource)
+        def fileTreeSnapshot = Stub(SnapshottableDirectoryTree)
         def snapshot = Stub(Snapshot)
 
         given:
-        _ * fileSnapshot.path >> file.path
+        _ * fileSystemResource.path >> file.path
         _ * fileTreeSnapshot.path >> file.path
 
         expect:
@@ -53,11 +53,11 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getDirectoryTree(file.path) == null
         mirror.getContent(file.path) == null
 
-        mirror.putFile(fileSnapshot)
+        mirror.putFile(fileSystemResource)
         mirror.putDirectory(fileTreeSnapshot)
         mirror.putContent(file.path, snapshot)
 
-        mirror.getFile(file.path) == fileSnapshot
+        mirror.getFile(file.path) == fileSystemResource
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
         mirror.getContent(file.path) == snapshot
 
@@ -70,15 +70,15 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "keeps state about a file until end of build"() {
         def file = tmpDir.file("a")
-        def fileSnapshot = Stub(FileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileSystemResource = Stub(SnapshottableFileSystemResource)
+        def directoryTree = Stub(SnapshottableDirectoryTree)
         def snapshot = Stub(Snapshot)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
         given:
-        _ * fileSnapshot.path >> file.path
-        _ * fileTreeSnapshot.path >> file.path
+        _ * fileSystemResource.path >> file.path
+        _ * directoryTree.path >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
 
@@ -87,12 +87,12 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getDirectoryTree(file.path) == null
         mirror.getContent(file.path) == null
 
-        mirror.putFile(fileSnapshot)
-        mirror.putDirectory(fileTreeSnapshot)
+        mirror.putFile(fileSystemResource)
+        mirror.putDirectory(directoryTree)
         mirror.putContent(file.path, snapshot)
 
-        mirror.getFile(file.path) == fileSnapshot
-        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getFile(file.path) == fileSystemResource
+        mirror.getDirectoryTree(file.path) == directoryTree
         mirror.getContent(file.path) == snapshot
 
         mirror.beforeComplete()
@@ -104,15 +104,15 @@ class DefaultFileSystemMirrorTest extends Specification {
 
     def "does not discard state about a file that lives in the caches when task outputs are generated"() {
         def file = cacheDir.file("some/dir/a")
-        def fileSnapshot = Stub(FileSnapshot)
-        def fileTreeSnapshot = Stub(FileTreeSnapshot)
+        def fileSystemResource = Stub(SnapshottableFileSystemResource)
+        def directoryTree = Stub(SnapshottableDirectoryTree)
         def snapshot = Stub(Snapshot)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
         given:
-        _ * fileSnapshot.path >> file.path
-        _ * fileTreeSnapshot.path >> file.path
+        _ * fileSystemResource.path >> file.path
+        _ * directoryTree.path >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
 
@@ -121,18 +121,18 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getDirectoryTree(file.path) == null
         mirror.getContent(file.path) == null
 
-        mirror.putFile(fileSnapshot)
-        mirror.putDirectory(fileTreeSnapshot)
+        mirror.putFile(fileSystemResource)
+        mirror.putDirectory(directoryTree)
         mirror.putContent(file.path, snapshot)
 
-        mirror.getFile(file.path) == fileSnapshot
-        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getFile(file.path) == fileSystemResource
+        mirror.getDirectoryTree(file.path) == directoryTree
         mirror.getContent(file.path) == snapshot
 
         mirror.beforeTaskOutputsGenerated()
 
-        mirror.getFile(file.path) == fileSnapshot
-        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getFile(file.path) == fileSystemResource
+        mirror.getDirectoryTree(file.path) == directoryTree
         mirror.getContent(file.path) == snapshot
 
         mirror.beforeComplete()

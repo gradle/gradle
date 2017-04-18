@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,28 +18,18 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
+import org.gradle.api.internal.changedetection.resources.SnapshottableDirectoryResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-/**
- * Snapshot for a regular file.
- */
-class RegularFileSnapshot implements FileSnapshot, SnapshottableReadableResource {
-    private final String path;
+class SnapshottableFileSystemDirectory implements SnapshottableFileSystemResource, SnapshottableDirectoryResource {
+    final String path;
     private final RelativePath relativePath;
     private final boolean root;
-    private final FileContentSnapshot content;
 
-    RegularFileSnapshot(String path, RelativePath relativePath, boolean root, FileContentSnapshot content) {
+    SnapshottableFileSystemDirectory(String path, RelativePath relativePath, boolean root) {
         this.path = path;
         this.relativePath = relativePath;
         this.root = root;
-        this.content = content;
     }
 
     @Override
@@ -69,26 +59,17 @@ class RegularFileSnapshot implements FileSnapshot, SnapshottableReadableResource
 
     @Override
     public FileContentSnapshot getContent() {
-        return content;
+        return DirContentSnapshot.getInstance();
     }
 
     @Override
     public FileType getType() {
-        return FileType.RegularFile;
+        return FileType.Directory;
     }
 
     @Override
-    public FileSnapshot withContentHash(HashCode contentHash) {
-        if (!contentHash.equals(getContent().getContentMd5())) {
-            return new RegularFileSnapshot(path, relativePath, root, new FileHashSnapshot(contentHash));
-        }
-        return this;
-    }
-
-    @Override
-    public InputStream read() throws IOException {
-        //noinspection Since15
-        return Files.newInputStream(Paths.get(getPath()));
+    public SnapshottableFileSystemResource withContentHash(HashCode contentHash) {
+        throw new UnsupportedOperationException("Cannot change the content of a directory");
     }
 
     @Override

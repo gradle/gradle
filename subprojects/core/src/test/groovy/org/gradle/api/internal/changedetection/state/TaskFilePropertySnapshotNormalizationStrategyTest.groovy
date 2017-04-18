@@ -104,28 +104,28 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractProjectB
     }
 
     protected def normalizeWith(SnapshotNormalizationStrategy type) {
-        List<FileSnapshot> fileTreeElements = []
+        List<SnapshottableFileSystemResource> fileSystemResources = []
         files.each { f ->
             if (f.file) {
-                fileTreeElements.add(new RegularFileSnapshot(f.path, new RelativePath(true, f.name), true, new FileHashSnapshot(HashCode.fromInt(1))))
+                fileSystemResources.add(new SnapshottableFileSystemFile(f.path, new RelativePath(true, f.name), true, new FileHashSnapshot(HashCode.fromInt(1))))
             } else {
-                fileTreeElements.add(new DirectoryFileSnapshot(f.path, new RelativePath(false, f.name), true))
+                fileSystemResources.add(new SnapshottableFileSystemDirectory(f.path, new RelativePath(false, f.name), true))
                 project.fileTree(f).visit(new FileVisitor() {
                     @Override
                     void visitDir(FileVisitDetails dirDetails) {
-                        fileTreeElements.add(new DirectoryFileSnapshot(dirDetails.file.path, dirDetails.relativePath, false))
+                        fileSystemResources.add(new SnapshottableFileSystemDirectory(dirDetails.file.path, dirDetails.relativePath, false))
                     }
 
                     @Override
                     void visitFile(FileVisitDetails fileDetails) {
-                        fileTreeElements.add(new RegularFileSnapshot(fileDetails.file.path, fileDetails.relativePath, false, new FileHashSnapshot(HashCode.fromInt(1))))
+                        fileSystemResources.add(new SnapshottableFileSystemFile(fileDetails.file.path, fileDetails.relativePath, false, new FileHashSnapshot(HashCode.fromInt(1))))
                     }
                 })
             }
         }
 
         Map<File, String> snapshots = [:]
-        fileTreeElements.each { details ->
+        fileSystemResources.each { details ->
             def normalizedSnapshot = type.getNormalizedPath(details, interner)
             String normalizedPath
             if (normalizedSnapshot == null) {

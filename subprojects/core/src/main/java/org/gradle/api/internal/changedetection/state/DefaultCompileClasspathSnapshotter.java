@@ -85,7 +85,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         @Override
         protected void snapshotResource(SnapshottableResource resource, SnapshotCollector collector) {
             if (resource instanceof SnapshottableReadableResource && resource.getName().endsWith(".class")) {
-                if (resource instanceof FileSnapshot) {
+                if (resource instanceof SnapshottableFileSystemResource) {
                     HashCode hashCode = resource.getContent().getContentMd5();
                     HashCode signatureHash = signatureCache.get(hashCode);
                     if (signatureHash != null) {
@@ -134,7 +134,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         }
 
         private void putToCache(SnapshottableResource resource, HashCode signatureHash) {
-            if (resource instanceof FileSnapshot) {
+            if (resource instanceof SnapshottableFileSystemResource) {
                 HashCode hashCode = resource.getContent().getContentMd5();
                 signatureCache.put(hashCode, signatureHash);
             }

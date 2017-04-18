@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,28 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.changedetection.resources.SnapshottableMissingResource;
+import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-/**
- * Snapshot for a missing file. Note that currently a missing file is always a root file.
- */
-class MissingFileSnapshot implements FileSnapshot, SnapshottableMissingResource {
-    private final String path;
-    private final String name;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-    MissingFileSnapshot(String path, String name) {
+/**
+ * Snapshot for a regular file.
+ */
+class SnapshottableFileSystemFile implements SnapshottableFileSystemResource, SnapshottableReadableResource {
+    private final String path;
+    private final RelativePath relativePath;
+    private final boolean root;
+    private final FileContentSnapshot content;
+
+    SnapshottableFileSystemFile(String path, RelativePath relativePath, boolean root, FileContentSnapshot content) {
         this.path = path;
-        this.name = name;
+        this.relativePath = relativePath;
+        this.root = root;
+        this.content = content;
     }
 
     @Override
@@ -45,32 +54,41 @@ class MissingFileSnapshot implements FileSnapshot, SnapshottableMissingResource 
 
     @Override
     public String getName() {
-        return name;
+        return relativePath.getLastName();
     }
 
     @Override
     public boolean isRoot() {
-        return true;
+        return root;
     }
 
     @Override
     public RelativePath getRelativePath() {
-        return new RelativePath(true, name);
+        return relativePath;
     }
 
     @Override
     public FileContentSnapshot getContent() {
-        return MissingFileContentSnapshot.getInstance();
+        return content;
     }
 
     @Override
     public FileType getType() {
-        return FileType.Missing;
+        return FileType.RegularFile;
     }
 
     @Override
-    public FileSnapshot withContentHash(HashCode contentHash) {
-        throw new UnsupportedOperationException("Cannot change the content of a missing file");
+    public SnapshottableFileSystemResource withContentHash(HashCode contentHash) {
+        if (!contentHash.equals(getContent().getContentMd5())) {
+            return new SnapshottableFileSystemFile(path, relativePath, root, new FileHashSnapshot(contentHash));
+        }
+        return this;
+    }
+
+    @Override
+    public InputStream read() throws IOException {
+        //noinspection Since15
+        return Files.newInputStream(Paths.get(getPath()));
     }
 
     @Override

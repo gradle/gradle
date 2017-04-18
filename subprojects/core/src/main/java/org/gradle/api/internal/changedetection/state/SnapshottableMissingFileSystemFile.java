@@ -18,18 +18,19 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.changedetection.resources.SnapshottableDirectoryResource;
+import org.gradle.api.internal.changedetection.resources.SnapshottableMissingResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-class DirectoryFileSnapshot implements FileSnapshot, SnapshottableDirectoryResource {
-    final String path;
-    private final RelativePath relativePath;
-    private final boolean root;
+/**
+ * Snapshot for a missing file. Note that currently a missing file is always a root file.
+ */
+class SnapshottableMissingFileSystemFile implements SnapshottableFileSystemResource, SnapshottableMissingResource {
+    private final String path;
+    private final String name;
 
-    DirectoryFileSnapshot(String path, RelativePath relativePath, boolean root) {
+    SnapshottableMissingFileSystemFile(String path, String name) {
         this.path = path;
-        this.relativePath = relativePath;
-        this.root = root;
+        this.name = name;
     }
 
     @Override
@@ -44,32 +45,32 @@ class DirectoryFileSnapshot implements FileSnapshot, SnapshottableDirectoryResou
 
     @Override
     public String getName() {
-        return relativePath.getLastName();
+        return name;
     }
 
     @Override
     public boolean isRoot() {
-        return root;
+        return true;
     }
 
     @Override
     public RelativePath getRelativePath() {
-        return relativePath;
+        return new RelativePath(true, name);
     }
 
     @Override
     public FileContentSnapshot getContent() {
-        return DirContentSnapshot.getInstance();
+        return MissingFileContentSnapshot.getInstance();
     }
 
     @Override
     public FileType getType() {
-        return FileType.Directory;
+        return FileType.Missing;
     }
 
     @Override
-    public FileSnapshot withContentHash(HashCode contentHash) {
-        throw new UnsupportedOperationException("Cannot change the content of a directory");
+    public SnapshottableFileSystemResource withContentHash(HashCode contentHash) {
+        throw new UnsupportedOperationException("Cannot change the content of a missing file");
     }
 
     @Override

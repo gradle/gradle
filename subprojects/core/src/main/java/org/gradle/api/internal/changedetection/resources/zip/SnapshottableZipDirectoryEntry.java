@@ -25,10 +25,10 @@ import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 
 import java.util.zip.ZipEntry;
 
-class ZipDirectoryEntry implements SnapshottableDirectoryResource {
+class SnapshottableZipDirectoryEntry implements SnapshottableDirectoryResource {
     private final String name;
 
-    public ZipDirectoryEntry(ZipEntry zipEntry) {
+    public SnapshottableZipDirectoryEntry(ZipEntry zipEntry) {
         this.name = zipEntry.getName();
     }
 

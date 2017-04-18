@@ -28,11 +28,11 @@ import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class ZipTreeSnapshot implements SnapshottableResourceTree {
+public class SnapshottableZipTree implements SnapshottableResourceTree {
     private final SnapshottableReadableResource zipFile;
     private ZipIterator zipIterator;
 
-    public ZipTreeSnapshot(SnapshottableReadableResource zipFile) {
+    public SnapshottableZipTree(SnapshottableReadableResource zipFile) {
         this.zipFile = zipFile;
     }
 
@@ -84,7 +84,7 @@ public class ZipTreeSnapshot implements SnapshottableResourceTree {
 
         @Override
         public SnapshottableResource next() {
-            SnapshottableResource resource = nextEntry.isDirectory() ? new ZipDirectoryEntry(nextEntry) : new ZipFileEntry(input, nextEntry);
+            SnapshottableResource resource = nextEntry.isDirectory() ? new SnapshottableZipDirectoryEntry(nextEntry) : new SnapshottableZipFileEntry(input, nextEntry);
             nextEntry = null;
             return resource;
         }

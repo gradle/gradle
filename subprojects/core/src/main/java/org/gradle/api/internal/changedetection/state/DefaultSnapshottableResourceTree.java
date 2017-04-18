@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,29 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Represents the state of a directory tree.
- */
-public class DirectoryTreeDetails implements FileTreeSnapshot {
-    // Interned path
-    private final String path;
-    // All elements, not just direct children
-    private final List<FileSnapshot> elements;
+public class DefaultSnapshottableResourceTree implements SnapshottableResourceTree {
 
-    public DirectoryTreeDetails(String path, List<FileSnapshot> elements) {
-        this.path = path;
-        this.elements = elements;
-    }
+    private final SnapshottableResource root;
+    private final List<? extends SnapshottableResource> descendants;
 
-    @Override
-    public String getPath() {
-        return path;
-    }
-
-    @Override
-    public List<FileSnapshot> getDescendants() {
-        return elements;
+    public DefaultSnapshottableResourceTree(SnapshottableResource root, List<? extends SnapshottableResource> descendants) {
+        this.root = root;
+        this.descendants = descendants;
     }
 
     @Override
     public SnapshottableResource getRoot() {
-        return new DirectoryFileSnapshot(path, new RelativePath(false, FilenameUtils.getName(path)), true);
+        return root;
+    }
+
+    @Override
+    public List<? extends SnapshottableResource> getDescendants() {
+        return descendants;
     }
 
     @Override

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.cache;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -104,10 +104,10 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             // TODO - don't calculate the same value concurrently
             V value = cache.get(file);
             if (value == null) {
-                FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
-                FileType fileType = fileSnapshot.getType();
+                SnapshottableFileSystemResource fileSystemResource = fileSystemSnapshotter.snapshotSelf(file);
+                FileType fileType = fileSystemResource.getType();
                 if (fileType == FileType.RegularFile) {
-                    HashCode hashCode = fileSnapshot.getContent().getContentMd5();
+                    HashCode hashCode = fileSystemResource.getContent().getContentMd5();
                     value = contentCache.get(hashCode);
                     if (value == null) {
                         value = calculator.calculate(file, fileType);
