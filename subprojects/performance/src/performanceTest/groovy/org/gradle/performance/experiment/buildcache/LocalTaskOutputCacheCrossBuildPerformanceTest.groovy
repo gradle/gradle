@@ -18,8 +18,8 @@ package org.gradle.performance.experiment.buildcache
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -30,32 +30,26 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 @Category(PerformanceExperiment)
 class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    TestFile cacheDir
-    TestFile noPushInitScript
-
     @Unroll
     def "#tasks on #testProject with local cache (build comparison)"() {
+        def noPushInitScript = temporaryFolder.file("no-push.gradle")
+        noPushInitScript << """
+            settingsEvaluated {
+                buildCache {
+                    local {
+                        push = false
+                    }
+                }
+            }
+        """.stripIndent()
+        def cacheDir = temporaryFolder.file("local-cache")
+
         when:
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
             @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (cacheDir == null) {
-                    cacheDir = temporaryFolder.file("local-cache")
-                }
+            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
                 cacheDir.deleteDir().mkdirs()
-                if (noPushInitScript == null) {
-                    noPushInitScript = temporaryFolder.file("no-push.gradle")
-                    noPushInitScript << """
-                        settingsEvaluated {
-                            buildCache {
-                                local {
-                                    push = false
-                                }
-                            }
-                        }
-                    """.stripIndent()
-                }
-                def settingsFile = new TestFile(invocationInfo.getProjectDir()).file('settings.gradle')
+                def settingsFile = new TestFile(projectDir).file('settings.gradle')
                 settingsFile << """
                     buildCache {
                         local {
@@ -73,14 +67,6 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
                     "--init-script", noPushInitScript.absolutePath.replace('\\', '/'))
             }
         }
-        // TODO Is this useful to have?
-        // runner.buildSpec {
-        //     projectName(testProject.projectName).displayName("push-only cache").invocation {
-        //         tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
-        //             "--build-cache",
-        //             "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
-        //     }
-        // }
         runner.buildSpec {
             projectName(testProject.projectName).displayName("fully cached").invocation {
                 tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(

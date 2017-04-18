@@ -18,6 +18,7 @@ package org.gradle.performance.regression.buildcache
 
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
@@ -37,7 +38,7 @@ class HttpTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJava
 
     def setup() {
         buildCache.logRequests = false
-        runner.addBuildExperimentListener(new BuildExperimentListener() {
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (isRunWithCache(invocationInfo)) {

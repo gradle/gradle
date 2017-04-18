@@ -66,6 +66,10 @@ public class BuildExperimentRunner {
         workingDirectory.mkdirs();
         copyTemplateTo(experiment, workingDirectory);
 
+        if (experiment.getListener() != null) {
+            experiment.getListener().beforeExperiment(experiment, workingDirectory);
+        }
+
         if (invocationSpec instanceof GradleInvocationSpec) {
             GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
             honestProfiler.setInitiallyStopped(invocation.getUseDaemon());

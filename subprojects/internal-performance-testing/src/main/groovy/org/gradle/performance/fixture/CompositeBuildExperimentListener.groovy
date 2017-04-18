@@ -24,6 +24,11 @@ class CompositeBuildExperimentListener implements BuildExperimentListener {
     private List<BuildExperimentListener> listeners = []
 
     @Override
+    void beforeExperiment(BuildExperimentSpec experimentSpec, File workingDir) {
+        listeners.each { it.beforeExperiment(experimentSpec, workingDir) }
+    }
+
+    @Override
     void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
         listeners.each { it.beforeInvocation(invocationInfo) }
     }
