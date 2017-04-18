@@ -24,7 +24,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 /**
  * An immutable snapshot of file meta-data and content. The file may not exist.
  */
-public interface FileSnapshot extends SnapshotTree, SnapshottableResource {
+public interface FileSnapshot extends TreeSnapshot, SnapshottableResource {
 
     /**
      * The absolute path of this file. Can safely be used as a cache key.

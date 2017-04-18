@@ -27,11 +27,11 @@ import java.util.List;
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
  */
 public abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    private final FileSnapshotTreeFactory fileSnapshotTreeFactory;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final StringInterner stringInterner;
 
-    public AbstractFileCollectionSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner) {
-        this.fileSnapshotTreeFactory = fileSnapshotTreeFactory;
+    public AbstractFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.stringInterner = stringInterner;
     }
 
@@ -41,7 +41,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        List<SnapshotTree> fileTreeElements = fileSnapshotTreeFactory.fileCollection(input);
+        List<TreeSnapshot> fileTreeElements = fileSystemSnapshotter.fileCollection(input);
 
         if (fileTreeElements.isEmpty()) {
             return FileCollectionSnapshot.EMPTY;
@@ -50,7 +50,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         FileCollectionSnapshotBuilder collector = createFileCollectionSnapshotBuilder(snapshotNormalizationStrategy, compareStrategy);
 
         ResourceSnapshotter snapshotter = createSnapshotter(snapshotNormalizationStrategy, compareStrategy);
-        for (SnapshotTree fileTreeSnapshot : fileTreeElements) {
+        for (TreeSnapshot fileTreeSnapshot : fileTreeElements) {
             snapshotter.snapshot(fileTreeSnapshot, collector);
         }
         return collector.build();

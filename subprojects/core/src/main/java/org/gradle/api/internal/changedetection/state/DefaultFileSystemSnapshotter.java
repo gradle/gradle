@@ -19,11 +19,14 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -37,6 +40,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -65,7 +69,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.fileSystem = fileSystem;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemMirror = fileSystemMirror;
-        this.snapshotter = new DefaultGenericFileCollectionSnapshotter(new FileSnapshotTreeFactory(this, directoryFileTreeFactory), stringInterner);
+        this.snapshotter = new DefaultGenericFileCollectionSnapshotter(this, stringInterner);
     }
 
     @Override
@@ -118,7 +122,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                     snapshot = doSnapshot(directoryFileTreeFactory.create(dir));
                     fileSystemMirror.putDirectory(snapshot);
                 }
-                return snapshot;
+                return new DirectoryTreeDetails(path, snapshot.getDescendants());
             }
         });
     }
@@ -149,10 +153,19 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public List<FileSnapshot> snapshotTree(FileTreeInternal tree) {
+    public TreeSnapshot snapshotTree(FileTreeInternal tree) {
         List<FileSnapshot> elements = Lists.newArrayList();
         tree.visitTreeOrBackingFile(new FileVisitorImpl(elements));
-        return elements;
+        return new DefaultTreeSnapshot(null, elements);
+    }
+
+    @Override
+    public List<TreeSnapshot> fileCollection(FileCollection input) {
+        LinkedList<TreeSnapshot> fileTreeElements = Lists.newLinkedList();
+        FileCollectionInternal fileCollection = (FileCollectionInternal) input;
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
+        fileCollection.visitRootElements(visitor);
+        return fileTreeElements;
     }
 
     private FileTreeSnapshot doSnapshot(DirectoryFileTree directoryTree) {
@@ -217,6 +230,46 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
             fileTreeElements.add(new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
+        }
+    }
+
+    private class FileCollectionVisitorImpl implements FileCollectionVisitor {
+        private final List<TreeSnapshot> fileTreeElements;
+
+        FileCollectionVisitorImpl(List<TreeSnapshot> fileTreeElements) {
+            this.fileTreeElements = fileTreeElements;
+        }
+
+        @Override
+        public void visitCollection(FileCollectionInternal fileCollection) {
+            for (File file : fileCollection) {
+                FileSnapshot details = snapshotSelf(file);
+                switch (details.getType()) {
+                    case Missing:
+                        fileTreeElements.add(details);
+                        break;
+                    case RegularFile:
+                        fileTreeElements.add(details);
+                        break;
+                    case Directory:
+                        // Visit the directory itself, then its contents
+                        fileTreeElements.add(details);
+                        visitDirectoryTree(directoryFileTreeFactory.create(file));
+                        break;
+                    default:
+                        throw new AssertionError();
+                }
+            }
+        }
+
+        @Override
+        public void visitTree(FileTreeInternal fileTree) {
+            fileTreeElements.add(snapshotTree(fileTree));
+        }
+
+        @Override
+        public void visitDirectoryTree(DirectoryFileTree directoryTree) {
+            fileTreeElements.add(snapshotDirectoryTree(directoryTree));
         }
     }
 }

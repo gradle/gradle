@@ -35,7 +35,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnap
 class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror([])
-    def snapshotter = new DefaultGenericFileCollectionSnapshotter(new FileSnapshotTreeFactory(new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror), TestFiles.directoryFileTreeFactory()), stringInterner) {
+    def snapshotter = new DefaultGenericFileCollectionSnapshotter(new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror), stringInterner) {
         @Override
         Class<? extends FileCollectionSnapshotter> getRegisteredType() {
             FileCollectionSnapshotter
@@ -313,13 +313,13 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
             switch (change.type) {
                 case ChangeType.ADDED:
                     listener.added(change.path)
-                    break;
+                    break
                 case ChangeType.MODIFIED:
                     listener.changed(change.path)
-                    break;
+                    break
                 case ChangeType.REMOVED:
                     listener.removed(change.path)
-                    break;
+                    break
             }
         }
     }

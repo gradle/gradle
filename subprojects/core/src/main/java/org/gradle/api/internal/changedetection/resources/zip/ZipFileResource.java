@@ -107,7 +107,7 @@ class ZipFileResource implements SnapshottableReadableResource {
     }
 
     @Override
-    public Iterable<? extends SnapshottableResource> getElements() {
+    public Iterable<? extends SnapshottableResource> getDescendants() {
         return Collections.singleton(this);
     }
 

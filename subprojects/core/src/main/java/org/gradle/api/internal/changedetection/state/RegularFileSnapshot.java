@@ -92,7 +92,7 @@ class RegularFileSnapshot implements FileSnapshot, SnapshottableReadableResource
     }
 
     @Override
-    public Iterable<? extends FileSnapshot> getElements() {
+    public Iterable<? extends FileSnapshot> getDescendants() {
         return Collections.singleton(this);
     }
 

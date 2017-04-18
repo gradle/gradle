@@ -82,7 +82,7 @@ class MissingFileSnapshot implements FileSnapshot, SnapshottableMissingResource 
     }
 
     @Override
-    public Iterable<? extends FileSnapshot> getElements() {
+    public Iterable<? extends FileSnapshot> getDescendants() {
         return Collections.singleton(this);
     }
 

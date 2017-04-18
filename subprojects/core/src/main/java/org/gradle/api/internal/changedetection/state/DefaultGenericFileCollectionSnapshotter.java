@@ -28,8 +28,8 @@ import java.io.IOException;
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
     private final StringInterner stringInterner;
 
-    public DefaultGenericFileCollectionSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner) {
-        super(fileSnapshotTreeFactory, stringInterner);
+    public DefaultGenericFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+        super(fileSystemSnapshotter, stringInterner);
         this.stringInterner = stringInterner;
     }
 
@@ -56,9 +56,9 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
         }
 
         @Override
-        public void snapshot(SnapshotTree resource, SnapshotCollector collector) {
+        public void snapshot(TreeSnapshot resource, SnapshotCollector collector) {
             try {
-                for (SnapshottableResource element : resource.getElements()) {
+                for (SnapshottableResource element : resource.getDescendants()) {
                     if (!noneNormalizationStrategy || element.getType() != FileType.Directory || resource.getRoot() != element) {
                         collector.recordSnapshot(element, element.getContent().getContentMd5());
                     }

@@ -30,8 +30,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     private final StringInterner stringInterner;
     private final ResourceSnapshotter resourceSnapshotter;
 
-    public DefaultClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> jarSignatureCache) {
-        super(fileSnapshotTreeFactory, stringInterner);
+    public DefaultClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> jarSignatureCache) {
+        super(fileSystemSnapshotter, stringInterner);
         this.stringInterner = stringInterner;
         this.resourceSnapshotter = new CachingResourceSnapshotter(
             new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), stringInterner),
@@ -56,7 +56,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     private class ClasspathEntrySnapshotter implements ResourceSnapshotter {
         @Override
-        public void snapshot(SnapshotTree details, SnapshotCollector collector) {
+        public void snapshot(TreeSnapshot details, SnapshotCollector collector) {
             SnapshottableResource root = details.getRoot();
             if (root != null && root.getType() == FileType.RegularFile) {
                 HashCode signatureForClass = root.getContent().getContentMd5();

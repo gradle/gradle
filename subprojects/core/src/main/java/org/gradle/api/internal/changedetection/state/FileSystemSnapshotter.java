@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 
@@ -53,5 +54,10 @@ public interface FileSystemSnapshotter {
     /**
      * Returns the current snapshot of the contents and meta-data of the given file tree. Note: currently does not include the root elements, if any.
      */
-    List<FileSnapshot> snapshotTree(FileTreeInternal tree);
+    TreeSnapshot snapshotTree(FileTreeInternal tree);
+
+    /**
+     * Returns the current snapshots of the root elements of the given file collection.
+     */
+    List<TreeSnapshot> fileCollection(FileCollection input);
 }

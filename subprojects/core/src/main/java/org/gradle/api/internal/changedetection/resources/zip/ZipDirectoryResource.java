@@ -71,7 +71,7 @@ class ZipDirectoryResource implements SnapshottableDirectoryResource {
     }
 
     @Override
-    public Iterable<? extends SnapshottableResource> getElements() {
+    public Iterable<? extends SnapshottableResource> getDescendants() {
         return Collections.singleton(this);
     }
 

@@ -43,8 +43,8 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     private final StringInterner stringInterner;
     private final ResourceSnapshotter resourceSnapshotter;
 
-    public DefaultCompileClasspathSnapshotter(FileSnapshotTreeFactory fileSnapshotTreeFactory, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> signatureCache) {
-        super(fileSnapshotTreeFactory, stringInterner);
+    public DefaultCompileClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> signatureCache) {
+        super(fileSystemSnapshotter, stringInterner);
         this.stringInterner = stringInterner;
         this.resourceSnapshotter = new CachingResourceSnapshotter(
             new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(signatureCache), stringInterner),
@@ -77,7 +77,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         }
 
         @Override
-        public void snapshot(SnapshotTree details, SnapshotCollector collector) {
+        public void snapshot(TreeSnapshot details, SnapshotCollector collector) {
             SnapshottableResource root = details.getRoot();
             if (root instanceof SnapshottableReadableResource && root.getName().endsWith(".class")) {
                 if (root instanceof FileSnapshot) {

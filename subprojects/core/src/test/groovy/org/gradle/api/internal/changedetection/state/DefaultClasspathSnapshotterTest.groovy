@@ -49,9 +49,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     InMemoryIndexedCache<HashCode, HashCode> jarCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def snapshots = [:]
     def snapshotter = new DefaultClasspathSnapshotter(
-        new FileSnapshotTreeFactory(
-            fileSystemSnapshotter, directoryFileTreeFactory
-        ),
+        fileSystemSnapshotter,
         stringInterner,
         jarCache
     ) {

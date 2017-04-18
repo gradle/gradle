@@ -81,7 +81,7 @@ class DirectoryFileSnapshot implements FileSnapshot, SnapshottableDirectoryResou
     }
 
     @Override
-    public Iterable<? extends FileSnapshot> getElements() {
+    public Iterable<? extends FileSnapshot> getDescendants() {
         return Collections.singleton(this);
     }
 

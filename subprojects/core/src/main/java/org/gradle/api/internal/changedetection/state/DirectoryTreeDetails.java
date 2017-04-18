@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -40,5 +45,14 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
     @Override
     public List<FileSnapshot> getDescendants() {
         return elements;
+    }
+
+    @Override
+    public SnapshottableResource getRoot() {
+        return new DirectoryFileSnapshot(path, new RelativePath(false, FilenameUtils.getName(path)), true);
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 }

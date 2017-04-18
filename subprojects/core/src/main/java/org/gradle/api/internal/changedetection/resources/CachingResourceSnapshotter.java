@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.resources;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
-import org.gradle.api.internal.changedetection.state.SnapshotTree;
+import org.gradle.api.internal.changedetection.state.TreeSnapshot;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
@@ -33,7 +33,7 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
     }
 
     @Override
-    public void snapshot(SnapshotTree resource, final SnapshotCollector collector) {
+    public void snapshot(TreeSnapshot resource, final SnapshotCollector collector) {
         SnapshottableResource root = resource.getRoot();
         if (isCacheable(root)) {
             FileSnapshot fileSnapshot = (FileSnapshot) root;

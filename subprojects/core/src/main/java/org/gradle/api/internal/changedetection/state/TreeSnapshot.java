@@ -18,30 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 
+import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
 
-public class DefaultSnapshotTree implements SnapshotTree {
-
-    private final SnapshottableResource root;
-    private final List<? extends SnapshottableResource> elements;
-
-    public DefaultSnapshotTree(SnapshottableResource root, List<? extends SnapshottableResource> elements) {
-        this.root = root;
-        this.elements = elements;
-    }
-
-    @Override
-    public SnapshottableResource getRoot() {
-        return root;
-    }
-
-    @Override
-    public Iterable<? extends SnapshottableResource> getElements() {
-        return elements;
-    }
-
-    @Override
-    public void close() throws IOException {
-    }
+public interface TreeSnapshot extends Closeable {
+    SnapshottableResource getRoot();
+    Iterable<? extends SnapshottableResource> getDescendants() throws IOException;
 }

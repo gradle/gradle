@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
-import org.gradle.api.internal.changedetection.state.SnapshotTree;
+import org.gradle.api.internal.changedetection.state.TreeSnapshot;
 
 public interface ResourceSnapshotter {
-    void snapshot(SnapshotTree resource, SnapshotCollector collector);
+    void snapshot(TreeSnapshot resource, SnapshotCollector collector);
 }

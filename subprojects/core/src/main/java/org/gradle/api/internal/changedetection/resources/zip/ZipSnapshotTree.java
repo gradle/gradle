@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.resources.zip;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
-import org.gradle.api.internal.changedetection.state.SnapshotTree;
+import org.gradle.api.internal.changedetection.state.TreeSnapshot;
 import org.gradle.internal.IoActions;
 
 import java.io.Closeable;
@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class ZipSnapshotTree implements SnapshotTree {
+public class ZipSnapshotTree implements TreeSnapshot {
     private final SnapshottableReadableResource zipFile;
     private ZipIterator zipIterator;
 
@@ -42,7 +42,7 @@ public class ZipSnapshotTree implements SnapshotTree {
     }
 
     @Override
-    public Iterable<? extends SnapshottableResource> getElements() throws IOException {
+    public Iterable<? extends SnapshottableResource> getDescendants() throws IOException {
         return new Iterable<SnapshottableResource>() {
             @Override
             public Iterator<SnapshottableResource> iterator() {
