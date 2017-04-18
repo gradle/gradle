@@ -54,6 +54,14 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     URI getUrl();
 
     /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     * @since 4.0
+     */
+    void setUrl(URI url);
+
+    /**
      * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
      * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
      *
