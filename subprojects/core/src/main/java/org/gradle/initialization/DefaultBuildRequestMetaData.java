@@ -16,15 +16,18 @@
 package org.gradle.initialization;
 
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.internal.time.Timer;
 import org.gradle.util.Clock;
 
 public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     private final BuildClientMetaData clientMetaData;
     private final Clock clock;
+    private final Timer timer;
 
     public DefaultBuildRequestMetaData(BuildClientMetaData clientMetaData, long startTime) {
         this.clientMetaData = clientMetaData;
         clock = new Clock(startTime);
+        timer = new org.gradle.internal.time.Clock(startTime);
     }
 
     public DefaultBuildRequestMetaData(long startTime) {
@@ -34,6 +37,7 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     public DefaultBuildRequestMetaData(BuildClientMetaData buildClientMetaData) {
         this.clientMetaData = buildClientMetaData;
         this.clock = new Clock();
+        timer = new org.gradle.internal.time.Clock();
     }
 
     public BuildClientMetaData getClient() {
@@ -42,5 +46,9 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
 
     public Clock getBuildTimeClock() {
         return clock;
+    }
+
+    public Timer getBuildTimer() {
+        return timer;
     }
 }

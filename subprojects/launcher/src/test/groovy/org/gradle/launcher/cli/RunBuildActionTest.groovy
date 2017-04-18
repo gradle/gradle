@@ -49,6 +49,7 @@ class RunBuildActionTest extends Specification {
             assert context.cancellationToken instanceof DefaultBuildCancellationToken
             assert context.client == clientMetaData
             assert context.buildTimeClock.startTime == startTime
+            assert context.buildTimer.startTime == startTime
             assert build == parameters
             assert services == sharedServices
         }

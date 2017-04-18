@@ -20,7 +20,7 @@ import org.gradle.BuildResult
 import org.gradle.internal.logging.format.DurationFormatter
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.Timer
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -28,16 +28,16 @@ import spock.lang.Subject
 @Subject(BuildResultLogger)
 class BuildResultLoggerTest extends Specification {
     private StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
-    private Clock clock = Mock(Clock)
+    private Timer timer = Mock(Timer)
     private DurationFormatter durationFormatter = Mock(DurationFormatter)
-    private BuildResultLogger subject = new BuildResultLogger(textOutputFactory, clock, durationFormatter)
+    private BuildResultLogger subject = new BuildResultLogger(textOutputFactory, timer, durationFormatter)
 
     def "logs build success with total time"() {
         when:
         subject.buildFinished(new BuildResult("Action", null, null));
 
         then:
-        1 * clock.getElapsedMillis() >> { 10L }
+        1 * timer.getElapsedMillis() >> { 10L }
         1 * durationFormatter.format(10L) >> { "10s" }
         TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}\n{success}ACTION SUCCESSFUL{normal} in 10s\n"
     }
@@ -47,7 +47,7 @@ class BuildResultLoggerTest extends Specification {
         subject.buildFinished(new BuildResult("Action", null, new RuntimeException()));
 
         then:
-        1 * clock.getElapsedMillis() >> { 10L }
+        1 * timer.getElapsedMillis() >> { 10L }
         1 * durationFormatter.format(10L) >> { "10s" }
         TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}\n{failure}ACTION FAILED{normal} in 10s\n"
     }

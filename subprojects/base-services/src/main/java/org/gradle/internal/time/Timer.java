@@ -22,4 +22,6 @@ public interface Timer {
     long getElapsedMillis();
 
     void reset();
+
+    long getStartTime();
 }
