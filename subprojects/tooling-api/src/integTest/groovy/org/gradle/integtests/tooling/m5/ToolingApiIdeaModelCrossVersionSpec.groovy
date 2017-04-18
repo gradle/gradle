@@ -215,11 +215,19 @@ project(':impl') {
         lib.scope.scope == 'TEST'
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
-        if (targetVersion >= GradleVersion.version("3.4")) {
+
+        def currentVersion = GradleVersion.current()
+        if (currentVersion >= GradleVersion.version("3.1")) {
             mod.targetModuleName == project.modules.find { it.name == 'api'}.getName()
+        }
+
+        if (currentVersion < GradleVersion.version("3.99")) {
+            mod.dependencyModule == project.modules.find { it.name == 'api'}
+        }
+
+        if (targetVersion >= GradleVersion.version("3.4")) {
             mod.scope.scope == 'PROVIDED'
         } else {
-            mod.dependencyModule == project.modules.find { it.name == 'api'}
             mod.scope.scope == 'COMPILE'
         }
     }
