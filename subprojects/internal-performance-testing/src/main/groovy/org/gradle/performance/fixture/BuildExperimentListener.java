@@ -21,7 +21,7 @@ import org.gradle.performance.measure.MeasuredOperation;
 import java.io.File;
 
 public interface BuildExperimentListener {
-    void beforeExperiment(BuildExperimentSpec experimentSpec, File workingDir);
+    void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir);
 
     void beforeInvocation(BuildExperimentInvocationInfo invocationInfo);
 

@@ -22,7 +22,7 @@ import java.io.File;
 
 public class BuildExperimentListenerAdapter implements BuildExperimentListener {
     @Override
-    public void beforeExperiment(BuildExperimentSpec experimentSpec, File workingDir) {
+    public void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
 
     }
 
