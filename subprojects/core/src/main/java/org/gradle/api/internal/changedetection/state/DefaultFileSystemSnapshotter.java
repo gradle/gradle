@@ -122,7 +122,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                     snapshot = doSnapshot(directoryFileTreeFactory.create(dir));
                     fileSystemMirror.putDirectory(snapshot);
                 }
-                return new DirectoryTreeDetails(path, snapshot.getDescendants());
+                return snapshot;
             }
         });
     }
