@@ -47,30 +47,35 @@ public class ClasspathResourceSnapshotter implements ResourceSnapshotter {
                 return;
             }
             TreeSnapshot elements = (root.getType() == FileType.RegularFile) ? new ZipTreeSnapshot((SnapshottableReadableResource) root) : fileTreeSnapshot;
-            snapshotElements(root, elements, collector);
+            snapshotElements(elements, collector);
         } else {
             throw new GradleException("Tree without root file on Classpath");
         }
     }
 
-    private void snapshotElements(SnapshottableResource root, TreeSnapshot contents, SnapshotCollector collector) {
+    private void snapshotElements(TreeSnapshot tree, SnapshotCollector collector) {
         try {
             SnapshotCollector entryCollector = new DefaultSnapshotCollector(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
-            entryCollector = collector.recordSubCollector(root, entryCollector);
-            for (SnapshottableResource resource : contents.getDescendants()) {
+            if (!(tree instanceof ZipTreeSnapshot)) {
+                entryCollector = collector.recordSubCollector(tree.getRoot(), entryCollector);
+            }
+            for (SnapshottableResource resource : tree.getDescendants()) {
                 entrySnapshotter.snapshot(resource, entryCollector);
+            }
+            if (tree instanceof ZipTreeSnapshot) {
+                collector.recordSnapshot(tree.getRoot(), entryCollector.getHash(null));
             }
         } catch (ZipException e) {
             // ZipExceptions point to a problem with the Zip, we try to be lenient for now.
-            hashMalformedZip(root, collector);
+            hashMalformedZip(tree.getRoot(), collector);
         } catch (IOException e) {
             // IOExceptions other than ZipException are failures.
-            throw new UncheckedIOException("Error snapshotting jar [" + root.getName() + "]", e);
+            throw new UncheckedIOException("Error snapshotting jar [" + tree.getRoot().getName() + "]", e);
         } catch (Exception e) {
             // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
-            hashMalformedZip(root, collector);
+            hashMalformedZip(tree.getRoot(), collector);
         } finally {
-            IoActions.closeQuietly(contents);
+            IoActions.closeQuietly(tree);
         }
     }
 
