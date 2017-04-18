@@ -29,11 +29,11 @@ import java.util.Collections;
  */
 class MissingFileSnapshot implements FileSnapshot, SnapshottableMissingResource {
     private final String path;
-    private final RelativePath relativePath;
+    private final String name;
 
-    MissingFileSnapshot(String path, RelativePath relativePath) {
+    MissingFileSnapshot(String path, String name) {
         this.path = path;
-        this.relativePath = relativePath;
+        this.name = name;
     }
 
     @Override
@@ -48,7 +48,7 @@ class MissingFileSnapshot implements FileSnapshot, SnapshottableMissingResource 
 
     @Override
     public String getName() {
-        return relativePath.getLastName();
+        return name;
     }
 
     @Override
@@ -58,7 +58,7 @@ class MissingFileSnapshot implements FileSnapshot, SnapshottableMissingResource 
 
     @Override
     public RelativePath getRelativePath() {
-        return relativePath;
+        return new RelativePath(true, name);
     }
 
     @Override

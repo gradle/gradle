@@ -184,7 +184,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         FileMetadataSnapshot stat = fileSystem.stat(file);
         switch (stat.getType()) {
             case Missing:
-                return new MissingFileSnapshot(path, new RelativePath(true, file.getName()));
+                return new MissingFileSnapshot(path, file.getName());
             case Directory:
                 return new DirectoryFileSnapshot(path, new RelativePath(false, file.getName()), true);
             case RegularFile:
