@@ -24,6 +24,8 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.logging.progress.OperationIdentifierRegistry;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
@@ -102,6 +104,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
             final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
             workerLogEventListener = configureLogging(loggingManager, connection);
+            configureParentOperationIdentifier(connection);
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
             }
@@ -137,6 +140,15 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener(workerLoggingProtocol);
         loggingManager.addOutputEventListener(workerLogEventListener);
         return workerLogEventListener;
+    }
+
+    private void configureParentOperationIdentifier(ObjectConnection connection) {
+        connection.addIncoming(WorkerOperationIdentifierProtocol.class, new WorkerOperationIdentifierProtocol() {
+            @Override
+            public void operationId(OperationIdentifier operationId) {
+                OperationIdentifierRegistry.setParentOperationId(operationId);
+            }
+        });
     }
 
     private void configureWorkerJvmMemoryInfoEvents(WorkerServices services, ObjectConnection connection) {
