@@ -16,10 +16,13 @@
 package org.gradle.internal.logging.text
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.progress.OperationIdentifierRegistry
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.services.LoggingBackedStyledTextOutput
+import spock.lang.Unroll
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*
 
@@ -147,5 +150,28 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
             assert event.spans[0].text == toNative('\n')
         }
         0 * listener._
+    }
+
+    @Unroll
+    def attachCorrectOperationIdentifier() {
+        given:
+        def previousOperationId = OperationIdentifierRegistry.currentOperationId
+        OperationIdentifierRegistry.currentOperationId = operationId
+
+        when:
+        output.println('message')
+
+        then:
+        1 * listener.onOutput(!null) >> { args ->
+            def event = args[0]
+            assert event.operationId == operationId
+        }
+        0 * listener._
+
+        cleanup:
+        OperationIdentifierRegistry.currentOperationId = previousOperationId
+
+        where:
+        operationId << [null, new OperationIdentifier(42)]
     }
 }

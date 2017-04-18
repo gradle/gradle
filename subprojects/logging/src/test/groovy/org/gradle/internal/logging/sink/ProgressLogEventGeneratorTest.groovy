@@ -39,6 +39,7 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
             StyledTextOutputEvent event = args[0]
             assert event.spans[0].text == 'description'
             assert event.timestamp == startEvent.timestamp
+            assert event.operationId == startEvent.operationId
         }
         0 * target._
 
@@ -53,6 +54,7 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
             assert event.spans[1].text == toNative('status')
             assert event.spans[2].text == toNative('\n')
             assert event.timestamp == completeEvent.timestamp
+            assert event.operationId == completeEvent.operationId
         }
         0 * target._
     }
@@ -79,6 +81,7 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
             assert event.spans[1].text == toNative('status')
             assert event.spans[2].text == toNative('\n')
             assert event.timestamp == completeEvent.timestamp
+            assert event.operationId == completeEvent.operationId
         }
         0 * target._
     }
@@ -145,6 +148,7 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
             assert event.spans.size() == 1
             assert event.spans[0].text == toNative('description\n')
             assert event.timestamp == startEvent.timestamp
+            assert event.operationId == startEvent.operationId
         }
         1 * target.onOutput(logEvent)
         0 * target._
@@ -159,6 +163,7 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
             assert event.spans[0].text == toNative('description ')
             assert event.spans[1].text == toNative('status')
             assert event.spans[2].text == toNative('\n')
+            assert event.operationId == completeEvent.operationId
         }
         0 * target._
     }
@@ -270,6 +275,7 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         1 * target.onOutput(!null) >> { args ->
             StyledTextOutputEvent event = args[0]
             assert event.spans[0].text == 'header'
+            assert event.operationId == startEvent.operationId
         }
         0 * target._
 
@@ -284,6 +290,7 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
             assert event.spans[1].text == toNative('status')
             assert event.spans[2].text == toNative('\n')
             assert event.timestamp == completeEvent.timestamp
+            assert event.operationId == completeEvent.operationId
         }
         0 * target._
     }
@@ -467,19 +474,21 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
 
         then:
         1 * target.onOutput({ StyledTextOutputEvent event ->
-            event.spans.size() == 1 && event.spans[0].text == toNative('task2\n')
+            event.spans.size() == 1 && event.spans[0].text == toNative('task2\n') && event.operationId == secondStart.operationId
         })
         1 * target.onOutput({ StyledTextOutputEvent event ->
             event.spans.size() == 3 &&
                 event.spans[0].text == toNative('task1 ') &&
                 event.spans[1].text == toNative('task1-done') &&
-                event.spans[2].text == toNative('\n')
+                event.spans[2].text == toNative('\n') &&
+                event.operationId == firstStart.operationId
         })
         1 * target.onOutput({ StyledTextOutputEvent event ->
             event.spans.size() == 3 &&
                 event.spans[0].text == toNative('task2 ') &&
                 event.spans[1].text == toNative('task2-done') &&
-                event.spans[2].text == toNative('\n')
+                event.spans[2].text == toNative('\n') &&
+                event.operationId == secondStart.operationId
         })
         0 * target._
     }
