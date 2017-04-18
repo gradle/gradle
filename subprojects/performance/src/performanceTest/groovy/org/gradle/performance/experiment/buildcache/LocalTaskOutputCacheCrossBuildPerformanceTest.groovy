@@ -34,8 +34,8 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
     def "#tasks on #testProject with local cache (build comparison)"() {
         def noPushInitScript = temporaryFolder.file("no-push.gradle")
         noPushInitScript << """
-            settingsEvaluated {
-                buildCache {
+            settingsEvaluated { settings ->
+                settings.buildCache {
                     local {
                         push = false
                     }
