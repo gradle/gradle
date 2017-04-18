@@ -16,8 +16,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 
-import java.io.File
-
 buildscript {
 
     var kotlinVersion: String by extra
