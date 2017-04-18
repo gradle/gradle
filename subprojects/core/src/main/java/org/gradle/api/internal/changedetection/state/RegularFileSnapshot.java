@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
 
 /**
  * Snapshot for a regular file.
@@ -87,16 +86,6 @@ class RegularFileSnapshot implements FileSnapshot, SnapshottableReadableResource
     }
 
     @Override
-    public FileSnapshot getRoot() {
-        return this;
-    }
-
-    @Override
-    public Iterable<? extends FileSnapshot> getDescendants() {
-        return Collections.singleton(this);
-    }
-
-    @Override
     public InputStream read() throws IOException {
         //noinspection Since15
         return Files.newInputStream(Paths.get(getPath()));
@@ -105,9 +94,5 @@ class RegularFileSnapshot implements FileSnapshot, SnapshottableReadableResource
     @Override
     public String getDisplayName() {
         return getPath();
-    }
-
-    @Override
-    public void close() throws IOException {
     }
 }

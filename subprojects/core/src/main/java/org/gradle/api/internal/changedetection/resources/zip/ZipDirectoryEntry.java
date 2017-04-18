@@ -19,13 +19,10 @@ package org.gradle.api.internal.changedetection.resources.zip;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.changedetection.resources.SnapshottableDirectoryResource;
-import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.zip.ZipEntry;
 
 class ZipDirectoryEntry implements SnapshottableDirectoryResource {
@@ -66,21 +63,7 @@ class ZipDirectoryEntry implements SnapshottableDirectoryResource {
     }
 
     @Override
-    public SnapshottableResource getRoot() {
-        return this;
-    }
-
-    @Override
-    public Iterable<? extends SnapshottableResource> getDescendants() {
-        return Collections.singleton(this);
-    }
-
-    @Override
     public String getDisplayName() {
         return getPath();
-    }
-
-    @Override
-    public void close() throws IOException {
     }
 }

@@ -24,13 +24,11 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.changedetection.resources.HashContentSnapshot;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
-import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.resource.ResourceContentMetadataSnapshot;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -102,21 +100,7 @@ class ZipFileEntry implements SnapshottableReadableResource {
     }
 
     @Override
-    public SnapshottableResource getRoot() {
-        return this;
-    }
-
-    @Override
-    public Iterable<? extends SnapshottableResource> getDescendants() {
-        return Collections.singleton(this);
-    }
-
-    @Override
     public String getDisplayName() {
         return getPath();
-    }
-
-    @Override
-    public void close() throws IOException {
     }
 }

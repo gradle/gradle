@@ -17,10 +17,10 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshotCollector;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
         return GenericFileCollectionSnapshotter.class;
     }
 
-    public static class GenericResourceSnapshotter implements ResourceSnapshotter {
+    public static class GenericResourceSnapshotter extends AbstractSnapshotter {
         private final boolean noneNormalizationStrategy;
 
         public GenericResourceSnapshotter(boolean isNoneNormalisationStrategy) {
@@ -56,15 +56,15 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
         }
 
         @Override
-        public void snapshot(TreeSnapshot resource, SnapshotCollector collector) {
-            try {
-                for (SnapshottableResource element : resource.getDescendants()) {
-                    if (!noneNormalizationStrategy || element.getType() != FileType.Directory || resource.getRoot() != element) {
-                        collector.recordSnapshot(element, element.getContent().getContentMd5());
-                    }
-                }
-            } catch (IOException e) {
-                IoActions.closeQuietly(resource);
+        protected void snapshotTree(SnapshottableResourceTree tree, SnapshotCollector collector) throws IOException {
+            for (SnapshottableResource descendant : tree.getDescendants()) {
+                snapshotResource(descendant, collector);
+            }
+        }
+
+        protected void snapshotResource(SnapshottableResource snapshottable, SnapshotCollector collector) {
+            if (!noneNormalizationStrategy || snapshottable.getType() != FileType.Directory || !snapshottable.isRoot()) {
+                collector.recordSnapshot(snapshottable, snapshottable.getContent().getContentMd5());
             }
         }
     }

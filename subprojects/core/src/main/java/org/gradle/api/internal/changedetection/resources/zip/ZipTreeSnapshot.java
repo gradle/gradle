@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.resources.zip;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
-import org.gradle.api.internal.changedetection.state.TreeSnapshot;
+import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
 import org.gradle.internal.IoActions;
 
 import java.io.Closeable;
@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class ZipTreeSnapshot implements TreeSnapshot {
+public class ZipTreeSnapshot implements SnapshottableResourceTree {
     private final SnapshottableReadableResource zipFile;
     private ZipIterator zipIterator;
 

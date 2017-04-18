@@ -21,9 +21,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.changedetection.resources.SnapshottableDirectoryResource;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-import java.io.IOException;
-import java.util.Collections;
-
 class DirectoryFileSnapshot implements FileSnapshot, SnapshottableDirectoryResource {
     final String path;
     private final RelativePath relativePath;
@@ -76,21 +73,7 @@ class DirectoryFileSnapshot implements FileSnapshot, SnapshottableDirectoryResou
     }
 
     @Override
-    public FileSnapshot getRoot() {
-        return this;
-    }
-
-    @Override
-    public Iterable<? extends FileSnapshot> getDescendants() {
-        return Collections.singleton(this);
-    }
-
-    @Override
     public String getDisplayName() {
         return getPath();
-    }
-
-    @Override
-    public void close() throws IOException {
     }
 }

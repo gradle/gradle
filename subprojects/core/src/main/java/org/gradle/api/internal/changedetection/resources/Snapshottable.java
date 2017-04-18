@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.resources;
 
-import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
-
-import java.io.Closeable;
-import java.io.IOException;
-
-public interface TreeSnapshot extends Closeable {
-    SnapshottableResource getRoot();
-    Iterable<? extends SnapshottableResource> getDescendants() throws IOException;
+public interface Snapshottable {
 }

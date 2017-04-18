@@ -25,6 +25,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.Snapshottable;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -153,15 +154,15 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public TreeSnapshot snapshotTree(FileTreeInternal tree) {
+    public SnapshottableResourceTree snapshotTree(FileTreeInternal tree) {
         List<FileSnapshot> elements = Lists.newArrayList();
         tree.visitTreeOrBackingFile(new FileVisitorImpl(elements));
         return new DefaultTreeSnapshot(null, elements);
     }
 
     @Override
-    public List<TreeSnapshot> fileCollection(FileCollection input) {
-        LinkedList<TreeSnapshot> fileTreeElements = Lists.newLinkedList();
+    public List<Snapshottable> fileCollection(FileCollection input) {
+        LinkedList<Snapshottable> fileTreeElements = Lists.newLinkedList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
         fileCollection.visitRootElements(visitor);
@@ -234,9 +235,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final List<TreeSnapshot> fileTreeElements;
+        private final List<Snapshottable> fileTreeElements;
 
-        FileCollectionVisitorImpl(List<TreeSnapshot> fileTreeElements) {
+        FileCollectionVisitorImpl(List<Snapshottable> fileTreeElements) {
             this.fileTreeElements = fileTreeElements;
         }
 

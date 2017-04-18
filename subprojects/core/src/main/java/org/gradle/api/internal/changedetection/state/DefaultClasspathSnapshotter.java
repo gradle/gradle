@@ -18,13 +18,14 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
 import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshotCollector;
+import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private final StringInterner stringInterner;
@@ -54,14 +55,18 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         return resourceSnapshotter;
     }
 
-    private class ClasspathEntrySnapshotter implements ResourceSnapshotter {
+    private class ClasspathEntrySnapshotter extends AbstractSnapshotter {
         @Override
-        public void snapshot(TreeSnapshot details, SnapshotCollector collector) {
-            SnapshottableResource root = details.getRoot();
-            if (root != null && root.getType() == FileType.RegularFile) {
-                HashCode signatureForClass = root.getContent().getContentMd5();
-                collector.recordSnapshot(root, signatureForClass);
+        protected void snapshotResource(SnapshottableResource resource, SnapshotCollector collector) {
+            if (resource instanceof SnapshottableReadableResource) {
+                HashCode signatureForClass = resource.getContent().getContentMd5();
+                collector.recordSnapshot(resource, signatureForClass);
             }
+        }
+
+        @Override
+        protected void snapshotTree(SnapshottableResourceTree snapshottable, SnapshotCollector collector) {
+            throw new UnsupportedOperationException("Trees cannot be classpath entries");
         }
     }
 }

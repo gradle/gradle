@@ -16,21 +16,18 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.zip.ZipTreeSnapshot;
+import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TreeSnapshot;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.IOException;
 import java.util.zip.ZipException;
 
-public class ClasspathResourceSnapshotter implements ResourceSnapshotter {
+public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     private final ResourceSnapshotter entrySnapshotter;
     private final StringInterner stringInterner;
 
@@ -40,20 +37,14 @@ public class ClasspathResourceSnapshotter implements ResourceSnapshotter {
     }
 
     @Override
-    public void snapshot(TreeSnapshot fileTreeSnapshot, SnapshotCollector collector) {
-        SnapshottableResource root = fileTreeSnapshot.getRoot();
-        if (root != null) {
-            if (root.getType() == FileType.Missing) {
-                return;
-            }
-            TreeSnapshot elements = (root.getType() == FileType.RegularFile) ? new ZipTreeSnapshot((SnapshottableReadableResource) root) : fileTreeSnapshot;
-            snapshotElements(elements, collector);
-        } else {
-            throw new GradleException("Tree without root file on Classpath");
+    protected void snapshotResource(SnapshottableResource resource, SnapshotCollector collector) {
+        if (resource instanceof SnapshottableReadableResource) {
+            snapshotTree(new ZipTreeSnapshot((SnapshottableReadableResource) resource), collector);
         }
     }
 
-    private void snapshotElements(TreeSnapshot tree, SnapshotCollector collector) {
+    @Override
+    protected void snapshotTree(SnapshottableResourceTree tree, SnapshotCollector collector) {
         try {
             SnapshotCollector entryCollector = new DefaultSnapshotCollector(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
             if (!(tree instanceof ZipTreeSnapshot)) {
@@ -74,8 +65,6 @@ public class ClasspathResourceSnapshotter implements ResourceSnapshotter {
         } catch (Exception e) {
             // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
             hashMalformedZip(tree.getRoot(), collector);
-        } finally {
-            IoActions.closeQuietly(tree);
         }
     }
 

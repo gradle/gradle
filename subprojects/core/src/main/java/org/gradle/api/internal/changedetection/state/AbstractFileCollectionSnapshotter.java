@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.Snapshottable;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.util.List;
@@ -41,17 +42,17 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        List<TreeSnapshot> fileTreeElements = fileSystemSnapshotter.fileCollection(input);
+        List<Snapshottable> snapshottables = fileSystemSnapshotter.fileCollection(input);
 
-        if (fileTreeElements.isEmpty()) {
+        if (snapshottables.isEmpty()) {
             return FileCollectionSnapshot.EMPTY;
         }
 
         FileCollectionSnapshotBuilder collector = createFileCollectionSnapshotBuilder(snapshotNormalizationStrategy, compareStrategy);
 
         ResourceSnapshotter snapshotter = createSnapshotter(snapshotNormalizationStrategy, compareStrategy);
-        for (TreeSnapshot fileTreeSnapshot : fileTreeElements) {
-            snapshotter.snapshot(fileTreeSnapshot, collector);
+        for (Snapshottable snapshottable : snapshottables) {
+            snapshotter.snapshot(snapshottable, collector);
         }
         return collector.build();
     }

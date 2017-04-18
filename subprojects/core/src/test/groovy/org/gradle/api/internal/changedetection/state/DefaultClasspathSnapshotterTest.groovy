@@ -70,7 +70,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
         when:
         def (hash, snapshots, fileCollectionSnapshot) = snapshot(rootFile1, rootDir, rootFile2)
         then:
-        hash == 'bef588307f005b33f9c3192691d687b2'
+        hash == 'c27b1bdb349f6f8b9fe70a6a1b05d400'
         def expectedEntrySnapshots = [
             'dir': [
                 'file1.txt': '60c913683cc577eae172594b76316d06',
@@ -83,9 +83,9 @@ class DefaultClasspathSnapshotterTest extends Specification {
         snapshots == expectedEntrySnapshots
         fileCollectionSnapshot == [
             ['root1.txt', '', 'd41d8cd98f00b204e9800998ecf8427e'],
-            ['dir', '', 'DIR'],
             ['file1.txt', 'file1.txt', '60c913683cc577eae172594b76316d06'],
             ['file2.txt', 'file2.txt', 'e0d9760b191a5dc21838e8a16f956bb0'],
+            ['dir', '', 'DIR'],
             ['root2.txt', '', 'd41d8cd98f00b204e9800998ecf8427e'],
         ]
 
@@ -93,14 +93,14 @@ class DefaultClasspathSnapshotterTest extends Specification {
         jarCache.allEntries.clear()
         (hash, snapshots, fileCollectionSnapshot) = snapshot(rootFile2, rootFile1, rootDir)
         then:
-        hash == '4a41fdac8023c0182de12162ba283662'
+        hash == '14b6545b017e1edb1734aee0f1d8e058'
         snapshots == expectedEntrySnapshots
         fileCollectionSnapshot == [
             ['root2.txt', '', 'd41d8cd98f00b204e9800998ecf8427e'],
             ['root1.txt', '', 'd41d8cd98f00b204e9800998ecf8427e'],
-            ['dir', '', 'DIR'],
             ['file1.txt', 'file1.txt', '60c913683cc577eae172594b76316d06'],
             ['file2.txt', 'file2.txt', 'e0d9760b191a5dc21838e8a16f956bb0'],
+            ['dir', '', 'DIR'],
         ]
     }
 
@@ -124,14 +124,14 @@ class DefaultClasspathSnapshotterTest extends Specification {
         when:
         def (hash, snapshots, fileCollectionSnapshot) = snapshot(zipFile, classes)
         then:
-        hash == '97092e2214481cf08d4b741cb549ae4d'
+        hash == '8d79d677c7cba1841912a5e15ab847c8'
 
         fileCollectionSnapshot == [
             ['library.jar', '', 'f31495fd1bb4b8c3b8fb1f46a68adf9e'],
-            ['classes', '', 'DIR'],
             ['fourthFile.txt', 'fourthFile.txt', '8fd6978401143ae9adc277e9ce819f7e'],
             ['build.log', 'subdir/build.log', 'abf951c0fe2b682313add34f016bcb30'],
-            ['thirdFile.txt', 'thirdFile.txt', '728271a3405e112740bfd3198cfa70de']
+            ['thirdFile.txt', 'thirdFile.txt', '728271a3405e112740bfd3198cfa70de'],
+            ['classes', '', 'DIR'],
         ]
 //        snapshots == [
 //            'library.jar': [

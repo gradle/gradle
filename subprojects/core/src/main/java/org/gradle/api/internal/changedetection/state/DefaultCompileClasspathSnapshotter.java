@@ -22,6 +22,7 @@ import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
 import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
@@ -67,7 +68,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         return resourceSnapshotter;
     }
 
-    private static class CompileClasspathEntrySnapshotter implements ResourceSnapshotter {
+    private static class CompileClasspathEntrySnapshotter extends AbstractSnapshotter {
         private final PersistentIndexedCache<HashCode, HashCode> signatureCache;
         private final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(Collections.<String>emptySet());
         private static final HashCode IGNORED = Hashing.md5().hashString("Ignored ABI", UTF_8);
@@ -77,20 +78,24 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         }
 
         @Override
-        public void snapshot(TreeSnapshot details, SnapshotCollector collector) {
-            SnapshottableResource root = details.getRoot();
-            if (root instanceof SnapshottableReadableResource && root.getName().endsWith(".class")) {
-                if (root instanceof FileSnapshot) {
-                    HashCode hashCode = root.getContent().getContentMd5();
+        protected void snapshotTree(SnapshottableResourceTree snapshottable, SnapshotCollector collector) {
+            throw new UnsupportedOperationException("Trees cannot be classpath entries");
+        }
+
+        @Override
+        protected void snapshotResource(SnapshottableResource resource, SnapshotCollector collector) {
+            if (resource instanceof SnapshottableReadableResource && resource.getName().endsWith(".class")) {
+                if (resource instanceof FileSnapshot) {
+                    HashCode hashCode = resource.getContent().getContentMd5();
                     HashCode signatureHash = signatureCache.get(hashCode);
                     if (signatureHash != null) {
                         if (signatureHash != IGNORED) {
-                            collector.recordSnapshot(root, signatureHash);
+                            collector.recordSnapshot(resource, signatureHash);
                         }
                         return;
                     }
                 }
-                hashClassSignature((SnapshottableReadableResource) root, collector);
+                hashClassSignature((SnapshottableReadableResource) resource, collector);
             }
         }
 

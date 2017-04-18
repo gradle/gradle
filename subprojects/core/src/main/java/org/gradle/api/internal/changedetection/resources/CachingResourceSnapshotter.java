@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.resources;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
-import org.gradle.api.internal.changedetection.state.TreeSnapshot;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
@@ -33,23 +32,22 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
     }
 
     @Override
-    public void snapshot(TreeSnapshot resource, final SnapshotCollector collector) {
-        SnapshottableResource root = resource.getRoot();
-        if (isCacheable(root)) {
-            FileSnapshot fileSnapshot = (FileSnapshot) root;
+    public void snapshot(Snapshottable snapshottable, final SnapshotCollector collector) {
+        if (isCacheable(snapshottable)) {
+            FileSnapshot fileSnapshot = (FileSnapshot) snapshottable;
             HashCode hash = cache.get(fileSnapshot.getContent().getContentMd5());
             if (hash != null) {
                 collector.recordSnapshot(fileSnapshot, hash);
             } else {
-                delegate.snapshot(resource, new CachingSnapshotCollector(root, collector, cache));
+                delegate.snapshot(snapshottable, new CachingSnapshotCollector(fileSnapshot, collector, cache));
             }
         } else {
-            delegate.snapshot(resource, collector);
+            delegate.snapshot(snapshottable, collector);
         }
     }
 
-    private static boolean isCacheable(SnapshottableResource root) {
-        return root instanceof FileSnapshot && root.getType() == FileType.RegularFile;
+    private static boolean isCacheable(Snapshottable root) {
+        return root instanceof FileSnapshot && ((FileSnapshot) root).getType() == FileType.RegularFile;
     }
 
     private static class CachingSnapshotCollector implements SnapshotCollector {
