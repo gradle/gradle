@@ -120,7 +120,7 @@ fun extensionAccessorFor(name: String, type: String): String? =
             /**
              * Configures the [$name][$type] project extension.
              */
-            fun Project.`$name`(configure: $type.() -> Unit) =
+            fun Project.`$name`(configure: $type.() -> Unit): Unit =
                 extensions.configure("$name", configure)
 
         """.replaceIndent()
@@ -139,7 +139,7 @@ fun conventionAccessorFor(name: String, type: String): String? =
             /**
              * Configures the [$name][$type] project convention.
              */
-            fun Project.`$name`(configure: $type.() -> Unit) =
+            fun Project.`$name`(configure: $type.() -> Unit): Unit =
                 convention.getPluginByName<$type>("$name").configure()
 
         """.replaceIndent()
