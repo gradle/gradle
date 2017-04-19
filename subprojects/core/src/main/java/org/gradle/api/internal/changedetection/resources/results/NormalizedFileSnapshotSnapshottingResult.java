@@ -18,18 +18,27 @@ package org.gradle.api.internal.changedetection.resources.results;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
+import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
 
-public class NormalizedResourceSnapshottingResult extends AbstractSnapshottingResult {
+public class NormalizedFileSnapshotSnapshottingResult extends AbstractNormalizedFileSnapshotSnapshottingResult {
+    private final FileContentSnapshot snapshot;
     private final HashCode hash;
 
-    public NormalizedResourceSnapshottingResult(NormalizedPath normalizedPath, HashCode hash) {
-        super(normalizedPath);
+    public NormalizedFileSnapshotSnapshottingResult(SnapshottableFileSystemResource resource, NormalizedPath normalizedPath, HashCode hash) {
+        super(resource, normalizedPath);
         this.hash = hash;
+        this.snapshot = getFileContentSnapshot(resource, hash);
     }
 
     @Override
-    public HashCode getHash(NormalizedFileSnapshotCollector collector) {
+    public FileContentSnapshot getSnapshot() {
+        return snapshot;
+    }
+
+    @Override
+    protected HashCode getHashInternal(NormalizedFileSnapshotCollector collector) {
         return hash;
     }
 }

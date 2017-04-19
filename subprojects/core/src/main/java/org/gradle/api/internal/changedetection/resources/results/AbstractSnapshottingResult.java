@@ -17,26 +17,14 @@
 package org.gradle.api.internal.changedetection.resources.results;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
-import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
-import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public abstract class AbstractSnapshottingResult implements SnapshottingResult {
-    protected final SnapshottableResource resource;
     protected final NormalizedPath normalizedPath;
 
-    public AbstractSnapshottingResult(SnapshottableResource resource, NormalizedPath normalizedPath) {
-        this.resource = resource;
+    public AbstractSnapshottingResult(NormalizedPath normalizedPath) {
         this.normalizedPath = normalizedPath;
-    }
-
-    @Override
-    public SnapshottableResource getResource() {
-        return resource;
     }
 
     @Override
@@ -45,27 +33,15 @@ public abstract class AbstractSnapshottingResult implements SnapshottingResult {
     }
 
     @Override
-    public HashCode getHash(NormalizedFileSnapshotCollector collector) {
-        HashCode hash = getHashInternal(collector);
-        if (collector != null) {
-            if (resource instanceof SnapshottableFileSystemResource) {
-                SnapshottableFileSystemResource fileSystemResource = (SnapshottableFileSystemResource) resource;
-                if (resource.getType() == FileType.RegularFile) {
-                    fileSystemResource = fileSystemResource.withContentHash(hash);
-                }
-                collector.collectSnapshot(new DefaultNormalizedFileSnapshot(fileSystemResource.getPath(), getNormalizedPath(), fileSystemResource.getContent()));
-            }
-        }
-        return hash;
+    public HashCode getHash() {
+        return getHash(null);
     }
 
-    protected abstract HashCode getHashInternal(NormalizedFileSnapshotCollector collector);
-
     @Override
-    public int compareTo(SnapshottingResult o) {
+    public int compareTo(NormalizedSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
-            result = HashUtil.compareHashCodes(getHash(null), o.getHash(null));
+            result = HashUtil.compareHashCodes(getHash(), o.getHash());
         }
         return result;
     }

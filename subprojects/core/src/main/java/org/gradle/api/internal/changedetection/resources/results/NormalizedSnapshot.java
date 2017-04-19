@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.resources.results;
 
-public interface NormalizedFileSnapshotCollector {
-    void collectSnapshot(String path, NormalizedFileSnapshot snapshot);
+import com.google.common.hash.HashCode;
+import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
+
+public interface NormalizedSnapshot extends Comparable<NormalizedSnapshot> {
+    NormalizedPath getNormalizedPath();
+    HashCode getHash();
 }

@@ -35,8 +35,7 @@ public class FileCollectionSnapshotBuilder extends DefaultSnapshottingResultReco
     }
 
     @Override
-    public void collectSnapshot(NormalizedFileSnapshot normalizedSnapshot) {
-        String absolutePath = normalizedSnapshot.getPath();
+    public void collectSnapshot(String absolutePath, NormalizedFileSnapshot normalizedSnapshot) {
         if (!snapshots.containsKey(absolutePath)) {
             snapshots.put(absolutePath, normalizedSnapshot);
         }

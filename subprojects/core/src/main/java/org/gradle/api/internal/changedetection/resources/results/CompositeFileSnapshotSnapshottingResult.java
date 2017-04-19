@@ -19,18 +19,33 @@ package org.gradle.api.internal.changedetection.resources.results;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
+import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
 
-public class CompositeSnapshottingResult extends AbstractSnapshottingResult {
+public class CompositeFileSnapshotSnapshottingResult extends AbstractNormalizedFileSnapshotSnapshottingResult {
+    private SnapshottableFileSystemResource resource;
     private final SnapshottingResultRecorder recorder;
+    private FileContentSnapshot snapshot;
 
-    public CompositeSnapshottingResult(NormalizedPath normalizedPath, SnapshottingResultRecorder recorder) {
-        super(normalizedPath);
+    public CompositeFileSnapshotSnapshottingResult(SnapshottableFileSystemResource resource, NormalizedPath normalizedPath, SnapshottingResultRecorder recorder) {
+        super(resource, normalizedPath);
+        this.resource = resource;
         this.recorder = recorder;
     }
 
     @Override
-    public HashCode getHash(NormalizedFileSnapshotCollector fileSnapshotCollector) {
-        return recorder.getHash(fileSnapshotCollector);
+    protected HashCode getHashInternal(NormalizedFileSnapshotCollector collector) {
+        HashCode hash = recorder.getHash(collector);
+        if (snapshot == null) {
+            this.snapshot = getFileContentSnapshot(resource, hash);
+            this.resource = null;
+        }
+        return hash;
+    }
+
+    @Override
+    public FileContentSnapshot getSnapshot() {
+        return snapshot;
     }
 }

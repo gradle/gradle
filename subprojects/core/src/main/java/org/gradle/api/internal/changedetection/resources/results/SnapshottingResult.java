@@ -17,8 +17,6 @@
 package org.gradle.api.internal.changedetection.resources.results;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
-import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 
 /**
@@ -26,8 +24,6 @@ import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotColle
  *
  * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these aspects.
  */
-public interface SnapshottingResult extends Comparable<SnapshottingResult> {
-    SnapshottableResource getResource();
-    NormalizedPath getNormalizedPath();
+public interface SnapshottingResult extends NormalizedSnapshot {
     HashCode getHash(NormalizedFileSnapshotCollector collector);
 }

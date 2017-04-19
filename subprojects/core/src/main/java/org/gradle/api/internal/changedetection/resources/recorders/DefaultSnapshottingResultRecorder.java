@@ -20,11 +20,14 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
+import org.gradle.api.internal.changedetection.resources.results.CompositeFileSnapshotSnapshottingResult;
 import org.gradle.api.internal.changedetection.resources.results.CompositeSnapshottingResult;
+import org.gradle.api.internal.changedetection.resources.results.NormalizedFileSnapshotSnapshottingResult;
 import org.gradle.api.internal.changedetection.resources.results.NormalizedResourceSnapshottingResult;
 import org.gradle.api.internal.changedetection.resources.results.SnapshottingResult;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -47,13 +50,21 @@ public class DefaultSnapshottingResultRecorder implements SnapshottingResultReco
     @Override
     public void recordResult(SnapshottableResource resource, HashCode hash) {
         NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(resource, stringInterner);
-        normalizedResources.add(new NormalizedResourceSnapshottingResult(resource, normalizedPath, hash));
+        if (resource instanceof SnapshottableFileSystemResource) {
+            normalizedResources.add(new NormalizedFileSnapshotSnapshottingResult((SnapshottableFileSystemResource) resource, normalizedPath, hash));
+        } else {
+            normalizedResources.add(new NormalizedResourceSnapshottingResult(normalizedPath, hash));
+        }
     }
 
     @Override
     public SnapshottingResultRecorder recordCompositeResult(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
         NormalizedPath normalizedPath = normalizationStrategy.getNormalizedPath(resource, stringInterner);
-        normalizedResources.add(new CompositeSnapshottingResult(resource, normalizedPath, recorder));
+        if (resource instanceof SnapshottableFileSystemResource) {
+            normalizedResources.add(new CompositeFileSnapshotSnapshottingResult((SnapshottableFileSystemResource) resource, normalizedPath, recorder));
+        } else {
+            normalizedResources.add(new CompositeSnapshottingResult(normalizedPath, recorder));
+        }
         return recorder;
     }
 

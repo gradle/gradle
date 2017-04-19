@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
+import org.gradle.api.internal.changedetection.resources.results.NormalizedSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashUtil;
 
 public class DefaultNormalizedFileSnapshot implements NormalizedFileSnapshot {
-    private final String path;
     private final NormalizedPath normalizedPath;
     private final FileContentSnapshot snapshot;
 
-    public DefaultNormalizedFileSnapshot(String path, NormalizedPath normalizedPath, FileContentSnapshot snapshot) {
-        this.path = path;
+    public DefaultNormalizedFileSnapshot(NormalizedPath normalizedPath, FileContentSnapshot snapshot) {
         this.normalizedPath = normalizedPath;
         this.snapshot = snapshot;
     }
@@ -37,8 +37,8 @@ public class DefaultNormalizedFileSnapshot implements NormalizedFileSnapshot {
     }
 
     @Override
-    public String getPath() {
-        return path;
+    public HashCode getHash() {
+        return getSnapshot().getContentMd5();
     }
 
     @Override
@@ -47,10 +47,10 @@ public class DefaultNormalizedFileSnapshot implements NormalizedFileSnapshot {
     }
 
     @Override
-    public int compareTo(NormalizedFileSnapshot o) {
+    public int compareTo(NormalizedSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
-            result = HashUtil.compareHashCodes(getSnapshot().getContentMd5(), o.getSnapshot().getContentMd5());
+            result = HashUtil.compareHashCodes(getHash(), o.getHash());
         }
         return result;
     }

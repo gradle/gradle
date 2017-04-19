@@ -36,9 +36,9 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         def overallHash = stringHash("123")
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
-            "/1": new DefaultNormalizedFileSnapshot("/1", new DefaultRelativePath("1"), DirContentSnapshot.getInstance()),
-            "/2": new DefaultNormalizedFileSnapshot("/2", new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
-            "/3": new DefaultNormalizedFileSnapshot("/3", new DefaultRelativePath("3"), new FileHashSnapshot(hash))
+            "/1": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("1"), DirContentSnapshot.getInstance()),
+            "/2": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
+            "/3": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("3"), new FileHashSnapshot(hash))
         ], UNORDERED, true, overallHash), serializer)
 
         then:
@@ -59,9 +59,9 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         when:
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
-            "/3": new DefaultNormalizedFileSnapshot("/3", new DefaultRelativePath("3"), new FileHashSnapshot(hash)),
-            "/2": new DefaultNormalizedFileSnapshot("/2", new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
-            "/1": new DefaultNormalizedFileSnapshot("/1", new DefaultRelativePath("1"), DirContentSnapshot.getInstance())
+            "/3": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("3"), new FileHashSnapshot(hash)),
+            "/2": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
+            "/1": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("1"), DirContentSnapshot.getInstance())
         ], ORDERED, true, stringHash("321")), serializer)
 
         then:
@@ -72,9 +72,9 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         when:
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
-            "/3": new DefaultNormalizedFileSnapshot("/3", new DefaultRelativePath("3"), new FileHashSnapshot(hash)),
-            "/2": new DefaultNormalizedFileSnapshot("/2", new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
-            "/1": new DefaultNormalizedFileSnapshot("/1", new DefaultRelativePath("1"), DirContentSnapshot.getInstance())
+            "/3": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("3"), new FileHashSnapshot(hash)),
+            "/2": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("2"), MissingFileContentSnapshot.getInstance()),
+            "/1": new DefaultNormalizedFileSnapshot(new DefaultRelativePath("1"), DirContentSnapshot.getInstance())
         ], ORDERED, true, null), serializer)
 
         then:

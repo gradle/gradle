@@ -98,7 +98,7 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
             default:
                 throw new RuntimeException("Unable to read serialized file snapshot. Unrecognized value found in the data stream.");
         }
-        return new DefaultNormalizedFileSnapshot(absolutePath, normalizedPath, snapshot);
+        return new DefaultNormalizedFileSnapshot(normalizedPath, snapshot);
     }
 
     @Override

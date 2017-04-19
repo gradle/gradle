@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
+import org.gradle.api.internal.changedetection.resources.results.NormalizedSnapshot;
 
 /**
  * An immutable snapshot of some aspects of a file's metadata and content.
  *
  * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these aspects.
  */
-public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Snapshot {
-    String getPath();
-    NormalizedPath getNormalizedPath();
+public interface NormalizedFileSnapshot extends NormalizedSnapshot, Snapshot {
     FileContentSnapshot getSnapshot();
 }
