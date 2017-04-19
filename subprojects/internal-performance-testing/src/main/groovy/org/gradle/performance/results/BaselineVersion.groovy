@@ -26,7 +26,7 @@ import static PrettyCalculator.toMillis
 class BaselineVersion implements VersionResults {
     // Multiply standard error of mean by this factor to reduce the number of a falsely identified regressions.
     // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
-    static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("5")
+    static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
 
