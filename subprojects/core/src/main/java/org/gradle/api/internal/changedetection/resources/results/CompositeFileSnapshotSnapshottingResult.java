@@ -24,23 +24,19 @@ import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotColle
 import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
 
 public class CompositeFileSnapshotSnapshottingResult extends AbstractNormalizedFileSnapshotSnapshottingResult {
-    private SnapshottableFileSystemResource resource;
     private final SnapshottingResultRecorder recorder;
     private FileContentSnapshot snapshot;
 
     public CompositeFileSnapshotSnapshottingResult(SnapshottableFileSystemResource resource, NormalizedPath normalizedPath, SnapshottingResultRecorder recorder) {
         super(resource, normalizedPath);
-        this.resource = resource;
+        this.snapshot = resource.getContent();
         this.recorder = recorder;
     }
 
     @Override
     protected HashCode getHashInternal(NormalizedFileSnapshotCollector collector) {
         HashCode hash = recorder.getHash(collector);
-        if (snapshot == null) {
-            this.snapshot = getFileContentSnapshot(resource, hash);
-            this.resource = null;
-        }
+        this.snapshot = getFileContentSnapshot(snapshot, hash);
         return hash;
     }
 

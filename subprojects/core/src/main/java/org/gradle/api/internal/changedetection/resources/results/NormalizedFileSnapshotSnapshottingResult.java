@@ -29,7 +29,7 @@ public class NormalizedFileSnapshotSnapshottingResult extends AbstractNormalized
     public NormalizedFileSnapshotSnapshottingResult(SnapshottableFileSystemResource resource, NormalizedPath normalizedPath, HashCode hash) {
         super(resource, normalizedPath);
         this.hash = hash;
-        this.snapshot = getFileContentSnapshot(resource, hash);
+        this.snapshot = getFileContentSnapshot(resource.getContent(), hash);
     }
 
     @Override
