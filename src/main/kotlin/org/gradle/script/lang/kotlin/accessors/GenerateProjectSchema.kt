@@ -19,6 +19,7 @@ package org.gradle.script.lang.kotlin.accessors
 import groovy.json.JsonOutput.prettyPrint
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
@@ -32,13 +33,19 @@ open class GenerateProjectSchema : DefaultTask() {
     override fun getDescription() =
         "Generates Kotlin code for accessing and configuring the currently available project extensions and conventions."
 
+    @Suppress("unused")
+    @Input
+    fun getSchemaInput(): Map<String, Any> = schema
+
     @get:OutputFile
     var destinationFile: File? = null
+
+    private
+    val schema by lazy { multiProjectKotlinStringSchemaFor(project) }
 
     @Suppress("unused")
     @TaskAction
     fun generateProjectSchema() {
-        destinationFile!!.writeText(
-            prettyPrint(toJson(multiProjectSchemaFor(project))))
+        destinationFile!!.writeText(prettyPrint(toJson(schema)))
     }
 }

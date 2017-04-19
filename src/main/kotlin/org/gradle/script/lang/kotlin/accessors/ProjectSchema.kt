@@ -27,12 +27,13 @@ import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
 import java.io.File
+import java.io.Serializable
 
 
 internal
 data class ProjectSchema<out T>(
     val extensions: Map<String, T>,
-    val conventions: Map<String, T>) {
+    val conventions: Map<String, T>) : Serializable {
 
     fun <U> map(f: (T) -> U) =
         ProjectSchema(
@@ -40,6 +41,10 @@ data class ProjectSchema<out T>(
             conventions.mapValues { f(it.value) })
 }
 
+
+internal
+fun multiProjectKotlinStringSchemaFor(root: Project): Map<String, ProjectSchema<String>> =
+    multiProjectSchemaFor(root).mapValues { it.value.withKotlinTypeStrings() }
 
 internal
 fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> =
@@ -76,9 +81,8 @@ fun isAccessible(type: TypeOf<*>): Boolean =
 
 
 internal
-fun toJson(multiProjectSchema: Map<String, ProjectSchema<TypeOf<*>>>): String =
-    toJson(multiProjectSchema.mapValues { it.value.withKotlinTypeStrings() })
-
+fun toJson(multiProjectStringSchema: Map<String, ProjectSchema<String>>): String =
+    toJson(multiProjectStringSchema)
 
 internal
 fun ProjectSchema<TypeOf<*>>.withKotlinTypeStrings() =
