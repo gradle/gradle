@@ -140,7 +140,7 @@ fun conventionAccessorFor(name: String, type: String): String? =
              * Configures the [$name][$type] project convention.
              */
             fun Project.`$name`(configure: $type.() -> Unit) =
-                convention.getPluginByName<$type>("$name").apply { configure() }
+                convention.getPluginByName<$type>("$name").configure()
 
         """.replaceIndent()
     else null
