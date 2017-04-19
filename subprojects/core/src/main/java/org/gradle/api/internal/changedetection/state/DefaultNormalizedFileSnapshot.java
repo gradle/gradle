@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.resources.paths.NormalizedPath;
 import org.gradle.api.internal.changedetection.resources.results.NormalizedSnapshot;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashUtil;
 
 public class DefaultNormalizedFileSnapshot implements NormalizedFileSnapshot {
@@ -53,12 +52,6 @@ public class DefaultNormalizedFileSnapshot implements NormalizedFileSnapshot {
             result = HashUtil.compareHashCodes(getHash(), o.getHash());
         }
         return result;
-    }
-
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putString(getNormalizedPath().getPath());
-        hasher.putBytes(getSnapshot().getContentMd5().asBytes());
     }
 
     @Override

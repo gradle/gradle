@@ -23,7 +23,6 @@ import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public abstract class AbstractNormalizedFileSnapshotSnapshottingResult extends AbstractSnapshottingResult implements NormalizedFileSnapshot {
@@ -40,13 +39,6 @@ public abstract class AbstractNormalizedFileSnapshotSnapshottingResult extends A
         super(normalizedPath);
         this.path = resource.getPath();
     }
-
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putString(getNormalizedPath().getPath());
-        hasher.putBytes(getSnapshot().getContentMd5().asBytes());
-    }
-
 
     @Override
     public HashCode getHash(NormalizedFileSnapshotCollector collector) {

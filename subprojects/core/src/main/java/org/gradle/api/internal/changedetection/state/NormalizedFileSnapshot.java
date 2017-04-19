@@ -23,6 +23,13 @@ import org.gradle.api.internal.changedetection.resources.results.NormalizedSnaps
  *
  * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these aspects.
  */
-public interface NormalizedFileSnapshot extends NormalizedSnapshot, Snapshot {
+public interface NormalizedFileSnapshot extends NormalizedSnapshot {
+    /*
+     * `FileContentSnapshot` is only required to check if a file in the output
+     * directory changed during task execution (timestamp of content) to
+     * determine if it is part of the output of the task. We should probably
+     * get rid of this two and only keep the hash or always keep the hash and the timestamp
+     * separately.
+     */
     FileContentSnapshot getSnapshot();
 }
