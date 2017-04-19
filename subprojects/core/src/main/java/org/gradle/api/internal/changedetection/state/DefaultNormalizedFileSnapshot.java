@@ -59,11 +59,11 @@ public class DefaultNormalizedFileSnapshot implements NormalizedFileSnapshot {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if ((o == null) || !(o instanceof NormalizedFileSnapshot)) {
             return false;
         }
-        DefaultNormalizedFileSnapshot that = (DefaultNormalizedFileSnapshot) o;
-        return snapshot.equals(that.snapshot)
+        NormalizedFileSnapshot that = (NormalizedFileSnapshot) o;
+        return snapshot.equals(that.getSnapshot())
             && getNormalizedPath().equals(that.getNormalizedPath());
     }
 

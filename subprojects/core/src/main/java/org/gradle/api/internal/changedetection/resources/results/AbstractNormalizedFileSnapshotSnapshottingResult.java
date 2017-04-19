@@ -49,4 +49,24 @@ public abstract class AbstractNormalizedFileSnapshotSnapshottingResult extends A
     }
 
     protected abstract HashCode getHashInternal(NormalizedFileSnapshotCollector collector);
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if ((o == null) || !(o instanceof NormalizedFileSnapshot)) {
+            return false;
+        }
+        NormalizedFileSnapshot that = (NormalizedFileSnapshot) o;
+        return getSnapshot().equals(that.getSnapshot())
+            && getNormalizedPath().equals(that.getNormalizedPath());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getSnapshot().hashCode();
+        result = 31 * result + getNormalizedPath().hashCode();
+        return result;
+    }
 }
