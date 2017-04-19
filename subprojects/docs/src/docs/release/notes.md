@@ -112,6 +112,18 @@ When two tasks write into the same directory, Gradle will now disable task outpu
 
 You can diagnose overlapping task output issues by running Gradle at the `--info` log level. If you are using [Gradle Build Scans](https://gradle.com/scans/get-started), the same detailed reason for disabling task output caching will be included in the build timeline. 
 
+#### Stricter validation of task properties
+
+When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin go through validation. In Gradle 4.0 some additional problems are now detected. A warning is shown when:
+
+* a task has a property without an input or output annotation (this might indicate forgotten inputs or outputs),
+* a task has `@Input` on a `File` property (instead of using `@InputFile` of `@InputDirectory`),
+* a task declares conflicting types for a property (say, both `@InputFile` and `@InputDirectory`),
+* a cacheable task declares a property without specifying `@PathSensitive`; in such a case we default to `ABSOLUTE` sensitivity, which for most cases means the task's results cannot be shared among different users via a shared cache.
+
+For more info on using task property annotations see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
+
+
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
 This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases.
