@@ -25,7 +25,7 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
         runner.testProject = "excludeRuleMergingBuild"
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["3.5-20170221000043+0000"]
+        runner.targetVersions = ["4.0-20170419000017+0000"]
         when:
         def result = runner.run()
 
