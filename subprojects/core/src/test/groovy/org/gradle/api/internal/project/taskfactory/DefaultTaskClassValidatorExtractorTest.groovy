@@ -260,7 +260,9 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         def validator = extractor.extractValidator(TaskWithNonAnnotatedProperty)
 
         then:
-        assertValidationMessages(validator.validationMessages, "property 'inputFiles': is not annotated with an input or output annotation")
+        validator.validationMessages*.toString() == [
+                "property 'inputFiles': is not annotated with an input or output annotation"
+        ]
     }
 
     class TaskWithBothFieldAndGetterAnnotation extends DefaultTask {
@@ -279,7 +281,9 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         def validator = extractor.extractValidator(TaskWithBothFieldAndGetterAnnotation)
 
         then:
-        assertValidationMessages(validator.validationMessages, "property 'inputFiles': both getter and field declare annotation @InputFiles")
+        validator.validationMessages*.toString() == [
+                "property 'inputFiles': both getter and field declare annotation @InputFiles"
+        ]
     }
 
     class TaskWithBothFieldAndGetterAnnotationButIrrelevant extends DefaultTask {
@@ -318,9 +322,10 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         def validator = extractor.extractValidator(TaskWithConflictingPropertyTypes)
 
         then:
-        assertValidationMessages(validator.validationMessages,
+        validator.validationMessages*.toString() == [
             "property 'confusedFile': conflicting property types are declared: @InputFile, @OutputFile",
-            "property 'inputThing': conflicting property types are declared: @InputFile, @InputDirectory")
+            "property 'inputThing': conflicting property types are declared: @InputFile, @InputDirectory"
+        ]
     }
 
     class TaskWithNonConflictingPropertyTypes extends DefaultTask {
@@ -357,10 +362,11 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         def validator = extractor.extractValidator(TaskWithFileInput)
 
         then:
-        assertValidationMessages(validator.validationMessages,
-            "property 'fileTree': @Input annotation used on property of type $FileTree.name",
+        validator.validationMessages*.toString() == [
             "property 'file': @Input annotation used on property of type $File.name",
-            "property 'fileCollection': @Input annotation used on property of type $FileCollection.name")
+            "property 'fileCollection': @Input annotation used on property of type $FileCollection.name",
+            "property 'fileTree': @Input annotation used on property of type $FileTree.name"
+        ]
     }
 
     @CacheableTask
@@ -382,14 +388,9 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         def validator = extractor.extractValidator(CacheableTaskWithoutPathSensitivity)
 
         then:
-        assertValidationMessages(validator.validationMessages,
+        validator.validationMessages*.toString() == [
             "property 'inputFile': missing @PathSensitive annotation on cacheable task input property",
-            "property 'inputFiles': missing @PathSensitive annotation on cacheable task input property")
-    }
-
-    void assertValidationMessages(List<TaskClassValidationMessage> messages, String... expectedMessages) {
-        def actualMessages = messages*.message
-        assert actualMessages.size() == expectedMessages.size()
-        assert expectedMessages.every { actualMessages.contains(it) }
+            "property 'inputFiles': missing @PathSensitive annotation on cacheable task input property"
+        ]
     }
 }

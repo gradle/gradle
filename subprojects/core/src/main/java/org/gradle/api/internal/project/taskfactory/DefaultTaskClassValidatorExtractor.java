@@ -137,7 +137,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
 
     private <T> void parseProperties(final TaskPropertyInfo parent, Class<T> type, ImmutableSet.Builder<TaskPropertyInfo> annotatedProperties, final ImmutableCollection.Builder<TaskClassValidationMessage> validationMessages, final boolean cacheable, Queue<TypeEntry> queue) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
-        final Map<String, DefaultTaskPropertyActionContext> propertyContexts = Maps.newHashMap();
+        final Map<String, DefaultTaskPropertyActionContext> propertyContexts = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
