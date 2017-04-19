@@ -23,6 +23,8 @@ targetCompatibility = '1.7'
 
 repositories {
     maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+    // TODO Remove if no Groovy snapshot is being used
+    maven { url "https://repo.gradle.org/gradle/libs-snapshots" }
 }
 
 dependencies {
