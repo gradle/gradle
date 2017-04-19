@@ -70,6 +70,12 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
         } catch (IOException e) {
             // IOExceptions other than ZipException are failures.
             throw new UncheckedIOException("Error snapshotting jar [" + tree.getRoot().getName() + "]", e);
+        } catch (UncheckedIOException e) {
+            Throwable cause = e.getCause();
+            if (!(cause instanceof ZipException)) {
+                throw e;
+            }
+            hashMalformedZip(tree.getRoot(), recorder);
         } catch (Exception e) {
             // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
             hashMalformedZip(tree.getRoot(), recorder);
