@@ -23,9 +23,12 @@ import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
 import java.util.List;
 import java.util.Map;
@@ -373,7 +376,8 @@ public class CompileOptions extends AbstractOptions {
      * @return the source path
      * @see #setSourcepath(FileCollection)
      */
-    @Input
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
     @Optional
     @Incubating
     public FileCollection getSourcepath() {
