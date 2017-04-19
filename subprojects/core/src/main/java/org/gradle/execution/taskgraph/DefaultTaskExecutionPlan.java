@@ -77,7 +77,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
-    private final Map<TaskInfo, ResourceLock> projectLocks = Maps.newConcurrentMap();
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
     private boolean tasksCancelled;
@@ -484,13 +483,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 final Iterator<TaskInfo> iterator = executionQueue.iterator();
                 while (iterator.hasNext()) {
                     final TaskInfo taskInfo = iterator.next();
-                    if (taskInfo.isReady()) {
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
                         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                             @Override
                             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                                 ResourceLock projectLock = getProjectLock(taskInfo);
                                 // TODO: convert output file checks to a resource lock
-                                if (projectLock.tryLock() && workerLease.tryLock() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                                if (projectLock.tryLock() && workerLease.tryLock() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
                                     selected.set(taskInfo);
                                     iterator.remove();
                                     if (taskInfo.allDependenciesSuccessful()) {
@@ -539,16 +538,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private ResourceLock getProjectLock(TaskInfo taskInfo) {
-        if (projectLocks.containsKey(taskInfo)) {
-            return projectLocks.get(taskInfo);
-        }
-
         Project project = taskInfo.getTask().getProject();
         String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
         String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
-        ResourceLock projectLock = workerLeaseService.getProjectLock(gradlePath, projectPath);
-        projectLocks.put(taskInfo, projectLock);
-        return projectLock;
+        return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
 
     private boolean canRunWithWithCurrentlyExecutedTasks(TaskInfo taskInfo) {

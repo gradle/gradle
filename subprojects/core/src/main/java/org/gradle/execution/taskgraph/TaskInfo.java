@@ -36,7 +36,6 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
-    private boolean dependenciesComplete;
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
@@ -131,17 +130,11 @@ public class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean allDependenciesComplete() {
-        if (dependenciesComplete) {
-            return true;
-        }
-
         for (TaskInfo dependency : Iterables.concat(mustSuccessors, dependencySuccessors)) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
-
-        dependenciesComplete = true;
         return true;
     }
 
