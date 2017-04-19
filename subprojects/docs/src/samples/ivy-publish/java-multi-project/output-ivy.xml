@@ -7,16 +7,16 @@
   </info>
   <configurations>
     <conf name="compile" visibility="public"/>
-    <conf name="default" visibility="public" extends="runtime,compile"/>
+    <conf name="default" visibility="public" extends="compile,runtime"/>
     <conf name="runtime" visibility="public"/>
   </configurations>
   <publications>
-    <artifact name="project1" type="jar" ext="jar" conf="runtime"/>
-    <artifact name="project1" type="source" ext="jar" conf="runtime" m:classifier="source" xmlns:m="http://ant.apache.org/ivy/maven"/>
+    <artifact name="project1" type="jar" ext="jar" conf="compile"/>
+    <artifact name="project1" type="source" ext="jar" conf="compile" m:classifier="source" xmlns:m="http://ant.apache.org/ivy/maven"/>
   </publications>
   <dependencies>
-    <dependency org="junit" name="junit" rev="4.12" conf="runtime-&gt;default"/>
-    <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="runtime-&gt;default"/>
+    <dependency org="junit" name="junit" rev="4.12" conf="compile-&gt;default"/>
+    <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="compile-&gt;default"/>
   </dependencies>
 </ivy-module>
 <!-- END SNIPPET content -->

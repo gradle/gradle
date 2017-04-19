@@ -57,8 +57,8 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
         then:
         repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.runtime.expectDependency('group:projectA:RELEASE')
-        repoModule.parsedPom.scopes.runtime.expectDependency('group:projectB:LATEST')
+        repoModule.parsedPom.scopes.compile.expectDependency('group:projectA:RELEASE')
+        repoModule.parsedPom.scopes.compile.expectDependency('group:projectB:LATEST')
     }
 
     @Issue("GRADLE-3233")
@@ -97,8 +97,8 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
         then:
         repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:")
-        def dependency = repoModule.parsedPom.scopes.runtime.dependencies.get("group:projectA:")
+        repoModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:")
+        def dependency = repoModule.parsedPom.scopes.compile.dependencies.get("group:projectA:")
         dependency.groupId == "group"
         dependency.artifactId == "projectA"
         dependency.version == ""
@@ -158,11 +158,15 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
         where:
         plugin         | gradleConfiguration  | mavenScope
-        'java'         | 'compile'            | 'runtime'
+        'java'         | 'compile'            | 'compile'
+        'java'         | 'runtime'            | 'compile'
         'java'         | 'implementation'     | 'runtime'
+        'java'         | 'runtimeOnly'        | 'runtime'
 
         'java-library' | 'api'                | 'compile'
         'java-library' | 'compile'            | 'compile'
+        'java-library' | 'runtime'            | 'compile'
+        'java-library' | 'runtimeOnly'        | 'runtime'
         'java-library' | 'implementation'     | 'runtime'
 
     }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.java;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -30,7 +29,8 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.gradle.api.plugins.JavaPlugin.*;
+import static org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME;
 
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
@@ -104,12 +104,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         public Set<ModuleDependency> getDependencies() {
             if (dependencies == null) {
-                Configuration apiConfiguration = configurations.findByName(API_CONFIGURATION_NAME);
-                if (apiConfiguration != null) {
-                    dependencies = apiConfiguration.getAllDependencies();
-                } else {
-                    return Collections.emptySet();
-                }
+                dependencies = configurations.findByName(API_ELEMENTS_CONFIGURATION_NAME).getAllDependencies();
             }
             return dependencies.withType(ModuleDependency.class);
         }

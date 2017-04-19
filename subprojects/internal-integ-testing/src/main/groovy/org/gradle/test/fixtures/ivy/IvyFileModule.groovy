@@ -351,7 +351,7 @@ ivyFileWriter << '</ivy-module>'
     void assertPublishedAsJavaModule() {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.jar", "ivy-${revision}.xml")
-        parsedIvy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["runtime"], null)
+        parsedIvy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["compile"], null)
     }
 
     void assertPublishedAsWebModule() {

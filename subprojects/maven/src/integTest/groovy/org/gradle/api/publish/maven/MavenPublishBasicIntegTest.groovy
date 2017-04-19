@@ -173,7 +173,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
         then: "wildcard exclusions are applied to the dependency"
         def pom = localModule.parsedPom
-        def exclusions = pom.scopes.runtime.dependencies['commons-collections:commons-collections:3.2.2'].exclusions
+        def exclusions = pom.scopes.compile.dependencies['commons-collections:commons-collections:3.2.2'].exclusions
         exclusions.size() == 1 && exclusions[0].groupId=='*' && exclusions[0].artifactId=='*'
     }
 
