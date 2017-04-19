@@ -106,7 +106,6 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         for (Project p : allProjects) {
             p.getPluginManager().apply(EclipsePlugin.class);
         }
-        root.getPlugins().getPlugin(EclipsePlugin.class).performPostEvaluationActions();
     }
 
     private DefaultEclipseProject buildHierarchy(Project project) {

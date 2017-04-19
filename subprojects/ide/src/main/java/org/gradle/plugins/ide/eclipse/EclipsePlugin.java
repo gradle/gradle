@@ -101,41 +101,22 @@ public class EclipsePlugin extends IdePlugin {
         configureEclipseJdt(project, model);
         configureEclipseClasspath(project, model);
 
-        postProcess("eclipse", new Action<Gradle>() {
-            @Override
-            public void execute(Gradle gradle) {
-                performPostEvaluationActions();
-            }
-        });
+        registerEclipseArtifacts(project);
 
         applyEclipseWtpPluginOnWebProjects(project);
-    }
-
-    public void performPostEvaluationActions() {
-        // This needs to happen after user configuration
-        registerEclipseArtifacts();
-    }
-
-    private void registerEclipseArtifacts() {
-        Set<Project> projectsWithEclipse = Sets.filter(project.getRootProject().getAllprojects(), HAS_ECLIPSE_PLUGIN);
-        for (Project project : projectsWithEclipse) {
-            registerEclipseArtifacts(project);
-        }
     }
 
     private static void registerEclipseArtifacts(Project project) {
         ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
         ProjectComponentIdentifier projectId = newProjectId(project);
-        String projectName = project.getExtensions().getByType(EclipseModel.class).getProject().getName();
-        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("project", projectId, projectName, project));
-        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("classpath", projectId, projectName, project));
+        EclipseProject eclipseProject = project.getExtensions().getByType(EclipseModel.class).getProject();
+        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact(eclipseProject, "project", projectId, project));
+        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact(eclipseProject, "classpath", projectId, project));
     }
 
-    private static LocalComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
-        File projectFile = new File(project.getProjectDir(), "." + extension);
+    private static LocalComponentArtifactMetadata createArtifact(EclipseProject eclipseProject, String extension, ProjectComponentIdentifier projectId, Project project) {
         Task byName = project.getTasks().getByName("eclipseProject");
-        String type = "eclipse." + extension;
-        PublishArtifact publishArtifact = new DefaultPublishArtifact(projectName, extension, type, null, null, projectFile, byName);
+        PublishArtifact publishArtifact = new EclipseArtifact(eclipseProject, project.getProjectDir(), extension, byName);
         return new PublishArtifactLocalArtifactMetadata(projectId, publishArtifact);
     }
 
@@ -412,4 +393,26 @@ public class EclipsePlugin extends IdePlugin {
             return project.getPlugins().hasPlugin(EclipsePlugin.class);
         }
     };
+
+    private static class EclipseArtifact extends DefaultPublishArtifact {
+        private final EclipseProject eclipseProject;
+        private final File projectDir;
+
+        public EclipseArtifact(EclipseProject eclipseProject, File projectDir, String extension, Object... tasks) {
+            super(null, extension, "eclipse." + extension, null, null, null, tasks);
+            this.eclipseProject = eclipseProject;
+            this.projectDir = projectDir;
+        }
+
+        @Override
+        public String getName() {
+            return eclipseProject.getName();
+        }
+
+        @Override
+        public File getFile() {
+            return new File(projectDir, "." + getExtension());
+        }
+    }
+
 }
