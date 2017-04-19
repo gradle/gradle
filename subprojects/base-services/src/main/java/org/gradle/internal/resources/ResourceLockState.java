@@ -29,4 +29,9 @@ public interface ResourceLockState {
      * @param resourceLock
      */
     void registerLocked(ResourceLock resourceLock);
+
+    /**
+     * Roll back any locks that have been acquired.
+     */
+    void reset();
 }

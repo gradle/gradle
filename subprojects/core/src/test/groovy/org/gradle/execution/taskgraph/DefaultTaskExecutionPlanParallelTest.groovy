@@ -72,6 +72,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         expect:
         addToGraphAndPopulate(foo, bar, baz)
         async {
+            populateReadyQueue()
             def taskWorker1 = taskWorker()
             def taskWorker2 = taskWorker()
             def taskWorker3 = taskWorker()
@@ -104,6 +105,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         when:
         addToGraphAndPopulate(fooA, barA, fooB, barB)
         async {
+            populateReadyQueue()
             def taskWorker1 = taskWorker()
             def taskWorker2 = taskWorker()
 
@@ -131,6 +133,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         expect:
         addToGraphAndPopulate(foo, bar)
         async {
+            populateReadyQueue()
             def taskWorker1 = taskWorker()
             def taskWorker2 = taskWorker()
 
@@ -201,6 +204,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         expect:
         addToGraphAndPopulate(a, b)
         async {
+            populateReadyQueue()
             def taskWorker1 = taskWorker()
             def taskWorker2 = taskWorker()
 
@@ -405,6 +409,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     }
 
     void startTaskWorkers(int count) {
+        populateReadyQueue()
         count.times {
             taskWorker()
         }
@@ -413,6 +418,12 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     void releaseTasks(Task... tasks) {
         tasks.each { Task task ->
             instant."complete${task.path}"
+        }
+    }
+
+    void populateReadyQueue() {
+        start {
+            executionPlan.populateReadyTaskQueue()
         }
     }
 

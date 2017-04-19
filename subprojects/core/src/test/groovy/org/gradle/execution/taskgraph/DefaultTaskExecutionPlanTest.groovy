@@ -54,6 +54,9 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
         executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
+        _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
+            _ * tryLock() >> true
+        }
     }
 
     def "schedules tasks in dependency order"() {
@@ -533,7 +536,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([e, h])
 
         then:
-        executedTasks == [a, d, e, b, c, f, g, h]
+        executedTasks == [a, d, b, c, e, f, g, h]
     }
 
     @Issue("GRADLE-3166")
@@ -609,7 +612,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "stops returning tasks when build is cancelled"() {
-        2 * cancellationHandler.cancellationRequested >>> [false, true]
+        5 * cancellationHandler.cancellationRequested >>> [false, false, true, true, true]
         Task a = task("a");
         Task b = task("b");
 
@@ -873,14 +876,12 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         _ * parentWorkerLease.createChild() >> Mock(WorkerLeaseRegistry.WorkerLease) {
             _ * tryLock() >> true
         }
-        _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
-            _ * tryLock() >> true
-        }
         _ * coordinationService.withStateLock(_) >> { args ->
             args[0].transform(Mock(ResourceLockState))
             return true
         }
         def moreTasks = true
+        executionPlan.populateReadyTaskQueue()
         while (moreTasks) {
             moreTasks = executionPlan.executeWithTask(parentWorkerLease, new Action<TaskInfo>() {
                 @Override
@@ -889,6 +890,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
                     executionPlan.taskComplete(taskInfo)
                 }
             })
+            executionPlan.populateReadyTaskQueue()
         }
         return tasks
     }

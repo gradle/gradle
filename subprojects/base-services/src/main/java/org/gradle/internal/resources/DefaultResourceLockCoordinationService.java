@@ -47,7 +47,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
                     switch (disposition) {
                         case RETRY:
-                            releaseLocks(resourceLockState);
+                            resourceLockState.reset();
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
@@ -57,13 +57,13 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                         case FINISHED:
                             return true;
                         case FAILED:
-                            releaseLocks(resourceLockState);
+                            resourceLockState.reset();
                             return false;
                         default:
                             throw new IllegalArgumentException("Unhandled disposition type: " + disposition.name());
                     }
                 } catch (Throwable t) {
-                    releaseLocks(resourceLockState);
+                    resourceLockState.reset();
                     throw UncheckedException.throwAsUncheckedException(t);
                 } finally {
                     currentState.get().remove(resourceLockState);
@@ -89,12 +89,6 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
-    private void releaseLocks(DefaultResourceLockState stateLock) {
-        for (ResourceLock resourceLock : stateLock.getResourceLocks()) {
-            resourceLock.unlock();
-        }
-    }
-
     private static class DefaultResourceLockState implements ResourceLockState {
         private final Set<ResourceLock> resourceLocks = Sets.newHashSet();
 
@@ -105,6 +99,13 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
         Set<ResourceLock> getResourceLocks() {
             return resourceLocks;
+        }
+
+        @Override
+        public void reset() {
+            for (ResourceLock resourceLock : resourceLocks) {
+                resourceLock.unlock();
+            }
         }
     }
 

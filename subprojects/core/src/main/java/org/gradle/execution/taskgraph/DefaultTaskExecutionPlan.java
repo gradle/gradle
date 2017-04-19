@@ -70,6 +70,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
+    private final List<TaskInfo> readyQueue = new LinkedList<TaskInfo>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
@@ -77,7 +78,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
-    private final Map<TaskInfo, ResourceLock> projectLocks = Maps.newConcurrentMap();
+    private Map<TaskInfo, ResourceLock> projectLocks;
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
     private boolean tasksCancelled;
@@ -303,6 +304,16 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
         executionQueue.clear();
         executionQueue.addAll(executionPlan.values());
+        populateProjectLockMap();
+    }
+
+    private void populateProjectLockMap() {
+        ImmutableMap.Builder<TaskInfo, ResourceLock> mapBuilder = ImmutableMap.builder();
+        for (TaskInfo taskInfo : executionQueue) {
+            ResourceLock p = getProjectLock(taskInfo);
+            mapBuilder.put(taskInfo, getProjectLock(taskInfo));
+        }
+        projectLocks = mapBuilder.build();
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
@@ -447,6 +458,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 entryTasks.clear();
                 executionPlan.clear();
                 executionQueue.clear();
+                readyQueue.clear();
                 failures.clear();
                 canonicalizedOutputCache.clear();
                 runningTasks.clear();
@@ -467,6 +479,41 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureHandler = handler;
     }
 
+    public void populateReadyTaskQueue() {
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                if (cancellationToken.isCancellationRequested()) {
+                    if (abortExecution()) {
+                        tasksCancelled = true;
+                    }
+                }
+
+                boolean newTasksReady = false;
+                final Iterator<TaskInfo> iterator = executionQueue.iterator();
+                while (iterator.hasNext()) {
+                    final TaskInfo taskInfo = iterator.next();
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
+                        readyQueue.add(taskInfo);
+                        iterator.remove();
+                        newTasksReady = true;
+                    }
+                }
+
+                if (newTasksReady) {
+                    coordinationService.notifyStateChange();
+                }
+
+                if (!allTasksComplete()) {
+                    return RETRY;
+                } else {
+                    coordinationService.notifyStateChange();
+                    return FINISHED;
+                }
+            }
+        });
+    }
+
     @Override
     public boolean executeWithTask(WorkerLease parentWorkerLease, final Action<TaskInfo> taskExecution) {
         final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
@@ -481,35 +528,29 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     }
                 }
 
-                final Iterator<TaskInfo> iterator = executionQueue.iterator();
+                final Iterator<TaskInfo> iterator = readyQueue.iterator();
                 while (iterator.hasNext()) {
                     final TaskInfo taskInfo = iterator.next();
-                    if (taskInfo.isReady()) {
-                        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-                            @Override
-                            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                                ResourceLock projectLock = getProjectLock(taskInfo);
-                                // TODO: convert output file checks to a resource lock
-                                if (projectLock.tryLock() && workerLease.tryLock() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
-                                    selected.set(taskInfo);
-                                    iterator.remove();
-                                    if (taskInfo.allDependenciesSuccessful()) {
-                                        taskInfo.startExecution();
-                                        recordTaskStarted(taskInfo);
-                                        canExecute.set(true);
-                                    } else {
-                                        taskInfo.skipExecution();
-                                    }
-                                    return FINISHED;
-                                } else {
-                                    return FAILED;
-                                }
+                    ResourceLock projectLock = projectLocks.get(taskInfo);
+                    if (taskInfo.isReady() && projectLock.tryLock() && workerLease.tryLock()) {
+                        // TODO: convert output file checks to a resource lock
+                        if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                            selected.set(taskInfo);
+                            iterator.remove();
+                            if (taskInfo.allDependenciesSuccessful()) {
+                                taskInfo.startExecution();
+                                recordTaskStarted(taskInfo);
+                                canExecute.set(true);
+                            } else {
+                                taskInfo.skipExecution();
                             }
-                        });
-
-                        if (selected.get() != null) {
-                            break;
+                        } else {
+                            resourceLockState.reset();
                         }
+                    }
+
+                    if (selected.get() != null) {
+                        break;
                     }
                 }
 
@@ -529,7 +570,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
             } finally {
                 TaskInfo taskInfo = selected.get();
-                ResourceLock projectLock = getProjectLock(taskInfo);
+                ResourceLock projectLock = projectLocks.get(taskInfo);
                 coordinationService.withStateLock(unlock(projectLock, workerLease));
             }
         }
@@ -539,16 +580,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private ResourceLock getProjectLock(TaskInfo taskInfo) {
-        if (projectLocks.containsKey(taskInfo)) {
-            return projectLocks.get(taskInfo);
-        }
-
         Project project = taskInfo.getTask().getProject();
         String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
         String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
-        ResourceLock projectLock = workerLeaseService.getProjectLock(gradlePath, projectPath);
-        projectLocks.put(taskInfo, projectLock);
-        return projectLock;
+        return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
 
     private boolean canRunWithWithCurrentlyExecutedTasks(TaskInfo taskInfo) {

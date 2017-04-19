@@ -51,4 +51,10 @@ public interface TaskExecutionPlan {
      * @return true if there are more tasks waiting to execute, false if all tasks have executed.
      */
     boolean executeWithTask(WorkerLeaseRegistry.WorkerLease parentWorkerLease, Action<TaskInfo> taskExecution);
+
+    /**
+     * Selects all tasks that are ready to execute and pushes them to the queue that {@link #executeWithTask(WorkerLeaseRegistry.WorkerLease, Action)} drains from.
+     * If no tasks are ready, blocks until one becomes ready.  Exits once all tasks have been executed.
+     */
+    void populateReadyTaskQueue();
 }

@@ -49,10 +49,16 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     }
 
     @Override
-    public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
+    public void process(final TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    taskExecutionPlan.populateReadyTaskQueue();
+                }
+            });
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);
             taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
             taskExecutionPlan.awaitCompletion();

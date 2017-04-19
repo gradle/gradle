@@ -823,6 +823,7 @@ allprojects {
                         file("dir1.classes").mkdirs()
                         file("dir1.classes/file2.txt").text = 'new file'
                     }
+                    mustRunAfter(':app:resolve')
                 }
             }
             

@@ -35,6 +35,7 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factories;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -80,7 +81,7 @@ public class DefaultTaskGraphExecuterTest {
     final WorkerLeaseService workerLeases = new DefaultWorkerLeaseService(resourceLockCoordinationService, true, 1);
     private WorkerLeaseRegistry.WorkerLease parentWorkerLease;
     final TaskExecuter executer = context.mock(TaskExecuter.class);
-    final ExecutorFactory executorFactory = context.mock(ExecutorFactory.class);
+    final ExecutorFactory executorFactory = new DefaultExecutorFactory();
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
@@ -102,7 +103,6 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(taskExecutionListener));
             ignoring(taskExecutionListener);
             allowing(listenerManager);
-            allowing(executorFactory);
         }});
 
         parentWorkerLease = workerLeases.getWorkerLease();
@@ -180,7 +180,7 @@ public class DefaultTaskGraphExecuterTest {
         taskExecuter.addTasks(toList(e));
         taskExecuter.execute();
 
-        assertThat(executedTasks, equalTo(toList(a, b, c, d, e)));
+        assertThat(executedTasks, equalTo(toList(a, b, d, c, e)));
     }
 
     @Test
