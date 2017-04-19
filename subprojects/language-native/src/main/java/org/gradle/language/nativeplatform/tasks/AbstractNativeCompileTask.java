@@ -15,8 +15,7 @@
  */
 package org.gradle.language.nativeplatform.tasks;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -48,6 +47,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -179,12 +179,12 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     @Input
     protected Collection<String> getIncludePaths() {
-        return Collections2.transform(includes.getFiles(), new Function<File, String>() {
-            @Override
-            public String apply(File input) {
-                return input.getAbsolutePath();
-            }
-        });
+        Set<File> roots = includes.getFiles();
+        List<String> includePaths = Lists.newArrayListWithCapacity(roots.size());
+        for (File root : roots) {
+            includePaths.add(root.getAbsolutePath());
+        }
+        return includePaths;
     }
 
     /**
