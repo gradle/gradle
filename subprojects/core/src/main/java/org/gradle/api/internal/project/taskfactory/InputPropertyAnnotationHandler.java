@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.Input;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
@@ -32,6 +34,11 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
                 task.getInputs().property(context.getName(), futureValue);
             }
         });
+        Class<?> valueType = context.getValueType();
+        if (File.class.isAssignableFrom(valueType)
+            || FileCollection.class.isAssignableFrom(valueType)) {
+            context.validationMessage("@Input annotation used on property of type " + valueType.getName());
+        }
     }
 
 }

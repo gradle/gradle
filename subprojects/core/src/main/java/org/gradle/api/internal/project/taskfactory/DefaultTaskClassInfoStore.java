@@ -26,7 +26,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
@@ -52,7 +51,6 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 TaskClassValidator validator = validatorExtractor.extractValidator(type);
                 taskClassInfo.setValidator(validator);
 
-                taskClassInfo.setCacheable(type.isAnnotationPresent(CacheableTask.class));
                 return taskClassInfo;
             }
         });

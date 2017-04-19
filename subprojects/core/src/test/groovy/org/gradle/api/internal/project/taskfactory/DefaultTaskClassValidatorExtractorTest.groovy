@@ -17,9 +17,13 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Nullable
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -80,9 +84,10 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         expect:
         def validator = extractor.extractValidator(TaskWithCustomAnnotation)
-        validator.validatedProperties*.name as List == ["searchPath"]
-        validator.validatedProperties[0].propertyType == SearchPath
-        validator.validatedProperties[0].configureAction == configureAction
+        validator.annotatedProperties*.name as List == ["searchPath"]
+        validator.annotatedProperties[0].propertyType == SearchPath
+        validator.annotatedProperties[0].configureAction == configureAction
+        validator.validationMessages.empty
     }
 
     class TaskWithInputFile extends DefaultTask {
@@ -101,9 +106,9 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         def extractor = new DefaultTaskClassValidatorExtractor()
 
         expect:
-        extractor.extractValidator(TaskWithInputFile).validatedProperties[0].propertyType == InputFile
-        extractor.extractValidator(TaskWithInternal).validatedProperties.empty
-        extractor.extractValidator(TaskWithOutputFile).validatedProperties[0].propertyType == OutputFile
+        extractor.extractValidator(TaskWithInputFile).annotatedProperties[0].propertyType == InputFile
+        extractor.extractValidator(TaskWithInternal).annotatedProperties.empty
+        extractor.extractValidator(TaskWithOutputFile).annotatedProperties[0].propertyType == OutputFile
     }
 
     @Unroll
@@ -122,9 +127,14 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         def extractor = new DefaultTaskClassValidatorExtractor()
 
+        def parentValidator = extractor.extractValidator(parentTask)
+        def childValidator = extractor.extractValidator(childTask)
+
         expect:
-        extractor.extractValidator(parentTask).validatedProperties[0].propertyType == parentAnnotation
-        extractor.extractValidator(childTask).validatedProperties[0].propertyType == childAnnotation
+        parentValidator.annotatedProperties[0].propertyType == parentAnnotation
+        childValidator.annotatedProperties[0].propertyType == childAnnotation
+        parentValidator.validationMessages.empty
+        childValidator.validationMessages.empty
 
         where:
         [parentAnnotation, childAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, PROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
@@ -146,9 +156,14 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         def extractor = new DefaultTaskClassValidatorExtractor()
 
+        def parentValidator = extractor.extractValidator(parentTask)
+        def childValidator = extractor.extractValidator(childTask)
+
         expect:
-        extractor.extractValidator(parentTask).validatedProperties[0].propertyType == processedAnnotation
-        extractor.extractValidator(childTask).validatedProperties.empty
+        parentValidator.annotatedProperties[0].propertyType == processedAnnotation
+        childValidator.annotatedProperties.empty
+        parentValidator.validationMessages.empty
+        childValidator.validationMessages.empty
 
         where:
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
@@ -170,9 +185,13 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         def extractor = new DefaultTaskClassValidatorExtractor()
 
+        def parentValidator = extractor.extractValidator(parentTask)
+        def childValidator = extractor.extractValidator(childTask)
         expect:
-        extractor.extractValidator(parentTask).validatedProperties.empty
-        extractor.extractValidator(childTask).validatedProperties[0].propertyType == processedAnnotation
+        parentValidator.annotatedProperties.empty
+        childValidator.annotatedProperties[0].propertyType == processedAnnotation
+        parentValidator.validationMessages.empty
+        childValidator.validationMessages.empty
 
         where:
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
@@ -193,8 +212,9 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         def validator = extractor.extractValidator(ClasspathPropertyTask)
 
         then:
-        validator.validatedProperties*.name as List == ["inputFiles1", "inputFiles2"]
-        validator.validatedProperties*.propertyType as List == [Classpath, Classpath]
+        validator.annotatedProperties*.name as List == ["inputFiles1", "inputFiles2"]
+        validator.annotatedProperties*.propertyType as List == [Classpath, Classpath]
+        validator.validationMessages.empty
     }
 
     class BaseClasspathPropertyTask extends DefaultTask {
@@ -224,7 +244,153 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         def validator = extractor.extractValidator(OverridingClasspathPropertyTask)
 
         then:
-        validator.validatedProperties*.name as List == ["overriddenClasspath", "overriddenInputFiles"]
-        validator.validatedProperties*.propertyType as List == [InputFiles, Classpath]
+        validator.annotatedProperties*.name as List == ["overriddenClasspath", "overriddenInputFiles"]
+        validator.annotatedProperties*.propertyType as List == [InputFiles, Classpath]
+        validator.validationMessages.empty
+    }
+
+    class TaskWithNonAnnotatedProperty extends DefaultTask {
+        FileCollection inputFiles
+    }
+
+    def "warns about non-annotated property"() {
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        when:
+        def validator = extractor.extractValidator(TaskWithNonAnnotatedProperty)
+
+        then:
+        validator.validationMessages*.toString() == [
+                "property 'inputFiles': is not annotated with an input or output annotation"
+        ]
+    }
+
+    class TaskWithBothFieldAndGetterAnnotation extends DefaultTask {
+        @InputFiles FileCollection inputFiles
+
+        @InputFiles
+        FileCollection getInputFiles() {
+            return inputFiles
+        }
+    }
+
+    def "warns about both method and field having the same annotation"() {
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        when:
+        def validator = extractor.extractValidator(TaskWithBothFieldAndGetterAnnotation)
+
+        then:
+        validator.validationMessages*.toString() == [
+                "property 'inputFiles': both getter and field declare annotation @InputFiles"
+        ]
+    }
+
+    class TaskWithBothFieldAndGetterAnnotationButIrrelevant extends DefaultTask {
+        @Nullable FileCollection inputFiles
+
+        @Nullable @InputFiles
+        FileCollection getInputFiles() {
+            return inputFiles
+        }
+    }
+
+    def "doesn't warn about both method and field having the same irrelevant annotation"() {
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        when:
+        def validator = extractor.extractValidator(TaskWithBothFieldAndGetterAnnotationButIrrelevant)
+
+        then:
+        validator.validationMessages.empty
+    }
+
+    class TaskWithConflictingPropertyTypes extends DefaultTask {
+        @InputFile
+        @InputDirectory
+        File inputThing
+
+        @InputFile
+        @OutputFile
+        File confusedFile
+    }
+
+    def "warns about conflicting property types being specified"() {
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        when:
+        def validator = extractor.extractValidator(TaskWithConflictingPropertyTypes)
+
+        then:
+        validator.validationMessages*.toString() == [
+            "property 'confusedFile': conflicting property types are declared: @InputFile, @OutputFile",
+            "property 'inputThing': conflicting property types are declared: @InputFile, @InputDirectory"
+        ]
+    }
+
+    class TaskWithNonConflictingPropertyTypes extends DefaultTask {
+        @InputFiles
+        @Classpath
+        FileCollection classpath
+    }
+
+    def "doesn't warn about non-conflicting property types being specified"() {
+        def extractor = new DefaultTaskClassValidatorExtractor(new ClasspathPropertyAnnotationHandler())
+
+        when:
+        def validator = extractor.extractValidator(TaskWithNonConflictingPropertyTypes)
+
+        then:
+        validator.validationMessages.empty
+    }
+
+    class TaskWithFileInput extends DefaultTask {
+        @Input
+        File file
+
+        @Input
+        FileCollection fileCollection
+
+        @Input
+        FileTree fileTree
+    }
+
+    def "warns about @Input being used on File and FileCollection properties"() {
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        when:
+        def validator = extractor.extractValidator(TaskWithFileInput)
+
+        then:
+        validator.validationMessages*.toString() == [
+            "property 'fileTree': @Input annotation used on property of type $FileTree.name",
+            "property 'file': @Input annotation used on property of type $File.name",
+            "property 'fileCollection': @Input annotation used on property of type $FileCollection.name"
+        ]
+    }
+
+    @CacheableTask
+    class CacheableTaskWithoutPathSensitivity extends DefaultTask {
+        @InputFile
+        File inputFile
+
+        @InputFiles
+        FileCollection inputFiles
+
+        @OutputFile
+        File outputFile
+    }
+
+    def "warns about missing @PathSensitive annotation for @CacheableTask"() {
+        def extractor = new DefaultTaskClassValidatorExtractor()
+
+        when:
+        def validator = extractor.extractValidator(CacheableTaskWithoutPathSensitivity)
+
+        then:
+        validator.validationMessages*.toString() == [
+            "property 'inputFile': missing @PathSensitive annotation on cacheable task input property",
+            "property 'inputFiles': missing @PathSensitive annotation on cacheable task input property"
+        ]
     }
 }

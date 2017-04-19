@@ -45,9 +45,9 @@ public interface TaskPropertyActionContext {
     void setInstanceVariableField(Field field);
 
     /**
-     * Record annotations encountered during parsing the property's methods and instance field.
+     * Record an annotation encountered during parsing the property's methods and instance field.
      */
-    void addAnnotations(Iterable<? extends Annotation> declaredAnnotations);
+    void addAnnotation(Annotation annotation);
 
     /**
      * Returns whether the given annotation is present on the field or any of the methods declaring the property.
@@ -63,6 +63,11 @@ public interface TaskPropertyActionContext {
      * @return Is this an optional property (value may be null)?
      */
     boolean isOptional();
+
+    /**
+     * Returns whether the task type this proprety belongs to is cacheable.
+     */
+    boolean isCacheable();
 
     /**
      * Sets whether the property allows null values.
@@ -85,4 +90,9 @@ public interface TaskPropertyActionContext {
      * Process a nested property with the given name.
      */
     void setNestedType(Class<?> type);
+
+    /**
+     * Records a validation message about this property.
+     */
+    void validationMessage(String message);
 }

@@ -105,8 +105,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'MyTask' declares property that is not annotated: 'badTime'."
-        failure.assertHasCause "Warning: Task type 'MyTask' declares property that is not annotated: 'options.badNested'."
+        failure.assertHasCause "Warning: Task type 'MyTask' property 'badTime': is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Task type 'MyTask' property 'options.badNested': is not annotated with an input or output annotation."
     }
 
     def "detects missing annotation on Groovy properties"() {
@@ -142,8 +142,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'MyTask' declares property that is not annotated: 'badTime'."
-        failure.assertHasCause "Warning: Task type 'MyTask' declares property that is not annotated: 'options.badNested'."
+        failure.assertHasCause "Warning: Task type 'MyTask' property 'badTime': is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Task type 'MyTask' property 'options.badNested': is not annotated with an input or output annotation."
     }
 
     def "no problems with Copy task"() {
