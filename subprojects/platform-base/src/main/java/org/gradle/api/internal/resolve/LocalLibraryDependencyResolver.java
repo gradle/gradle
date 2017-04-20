@@ -152,6 +152,11 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
+    @Override
+    public boolean isAvailableLocally(ComponentIdentifier identifier) {
+        return true;
+    }
+
     private boolean isLibrary(ComponentIdentifier identifier) {
         return identifier instanceof LibraryBinaryIdentifier;
     }

@@ -172,6 +172,11 @@ public class ResolveIvyFactory {
         }
 
         @Override
+        public boolean isAvailableLocally(ComponentIdentifier identifier) {
+            return delegate.getComponentResolver().isAvailableLocally(identifier);
+        }
+
+        @Override
         public void resolveArtifactsWithType(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.useCache(new Runnable() {
                 public void run() {

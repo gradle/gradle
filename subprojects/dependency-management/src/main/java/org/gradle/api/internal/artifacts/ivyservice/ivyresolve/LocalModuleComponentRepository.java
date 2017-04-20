@@ -97,6 +97,11 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
                 delegate.getRemoteAccess().resolveArtifact(artifact, moduleSource, result);
             }
         }
+
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier);
+        }
     }
 
     private static class RemoteAccess implements ModuleComponentRepositoryAccess {
@@ -123,6 +128,11 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        }
+
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return false;
         }
     }
 }

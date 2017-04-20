@@ -63,6 +63,11 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
     }
 
     @Override
+    public boolean isAvailableLocally(ComponentIdentifier identifier) {
+        return false;
+    }
+
+    @Override
     public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
         throw new UnsupportedOperationException();
     }

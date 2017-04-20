@@ -62,4 +62,6 @@ public interface ModuleComponentRepositoryAccess {
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
     void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
+
+    boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier);
 }
