@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r31
 
-import org.gradle.api.invocation.Gradle
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -55,7 +54,7 @@ project(':impl') {
         then:
         def libs = module.dependencies
 
-        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
+        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency} as IdeaModuleDependency
         mod.targetModuleName == 'api'
     }
 
@@ -96,7 +95,7 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        IdeaSingleEntryLibraryDependency lib = libs.find {it instanceof IdeaSingleEntryLibraryDependency}
+        IdeaSingleEntryLibraryDependency lib = libs.find {it instanceof IdeaSingleEntryLibraryDependency} as IdeaSingleEntryLibraryDependency
 
         lib.file.exists()
         lib.file.path.endsWith('coolLib-1.0.jar')
@@ -109,7 +108,7 @@ project(':impl') {
 
         lib.scope.scope == 'TEST'
 
-        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
+        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency} as IdeaModuleDependency
         if(currentVersion >= GradleVersion.version('3.1')) {
             mod.targetModuleName == project.modules.find { it.name == 'api'}.name
         }
