@@ -41,6 +41,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Arrays.equals
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
 
 import kotlin.concurrent.thread
 
@@ -259,27 +260,27 @@ object ResolverEventLogger {
 
     fun log(event: ResolverEvent) {
         require(consumer.isAlive)
-        q.offer(event)
+        q.offer(now() to event, 50, TimeUnit.MILLISECONDS)
     }
 
     private
-    val q = ArrayBlockingQueue<ResolverEvent>(32)
+    val q = ArrayBlockingQueue<Pair<Date, ResolverEvent>>(64)
 
     private
     val consumer = thread { // TODO: Don't leak this thread
 
         val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-        fun timestamp() = format.format(now())
 
         bufferedWriter().use { writer ->
 
-            fun write(e: ResolverEvent) {
-                writer.write("${timestamp()} - $e\n\n")
+            fun write(timestamp: Date, e: ResolverEvent) {
+                writer.write("${format.format(timestamp)} - $e\n\n")
                 writer.flush()
             }
 
             while (true) {
-                write(q.take())
+                val (timestamp, event) = q.take()
+                write(timestamp, event)
             }
         }
     }
