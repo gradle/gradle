@@ -46,10 +46,12 @@ open class GenerateClasspathManifest : DefaultTask() {
         write("projects=$projects\nruntime=$runtime\n")
     }
 
-    private fun join(ss: List<String>) =
+    private
+    fun join(ss: List<String>) =
         ss.joinToString(separator = ",")
 
-    private fun write(text: String) {
+    private
+    fun write(text: String) {
         outputFile.writeText(text)
     }
 }

@@ -40,7 +40,8 @@ class KotlinCompilerTest : TestWithTempFiles() {
             equalTo<Any>(42))
     }
 
-    private fun classLoaderFor(outputJar: File) =
+    private
+    fun classLoaderFor(outputJar: File) =
         URLClassLoader.newInstance(
             arrayOf(outputJar.toURI().toURL()))
 }

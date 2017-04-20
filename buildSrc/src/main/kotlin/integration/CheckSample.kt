@@ -67,13 +67,16 @@ open class CheckSample : DefaultTask() {
         }
     }
 
-    private fun customDaemonRegistry() =
+    private
+    fun customDaemonRegistry() =
         File(buildDir, "custom/daemon-registry")
 
-    private val buildDir: File?
+    private
+    val buildDir: File?
         get() = project.buildDir
 
-    private fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
+    private
+    fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
         withConnectionFrom(connectorFor(projectDir).useInstallation(installation!!)) {
             newBuild()
                 .withArguments(

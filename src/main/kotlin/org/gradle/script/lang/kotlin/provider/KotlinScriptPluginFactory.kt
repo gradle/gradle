@@ -42,7 +42,8 @@ class KotlinScriptPluginFactory(
             scriptSource,
             compile(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript))
 
-    private fun compile(
+    private
+    fun compile(
         scriptSource: ScriptSource, scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
         topLevelScript: Boolean): (Project) -> Unit =
@@ -54,7 +55,8 @@ class KotlinScriptPluginFactory(
                 compile()
         }
 
-    private fun compilerFor(
+    private
+    fun compilerFor(
         scriptSource: ScriptSource, scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
         topLevelScript: Boolean) =
@@ -69,7 +71,8 @@ class KotlinScriptPluginFactory(
             classPathProvider.gradleApiExtensions,
             classPathProvider.gradleScriptKotlinJars)
 
-    private fun inClassPathMode() =
+    private
+    fun inClassPathMode() =
         System.getProperty(modeSystemPropertyName) == classPathMode
 
     companion object {

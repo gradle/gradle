@@ -23,7 +23,8 @@ abstract class FolderBasedTest {
             assert(isFile)
         }
 
-    private fun existing(path: String): File =
+    private
+    fun existing(path: String): File =
         File(tempFolder.root, path).canonicalFile.apply {
             assert(exists())
         }
@@ -45,7 +46,8 @@ class FoldersDsl(val root: File) {
     fun withFile(fileName: String, content: String = "") =
         fileName.asCanonicalFile().apply { parentFile.mkdirs() }.writeText(content)
 
-    private fun String.asCanonicalFile(): File =
+    private
+    fun String.asCanonicalFile(): File =
         File(root, this).canonicalFile
 
 }

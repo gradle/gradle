@@ -48,7 +48,8 @@ class ComponentSelectionRulesTest {
         verify(componentSelection).reject("all")
     }
 
-    private fun <T, E> KStubbing<T>.acceptConfigurationActionFor(element: E, method: T.(Action<E>) -> T) {
+    private
+    fun <T, E> KStubbing<T>.acceptConfigurationActionFor(element: E, method: T.(Action<E>) -> T) {
         on { method(any()) }.thenAnswer { invocation ->
             invocation.getArgument<Action<E>>(0).execute(element)
             invocation.mock

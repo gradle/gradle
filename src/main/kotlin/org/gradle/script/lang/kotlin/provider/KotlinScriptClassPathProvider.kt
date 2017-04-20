@@ -77,15 +77,18 @@ class KotlinScriptClassPathProvider(
     /**
      * Returns the generated Gradle API jar plus supporting files such as groovy-all.jar.
      */
-    private fun gradleApiFiles() =
+    private
+    fun gradleApiFiles() =
         gradleApiJarsProvider() + listOf(gradleScriptKotlinApiExtensions())
 
-    private fun gradleScriptKotlinApiExtensions(): File =
+    private
+    fun gradleScriptKotlinApiExtensions(): File =
         produceFrom("script-kotlin-extensions") { outputFile, onProgress ->
             generateApiExtensionsJar(outputFile, gradleJars(), onProgress)
         }
 
-    private fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
+    private
+    fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
             val progressMonitor = progressMonitorFor(outputFile, 1)
             progressMonitor.use { progressMonitor ->
@@ -93,21 +96,25 @@ class KotlinScriptClassPathProvider(
             }
         }
 
-    private fun generateAtomically(outputFile: File, generate: JarGenerator) {
+    private
+    fun generateAtomically(outputFile: File, generate: JarGenerator) {
         val tempFile = tempFileFor(outputFile)
         generate(tempFile)
         moveFile(tempFile, outputFile)
     }
 
-    private fun progressMonitorFor(outputFile: File, totalWork: Int): ProgressMonitor =
+    private
+    fun progressMonitorFor(outputFile: File, totalWork: Int): ProgressMonitor =
         progressMonitorProvider.progressMonitorFor(outputFile, totalWork)
 
-    private fun tempFileFor(outputFile: File): File =
+    private
+    fun tempFileFor(outputFile: File): File =
         createTempFile(outputFile.nameWithoutExtension, outputFile.extension).apply {
             deleteOnExit()
         }
 
-    private fun gradleJars() = classPathRegistry.gradleJars()
+    private
+    fun gradleJars() = classPathRegistry.gradleJars()
 }
 
 

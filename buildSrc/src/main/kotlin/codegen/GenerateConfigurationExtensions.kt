@@ -45,14 +45,16 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 ${configurationExtensions()}""")
     }
 
-    private fun configurationExtensions(): String =
+    private
+    fun configurationExtensions(): String =
         project
             .configurations
             .joinToString(separator = "\n\n") {
                 extensionsFor(it.name)
             }
 
-    private fun extensionsFor(name: String): String =
+    private
+    fun extensionsFor(name: String): String =
         """
 /**
  * The '$name' configuration.
@@ -80,7 +82,8 @@ fun DependencyHandler.$name(dependencyNotation: Any): Dependency =
 *
 * @see DependencyHandler.add
 */
-inline fun DependencyHandler.$name(
+inline
+fun DependencyHandler.$name(
     dependencyNotation: String,
     dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
     add("$name", dependencyNotation, dependencyConfiguration)
@@ -122,7 +125,8 @@ fun DependencyHandler.$name(
 * @see DependencyHandler.create
 * @see DependencyHandler.add
 */
-inline fun DependencyHandler.$name(
+inline
+fun DependencyHandler.$name(
     group: String,
     name: String,
     version: String? = null,
@@ -141,7 +145,8 @@ inline fun DependencyHandler.$name(
 *
 * @see DependencyHandler.add
 */
-inline fun <T : ModuleDependency> DependencyHandler.$name(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+inline
+fun <T : ModuleDependency> DependencyHandler.$name(dependency: T, dependencyConfiguration: T.() -> Unit): T =
     add("$name", dependency, dependencyConfiguration)
     """
 }

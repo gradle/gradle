@@ -314,7 +314,8 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
         assertCorrectLocationIsReportedForErrorIn("plugins")
     }
 
-    private fun assertCorrectLocationIsReportedForErrorIn(block: String) {
+    private
+    fun assertCorrectLocationIsReportedForErrorIn(block: String) {
         val buildFile =
             withBuildScript("""
                 $block {
@@ -357,7 +358,8 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
             build(":sub-project:compute").output.contains("*42*"))
     }
 
-    private val fixturesRepository: File
+    private
+    val fixturesRepository: File
         get() = File("fixtures/repository").absoluteFile
 }
 

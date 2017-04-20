@@ -52,7 +52,8 @@ import kotlin.reflect.KProperty
  * @param T the plugin type.
  * @see PluginManager.apply
  */
-inline fun <reified T : Plugin<Project>> Project.apply() =
+inline
+fun <reified T : Plugin<Project>> Project.apply() =
     pluginManager.apply(T::class.java)
 
 
@@ -74,7 +75,8 @@ fun Project.applyFrom(script: Any) =
  * @param configuration the configuration block.
  * @see Convention.getPlugin
  */
-inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
+inline
+fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
     convention.findPlugin(T::class.java)?.let(configuration)
         ?: convention.configure(T::class.java, configuration)
 
@@ -82,7 +84,8 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
 /**
  * Returns the plugin convention or extension of the specified type.
  */
-inline fun <reified T : Any> Project.the() =
+inline
+fun <reified T : Any> Project.the() =
     the(T::class)
 
 
@@ -90,7 +93,8 @@ fun <T : Any> Project.the(extensionType: KClass<T>) =
     convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)!!
 
 
-inline fun <reified T : Any> Convention.getPlugin() =
+inline
+fun <reified T : Any> Convention.getPlugin() =
     getPlugin(T::class)
 
 
@@ -98,11 +102,13 @@ fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
     getPlugin(conventionType.java)!!
 
 
-inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
+inline
+fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
     task(name, T::class, configuration)
 
 
-inline fun <reified T : Task> Project.task(name: String) =
+inline
+fun <reified T : Task> Project.task(name: String) =
     tasks.create(name, T::class.java)
 
 

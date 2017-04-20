@@ -70,7 +70,8 @@ fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any
     }
 }
 
-internal val licenseHeader = """/*
+internal
+val licenseHeader = """/*
  * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

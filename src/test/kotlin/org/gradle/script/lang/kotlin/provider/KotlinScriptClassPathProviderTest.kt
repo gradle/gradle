@@ -44,7 +44,8 @@ class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
         verifyProgressMonitor(kotlinExtensionsMonitor)
     }
 
-    private fun verifyProgressMonitor(monitor: ProgressMonitor) {
+    private
+    fun verifyProgressMonitor(monitor: ProgressMonitor) {
         verify(monitor, times(1)).onProgress()
         verify(monitor, times(1)).close()
     }

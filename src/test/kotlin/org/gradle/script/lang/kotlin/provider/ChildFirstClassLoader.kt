@@ -29,7 +29,8 @@ class ChildFirstClassLoader(parent: ClassLoader, classPath: ClassPath) : Visitab
             ?: tryToLoadLocally(name)
             ?: super.loadClass(name, resolve)
 
-    private fun tryToLoadLocally(name: String): Class<*>? =
+    private
+    fun tryToLoadLocally(name: String): Class<*>? =
         try {
             findClass(name)
         } catch (e: ClassNotFoundException) {

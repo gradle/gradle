@@ -159,7 +159,8 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             hasItems("gradle-hello-world-plugin-0.2.jar"))
     }
 
-    private fun assertContainsGradleScriptKotlinApiJars(classPath: List<File>) {
+    private
+    fun assertContainsGradleScriptKotlinApiJars(classPath: List<File>) {
         val version = "[0-9.]+(-.+?)?"
         assertThat(
             classPath.map { it.name },
@@ -169,14 +170,16 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
                 matching("gradle-script-kotlin-extensions-$version\\.jar")))
     }
 
-    private fun assertClassPathFor(buildScript: File, includes: Set<File>, excludes: Set<File>) =
+    private
+    fun assertClassPathFor(buildScript: File, includes: Set<File>, excludes: Set<File>) =
         assertThat(
             classPathFor(projectRoot, buildScript).map { it.name },
             allOf(
                 hasItems(*includes.map { it.name }.toTypedArray()),
                 not(hasItems(*excludes.map { it.name }.toTypedArray()))))
 
-    private fun assertClassPathContains(vararg files: File) {
+    private
+    fun assertClassPathContains(vararg files: File) {
         val fileNameSet = files.map { it.name }.toSet().toTypedArray()
         assert(fileNameSet.size == files.size)
         assertThat(
@@ -184,13 +187,15 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             hasItems(*fileNameSet))
     }
 
-    private fun assertContainsBuildSrc(classPath: List<File>) {
+    private
+    fun assertContainsBuildSrc(classPath: List<File>) {
         assertThat(
             classPath.map { it.name },
             hasItem("buildSrc.jar"))
     }
 
-    private fun canonicalClassPath() =
+    private
+    fun canonicalClassPath() =
         canonicalClassPathFor(projectRoot)
 }
 

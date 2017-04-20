@@ -50,7 +50,8 @@ class KotlinScriptServiceRegistry : PluginServiceRegistry {
     object KotlinScriptBuildServices {
 
         @Suppress("unused")
-        private fun createCachingKotlinCompiler(
+        private
+        fun createCachingKotlinCompiler(
             cacheKeyBuilder: CacheKeyBuilder,
             cacheRepository: CacheRepository,
             progressLoggerFactory: ProgressLoggerFactory,
@@ -60,7 +61,8 @@ class KotlinScriptServiceRegistry : PluginServiceRegistry {
                 cacheKeyBuilder, cacheRepository, progressLoggerFactory, startParameters.isRecompileScripts)
 
         @Suppress("unused")
-        private fun createKotlinScriptClassPathProvider(
+        private
+        fun createKotlinScriptClassPathProvider(
             classPathRegistry: ClassPathRegistry,
             dependencyFactory: DependencyFactory,
             jarCache: GeneratedGradleJarCache,
@@ -72,10 +74,12 @@ class KotlinScriptServiceRegistry : PluginServiceRegistry {
                 versionedJarCacheFor(jarCache),
                 StandardJarGenerationProgressMonitorProvider(progressLoggerFactory))
 
-        private fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
+        private
+        fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
             { id, creator -> jarCache["$id-$gradleScriptKotlinVersion", creator] }
 
-        private val gradleScriptKotlinVersion by lazy {
+        private
+        val gradleScriptKotlinVersion by lazy {
             this::class.java.`package`.implementationVersion
         }
     }

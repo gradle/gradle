@@ -183,35 +183,43 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertThat(rootTasks, allOf(containsString("gskProjectAccessors"), containsString("gskGenerateAccessors")))
     }
 
-    private fun withAutomaticAccessors() {
+    private
+    fun withAutomaticAccessors() {
         withFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
     }
 
-    private fun setOfAutomaticAccessorsFor(plugins: Set<String>): Set<File> {
+    private
+    fun setOfAutomaticAccessorsFor(plugins: Set<String>): Set<File> {
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
         val buildFile = withBuildScript(script, produceFile = this::newOrExisting)
         return accessorClassFilesFor(buildFile)
     }
 
-    private fun accessorClassFilesFor(buildFile: File): Set<File> =
+    private
+    fun accessorClassFilesFor(buildFile: File): Set<File> =
         accessorsClassPathFor(buildFile)!!.let { baseDir ->
             classFilesIn(baseDir).map { it.relativeTo(baseDir) }.toSet()
         }
 
-    private fun classFilesIn(baseDir: File) =
+    private
+    fun classFilesIn(baseDir: File) =
         baseDir.walkTopDown().filter { it.isFile && it.extension == "class" }
 
-    private fun assertAccessorsInClassPathOf(buildFile: File) {
+    private
+    fun assertAccessorsInClassPathOf(buildFile: File) {
         assert(hasAccessorsInClassPathOf(buildFile))
     }
 
-    private fun hasAccessorsInClassPathOf(buildFile: File) =
+    private
+    fun hasAccessorsInClassPathOf(buildFile: File) =
         accessorsClassPathFor(buildFile) != null
 
-    private fun accessorsClassPathFor(buildFile: File) =
+    private
+    fun accessorsClassPathFor(buildFile: File) =
         canonicalClassPathFor(projectRoot, buildFile)
             .find { isAccessorsClassPath(it) }
 
-    private fun isAccessorsClassPath(it: File) =
+    private
+    fun isAccessorsClassPath(it: File) =
         it.isDirectory && File(it, "org/gradle/script/lang/kotlin/__accessorsKt.class").isFile
 }

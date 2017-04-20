@@ -57,7 +57,8 @@ abstract class KotlinBuildScript(project: Project) : Project by project {
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") configuration: KotlinPluginDependenciesHandler.() -> Unit) = Unit
 
-    inline fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
+    inline
+    fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
         project.apply({ it.configuration() })
 }
 

@@ -10,15 +10,19 @@ abstract class TestWithTempFiles {
     @JvmField
     @Rule val tempFolder = TemporaryFolder()
 
-    protected val root: File
+    protected
+    val root: File
         get() = tempFolder.root
 
-    protected fun file(fileName: String) =
+    protected
+    fun file(fileName: String) =
         File(root, fileName)
 
-    protected fun newFile(fileName: String) =
+    protected
+    fun newFile(fileName: String) =
         tempFolder.newFile(fileName)!!
 
-    protected fun newFile(fileName: String, text: String): File =
+    protected
+    fun newFile(fileName: String, text: String): File =
         newFile(fileName).apply { writeText(text) }
 }

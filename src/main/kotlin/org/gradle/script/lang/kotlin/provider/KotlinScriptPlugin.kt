@@ -30,7 +30,8 @@ class KotlinScriptPlugin(
     val scriptSource: ScriptSource,
     val script: (Project) -> Unit) : ScriptPlugin {
 
-    private val logger = loggerFor<KotlinScriptPlugin>()
+    private
+    val logger = loggerFor<KotlinScriptPlugin>()
 
     override fun getSource() = scriptSource
 

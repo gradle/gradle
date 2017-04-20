@@ -44,7 +44,8 @@ class StandardJarGenerationProgressMonitorProvider(
         }
     }
 
-    private fun progressLoggerFor(outputJar: File): ProgressLogger =
+    private
+    fun progressLoggerFor(outputJar: File): ProgressLogger =
         progressLoggerFactory.newOperation(JarGenerationProgressMonitorProvider::class.java).apply {
             description = "Gradle Script Kotlin JARs generation"
             loggingHeader = "Generating JAR file '${outputJar.name}'"

@@ -143,8 +143,8 @@ fun DependencyHandler.module(
     configureClientModule(module(notation) as ClientModule, clientModuleConfiguration)
 
 
-private
-inline fun DependencyHandler.configureClientModule(
+private inline
+fun DependencyHandler.configureClientModule(
     module: ClientModule,
     clientModuleConfiguration: ClientModuleConfiguration.() -> Unit): ClientModule =
     module.apply {
@@ -184,7 +184,8 @@ class ClientModuleConfiguration(
         }
     }
 
-    private fun create(notation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+    private
+    fun create(notation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         (dependencyHandler.create(notation) as ExternalModuleDependency).apply(dependencyConfiguration)
 }
 
@@ -214,7 +215,8 @@ fun DependencyHandler.project(
  * @param dependencyConfiguration The expression to use to configure the dependency.
  * @return The dependency.
  */
-inline fun DependencyHandler.add(
+inline
+fun DependencyHandler.add(
     configuration: String,
     dependencyNotation: String,
     dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
@@ -230,7 +232,8 @@ inline fun DependencyHandler.add(
  * @param dependencyConfiguration The expression to use to configure the dependency.
  * @return The dependency.
  */
-inline fun <T : ModuleDependency> DependencyHandler.add(
+inline
+fun <T : ModuleDependency> DependencyHandler.add(
     configuration: String,
     dependency: T,
     dependencyConfiguration: T.() -> Unit): T =

@@ -28,7 +28,8 @@ import org.gradle.api.plugins.Convention
  * @return the convention plugin, never null
  * @throws IllegalStateException When the convention cannot be found or cast to the expected type.
  */
-inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
+inline
+fun <reified T : Any> Convention.getPluginByName(name: String): T =
     plugins[name]?.let {
         (it as T?) ?: throw IllegalStateException("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
     } ?: throw IllegalStateException("A convention named '$name' could not be found.")

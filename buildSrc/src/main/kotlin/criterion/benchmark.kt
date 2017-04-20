@@ -36,13 +36,15 @@ class BenchmarkResult(observations: List<Duration>) : Result<Duration>(observati
         get() = Duration(this)
 }
 
-private fun warmUp(config: BenchmarkConfig, experiment: () -> Unit) {
+private
+fun warmUp(config: BenchmarkConfig, experiment: () -> Unit) {
     for (i in 1..config.warmUpRuns) {
         experiment()
     }
 }
 
-private fun collectObservations(config: BenchmarkConfig, experiment: () -> Unit): List<Duration> =
+private
+fun collectObservations(config: BenchmarkConfig, experiment: () -> Unit): List<Duration> =
     (1..config.observationRuns).map {
         durationOf(experiment)
     }

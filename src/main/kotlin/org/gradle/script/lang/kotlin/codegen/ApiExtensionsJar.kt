@@ -46,33 +46,39 @@ class ApiExtensionsJarGenerator(
         zipTo(outputFile, tempDir)
     }
 
-    private fun tempDirFor(outputFile: File): File =
+    private
+    fun tempDirFor(outputFile: File): File =
         createTempDir(outputFile.nameWithoutExtension, outputFile.extension).apply {
             deleteOnExit()
         }
 
-    private fun compileExtensionsTo(outputDir: File, gradleJars: Collection<File>) {
+    private
+    fun compileExtensionsTo(outputDir: File, gradleJars: Collection<File>) {
         compiler.compileToDirectory(
             outputDir,
             listOf(builtinPluginIdExtensionsSourceFileFor(gradleJars, outputDir)),
             classPath = gradleJars)
     }
 
-    private fun builtinPluginIdExtensionsSourceFileFor(gradleJars: Iterable<File>, outputDir: File) =
+    private
+    fun builtinPluginIdExtensionsSourceFileFor(gradleJars: Iterable<File>, outputDir: File) =
         generatedSourceFile(outputDir, "BuiltinPluginIdExtensions.kt").apply {
             writeBuiltinPluginIdExtensionsTo(this, gradleJars)
             onProgress()
         }
 
-    private fun generatedSourceFile(outputDir: File, fileName: String) =
+    private
+    fun generatedSourceFile(outputDir: File, fileName: String) =
         File(outputDir, sourceFileName(fileName)).apply {
             parentFile.mkdirs()
         }
 
-    private fun sourceFileName(fileName: String) =
+    private
+    fun sourceFileName(fileName: String) =
         packageDir + "/" + fileName
 
-    private val packageDir = packageName.replace('.', '/')
+    private
+    val packageDir = packageName.replace('.', '/')
 }
 
 

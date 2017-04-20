@@ -46,7 +46,8 @@ operator fun ExtensionContainer.get(name: String): Any =
  * @throws UnknownDomainObjectException When the given extension is not found.
  * @throws IllegalStateException When the given extension cannot be cast to the expected type.
  */
-inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
+inline
+fun <reified T : Any> ExtensionContainer.getByName(name: String) =
     getByName(name).let {
         it as? T
             ?: throw IllegalStateException(
@@ -54,5 +55,6 @@ inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
     }
 
 
-inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T =
+inline
+operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T =
     getByName<T>(property.name)

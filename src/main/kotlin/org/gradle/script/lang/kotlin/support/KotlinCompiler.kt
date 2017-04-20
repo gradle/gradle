@@ -166,8 +166,8 @@ val kotlinStdlibJar: File
     get() = PathUtil.getResourcePathForClass(Unit::class.java)
 
 
-private
-inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
+private inline
+fun <T> withRootDisposable(action: (Disposable) -> T): T {
     val rootDisposable = newDisposable()
     try {
         return action(rootDisposable)

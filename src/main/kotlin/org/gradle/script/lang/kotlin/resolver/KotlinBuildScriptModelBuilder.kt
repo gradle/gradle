@@ -48,7 +48,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     override fun buildAll(modelName: String, project: Project): Any =
         StandardKotlinBuildScriptModel(classPathFrom(project))
 
-    private fun classPathFrom(project: Project): List<File> {
+    private
+    fun classPathFrom(project: Project): List<File> {
         val targetBuildscriptFile = targetBuildscriptFile(project)
         return when {
             targetBuildscriptFile != null ->
@@ -60,31 +61,38 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         }
     }
 
-    private fun targetBuildscriptFile(project: Project) =
+    private
+    fun targetBuildscriptFile(project: Project) =
         project.findProperty(kotlinBuildScriptModelTarget)?.let { canonicalFile(it as String) }
 
-    private fun projectFor(targetBuildscriptFile: File?, project: Project) =
+    private
+    fun projectFor(targetBuildscriptFile: File?, project: Project) =
         project.allprojects.find { it.buildFile == targetBuildscriptFile }
 
-    private fun canonicalFile(path: String): File = File(path).canonicalFile
+    private
+    fun canonicalFile(path: String): File = File(path).canonicalFile
 
-    private fun scriptCompilationClassPathOf(project: Project): List<File> {
+    private
+    fun scriptCompilationClassPathOf(project: Project): List<File> {
         val accessorsCompilationClassPath =
             exportClassPathFromHierarchyOf(classLoaderScopeOf(project)) + gradleScriptKotlinApiOf(project)
         return accessorsCompilationClassPath.asFiles + compiledAccessorsFor(project, accessorsCompilationClassPath)
     }
 
-    private fun classLoaderScopeOf(project: Project) =
+    private
+    fun classLoaderScopeOf(project: Project) =
         (project as ProjectInternal).classLoaderScope
 
-    private fun compiledAccessorsFor(project: Project, classPath: ClassPath): List<File> =
+    private
+    fun compiledAccessorsFor(project: Project, classPath: ClassPath): List<File> =
         additionalSourceFilesForBuildscriptOf(project)
             .takeIf { it.isNotEmpty() }
             ?.let { compiledLibFrom(it, classPath, project) }
             ?.let { listOf(it) }
             ?: emptyList()
 
-    private fun compiledLibFrom(sourceFiles: List<File>, classPath: ClassPath, project: Project) =
+    private
+    fun compiledLibFrom(sourceFiles: List<File>, classPath: ClassPath, project: Project) =
         try {
             cachingKotlinCompilerOf(project).compileLib(sourceFiles, classPath)
         } catch (e: Exception) {
@@ -92,13 +100,16 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             null
         }
 
-    private fun cachingKotlinCompilerOf(project: Project) =
+    private
+    fun cachingKotlinCompilerOf(project: Project) =
         project.serviceOf<CachingKotlinCompiler>()
 
-    private fun scriptPluginClassPathOf(project: Project) =
+    private
+    fun scriptPluginClassPathOf(project: Project) =
         buildSrcClassPathOf(project) + gradleScriptKotlinApiOf(project)
 
-    private fun buildSrcClassPathOf(project: Project) =
+    private
+    fun buildSrcClassPathOf(project: Project) =
         ClasspathUtil
             .getClasspath(project.buildscript.classLoader)
             .asFiles
@@ -122,6 +133,6 @@ fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
 
 
-internal
-inline fun <reified T : Any> Project.serviceOf(): T =
+internal inline
+fun <reified T : Any> Project.serviceOf(): T =
     (this as ProjectInternal).services[T::class.java]!!

@@ -64,9 +64,11 @@ open class Benchmark : DefaultTask() {
         }
     }
 
-    private fun quotientToPercentage(quotient: Double) = (quotient - 1) * 100
+    private
+    fun quotientToPercentage(quotient: Double) = (quotient - 1) * 100
 
-    private fun benchmark(sampleDir: File, config: BenchmarkConfig): Double {
+    private
+    fun benchmark(sampleDir: File, config: BenchmarkConfig): Double {
         val relativeSampleDir = sampleDir.relativeTo(project.projectDir)
         println(relativeSampleDir)
 
@@ -83,7 +85,8 @@ open class Benchmark : DefaultTask() {
         return quotient
     }
 
-    private fun benchmarkWith(connector: GradleConnector, config: BenchmarkConfig): BenchmarkResult =
+    private
+    fun benchmarkWith(connector: GradleConnector, config: BenchmarkConfig): BenchmarkResult =
         withUniqueDaemonRegistry {
             withConnectionFrom(connector) {
                 benchmark(config) {
@@ -92,38 +95,46 @@ open class Benchmark : DefaultTask() {
             }
         }
 
-    private fun appendToSampleResultFile(result: BenchmarkResult, sampleDir: File) {
+    private
+    fun appendToSampleResultFile(result: BenchmarkResult, sampleDir: File) {
         resultFileFor(sampleDir)
             .apply { parentFile.mkdirs() }
             .appendText(toJsonLine(result))
     }
 
-    private fun resultFileFor(sampleDir: File) =
+    private
+    fun resultFileFor(sampleDir: File) =
         File(effectiveResultDir, "${sampleDir.name}.jsonl")
 
-    private val effectiveResultDir by lazy {
+    private
+    val effectiveResultDir by lazy {
         resultDir ?: File(project.buildDir, "benchmark")
     }
 
-    private fun format(result: BenchmarkResult) =
+    private
+    fun format(result: BenchmarkResult) =
         "%.2f ms    %.2f ms (std dev %.2f ms)".format(
             result.median.ms, result.mean.ms, result.stdDev.ms)
 
-    private fun toJsonLine(result: BenchmarkResult) =
+    private
+    fun toJsonLine(result: BenchmarkResult) =
         """{"what": "%s", "when": "%s", "data": %s}${'\n'}""".format(
             commitHash, ISO8601Now, toJsonArray(result.points))
 
-    private fun toJsonArray(points: List<Duration>) =
+    private
+    fun toJsonArray(points: List<Duration>) =
         points.joinToString(prefix = "[", postfix = "]", separator = ",") {
             "%.6f".format(it.ms)
         }
 
-    private val ISO8601Now by lazy {
+    private
+    val ISO8601Now by lazy {
         // http://stackoverflow.com/a/11417382/214464
         javax.xml.bind.DatatypeConverter.printDateTime(Calendar.getInstance(TimeZone.getTimeZone("UTC")))
     }
 
-    private val commitHash by lazy {
+    private
+    val commitHash by lazy {
         println("Attempting to determine current commit hash via environment variable")
         System.getenv("BUILD_VCS_NUMBER").let { hash ->
             if (hash != null) {
@@ -153,10 +164,12 @@ class QuotientResult(observations: List<Double>) : Result<Double>(observations) 
 fun connectorFor(projectDir: File) =
     newConnector().forProjectDirectory(projectDir)
 
-inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
+inline
+fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
     connector.connect().use(block)
 
-inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
+inline
+fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
     try {
         return block(this)
     } finally {
@@ -167,13 +180,16 @@ inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
 /**
  * Forces a new daemon process to be started by basing the registry on an unique temp dir.
  */
-inline fun <T> withUniqueDaemonRegistry(block: () -> T) =
+inline
+fun <T> withUniqueDaemonRegistry(block: () -> T) =
     withDaemonRegistry(createTempDir("gradle-script-kotlin-benchmark"), block)
 
-inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
+inline
+fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
     withSystemProperty("org.gradle.daemon.registry.base", registryBase.path, block)
 
-inline fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
+inline
+fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
     val originalValue = System.getProperty(key)
     try {
         System.setProperty(key, value)

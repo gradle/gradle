@@ -50,9 +50,11 @@ class CachingKotlinCompiler(
     val progressLoggerFactory: ProgressLoggerFactory,
     val recompileScripts: Boolean) {
 
-    private val logger = loggerFor<KotlinScriptPluginFactory>()
+    private
+    val logger = loggerFor<KotlinScriptPluginFactory>()
 
-    private val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-script-kotlin")
+    private
+    val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-script-kotlin")
 
     fun compileBuildscriptBlockOf(
         scriptFile: File,
@@ -181,24 +183,31 @@ class CachingKotlinCompiler(
         }
 
 
-    private fun cacheKeyFor(spec: CacheKeySpec) = cacheKeyBuilder.build(spec)
+    private
+    fun cacheKeyFor(spec: CacheKeySpec) = cacheKeyBuilder.build(spec)
 
-    private fun writeClassNameTo(cacheDir: File, className: String) =
+    private
+    fun writeClassNameTo(cacheDir: File, className: String) =
         scriptClassNameFile(cacheDir).writeText(className)
 
-    private fun readClassNameFrom(cacheDir: File) =
+    private
+    fun readClassNameFrom(cacheDir: File) =
         scriptClassNameFile(cacheDir).readText()
 
-    private fun scriptClassNameFile(cacheDir: File) = File(cacheDir, "script-class-name")
+    private
+    fun scriptClassNameFile(cacheDir: File) = File(cacheDir, "script-class-name")
 
-    private fun classesDirOf(cacheDir: File) = File(cacheDir, "classes")
+    private
+    fun classesDirOf(cacheDir: File) = File(cacheDir, "classes")
 
-    private fun cacheFileFor(text: String, cacheDir: File, fileName: String) =
+    private
+    fun cacheFileFor(text: String, cacheDir: File, fileName: String) =
         File(cacheDir, fileName).apply {
             writeText(text)
         }
 
-    private fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
+    private
+    fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
 
         object : KotlinScriptDefinition(template) {
 
@@ -213,7 +222,8 @@ class CachingKotlinCompiler(
                 }
         }
 
-    private fun <T> withProgressLoggingFor(description: String, action: () -> T): T {
+    private
+    fun <T> withProgressLoggingFor(description: String, action: () -> T): T {
         val operation = progressLoggerFactory
             .newOperation(this::class.java)
             .start("Compiling script into cache", "Compiling $description into local build cache")

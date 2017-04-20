@@ -76,7 +76,8 @@ class NamedDomainObjectContainerConfiguration<T : Any>(
     fun <U : T> creating(type: KClass<U>, configuration: U.() -> Unit) =
         polymorphicDomainObjectContainer().creating(type, configuration)
 
-    private fun polymorphicDomainObjectContainer() =
+    private
+    fun polymorphicDomainObjectContainer() =
         // We must rely on the dynamic cast and possible runtime failure here
         // due to a Kotlin extension member limitation.
         // Kotlin currently can't disambiguate between invoke operators with

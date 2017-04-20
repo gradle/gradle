@@ -39,13 +39,16 @@ object SourcePathProvider {
      * This won't work for buildSrc projects with a custom source directory layout
      * but should account for the majority of cases and it's cheap.
      */
-    private fun buildSrcRootsOf(projectRoot: File): Collection<File> =
+    private
+    fun buildSrcRootsOf(projectRoot: File): Collection<File> =
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
-    private fun sourceRootsOf(gradleInstallation: File): Collection<File> =
+    private
+    fun sourceRootsOf(gradleInstallation: File): Collection<File> =
         subDirsOf(File(gradleInstallation, "src"))
 
-    private fun subDirsOf(dir: File): Collection<File> =
+    private
+    fun subDirsOf(dir: File): Collection<File> =
         if (dir.isDirectory)
             dir.listFiles().filter { it.isDirectory }
         else

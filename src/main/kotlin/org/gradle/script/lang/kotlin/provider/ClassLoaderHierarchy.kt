@@ -126,7 +126,8 @@ fun hierarchyOf(classLoader: ClassLoader): ArrayList<ClassLoaderNode> {
             current.classPath.addAll(classPath.filterNotNull())
         }
 
-        private val current: ClassLoaderNode
+        private
+        val current: ClassLoaderNode
             get() = stack.peek()!!
     }
 

@@ -100,7 +100,8 @@ class BuildscriptBlockExtractionTest {
         }
     }
 
-    private fun assertNoBuildscript(script: String) {
+    private
+    fun assertNoBuildscript(script: String) {
         assertNull(extractBuildscriptBlockFrom(script))
     }
 }

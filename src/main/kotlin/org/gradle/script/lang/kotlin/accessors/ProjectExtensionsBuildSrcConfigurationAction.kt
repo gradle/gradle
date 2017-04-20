@@ -47,7 +47,8 @@ class ProjectExtensionsBuildSrcConfigurationAction : BuildSrcProjectConfiguratio
         }
     }
 
-    private fun ProjectInternal.configureCodeGenerationFor(projectSchema: File) {
+    private
+    fun ProjectInternal.configureCodeGenerationFor(projectSchema: File) {
         pluginManager.apply("base")
         tasks {
             val gskProcessProjectSchema by creating(ProcessProjectSchema::class) {
