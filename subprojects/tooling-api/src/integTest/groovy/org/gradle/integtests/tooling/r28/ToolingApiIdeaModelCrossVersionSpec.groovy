@@ -59,10 +59,12 @@ project(':contrib:impl') {
         IdeaModule impl = project.modules.find { it.name == 'root-impl' }
         IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
 
-        if (targetVersion >= GradleVersion.version("3.5")) {
+        if (currentVersion >= GradleVersion.version("3.1")) {
             impl.dependencies[0].targetModuleName == project.modules.find { it.name == 'root-api' }.getName()
             contribImpl.dependencies[0].targetModuleName == project.modules.find { it.name == 'contrib-api' }.getName()
-        } else {
+        }
+
+        if (currentVersion < GradleVersion.version('4.0')) {
             impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'root-api' }
             contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
         }

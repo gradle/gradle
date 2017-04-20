@@ -104,11 +104,10 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         ideaModule.dependencies.size() == 1
         with(ideaModule.dependencies.first()) {
             it instanceof IdeaModuleDependency
-            // this currently fails for current -> 3.5
-            if (targetVersion < GradleVersion.version("4.0")) {
+            targetModuleName == "b1"
+            if (currentVersion < GradleVersion.version("4.0")) {
                 dependencyModule == null
             }
-            targetModuleName == "b1"
         }
     }
 

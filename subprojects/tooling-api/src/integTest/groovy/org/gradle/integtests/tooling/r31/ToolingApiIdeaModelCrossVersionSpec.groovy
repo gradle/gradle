@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r31
 
+import org.gradle.api.invocation.Gradle
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -109,12 +110,19 @@ project(':impl') {
         lib.scope.scope == 'TEST'
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
+        if(currentVersion >= GradleVersion.version('3.1')) {
+            mod.targetModuleName == project.modules.find { it.name == 'api'}.name
+        }
+
+        if(currentVersion < GradleVersion.version('4.0')) {
+            mod.dependencyModule == project.modules.find { it.name == 'api'}
+        }
+
         if (targetVersion >= GradleVersion.version("3.4")) {
             mod.scope.scope == 'PROVIDED'
-            mod.targetModuleName == project.modules.find { it.name == 'api'}.name
         } else {
-            mod.dependencyModule == project.modules.find { it.name == 'api'}
             mod.scope.scope == 'COMPILE'
         }
+
     }
 }

@@ -107,10 +107,7 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         ideaModule.dependencies.size() == 1
         with(ideaModule.dependencies.first()) {
             it instanceof IdeaModuleDependency
-            println targetVersion
-            println targetVersion
-            println targetVersion
-            if (targetVersion < GradleVersion.version("4.0")) {
+            if (currentVersion < GradleVersion.version("4.0")) {
                 dependencyModule == null
             }
             targetModuleName == "b1"

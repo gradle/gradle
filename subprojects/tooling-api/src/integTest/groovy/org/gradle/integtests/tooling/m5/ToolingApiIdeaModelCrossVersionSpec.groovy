@@ -216,12 +216,11 @@ project(':impl') {
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
 
-        def currentVersion = GradleVersion.current()
         if (currentVersion >= GradleVersion.version("3.1")) {
             mod.targetModuleName == project.modules.find { it.name == 'api'}.getName()
         }
 
-        if (currentVersion.baseVersion < GradleVersion.version("4.0")) {
+        if (currentVersion < GradleVersion.version("4.0")) {
             mod.dependencyModule == project.modules.find { it.name == 'api'}
         }
 
@@ -323,14 +322,23 @@ project(':impl') {
         def libs = impl.dependencies
         if (targetVersion >= GradleVersion.version("3.4")) {
             libs.size() == 3
-            libs.each {
-                it.targetModuleName == project.modules.find { it.name == 'api' }.name
-            }
         } else {
             libs.size() == 1
+        }
+
+        if( currentVersion < GradleVersion.version('4.0')) {
             libs.each {
                 it.dependencyModule == project.modules.find { it.name == 'api' }
             }
         }
+        if( currentVersion > GradleVersion.version('3.1')) {
+            libs.each {
+                it.targetModuleName == project.modules.find { it.name == 'api' }.name
+            }
+        }
+
+
+
+
     }
 }
