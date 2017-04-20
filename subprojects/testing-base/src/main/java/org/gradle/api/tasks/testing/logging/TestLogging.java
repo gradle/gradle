@@ -149,6 +149,14 @@ public interface TestLogging {
      * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
      *
      * @param exceptionFormat the format to be used for logging test exceptions
+     * @since 4.0
+     */
+    void setExceptionFormat(TestExceptionFormat exceptionFormat);
+
+    /**
+     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
+     *
+     * @param exceptionFormat the format to be used for logging test exceptions
      */
     void setExceptionFormat(Object exceptionFormat);
 

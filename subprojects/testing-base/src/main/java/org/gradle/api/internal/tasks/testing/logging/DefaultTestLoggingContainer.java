@@ -217,6 +217,11 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        setExceptionFormat((Object) exceptionFormat);
+    }
+
+    @Override
     public void setExceptionFormat(Object exceptionFormat) {
         getLifecycle().setExceptionFormat(exceptionFormat);
     }

@@ -100,6 +100,14 @@ public class SigningExtension {
 
     /**
      * Whether or not this task should fail if no signatory or signature type are configured at generation time.
+     * @since 4.0
+     */
+    public void setRequired(boolean required) {
+        this.required = required;
+    }
+
+    /**
+     * Whether or not this task should fail if no signatory or signature type are configured at generation time.
      *
      * If {@code required} is a {@link Callable}, it will be stored and "called" on demand (i.e. when {@link #isRequired()} is called) and the return value will be interpreting according to the Groovy
      * Truth. For example:

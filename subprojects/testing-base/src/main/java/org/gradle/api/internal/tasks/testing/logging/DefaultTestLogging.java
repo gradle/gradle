@@ -115,6 +115,11 @@ public class DefaultTestLogging implements TestLogging {
     }
 
     @Override
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        setExceptionFormat((Object) exceptionFormat);
+    }
+
+    @Override
     public void setExceptionFormat(Object exceptionFormat) {
         this.exceptionFormat = toEnum(TestExceptionFormat.class, exceptionFormat);
     }
