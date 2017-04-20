@@ -73,6 +73,14 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
     /**
      * Sets the additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
      *
+     * @param urls The URLs.
+     * @since 4.0
+     */
+    void setArtifactUrls(Set<URI> urls);
+
+    /**
+     * Sets the additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
+     *
      * <p>The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated
      * relative to the project directory.
      *

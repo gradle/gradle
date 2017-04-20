@@ -232,6 +232,11 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces) {
+        getLifecycle().setStackTraceFilters(stackTraces);
+    }
+
+    @Override
     public void setStackTraceFilters(Iterable<?> stackTraces) {
         getLifecycle().setStackTraceFilters(stackTraces);
     }

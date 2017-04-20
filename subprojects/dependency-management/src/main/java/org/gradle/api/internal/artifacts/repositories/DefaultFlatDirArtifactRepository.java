@@ -64,6 +64,10 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         return fileResolver.resolveFiles(dirs).getFiles();
     }
 
+    public void setDirs(Set<File> dirs) {
+        setDirs((Iterable<?>) dirs);
+    }
+
     public void setDirs(Iterable<?> dirs) {
         this.dirs = Lists.newArrayList(dirs);
     }

@@ -130,6 +130,11 @@ public class DefaultTestLogging implements TestLogging {
     }
 
     @Override
+    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraceFilters) {
+        this.stackTraceFilters = EnumSet.copyOf(stackTraceFilters);
+    }
+
+    @Override
     public void setStackTraceFilters(Iterable<?> filters) {
         stackTraceFilters = toEnumSet(TestStackTraceFilter.class, filters);
     }

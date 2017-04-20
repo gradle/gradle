@@ -171,6 +171,14 @@ public interface TestLogging {
      * Sets the set of filters to be used for sanitizing test stack traces.
      *
      * @param stackTraces the set of filters to be used for sanitizing test stack traces
+     * @since 4.0
+     */
+    void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces);
+
+    /**
+     * Sets the set of filters to be used for sanitizing test stack traces.
+     *
+     * @param stackTraces the set of filters to be used for sanitizing test stack traces
      */
     void setStackTraceFilters(Iterable<?> stackTraces);
 
