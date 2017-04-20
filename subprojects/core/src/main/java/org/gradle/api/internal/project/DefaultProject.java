@@ -701,6 +701,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public void setBuildDir(File path) {
+        setBuildDir((Object) path);
+    }
+
+    @Override
     public void setBuildDir(Object path) {
         buildDir = path;
         buildDirCached = null;
