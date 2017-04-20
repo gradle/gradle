@@ -30,14 +30,14 @@ import kotlin.reflect.KProperty
  * @return The container.
  */
 inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
-    configuration: NamedDomainObjectContainerConfiguration<T>.() -> Unit): C =
+    configuration: NamedDomainObjectContainerScope<T>.() -> Unit): C =
 
     apply {
-        configuration(NamedDomainObjectContainerConfiguration(this))
+        configuration(NamedDomainObjectContainerScope(this))
     }
 
 
-class NamedDomainObjectContainerConfiguration<T : Any>(
+class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>) : NamedDomainObjectContainer<T> by container {
 
     /**
