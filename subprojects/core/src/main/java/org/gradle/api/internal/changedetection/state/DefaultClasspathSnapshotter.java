@@ -24,10 +24,12 @@ import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapsh
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.Factory;
 
-public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
+public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter, Factory<SnapshottingResultRecorder> {
     private final StringInterner stringInterner;
     private final ResourceSnapshotter resourceSnapshotter;
 
@@ -35,7 +37,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         super(fileSystemSnapshotter, stringInterner);
         this.stringInterner = stringInterner;
         this.resourceSnapshotter = new CachingResourceSnapshotter(
-            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), stringInterner),
+            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), this),
             jarSignatureCache
         );
     }
@@ -53,6 +55,11 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     @Override
     protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
         return resourceSnapshotter;
+    }
+
+    @Override
+    public SnapshottingResultRecorder create() {
+        return new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
     }
 
     private class ClasspathEntrySnapshotter extends AbstractSnapshotter {

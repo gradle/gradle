@@ -35,11 +35,9 @@ public abstract class AbstractSnapshotter implements ResourceSnapshotter {
             } finally {
                 IoActions.closeQuietly(tree);
             }
-        }
-        if (snapshottable instanceof SnapshottableResource) {
+        } else if (snapshottable instanceof SnapshottableResource) {
             snapshotResource((SnapshottableResource) snapshottable, recorder);
-        }
-        if (!(snapshottable instanceof SnapshottableResource || snapshottable instanceof SnapshottableResourceTree)) {
+        } else {
             throw new IllegalArgumentException("Can only snapshot resources or tree but not " + snapshottable);
         }
     }

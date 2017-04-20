@@ -16,51 +16,34 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.hash.HashCode
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.resources.SnapshottableResource
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.hash.DefaultFileHasher
-import org.gradle.internal.serialize.HashCodeSerializer
-import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.InMemoryIndexedCache
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Subject
 
-@CleanupTestDirectory(fieldName = "tmpDir")
 @Subject(DefaultClasspathSnapshotter)
-@UsesNativeServices
-class DefaultClasspathSnapshotterTest extends Specification {
-    @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
+    List entryHashes = []
 
-    def stringInterner = Stub(StringInterner) {
-        intern(_) >> { String s -> s }
-    }
-    def fileSystem = TestFiles.fileSystem()
-    def directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
-    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror([]))
-    InMemoryIndexedCache<HashCode, HashCode> jarCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
-    def snapshots = [:]
-    def snapshotter = new DefaultClasspathSnapshotter(
-        fileSystemSnapshotter,
-        stringInterner,
-        jarCache
-    ) {
-        @Override
-        protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-            return new ReportingFileCollectionSnapshotBuilder(super.createFileCollectionSnapshotBuilder(normalizationStrategy, compareStrategy), snapshots)
+    def setup() {
+        snapshotter = new DefaultClasspathSnapshotter(
+            fileSystemSnapshotter,
+            stringInterner,
+            jarCache
+        ) {
+            @Override
+            protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+                return new ReportingFileCollectionSnapshotBuilder(super.createFileCollectionSnapshotBuilder(normalizationStrategy, compareStrategy), snapshots)
+            }
+
+            @Override
+            SnapshottingResultRecorder create() {
+                def jarContents = [:]
+                entryHashes.add(jarContents)
+                return new ReportingSnapshottingResultRecorder(null, super.create(), jarContents)
+            }
         }
     }
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
-        given:
         def rootFile1 = tmpDir.file("root1.txt") << "root1"
         def rootDir = tmpDir.file("dir").createDir()
         rootDir.file("file1.txt") << "file1"
@@ -133,135 +116,84 @@ class DefaultClasspathSnapshotterTest extends Specification {
             ['build.log', 'subdir/build.log', 'abf951c0fe2b682313add34f016bcb30'],
             ['thirdFile.txt', 'thirdFile.txt', '728271a3405e112740bfd3198cfa70de'],
         ]
-//        snapshots == [
-//            'library.jar': [
-//                'firstFile.txt': '9db5682a4d778ca2cb79580bdb67083f',
-//                'secondFile.txt': '82e72efeddfca85ddb625e88af3fe973',
-//                'subdir/someOtherFile.log': 'a9cca315f4b8650dccfa3d93284998ef',
-//                hash: 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
-//            ],
-//            classes: [
-//                'fourthFile.txt': '8fd6978401143ae9adc277e9ce819f7e',
-//                'subdir/build.log': 'abf951c0fe2b682313add34f016bcb30',
-//                'thirdFile.txt': '728271a3405e112740bfd3198cfa70de',
-//                hash: 'fa5654d3c632f8b6e29ecaee439a5f15',
-//            ],
-//        ]
+
+        snapshots == [
+            classes: [
+                'fourthFile.txt': '8fd6978401143ae9adc277e9ce819f7e',
+                'subdir/build.log': 'abf951c0fe2b682313add34f016bcb30',
+                'thirdFile.txt': '728271a3405e112740bfd3198cfa70de',
+                hash: 'fa5654d3c632f8b6e29ecaee439a5f15',
+            ],
+            'library.jar': 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
+        ]
+
+        entryHashes as Set == [
+            [
+                'firstFile.txt': '9db5682a4d778ca2cb79580bdb67083f',
+                'secondFile.txt': '82e72efeddfca85ddb625e88af3fe973',
+                'subdir/someOtherFile.log': 'a9cca315f4b8650dccfa3d93284998ef',
+                hash: 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
+            ],
+            [
+                'fourthFile.txt': '8fd6978401143ae9adc277e9ce819f7e',
+                'subdir/build.log': 'abf951c0fe2b682313add34f016bcb30',
+                'thirdFile.txt': '728271a3405e112740bfd3198cfa70de',
+                hash: 'fa5654d3c632f8b6e29ecaee439a5f15',
+            ]
+        ] as Set
+
         jarCache.allEntries.size() == 1
         def key = jarCache.allEntries.keySet().iterator().next()
         jarCache.get(key).toString() == 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
     }
 
-    def files(File... files) {
-        return new SimpleFileCollection(files)
-    }
-
-    def snapshot(File... classpath) {
-        snapshots.clear()
-        def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, null)
-        return [
-            fileCollectionSnapshot.hash.toString(),
-            snapshots,
-            fileCollectionSnapshot.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
-                [new File(path).getName(), normalizedFileSnapshot.normalizedPath.path, normalizedFileSnapshot.snapshot.toString()]
+    def "cache hashes for jar files"() {
+        def zipFile = file('library.jar')
+        file('zipContents').create {
+            file('firstFile.txt').text = "Some text"
+            file('secondFile.txt').text = "Second File"
+            subdir {
+                file('someOtherFile.log').text = "File in subdir"
             }
+        }.zipTo(zipFile)
+
+        def zipFile2 = file('another-library.jar')
+        file('anotherZipContents').create {
+            file('thirdFile.txt').text = "third file"
+            file('forthFile.txt').text = "forth file"
+            subdir {
+                file('someEvenOtherFile.log').text = "another file in subdir"
+            }
+        }.zipTo(zipFile2)
+
+        when:
+        def (hash, snapshots) = snapshot(zipFile, zipFile2)
+
+        then:
+        snapshots == [
+                'library.jar': 'f31495fd1bb4b8c3b8fb1f46a68adf9e',
+                'another-library.jar': '4c54ecab47d005e6862ced54627c6208'
         ]
+        hash == '3c034ccdc7dc2fd2a5e84b573a772f1c'
+        entryHashes.size() == 2
+        jarCache.allEntries.size() == 2
+        def values = jarCache.allEntries.keySet().collect { jarCache.get(it).toString() } as Set
+        values == ['f31495fd1bb4b8c3b8fb1f46a68adf9e', '4c54ecab47d005e6862ced54627c6208'] as Set
+
+        when:
+        entryHashes.clear()
+        (hash, snapshots) = snapshot(zipFile, zipFile2)
+        values = jarCache.allEntries.keySet().collect { jarCache.get(it).toString() } as Set
+
+        then:
+        snapshots == [
+            'library.jar': 'f31495fd1bb4b8c3b8fb1f46a68adf9e',
+            'another-library.jar': '4c54ecab47d005e6862ced54627c6208'
+        ]
+        hash == '3c034ccdc7dc2fd2a5e84b573a772f1c'
+        entryHashes.empty
+        jarCache.allEntries.size() == 2
+        values == ['f31495fd1bb4b8c3b8fb1f46a68adf9e', '4c54ecab47d005e6862ced54627c6208'] as Set
     }
 
-    TestFile file(Object... path) {
-        return new TestFile(tmpDir.getTestDirectory(), path)
-    }
-
-    trait ReportingResultRecorder implements SnapshottingResultRecorder {
-        abstract Map getSnapshots()
-        abstract SnapshottingResultRecorder getDelegate()
-        abstract String getPath()
-
-        @Override
-        void recordResult(SnapshottableResource resource, HashCode hash) {
-            report("Snapshot taken", resource.getRelativePath().toString(), hash)
-            snapshots[resource.getRelativePath().toString()] = hash.toString()
-            delegate.recordResult(resource, hash)
-        }
-
-        @Override
-        SnapshottingResultRecorder recordCompositeResult(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
-            def subSnapshots = [:]
-            def compositeRecorder = delegate.recordCompositeResult(resource, new TotalReportingResultRecorder(subSnapshots, recorder))
-            snapshots[resource.getRelativePath().toString()] = subSnapshots
-            return new ReportingSnapshottingResultRecorder(getFullPath(resource.getRelativePath().toString()), compositeRecorder, subSnapshots)
-        }
-
-        private String getFullPath(String filePath) {
-            return path ? "$path!$filePath" : filePath
-        }
-
-        @Override
-        HashCode getHash(NormalizedFileSnapshotCollector collector) {
-            def hash = delegate.getHash(collector)
-            snapshots['hash'] = hash.toString()
-            return hash
-        }
-
-        private void report(String type, String filePath, HashCode hash) {
-            def event = "$type: ${getFullPath(filePath)} - $hash"
-            println event
-        }
-    }
-
-    static class ReportingFileCollectionSnapshotBuilder extends FileCollectionSnapshotBuilder implements ReportingResultRecorder {
-        final Map snapshots
-        final FileCollectionSnapshotBuilder delegate
-
-        ReportingFileCollectionSnapshotBuilder(FileCollectionSnapshotBuilder delegate, snapshots) {
-            super(null, null, null)
-            this.snapshots = snapshots
-            this.delegate = delegate
-        }
-
-        @Override
-        void collectSnapshot(String absolutePath, NormalizedFileSnapshot normalizedSnapshot) {
-            delegate.collectSnapshot(absolutePath, normalizedSnapshot)
-        }
-
-        @Override
-        FileCollectionSnapshot build() {
-            return delegate.build()
-        }
-
-        @Override
-        String getPath() {
-            return null
-        }
-    }
-
-    static class ReportingSnapshottingResultRecorder implements ReportingResultRecorder {
-        String path
-        final SnapshottingResultRecorder delegate
-        final Map snapshots
-
-        ReportingSnapshottingResultRecorder(String path, SnapshottingResultRecorder delegate, Map snapshots) {
-            this.snapshots = snapshots
-            this.path = path
-            this.delegate = delegate
-        }
-    }
-
-    static class TotalReportingResultRecorder implements SnapshottingResultRecorder {
-        @Delegate(excludes = "getHash")
-        private final SnapshottingResultRecorder delegate
-        private final Map snapshots
-
-        TotalReportingResultRecorder(Map snapshots, SnapshottingResultRecorder delegate) {
-            this.snapshots = snapshots
-            this.delegate = delegate
-        }
-
-        @Override
-        HashCode getHash(NormalizedFileSnapshotCollector collector) {
-            def hash = delegate.getHash(collector)
-            snapshots['hash'] = hash.toString()
-            return hash
-        }
-    }
 }

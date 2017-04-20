@@ -28,9 +28,11 @@ import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapsh
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.internal.Java9ClassReader;
 
@@ -40,7 +42,7 @@ import java.util.Collections;
 
 import static com.google.common.base.Charsets.UTF_8;
 
-public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
+public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter, Factory<SnapshottingResultRecorder> {
     private final StringInterner stringInterner;
     private final ResourceSnapshotter resourceSnapshotter;
 
@@ -48,9 +50,13 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         super(fileSystemSnapshotter, stringInterner);
         this.stringInterner = stringInterner;
         this.resourceSnapshotter = new CachingResourceSnapshotter(
-            new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(signatureCache), stringInterner),
+            new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(signatureCache), this),
             signatureCache
         );
+    }
+
+    public SnapshottingResultRecorder create() {
+        return new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
     }
 
     @Override
@@ -121,10 +127,12 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
                         HashCode signatureHash = Hashing.md5().hashBytes(signature);
                         recorder.recordResult(resource, signatureHash);
                         putToCache(resource, signatureHash);
+                    } else {
+                        putToCache(resource, IGNORED);
                     }
-                    return;
+                } else {
+                    putToCache(resource, IGNORED);
                 }
-                putToCache(resource, IGNORED);
             } catch (Exception e) {
                 HashCode contentsHash = Hashing.md5().hashBytes(classBytes);
                 recorder.recordResult(resource, contentsHash);

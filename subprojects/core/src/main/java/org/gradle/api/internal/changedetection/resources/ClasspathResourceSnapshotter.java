@@ -17,13 +17,10 @@
 package org.gradle.api.internal.changedetection.resources;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.zip.SnapshottableZipTree;
 import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
+import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.util.DeprecationLogger;
 
@@ -32,11 +29,11 @@ import java.util.zip.ZipException;
 
 public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     private final ResourceSnapshotter entrySnapshotter;
-    private final StringInterner stringInterner;
+    private final Factory<SnapshottingResultRecorder> entryRecorderFactory;
 
-    public ClasspathResourceSnapshotter(ResourceSnapshotter entrySnapshotter, StringInterner stringInterner) {
-        this.stringInterner = stringInterner;
+    public ClasspathResourceSnapshotter(ResourceSnapshotter entrySnapshotter, Factory<SnapshottingResultRecorder> entryRecorderFactory) {
         this.entrySnapshotter = entrySnapshotter;
+        this.entryRecorderFactory = entryRecorderFactory;
     }
 
     @Override
@@ -54,7 +51,7 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     @Override
     protected void snapshotTree(SnapshottableResourceTree tree, SnapshottingResultRecorder recorder) {
         try {
-            SnapshottingResultRecorder entryRecorder = new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
+            SnapshottingResultRecorder entryRecorder = entryRecorderFactory.create();
             if (!(tree instanceof SnapshottableZipTree)) {
                 entryRecorder = recorder.recordCompositeResult(tree.getRoot(), entryRecorder);
             }

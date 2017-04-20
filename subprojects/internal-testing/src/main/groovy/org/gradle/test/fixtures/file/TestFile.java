@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.base.Joiner;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import groovy.lang.Closure;
@@ -29,6 +30,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -55,6 +59,7 @@ import java.util.jar.Manifest;
 
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeTrue;
+import static org.objectweb.asm.Opcodes.*;
 
 public class TestFile extends File {
     private boolean useNativeTools;
@@ -685,6 +690,85 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public TestFile writeClassFile() {
+        return writeClassFile(null);
+    }
+
+    public TestFile writeClassFile(String packageName) {
+        String className = getName().replace(".class", "");
+        ClassWriter cw = new ClassWriter(0);
+        MethodVisitor mv;
+
+        String fullClassName = getFullClassName(packageName, className);
+        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, fullClassName, null, "java/lang/Object", null);
+
+        mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        Label l0 = new Label();
+        mv.visitLabel(l0);
+        mv.visitLineNumber(19, l0);
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+        mv.visitInsn(RETURN);
+        Label l1 = new Label();
+        mv.visitLabel(l1);
+        mv.visitLocalVariable("this", "L" + fullClassName + ";", null, l0, l1, 0);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+        cw.visitEnd();
+
+        getParentFile().mkdirs();
+        try {
+            Files.write(cw.toByteArray(), this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    public TestFile writeInnerClass() {
+        return writeInnerClass(null);
+    }
+
+    public TestFile writeInnerClass(String packageName) {
+        ClassWriter cw = new ClassWriter(0);
+        MethodVisitor mv;
+        String className = getName().replace(".class", "");
+        String[] parts = className.split("\\$");
+        String outerClassName = getFullClassName(packageName, parts[0]);
+        String innerClassName = getFullClassName(packageName, parts[1]);
+        String fullClassName = getFullClassName(packageName, className);
+        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, fullClassName, null, "java/lang/Object", null);
+        cw.visitInnerClass(fullClassName, outerClassName, innerClassName, ACC_PRIVATE + ACC_STATIC);
+
+        mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        Label l0 = new Label();
+        mv.visitLabel(l0);
+        mv.visitLineNumber(19, l0);
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+        mv.visitInsn(RETURN);
+        Label l1 = new Label();
+        mv.visitLabel(l1);
+        mv.visitLocalVariable("this", "L" + outerClassName + ";", null, l0, l1, 0);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+        cw.visitEnd();
+
+        getParentFile().mkdirs();
+        try {
+            Files.write(cw.toByteArray(), this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    private String getFullClassName(String packageName, String className) {
+        return Joiner.on("/").skipNulls().join(packageName == null ? null : packageName.replace(".", "/"), className);
     }
 
     public void assumeExists() {
