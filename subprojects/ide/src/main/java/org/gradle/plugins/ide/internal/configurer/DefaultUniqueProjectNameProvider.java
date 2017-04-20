@@ -18,14 +18,14 @@ package org.gradle.plugins.ide.internal.configurer;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.initialization.BuildProjectRegistry;
 
 import java.util.Map;
 
 public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvider {
-    private final ProjectRegistry<ProjectIdentifier> projectRegistry;
+    private final BuildProjectRegistry projectRegistry;
 
-    public DefaultUniqueProjectNameProvider(ProjectRegistry<ProjectIdentifier> projectRegistry) {
+    public DefaultUniqueProjectNameProvider(BuildProjectRegistry projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 
@@ -35,9 +35,25 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
         HierarchicalElementDeduplicator<ProjectIdentifier> deduplicator = new HierarchicalElementDeduplicator<ProjectIdentifier>(new ProjectDeduplicationAdapter());
         Map<ProjectIdentifier, String> deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
 
-        ProjectIdentifier projectIdentifier = (ProjectInternal) project;
-        String newName = deduplicated.get(projectIdentifier);
-        return newName == null ? project.getName() : newName;
+        // TODO:DAZ Could be more efficient when matching
+        for (ProjectIdentifier projectIdentifier : deduplicated.keySet()) {
+            if (equals(projectIdentifier, (ProjectInternal) project)) {
+                return deduplicated.get(projectIdentifier);
+            }
+        }
+        return project.getName();
+    }
+
+    private boolean equals(ProjectIdentifier one, ProjectInternal two) {
+        if (one == null && two == null) {
+            return true;
+        }
+        if (one == null || two == null) {
+            return false;
+        }
+        return one.getName().equals(two.getName())
+            && one.getPath().equals(two.getPath())
+            && equals(one.getParentIdentifier(), two.getParent());
     }
 
     // TODO:DAZ Simplify now that there are not multiple deduplicator types
