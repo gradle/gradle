@@ -85,6 +85,16 @@ public class ComponentResolversChain implements ComponentResolvers {
                 resolver.resolve(identifier, componentOverrideMetadata, result);
             }
         }
+
+        @Override
+        public boolean isAvailableLocally(ComponentIdentifier identifier) {
+            for (ComponentMetaDataResolver resolver : resolvers) {
+                if (resolver.isAvailableLocally(identifier)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     private static class ArtifactResolverChain implements ArtifactResolver {

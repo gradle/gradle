@@ -128,5 +128,10 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 result.failed(new ArtifactResolveException(artifact.getId(), throwable));
             }
         }
+
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.isMetadataAvailableLocally(moduleComponentIdentifier);
+        }
     }
 }

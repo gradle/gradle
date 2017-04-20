@@ -265,6 +265,38 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             resolveArtifactFromCache(artifact, cachedModuleSource, result);
         }
 
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier) // in-memory check first
+                || isMetadataAvailableInCacheAndUpToDate(moduleComponentIdentifier);
+        }
+
+        private boolean isMetadataAvailableInCacheAndUpToDate(ModuleComponentIdentifier moduleComponentIdentifier) {
+            ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
+            if (cachedMetaData == null) {
+                return false;
+            }
+            if (cachedMetaData.isMissing()) {
+                if (cachePolicy.mustRefreshMissingModule(moduleComponentIdentifier, cachedMetaData.getAgeMillis())) {
+                    return false;
+                }
+                return true;
+            }
+            ModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
+            metaData = metadataProcessor.processMetadata(metaData);
+            if (metaData.isChanging()) {
+                if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
+                    return false;
+                }
+            } else {
+                if (cachePolicy.mustRefreshModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
         private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, CachingModuleSource moduleSource, BuildableArtifactResolveResult result) {
             CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(artifactCacheKey(artifact));
             final BigInteger descriptorHash = moduleSource.getDescriptorHash();
@@ -372,6 +404,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             } else if (failure instanceof ArtifactNotFoundException) {
                 artifactAtRepositoryCachedResolutionIndex.storeMissing(artifactCacheKey(artifact), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }
+        }
+
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier);
         }
     }
 

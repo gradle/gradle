@@ -25,4 +25,6 @@ public interface ComponentMetaDataResolver {
      * Resolves the meta-data for a component instance. Failures should be attached to the returned result.
      */
     void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result);
+
+    boolean isAvailableLocally(ComponentIdentifier identifier);
 }

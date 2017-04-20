@@ -63,4 +63,9 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
     public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         delegate.resolveArtifact(artifact, moduleSource, result);
     }
+
+    @Override
+    public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+        return delegate.isMetadataAvailableLocally(moduleComponentIdentifier);
+    }
 }

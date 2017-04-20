@@ -440,6 +440,11 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
 
         }
+
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return false;
+        }
     }
 
     protected abstract class RemoteRepositoryAccess extends AbstractRepositoryAccess {
@@ -486,6 +491,13 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             ExternalResourceResolver.this.resolveArtifact(artifact, moduleSource, result);
         }
+
+
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return false;
+        }
+
     }
 
     private static String generateId(ExternalResourceResolver resolver) {

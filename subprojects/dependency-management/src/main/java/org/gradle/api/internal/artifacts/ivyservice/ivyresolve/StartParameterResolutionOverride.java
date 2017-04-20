@@ -142,6 +142,11 @@ public class StartParameterResolutionOverride {
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
+
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return false;
+        }
     }
 
     public ExternalResourceCachePolicy overrideExternalResourceCachePolicy(ExternalResourceCachePolicy original) {

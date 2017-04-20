@@ -59,6 +59,18 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata, result);
     }
 
+    @Override
+    public boolean isAvailableLocally(ComponentIdentifier identifier) {
+        if (identifier instanceof ModuleComponentIdentifier) {
+            for (ModuleComponentRepository repository : repositories) {
+                if (repository.getLocalAccess().isMetadataAvailableLocally((ModuleComponentIdentifier) identifier)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 

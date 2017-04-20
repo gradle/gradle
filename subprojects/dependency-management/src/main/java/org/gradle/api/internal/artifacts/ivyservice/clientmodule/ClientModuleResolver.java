@@ -58,6 +58,11 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
     }
 
+    @Override
+    public boolean isAvailableLocally(ComponentIdentifier identifier) {
+        return resolver.isAvailableLocally(identifier);
+    }
+
     private void addClientModuleDependencies(ClientModule clientModule, MutableModuleComponentResolveMetadata clientModuleMetaData) {
         List<DependencyMetadata> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {

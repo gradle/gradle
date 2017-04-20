@@ -81,6 +81,14 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
+    public boolean isAvailableLocally(ComponentIdentifier identifier) {
+        if (isProjectModule(identifier)) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getComponentId())) {
             throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
