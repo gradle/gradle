@@ -70,7 +70,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
             }
         } catch (e: Exception) {
             log(ResolutionFailure(script.file, e))
-            throw e
+            previousDependencies
         }
     }
 
