@@ -47,7 +47,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
-import org.gradle.plugins.ide.idea.internal.ProjectNameDeduplicator;
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -98,10 +98,12 @@ public class IdeaPlugin extends IdePlugin {
     private final Instantiator instantiator;
     private IdeaModel ideaModel;
     private List<Project> allJavaProjects;
+    private final UniqueProjectNameProvider uniqueProjectNameProvider;
 
     @Inject
-    public IdeaPlugin(Instantiator instantiator) {
+    public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider) {
         this.instantiator = instantiator;
+        this.uniqueProjectNameProvider = uniqueProjectNameProvider;
     }
 
     public IdeaModel getModel() {
@@ -250,8 +252,7 @@ public class IdeaPlugin extends IdePlugin {
         task.setModule(module);
         ideaModel.setModule(module);
 
-        // TODO:DAZ Avoid duplicating the de-duplication work for every project.
-        final String defaultModuleName = new ProjectNameDeduplicator().getModuleName(project);
+        final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);
         module.setName(defaultModuleName);
 
         ConventionMapping conventionMapping = ((IConventionAware) module).getConventionMapping();

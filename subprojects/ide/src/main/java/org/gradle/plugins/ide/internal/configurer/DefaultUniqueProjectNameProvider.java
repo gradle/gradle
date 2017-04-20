@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,46 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.idea.internal;
+package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.plugins.ide.internal.configurer.HierarchicalElementDeduplicator;
-import org.gradle.plugins.ide.internal.configurer.NameDeduplicationAdapter;
-import org.gradle.util.CollectionUtils;
+import org.gradle.api.internal.project.ProjectRegistry;
 
 import java.util.Map;
-import java.util.Set;
 
-// TODO:DAZ Simplify now that there are not multiple deduplicator types
-public class ProjectNameDeduplicator {
+public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvider {
+    private final ProjectRegistry<ProjectIdentifier> projectRegistry;
 
-    public String getModuleName(Project project) {
-        Set<ProjectIdentifier> ids = CollectionUtils.collect(project.getRootProject().getAllprojects(), new Transformer<ProjectIdentifier, Project>() {
-            @Override
-            public ProjectIdentifier transform(Project project) {
-                return (ProjectInternal) project;
-            }
-        });
+    public DefaultUniqueProjectNameProvider(ProjectRegistry<ProjectIdentifier> projectRegistry) {
+        this.projectRegistry = projectRegistry;
+    }
 
+    // TODO:DAZ Avoid duplicating the de-duplication work for every project.
+    @Override
+    public String getUniqueName(Project project) {
         HierarchicalElementDeduplicator<ProjectIdentifier> deduplicator = new HierarchicalElementDeduplicator<ProjectIdentifier>(new ProjectDeduplicationAdapter());
-        Map<ProjectIdentifier, String> deduplicated = deduplicator.deduplicate(ids);
+        Map<ProjectIdentifier, String> deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
 
-        ProjectInternal projectInternal = (ProjectInternal) project;
-        String newName = deduplicated.get(projectInternal);
+        ProjectIdentifier projectIdentifier = (ProjectInternal) project;
+        String newName = deduplicated.get(projectIdentifier);
         return newName == null ? project.getName() : newName;
     }
 
+    // TODO:DAZ Simplify now that there are not multiple deduplicator types
     private static class ProjectDeduplicationAdapter implements NameDeduplicationAdapter<ProjectIdentifier> {
         @Override
         public String getName(ProjectIdentifier element) {
-            String projectPath = element.getPath();
-            if (projectPath.equals(":")) {
-                return element.getName();
-            }
-            return projectPath.substring(projectPath.lastIndexOf(':') + 1);
+            return element.getName();
         }
 
         @Override

@@ -57,7 +57,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Link;
-import org.gradle.plugins.ide.idea.internal.ProjectNameDeduplicator;
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
@@ -79,10 +79,12 @@ public class EclipsePlugin extends IdePlugin {
     public static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt";
 
     private final Instantiator instantiator;
+    private final UniqueProjectNameProvider uniqueProjectNameProvider;
 
     @Inject
-    public EclipsePlugin(Instantiator instantiator) {
+    public EclipsePlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider) {
         this.instantiator = instantiator;
+        this.uniqueProjectNameProvider = uniqueProjectNameProvider;
     }
 
     @Override
@@ -134,8 +136,7 @@ public class EclipsePlugin extends IdePlugin {
                 //model:
                 model.setProject(projectModel);
 
-                // TODO:DAZ Avoid duplicating the de-duplication work for every project.
-                final String defaultModuleName = new ProjectNameDeduplicator().getModuleName(project);
+                final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);
                 projectModel.setName(defaultModuleName);
 
                 final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
