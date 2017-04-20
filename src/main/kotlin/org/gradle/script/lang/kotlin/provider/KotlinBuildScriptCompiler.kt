@@ -85,14 +85,15 @@ class KotlinBuildScriptCompiler(
 
     fun compileForClassPath(): (Project) -> Unit = { target ->
         ignoringErrors { executeBuildscriptBlockOn(target) }
-        ignoringErrors { executePluginsBlockOn(target) }
+        ignoringErrors { prepareTargetClassLoaderScopeOf(target) }
+        ignoringErrors { executeScriptBodyOn(target) }
     }
 
     private fun compileTopLevelScript(): (Project) -> Unit {
         return { target ->
             withUnexpectedBlockHandling {
                 executeBuildscriptBlockOn(target)
-                executeScriptBodyOn(target)
+                prepareAndExecuteScriptBodyOn(target)
             }
         }
     }
@@ -100,13 +101,17 @@ class KotlinBuildScriptCompiler(
     private fun compileScriptPlugin(): (Project) -> Unit {
         return { target ->
             withUnexpectedBlockHandling {
-                executeScriptBodyOn(target)
+                prepareAndExecuteScriptBodyOn(target)
             }
         }
     }
 
-    private fun executeScriptBodyOn(project: Project) {
+    private fun prepareAndExecuteScriptBodyOn(project: Project) {
         prepareTargetClassLoaderScopeOf(project)
+        executeScriptBodyOn(project)
+    }
+
+    private fun executeScriptBodyOn(project: Project) {
         val compiledScript = compileScriptFile(additionalSourceFilesFor(project))
         executeCompileScript(compiledScript, targetScope.createChild("script"), project)
     }
