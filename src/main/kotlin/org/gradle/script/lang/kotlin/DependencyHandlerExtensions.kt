@@ -115,7 +115,7 @@ fun DependencyHandler.module(
     configuration: String? = null,
     classifier: String? = null,
     ext: String? = null,
-    clientModuleConfiguration: ClientModuleConfiguration.() -> Unit): ClientModule =
+    clientModuleConfiguration: ClientModuleScope.() -> Unit): ClientModule =
 
     configureClientModule(
         module(
@@ -138,7 +138,7 @@ fun DependencyHandler.module(
  */
 fun DependencyHandler.module(
     notation: Any,
-    clientModuleConfiguration: ClientModuleConfiguration.() -> Unit): ClientModule =
+    clientModuleConfiguration: ClientModuleScope.() -> Unit): ClientModule =
 
     configureClientModule(module(notation) as ClientModule, clientModuleConfiguration)
 
@@ -146,13 +146,13 @@ fun DependencyHandler.module(
 private inline
 fun DependencyHandler.configureClientModule(
     module: ClientModule,
-    clientModuleConfiguration: ClientModuleConfiguration.() -> Unit): ClientModule =
+    clientModuleConfiguration: ClientModuleScope.() -> Unit): ClientModule =
     module.apply {
-        ClientModuleConfiguration(this@configureClientModule, this@apply).clientModuleConfiguration()
+        ClientModuleScope(this@configureClientModule, this@apply).clientModuleConfiguration()
     }
 
 
-class ClientModuleConfiguration(
+class ClientModuleScope(
     private val dependencyHandler: DependencyHandler,
     val clientModule: ClientModule) : ClientModule by clientModule {
 
@@ -162,7 +162,7 @@ class ClientModuleConfiguration(
                configuration: String? = null,
                classifier: String? = null,
                ext: String? = null,
-               setup: ClientModuleConfiguration.() -> Unit) {
+               setup: ClientModuleScope.() -> Unit) {
         clientModule.addDependency(
             dependencyHandler.module(group, name, version, configuration, classifier, ext, setup))
     }
