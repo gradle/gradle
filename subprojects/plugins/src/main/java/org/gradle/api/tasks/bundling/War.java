@@ -150,6 +150,16 @@ public class War extends Jar {
      * Sets the classpath to include in the WAR archive.
      *
      * @param classpath The classpath. Must not be null.
+     * @since 4.0
+     */
+    public void setClasspath(FileCollection classpath) {
+        setClasspath((Object) classpath);
+    }
+
+    /**
+     * Sets the classpath to include in the WAR archive.
+     *
+     * @param classpath The classpath. Must not be null.
      */
     public void setClasspath(Object classpath) {
         this.classpath = getProject().files(classpath);
