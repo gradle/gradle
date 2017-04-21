@@ -165,7 +165,7 @@ dependencies {
 
         eclipseProject.classpath.size() == 2
         eclipseProject.classpath.every { it instanceof ExternalDependency }
-        eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar' ] as Set
+        eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar'] as Set
         eclipseProject.classpath.collect { it.source?.name } as Set == ['commons-lang-2.5-sources.jar', 'commons-io-1.4-sources.jar'] as Set
         eclipseProject.classpath.collect { it.javadoc?.name } as Set == [null, null] as Set
     }
@@ -216,7 +216,7 @@ project(':a') {
 
         minimalProject.projectDependencies.any { it.path == 'root' }
         minimalProject.projectDependencies.any { it.path == 'b' }
-        if( currentVersion < GradleVersion.version('4.0')) {
+        if (currentVersion < GradleVersion.version('4.0')) {
             minimalProject.projectDependencies.any { it.path == 'root' && it.targetProject == minimalModel }
             minimalProject.projectDependencies.any { it.path == 'b' && it.targetProject == minimalProject.children[0] }
         }
@@ -231,7 +231,7 @@ project(':a') {
 
         fullProject.projectDependencies.any { it.path == 'root' }
         fullProject.projectDependencies.any { it.path == 'b' }
-        if( currentVersion < GradleVersion.version('4.0')) {
+        if (currentVersion < GradleVersion.version('4.0')) {
             fullProject.projectDependencies.any { it.path == 'root' && it.targetProject == fullModel }
             fullProject.projectDependencies.any { it.path == 'b' && it.targetProject == fullProject.children[0] }
         }
@@ -265,20 +265,20 @@ project(':c') {
         EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        def projectC = rootProject.children.find { it.name == 'c'}
-        def projectA = rootProject.children.find { it.name == 'a'}
+        def projectC = rootProject.children.find { it.name == 'c' }
+        def projectA = rootProject.children.find { it.name == 'a' }
         def projectAB = projectA.children.find { it.name == 'b' }
 
-        if( currentVersion < GradleVersion.version('4.0')) {
-            projectC.projectDependencies.any {it.targetProject == projectAB}
-            projectA.projectDependencies.any {it.targetProject == projectAB}
-            projectA.projectDependencies.any {it.targetProject == projectC}
-            projectA.projectDependencies.any {it.targetProject == rootProject}
+        if (currentVersion < GradleVersion.version('4.0')) {
+            projectC.projectDependencies.any { it.targetProject == projectAB }
+            projectA.projectDependencies.any { it.targetProject == projectAB }
+            projectA.projectDependencies.any { it.targetProject == projectC }
+            projectA.projectDependencies.any { it.targetProject == rootProject }
         }
-        projectC.projectDependencies.any {projectAB.name.contains(it.path)}
-        projectA.projectDependencies.any {projectAB.name.contains(it.path)}
-        projectA.projectDependencies.any {projectC.name.contains(it.path)}
-        projectA.projectDependencies.any {rootProject.name.contains(it.path)}
+        projectC.projectDependencies.any { projectAB.name.contains(it.path) }
+        projectA.projectDependencies.any { projectAB.name.contains(it.path) }
+        projectA.projectDependencies.any { projectC.name.contains(it.path) }
+        projectA.projectDependencies.any { rootProject.name.contains(it.path) }
     }
 
     def "can build the eclipse project hierarchy for a multi-project build"() {
@@ -357,7 +357,7 @@ configure(project(':bar')) {
         when:
         HierarchicalEclipseProject rootProject = loadToolingModel(HierarchicalEclipseProject)
         then:
-        rootProject.children.any { it.name == 'foo'}
-        rootProject.children.any { it.name == 'customized-bar'}
+        rootProject.children.any { it.name == 'foo' }
+        rootProject.children.any { it.name == 'customized-bar' }
     }
 }

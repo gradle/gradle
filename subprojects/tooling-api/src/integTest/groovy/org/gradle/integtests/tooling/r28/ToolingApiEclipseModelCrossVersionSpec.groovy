@@ -56,7 +56,7 @@ project(':contrib:impl') {
         EclipseProject contribApiProject = contribProject.children.find { it.name == 'contrib-api' }
 
         then:
-        if( currentVersion < GradleVersion.version('4.0')) {
+        if (currentVersion < GradleVersion.version('4.0')) {
             contribImplProject.projectDependencies.any { it.path == 'contrib-api' && it.targetProject == contribApiProject }
             rootImplProject.projectDependencies.any { it.path == 'root-api' && it.targetProject == rootApiProject }
         } else {

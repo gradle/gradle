@@ -65,7 +65,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         assert eclipseProject.projectDependencies.size() == 1
         with(eclipseProject.projectDependencies.first()) {
             it.path == 'b1'
-            if(currentVersion < GradleVersion.version('4.0')) {
+            if (currentVersion < GradleVersion.version('4.0')) {
                 it.targetProject == null
             }
         }
