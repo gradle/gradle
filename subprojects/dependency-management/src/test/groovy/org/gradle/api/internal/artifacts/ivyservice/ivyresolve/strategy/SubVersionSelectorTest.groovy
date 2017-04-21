@@ -39,6 +39,7 @@ class SubVersionSelectorTest extends AbstractVersionSelectorTest {
         !accept("1+", "2")
         !accept("1.+", "11")
         !accept("1.2.3+", "1.2")
+        !accept("1.2+", "1.2.1-SNAPSHOT")
     }
 
     def "metadata-aware accept method delivers same results"() {

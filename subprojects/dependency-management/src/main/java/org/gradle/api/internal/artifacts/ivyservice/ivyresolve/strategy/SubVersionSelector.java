@@ -39,6 +39,6 @@ public class SubVersionSelector extends AbstractVersionSelector {
     }
 
     public boolean accept(String candidate) {
-        return candidate.startsWith(prefix);
+        return candidate.startsWith(prefix) && !candidate.endsWith("SNAPSHOT");
     }
 }
