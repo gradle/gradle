@@ -37,7 +37,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         Class<?> valueType = context.getValueType();
         if (File.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
-            context.validationMessage("@Input annotation used on property of type " + valueType.getName());
+            context.validationMessage("has @Input annotation used on property of type " + valueType.getName());
         }
     }
 

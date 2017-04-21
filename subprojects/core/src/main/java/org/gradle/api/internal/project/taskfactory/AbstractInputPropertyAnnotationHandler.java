@@ -39,7 +39,7 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
             if (context.isCacheable()) {
-                context.validationMessage("missing @PathSensitive annotation on cacheable task input property");
+                context.validationMessage("is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE");
             }
             pathSensitivity = PathSensitivity.ABSOLUTE;
         } else {

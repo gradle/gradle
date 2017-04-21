@@ -30,7 +30,7 @@ public class TaskPropertyValidationAccess {
         TaskClassInfoStore infoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor(new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()));
         TaskClassInfo info = infoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(task));
         for (TaskClassValidationMessage validationMessage : info.getValidator().getValidationMessages()) {
-            problems.put(String.format("Task type '%s' %s.", task.getName(), validationMessage), Boolean.FALSE);
+            problems.put(String.format("Task type '%s': %s.", task.getName(), validationMessage), Boolean.FALSE);
         }
     }
 }
