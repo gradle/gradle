@@ -33,6 +33,14 @@ public interface TestLogging {
      * Sets the events to be logged.
      *
      * @param events the events to be logged
+     * @since 4.0
+     */
+    void setEvents(Set<TestLogEvent> events);
+
+    /**
+     * Sets the events to be logged.
+     *
+     * @param events the events to be logged
      */
     void setEvents(Iterable<?> events);
 

@@ -40,6 +40,11 @@ public class DefaultTestLogging implements TestLogging {
     }
 
     @Override
+    public void setEvents(Set<TestLogEvent> events) {
+        this.events = EnumSet.copyOf(events);
+    }
+
+    @Override
     public void setEvents(Iterable<?> events) {
         this.events = toEnumSet(TestLogEvent.class, events);
     }
