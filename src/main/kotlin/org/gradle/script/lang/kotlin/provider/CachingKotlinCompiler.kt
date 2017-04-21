@@ -56,6 +56,9 @@ class CachingKotlinCompiler(
     private
     val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-script-kotlin")
 
+    private
+    val cacheProperties = mapOf("version" to "4")
+
     fun compileBuildscriptBlockOf(
         scriptFile: File,
         buildscript: String,
@@ -143,7 +146,7 @@ class CachingKotlinCompiler(
     fun withCacheFor(cacheKeySpec: CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
         cacheRepository
             .cache(cacheKeyFor(cacheKeySpec))
-            .withProperties(mapOf("version" to "4"))
+            .withProperties(cacheProperties)
             .let { if (recompileScripts) it.withValidator { false } else it }
             .withInitializer(initializer)
             .open().run {
