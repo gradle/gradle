@@ -71,7 +71,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains """
-No dependencies matching given input were found in configuration ':compile'
+No dependencies matching given input were found in configuration ':compileClasspath'
 """
     }
 
@@ -1041,7 +1041,42 @@ project :impl
         output.contains """
 org:leaf4:1.0
 \\--- project :impl
-     \\--- compile
+     \\--- compileClasspath
+"""
+    }
+
+    def "selects both api and implementation dependencies with dependency command line option"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+
+        file("build.gradle") << """
+                apply plugin: 'java-library'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                dependencies {
+                    api 'org:leaf1:1.0'
+                    implementation 'org:leaf2:1.0'
+                }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf1"
+
+        then:
+        output.contains """
+org:leaf1:1.0
+\\--- compileClasspath
+"""
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf2"
+
+        then:
+        output.contains """
+org:leaf2:1.0
+\\--- compileClasspath
 """
     }
 
@@ -1086,7 +1121,7 @@ org:leaf4:1.0
         output.contains """
 project :api
 \\--- project :impl
-     \\--- compile
+     \\--- compileClasspath
 """
     }
 
@@ -1132,7 +1167,7 @@ org:leaf3:1.0
 \\--- org:leaf2:1.0
      +--- project :api
      |    \\--- project :impl
-     |         \\--- compile
+     |         \\--- compileClasspath
      \\--- org:leaf1:1.0
           \\--- project :impl (*)
 """

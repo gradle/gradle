@@ -52,7 +52,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         component.rebuildTasks == [BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]
         component.buildTasks == [JavaBasePlugin.BUILD_TASK_NAME]
         component.runtimeClasspath != null
-        component.compileDependencies == project.configurations.compile
+        component.compileDependencies == project.configurations.compileClasspath
     }
 
     def addsConfigurationsToTheProject() {

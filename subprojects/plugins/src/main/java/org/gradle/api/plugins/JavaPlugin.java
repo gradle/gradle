@@ -469,7 +469,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         }
 
         public Configuration getCompileDependencies() {
-            return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
+            return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         }
     }
 
