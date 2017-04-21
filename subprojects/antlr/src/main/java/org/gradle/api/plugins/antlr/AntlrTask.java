@@ -234,6 +234,22 @@ public class AntlrTask extends SourceTask {
     }
 
     /**
+     * Sets the source for this task. Delegates to {@link SourceTask#setSource(FileTree)}.
+     *
+     * If the source is of type {@link SourceDirectorySet}, then the relative path of each source grammar files
+     * is used to determine the relative output path of the generated source
+     * If the source is not of type {@link SourceDirectorySet}, then the generated source files end up
+     * flattened in the specified output directory.
+     *
+     * @param source The source.
+     */
+    @Override
+    public void setSource(FileTree source) {
+        super.setSource(source);
+        handleSourceDirectorySet(source);
+    }
+
+    /**
      * Sets the source for this task. Delegates to {@link SourceTask#setSource(Object)}.
      *
      * If the source is of type {@link SourceDirectorySet}, then the relative path of each source grammar files
@@ -246,6 +262,10 @@ public class AntlrTask extends SourceTask {
     @Override
     public void setSource(Object source) {
         super.setSource(source);
+        handleSourceDirectorySet(source);
+    }
+
+    private void handleSourceDirectorySet(Object source) {
         if (source instanceof SourceDirectorySet) {
             this.sourceDirectorySet = (SourceDirectorySet) source;
         }
