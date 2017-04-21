@@ -72,4 +72,45 @@ class AbstractTrackedResourceLockTest extends Specification {
         then:
         thrown(IllegalStateException)
     }
+
+    def "tracks the owner of a thread"() {
+        given:
+        _ * coordinationService.current >> resourceLockState
+
+        when:
+        lock.tryLock()
+
+        then:
+        lock.owner == Thread.currentThread()
+
+        when:
+        lock.unlock()
+
+        then:
+        lock.owner == null
+    }
+
+    def "can acquire a lock on behalf of another thread"() {
+        Thread otherThread = new Thread({
+            assert lock.isLockedByCurrentThread()
+            lock.unlock()
+            assert lock.owner == null
+        })
+
+        given:
+        _ * coordinationService.current >> resourceLockState
+
+        when:
+        lock.tryLock(otherThread)
+
+        then:
+        lock.owner == otherThread
+
+        when:
+        otherThread.start()
+        otherThread.join()
+
+        then:
+        noExceptionThrown()
+    }
 }

@@ -45,14 +45,12 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
 
         then:
         resourceLock.doIsLocked()
-        resourceLock.doIsLockedByCurrentThread()
 
         when:
         coordinationService.withStateLock(unlock(resourceLock))
 
         then:
         !resourceLock.doIsLocked()
-        !resourceLock.doIsLockedByCurrentThread()
     }
 
     def "can lock a resource that is already locked"() {
@@ -66,7 +64,6 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
         then:
         noExceptionThrown()
         resourceLock.doIsLocked()
-        resourceLock.doIsLockedByCurrentThread()
     }
 
     def "can unlock a resource that is already unlocked"() {
@@ -76,7 +73,6 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
         then:
         noExceptionThrown()
         !resourceLock.doIsLocked()
-        !resourceLock.doIsLockedByCurrentThread()
     }
 
     def "cannot lock a resource that is already locked by another thread"() {
@@ -86,7 +82,7 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
 
             start {
                 assert !coordinationService.withStateLock(tryLock(resourceLock))
-                assert !resourceLock.doIsLockedByCurrentThread()
+                assert resourceLock.owner != Thread.currentThread()
                 instant.child1Finished
             }
 
@@ -95,7 +91,7 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
 
             start {
                 assert coordinationService.withStateLock(tryLock(resourceLock))
-                assert resourceLock.doIsLockedByCurrentThread()
+                assert resourceLock.owner == Thread.currentThread()
             }
         }
 

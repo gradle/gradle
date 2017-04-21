@@ -45,7 +45,16 @@ public interface ResourceLock extends Describable {
     boolean tryLock();
 
     /**
+     * Attempt to lock this resource using the provided thread as the owner.  Does not block.
+     *
+     * @return true if resource was locked, false otherwise.
+     */
+    boolean tryLock(Thread owner);
+
+    /**
      * Unlock this resource if it's held by the calling thread.
      */
     void unlock();
+
+    Thread getOwner();
 }

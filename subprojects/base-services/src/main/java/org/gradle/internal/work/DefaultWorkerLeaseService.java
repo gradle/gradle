@@ -71,8 +71,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
     private synchronized DefaultWorkerLease getWorkerLease(LeaseHolder parent) {
         int workerId = counter++;
-        Thread ownerThread = Thread.currentThread();
-        return workerLeaseLockRegistry.getResourceLock(parent, workerId, ownerThread);
+        return workerLeaseLockRegistry.getResourceLock(parent, workerId);
     }
 
     @Override
@@ -195,12 +194,12 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
             super(coordinationService);
         }
 
-        DefaultWorkerLease getResourceLock(final LeaseHolder parent, int workerId, final Thread ownerThread) {
+        DefaultWorkerLease getResourceLock(final LeaseHolder parent, int workerId) {
             String displayName = parent.getDisplayName() + '.' + workerId;
             return getOrRegisterResourceLock(displayName, new ResourceLockProducer<DefaultWorkerLease>() {
                 @Override
                 public DefaultWorkerLease create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                    return new DefaultWorkerLease(displayName, coordinationService, lockAction, unlockAction, parent, ownerThread);
+                    return new DefaultWorkerLease(displayName, coordinationService, lockAction, unlockAction, parent);
                 }
             });
         }
@@ -236,24 +235,17 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
     private class DefaultWorkerLease extends AbstractTrackedResourceLock implements LeaseHolder, WorkerLeaseCompletion, WorkerLease {
         private final LeaseHolder parent;
-        private final Thread ownerThread;
         int children;
         boolean active;
 
-        public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, LeaseHolder parent, Thread ownerThread) {
+        public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, LeaseHolder parent) {
             super(displayName, coordinationService, lockAction, unlockAction);
             this.parent = parent;
-            this.ownerThread = ownerThread;
         }
 
         @Override
         protected boolean doIsLocked() {
             return active;
-        }
-
-        @Override
-        protected boolean doIsLockedByCurrentThread() {
-            return active && Thread.currentThread() == ownerThread;
         }
 
         @Override
@@ -273,7 +265,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
         @Override
         protected void releaseLock() {
-            if (Thread.currentThread() != ownerThread) {
+            if (Thread.currentThread() != getOwner()) {
                 // Not implemented - not yet required. Please implement if required
                 throw new UnsupportedOperationException("Must complete operation from owner thread.");
             }

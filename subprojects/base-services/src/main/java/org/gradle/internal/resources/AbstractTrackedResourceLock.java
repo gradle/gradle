@@ -28,6 +28,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     private final ResourceLockCoordinationService coordinationService;
     private final Action<ResourceLock> lockAction;
     private final Action<ResourceLock> unlockAction;
+    private Thread owner;
 
     public AbstractTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
         this.displayName = displayName;
@@ -37,11 +38,12 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     }
 
     @Override
-    public boolean tryLock() {
+    public boolean tryLock(Thread owner) {
         failIfNotInResourceLockStateChange();
-        if (!isLockedByCurrentThread()) {
+        if (!isLockedByThread(owner)) {
             if (acquireLock()) {
-                LOGGER.debug("{}: acquired lock on {}", Thread.currentThread().getName(), displayName);
+                LOGGER.debug("{}: acquired lock on {}", owner.getName(), displayName);
+                this.owner = owner;
                 lockAction.execute(this);
                 coordinationService.getCurrent().registerLocked(this);
                 return true;
@@ -54,12 +56,18 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     }
 
     @Override
+    public boolean tryLock() {
+        return tryLock(Thread.currentThread());
+    }
+
+    @Override
     public void unlock() {
         failIfNotInResourceLockStateChange();
-        if (isLockedByCurrentThread()) {
+        if (isLockedByThread(Thread.currentThread())) {
             releaseLock();
             LOGGER.debug("{}: released lock on {}", Thread.currentThread().getName(), displayName);
             unlockAction.execute(this);
+            owner = null;
             coordinationService.notifyStateChange();
         }
     }
@@ -70,10 +78,19 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
         return doIsLocked();
     }
 
+    boolean isLockedByThread(Thread owner) {
+        return owner == getOwner();
+    }
+
     @Override
     public boolean isLockedByCurrentThread() {
         failIfNotInResourceLockStateChange();
-        return doIsLockedByCurrentThread();
+        return isLockedByThread(Thread.currentThread());
+    }
+
+    @Override
+    public Thread getOwner() {
+        return owner;
     }
 
     private void failIfNotInResourceLockStateChange() {
@@ -87,8 +104,6 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     abstract protected void releaseLock();
 
     abstract protected boolean doIsLocked();
-
-    abstract protected boolean doIsLockedByCurrentThread();
 
     @Override
     public String getDisplayName() {
