@@ -201,7 +201,7 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        IdeaSingleEntryLibraryDependency lib = libs.find {it instanceof IdeaSingleEntryLibraryDependency} as IdeaSingleEntryLibraryDependency
+        IdeaSingleEntryLibraryDependency lib = libs.find { it instanceof IdeaSingleEntryLibraryDependency } as IdeaSingleEntryLibraryDependency
 
         lib.file.exists()
         lib.file.path.endsWith('coolLib-1.0.jar')
@@ -214,14 +214,14 @@ project(':impl') {
 
         lib.scope.scope == 'TEST'
 
-        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency} as IdeaModuleDependency
+        IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency } as IdeaModuleDependency
 
         if (currentVersion >= GradleVersion.version("3.1")) {
-            mod.targetModuleName == project.modules.find { it.name == 'api'}.getName()
+            mod.targetModuleName == project.modules.find { it.name == 'api' }.getName()
         }
 
         if (currentVersion < GradleVersion.version("4.0")) {
-            mod.dependencyModule == project.modules.find { it.name == 'api'}
+            mod.dependencyModule == project.modules.find { it.name == 'api' }
         }
 
         if (targetVersion >= GradleVersion.version("3.4")) {
@@ -263,7 +263,7 @@ project(':contrib:impl') {
         IdeaModule impl = project.modules.find { it.name == 'impl' }
         IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
 
-        impl.dependencies[0].dependencyModule        == project.modules.find { it.name == 'api' }
+        impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'api' }
         contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
     }
 
@@ -286,13 +286,13 @@ project(':impl') {
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
 
         then:
-        def impl = project.modules.find { it.name == 'impl'}
-        def root = project.modules.find { it.name == 'root'}
+        def impl = project.modules.find { it.name == 'impl' }
+        def root = project.modules.find { it.name == 'root' }
 
         root.gradleProject.tasks.find { it.name == 'rootTask' && it.path == ':rootTask' && it.project == root.gradleProject }
         !root.gradleProject.tasks.find { it.name == 'implTask' }
 
-        impl.gradleProject.tasks.find { it.name == 'implTask' && it.path == ':impl:implTask' && it.project == impl.gradleProject}
+        impl.gradleProject.tasks.find { it.name == 'implTask' && it.path == ':impl:implTask' && it.project == impl.gradleProject }
         !impl.gradleProject.tasks.find { it.name == 'rootTask' }
     }
 
@@ -326,19 +326,16 @@ project(':impl') {
             libs.size() == 1
         }
 
-        if( currentVersion < GradleVersion.version('4.0')) {
+        if (currentVersion < GradleVersion.version('4.0')) {
             libs.each {
                 it.dependencyModule == project.modules.find { it.name == 'api' }
             }
         }
-        if( currentVersion >= GradleVersion.version('3.1')) {
+
+        if (currentVersion >= GradleVersion.version('3.1')) {
             libs.each {
                 it.targetModuleName == project.modules.find { it.name == 'api' }.name
             }
         }
-
-
-
-
     }
 }
