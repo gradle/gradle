@@ -28,6 +28,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     private final ResourceLockCoordinationService coordinationService;
     private final Action<ResourceLock> lockAction;
     private final Action<ResourceLock> unlockAction;
+    private Thread lockingThread;
     private Thread owner;
 
     public AbstractTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
@@ -43,6 +44,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
         if (!isLockedByThread(owner)) {
             if (acquireLock()) {
                 LOGGER.debug("{}: acquired lock on {}", owner.getName(), displayName);
+                this.lockingThread = Thread.currentThread();
                 this.owner = owner;
                 lockAction.execute(this);
                 coordinationService.getCurrent().registerLocked(this);
@@ -63,11 +65,12 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     @Override
     public void unlock() {
         failIfNotInResourceLockStateChange();
-        if (isLockedByThread(Thread.currentThread())) {
+        if (lockingThread == Thread.currentThread() || isLockedByThread(Thread.currentThread())) {
             releaseLock();
             LOGGER.debug("{}: released lock on {}", Thread.currentThread().getName(), displayName);
             unlockAction.execute(this);
             owner = null;
+            lockingThread = null;
             coordinationService.notifyStateChange();
         }
     }
@@ -91,6 +94,11 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     @Override
     public Thread getOwner() {
         return owner;
+    }
+
+    @Override
+    public Thread getLockingThread() {
+        return lockingThread;
     }
 
     private void failIfNotInResourceLockStateChange() {

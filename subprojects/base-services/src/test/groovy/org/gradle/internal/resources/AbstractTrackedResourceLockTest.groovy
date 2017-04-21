@@ -112,5 +112,8 @@ class AbstractTrackedResourceLockTest extends Specification {
 
         then:
         noExceptionThrown()
+
+        and:
+        !lock.isLocked()
     }
 }

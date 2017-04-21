@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
@@ -43,18 +42,9 @@ public interface TaskExecutionPlan {
     List<Task> getTasks();
 
     /**
-     * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one
-     * can be executed.  If all tasks have been executed, returns false.
+     * Iterates over the task execution queue handing tasks that are ready to execute over to the provided task workers.  If no tasks are ready, blocks until one
+     * can be executed.  Exits when all tasks have been executed.
      *
-     * @param parentWorkerLease
-     * @param taskExecution
-     * @return true if there are more tasks waiting to execute, false if all tasks have executed.
      */
-    boolean executeWithTask(WorkerLeaseRegistry.WorkerLease parentWorkerLease, Action<TaskInfo> taskExecution);
-
-    /**
-     * Selects all tasks that are ready to execute and pushes them to the queue that {@link #executeWithTask(WorkerLeaseRegistry.WorkerLease, Action)} drains from.
-     * If no tasks are ready, blocks until one becomes ready.  Exits once all tasks have been executed.
-     */
-    void populateReadyTaskQueue();
+    void processExecutionQueue(WorkerLeaseRegistry.WorkerLease parentWorkerLease, TaskExecutorPool taskExecutorPool);
 }

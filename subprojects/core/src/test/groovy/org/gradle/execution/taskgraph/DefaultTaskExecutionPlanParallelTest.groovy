@@ -20,6 +20,7 @@ import com.google.common.collect.Queues
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -55,6 +56,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     def cancellationHandler = Mock(BuildCancellationToken)
     def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, true, 3)
+    def taskExecutorPool = new DefaultTaskPlanExecutor.DefaultTaskExecutorPool()
     def parentWorkerLease = workerLeaseService.workerLease
 
     def setup() {
@@ -72,7 +74,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         expect:
         addToGraphAndPopulate(foo, bar, baz)
         async {
-            populateReadyQueue()
+            startQueueProcessing()
             def taskWorker1 = taskWorker()
             def taskWorker2 = taskWorker()
             def taskWorker3 = taskWorker()
@@ -81,7 +83,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
             def task2 = taskWorker2.take()
             def task3 = taskWorker3.take()
 
-            releaseTasks(task1.task, task2.task, task3.task)
+            releaseTasks(task1, task2, task3)
         }
     }
 
@@ -97,32 +99,32 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         def fooB = projectB.task("foo").doLast {}
         def barB = projectB.task("bar").doLast {}
 
-        TaskInfo task1
-        TaskInfo task2
-        TaskInfo task3
-        TaskInfo task4
+        Task task1
+        Task task2
+        Task task3
+        Task task4
 
         when:
         addToGraphAndPopulate(fooA, barA, fooB, barB)
         async {
-            populateReadyQueue()
+            startQueueProcessing()
             def taskWorker1 = taskWorker()
             def taskWorker2 = taskWorker()
 
             task1 = taskWorker1.take()
             task2 = taskWorker2.take()
 
-            releaseTasks(task1.task, task2.task)
+            releaseTasks(task1, task2)
 
             task3 = taskWorker1.take()
             task4 = taskWorker2.take()
 
-            releaseTasks(task3.task, task4.task)
+            releaseTasks(task3, task4)
         }
 
         then:
-        task1.task.project != task2.task.project
-        task3.task.project != task4.task.project
+        task1.project != task2.project
+        task3.project != task4.project
     }
 
     def "a non-async task can start while an async task from the same project is waiting for work to complete"() {
@@ -133,14 +135,14 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         expect:
         addToGraphAndPopulate(foo, bar)
         async {
-            populateReadyQueue()
+            startQueueProcessing()
             def taskWorker1 = taskWorker()
             def taskWorker2 = taskWorker()
 
             def task1 = taskWorker1.take()
             def task2 = taskWorker2.take()
 
-            releaseTasks(task1.task, task2.task)
+            releaseTasks(task1, task2)
         }
     }
 
@@ -204,14 +206,14 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         expect:
         addToGraphAndPopulate(a, b)
         async {
-            populateReadyQueue()
+            startQueueProcessing()
             def taskWorker1 = taskWorker()
             def taskWorker2 = taskWorker()
 
             def task1 = taskWorker1.take()
             def task2 = taskWorker2.take()
 
-            releaseTasks(task1.task, task2.task)
+            releaseTasks(task1, task2)
         }
     }
 
@@ -409,7 +411,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     }
 
     void startTaskWorkers(int count) {
-        populateReadyQueue()
+        startQueueProcessing()
         count.times {
             taskWorker()
         }
@@ -421,35 +423,30 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         }
     }
 
-    void populateReadyQueue() {
+    void startQueueProcessing() {
         start {
-            executionPlan.populateReadyTaskQueue()
+            executionPlan.processExecutionQueue(parentWorkerLease, taskExecutorPool)
         }
     }
 
-    BlockingQueue<TaskInfo> taskWorker() {
+    BlockingQueue<Task> taskWorker() {
         def tasks = Queues.newLinkedBlockingQueue()
-        start {
-            def moreTasks = true
-            while(moreTasks) {
-                moreTasks = executionPlan.executeWithTask(parentWorkerLease, new Action<TaskInfo>() {
-                    @Override
-                    void execute(TaskInfo taskInfo) {
-                        operation."${taskInfo.task.path}" {
-                            tasks.add(taskInfo)
-                            if (taskInfo.task instanceof Async) {
-                                workerLeaseService.withoutProjectLock {
-                                    thread.blockUntil."complete${taskInfo.task.path}"
-                                }
-                            } else {
-                                thread.blockUntil."complete${taskInfo.task.path}"
-                            }
-                            executionPlan.taskComplete(taskInfo)
+        def taskAction = new Action<TaskInternal>() {
+            @Override
+            void execute(TaskInternal task) {
+                operation."${task.path}" {
+                    tasks.add(task)
+                    if (task instanceof Async) {
+                        workerLeaseService.withoutProjectLock {
+                            thread.blockUntil."complete${task.path}"
                         }
+                    } else {
+                        thread.blockUntil."complete${task.path}"
                     }
-                })
+                }
             }
         }
+        start new DefaultTaskPlanExecutor.TaskExecutorWorker(executionPlan, taskAction, taskExecutorPool)
         return tasks
     }
 

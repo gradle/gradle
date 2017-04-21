@@ -32,7 +32,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def executorFactory = Mock(ExecutorFactory)
     def executor = new DefaultTaskPlanExecutor(1, executorFactory, Mock(WorkerLeaseService))
 
-    def "executes tasks until no further tasks remain"() {
+    def "starts task execution queue processor and finishes when signalled"() {
         def gradle = Mock(Gradle)
         def project = Mock(Project)
         def task = Mock(TaskInternal)
@@ -40,20 +40,21 @@ class DefaultTaskPlanExecutorTest extends Specification {
         project.gradle >> gradle
         task.project >> project
         task.state >> state
+        task.path >> ":foo"
         def taskInfo = new TaskInfo(task)
 
         when:
         executor.process(taskPlan, worker)
 
         then:
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
-        1 * taskPlan.executeWithTask(_,_) >> { args ->
-            args[1].execute(taskInfo)
-            return true
+        1 * executorFactory.create(_) >> Mock(StoppableExecutor) {
+            1 * execute(_ as Runnable) >> { args ->
+                new Thread(args[0]).start()
+            }
         }
-        1 * worker.execute(task)
-        1 * taskPlan.taskComplete(taskInfo)
-        1 * taskPlan.executeWithTask(_,_) >> false
+        1 * taskPlan.processExecutionQueue(_, _) >> { args ->
+            args[1].stop()
+        }
         1 * taskPlan.awaitCompletion()
     }
 
@@ -69,6 +70,13 @@ class DefaultTaskPlanExecutorTest extends Specification {
         then:
         def e = thrown(RuntimeException)
         e == failure
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
+        1 * executorFactory.create(_) >> Mock(StoppableExecutor) {
+            1 * execute(_ as Runnable) >> { args ->
+                new Thread(args[0]).start()
+            }
+        }
+        1 * taskPlan.processExecutionQueue(_, _) >> { args ->
+            args[1].stop()
+        }
     }
 }

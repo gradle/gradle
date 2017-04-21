@@ -236,7 +236,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
     private class DefaultWorkerLease extends AbstractTrackedResourceLock implements LeaseHolder, WorkerLeaseCompletion, WorkerLease {
         private final LeaseHolder parent;
         int children;
-        boolean active;
+        boolean holdsLease;
 
         public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, LeaseHolder parent) {
             super(displayName, coordinationService, lockAction, unlockAction);
@@ -245,34 +245,34 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
 
         @Override
         protected boolean doIsLocked() {
-            return active;
+            return holdsLease;
         }
 
         @Override
         protected boolean acquireLock() {
             if (parent.grantLease()) {
-                active = true;
+                holdsLease = true;
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Worker lease {} started ({} worker(s) in use).", getDisplayName(), root.leasesInUse);
+                    LOGGER.debug("Worker lease {} started ({}/{} worker(s) in use).", getDisplayName(), root.leasesInUse, maxWorkerCount);
                 }
             } else {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Build operation {} could not be started ({} worker(s) in use).", getDisplayName(), root.leasesInUse);
+                    LOGGER.debug("Build operation {} could not be started ({}/{} worker(s) in use).", getDisplayName(), root.leasesInUse, maxWorkerCount);
                 }
             }
-            return active;
+            return holdsLease;
         }
 
         @Override
         protected void releaseLock() {
-            if (Thread.currentThread() != getOwner()) {
+            if (Thread.currentThread() != getOwner() && Thread.currentThread() != getLockingThread()) {
                 // Not implemented - not yet required. Please implement if required
                 throw new UnsupportedOperationException("Must complete operation from owner thread.");
             }
             parent.releaseLease();
-            active = false;
+            holdsLease = false;
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Worker lease {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
+                LOGGER.debug("Worker lease {} completed ({}/{} worker(s) in use)", getDisplayName(), root.leasesInUse, maxWorkerCount);
             }
             if (children != 0) {
                 throw new IllegalStateException("Some child operations have not yet completed.");

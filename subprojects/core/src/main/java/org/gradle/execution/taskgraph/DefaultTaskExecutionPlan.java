@@ -70,7 +70,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
-    private final List<TaskInfo> readyQueue = new LinkedList<TaskInfo>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
@@ -78,7 +77,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
-    private Map<TaskInfo, ResourceLock> projectLocks;
+    private final Map<TaskInfo, ResourceLock> projectLocks = Maps.newHashMap();
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
     private boolean tasksCancelled;
@@ -308,12 +307,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void populateProjectLockMap() {
-        ImmutableMap.Builder<TaskInfo, ResourceLock> mapBuilder = ImmutableMap.builder();
         for (TaskInfo taskInfo : executionQueue) {
             ResourceLock p = getProjectLock(taskInfo);
-            mapBuilder.put(taskInfo, getProjectLock(taskInfo));
+            projectLocks.put(taskInfo, getProjectLock(taskInfo));
         }
-        projectLocks = mapBuilder.build();
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
@@ -458,7 +455,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 entryTasks.clear();
                 executionPlan.clear();
                 executionQueue.clear();
-                readyQueue.clear();
                 failures.clear();
                 canonicalizedOutputCache.clear();
                 runningTasks.clear();
@@ -479,104 +475,84 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureHandler = handler;
     }
 
-    public void populateReadyTaskQueue() {
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                if (cancellationToken.isCancellationRequested()) {
-                    if (abortExecution()) {
-                        tasksCancelled = true;
-                    }
-                }
-
-                boolean newTasksReady = false;
-                final Iterator<TaskInfo> iterator = executionQueue.iterator();
-                while (iterator.hasNext()) {
-                    final TaskInfo taskInfo = iterator.next();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
-                        readyQueue.add(taskInfo);
-                        iterator.remove();
-                        newTasksReady = true;
-                    }
-                }
-
-                if (newTasksReady) {
-                    coordinationService.notifyStateChange();
-                }
-
-                if (!allTasksComplete()) {
-                    return RETRY;
-                } else {
-                    coordinationService.notifyStateChange();
-                    return FINISHED;
-                }
-            }
-        });
-    }
-
     @Override
-    public boolean executeWithTask(WorkerLease parentWorkerLease, final Action<TaskInfo> taskExecution) {
-        final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
-        final AtomicBoolean canExecute = new AtomicBoolean();
-        final ResourceLock workerLease = parentWorkerLease.createChild();
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                if (cancellationToken.isCancellationRequested()) {
-                    if (abortExecution()) {
-                        tasksCancelled = true;
-                    }
-                }
+    public void processExecutionQueue(WorkerLease parentWorkerLease, TaskExecutorPool taskExecutorPool) {
+        try {
+            while (true) {
+                final TaskExecutor taskWorker = taskExecutorPool.getAvailableExecutor();
+                final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
+                final AtomicBoolean shouldExecute = new AtomicBoolean();
+                final ResourceLock workerLease = parentWorkerLease.createChild();
 
-                final Iterator<TaskInfo> iterator = readyQueue.iterator();
-                while (iterator.hasNext()) {
-                    final TaskInfo taskInfo = iterator.next();
-                    ResourceLock projectLock = projectLocks.get(taskInfo);
-                    if (taskInfo.isReady() && projectLock.tryLock() && workerLease.tryLock()) {
-                        // TODO: convert output file checks to a resource lock
-                        if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
-                            selected.set(taskInfo);
-                            iterator.remove();
-                            if (taskInfo.allDependenciesSuccessful()) {
-                                taskInfo.startExecution();
-                                recordTaskStarted(taskInfo);
-                                canExecute.set(true);
-                            } else {
-                                taskInfo.skipExecution();
+                coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                    @Override
+                    public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                        if (cancellationToken.isCancellationRequested()) {
+                            if (abortExecution()) {
+                                tasksCancelled = true;
                             }
+                        }
+
+                        final Iterator<TaskInfo> iterator = executionQueue.iterator();
+
+                        boolean allTasksComplete = true;
+                        while (iterator.hasNext()) {
+                            final TaskInfo taskInfo = iterator.next();
+                            allTasksComplete = allTasksComplete && taskInfo.isComplete();
+                            ResourceLock projectLock = projectLocks.get(taskInfo);
+                            if (taskInfo.isReady() && taskInfo.allDependenciesComplete()
+                                && projectLock.tryLock(taskWorker.getThread())
+                                && workerLease.tryLock(taskWorker.getThread())) {
+                                // TODO: convert output file checks to a resource lock
+                                if (canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
+                                    selected.set(taskInfo);
+                                    iterator.remove();
+                                    if (taskInfo.allDependenciesSuccessful()) {
+                                        taskInfo.startExecution();
+                                        recordTaskStarted(taskInfo);
+                                        shouldExecute.set(true);
+                                    } else {
+                                        taskInfo.skipExecution();
+                                    }
+                                } else {
+                                    resourceLockState.reset();
+                                }
+                            }
+
+                            if (selected.get() != null) {
+                                break;
+                            }
+                        }
+
+                        if (selected.get() == null && !allTasksComplete) {
+                            return RETRY;
                         } else {
-                            resourceLockState.reset();
+                            return FINISHED;
                         }
                     }
+                });
 
-                    if (selected.get() != null) {
-                        break;
+
+                if (selected.get() != null) {
+                    if (shouldExecute.get()) {
+                        taskWorker.executeTask(selected.get());
+                    } else {
+                        TaskInfo taskInfo = selected.get();
+                        ResourceLock projectLock = projectLocks.get(taskInfo);
+                        coordinationService.withStateLock(unlock(projectLock, workerLease));
                     }
                 }
 
-                if (selected.get() == null && !allTasksComplete()) {
-                    return RETRY;
-                } else {
-                    return FINISHED;
+                if (allTasksComplete()) {
+                    break;
                 }
             }
-        });
-
-
-        if (selected.get() != null) {
-            try {
-                if (canExecute.get()) {
-                    taskExecution.execute(selected.get());
-                }
-            } finally {
-                TaskInfo taskInfo = selected.get();
-                ResourceLock projectLock = projectLocks.get(taskInfo);
-                coordinationService.withStateLock(unlock(projectLock, workerLease));
-            }
+        } catch (Throwable t) {
+            this.failures.add(t);
+            abortExecution();
+        } finally {
+            taskExecutorPool.stop();
         }
-
-        // If all tasks are complete, we're done
-        return !allTasksComplete();
     }
 
     private ResourceLock getProjectLock(TaskInfo taskInfo) {
@@ -679,6 +655,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
                 taskInfo.finishExecution();
                 recordTaskCompleted(taskInfo);
+
+                projectLocks.get(taskInfo).unlock();
+                workerLeaseService.getCurrentWorkerLease().unlock();
 
                 return FINISHED;
             }

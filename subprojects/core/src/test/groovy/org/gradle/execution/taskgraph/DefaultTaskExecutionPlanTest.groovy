@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskgraph
 
-import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -50,12 +49,15 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     def workerLeaseService = Mock(WorkerLeaseService)
     def coordinationService = Mock(ResourceLockCoordinationService)
     def parentWorkerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    def taskExecutorPool = Mock(TaskExecutorPool)
+    def taskExecutor = Mock(TaskExecutor)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
         executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * tryLock() >> true
+            _ * tryLock(_) >> true
         }
     }
 
@@ -536,7 +538,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([e, h])
 
         then:
-        executedTasks == [a, d, b, c, e, f, g, h]
+        executedTasks == [a, d, e, b, c, f, g, h]
     }
 
     @Issue("GRADLE-3166")
@@ -612,7 +614,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "stops returning tasks when build is cancelled"() {
-        5 * cancellationHandler.cancellationRequested >>> [false, false, true, true, true]
+        2 * cancellationHandler.cancellationRequested >>> [false, true]
         Task a = task("a");
         Task b = task("b");
 
@@ -873,25 +875,24 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def getExecutedTasks() {
         def tasks = []
-        _ * parentWorkerLease.createChild() >> Mock(WorkerLeaseRegistry.WorkerLease) {
+        def childLease = Mock(WorkerLeaseRegistry.WorkerLease) {
             _ * tryLock() >> true
+            _ * tryLock(_) >> true
         }
+        _ * parentWorkerLease.createChild() >> childLease
+        _ * workerLeaseService.getCurrentWorkerLease() >> childLease
         _ * coordinationService.withStateLock(_) >> { args ->
             args[0].transform(Mock(ResourceLockState))
             return true
         }
-        def moreTasks = true
-        executionPlan.populateReadyTaskQueue()
-        while (moreTasks) {
-            moreTasks = executionPlan.executeWithTask(parentWorkerLease, new Action<TaskInfo>() {
-                @Override
-                void execute(TaskInfo taskInfo) {
-                    tasks << taskInfo.task
-                    executionPlan.taskComplete(taskInfo)
-                }
-            })
-            executionPlan.populateReadyTaskQueue()
+        _ * taskExecutorPool.getAvailableExecutor() >> taskExecutor
+        _ * taskExecutorPool.getExecutors() >> []
+        _ * taskExecutor.getThread() >> Thread.currentThread()
+        _ * taskExecutor.executeTask(_) >> { args ->
+            tasks << args[0].task
+            executionPlan.taskComplete(args[0])
         }
+        executionPlan.processExecutionQueue(parentWorkerLease, taskExecutorPool)
         return tasks
     }
 

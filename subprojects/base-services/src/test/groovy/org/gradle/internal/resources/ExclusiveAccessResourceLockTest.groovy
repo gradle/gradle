@@ -17,6 +17,7 @@
 package org.gradle.internal.resources
 
 import org.gradle.api.Action
+import org.gradle.api.Transformer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
@@ -97,5 +98,62 @@ class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can unlock a lock acquired on behalf of another thread"() {
+        Thread otherThread = new Thread({
+            assert resourceLock.owner == Thread.currentThread()
+        })
+
+        when:
+        assert coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                if (resourceLock.tryLock(otherThread)) {
+                    return ResourceLockState.Disposition.FINISHED
+                } else {
+                    return ResourceLockState.Disposition.FAILED
+                }
+            }
+        })
+
+        then:
+        resourceLock.owner == otherThread
+
+        when:
+        otherThread.start()
+        otherThread.join()
+
+        then:
+        noExceptionThrown()
+
+        when:
+        coordinationService.withStateLock(unlock(resourceLock))
+
+        then:
+        resourceLock.owner == null
+    }
+
+    def "cannot unlock a lock acquired by another thread"() {
+        Thread lockingThread = new Thread({
+            assert coordinationService.withStateLock(tryLock(resourceLock))
+        })
+        Thread otherThread = new Thread({
+            coordinationService.withStateLock(unlock(resourceLock))
+        })
+
+        when:
+        lockingThread.start()
+        lockingThread.join()
+
+        then:
+        resourceLock.owner == lockingThread
+
+        when:
+        otherThread.start()
+        otherThread.join()
+
+        then:
+        resourceLock.owner == lockingThread
     }
 }

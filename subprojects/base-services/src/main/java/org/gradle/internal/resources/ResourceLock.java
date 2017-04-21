@@ -56,5 +56,13 @@ public interface ResourceLock extends Describable {
      */
     void unlock();
 
+    /**
+     * Returns the thread that owns this lock
+     */
     Thread getOwner();
+
+    /**
+     * Returns the thread that acquired the lock.  This may or may not be the same as the owner.
+     */
+    Thread getLockingThread();
 }

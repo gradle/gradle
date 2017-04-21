@@ -180,7 +180,7 @@ public class DefaultTaskGraphExecuterTest {
         taskExecuter.addTasks(toList(e));
         taskExecuter.execute();
 
-        assertThat(executedTasks, equalTo(toList(a, b, d, c, e)));
+        assertThat(executedTasks, equalTo(toList(a, b, c, d, e)));
     }
 
     @Test
