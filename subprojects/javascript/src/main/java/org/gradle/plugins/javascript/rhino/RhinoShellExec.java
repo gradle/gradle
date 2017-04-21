@@ -115,6 +115,11 @@ public class RhinoShellExec extends JavaExec {
     }
 
     @Override
+    public JavaExec setArgs(List<String> applicationArgs) {
+        throw argsUnsupportOperationException();
+    }
+
+    @Override
     public JavaExec setArgs(Iterable<?> applicationArgs) {
         throw argsUnsupportOperationException();
     }

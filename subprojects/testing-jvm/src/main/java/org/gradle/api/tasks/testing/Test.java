@@ -288,6 +288,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
+    public void setWorkingDir(File dir) {
+        forkOptions.setWorkingDir(dir);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setWorkingDir(Object dir) {
         forkOptions.setWorkingDir(dir);
     }
@@ -327,6 +335,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public Test executable(Object executable) {
         forkOptions.executable(executable);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExecutable(String executable) {
+        forkOptions.setExecutable(executable);
     }
 
     /**
@@ -456,6 +472,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
+    public void setJvmArgs(List<String> arguments) {
+        forkOptions.setJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setJvmArgs(Iterable<?> arguments) {
         forkOptions.setJvmArgs(arguments);
     }
@@ -517,6 +541,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Override
     public List<String> getAllJvmArgs() {
         return forkOptions.getAllJvmArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setAllJvmArgs(List<String> arguments) {
+        forkOptions.setAllJvmArgs(arguments);
     }
 
     /**

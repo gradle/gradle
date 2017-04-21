@@ -54,12 +54,20 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         return allArgs;
     }
 
+    public void setAllJvmArgs(List<String> arguments) {
+        throw new UnsupportedOperationException();
+    }
+
     public void setAllJvmArgs(Iterable<?> arguments) {
         throw new UnsupportedOperationException();
     }
 
     public List<String> getJvmArgs() {
         return javaOptions.getJvmArgs();
+    }
+
+    public void setJvmArgs(List<String> arguments) {
+        javaOptions.setJvmArgs(arguments);
     }
 
     public void setJvmArgs(Iterable<?> arguments) {
@@ -162,6 +170,12 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
             args.add(applicationArg.toString());
         }
         return args;
+    }
+
+    public JavaExecHandleBuilder setArgs(List<String> applicationArgs) {
+        this.applicationArgs.clear();
+        args(applicationArgs);
+        return this;
     }
 
     public JavaExecHandleBuilder setArgs(Iterable<?> applicationArgs) {
