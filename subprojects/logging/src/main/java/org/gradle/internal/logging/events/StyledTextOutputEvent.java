@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,21 @@
 
 package org.gradle.internal.logging.events;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.progress.OperationIdentifier;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final List<Span> spans;
 
-    public StyledTextOutputEvent(long timestamp, String category, String text) {
-        this(timestamp, category, StyledTextOutput.Style.Normal, text);
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, String text) {
-        this(timestamp, category, logLevel, StyledTextOutput.Style.Normal, text);
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, null, style, text);
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, logLevel, Collections.singletonList(new Span(style, text)));
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, List<Span> spans) {
-        this(timestamp, category, null, spans);
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, Span... spans) {
-        this(timestamp, category, logLevel, Arrays.asList(spans));
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, List<Span> spans) {
-        super(timestamp, category, logLevel);
+    private StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
+        super(timestamp, category, logLevel, buildOperationIdentifier);
         this.spans = new ArrayList<Span>(spans);
     }
 
@@ -74,10 +51,6 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         return builder.toString();
     }
 
-    public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, spans);
-    }
-
     public List<Span> getSpans() {
         return spans;
     }
@@ -88,6 +61,12 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
             output.style(span.style);
             output.text(span.text);
         }
+    }
+
+    public StyledTextOutputEvent.Builder toBuilder() {
+        return new StyledTextOutputEvent.Builder(getTimestamp(), getCategory(), spans)
+            .forOperation(getBuildOperationIdentifier())
+            .withLogLevel(getLogLevel());
     }
 
     public static class Span implements Serializable {
@@ -110,6 +89,42 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
 
         public String getText() {
             return text;
+        }
+    }
+
+    public static class Builder {
+        private long timestamp;
+        private String category;
+        private List<Span> spans;
+        private @Nullable LogLevel logLevel;
+        private @Nullable OperationIdentifier operationIdentifier;
+
+        public Builder(long timestamp, String category, String text) {
+            this(timestamp, category, Collections.singletonList(new Span(text)));
+        }
+
+        public Builder(long timestamp, String category, List<Span> spans) {
+            this(timestamp, category);
+            this.spans = spans;
+        }
+
+        private Builder(long timestamp, String category) {
+            this.timestamp = timestamp;
+            this.category = category;
+        }
+
+        public StyledTextOutputEvent.Builder withLogLevel(LogLevel logLevel) {
+            this.logLevel = logLevel;
+            return this;
+        }
+
+        public StyledTextOutputEvent.Builder forOperation(OperationIdentifier operationIdentifier) {
+            this.operationIdentifier = operationIdentifier;
+            return this;
+        }
+
+        public StyledTextOutputEvent build() {
+            return new StyledTextOutputEvent(timestamp, category, logLevel, operationIdentifier, spans);
         }
     }
 }

@@ -54,7 +54,7 @@ public class TextStreamOutputEventListener implements OutputEventListener {
         if (textOutputEvent.getLogLevel() != null) {
             listener.onOutput(textOutputEvent);
         } else {
-            listener.onOutput(textOutputEvent.withLogLevel(logLevel.get()));
+            listener.onOutput(textOutputEvent.toBuilder().withLogLevel(logLevel.get()).build());
         }
     }
 }

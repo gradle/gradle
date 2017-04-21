@@ -66,7 +66,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         then:
-        1 * progressLoggerFactory.newOperation(_) >> progressLogger
+        1 * progressLoggerFactory.newOperation(_, _ as OperationIdentifier) >> progressLogger
         1 * progressLogger.setDescription("<some-operation>")
         1 * progressLogger.setShortDescription("<some-op>")
         1 * progressLogger.started()
@@ -124,7 +124,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         then:
-        1 * progressLoggerFactory.newOperation(_) >> progressLogger
+        1 * progressLoggerFactory.newOperation(_, _ as OperationIdentifier) >> progressLogger
         1 * progressLogger.setDescription("<some-operation>")
         1 * progressLogger.setShortDescription("<some-op>")
         1 * progressLogger.started()

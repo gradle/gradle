@@ -25,7 +25,6 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationWorker;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.List;
@@ -42,12 +41,12 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     public BuildOperationState getCurrentOperation() {
         return new BuildOperationState() {
             @Override
-            public OperationIdentifier getId() {
+            public Object getId() {
                 return new OperationIdentifier(0);
             }
 
             @Override
-            public OperationIdentifier getParentId() {
+            public Object getParentId() {
                 return null;
             }
         };

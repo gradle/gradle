@@ -20,12 +20,12 @@ import org.gradle.api.GradleException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationState
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.progress.OperationIdentifier
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.DefaultWorkerLeaseService

@@ -40,7 +40,6 @@ import org.gradle.internal.operations.BuildOperationQueueFailure;
 import org.gradle.internal.operations.BuildOperationWorker;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.CollectionUtils;
@@ -161,7 +160,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
         DefaultBuildOperationState operationBefore = this.currentOperation.get();
         this.currentOperation.set(currentOperation);
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(this.currentOperation.get().getId());
+        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier((OperationIdentifier) this.currentOperation.get().getId());
         try {
             listener.started((BuildOperationInternal) descriptor, new OperationStartEvent(currentOperation.getStartTime()));
 
@@ -214,7 +213,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
     @Nullable
     private ProgressLogger maybeStartProgressLogging(DefaultBuildOperationState currentOperation) {
         if (providesProgressLogging(currentOperation)) {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, (OperationIdentifier) currentOperation.getId());
             progressLogger.setDescription(currentOperation.getDescription().getDisplayName());
             progressLogger.setShortDescription(currentOperation.getDescription().getProgressDisplayName());
             progressLogger.started();
@@ -371,12 +370,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         }
 
         @Override
-        public OperationIdentifier getId() {
+        public Object getId() {
             return description.getId();
         }
 
         @Override
-        public OperationIdentifier getParentId() {
+        public Object getParentId() {
             return description.getParentId();
         }
     }

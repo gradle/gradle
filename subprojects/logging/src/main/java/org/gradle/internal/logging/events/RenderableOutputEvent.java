@@ -16,13 +16,17 @@
 
 package org.gradle.internal.logging.events;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.progress.OperationIdentifier;
 
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
+    private OperationIdentifier buildOperationIdentifier;
 
-    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel) {
+    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier) {
         super(timestamp, category, logLevel);
+        this.buildOperationIdentifier = buildOperationIdentifier;
     }
 
     /**
@@ -33,4 +37,9 @@ public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
      * @param output The output to render to.
      */
     public abstract void render(StyledTextOutput output);
+
+    @Nullable
+    public OperationIdentifier getBuildOperationIdentifier() {
+        return buildOperationIdentifier;
+    }
 }

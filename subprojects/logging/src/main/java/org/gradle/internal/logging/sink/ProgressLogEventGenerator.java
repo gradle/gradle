@@ -18,10 +18,17 @@ package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.logging.events.*;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressEvent;
+import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.RenderableOutputEvent;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.util.GUtil;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -89,8 +96,8 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onStart(ProgressStartEvent progressStartEvent) {
-        Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp());
-        operations.put(progressStartEvent.getOperationId(), operation);
+        Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp(), progressStartEvent.getProgressOperationId());
+        operations.put(progressStartEvent.getProgressOperationId(), operation);
 
         if (!deferHeader || !(progressStartEvent.getLoggingHeader() != null && progressStartEvent.getLoggingHeader().equals(progressStartEvent.getShortDescription()))) {
             operation.startHeader();
@@ -100,6 +107,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     enum State {None, HeaderStarted, HeaderCompleted, Completed}
 
     private class Operation {
+        private final OperationIdentifier buildOperationIdentifier;
         private final String category;
         private final String loggingHeader;
         private final long startTime;
@@ -108,11 +116,26 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         private State state = State.None;
         private long completeTime;
 
-        private Operation(String category, String loggingHeader, long startTime) {
+        private Operation(String category, String loggingHeader, long startTime, OperationIdentifier buildOperationIdentifier) {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.startTime = startTime;
             this.hasLoggingHeader = GUtil.isTrue(loggingHeader);
+            this.buildOperationIdentifier = buildOperationIdentifier;
+        }
+
+        private StyledTextOutputEvent plainTextEvent(long timestamp, String text) {
+            return new StyledTextOutputEvent.Builder(timestamp, category, text)
+                .forOperation(buildOperationIdentifier)
+                .withLogLevel(LogLevel.LIFECYCLE)
+                .build();
+        }
+
+        private StyledTextOutputEvent styledTextEvent(long timestamp, StyledTextOutputEvent.Span... spans) {
+            return new StyledTextOutputEvent.Builder(timestamp, category, Arrays.asList(spans))
+                .forOperation(buildOperationIdentifier)
+                .withLogLevel(LogLevel.LIFECYCLE)
+                .build();
         }
 
         private void doOutput(RenderableOutputEvent event) {
@@ -129,7 +152,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             assert state == State.None;
             if (hasLoggingHeader) {
                 state = State.HeaderStarted;
-                doOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, loggingHeader));
+                doOutput(plainTextEvent(startTime, loggingHeader));
             } else {
                 state = State.HeaderCompleted;
             }
@@ -139,11 +162,11 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             switch (state) {
                 case None:
                     if (hasLoggingHeader) {
-                        listener.onOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, loggingHeader + EOL));
+                        listener.onOutput(plainTextEvent(startTime, loggingHeader + EOL));
                     }
                     break;
                 case HeaderStarted:
-                    listener.onOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, EOL));
+                    listener.onOutput(plainTextEvent(startTime, EOL));
                     break;
                 case HeaderCompleted:
                     return;
@@ -158,31 +181,31 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             switch (state) {
                 case None:
                     if (hasLoggingHeader && hasStatus) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE,
-                                new StyledTextOutputEvent.Span(loggingHeader + ' '),
-                                new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
-                                new StyledTextOutputEvent.Span(EOL)));
+                        doOutput(styledTextEvent(completeTime,
+                            new StyledTextOutputEvent.Span(loggingHeader + ' '),
+                            new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
+                            new StyledTextOutputEvent.Span(EOL)));
                     } else if (hasLoggingHeader) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, loggingHeader + EOL));
+                        doOutput(plainTextEvent(completeTime, loggingHeader + EOL));
                     }
                     break;
                 case HeaderStarted:
                     assert hasLoggingHeader;
                     if (hasStatus) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE,
-                                new StyledTextOutputEvent.Span(" "),
-                                new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
-                                new StyledTextOutputEvent.Span(EOL)));
+                        doOutput(styledTextEvent(completeTime,
+                            new StyledTextOutputEvent.Span(" "),
+                            new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
+                            new StyledTextOutputEvent.Span(EOL)));
                     } else {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, EOL));
+                        doOutput(plainTextEvent(completeTime, EOL));
                     }
                     break;
                 case HeaderCompleted:
                     if (hasLoggingHeader && hasStatus) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE,
-                                new StyledTextOutputEvent.Span(loggingHeader + ' '),
-                                new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
-                                new StyledTextOutputEvent.Span(EOL)));
+                        doOutput(styledTextEvent(completeTime,
+                            new StyledTextOutputEvent.Span(loggingHeader + ' '),
+                            new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
+                            new StyledTextOutputEvent.Span(EOL)));
                     }
                     break;
                 default:

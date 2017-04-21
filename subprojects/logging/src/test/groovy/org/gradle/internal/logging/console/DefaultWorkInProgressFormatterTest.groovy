@@ -16,8 +16,8 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import org.gradle.internal.progress.OperationIdentifier
 import spock.lang.Specification
 import spock.lang.Subject
 

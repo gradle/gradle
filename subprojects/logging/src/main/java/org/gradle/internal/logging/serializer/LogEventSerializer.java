@@ -18,6 +18,7 @@ package org.gradle.internal.logging.serializer;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogEvent;
+import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -25,10 +26,12 @@ import org.gradle.internal.serialize.Serializer;
 public class LogEventSerializer implements Serializer<LogEvent> {
     private final Serializer<Throwable> throwableSerializer;
     private final Serializer<LogLevel> logLevelSerializer;
+    private final Serializer<OperationIdentifier> operationIdentifierSerializer;
 
-    public LogEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<Throwable> throwableSerializer) {
+    public LogEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<Throwable> throwableSerializer, Serializer<OperationIdentifier> operationIdentifierSerializer) {
         this.logLevelSerializer = logLevelSerializer;
         this.throwableSerializer = throwableSerializer;
+        this.operationIdentifierSerializer = operationIdentifierSerializer;
     }
 
     @Override
@@ -38,6 +41,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         logLevelSerializer.write(encoder, event.getLogLevel());
         encoder.writeString(event.getMessage());
         throwableSerializer.write(encoder, event.getThrowable());
+        operationIdentifierSerializer.write(encoder, event.getBuildOperationIdentifier());
     }
 
     @Override
@@ -47,6 +51,11 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         LogLevel logLevel = logLevelSerializer.read(decoder);
         String message = decoder.readString();
         Throwable throwable = throwableSerializer.read(decoder);
-        return new LogEvent(timestamp, category, logLevel, message, throwable);
+        OperationIdentifier operationIdentifier = operationIdentifierSerializer.read(decoder);
+
+        return new LogEvent.Builder(timestamp, category, logLevel, message)
+            .withThrowable(throwable)
+            .forOperation(operationIdentifier)
+            .build();
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.logging.serializer;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -27,10 +28,12 @@ import java.util.List;
 public class StyledTextOutputEventSerializer implements Serializer<StyledTextOutputEvent> {
     private final Serializer<LogLevel> logLevelSerializer;
     private final Serializer<List<StyledTextOutputEvent.Span>> spanSerializer;
+    private final Serializer<OperationIdentifier> operationIdentifierSerializer;
 
-    public StyledTextOutputEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<List<StyledTextOutputEvent.Span>> spanSerializer) {
+    public StyledTextOutputEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<List<StyledTextOutputEvent.Span>> spanSerializer, Serializer<OperationIdentifier> operationIdentifierSerializer) {
         this.logLevelSerializer = logLevelSerializer;
         this.spanSerializer = spanSerializer;
+        this.operationIdentifierSerializer = operationIdentifierSerializer;
     }
 
     @Override
@@ -38,6 +41,7 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
+        operationIdentifierSerializer.write(encoder, event.getBuildOperationIdentifier());
         spanSerializer.write(encoder, event.getSpans());
     }
 
@@ -46,8 +50,13 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
         long timestamp = decoder.readLong();
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
+        OperationIdentifier operationIdentifier = operationIdentifierSerializer.read(decoder);
         List<StyledTextOutputEvent.Span> spans = spanSerializer.read(decoder);
-        return new StyledTextOutputEvent(timestamp, category, logLevel, spans);
+
+        return new StyledTextOutputEvent.Builder(timestamp, category, spans)
+            .withLogLevel(logLevel)
+            .forOperation(operationIdentifier)
+            .build();
     }
 }
 

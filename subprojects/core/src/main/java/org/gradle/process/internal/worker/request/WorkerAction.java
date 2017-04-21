@@ -19,7 +19,7 @@ package org.gradle.process.internal.worker.request;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
-import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
@@ -66,7 +66,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Override
     public void stop() {
         completed.countDown();
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(null);
+        BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
     }
 
     @Override

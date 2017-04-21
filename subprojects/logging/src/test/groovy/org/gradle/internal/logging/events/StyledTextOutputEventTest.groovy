@@ -22,15 +22,18 @@ import spock.lang.Specification
 class StyledTextOutputEventTest extends Specification {
 
     def canSetLogLevel() {
-        def event = new StyledTextOutputEvent(100, 'category', 'message').withLogLevel(LogLevel.DEBUG)
+        def event = new StyledTextOutputEvent.Builder(100, 'category', 'message')
+            .withLogLevel(LogLevel.DEBUG)
+            .build()
 
         expect:
         event.logLevel == LogLevel.DEBUG
     }
-    
+
     def rendersToTextOutput() {
         StyledTextOutput output = Mock()
-        def event = new StyledTextOutputEvent(100, 'category', StyledTextOutput.Style.UserInput, 'message')
+        List spans = [new StyledTextOutputEvent.Span(StyledTextOutput.Style.UserInput, 'message')]
+        def event = new StyledTextOutputEvent.Builder(100, 'category', spans).build()
 
         when:
         event.render(output)
@@ -40,14 +43,14 @@ class StyledTextOutputEventTest extends Specification {
         1 * output.text('message')
         0 * output._
     }
-    
+
     def rendersMultipleSpansToTextOutput() {
         StyledTextOutput output = Mock()
         List spans = [new StyledTextOutputEvent.Span(StyledTextOutput.Style.UserInput, 'UserInput'),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Normal, 'Normal'),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, 'Header')
         ]
-        def event = new StyledTextOutputEvent(100, 'category', spans)
+        def event = new StyledTextOutputEvent.Builder(100, 'category', spans).build()
 
         when:
         event.render(output)

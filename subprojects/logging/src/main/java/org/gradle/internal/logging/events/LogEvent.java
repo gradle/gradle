@@ -19,13 +19,24 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.progress.OperationIdentifier;
 
 public class LogEvent extends RenderableOutputEvent {
     private final String message;
     private final Throwable throwable;
 
+    /**
+     * Constructs a LogEvent.
+     *
+     * @deprecated use LogEvent.Builder instead. This constructor will likely be removed in Gradle 5.0
+     */
+    @Deprecated
     public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
-        super(timestamp, category, logLevel);
+        this(timestamp, category, logLevel, message, throwable, null);
+    }
+
+    private LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier operationIdentifier) {
+        super(timestamp, category, logLevel, operationIdentifier);
         this.message = message;
         this.throwable = throwable;
     }
@@ -50,5 +61,35 @@ public class LogEvent extends RenderableOutputEvent {
     @Override
     public String toString() {
         return "[" + getLogLevel() + "] [" + getCategory() + "] " + message;
+    }
+
+    public static class Builder {
+        private final long timestamp;
+        private final String category;
+        private final LogLevel logLevel;
+        private final String message;
+        private @Nullable Throwable throwable;
+        private @Nullable OperationIdentifier operationIdentifier;
+
+        public Builder(long timestamp, String category, LogLevel logLevel, String message) {
+            this.timestamp = timestamp;
+            this.category = category;
+            this.logLevel = logLevel;
+            this.message = message;
+        }
+
+        public LogEvent.Builder withThrowable(Throwable throwable) {
+            this.throwable = throwable;
+            return this;
+        }
+
+        public LogEvent.Builder forOperation(OperationIdentifier operationIdentifier) {
+            this.operationIdentifier = operationIdentifier;
+            return this;
+        }
+
+        public LogEvent build() {
+            return new LogEvent(timestamp, category, logLevel, message, throwable, operationIdentifier);
+        }
     }
 }

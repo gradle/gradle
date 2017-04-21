@@ -16,11 +16,17 @@
 
 package org.gradle.internal.serialize
 
+import org.gradle.internal.progress.OperationIdentifier
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
 abstract class SerializerSpec extends Specification {
+    public static final int TIMESTAMP = 1234
+    public static final String CATEGORY = "category"
+    public static final String MESSAGE = "message"
+    public static final OperationIdentifier OPERATION_ID = new OperationIdentifier(42L)
+
     public <T> T serialize(T value, Serializer<T> serializer) {
         def bytes = toBytes(value, serializer)
         return fromBytes(bytes, serializer)

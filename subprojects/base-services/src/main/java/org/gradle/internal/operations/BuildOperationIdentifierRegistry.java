@@ -15,9 +15,13 @@
  */
 package org.gradle.internal.operations;
 
+import org.gradle.api.Nullable;
+import org.gradle.internal.progress.OperationIdentifier;
+
 public class BuildOperationIdentifierRegistry {
     private static ThreadLocal<OperationIdentifier> localOperationId = new ThreadLocal<OperationIdentifier>();
 
+    @Nullable
     public static OperationIdentifier getCurrentOperationIdentifier() {
         return localOperationId.get();
     }
@@ -28,5 +32,9 @@ public class BuildOperationIdentifierRegistry {
         } else {
             localOperationId.set(operationId);
         }
+    }
+
+    public static void clearCurrentOperationIdentifier() {
+        localOperationId.remove();
     }
 }
