@@ -143,7 +143,7 @@ class CachingKotlinCompiler(
     fun withCacheFor(cacheKeySpec: CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
         cacheRepository
             .cache(cacheKeyFor(cacheKeySpec))
-            .withProperties(mapOf("version" to "3"))
+            .withProperties(mapOf("version" to "4"))
             .let { if (recompileScripts) it.withValidator { false } else it }
             .withInitializer(initializer)
             .open().run {
