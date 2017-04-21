@@ -16,10 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.Snapshottable;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshotterCacheKey;
+import org.gradle.api.snapshotting.Snapshotter;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.util.List;
@@ -55,6 +60,16 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
             snapshotter.snapshot(snapshottable, builder);
         }
         return builder.build();
+    }
+
+    protected HashCode hashConfiguration(ValueSnapshotter valueSnapshotter, SnapshotterCacheKey snapshotterCacheKey) {
+        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        hasher.putString(snapshotterCacheKey.getSnapshotterClass().getName());
+        for (Snapshotter snapshotter : snapshotterCacheKey.getConfigurations()) {
+            hasher.putString(snapshotter.getClass().getName());
+            valueSnapshotter.snapshot(snapshotter.getInputs()).appendToHasher(hasher);
+        }
+        return hasher.hash();
     }
 
     protected abstract FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.snapshotting;
 
-import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
+import org.gradle.api.Incubating;
 
-public interface FileCollectionSnapshotterRegistry {
-    <T> T getSnapshotter(Class<? extends T> type, SnapshottingConfigurationInternal snapshottingConfiguration);
+import java.util.Map;
+
+/**
+ * An snapshotter for incremental build
+ *
+ * @since 4.0
+ */
+@Incubating
+public interface Snapshotter {
+    /**
+     * Ignore files matching the given patterns from snapshotting
+     */
+    void exclude(String... patterns);
+
+    Map<String, Object> getInputs();
 }

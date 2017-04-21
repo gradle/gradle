@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
@@ -40,6 +41,11 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
 
     public Class<? extends FileCollectionSnapshotter> getSnapshotterType() {
         return ClasspathSnapshotter.class;
+    }
+
+    @Override
+    public Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType() {
+        return DefaultClasspathSnapshotter.class;
     }
 
     @Override

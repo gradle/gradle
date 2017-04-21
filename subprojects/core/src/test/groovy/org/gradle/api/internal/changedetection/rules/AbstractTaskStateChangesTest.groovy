@@ -21,19 +21,25 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
 import spock.lang.Specification
 
-abstract public class AbstractTaskStateChangesTest extends Specification {
+abstract class AbstractTaskStateChangesTest extends Specification {
     protected mockInputs = Mock(TaskInputsInternal)
     protected mockOutputs = Mock(TaskOutputsInternal)
+    protected mockSnapshottingConfiguration = Mock(SnapshottingConfigurationInternal)
+    protected stubProject = Stub(ProjectInternal) {
+        getSnapshotting() >> mockSnapshottingConfiguration
+    }
     protected TaskInternal stubTask
 
     def setup() {
@@ -41,6 +47,7 @@ abstract public class AbstractTaskStateChangesTest extends Specification {
             getName() >> { "testTask" }
             getInputs() >> mockInputs
             getOutputs() >> mockOutputs
+            getProject() >> stubProject
         }
     }
 

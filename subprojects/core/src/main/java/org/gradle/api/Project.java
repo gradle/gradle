@@ -39,6 +39,7 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.snapshotting.SnapshottingConfiguration;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
@@ -1669,4 +1670,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     SoftwareComponentContainer getComponents();
+
+    @Incubating
+    SnapshottingConfiguration getSnapshotting();
+
+    @Incubating
+    void snapshotting(Action<SnapshottingConfiguration> configurationAction);
 }

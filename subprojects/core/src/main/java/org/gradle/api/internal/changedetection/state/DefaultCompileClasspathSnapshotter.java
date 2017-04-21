@@ -30,12 +30,16 @@ import org.gradle.api.internal.changedetection.resources.SnapshottableReadableRe
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshotterCacheKey;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.internal.Java9ClassReader;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -46,13 +50,21 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     private final StringInterner stringInterner;
     private final ResourceSnapshotter resourceSnapshotter;
 
-    public DefaultCompileClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> signatureCache) {
+    @Inject
+    public DefaultCompileClasspathSnapshotter(SnapshottingConfigurationInternal configuration, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, TaskHistoryStore store) {
+        this(fileSystemSnapshotter, stringInterner, store);
+    }
+
+    public DefaultCompileClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, TaskHistoryStore store) {
         super(fileSystemSnapshotter, stringInterner);
         this.stringInterner = stringInterner;
+        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        HashCode snapshotterHash = hashConfiguration(null, new SnapshotterCacheKey(getClass()));
+        HashCode entrySnapshotterHash = hashConfiguration(null, new SnapshotterCacheKey(CompileClasspathEntrySnapshotter.class));
         this.resourceSnapshotter = new CachingResourceSnapshotter(
-            new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(signatureCache), this),
-            signatureCache
-        );
+            new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(signatureCache, entrySnapshotterHash), this),
+            signatureCache,
+            snapshotterHash);
     }
 
     public SnapshottingResultRecorder create() {
@@ -76,11 +88,13 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
 
     private static class CompileClasspathEntrySnapshotter extends AbstractSnapshotter {
         private final PersistentIndexedCache<HashCode, HashCode> signatureCache;
+        private final HashCode snapshotterHash;
         private final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(Collections.<String>emptySet());
         private static final HashCode IGNORED = Hashing.md5().hashString("Ignored ABI", UTF_8);
 
-        CompileClasspathEntrySnapshotter(PersistentIndexedCache<HashCode, HashCode> signatureCache) {
+        CompileClasspathEntrySnapshotter(PersistentIndexedCache<HashCode, HashCode> signatureCache, HashCode snapshotterHash) {
             this.signatureCache = signatureCache;
+            this.snapshotterHash = snapshotterHash;
         }
 
         @Override
@@ -88,12 +102,16 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
             throw new UnsupportedOperationException("Trees cannot be classpath entries");
         }
 
+        private HashCode cacheKey(SnapshottableResource resource) {
+            return Hashing.md5().newHasher().putBytes(snapshotterHash.asBytes()).putBytes(resource.getContent().getContentMd5().asBytes()).hash();
+        }
+
         @Override
         protected void snapshotResource(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
             if (resource instanceof SnapshottableReadableResource && resource.getName().endsWith(".class")) {
                 if (resource instanceof SnapshottableFileSystemResource) {
-                    HashCode hashCode = resource.getContent().getContentMd5();
-                    HashCode signatureHash = signatureCache.get(hashCode);
+                    HashCode cacheKey = cacheKey(resource);
+                    HashCode signatureHash = signatureCache.get(cacheKey);
                     if (signatureHash != null) {
                         if (signatureHash != IGNORED) {
                             recorder.recordResult(resource, signatureHash);
@@ -143,8 +161,8 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
 
         private void putToCache(SnapshottableResource resource, HashCode signatureHash) {
             if (resource instanceof SnapshottableFileSystemResource) {
-                HashCode hashCode = resource.getContent().getContentMd5();
-                signatureCache.put(hashCode, signatureHash);
+                HashCode cacheKey = cacheKey(resource);
+                signatureCache.put(cacheKey, signatureHash);
             }
         }
     }

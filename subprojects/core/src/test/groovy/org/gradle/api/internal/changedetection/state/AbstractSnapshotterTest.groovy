@@ -45,6 +45,9 @@ class AbstractSnapshotterTest extends Specification {
     def directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror([]))
     InMemoryIndexedCache<HashCode, HashCode> jarCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
+    TaskHistoryStore store = Stub(TaskHistoryStore) {
+        createCache(_, _, _, _, _) >> jarCache
+    }
     def snapshots = [:]
     AbstractFileCollectionSnapshotter snapshotter
 

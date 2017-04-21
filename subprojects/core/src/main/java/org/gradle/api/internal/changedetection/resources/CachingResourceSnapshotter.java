@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.resources;
 
 import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
@@ -26,17 +27,19 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 public class CachingResourceSnapshotter implements ResourceSnapshotter {
     private final PersistentIndexedCache<HashCode, HashCode> cache;
     private final ResourceSnapshotter delegate;
+    private final HashCode snapshotterHash;
 
-    public CachingResourceSnapshotter(ResourceSnapshotter delegate, PersistentIndexedCache<HashCode, HashCode> cache) {
+    public CachingResourceSnapshotter(ResourceSnapshotter delegate, PersistentIndexedCache<HashCode, HashCode> cache, HashCode snapshotterHash) {
         this.cache = cache;
         this.delegate = delegate;
+        this.snapshotterHash = snapshotterHash;
     }
 
     @Override
     public void snapshot(Snapshottable snapshottable, final SnapshottingResultRecorder recorder) {
         if (isCacheable(snapshottable)) {
             SnapshottableFileSystemResource fileSystemResource = (SnapshottableFileSystemResource) snapshottable;
-            HashCode hash = cache.get(fileSystemResource.getContent().getContentMd5());
+            HashCode hash = cache.get(cacheKey(fileSystemResource));
             if (hash != null) {
                 recorder.recordResult(fileSystemResource, hash);
             } else {
@@ -47,11 +50,15 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
         }
     }
 
+    private HashCode cacheKey(SnapshottableResource resource) {
+        return Hashing.md5().newHasher().putBytes(snapshotterHash.asBytes()).putBytes(resource.getContent().getContentMd5().asBytes()).hash();
+    }
+
     private static boolean isCacheable(Snapshottable snapshottable) {
         return snapshottable instanceof SnapshottableFileSystemResource && ((SnapshottableFileSystemResource) snapshottable).getType() == FileType.RegularFile;
     }
 
-    private static class CachingSnapshottingResultRecorder implements SnapshottingResultRecorder {
+    private class CachingSnapshottingResultRecorder implements SnapshottingResultRecorder {
         private final SnapshottableResource rootResource;
         private final SnapshottingResultRecorder delegate;
         private final PersistentIndexedCache<HashCode, HashCode> cache;
@@ -65,7 +72,7 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
         @Override
         public void recordResult(SnapshottableResource recordedResource, HashCode hash) {
             if (rootResource == recordedResource) {
-                cache.put(rootResource.getContent().getContentMd5(), hash);
+                cache.put(cacheKey(rootResource), hash);
             }
             delegate.recordResult(rootResource, hash);
         }
@@ -82,13 +89,13 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
         public HashCode getHash(final NormalizedFileSnapshotCollector collector) {
             HashCode hash = delegate.getHash(collector);
             if (isCacheable(rootResource)) {
-                cache.put(rootResource.getContent().getContentMd5(), hash);
+                cache.put(cacheKey(rootResource), hash);
             }
             return hash;
         }
     }
 
-    private static class CachingCompositeSnapshottingResultRecorder implements SnapshottingResultRecorder {
+    private class CachingCompositeSnapshottingResultRecorder implements SnapshottingResultRecorder {
         private final SnapshottableResource resourceToCache;
         private final SnapshottingResultRecorder delegate;
         private final PersistentIndexedCache<HashCode, HashCode> cache;
@@ -112,7 +119,7 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
         @Override
         public HashCode getHash(NormalizedFileSnapshotCollector collector) {
             HashCode hash = delegate.getHash(collector);
-            cache.put(resourceToCache.getContent().getContentMd5(), hash);
+            cache.put(cacheKey(resourceToCache), hash);
             return hash;
         }
     }

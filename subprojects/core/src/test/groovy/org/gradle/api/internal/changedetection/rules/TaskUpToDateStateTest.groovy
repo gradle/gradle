@@ -56,7 +56,7 @@ class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
         1 * mockInputs.getProperties() >> [:]
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        (1.._) * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter
+        (1.._) * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter, _) >> mockInputFileSnapshotter
         (1.._) * mockInputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
     }
 }

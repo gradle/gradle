@@ -31,7 +31,7 @@ class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
         snapshotter = new DefaultCompileClasspathSnapshotter(
             fileSystemSnapshotter,
             stringInterner,
-            jarCache
+            store
         ) {
             private ReportingFileCollectionSnapshotBuilder reportingFileCollectionSnapshotBuilder
 

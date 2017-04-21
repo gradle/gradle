@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.tasks.CompileClasspath;
 
@@ -31,5 +32,10 @@ public class CompileClasspathPropertyAnnotationHandler extends ClasspathProperty
     @Override
     public Class<? extends FileCollectionSnapshotter> getSnapshotterType() {
         return CompileClasspathSnapshotter.class;
+    }
+
+    @Override
+    public Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType() {
+        return DefaultCompileClasspathSnapshotter.class;
     }
 }

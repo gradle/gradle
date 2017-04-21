@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
@@ -32,7 +33,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     private final OutputFilesSnapshotter outputSnapshotter;
 
     public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter) {
-        super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties());
+        super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties(), (SnapshottingConfigurationInternal) task.getProject().getSnapshotting());
         this.outputSnapshotter = outputSnapshotter;
         detectOverlappingOutputs();
     }
@@ -44,7 +45,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
 
     @Override
     public void saveCurrent() {
-        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
+        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties(), getSnapshottingConfiguration());
 
         ImmutableSortedMap<String, FileCollectionSnapshot> results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(getCurrent(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
             @Override

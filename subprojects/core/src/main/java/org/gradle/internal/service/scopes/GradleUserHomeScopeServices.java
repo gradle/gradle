@@ -16,9 +16,10 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.hash.HashCode;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.snapshotting.DefaultSnapshottingConfiguration;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
@@ -39,8 +40,9 @@ import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
+import org.gradle.api.snapshotting.ClasspathEntry;
+import org.gradle.api.snapshotting.Snapshotter;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
@@ -58,7 +60,7 @@ import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -127,9 +129,9 @@ public class GradleUserHomeScopeServices {
         return new DefaultGenericFileCollectionSnapshotter(fileSystemSnapshotter, stringInterner);
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, TaskHistoryStore store) {
-        PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        return new DefaultClasspathSnapshotter(fileSystemSnapshotter, stringInterner, jarCache);
+    ClasspathSnapshotter createClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, TaskHistoryStore store, Instantiator instantiator) {
+        // TODO: depending on ValueSnapshotter would introduce a cyclic dependency between ClassLoaderHierarchyHasher and ClasspathSnapshotter
+        return new DefaultClasspathSnapshotter(fileSystemSnapshotter, new ValueSnapshotter(null), stringInterner, store, new DefaultSnapshottingConfiguration(ImmutableList.<Class<? extends Snapshotter>>of(ClasspathEntry.class), instantiator));
     }
 
     ClasspathHasher createClasspathHasher(ClasspathSnapshotter snapshotter) {

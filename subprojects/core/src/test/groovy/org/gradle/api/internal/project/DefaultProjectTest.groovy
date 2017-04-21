@@ -43,6 +43,7 @@ import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.changedetection.snapshotting.DefaultSnapshottingConfiguration
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -56,6 +57,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.snapshotting.SnapshottingConfiguration
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
@@ -141,6 +143,7 @@ class DefaultProjectTest {
     AttributesSchema attributesSchema = context.mock(AttributesSchema)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     ProjectConfigurator projectConfigurator = new BuildOperationProjectConfigurator(buildOperationExecutor)
+    DefaultSnapshottingConfiguration snapshottingConfiguration= new DefaultSnapshottingConfiguration([], null)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -199,6 +202,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
             allowing(serviceRegistryMock).get(BuildOperationExecutor) ; will(returnValue(buildOperationExecutor))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurator) ; will(returnValue(projectConfigurator))
+            allowing(serviceRegistryMock).get((Type) SnapshottingConfiguration) ; will(returnValue(snapshottingConfiguration))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))

@@ -39,7 +39,7 @@ class OutputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
         when:
         new OutputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, mockInputFileSnapshotterRegistry, mockOutputFileSnapshotter)
         then:
-        1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter
+        1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter, _) >> mockInputFileSnapshotter
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
         1 * mockInputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
         0 * _

@@ -17,6 +17,9 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder
+import org.gradle.api.internal.changedetection.snapshotting.DefaultSnapshottingConfiguration
+import org.gradle.api.snapshotting.ClasspathEntry
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Subject
 
 @Subject(DefaultClasspathSnapshotter)
@@ -26,8 +29,10 @@ class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
     def setup() {
         snapshotter = new DefaultClasspathSnapshotter(
             fileSystemSnapshotter,
+            new ValueSnapshotter(null),
             stringInterner,
-            jarCache
+            store,
+            new DefaultSnapshottingConfiguration([ClasspathEntry], DirectInstantiator.INSTANCE)
         ) {
             @Override
             protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {

@@ -21,8 +21,10 @@ import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
+import javax.inject.Inject;
 import java.io.IOException;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
@@ -31,6 +33,11 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
     public DefaultGenericFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(fileSystemSnapshotter, stringInterner);
         this.stringInterner = stringInterner;
+    }
+
+    @Inject
+    public DefaultGenericFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, SnapshottingConfigurationInternal configuration) {
+        this(fileSystemSnapshotter, stringInterner);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
@@ -27,6 +28,8 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.changedetection.snapshotting.DefaultSnapshottingConfiguration;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.BaseDirFileResolver;
@@ -41,9 +44,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
-import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
@@ -52,6 +55,8 @@ import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.snapshotting.ClasspathEntry;
+import org.gradle.api.snapshotting.Snapshotter;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -76,6 +81,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Contains the services for a given project.
@@ -169,6 +175,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected SoftwareComponentContainer createSoftwareComponentContainer() {
         Instantiator instantiator = get(Instantiator.class);
         return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator);
+    }
+
+    protected SnapshottingConfigurationInternal createSnapshotterConfiguration() {
+        Instantiator instantiator = get(Instantiator.class);
+        List<Class<? extends Snapshotter>> snapshotterTypes = Lists.newLinkedList();
+        snapshotterTypes.add(ClasspathEntry.class);
+        return instantiator.newInstance(DefaultSnapshottingConfiguration.class, snapshotterTypes, instantiator);
     }
 
     protected ProjectFinder createProjectFinder() {

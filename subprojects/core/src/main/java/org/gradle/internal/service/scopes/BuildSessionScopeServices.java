@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.hash.HashCode;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -29,11 +28,7 @@ import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
@@ -49,7 +44,6 @@ import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.project.BuildOperationProjectConfigurator;
 import org.gradle.api.internal.project.ProjectConfigurator;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
@@ -74,7 +68,6 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -198,16 +191,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         return new DefaultGenericFileCollectionSnapshotter(fileSystemSnapshotter, stringInterner);
-    }
-
-    ClasspathSnapshotter createClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, TaskHistoryStore store) {
-        PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        return new DefaultClasspathSnapshotter(fileSystemSnapshotter, stringInterner, jarCache);
-    }
-
-    CompileClasspathSnapshotter createCompileClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, TaskHistoryStore store) {
-        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        return new DefaultCompileClasspathSnapshotter(fileSystemSnapshotter, stringInterner, signatureCache);
     }
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {

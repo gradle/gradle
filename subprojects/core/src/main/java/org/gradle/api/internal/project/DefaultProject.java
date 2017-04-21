@@ -70,6 +70,7 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.snapshotting.SnapshottingConfiguration;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -969,6 +970,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public SoftwareComponentContainer getComponents() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    @Override
+    public SnapshottingConfiguration getSnapshotting() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void snapshotting(Action<SnapshottingConfiguration> configurationAction) {
+        configurationAction.execute(getSnapshotting());
     }
 
     @Override

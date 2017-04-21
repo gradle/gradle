@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
@@ -47,7 +48,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
     public DiscoveredInputsTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory,
                                             TaskInternal task) {
         this.taskName = task.getName();
-        this.snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class);
+        this.snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class, (SnapshottingConfigurationInternal) task.getProject().getSnapshotting());
         this.fileCollectionFactory = fileCollectionFactory;
         this.previous = previous;
         this.current = current;

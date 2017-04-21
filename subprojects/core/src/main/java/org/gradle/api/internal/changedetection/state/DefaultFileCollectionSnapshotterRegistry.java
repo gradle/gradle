@@ -16,43 +16,81 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
+import org.gradle.internal.reflect.Instantiator;
 
-import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultFileCollectionSnapshotterRegistry implements FileCollectionSnapshotterRegistry {
-    private final Map<Class<?>, FileCollectionSnapshotter> snapshotters;
+    private final Map<Class<? extends FileCollectionSnapshotter>, Class<? extends FileCollectionSnapshotter>> snapshotterTypes;
+    private final Instantiator instantiator;
+    private final ConcurrentMap<SnapshotterKey, FileCollectionSnapshotter> snapshotters;
 
-    public DefaultFileCollectionSnapshotterRegistry(Collection<FileCollectionSnapshotter> snapshotters) {
-        this.snapshotters = ImmutableMap.copyOf(Maps.uniqueIndex(snapshotters, new Function<FileCollectionSnapshotter, Class<?>>() {
-            @Override
-            public Class<?> apply(FileCollectionSnapshotter snapshotter) {
-                Class<? extends FileCollectionSnapshotter> registeredType = snapshotter.getRegisteredType();
-                Class<? extends FileCollectionSnapshotter> type = snapshotter.getClass();
-                if (!registeredType.isAssignableFrom(type)) {
-                    throw new IllegalArgumentException(String.format("Snapshotter registered type '%s' must be a super-type of the actual snapshotter type '%s'", registeredType.getName(), type.getName()));
-                }
-                return registeredType;
-            }
-        }));
+    public DefaultFileCollectionSnapshotterRegistry(Map<Class<? extends FileCollectionSnapshotter>, Class<? extends FileCollectionSnapshotter>> snapshotterTypes, Instantiator instantiator) {
+        this.snapshotterTypes = snapshotterTypes;
+        this.instantiator = instantiator;
+        this.snapshotters = new ConcurrentHashMap<SnapshotterKey, FileCollectionSnapshotter>();
     }
 
     @Override
-    public Collection<FileCollectionSnapshotter> getAllSnapshotters() {
-        return snapshotters.values();
-    }
-
-    @Override
-    public <T> T getSnapshotter(Class<? extends T> type) {
-        FileCollectionSnapshotter snapshotter = snapshotters.get(type);
+    public <T> T getSnapshotter(Class<? extends T> type, SnapshottingConfigurationInternal configuration) {
+        SnapshotterKey snapshotterKey = new SnapshotterKey(type, configuration);
+        FileCollectionSnapshotter snapshotter = snapshotters.get(snapshotterKey);
         if (snapshotter == null) {
-            throw new IllegalStateException(String.format("No snapshotter registered with type '%s'", type.getName()));
+            snapshotter = createSnapshotter(type, configuration, snapshotterKey);
         }
         return uncheckedCast(snapshotter);
+    }
+
+    private <T> FileCollectionSnapshotter createSnapshotter(Class<? extends T> type, SnapshottingConfigurationInternal configuration, SnapshotterKey snapshotterKey) {
+        @SuppressWarnings("SuspiciousMethodCalls")
+        Class<? extends FileCollectionSnapshotter> implementationType = snapshotterTypes.get(type);
+        if (implementationType == null) {
+            throw new IllegalStateException(String.format("No snapshotter registered with type '%s'", type.getName()));
+        }
+        FileCollectionSnapshotter snapshotter = instantiator.newInstance(implementationType, configuration);
+        FileCollectionSnapshotter oldSnapshotter = snapshotters.putIfAbsent(snapshotterKey, snapshotter);
+        if (oldSnapshotter != null) {
+            return oldSnapshotter;
+        }
+        return snapshotter;
+    }
+
+    private static class SnapshotterKey {
+        private final Class<?> type;
+        private final SnapshottingConfigurationInternal configuration;
+
+        private SnapshotterKey(Class<?> type, SnapshottingConfigurationInternal configuration) {
+            this.type = type;
+            this.configuration = configuration;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            SnapshotterKey that = (SnapshotterKey) o;
+
+            if (!type.equals(that.type)) {
+                return false;
+            }
+            return configuration.equals(that.configuration);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = type.hashCode();
+            result = 31 * result + configuration.hashCode();
+            return result;
+        }
     }
 }

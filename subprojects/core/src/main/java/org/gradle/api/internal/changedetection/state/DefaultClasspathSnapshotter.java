@@ -26,20 +26,29 @@ import org.gradle.api.internal.changedetection.resources.SnapshottableReadableRe
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshotterCacheKey;
+import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
+import org.gradle.api.snapshotting.ClasspathEntry;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
+import org.gradle.internal.serialize.HashCodeSerializer;
+
+import javax.inject.Inject;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter, Factory<SnapshottingResultRecorder> {
     private final StringInterner stringInterner;
     private final ResourceSnapshotter resourceSnapshotter;
 
-    public DefaultClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, PersistentIndexedCache<HashCode, HashCode> jarSignatureCache) {
+    @Inject
+    public DefaultClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, ValueSnapshotter valueSnapshotter, StringInterner stringInterner, TaskHistoryStore store, SnapshottingConfigurationInternal configuration) {
         super(fileSystemSnapshotter, stringInterner);
         this.stringInterner = stringInterner;
+        ClasspathEntry classpathEntry = configuration.get(ClasspathEntry.class);
+        HashCode snapshotterHash = hashConfiguration(valueSnapshotter, new SnapshotterCacheKey(getClass(), classpathEntry));
         this.resourceSnapshotter = new CachingResourceSnapshotter(
-            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(), this),
-            jarSignatureCache
-        );
+            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(classpathEntry), this),
+            store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true),
+            snapshotterHash);
     }
 
     @Override
@@ -63,11 +72,19 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     private class ClasspathEntrySnapshotter extends AbstractSnapshotter {
+        private Spec<String> filterSpec;
+
+        public ClasspathEntrySnapshotter(ClasspathEntry entrySnapshotter) {
+            filterSpec = entrySnapshotter.getSpec();
+        }
+
         @Override
         protected void snapshotResource(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
             if (resource instanceof SnapshottableReadableResource) {
-                HashCode signatureForClass = resource.getContent().getContentMd5();
-                recorder.recordResult(resource, signatureForClass);
+                if (filterSpec.isSatisfiedBy(resource.getPath())) {
+                    HashCode signatureForClass = resource.getContent().getContentMd5();
+                    recorder.recordResult(resource, signatureForClass);
+                }
             }
         }
 
