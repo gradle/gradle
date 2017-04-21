@@ -54,11 +54,12 @@ project(':impl') {
         then:
         def libs = module.dependencies
 
-        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency} as IdeaModuleDependency
+        IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency } as IdeaModuleDependency
         mod.targetModuleName == 'api'
     }
 
-    @ToolingApiVersion(">=2.0 !3.0") // broken on 3.0
+    @ToolingApiVersion(">=2.0 !3.0")
+    // broken on 3.0
     @TargetGradleVersion(">=1.8")
     def "can query dependencies for model produced from BuildAction"() {
         def fakeRepo = new MavenFileRepository(file("repo"))
@@ -95,7 +96,7 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        IdeaSingleEntryLibraryDependency lib = libs.find {it instanceof IdeaSingleEntryLibraryDependency} as IdeaSingleEntryLibraryDependency
+        IdeaSingleEntryLibraryDependency lib = libs.find { it instanceof IdeaSingleEntryLibraryDependency } as IdeaSingleEntryLibraryDependency
 
         lib.file.exists()
         lib.file.path.endsWith('coolLib-1.0.jar')
@@ -108,13 +109,13 @@ project(':impl') {
 
         lib.scope.scope == 'TEST'
 
-        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency} as IdeaModuleDependency
-        if(currentVersion >= GradleVersion.version('3.1')) {
-            mod.targetModuleName == project.modules.find { it.name == 'api'}.name
+        IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency } as IdeaModuleDependency
+        if (currentVersion >= GradleVersion.version('3.1')) {
+            mod.targetModuleName == project.modules.find { it.name == 'api' }.name
         }
 
-        if(currentVersion < GradleVersion.version('4.0')) {
-            mod.dependencyModule == project.modules.find { it.name == 'api'}
+        if (currentVersion < GradleVersion.version('4.0')) {
+            mod.dependencyModule == project.modules.find { it.name == 'api' }
         }
 
         if (targetVersion >= GradleVersion.version("3.4")) {
@@ -122,6 +123,5 @@ project(':impl') {
         } else {
             mod.scope.scope == 'COMPILE'
         }
-
     }
 }
