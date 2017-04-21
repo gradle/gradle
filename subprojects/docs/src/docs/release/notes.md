@@ -242,7 +242,7 @@ We would like to thank the following community members for making contributions 
 - [Lari Hotari](https://github.com/lhtorai) - Issue: #1730 Memory leak in Gradle daemon
  ([gradle/gradle#1736](https://github.com/gradle/gradle/pull/1736))
 - [Andy Bell](https://github.com/andyrbell) - Prevent NullPointerException for JUnit Categories for test description with null test class([gradle/gradle#1511](https://github.com/gradle/gradle/pull/1511))
-
+- [Piotr Kubowicz](https://github.com/pkubowicz) - Default to compileClasspath configuration in DependencyInsightReportTask ([gradle/gradle#1376](https://github.com/gradle/gradle/pull/1395))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
