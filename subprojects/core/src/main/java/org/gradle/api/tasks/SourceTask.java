@@ -60,6 +60,16 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     }
 
     /**
+     * Sets the source for this task.
+     *
+     * @param source The source.
+     */
+    public void setSource(FileTree source) {
+        this.source.clear();
+        this.source.add(source);
+    }
+
+    /**
      * Sets the source for this task. The given source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param source The source.
