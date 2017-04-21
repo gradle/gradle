@@ -142,6 +142,11 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    public void setEvents(Set<TestLogEvent> events) {
+        getLifecycle().setEvents(events);
+    }
+
+    @Override
     public void setEvents(Iterable<?> events) {
         getLifecycle().setEvents(events);
     }
