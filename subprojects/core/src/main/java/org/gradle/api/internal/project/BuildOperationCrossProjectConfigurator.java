@@ -28,11 +28,11 @@ import org.gradle.util.ConfigureUtil;
 
 import java.util.Collections;
 
-public class BuildOperationProjectConfigurator implements ProjectConfigurator {
+public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
 
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public BuildOperationProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -46,11 +46,6 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
     public Project project(Project project, Action<? super Project> configureAction) {
         runProjectConfigureAction(project, configureAction);
         return project;
-    }
-
-    @Override
-    public void projectBuildOperation(ConfigureProjectBuildOperation configureProjectBuildOperation) {
-        buildOperationExecutor.run(configureProjectBuildOperation);
     }
 
     @Override
@@ -98,7 +93,7 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
     }
 
     private void runProjectConfigureClosure(final Project project, final Closure<? super Project> configureClosure) {
-        buildOperationExecutor.run(new ConfigureProjectBuildOperation(project) {
+        buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
 
             @Override
             public void run(BuildOperationContext context) {
@@ -108,7 +103,7 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
     }
 
     private void runProjectConfigureAction(final Project project, final Action<? super Project> configureAction) {
-        buildOperationExecutor.run(new ConfigureProjectBuildOperation(project) {
+        buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
                 Actions.with(project, configureAction);
@@ -151,5 +146,19 @@ public class BuildOperationProjectConfigurator implements ProjectConfigurator {
         }
 
         abstract void doRunProjectConfigure(Project project);
+    }
+
+    private static abstract class CrossConfigureProjectBuildOperation implements RunnableBuildOperation {
+        private Project project;
+
+        private CrossConfigureProjectBuildOperation(Project project) {
+            this.project = project;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            String name = "Cross-configure project " + ((ProjectInternal) project).getIdentityPath().toString();
+            return BuildOperationDescriptor.displayName(name);
+        }
     }
 }

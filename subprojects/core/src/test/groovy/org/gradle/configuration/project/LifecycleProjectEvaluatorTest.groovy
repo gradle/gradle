@@ -19,9 +19,9 @@ package org.gradle.configuration.project
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.BuildOperationProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
+import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -32,15 +32,17 @@ class LifecycleProjectEvaluatorTest extends Specification {
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
     private buildOperationExecutor = new TestBuildOperationExecutor()
-    private projectConfigurator = new BuildOperationProjectConfigurator(buildOperationExecutor)
-    private evaluator = new LifecycleProjectEvaluator(projectConfigurator, delegate)
+    private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate)
     private state = Mock(ProjectStateInternal)
 
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
         project.displayName >> "<project>"
         project.gradle >> gradle
-        gradle.findIdentityPath() >> Path.path(":project1")
+        gradle.findIdentityPath() >> Path.path(":")
+        gradle.identityPath >> gradle.findIdentityPath()
+        project.projectPath >> Path.path(":project1")
+        project.path >> project.projectPath.toString()
         project.identityPath >> Path.path(":project1")
     }
 
@@ -168,6 +170,23 @@ class LifecycleProjectEvaluatorTest extends Specification {
         1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate") }
         _ * state.hasFailure() >> true
         0 * state.executed(_)
+    }
+
+    def "forwards project details to configure project operation descriptor"() {
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        buildOperationExecutor.operations.size() == 1
+        BuildOperationDescriptor descriptor = buildOperationExecutor.operations[0]
+        ConfigureProjectBuildOperationDetails details = descriptor.details
+
+        and:
+        descriptor.name == 'Configure project :project1'
+        descriptor.displayName == 'Configure project :project1'
+        descriptor.progressDisplayName == null
+        details.buildPath == Path.path(':')
+        details.projectPath == Path.path(':project1')
     }
 
 }
