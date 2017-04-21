@@ -114,15 +114,15 @@ You can diagnose overlapping task output issues by running Gradle at the `--info
 
 #### Stricter validation of task properties
 
-When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin go through validation. In Gradle 4.0 some additional problems are now detected. A warning is shown when:
+When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin will go through validation. In Gradle 4.0, additional problems are now detected. 
 
-* a task has a property without an input or output annotation (this might indicate forgotten inputs or outputs),
+A warning is shown when:
+* a task has a property without an input or output annotation (this might indicate a forgotten input or output),
 * a task has `@Input` on a `File` property (instead of using `@InputFile` of `@InputDirectory`),
 * a task declares conflicting types for a property (say, both `@InputFile` and `@InputDirectory`),
-* a cacheable task declares a property without specifying `@PathSensitive`; in such a case we default to `ABSOLUTE` sensitivity, which for most cases means the task's results cannot be shared among different users via a shared cache.
+* a cacheable task declares a property without specifying `@PathSensitive`. In such a case, we default to `ABSOLUTE` path sensitivity, which will prevent the task's outputs from being shared across different users via a shared cache.
 
-For more info on using task property annotations see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
-
+For more info on using task property annotations, see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
 
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
