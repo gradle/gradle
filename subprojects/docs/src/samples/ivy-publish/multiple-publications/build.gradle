@@ -66,12 +66,12 @@ project(":project2") {
     // END SNIPPET multiple-publications
                 configurations {
                     "default" {
-                        extend "runtime"
+                        extend "compile"
                     }
-                    runtime {}
+                    compile {}
                 }
                 artifact(apiJar) {
-                    conf "runtime"
+                    conf "compile"
                 }
 
     // START SNIPPET multiple-publications
