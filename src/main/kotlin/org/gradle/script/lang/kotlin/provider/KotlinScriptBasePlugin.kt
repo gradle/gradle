@@ -17,9 +17,13 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+
 import org.gradle.script.lang.kotlin.accessors.DisplayAccessors
 import org.gradle.script.lang.kotlin.accessors.GenerateProjectSchema
-import org.gradle.script.lang.kotlin.accessors.ProjectExtensionsBuildSrcConfigurationAction
+import org.gradle.script.lang.kotlin.accessors.ProjectExtensionsBuildSrcConfigurationAction.Companion.PROJECT_SCHEMA_RESOURCE_PATH
+
+import org.gradle.script.lang.kotlin.invoke
+
 
 class KotlinScriptBasePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit =
@@ -29,12 +33,15 @@ class KotlinScriptBasePlugin : Plugin<Project> {
         }
 }
 
+
 class KotlinScriptRootPlugin : Plugin<Project> {
-    override fun apply(project: Project): Unit =
+    override fun apply(project: Project): Unit {
         project.run {
-            tasks.create("gskGenerateAccessors", GenerateProjectSchema::class.java) {
-                it.destinationFile = file(
-                    "buildSrc/${ProjectExtensionsBuildSrcConfigurationAction.PROJECT_SCHEMA_RESOURCE_PATH}")
+            tasks {
+                "gskGenerateAccessors"(GenerateProjectSchema::class) {
+                    destinationFile = file("buildSrc/$PROJECT_SCHEMA_RESOURCE_PATH")
+                }
             }
         }
+    }
 }
