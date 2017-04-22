@@ -20,10 +20,14 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
+import org.gradle.initialization.BuildProjectRegistry;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
@@ -110,7 +114,7 @@ public class IdeaProject {
 
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
-    private final CompositeBuildContext compositeContext;
+    private final BuildProjectRegistry buildProjectRegistry;
     private final CompositeBuildIdeProjectResolver moduleToProjectMapper;
 
     private List<IdeaModule> modules;
@@ -128,7 +132,7 @@ public class IdeaProject {
         this.ipr = ipr;
 
         ServiceRegistry services = ((ProjectInternal) project).getServices();
-        this.compositeContext = services.get(CompositeBuildContext.class);
+        this.buildProjectRegistry = services.get(BuildProjectRegistry.class);
         this.moduleToProjectMapper = CompositeBuildIdeProjectResolver.from(services);
     }
 
@@ -316,18 +320,31 @@ public class IdeaProject {
     public void mergeXmlProject(Project xmlProject) {
         ipr.getBeforeMerged().execute(xmlProject);
         xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());
-        includeModulesFromComposite(xmlProject);
+        configureModulePaths(xmlProject);
         ipr.getWhenMerged().execute(xmlProject);
     }
 
-    private void includeModulesFromComposite(Project xmlProject) {
-        PathFactory pathFactory = getPathFactory();
-        Set<ProjectComponentIdentifier> projectsInComposite = compositeContext.getAllProjects();
-        for (ProjectComponentIdentifier otherProjectId : projectsInComposite) {
+    private void configureModulePaths(Project xmlProject) {
+        for (ProjectIdentifier projectIdentifier : buildProjectRegistry.getAllProjects()) {
+            ProjectIdentifier rootIdentifier = getRoot(projectIdentifier);
+            if (rootIdentifier.getName().equals(project.getRootProject().getName())) {
+                // IDEA Module for project in current build: handled via `modules` model elements.
+                continue;
+            }
+            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootIdentifier.getName());
+            ProjectComponentIdentifier otherProjectId = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, projectIdentifier.getPath());
             File imlFile = moduleToProjectMapper.buildArtifactFile(otherProjectId, "iml");
             if (imlFile != null) {
-                xmlProject.getModulePaths().add(pathFactory.relativePath("PROJECT_DIR", imlFile));
+                xmlProject.addModulePath(imlFile);
             }
         }
+    }
+
+    private static ProjectIdentifier getRoot(ProjectIdentifier projectIdentifier) {
+        ProjectIdentifier parent = projectIdentifier.getParentIdentifier();
+        if (parent == null) {
+            return projectIdentifier;
+        }
+        return getRoot(parent);
     }
 }

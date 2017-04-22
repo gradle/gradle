@@ -86,6 +86,10 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
     }
 
+    public static ProjectComponentIdentifier newProjectId(BuildIdentifier buildIdentifier, String projectPath) {
+        return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
+    }
+
     public static ProjectComponentIdentifier newProjectId(Project project) {
         BuildIdentifier buildId = ((ProjectInternal) project).getServices().get(BuildIdentity.class).getCurrentBuild();
         return new DefaultProjectComponentIdentifier(buildId, project.getPath());

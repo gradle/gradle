@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.Set;
 
 public class CompositeBuildProjectRegistry implements BuildProjectRegistry {
-    private final Set<ProjectIdentifier> allProjects = Sets.newHashSet();
+    private final Set<ProjectIdentifier> allProjects = Sets.newLinkedHashSet();
 
     public void registerProjects(Collection<? extends ProjectIdentifier> projectIdentifiers) {
         allProjects.addAll(projectIdentifiers);

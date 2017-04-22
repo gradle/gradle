@@ -25,7 +25,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.initialization.IncludedBuilds;
@@ -64,15 +63,8 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         return registeredProject == null ? null : registeredProject.metaData;
     }
 
-    @Override
-    public Set<ProjectComponentIdentifier> getAllProjects() {
-        for (IncludedBuild build : includedBuilds.getBuilds()) {
-            ensureRegistered((IncludedBuildInternal) build);
-        }
-        return projectMetadata.keySet();
-    }
-
     public Collection<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
+        ensureRegistered(project);
         RegisteredProject registeredProject = projectMetadata.get(project);
         return registeredProject == null ? null : registeredProject.artifacts;
      }

@@ -25,10 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
-import java.util.Set;
-
 public interface CompositeBuildContext extends LocalComponentProvider, DependencySubstitutionRules {
-    Set<ProjectComponentIdentifier> getAllProjects();
 
     void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project);
     void registerSubstitution(Action<DependencySubstitution> substitutions);
