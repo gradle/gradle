@@ -28,7 +28,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 public class ConsoleConfigureAction {
-    public void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
+    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
         if (consoleOutput == ConsoleOutput.Plain) {
             return;
         }
