@@ -45,7 +45,7 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
 
         signature = delegate.hash(fileSnapshot);
 
-        if (signature!=null) {
+        if (signature != null) {
             persistentCache.put(contentMd5, signature);
         } else {
             persistentCache.put(contentMd5, NO_SIGNATURE);
