@@ -65,12 +65,6 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     }
 
     @Override
-    public File getProjectDirectory(ProjectComponentIdentifier project) {
-        RegisteredProject registeredProject = getRegisteredProject(project);
-        return registeredProject.projectDirectory;
-    }
-
-    @Override
     public Set<ProjectComponentIdentifier> getAllProjects() {
         for (IncludedBuild build : includedBuilds.getBuilds()) {
             ensureRegistered((IncludedBuildInternal) build);
@@ -94,12 +88,12 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         substitutionRules.add(substitutions);
     }
 
-    public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
+    public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata) {
         if (projectMetadata.containsKey(project)) {
             String failureMessage = StringUtils.capitalize(project.getDisplayName()) +" is not unique in composite.";
             throw new GradleException(failureMessage);
         }
-        projectMetadata.put(project, new RegisteredProject(localComponentMetadata, projectDirectory));
+        projectMetadata.put(project, new RegisteredProject(localComponentMetadata));
     }
 
     public void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact) {
@@ -117,12 +111,10 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     private static class RegisteredProject {
         LocalComponentMetadata metaData;
-        File projectDirectory;
         Collection<LocalComponentArtifactMetadata> artifacts = Lists.newArrayList();
 
-        public RegisteredProject(LocalComponentMetadata metaData, File projectDirectory) {
+        public RegisteredProject(LocalComponentMetadata metaData) {
             this.metaData = metaData;
-            this.projectDirectory = projectDirectory;
         }
     }
 
