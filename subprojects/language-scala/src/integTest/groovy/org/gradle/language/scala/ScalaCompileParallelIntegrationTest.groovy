@@ -189,7 +189,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     }
 
     GradleExecuter expectTasksWithParallelExecuter() {
-        blockingServer.expectConcurrentExecution(compileTasks, {})
+        blockingServer.expectConcurrentExecution(compileTasks)
         // Need to set our own GradleUserHomeDir so that we can be sure to cause
         // compiler-interface.jar to be created as part of the compiler instantiation
         // as this is the root of parallelism issues with the Zinc compiler
