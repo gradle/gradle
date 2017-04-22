@@ -23,7 +23,6 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 //These tests depend on https://plugins.gradle.org
-@Ignore("Must fix for 4.0")
 @Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
 class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {

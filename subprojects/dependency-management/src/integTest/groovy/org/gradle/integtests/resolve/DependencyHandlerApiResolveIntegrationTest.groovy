@@ -114,7 +114,6 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         result.error.contains('package org.gradle.testkit.runner does not exist')
     }
 
-    @Ignore("Must fix for 4.0")
     def "artifact metadata is available for files added by dependency declarations"() {
         given:
         buildFile << """

@@ -29,7 +29,6 @@ import spock.lang.Ignore
 
 @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
 @TargetGradleVersion("current")
-@Ignore("Must fix for 4.0")
 class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         toolingApi.requireDaemons()

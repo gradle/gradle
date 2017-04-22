@@ -26,7 +26,6 @@ import spock.lang.Ignore
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
-    @Ignore("Must fix for 4.0")
     @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
     def "provide setEnvironmentVariables on LongRunningOperation"() {

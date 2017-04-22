@@ -24,7 +24,6 @@ import spock.lang.Ignore
 
 class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @Ignore("Must fix for 4.0")
     def "informs about build environment"() {
         when:
         BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }

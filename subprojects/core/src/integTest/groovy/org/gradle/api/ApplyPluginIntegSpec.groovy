@@ -117,7 +117,6 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         succeeds("test")
     }
 
-    @Ignore("Must fix for 4.0")
     def "generated Gradle API JAR in custom Gradle user home is reused across multiple invocations"() {
         requireGradleDistribution()
 

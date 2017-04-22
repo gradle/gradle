@@ -23,7 +23,6 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Ignore
 
 @TargetGradleVersion('>=2.13')
-@Ignore("Must fix for 4.0")
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "can use build action to retrieve BuildEnvironment model"() {
         given:
