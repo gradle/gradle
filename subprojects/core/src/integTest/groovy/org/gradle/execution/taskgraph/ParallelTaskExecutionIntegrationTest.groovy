@@ -18,8 +18,6 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -43,8 +41,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             class SerialPing extends DefaultTask {
                 @TaskAction
                 void ping() {
-                    URL url = new URL("http://localhost:${blockingServer.port}/" + path)
-                    url.openConnection().getHeaderField('RESPONSE')
+                    new URL("http://localhost:${blockingServer.port}/" + path).text
                 }
             }
 
@@ -57,8 +54,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
                 
                 public void run() {
-                    URL url = new URL("http://localhost:${blockingServer.port}/" + path)
-                    url.openConnection().getHeaderField('RESPONSE')
+                    new URL("http://localhost:${blockingServer.port}/" + path).text
                 }
             }
             
@@ -79,8 +75,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             class FailingPing extends DefaultTask {
                 @TaskAction
                 void ping() {
-                    URL url = new URL("http://localhost:${blockingServer.port}/" + path)
-                    url.openConnection().getHeaderField('RESPONSE')
+                    new URL("http://localhost:${blockingServer.port}/" + path).text
                     throw new RuntimeException("task failure")
                 }
             }
@@ -121,16 +116,10 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             bPing.outputs.file "dir/file"
         """
         expect:
-        GradleHandle handle
-        def handleStarter = {  handle = executer.withTasks(":aPing", ":bPing").start() }
-        blockingServer.expectConcurrentExecution([":aPing"]) {
-            ConcurrentTestUtil.poll(1) {
-                assert handle.standardOutput.contains("Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}")
-            }
-        }
+        blockingServer.expectSerialExecution(":aPing")
         blockingServer.expectSerialExecution(":bPing")
-        handleStarter.call()
-        handle.waitForFinish()
+        run":aPing", ":bPing"
+        result.assertOutputContains("Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}")
     }
 
     def "independent tasks from multiple projects execute in parallel"() {
