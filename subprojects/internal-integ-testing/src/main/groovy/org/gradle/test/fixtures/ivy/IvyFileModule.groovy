@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.Module
+import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
 
 class IvyFileModule extends AbstractModule implements IvyModule {
@@ -41,8 +42,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     boolean noMetaData
     int publishCount = 1
     XmlTransformer transformer = new XmlTransformer()
+    private final String modulePath
 
-    IvyFileModule(String ivyPattern, String artifactPattern, TestFile moduleDir, String organisation, String module, String revision, boolean m2Compatible) {
+    IvyFileModule(String ivyPattern, String artifactPattern, String modulePath, TestFile moduleDir, String organisation, String module, String revision, boolean m2Compatible) {
+        this.modulePath = modulePath
         this.ivyPattern = ivyPattern
         this.artifactPattern = artifactPattern
         this.moduleDir = moduleDir
@@ -175,24 +178,42 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
-    protected String getIvyFilePath() {
-        getArtifactFilePath([name: "ivy", type: "ivy", ext: "xml"], ivyPattern)
+    @Override
+    ModuleArtifact getIvy() {
+        return moduleArtifact([name: "ivy", type: "ivy", ext: "xml"], ivyPattern)
     }
 
     TestFile getIvyFile() {
-        return moduleDir.file(ivyFilePath)
+        return ivy.file
+    }
+
+    @Override
+    ModuleArtifact getJar() {
+        return moduleArtifact(name: module, type: "jar", ext: "jar")
     }
 
     TestFile getJarFile() {
-        return moduleDir.file(jarFilePath)
-    }
-
-    protected String getJarFilePath() {
-        getArtifactFilePath(name: module, type: "jar", ext: "jar")
+        return jar.file
     }
 
     TestFile file(Map<String, ?> options) {
-        return moduleDir.file(getArtifactFilePath(options))
+        return moduleArtifact(options).file
+    }
+
+    ModuleArtifact moduleArtifact(Map<String, ?> options, String pattern = artifactPattern) {
+        def path = getArtifactFilePath(options, pattern)
+        def file = moduleDir.file(path)
+        return new ModuleArtifact() {
+            @Override
+            String getPath() {
+                return modulePath + '/' + path
+            }
+
+            @Override
+            TestFile getFile() {
+                return file
+            }
+        }
     }
 
     protected String getArtifactFilePath(Map<String, ?> options, String pattern = artifactPattern) {

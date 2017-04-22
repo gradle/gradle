@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.test.fixtures
 
-/**
- * Represents a module in a repository.
- */
-public interface Module {
-    Module publish()
-    Module publishWithChangedContent()
+package org.gradle.test.fixtures;
 
-    String getGroup()
-    String getModule()
-    String getVersion()
+import org.gradle.test.fixtures.file.TestFile;
+
+public interface ModuleArtifact {
+    /**
+     * Returns the path of this artifact relative to the root of the repository.
+     */
+    String getPath();
+
+    /**
+     * Returns the local backing file of this artifact.
+     */
+    TestFile getFile();
 }
