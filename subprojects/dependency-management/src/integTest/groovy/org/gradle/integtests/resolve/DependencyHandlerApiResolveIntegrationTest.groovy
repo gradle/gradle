@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec {
     public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-'

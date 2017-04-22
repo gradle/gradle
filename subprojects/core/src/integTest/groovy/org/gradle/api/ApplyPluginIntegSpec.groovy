@@ -23,7 +23,6 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.FailsWith
-import spock.lang.Ignore
 import spock.lang.Issue
 
 // TODO: This needs a better home - Possibly in the test kit package in the future
@@ -39,7 +38,8 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2358")
-    @FailsWith(UnexpectedBuildFailure) // Test is currently failing
+    @FailsWith(UnexpectedBuildFailure)
+    // Test is currently failing
     def "can reference plugin by id in unit test"() {
 
         given:

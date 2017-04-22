@@ -25,7 +25,6 @@ import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
 @TargetGradleVersion("current")

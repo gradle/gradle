@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
-import spock.lang.Ignore
 
 class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 

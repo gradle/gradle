@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
-import spock.lang.Ignore
 
 @ToolingApiVersion(">=2.2")
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
@@ -40,12 +39,13 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
     def "can shutdown tooling API session when no operations have been executed"() {
         given:
-        toolingApi.close();
+        toolingApi.close()
 
         when:
         toolingApi.withConnection {}
         then:
         IllegalStateException e = thrown()
+        e
     }
 
     @TargetGradleVersion(">=2.2")

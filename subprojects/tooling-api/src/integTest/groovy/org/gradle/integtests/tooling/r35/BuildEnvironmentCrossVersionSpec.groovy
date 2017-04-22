@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
-import spock.lang.Ignore
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
@@ -40,7 +39,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
             }"""
 
         when:
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
             connection.newBuild().setEnvironmentVariables(["var": "val"]).setStandardOutput(out).forTasks('printEnv').run()
         }

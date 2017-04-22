@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.FetchBuildEnvironment
 import org.gradle.tooling.model.build.BuildEnvironment
-import spock.lang.Ignore
 
 @TargetGradleVersion('>=2.13')
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
