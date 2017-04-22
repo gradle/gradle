@@ -146,9 +146,6 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
 
         @Override
         public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
-            if (visitor.includeFiles()) {
-                visitor.visitFailure(throwable);
-            }
         }
 
         @Override

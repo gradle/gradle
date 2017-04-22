@@ -27,7 +27,9 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.operations.BuildOperationProcessor;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -44,14 +46,16 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private final Long id;
     private final String name;
     private final ResolvedConfigurationIdentifier resolvedConfigId;
+    private final BuildOperationProcessor buildOperationProcessor;
     private final Set<ResolvedArtifactSet> moduleArtifacts;
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
-    public DefaultResolvedDependency(Long id, ResolvedConfigurationIdentifier resolvedConfigurationIdentifier) {
+    public DefaultResolvedDependency(Long id, ResolvedConfigurationIdentifier resolvedConfigurationIdentifier, BuildOperationProcessor buildOperationProcessor) {
         this.id = id;
         this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
         this.resolvedConfigId = resolvedConfigurationIdentifier;
+        this.buildOperationProcessor = buildOperationProcessor;
         this.moduleArtifacts = new LinkedHashSet<ResolvedArtifactSet>();
     }
 
@@ -120,7 +124,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator()));
-        artifacts.visit(visitor);
+        ParallelResolveArtifactSet.wrap(artifacts, buildOperationProcessor).visit(visitor);
         return visitor.getArtifacts();
     }
 

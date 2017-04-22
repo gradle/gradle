@@ -38,6 +38,13 @@ public class ParallelResolveArtifactSet implements ResolvedArtifactSet {
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
+    public static ResolvedArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationProcessor buildOperationProcessor) {
+        if (artifacts == EMPTY) {
+            return artifacts;
+        }
+        return new ParallelResolveArtifactSet(artifacts, buildOperationProcessor);
+    }
+
     @Override
     public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
         throw new UnsupportedOperationException();

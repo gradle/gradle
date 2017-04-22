@@ -28,6 +28,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -94,7 +96,8 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     public Set<File> getFiles() {
         ensureResolved(true);
         final Set<File> result = new LinkedHashSet<File>();
-        resolveResult.artifactsResults.getArtifacts().visit(new ArtifactVisitor() {
+        ResolvedArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationProcessor);
+        artifacts.visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
                 result.add(artifact.getFile());
@@ -155,7 +158,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
         public final List<Throwable> notFound = new LinkedList<Throwable>();
-        public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(true, ResolutionStrategy.SortOrder.DEFAULT, buildOperationProcessor);
+        public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(true, ResolutionStrategy.SortOrder.DEFAULT);
         public SelectedArtifactResults artifactsResults;
 
         @Override

@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Unroll
 
 class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
@@ -28,7 +29,8 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         server.start()
     }
 
-    def "downloads artifacts in parallel from a Maven repo"() {
+    @Unroll
+    def "downloads artifacts in parallel from a Maven repo - #expression"() {
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
         def m2 = mavenRepo.module('test', 'test2', '1.0').publish()
         def m3 = mavenRepo.module('test', 'test3', '1.0').publish()
@@ -48,7 +50,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             task resolve {
                 inputs.files configurations.compile
                 doLast {
-                    println configurations.compile.files
+                    println ${expression} as List
                 }
             }
 """
@@ -68,6 +70,14 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         expect:
         executer.withArguments('--max-workers', '4')
         succeeds("resolve")
+
+        where:
+        expression                                                       | _
+        "configurations.compile"                                         | _
+        "configurations.compile.fileCollection { true }"                 | _
+        "configurations.compile.incoming.files"                          | _
+        "configurations.compile.incoming.artifacts.artifactFiles"        | _
+        "configurations.compile.resolvedConfiguration.getFiles { true }" | _
     }
 
     def "downloads artifacts in parallel from an Ivy repo"() {
