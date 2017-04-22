@@ -110,7 +110,6 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
 
     private HashCode hashZipEntry(InputStream inputStream, ZipEntry zipEntry, ClasspathContentHasher classpathContentHasher) throws IOException {
         Hasher hasher = new TrackingHasher(Hashing.md5().newHasher());
-        hasher.putString(zipEntry.getName(), Charsets.UTF_8);
         classpathContentHasher.appendContent(zipEntry.getName(), inputStream, hasher);
         return hasher.hash();
     }
