@@ -27,20 +27,24 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class ChainingHttpHandler implements HttpHandler {
     private final AtomicInteger counter = new AtomicInteger();
-    private final List<TrackingHandler> handlers = new CopyOnWriteArrayList<TrackingHandler>();
+    private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<TrackingHttpHandler>();
     private final List<Throwable> failures = new CopyOnWriteArrayList<Throwable>();
+    private boolean completed;
 
-    public void addHandler(TrackingHandler handler) {
+    public void addHandler(TrackingHttpHandler handler) {
         handlers.add(handler);
     }
 
     public void assertComplete() {
-        for (TrackingHandler handler : handlers) {
-            try {
-                handler.assertComplete();
-            } catch (Throwable t) {
-                failures.add(t);
+        if (!completed) {
+            for (TrackingHttpHandler handler : handlers) {
+                try {
+                    handler.assertComplete();
+                } catch (Throwable t) {
+                    failures.add(t);
+                }
             }
+            completed = true;
         }
         if (!failures.isEmpty()) {
             throw new DefaultMultiCauseException("Failed to handle all HTTP requests.", failures);
@@ -53,8 +57,9 @@ class ChainingHttpHandler implements HttpHandler {
         System.out.println(String.format("[%d] handling %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
 
         try {
-            for (TrackingHandler handler : handlers) {
+            for (TrackingHttpHandler handler : handlers) {
                 if (handler.handle(id, httpExchange)) {
+                    httpExchange.close();
                     System.out.println(String.format("[%d] handled", id));
                     return;
                 }

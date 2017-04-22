@@ -29,7 +29,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class CyclicBarrierRequestHandler extends TrackingHandler {
+class CyclicBarrierRequestHandler extends TrackingHttpHandler {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final List<String> received = new ArrayList<String>();
@@ -46,6 +46,7 @@ class CyclicBarrierRequestHandler extends TrackingHandler {
     @Override
     public boolean handle(int id, HttpExchange httpExchange) throws Exception {
         Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + 30000);
+        ResourceHandler handler;
         lock.lock();
         try {
             if (pending.isEmpty()) {
@@ -58,7 +59,7 @@ class CyclicBarrierRequestHandler extends TrackingHandler {
             }
 
             String path = httpExchange.getRequestURI().getPath().substring(1);
-            ResourceHandler handler = pending.remove(path);
+            handler = pending.remove(path);
             if (handler == null) {
                 failure = new AssertionError(String.format("Unexpected request to '%s' received. Waiting for %s, already received %s.", path, pending.keySet(), received));
                 condition.signalAll();
@@ -83,13 +84,13 @@ class CyclicBarrierRequestHandler extends TrackingHandler {
                 // Failed in another thread
                 throw failure;
             }
-
-            // All requests completed, write response
-            handler.writeTo(httpExchange);
-            return true;
         } finally {
             lock.unlock();
         }
+
+        // All requests completed, write response
+        handler.writeTo(httpExchange);
+        return true;
     }
 
     public void assertComplete() {

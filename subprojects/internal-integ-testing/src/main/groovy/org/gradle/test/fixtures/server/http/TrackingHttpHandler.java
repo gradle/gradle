@@ -18,23 +18,8 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 
-import java.io.IOException;
+abstract class TrackingHttpHandler {
+    public abstract boolean handle(int id, HttpExchange exchange) throws Exception;
 
-class SimpleResourceHandler implements ResourceHandler, BlockingHttpServer.Resource {
-    private final String path;
-
-    public SimpleResourceHandler(String path) {
-        this.path = path;
-    }
-
-    @Override
-    public String getPath() {
-        return path;
-    }
-
-    @Override
-    public void writeTo(HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(200, 0);
-        exchange.getResponseHeaders().add("RESPONSE", "done");
-    }
+    public abstract void assertComplete();
 }

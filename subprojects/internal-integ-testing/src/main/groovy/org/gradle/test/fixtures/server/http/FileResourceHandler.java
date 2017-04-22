@@ -16,10 +16,29 @@
 
 package org.gradle.test.fixtures.server.http;
 
+import com.google.common.io.Files;
 import com.sun.net.httpserver.HttpExchange;
 
-abstract class TrackingHandler  {
-    public abstract boolean handle(int id, HttpExchange exchange) throws Exception;
+import java.io.File;
+import java.io.IOException;
 
-    public abstract void assertComplete();
+class FileResourceHandler implements BlockingHttpServer.Resource, ResourceHandler {
+    private final String path;
+    private final File file;
+
+    public FileResourceHandler(String path, File file) {
+        this.path = path;
+        this.file = file;
+    }
+
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    @Override
+    public void writeTo(HttpExchange exchange) throws IOException {
+        exchange.sendResponseHeaders(200, file.length());
+        Files.copy(file, exchange.getResponseBody());
+    }
 }
