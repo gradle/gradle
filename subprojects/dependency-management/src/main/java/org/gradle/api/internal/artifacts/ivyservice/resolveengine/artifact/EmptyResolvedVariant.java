@@ -17,13 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.util.Collection;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
-public class EmptyResolvedVariant implements ResolvedVariant, ResolvedArtifactSet {
+public class EmptyResolvedVariant implements ResolvedVariant {
     private final AttributeContainerInternal variantAttributes;
 
     public EmptyResolvedVariant(AttributeContainerInternal variantAttributes) {
@@ -38,17 +35,5 @@ public class EmptyResolvedVariant implements ResolvedVariant, ResolvedArtifactSe
     @Override
     public ResolvedArtifactSet getArtifacts() {
         return EMPTY;
-    }
-
-    @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-    }
-
-    @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
-    }
-
-    @Override
-    public void visit(ArtifactVisitor visitor) {
     }
 }
