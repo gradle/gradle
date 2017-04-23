@@ -24,24 +24,31 @@ import java.util.Map;
 
 public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvider {
     private final BuildProjectRegistry projectRegistry;
+    private Map<ProjectIdentifier, String> deduplicated;
 
     public DefaultUniqueProjectNameProvider(BuildProjectRegistry projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 
-    // TODO:DAZ Avoid duplicating the de-duplication work for every project.
     @Override
     public String getUniqueName(Project project) {
-        HierarchicalElementDeduplicator<ProjectIdentifier> deduplicator = new HierarchicalElementDeduplicator<ProjectIdentifier>(new ProjectDeduplicationAdapter());
-        Map<ProjectIdentifier, String> deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
+        Map<ProjectIdentifier, String> deduplicated = getDeduplicatedNames();
 
-        // TODO:DAZ Could be more efficient when matching
+        // Need to iterate, since `ProjectInternal` and `DefaultProjectDescriptor` don't have compatible equals() methods.
         for (ProjectIdentifier projectIdentifier : deduplicated.keySet()) {
             if (equals(projectIdentifier, (ProjectInternal) project)) {
                 return deduplicated.get(projectIdentifier);
             }
         }
         return project.getName();
+    }
+
+    private synchronized Map<ProjectIdentifier, String> getDeduplicatedNames() {
+        if (deduplicated == null) {
+            HierarchicalElementDeduplicator<ProjectIdentifier> deduplicator = new HierarchicalElementDeduplicator<ProjectIdentifier>(new ProjectDeduplicationAdapter());
+            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
+        }
+        return deduplicated;
     }
 
     private boolean equals(ProjectIdentifier one, ProjectInternal two) {

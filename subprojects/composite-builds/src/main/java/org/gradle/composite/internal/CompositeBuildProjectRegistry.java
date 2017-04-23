@@ -22,10 +22,11 @@ import org.gradle.initialization.BuildProjectRegistry;
 import java.util.Collection;
 import java.util.Set;
 
+// TODO:DAZ Scope this correctly so it can be made immutable
 public class CompositeBuildProjectRegistry implements BuildProjectRegistry {
     private final Set<ProjectIdentifier> allProjects = Sets.newLinkedHashSet();
 
-    public void registerProjects(Collection<? extends ProjectIdentifier> projectIdentifiers) {
+    void registerProjects(Collection<? extends ProjectIdentifier> projectIdentifiers) {
         allProjects.addAll(projectIdentifiers);
     }
 

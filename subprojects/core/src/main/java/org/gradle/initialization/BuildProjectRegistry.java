@@ -20,5 +20,9 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import java.util.Set;
 
 public interface BuildProjectRegistry {
+    /**
+     * Returns an identifier for every project in a build, including projects from included builds.
+     * Always returns the same set for the lifetime of the build.
+     */
     Set<ProjectIdentifier> getAllProjects();
 }
