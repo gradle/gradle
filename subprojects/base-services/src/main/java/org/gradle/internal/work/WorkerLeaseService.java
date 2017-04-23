@@ -24,6 +24,11 @@ import java.util.concurrent.Executor;
 
 public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseRegistry, Stoppable {
     /**
+     * Returns the maximum number of worker leases that this service will grant at any given time. Note that the actual limit may vary over time but will never _exceed_ the value returned by this method.
+     */
+    int getMaxWorkerCount();
+
+    /**
      * Returns an {@link Executor} that will run a given {@link Runnable} while the specified locks are being held, releasing
      * the locks upon completion.  {@link Executor#execute(Runnable)} will run the provided {@link Runnable} immediately and
      * synchronously.  Blocks until the specified locks can be obtained.
