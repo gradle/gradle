@@ -58,7 +58,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
     }
 
     @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
+    public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
         if (visitor.requireArtifactFiles()) {
             for (ResolvedArtifact artifact : artifacts) {
                 if (!isFromIncludedBuild(artifact)) {
@@ -66,9 +66,14 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
                 }
             }
         }
+        return new Completion() {
+            @Override
+            public void visit(ArtifactVisitor visitor) {
+                ArtifactBackedResolvedVariant.this.visit(visitor);
+            }
+        };
     }
 
-    @Override
     public void visit(ArtifactVisitor visitor) {
         for (ResolvedArtifact artifact : artifacts) {
             if (hasFailure(artifact)) {
@@ -137,13 +142,18 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
         }
 
         @Override
-        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
+        public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
             if (visitor.requireArtifactFiles() && !isFromIncludedBuild(artifact))  {
                 actions.add(new DownloadArtifactFile(artifact, this, visitor));
             }
+            return new Completion() {
+                @Override
+                public void visit(ArtifactVisitor visitor) {
+                    SingleArtifactResolvedVariant.this.visit(visitor);
+                }
+            };
         }
 
-        @Override
         public void visit(ArtifactVisitor visitor) {
             if (failure != null) {
                 visitor.visitFailure(failure);
@@ -166,9 +176,9 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
     private static class DownloadArtifactFile implements RunnableBuildOperation, DescribableBuildOperation<ComponentArtifactIdentifier> {
         private final ResolvedArtifact artifact;
         private final ArtifactFailuresCollector artifactFailures;
-        private final AsyncArtifactVisitor visitor;
+        private final AsyncArtifactListener visitor;
 
-        DownloadArtifactFile(ResolvedArtifact artifact, ArtifactFailuresCollector artifactFailures, AsyncArtifactVisitor visitor) {
+        DownloadArtifactFile(ResolvedArtifact artifact, ArtifactFailuresCollector artifactFailures, AsyncArtifactListener visitor) {
             this.artifact = artifact;
             this.artifactFailures = artifactFailures;
             this.visitor = visitor;

@@ -20,6 +20,7 @@ import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.TestBuildOperationQueue
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -31,6 +32,7 @@ import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.internal.operations.BuildOperationQueue
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
@@ -95,6 +97,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def outFile3 = new File("out3.classes")
         def outFile4 = new File("out4.classes")
         def transformer = Mock(Transformer)
+        def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
         def targetAttributes = typeAttributes("classes")
 
@@ -114,15 +117,22 @@ class DefaultArtifactTransformsTest extends Specification {
         def result = transforms.variantSelector(targetAttributes, true).select([variant1, variant2], producerSchema)
 
         when:
-        result.visit(visitor)
+        result.addPrepareActions(new TestBuildOperationQueue(), listener).visit(visitor)
 
         then:
-        _ * variant1Artifacts.visit(_) >> { ArtifactVisitor v ->
-            v.visitArtifact(targetAttributes, sourceArtifact)
-            v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), targetAttributes, sourceFile)
+        _ * variant1Artifacts.addPrepareActions(_, _) >> { BuildOperationQueue q, ResolvedArtifactSet.AsyncArtifactListener l ->
+            l.artifactAvailable(sourceArtifact)
+            l.fileAvailable(sourceFile)
+            return new ResolvedArtifactSet.Completion() {
+                @Override
+                void visit(ArtifactVisitor v) {
+                    v.visitArtifact(targetAttributes, sourceArtifact)
+                    v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), targetAttributes, sourceFile)
+                }
+            }
         }
-        1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
-        1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
+        2 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
+        2 * transformer.transform(sourceFile) >> [outFile3, outFile4]
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile2})
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), targetAttributes, outFile3)

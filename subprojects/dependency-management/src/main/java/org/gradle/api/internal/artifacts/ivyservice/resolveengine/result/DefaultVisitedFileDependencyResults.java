@@ -22,8 +22,6 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeDynamicArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DynamicResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedFileDependencyResults;
@@ -50,10 +48,10 @@ public class DefaultVisitedFileDependencyResults implements VisitedFileDependenc
         // Wrap each file dependency in a set that performs variant selection and transformation
         // Also merge together the artifact sets for each configuration node
         ImmutableMap.Builder<Long, ResolvedArtifactSet> filesByConfigBuilder = ImmutableMap.builder();
-        List<DynamicResolvedArtifactSet> allArtifacts = Lists.newArrayList();
+        List<ResolvedArtifactSet> allArtifacts = Lists.newArrayList();
         for (Long key : filesByNodeId.keySet()) {
             Set<FileDependencyArtifactSet> artifactsForConfiguration = filesByNodeId.get(key);
-            List<DynamicResolvedArtifactSet> selectedArtifactsForConfiguration = new ArrayList<DynamicResolvedArtifactSet>(artifactsForConfiguration.size());
+            List<ResolvedArtifactSet> selectedArtifactsForConfiguration = new ArrayList<ResolvedArtifactSet>(artifactsForConfiguration.size());
             for (FileDependencyArtifactSet artifactSet : artifactsForConfiguration) {
                 selectedArtifactsForConfiguration.add(artifactSet.select(componentFilter, selector));
             }
@@ -61,7 +59,7 @@ public class DefaultVisitedFileDependencyResults implements VisitedFileDependenc
             allArtifacts.addAll(selectedArtifactsForConfiguration);
         }
 
-        ResolvedArtifactSet allFiles = CompositeDynamicArtifactSet.create(allArtifacts);
+        ResolvedArtifactSet allFiles = CompositeArtifactSet.of(allArtifacts);
 
         ImmutableMap.Builder<FileCollectionDependency, ResolvedArtifactSet> rootFilesBuilder = ImmutableMap.builder();
         for (Map.Entry<FileCollectionDependency, FileDependencyArtifactSet> entry : rootFiles.entrySet()) {

@@ -25,9 +25,9 @@ import java.util.Collection;
 import java.util.List;
 
 public class CompositeArtifactSet implements ResolvedArtifactSet {
-    protected final Iterable<ResolvedArtifactSet> sets;
+    private final List<ResolvedArtifactSet> sets;
 
-    CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
+    private CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
         this.sets = sets;
     }
 
@@ -48,23 +48,25 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
+    public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
+        final List<Completion> results = new ArrayList<Completion>(sets.size());
         for (ResolvedArtifactSet set : sets) {
-            set.addPrepareActions(actions, visitor);
+            results.add(set.addPrepareActions(actions, visitor));
         }
+        return new Completion() {
+            @Override
+            public void visit(ArtifactVisitor visitor) {
+                for (Completion result : results) {
+                    result.visit(visitor);
+                }
+            }
+        };
     }
 
     @Override
     public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
         for (ResolvedArtifactSet set : sets) {
             set.collectBuildDependencies(dest);
-        }
-    }
-
-    @Override
-    public void visit(ArtifactVisitor visitor) {
-        for (ResolvedArtifactSet set : sets) {
-            set.visit(visitor);
         }
     }
 }

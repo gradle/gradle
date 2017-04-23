@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArtifactSet {
+public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet {
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final VariantSelector selector;
@@ -52,17 +52,21 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
     }
 
     @Override
-    public ResolvedArtifactSet snapshot() {
+    public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
+        if (!visitor.includeFileDependencies()) {
+            return EMPTY_RESULT;
+        }
+
         ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
         if (componentIdentifier != null && !componentFilter.isSatisfiedBy(componentIdentifier)) {
-            return ResolvedArtifactSet.EMPTY;
+            return EMPTY_RESULT;
         }
 
         Set<File> files;
         try {
             files = dependencyMetadata.getFiles().getFiles();
         } catch (Throwable throwable) {
-            return new FailingResolvedArtifactSetSnapshot(throwable);
+            return new BrokenResult(throwable);
         }
 
         List<ResolvedArtifactSet> selectedArtifacts = Lists.newArrayListWithCapacity(files.size());
@@ -82,26 +86,12 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
             selectedArtifacts.add(selector.select(Collections.singleton(variant), EmptySchema.INSTANCE));
         }
 
-        return CompositeArtifactSet.of(selectedArtifacts);
+        return CompositeArtifactSet.of(selectedArtifacts).addPrepareActions(actions, visitor);
     }
 
     @Override
     public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
         dest.add(dependencyMetadata.getFiles().getBuildDependencies());
-    }
-
-    @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
-        if (visitor.includeFileDependencies()) {
-            snapshot().addPrepareActions(actions, visitor);
-        }
-    }
-
-    @Override
-    public void visit(ArtifactVisitor visitor) {
-        if (visitor.includeFiles()) {
-            snapshot().visit(visitor);
-        }
     }
 
     private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet {
@@ -123,17 +113,17 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         }
 
         @Override
-        public void visit(ArtifactVisitor visitor) {
-            if (visitor.includeFiles()) {
-                visitor.visitFile(artifactIdentifier, variantAttributes, file);
-            }
-        }
-
-        @Override
-        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
+        public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
             if (visitor.includeFileDependencies()) {
                 visitor.fileAvailable(file);
+                return new Completion() {
+                    @Override
+                    public void visit(ArtifactVisitor visitor) {
+                        visitor.visitFile(artifactIdentifier, variantAttributes, file);
+                    }
+                };
             }
+            return EMPTY_RESULT;
         }
 
         @Override
@@ -147,26 +137,16 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         }
     }
 
-    private class FailingResolvedArtifactSetSnapshot implements ResolvedArtifactSet {
+    private class BrokenResult implements Completion {
         private final Throwable throwable;
 
-        FailingResolvedArtifactSetSnapshot(Throwable throwable) {
+        BrokenResult(Throwable throwable) {
             this.throwable = throwable;
         }
 
         @Override
-        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
-        }
-
-        @Override
-        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-        }
-
-        @Override
         public void visit(ArtifactVisitor visitor) {
-            if (visitor.includeFiles()) {
-                visitor.visitFailure(throwable);
-            }
+            visitor.visitFailure(throwable);
         }
     }
 }

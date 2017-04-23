@@ -141,8 +141,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final AsyncArtifactVisitor visitor) {
-            delegate.addPrepareActions(actions, new AsyncArtifactVisitor() {
+        public Completion addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final AsyncArtifactListener visitor) {
+            final Completion result = delegate.addPrepareActions(actions, new AsyncArtifactListener() {
                 @Override
                 public void artifactAvailable(ResolvedArtifact artifact) {
                     actions.add(new TransformArtifactOperation(artifact));
@@ -164,11 +164,12 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                     actions.add(new TransformFileOperation(file));
                 }
             });
-        }
-
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-            delegate.visit(new ArtifactTransformingVisitor(visitor, attributes, transform, artifactFailures, fileFailures));
+            return new Completion() {
+                @Override
+                public void visit(ArtifactVisitor visitor) {
+                    result.visit(new ArtifactTransformingVisitor(visitor, attributes, transform, artifactFailures, fileFailures));
+                }
+            };
         }
 
         @Override

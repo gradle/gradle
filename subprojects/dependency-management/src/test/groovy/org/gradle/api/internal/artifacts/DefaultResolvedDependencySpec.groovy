@@ -17,11 +17,10 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.operations.BuildOperationProcessor
 import spock.lang.Specification
 
 class DefaultResolvedDependencySpec extends Specification {
-    final dependency = new DefaultResolvedDependency(123L, new ResolvedConfigurationIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "config"), Stub(BuildOperationProcessor))
+    final dependency = new DefaultResolvedDependency(123L, new ResolvedConfigurationIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "config"), new TestBuildOperationProcessor())
 
     def "provides meta-data about the module"() {
         expect:

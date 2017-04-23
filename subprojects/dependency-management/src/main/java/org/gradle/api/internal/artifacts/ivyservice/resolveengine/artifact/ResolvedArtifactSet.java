@@ -29,41 +29,46 @@ import java.util.Collection;
  */
 public interface ResolvedArtifactSet {
     /**
-     * Add any actions that can be run in parallel to prepare the artifacts in this set.
-     * The `RunnableBuildOperation` actions added to the queue must be thread-safe.
+     * Starts preparing the result of this set for later visiting. To visit the final result, call {@link Completion#visit(ArtifactVisitor)} after all work added to the supplied queue has completed.
      *
      * The implementation should notify the provided visitor as soon as individual artifacts become available.
      */
-    void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor);
+    Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor);
 
     /**
      * Collects the build dependencies required to build the artifacts in this set.
      */
     void collectBuildDependencies(Collection<? super TaskDependency> dest);
 
-    /**
-     * Visits the contents of this set.
-     */
-    void visit(ArtifactVisitor visitor);
-
-    ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
-        @Override
-        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
-        }
-
-        @Override
-        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-        }
-
+    Completion EMPTY_RESULT = new Completion() {
         @Override
         public void visit(ArtifactVisitor visitor) {
         }
     };
 
+    ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
+        @Override
+        public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
+            return EMPTY_RESULT;
+        }
+
+        @Override
+        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+        }
+    };
+
+    interface Completion {
+        /**
+         * Invoked once all async work as completed, to visit the final result. The result is visited using the current thread and in the relevant order.
+         * This differs from the notifications passed to {@link AsyncArtifactListener}, which are done from multiple threads and in arbitrary order.
+         */
+        void visit(ArtifactVisitor visitor);
+    }
+
     /**
-     * A listener that is notified as artifacts are made available while visiting the contents of a set. Implementations must be thread safe.
+     * A listener that is notified as artifacts are made available while visiting the contents of a set. Implementations must be thread safe as they are notified from multiple threads concurrently.
      */
-    interface AsyncArtifactVisitor {
+    interface AsyncArtifactListener {
         /**
          * Visits an artifact once it is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
          */

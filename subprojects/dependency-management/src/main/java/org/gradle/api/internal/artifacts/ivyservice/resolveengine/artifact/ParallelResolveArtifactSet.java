@@ -57,25 +57,18 @@ public abstract class ParallelResolveArtifactSet {
         }
 
         public void visit(final ArtifactVisitor visitor) {
-            // Create a snapshot so that we use the same set of backing variants for prepare and visit
-            final ResolvedArtifactSet snapshot = artifacts instanceof DynamicResolvedArtifactSet ? ((DynamicResolvedArtifactSet) artifacts).snapshot() : artifacts;
+            // Start preparing the result
+            StartVisitAction visitAction = new StartVisitAction(visitor);
+            buildOperationProcessor.run(visitAction);
 
-            // Execute all 'prepare' calls in parallel
-            buildOperationProcessor.run(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
-                @Override
-                public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                    snapshot.addPrepareActions(buildOperationQueue, new AsyncArtifactVisitorAdapter(visitor));
-                }
-            });
-
-            // Now visit the set in order
-            snapshot.visit(visitor);
+            // Now visit the result in order
+            visitAction.result.visit(visitor);
         }
 
-        private static class AsyncArtifactVisitorAdapter implements ResolvedArtifactSet.AsyncArtifactVisitor {
+        private static class AsyncArtifactListenerAdapter implements ResolvedArtifactSet.AsyncArtifactListener {
             private final ArtifactVisitor visitor;
 
-            AsyncArtifactVisitorAdapter(ArtifactVisitor visitor) {
+            AsyncArtifactListenerAdapter(ArtifactVisitor visitor) {
                 this.visitor = visitor;
             }
 
@@ -97,6 +90,20 @@ public abstract class ParallelResolveArtifactSet {
             @Override
             public void fileAvailable(File file) {
                 // Don't care, collect the files later (in the correct order)
+            }
+        }
+
+        private class StartVisitAction implements Action<BuildOperationQueue<RunnableBuildOperation>> {
+            private final ArtifactVisitor visitor;
+            ResolvedArtifactSet.Completion result;
+
+            StartVisitAction(ArtifactVisitor visitor) {
+                this.visitor = visitor;
+            }
+
+            @Override
+            public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
+                result = artifacts.addPrepareActions(buildOperationQueue, new AsyncArtifactListenerAdapter(visitor));
             }
         }
     }
