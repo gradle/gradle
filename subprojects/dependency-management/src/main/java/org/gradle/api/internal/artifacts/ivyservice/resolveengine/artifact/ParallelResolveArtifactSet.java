@@ -17,58 +17,56 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.util.Collection;
-
 /**
- * A ResolvedArtifactSet wrapper that prepares artifacts in parallel when visiting the delegate.
+ * A wrapper that prepares artifacts in parallel when visiting the delegate.
  * This is done by collecting all artifacts to prepare and/or visit in a first step.
  * The collected artifacts are prepared in parallel and subsequently visited in sequence.
  */
-public class ParallelResolveArtifactSet implements ResolvedArtifactSet {
-    private final ResolvedArtifactSet delegate;
-    private final BuildOperationProcessor buildOperationProcessor;
+public abstract class ParallelResolveArtifactSet {
+    private static final EmptySet EMPTY = new EmptySet();
 
-    public ParallelResolveArtifactSet(ResolvedArtifactSet delegate, BuildOperationProcessor buildOperationProcessor) {
-        this.delegate = delegate;
-        this.buildOperationProcessor = buildOperationProcessor;
-    }
+    public abstract void visit(ArtifactVisitor visitor);
 
-    public static ResolvedArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationProcessor buildOperationProcessor) {
-        if (artifacts == EMPTY) {
-            return artifacts;
+    public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationProcessor buildOperationProcessor) {
+        if (artifacts == ResolvedArtifactSet.EMPTY) {
+            return EMPTY;
         }
-        return new ParallelResolveArtifactSet(artifacts, buildOperationProcessor);
+        return new VisitingSet(artifacts, buildOperationProcessor);
     }
 
-    @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
-        throw new UnsupportedOperationException();
+    private static class EmptySet extends ParallelResolveArtifactSet {
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+        }
     }
 
-    @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-        delegate.collectBuildDependencies(dest);
-    }
+    private static class VisitingSet extends ParallelResolveArtifactSet {
+        private final ResolvedArtifactSet artifacts;
+        private final BuildOperationProcessor buildOperationProcessor;
 
-    @Override
-    public void visit(final ArtifactVisitor visitor) {
-        // Create a snapshot so that we use the same set of backing variants for prepare and visit
-        final ResolvedArtifactSet snapshot = delegate instanceof DynamicResolvedArtifactSet ? ((DynamicResolvedArtifactSet) delegate).snapshot() : delegate;
+        VisitingSet(ResolvedArtifactSet artifacts, BuildOperationProcessor buildOperationProcessor) {
+            this.artifacts = artifacts;
+            this.buildOperationProcessor = buildOperationProcessor;
+        }
 
-        // Execute all 'prepare' calls in parallel
-        buildOperationProcessor.run(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
-            @Override
-            public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                snapshot.addPrepareActions(buildOperationQueue, visitor);
-            }
-        });
+        public void visit(final ArtifactVisitor visitor) {
+            // Create a snapshot so that we use the same set of backing variants for prepare and visit
+            final ResolvedArtifactSet snapshot = artifacts instanceof DynamicResolvedArtifactSet ? ((DynamicResolvedArtifactSet) artifacts).snapshot() : artifacts;
 
-        // Now visit the set in order
-        snapshot.visit(visitor);
+            // Execute all 'prepare' calls in parallel
+            buildOperationProcessor.run(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
+                @Override
+                public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
+                    snapshot.addPrepareActions(buildOperationQueue, visitor);
+                }
+            });
+
+            // Now visit the set in order
+            snapshot.visit(visitor);
+        }
     }
 }

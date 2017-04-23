@@ -96,7 +96,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     public Set<File> getFiles() {
         ensureResolved(true);
         final Set<File> result = new LinkedHashSet<File>();
-        ResolvedArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationProcessor);
+        ParallelResolveArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationProcessor);
         artifacts.visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
