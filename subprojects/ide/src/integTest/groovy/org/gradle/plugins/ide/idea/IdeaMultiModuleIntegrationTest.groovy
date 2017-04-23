@@ -205,7 +205,7 @@ project(':util') {
 
         def utilDependencies = parseIml("util/util.iml").dependencies
         assert utilDependencies.modules.size() == 1
-        // TODO:DAZ This name is incorrect
+        // This name is incorrect (see gradle/composite-builds#99)
         utilDependencies.assertHasModule(['TEST'], ":")
     }
 

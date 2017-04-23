@@ -417,8 +417,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         imlHasDependencies "buildC-buildA", "buildA-b1", "buildB-b1"
     }
 
-    @NotYetImplemented
-    // TODO:DAZ Fix with gradle/composite-builds#99
+    @NotYetImplemented // Should be fixed with gradle/composite-builds#99
     def "de-duplicates module names when not all projects have IDEA plugin applied"() {
         given:
         dependency "org.test:b1:1.0"
