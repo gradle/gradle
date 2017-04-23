@@ -21,7 +21,9 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.specs.Spec;
+import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
@@ -105,6 +107,10 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
             p.getPluginManager().apply(EclipsePlugin.class);
+        }
+        for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
+            IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
+            applyEclipsePlugin(includedBuildInternal.getConfiguredBuild().getRootProject());
         }
     }
 
