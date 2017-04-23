@@ -16,8 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -26,6 +24,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -37,7 +36,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private final WorkerLeaseService workerLeases;
     private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
-    private final ListeningExecutorService executor;
+    private final Executor executor;
     private final BuildOperationWorker<T> worker;
     private String logLocation;
 
@@ -54,7 +53,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     DefaultBuildOperationQueue(WorkerLeaseService workerLeases, ExecutorService executor, BuildOperationWorker<T> worker) {
         this.workerLeases = workerLeases;
         this.parentWorkerLease = workerLeases.getWorkerLease();
-        this.executor = MoreExecutors.listeningDecorator(executor);
+        this.executor = executor;
         this.worker = worker;
     }
 
@@ -73,10 +72,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             notFinished.add(operationHolder);
             notYetStarted.add(operationHolder);
             workAvailable.signalAll();
-            if (workers < workerLeases.getMaxWorkerCount()) {
+            if (workers == 0 || workers < workerLeases.getMaxWorkerCount()) {
                 // This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
                 workers++;
-                executor.submit(new WorkerRunnable());
+                executor.execute(new WorkerRunnable());
             }
         } finally {
             lock.unlock();
