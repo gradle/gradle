@@ -30,7 +30,7 @@ class DefaultArtifactSetTest extends Specification {
 
     def "returns empty set when component id does not match spec"() {
         def variant1 = Stub(VariantMetadata)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null, null)
+        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null)
 
         expect:
         def selected = artifactSet.select({false}, Stub(VariantSelector))
@@ -39,16 +39,15 @@ class DefaultArtifactSetTest extends Specification {
 
     def "selects artifacts when component id matches spec"() {
         def variant1 = Stub(VariantMetadata)
-        def resolvedVariant1 = Stub(ResolvedVariant)
+        def resolvedVariant1 = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null, null)
+        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null)
 
         given:
         selector.select(_, schema) >> resolvedVariant1
 
         expect:
         def selected = artifactSet.select({true}, selector)
-        selected instanceof SingleVariantResolvedArtifactSet
-        selected.variant == resolvedVariant1
+        selected == resolvedVariant1
     }
 }

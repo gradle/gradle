@@ -270,13 +270,11 @@ class DependencyManagementBuildScopeServices {
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
-                                                                BuildOperationExecutor buildOperationExecutor,
                                                                 List<ResolverProviderFactory> resolverFactories,
                                                                 ImmutableAttributesFactory cache,
                                                                 ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                 ModuleExclusions moduleExclusions) {
         return new DefaultArtifactDependencyResolver(
-            buildOperationExecutor,
             resolverFactories,
             resolveIvyFactory,
             dependencyDescriptorFactory,

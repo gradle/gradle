@@ -18,20 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.util.Collection;
 
 public interface ResolvedVariant extends HasAttributes {
     @Override
     AttributeContainerInternal getAttributes();
 
-    void collectBuildDependencies(Collection<? super TaskDependency> dest);
-
-    // TODO:DAZ Use a different visitor
-    void visit(ArtifactVisitor visitor);
-
-    void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor);
+    ResolvedArtifactSet getArtifacts();
 }

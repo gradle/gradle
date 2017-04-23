@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyResolvedVariant;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -75,11 +75,11 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public ResolvedVariant select(Collection<? extends ResolvedVariant> variants, AttributesSchemaInternal producerSchema) {
+        public ResolvedArtifactSet select(Collection<? extends ResolvedVariant> variants, AttributesSchemaInternal producerSchema) {
             AttributeMatcher matcher = schema.withProducer(producerSchema);
             List<? extends ResolvedVariant> matches = matcher.matches(variants, requested);
             if (matches.size() == 1) {
-                return matches.get(0);
+                return matches.get(0).getArtifacts();
             }
             if (matches.size() > 1) {
                 throw new AmbiguousVariantSelectionException(requested, matches, matcher);
@@ -96,7 +96,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
             if (candidates.size() == 1) {
                 Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-                return new ConsumerProvidedResolvedVariant(result.getLeft(), result.getRight().attributes, result.getRight().transformer);
+                return new ConsumerProvidedResolvedVariant(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
             }
 
             if (!candidates.isEmpty()) {
@@ -104,7 +104,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
 
             if (ignoreWhenNoMatches) {
-                return new EmptyResolvedVariant(requested);
+                return ResolvedArtifactSet.EMPTY;
             }
             throw new NoMatchingVariantSelectionException(requested, variants, matcher);
         }
@@ -127,14 +127,14 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
     }
 
-    private class ConsumerProvidedResolvedVariant implements ResolvedVariant {
-        private final ResolvedVariant delegate;
+    private class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
+        private final ResolvedArtifactSet delegate;
         private final AttributeContainerInternal attributes;
         private final Transformer<List<File>, File> transform;
         private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newConcurrentMap();
         private final Map<File, Throwable> fileFailures = Maps.newConcurrentMap();
 
-        ConsumerProvidedResolvedVariant(ResolvedVariant delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
+        ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
             this.delegate = delegate;
             this.attributes = target;
             this.transform = transform;
@@ -178,11 +178,6 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         @Override
         public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
             delegate.collectBuildDependencies(dest);
-        }
-
-        @Override
-        public AttributeContainerInternal getAttributes() {
-            return attributes;
         }
 
         private class TransformArtifactOperation implements RunnableBuildOperation {

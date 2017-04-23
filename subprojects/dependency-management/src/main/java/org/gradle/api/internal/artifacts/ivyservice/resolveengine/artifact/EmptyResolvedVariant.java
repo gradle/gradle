@@ -23,7 +23,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collection;
 
-public class EmptyResolvedVariant implements ResolvedVariant {
+public class EmptyResolvedVariant implements ResolvedVariant, ResolvedArtifactSet {
     private final AttributeContainerInternal variantAttributes;
 
     public EmptyResolvedVariant(AttributeContainerInternal variantAttributes) {
@@ -33,6 +33,11 @@ public class EmptyResolvedVariant implements ResolvedVariant {
     @Override
     public AttributeContainerInternal getAttributes() {
         return variantAttributes;
+    }
+
+    @Override
+    public ResolvedArtifactSet getArtifacts() {
+        return EMPTY;
     }
 
     @Override

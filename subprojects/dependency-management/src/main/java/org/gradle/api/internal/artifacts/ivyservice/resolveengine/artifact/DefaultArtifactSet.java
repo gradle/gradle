@@ -34,7 +34,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
@@ -54,9 +53,8 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
     private final ImmutableAttributesFactory attributesFactory;
-    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema,  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema,  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
@@ -67,7 +65,6 @@ public class DefaultArtifactSet implements ArtifactSet {
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
         this.attributesFactory = attributesFactory;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -152,7 +149,7 @@ public class DefaultArtifactSet implements ArtifactSet {
             if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
                 return ResolvedArtifactSet.EMPTY;
             } else {
-                return new SingleVariantResolvedArtifactSet(selector.select(variants, schema));
+                return selector.select(variants, schema);
             }
         }
     }

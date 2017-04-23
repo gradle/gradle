@@ -32,7 +32,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.util.Collection;
 import java.util.Map;
 
-class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailuresCollector {
+class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailuresCollector, ResolvedArtifactSet {
     private final AttributeContainerInternal attributes;
     private final ImmutableSet<ResolvedArtifact> artifacts;
     private volatile Map<ResolvedArtifact, Throwable> failures;
@@ -50,6 +50,11 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
             return new SingleArtifactResolvedVariant(attributes, artifacts.iterator().next());
         }
         return new ArtifactBackedResolvedVariant(attributes, artifacts);
+    }
+
+    @Override
+    public ResolvedArtifactSet getArtifacts() {
+        return this;
     }
 
     @Override
@@ -112,7 +117,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
             && !((ProjectComponentIdentifier) id).getBuild().isCurrentBuild();
     }
 
-    private static class SingleArtifactResolvedVariant implements ResolvedVariant, ArtifactFailuresCollector {
+    private static class SingleArtifactResolvedVariant implements ResolvedVariant, ArtifactFailuresCollector, ResolvedArtifactSet {
         private final AttributeContainerInternal variantAttributes;
         private final ResolvedArtifact artifact;
         private volatile Throwable failure;
@@ -124,6 +129,11 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
 
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return this;
         }
 
         @Override
