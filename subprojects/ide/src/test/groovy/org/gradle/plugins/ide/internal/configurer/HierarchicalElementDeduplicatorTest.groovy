@@ -300,7 +300,7 @@ class HierarchicalElementDeduplicatorTest extends Specification {
         }
     }
 
-    private class DummyAdapter implements NameDeduplicationAdapter<DummyElement> {
+    private class DummyAdapter implements HierarchicalElementAdapter<DummyElement> {
         public String getName(DummyElement element) {
             return element.name
         }

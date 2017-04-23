@@ -45,7 +45,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
 
     private synchronized Map<ProjectIdentifier, String> getDeduplicatedNames() {
         if (deduplicated == null) {
-            HierarchicalElementDeduplicator<ProjectIdentifier> deduplicator = new HierarchicalElementDeduplicator<ProjectIdentifier>(new ProjectDeduplicationAdapter());
+            HierarchicalElementDeduplicator<ProjectIdentifier> deduplicator = new HierarchicalElementDeduplicator<ProjectIdentifier>(new ProjectIdentifierDeduplicationAdapter());
             this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
         }
         return deduplicated;
@@ -63,8 +63,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
             && equals(one.getParentIdentifier(), two.getParent());
     }
 
-    // TODO:DAZ Simplify now that there are not multiple deduplicator types
-    private static class ProjectDeduplicationAdapter implements NameDeduplicationAdapter<ProjectIdentifier> {
+    private static class ProjectIdentifierDeduplicationAdapter implements HierarchicalElementAdapter<ProjectIdentifier> {
         @Override
         public String getName(ProjectIdentifier element) {
             return element.getName();

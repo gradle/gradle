@@ -51,9 +51,9 @@ import java.util.Set;
  */
 public class HierarchicalElementDeduplicator<T> {
 
-    private final NameDeduplicationAdapter<T> adapter;
+    private final HierarchicalElementAdapter<T> adapter;
 
-    public HierarchicalElementDeduplicator(NameDeduplicationAdapter<T> adapter) {
+    public HierarchicalElementDeduplicator(HierarchicalElementAdapter<T> adapter) {
         this.adapter = adapter;
     }
 

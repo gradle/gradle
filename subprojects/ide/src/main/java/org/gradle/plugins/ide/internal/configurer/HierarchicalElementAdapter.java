@@ -21,7 +21,7 @@ package org.gradle.plugins.ide.internal.configurer;
  *
  * @param <T> the type of element to de-duplicate
  */
-public interface NameDeduplicationAdapter<T> {
+public interface HierarchicalElementAdapter<T> {
 
     /**
      * Returns the original name of the given element.
