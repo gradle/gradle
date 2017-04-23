@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
@@ -30,7 +31,8 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
-    def executor = new DefaultTaskPlanExecutor(1, executorFactory, Mock(WorkerLeaseService))
+    def workerLeaseService = Mock(WorkerLeaseService)
+    def executor = new DefaultTaskPlanExecutor(1, executorFactory, workerLeaseService)
 
     def "starts task execution queue processor and finishes when signalled"() {
         def gradle = Mock(Gradle)
@@ -47,13 +49,14 @@ class DefaultTaskPlanExecutorTest extends Specification {
         executor.process(taskPlan, worker)
 
         then:
+        1 * workerLeaseService.currentWorkerLease >> Mock(WorkerLeaseRegistry.WorkerLease)
         1 * executorFactory.create(_) >> Mock(StoppableExecutor) {
             1 * execute(_ as Runnable) >> { args ->
                 new Thread(args[0]).start()
             }
         }
-        1 * taskPlan.processExecutionQueue(_, _) >> { args ->
-            args[1].stop()
+        1 * taskPlan.processExecutionQueue(_) >> { args ->
+            args[0].stop()
         }
         1 * taskPlan.awaitCompletion()
     }
@@ -70,13 +73,14 @@ class DefaultTaskPlanExecutorTest extends Specification {
         then:
         def e = thrown(RuntimeException)
         e == failure
+        1 * workerLeaseService.currentWorkerLease >> Mock(WorkerLeaseRegistry.WorkerLease)
         1 * executorFactory.create(_) >> Mock(StoppableExecutor) {
             1 * execute(_ as Runnable) >> { args ->
                 new Thread(args[0]).start()
             }
         }
-        1 * taskPlan.processExecutionQueue(_, _) >> { args ->
-            args[1].stop()
+        1 * taskPlan.processExecutionQueue(_) >> { args ->
+            args[0].stop()
         }
     }
 }

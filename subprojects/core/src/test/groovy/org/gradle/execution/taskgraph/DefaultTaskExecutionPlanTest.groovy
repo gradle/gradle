@@ -879,7 +879,6 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
             _ * tryLock() >> true
             _ * tryLock(_) >> true
         }
-        _ * parentWorkerLease.createChild() >> childLease
         _ * workerLeaseService.getCurrentWorkerLease() >> childLease
         _ * coordinationService.withStateLock(_) >> { args ->
             args[0].transform(Mock(ResourceLockState))
@@ -888,11 +887,12 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         _ * taskExecutorPool.getAvailableExecutor() >> taskExecutor
         _ * taskExecutorPool.getExecutors() >> []
         _ * taskExecutor.getThread() >> Thread.currentThread()
+        _ * taskExecutor.getWorkerLease() >> childLease
         _ * taskExecutor.executeTask(_) >> { args ->
             tasks << args[0].task
             executionPlan.taskComplete(args[0])
         }
-        executionPlan.processExecutionQueue(parentWorkerLease, taskExecutorPool)
+        executionPlan.processExecutionQueue(taskExecutorPool)
         return tasks
     }
 

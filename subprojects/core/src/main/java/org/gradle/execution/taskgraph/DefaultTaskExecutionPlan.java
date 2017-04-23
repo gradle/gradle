@@ -42,7 +42,6 @@ import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.util.CollectionUtils;
@@ -476,13 +475,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Override
-    public void processExecutionQueue(WorkerLease parentWorkerLease, TaskExecutorPool taskExecutorPool) {
+    public void processExecutionQueue(TaskExecutorPool taskExecutorPool) {
         try {
             while (true) {
                 final TaskExecutor taskWorker = taskExecutorPool.getAvailableExecutor();
                 final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
                 final AtomicBoolean shouldExecute = new AtomicBoolean();
-                final ResourceLock workerLease = parentWorkerLease.createChild();
+                final ResourceLock workerLease = taskWorker.getWorkerLease();
 
                 coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override

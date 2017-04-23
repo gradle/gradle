@@ -16,10 +16,14 @@
 
 package org.gradle.execution.taskgraph;
 
+import org.gradle.internal.work.WorkerLeaseRegistry;
+
 public interface TaskExecutor {
     void executeTask(TaskInfo taskInfo);
 
     boolean isBusy();
 
     Thread getThread();
+
+    WorkerLeaseRegistry.WorkerLease getWorkerLease();
 }

@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
-import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import java.util.List;
 
@@ -46,5 +45,5 @@ public interface TaskExecutionPlan {
      * can be executed.  Exits when all tasks have been executed.
      *
      */
-    void processExecutionQueue(WorkerLeaseRegistry.WorkerLease parentWorkerLease, TaskExecutorPool taskExecutorPool);
+    void processExecutionQueue(TaskExecutorPool taskExecutorPool);
 }

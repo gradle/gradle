@@ -425,7 +425,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
 
     void startQueueProcessing() {
         start {
-            executionPlan.processExecutionQueue(parentWorkerLease, taskExecutorPool)
+            executionPlan.processExecutionQueue(taskExecutorPool)
         }
     }
 
@@ -446,7 +446,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
                 }
             }
         }
-        start new DefaultTaskPlanExecutor.TaskExecutorWorker(executionPlan, taskAction, taskExecutorPool)
+        start new DefaultTaskPlanExecutor.TaskExecutorWorker(executionPlan, taskAction, taskExecutorPool, parentWorkerLease)
         return tasks
     }
 

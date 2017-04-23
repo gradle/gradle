@@ -62,43 +62,45 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    taskExecutionPlan.processExecutionQueue(parentWorkerLease, taskExecutorPool);
+                    taskExecutionPlan.processExecutionQueue(taskExecutorPool);
                 }
             });
-            startAdditionalWorkers(taskExecutionPlan, taskWorker, executor);
-            taskWorker(taskExecutionPlan, taskWorker).run();
+            startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);
+            taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
             executor.stop();
         }
     }
 
-    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor) {
+    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor, WorkerLease parentWorkerLease) {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskWorker);
+            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease);
             executor.execute(worker);
         }
     }
 
-    private Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
-        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, taskExecutorPool);
+    private Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease) {
+        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, taskExecutorPool, parentWorkerLease);
     }
 
     static class TaskExecutorWorker implements Runnable, TaskExecutor {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
         private final TaskExecutorPool taskExecutorPool;
+        private final WorkerLease workerLease;
         private final Object taskToExecute = new Object();
         private volatile boolean stopped;
         private volatile TaskInfo currentTask;
         private Thread executorThread;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, TaskExecutorPool taskExecutorPool) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, TaskExecutorPool taskExecutorPool, WorkerLease parentWorkerLease) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
             this.taskExecutorPool = taskExecutorPool;
+            this.workerLease = parentWorkerLease.createChild();
         }
 
         @Override
@@ -125,6 +127,11 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         @Override
         public Thread getThread() {
             return executorThread;
+        }
+
+        @Override
+        public WorkerLease getWorkerLease() {
+            return workerLease;
         }
 
         public void run() {
