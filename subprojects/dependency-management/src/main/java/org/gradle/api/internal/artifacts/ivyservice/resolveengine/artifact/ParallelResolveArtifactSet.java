@@ -17,9 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+
+import java.io.File;
 
 /**
  * A wrapper that prepares artifacts in parallel when visiting the delegate.
@@ -61,12 +64,40 @@ public abstract class ParallelResolveArtifactSet {
             buildOperationProcessor.run(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
                 @Override
                 public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                    snapshot.addPrepareActions(buildOperationQueue, visitor);
+                    snapshot.addPrepareActions(buildOperationQueue, new AsyncArtifactVisitorAdapter(visitor));
                 }
             });
 
             // Now visit the set in order
             snapshot.visit(visitor);
+        }
+
+        private static class AsyncArtifactVisitorAdapter implements ResolvedArtifactSet.AsyncArtifactVisitor {
+            private final ArtifactVisitor visitor;
+
+            AsyncArtifactVisitorAdapter(ArtifactVisitor visitor) {
+                this.visitor = visitor;
+            }
+
+            @Override
+            public void artifactAvailable(ResolvedArtifact artifact) {
+                // Don't care, collect the artifacts later (in the correct order)
+            }
+
+            @Override
+            public boolean requireArtifactFiles() {
+                return visitor.requireArtifactFiles();
+            }
+
+            @Override
+            public boolean includeFileDependencies() {
+                return visitor.includeFiles();
+            }
+
+            @Override
+            public void fileAvailable(File file) {
+                // Don't care, collect the files later (in the correct order)
+            }
         }
     }
 }

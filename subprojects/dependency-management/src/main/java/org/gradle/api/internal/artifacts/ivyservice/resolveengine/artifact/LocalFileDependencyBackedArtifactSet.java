@@ -91,14 +91,14 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
     }
 
     @Override
-    public void addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
-        if (visitor.includeFiles()) {
+    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
+        if (visitor.includeFileDependencies()) {
             snapshot().addPrepareActions(actions, visitor);
         }
     }
 
     @Override
-    public void visit(final ArtifactVisitor visitor) {
+    public void visit(ArtifactVisitor visitor) {
         if (visitor.includeFiles()) {
             snapshot().visit(visitor);
         }
@@ -130,7 +130,10 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         }
 
         @Override
-        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
+            if (visitor.includeFileDependencies()) {
+                visitor.fileAvailable(file);
+            }
         }
 
         @Override
@@ -152,7 +155,7 @@ public class LocalFileDependencyBackedArtifactSet implements DynamicResolvedArti
         }
 
         @Override
-        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
         }
 
         @Override

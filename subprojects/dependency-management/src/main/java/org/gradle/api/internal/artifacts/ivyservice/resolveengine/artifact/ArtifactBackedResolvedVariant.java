@@ -58,11 +58,11 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
     }
 
     @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
+    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
         if (visitor.requireArtifactFiles()) {
             for (ResolvedArtifact artifact : artifacts) {
                 if (!isFromIncludedBuild(artifact)) {
-                    actions.add(new DownloadArtifactFile(artifact, this));
+                    actions.add(new DownloadArtifactFile(artifact, this, visitor));
                 }
             }
         }
@@ -137,9 +137,9 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
         }
 
         @Override
-        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
             if (visitor.requireArtifactFiles() && !isFromIncludedBuild(artifact))  {
-                actions.add(new DownloadArtifactFile(artifact, this));
+                actions.add(new DownloadArtifactFile(artifact, this, visitor));
             }
         }
 
@@ -166,16 +166,19 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
     private static class DownloadArtifactFile implements RunnableBuildOperation, DescribableBuildOperation<ComponentArtifactIdentifier> {
         private final ResolvedArtifact artifact;
         private final ArtifactFailuresCollector artifactFailures;
+        private final AsyncArtifactVisitor visitor;
 
-        DownloadArtifactFile(ResolvedArtifact artifact, ArtifactFailuresCollector artifactFailures) {
+        DownloadArtifactFile(ResolvedArtifact artifact, ArtifactFailuresCollector artifactFailures, AsyncArtifactVisitor visitor) {
             this.artifact = artifact;
             this.artifactFailures = artifactFailures;
+            this.visitor = visitor;
         }
 
         @Override
         public void run() {
             try {
                 artifact.getFile();
+                visitor.artifactAvailable(artifact);
             } catch (Throwable t) {
                 artifactFailures.addFailure(artifact, t);
             }

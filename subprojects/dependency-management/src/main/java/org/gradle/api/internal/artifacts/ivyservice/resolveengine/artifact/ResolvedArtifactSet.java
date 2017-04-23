@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.io.File;
 import java.util.Collection;
 
 /**
@@ -29,8 +31,10 @@ public interface ResolvedArtifactSet {
     /**
      * Add any actions that can be run in parallel to prepare the artifacts in this set.
      * The `RunnableBuildOperation` actions added to the queue must be thread-safe.
+     *
+     * The implementation should notify the provided visitor as soon as individual artifacts become available.
      */
-    void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor);
+    void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor);
 
     /**
      * Collects the build dependencies required to build the artifacts in this set.
@@ -44,7 +48,7 @@ public interface ResolvedArtifactSet {
 
     ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
         @Override
-        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+        public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactVisitor visitor) {
         }
 
         @Override
@@ -55,4 +59,33 @@ public interface ResolvedArtifactSet {
         public void visit(ArtifactVisitor visitor) {
         }
     };
+
+    /**
+     * A listener that is notified as artifacts are made available while visiting the contents of a set. Implementations must be thread safe.
+     */
+    interface AsyncArtifactVisitor {
+        /**
+         * Visits an artifact once it is available. Only called when {@link #requireArtifactFiles()} returns true. Called from any thread and in any order.
+         */
+        void artifactAvailable(ResolvedArtifact artifact);
+
+        /**
+         * Should the file for each artifacts be made available when visiting the result?
+         *
+         * Returns true here allows the collection to pre-emptively resolve the files in parallel.
+         */
+        boolean requireArtifactFiles();
+
+        /**
+         * Should file dependency artifacts be included in the result?
+         */
+        boolean includeFileDependencies();
+
+        /**
+         * Visits a file. Only called when {@link #includeFileDependencies()} returns true. Should be considered an artifact but is separate as a migration step.
+         * Called from any thread and in any order.
+         */
+        void fileAvailable(File file);
+
+    }
 }

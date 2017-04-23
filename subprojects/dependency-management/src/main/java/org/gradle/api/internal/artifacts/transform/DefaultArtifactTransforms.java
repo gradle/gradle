@@ -141,31 +141,27 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
-            delegate.visit(new ArtifactVisitor() {
+        public void addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final AsyncArtifactVisitor visitor) {
+            delegate.addPrepareActions(actions, new AsyncArtifactVisitor() {
                 @Override
-                public void visitArtifact(AttributeContainer variant, final ResolvedArtifact artifact) {
+                public void artifactAvailable(ResolvedArtifact artifact) {
                     actions.add(new TransformArtifactOperation(artifact));
                 }
 
                 @Override
                 public boolean requireArtifactFiles() {
-                    return visitor.requireArtifactFiles();
+                    // Always need the files, as we need to run the transform in order to calculate the output artifacts.
+                    return true;
                 }
 
                 @Override
-                public boolean includeFiles() {
-                    return visitor.includeFiles();
+                public boolean includeFileDependencies() {
+                    return visitor.includeFileDependencies();
                 }
 
                 @Override
-                public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, final File file) {
+                public void fileAvailable(File file) {
                     actions.add(new TransformFileOperation(file));
-                }
-
-                @Override
-                public void visitFailure(Throwable failure) {
-                    visitor.visitFailure(failure);
                 }
             });
         }
