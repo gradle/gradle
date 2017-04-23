@@ -42,6 +42,10 @@ dependencies {
 
     runtime libraries.commons_cli
 
+    // TODO:DAZ Find a better way to make this available at runtime for all integration tests in all subprojects
+    // Supplies implementation of services that are required for Gradle runtime
+    runtime project(":compositeBuilds")
+
     testCompile libraries.jsoup
 
     integTestRuntime project(":maven")
