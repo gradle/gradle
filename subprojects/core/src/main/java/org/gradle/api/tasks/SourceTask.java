@@ -63,6 +63,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      * Sets the source for this task.
      *
      * @param source The source.
+     * @since 4.0
      */
     public void setSource(FileTree source) {
         this.source.clear();
