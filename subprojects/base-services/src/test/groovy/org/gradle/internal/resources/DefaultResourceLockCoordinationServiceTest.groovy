@@ -46,7 +46,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         then:
         lock1.lockedState == lock1Locked || (!lock1Locked && !lock2Locked)
         lock2.lockedState == lock2Locked || (!lock1Locked && !lock2Locked)
-        result == (lock1.doIsLockedByCurrentThread() && lock2.doIsLockedByCurrentThread())
+        result == (lock1.owner == Thread.currentThread() && lock2.owner == Thread.currentThread())
 
         where:
         lock1Locked | lock2Locked
@@ -80,8 +80,8 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
                         }
                     }
                 })
-                assert lock1.doIsLockedByCurrentThread()
-                assert lock2.doIsLockedByCurrentThread()
+                assert lock1.owner == Thread.currentThread()
+                assert lock2.owner == Thread.currentThread()
             }
 
             thread.blockUntil.executed1
@@ -215,8 +215,8 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         disposition == expectedDisposition
 
         and:
-        lock1.doIsLockedByCurrentThread() == !lock1Locked
-        lock2.doIsLockedByCurrentThread() == (!lock1Locked && !lock2Locked)
+        lock1.owner == Thread.currentThread() == !lock1Locked
+        lock2.owner == Thread.currentThread() == (!lock1Locked && !lock2Locked)
 
         where:
         lock1Locked | lock2Locked | expectedDisposition
@@ -244,8 +244,8 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         disposition == expectedDisposition
 
         and:
-        lock1.doIsLockedByCurrentThread() == !lock1Locked
-        lock2.doIsLockedByCurrentThread() == (!lock1Locked && !lock2Locked)
+        lock1.owner == Thread.currentThread() == !lock1Locked
+        lock2.owner == Thread.currentThread() == (!lock1Locked && !lock2Locked)
         where:
         lock1Locked | lock2Locked | expectedDisposition
         true        | true        | RETRY

@@ -436,7 +436,13 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a', 'd'
 
         then:
-        executedTasks == [':c', ':b', ':a', ':d']
+        result.assertTasksExecutedInOrder(
+            any(
+                exact(':c', ':b'),
+                exact(':b', ':a'),
+                exact(':c', ':d')
+            )
+        )
     }
 
     def "multiple should run after ordering can be ignored for one execution plan"() {
@@ -472,7 +478,16 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'a', 'd'
 
         then:
-        executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
+        result.assertTasksExecutedInOrder(
+            any(
+                exact(any(':b', ':h'), ':a'),
+                exact(':c', ':b'),
+                exact(':g', ':c'),
+                exact(':f', ':d', ':e'),
+                exact(':c', ':f'),
+                exact(':b', ':h')
+            )
+        )
     }
 
     @Issue("GRADLE-3575")

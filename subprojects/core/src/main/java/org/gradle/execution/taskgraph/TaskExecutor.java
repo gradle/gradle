@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resources;
+package org.gradle.execution.taskgraph;
 
-public interface ResourceLockState {
-    /**
-     * Possible results from a resource lock state transform.
-     */
-    enum Disposition { FAILED, FINISHED, RETRY }
+import org.gradle.internal.work.WorkerLeaseRegistry;
 
-    /**
-     * Registers a resource lock to be rolled back if the transform associated with this resource lock state
-     * fails.
-     *
-     * @param resourceLock
-     */
-    void registerLocked(ResourceLock resourceLock);
+public interface TaskExecutor {
+    void executeTask(TaskInfo taskInfo);
 
-    /**
-     * Roll back any locks that have been acquired.
-     */
-    void reset();
+    boolean isBusy();
+
+    Thread getThread();
+
+    WorkerLeaseRegistry.WorkerLease getWorkerLease();
 }

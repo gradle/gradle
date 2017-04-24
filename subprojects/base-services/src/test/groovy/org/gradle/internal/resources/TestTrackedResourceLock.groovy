@@ -47,7 +47,7 @@ class TestTrackedResourceLock extends AbstractTrackedResourceLock {
     }
 
     @Override
-    boolean doIsLockedByCurrentThread() {
+    boolean isLockedByThread(Thread thread) {
         return hasLock.get()
     }
 

@@ -71,7 +71,7 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         return new Action<ResourceLock>() {
             @Override
             public void execute(ResourceLock resourceLock) {
-                threadResourceLockMap.put(Thread.currentThread().getId(), resourceLock);
+                threadResourceLockMap.put(resourceLock.getOwner().getId(), resourceLock);
             }
         };
     }
@@ -80,7 +80,7 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         return new Action<ResourceLock>() {
             @Override
             public void execute(ResourceLock resourceLock) {
-                threadResourceLockMap.remove(Thread.currentThread().getId(), resourceLock);
+                threadResourceLockMap.remove(resourceLock.getOwner().getId(), resourceLock);
             }
         };
     }

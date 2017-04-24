@@ -16,9 +16,10 @@
 
 package org.gradle.execution.taskgraph;
 
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.TaskInternal;
 
+import java.util.Set;
 import java.util.TreeSet;
 
 public class TaskInfo implements Comparable<TaskInfo> {
@@ -36,6 +37,8 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
+    private Set<TaskInfo> allDependencies;
+    private boolean dependenciesComplete;
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
@@ -130,11 +133,22 @@ public class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean allDependenciesComplete() {
-        for (TaskInfo dependency : Iterables.concat(mustSuccessors, dependencySuccessors)) {
+        if (dependenciesComplete) {
+            return true;
+        }
+
+        if (allDependencies == null) {
+            allDependencies = Sets.newHashSet(mustSuccessors);
+            allDependencies.addAll(dependencySuccessors);
+        }
+
+        for (TaskInfo dependency : allDependencies) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
+
+        dependenciesComplete = true;
         return true;
     }
 

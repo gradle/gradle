@@ -18,10 +18,10 @@ package org.gradle.internal.resources;
 
 import org.gradle.api.Action;
 
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
 
 public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
-    private ReentrantLock lock = new ReentrantLock();
+    private Semaphore lock = new Semaphore(1);
 
     public ExclusiveAccessResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
         super(displayName, coordinationService, lockAction, unlockAction);
@@ -29,21 +29,16 @@ public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
 
     @Override
     protected boolean acquireLock() {
-        return lock.tryLock();
+        return lock.tryAcquire();
     }
 
     @Override
     protected void releaseLock() {
-        lock.unlock();
-    }
-
-    @Override
-    protected boolean doIsLockedByCurrentThread() {
-        return lock.isHeldByCurrentThread();
+        lock.release();
     }
 
     @Override
     protected boolean doIsLocked() {
-        return lock.isLocked();
+        return lock.availablePermits() == 0;
     }
 }

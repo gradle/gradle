@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resources;
+package org.gradle.execution.taskgraph;
 
-public interface ResourceLockState {
-    /**
-     * Possible results from a resource lock state transform.
-     */
-    enum Disposition { FAILED, FINISHED, RETRY }
+import org.gradle.internal.concurrent.Stoppable;
 
-    /**
-     * Registers a resource lock to be rolled back if the transform associated with this resource lock state
-     * fails.
-     *
-     * @param resourceLock
-     */
-    void registerLocked(ResourceLock resourceLock);
+public interface TaskExecutorPool extends Stoppable {
+    TaskExecutor getAvailableExecutor();
 
-    /**
-     * Roll back any locks that have been acquired.
-     */
+    void registerExecutor(TaskExecutor taskExecutor);
+
+    void notifyAvailable();
+
+    void removeExecutor(TaskExecutor taskExecutor);
+
     void reset();
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskgraph
 
-import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -50,10 +49,16 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     def workerLeaseService = Mock(WorkerLeaseService)
     def coordinationService = Mock(ResourceLockCoordinationService)
     def parentWorkerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    def taskExecutorPool = Mock(TaskExecutorPool)
+    def taskExecutor = Mock(TaskExecutor)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
         executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
+        _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
+            _ * tryLock() >> true
+            _ * tryLock(_) >> true
+        }
     }
 
     def "schedules tasks in dependency order"() {
@@ -870,26 +875,24 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def getExecutedTasks() {
         def tasks = []
-        _ * parentWorkerLease.createChild() >> Mock(WorkerLeaseRegistry.WorkerLease) {
+        def childLease = Mock(WorkerLeaseRegistry.WorkerLease) {
             _ * tryLock() >> true
+            _ * tryLock(_) >> true
         }
-        _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
-            _ * tryLock() >> true
-        }
+        _ * workerLeaseService.getCurrentWorkerLease() >> childLease
         _ * coordinationService.withStateLock(_) >> { args ->
             args[0].transform(Mock(ResourceLockState))
             return true
         }
-        def moreTasks = true
-        while (moreTasks) {
-            moreTasks = executionPlan.executeWithTask(parentWorkerLease, new Action<TaskInfo>() {
-                @Override
-                void execute(TaskInfo taskInfo) {
-                    tasks << taskInfo.task
-                    executionPlan.taskComplete(taskInfo)
-                }
-            })
+        _ * taskExecutorPool.getAvailableExecutor() >> taskExecutor
+        _ * taskExecutorPool.getExecutors() >> []
+        _ * taskExecutor.getThread() >> Thread.currentThread()
+        _ * taskExecutor.getWorkerLease() >> childLease
+        _ * taskExecutor.executeTask(_) >> { args ->
+            tasks << args[0].task
+            executionPlan.taskComplete(args[0])
         }
+        executionPlan.processExecutionQueue(taskExecutorPool)
         return tasks
     }
 

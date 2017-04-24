@@ -48,11 +48,18 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeases = new DefaultWorkerLeaseService(coordinationService, true, 1)
     def executorFactory = Mock(ExecutorFactory)
+    def threadExecutor = Mock(StoppableExecutor)
     def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(1, executorFactory, workerLeases), Factories.constant(executer), cancellationToken, buildOperationExecutor, workerLeases, coordinationService)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
+    Thread taskReadyPopulator
 
     def setup() {
         parentWorkerLease = workerLeases.getWorkerLease().start()
+        1 * executorFactory.create(_) >> threadExecutor
+        1 * threadExecutor.execute(_ as Runnable) >> { args ->
+            taskReadyPopulator = new Thread(args[0])
+            taskReadyPopulator.start()
+        }
     }
 
     def cleanup() {
@@ -75,7 +82,6 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         taskExecuter.execute()
 
         then:
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
         1 * legacyListener.beforeExecute(_, _) >> { TaskOperationInternal t, e ->
             assert t.task == a
         }
@@ -115,18 +121,18 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
         1 * listener.beforeExecute(a)
         1 * listener.afterExecute(a, a.state)
         0 * listener._
     }
 
     def "stops running tasks and fails with exception when build is cancelled"() {
+        def canceled = false
         def a = task("a")
         def b = task("b")
 
         given:
-        cancellationToken.cancellationRequested >>> [false, true]
+        cancellationToken.cancellationRequested >> { args -> canceled }
 
         when:
         taskExecuter.addTasks([a, b])
@@ -137,26 +143,25 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         e.message == 'Build cancelled.'
 
         and:
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
-        1 * executer.execute(a, a.state, _)
+        1 * executer.execute(a, a.state, _) >> { args -> canceled = true }
         0 * executer._
     }
 
     def "does not fail with exception when build is cancelled after last task has started"() {
+        def canceled = false
         def a = task("a")
         def b = task("b")
 
         given:
-        cancellationToken.cancellationRequested >>> [false, false, true]
+        cancellationToken.cancellationRequested >> { args -> canceled }
 
         when:
         taskExecuter.addTasks([a, b])
         taskExecuter.execute()
 
         then:
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
         1 * executer.execute(a, a.state, _)
-        1 * executer.execute(b, b.state, _)
+        1 * executer.execute(b, b.state, _) >> { args -> canceled = true }
         0 * executer._
     }
 
@@ -170,7 +175,6 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
         then:
         noExceptionThrown()
-        1 * executorFactory.create(_) >> Mock(StoppableExecutor)
     }
 
     def task(String name) {

@@ -35,8 +35,8 @@ class DefaultWorkerLeaseServiceTest extends Specification {
         workerLeaseService.withLocks(lock1, lock2).execute {
             assert lock1.lockedState
             assert lock2.lockedState
-            assert lock1.doIsLockedByCurrentThread()
-            assert lock2.doIsLockedByCurrentThread()
+            assert lock1.owner == Thread.currentThread()
+            assert lock2.owner == Thread.currentThread()
             executed = true
         }
 
@@ -60,8 +60,8 @@ class DefaultWorkerLeaseServiceTest extends Specification {
             workerLeaseService.withoutLocks(lock1, lock2).execute {
                 assert !lock1.lockedState
                 assert !lock2.lockedState
-                assert !lock1.doIsLockedByCurrentThread()
-                assert !lock2.doIsLockedByCurrentThread()
+                assert lock1.owner != Thread.currentThread()
+                assert lock2.owner != Thread.currentThread()
                 executed = true
             }
             assert lock1.lockedState

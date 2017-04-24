@@ -218,6 +218,7 @@ version = 1.0
 task signature {
     ext.destFile = file("\$buildDir/signature.sig")
     doLast {
+        destFile.parentFile.mkdirs()
         destFile.text = 'signature'
     }
 }
