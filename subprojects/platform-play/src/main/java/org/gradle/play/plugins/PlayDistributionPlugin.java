@@ -18,7 +18,6 @@ package org.gradle.play.plugins;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
