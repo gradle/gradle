@@ -17,6 +17,7 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.*;
 import org.gradle.internal.UncheckedException;
@@ -26,6 +27,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -36,6 +38,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
     private final ListeningExecutorService executor;
     private final BuildOperationWorker<T> worker;
+    private final Map<Long, WorkerLeaseRegistry.WorkerLease> queueHolderLeases = Maps.newConcurrentMap();
 
     private final List<QueuedOperation> operations;
 
@@ -173,7 +176,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private void runBuildOperation() {
-            workerLeases.withLocks(parentWorkerLease.createChild()).execute(new Runnable() {
+            WorkerLeaseRegistry.WorkerLease workerLease = queueHolderLeases.get(Thread.currentThread().getId());
+            if (workerLease == null) {
+                workerLease = parentWorkerLease.createChild();
+                queueHolderLeases.put(Thread.currentThread().getId(), workerLease);
+            }
+            workerLeases.withLocks(workerLease).execute(new Runnable() {
                 @Override
                 public void run() {
                     worker.execute(operation);
