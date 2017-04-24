@@ -124,7 +124,7 @@ The following inputs contribute to the build cache key for a task in the same wa
 * The content of the build script when it affects execution of the task
 
 Task types need to opt-in to task output caching using the `@api:org.gradle.api.tasks.CacheableTask[]` annotation.
-Note that `@api:org.gradle.api.tasks.CacheableTask[]` is, like `@api:org.gradle.api.tasks.ParallelizableTask[]`, not inherited by subclasses.
+Note that `@api:org.gradle.api.tasks.CacheableTask[]` is not inherited by subclasses.
 Custom task types are _not_ cacheable by default.
 Currently, the following built-in Gradle tasks are cacheable:
 
@@ -185,21 +185,6 @@ These issues may affect the correctness of your build when using the build cache
 |===
 | Description | Impact | Workaround
 
-| Stale outputs left behind by older versions of a plugin or Gradle.
-| Gradle does not automatically clean up outputs from other versions of Gradle. In some cases, changing the version of Gradle or changing the version of a plugin can lead to inconsistent builds.
-| Use `clean` builds when publishing to a remote build cache.
-
-| Mixed source projects with Java and another JVM language.
-| If a project has both a Java source set and another source set for a different JVM language, the compilation tasks share an output directory.
-This causes Gradle to mix the result of one task into another. Depending on the order the tasks run, Gradle may delete all output from one of the tasks and cause broken builds.
-| Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in `src/main/groovy`.
-
-| Overlapping outputs.
-| If two cacheable tasks share an output directory, Gradle does not reliably cache the results from either task.
-More precisely, Gradle is not able to determine which outputs belong to which task and will possibly store the combined output of both tasks in the build cache.
-When loading from the build cache you can get the combined output when you expect a single output and vice versa.
-| Disable caching for both tasks. You can detect this situation by using https://github.com/gradle/gradle/blob/master/gradle/overlappingTaskOutputsStatsInit.gradle[this init script].
-
 | Tracking the Java vendor implementation
 | Gradle currently tracks the major version of Java that is used for compilation and test execution. If your build uses several Java implementations (IBM, OpenJDK, Oracle, etc) that are the same major version, Gradle will treat them all as equivalent and re-use outputs from any implementation.
 | Only enable caching for builds that all use the same Java implementation or manually add the Java vendor as an input to compilation and test execution tasks by using <<sec:task_input_output_runtime_api,the runtime api>> for adding task inputs.
@@ -225,6 +210,21 @@ These issues may affect the number of cache hits you get between machines.
 .Caveats
 |===
 | Description | Impact | Workaround
+
+| Stale outputs left behind by previous task execution
+| Gradle does not automatically clean up outputs from other versions of Gradle. In some cases, changing the version of Gradle,
+changing the version of a plugin or changing the output directory can lead to inconsistent builds and orphaned output files.
+Gradle disables caching for a task when it detects stale outputs.
+| Use `clean` when cache misses are caused by stale outputs (e.g., after upgrading Gradle, changing plugin versions).
+
+| Overlapping outputs between tasks
+| If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
+| Use separate output directories for each task.
+
+| Mixed source projects with Java and another JVM language.
+| If a project has both a Java source set and another source set for a different JVM language, the compilation tasks share an output directory.
+This causes Gradle to disable caching for these tasks when it detects overlapping outputs.
+| Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in `src/main/groovy`.
 
 | Line endings in build scripts files.
 | Gradle calculates the build cache key based on the MD5 hash of the build script contents. If the line endings are different between developers and the CI servers, Gradle will calculate different build cache keys even when all other inputs to a task are the same.
@@ -253,7 +253,6 @@ These kinds of inputs will cause cache misses because not every developer or CI 
 If these files are contained in jars, it can affect the cacheability of Java compilation and test execution.
 Java compilation is only affected when the jar is found on the annotation processor classpath
 due to <<sec:java_compile_avoidance,compile avoidance>>.
-
 | You can produce consistently ordered properties files without a timestamp comment with api:org.gradle.api.tasks.WriteProperties[].
 
 | Order of input files affects outputs.
@@ -355,13 +354,9 @@ For automatic cleanup tools like http://manpages.ubuntu.com/manpages/precise/man
 |===
 | Description | Impact | Workaround
 
-| `--offline` is not honored for the remote build cache.
-| The built-in HTTP build cache ignores the offline flag.
-| To completely disable task output caching, use `--no-build-cache`.
-
 | Slow/hanging builds when on a poor connection with the remote build cache enabled.
 | For every cacheable task, Gradle will attempt to find a corresponding cache entry in the remote cache. For large cache entries, it may be slower to download the previous result than to recreate it.
-| Disable the build cache temporarily with `--no-build-cache`.
+| Disable the build cache temporarily with `--no-build-cache` or `--offline`.
 
 | No HTTP timeouts.
 | Gradle does not enforce any HTTP timeout when downloading a cache entry. On a remote build cache that fails to respond, Gradle will wait indefinitely.

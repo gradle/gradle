@@ -16,56 +16,125 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.classpath.CachedJarFileStore;
+import org.gradle.internal.file.DefaultFileHierarchySet;
+import org.gradle.internal.file.FileHierarchySet;
 
+import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemMirror, TaskOutputsGenerationListener {
-    // Map from interned absolute path for a file to known details for the file. Currently not shared with trees
-    private final Map<String, FileDetails> files = new ConcurrentHashMap<String, FileDetails>();
-    // Map from interned absolute path for a directory to known details for the directory.
-    private final Map<String, DirectoryTreeDetails> trees = new ConcurrentHashMap<String, DirectoryTreeDetails>();
+/**
+ * See {@link DefaultFileSystemSnapshotter} for some more details
+ */
+public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGenerationListener, RootBuildLifecycleListener {
+    // Maps from interned absolute path for a file to known details for the file.
+    private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
+    private final Map<String, FileSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSnapshot>();
+    // Maps from interned absolute path for a directory to known details for the directory.
+    private final Map<String, FileTreeSnapshot> trees = new ConcurrentHashMap<String, FileTreeSnapshot>();
+    private final Map<String, FileTreeSnapshot> cacheTrees = new ConcurrentHashMap<String, FileTreeSnapshot>();
+    // Maps from interned absolute path to a snapshot
+    private final Map<String, Snapshot> snapshots = new ConcurrentHashMap<String, Snapshot>();
+    private final Map<String, Snapshot> cacheSnapshots = new ConcurrentHashMap<String, Snapshot>();
+    private final FileHierarchySet cachedDirectories;
+
+    public DefaultFileSystemMirror(List<CachedJarFileStore> fileStores) {
+        FileHierarchySet cachedDirectories = DefaultFileHierarchySet.of();
+        for (CachedJarFileStore fileStore : fileStores) {
+            for (File file : fileStore.getFileStoreRoots()) {
+                cachedDirectories = cachedDirectories.plus(file);
+            }
+        }
+        this.cachedDirectories = cachedDirectories;
+    }
 
     @Nullable
     @Override
-    public FileDetails getFile(String path) {
-        return files.get(path);
+    public FileSnapshot getFile(String path) {
+        // Could potentially also look whether we have the details for an ancestor directory tree
+        // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
+        if (cachedDirectories.contains(path)) {
+            return cacheFiles.get(path);
+        } else {
+            return files.get(path);
+        }
     }
 
     @Override
-    public void putFile(FileDetails file) {
-        files.put(file.getPath(), file);
+    public void putFile(FileSnapshot file) {
+        if (cachedDirectories.contains(file.getPath())) {
+            cacheFiles.put(file.getPath(), file);
+        } else {
+            files.put(file.getPath(), file);
+        }
     }
 
     @Nullable
     @Override
-    public DirectoryTreeDetails getDirectoryTree(String path) {
-        return trees.get(path);
+    public Snapshot getContent(String path) {
+        if (cachedDirectories.contains(path)) {
+            return cacheSnapshots.get(path);
+        } else {
+            return snapshots.get(path);
+        }
     }
 
     @Override
-    public void putDirectory(DirectoryTreeDetails directory) {
-        trees.put(directory.path, directory);
+    public void putContent(String path, Snapshot snapshot) {
+        if (cachedDirectories.contains(path)) {
+            cacheSnapshots.put(path, snapshot);
+        } else {
+            snapshots.put(path, snapshot);
+        }
+    }
+
+    @Nullable
+    @Override
+    public FileTreeSnapshot getDirectoryTree(String path) {
+        // Could potentially also look whether we have the details for an ancestor directory tree
+        // Could possibly also short-circuit some scanning if we have details for some sub trees
+        if (cachedDirectories.contains(path)) {
+            return cacheTrees.get(path);
+        } else {
+            return trees.get(path);
+        }
+    }
+
+    @Override
+    public void putDirectory(FileTreeSnapshot directory) {
+        if (cachedDirectories.contains(directory.getPath())) {
+            cacheTrees.put(directory.getPath(), directory);
+        } else {
+            trees.put(directory.getPath(), directory);
+        }
     }
 
     @Override
     public void beforeTaskOutputsGenerated() {
-        // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
-        throwAwayAllCachedState();
+        // When the task outputs are generated, throw away all state for files that do not live in an append-only cache.
+        // This is intentionally very simple, to be improved later
+        files.clear();
+        trees.clear();
+        snapshots.clear();
     }
 
     @Override
-    public void buildFinished(BuildResult result) {
-        // We throw away all cached state between builds
-        throwAwayAllCachedState();
+    public void afterStart() {
     }
 
-    private void throwAwayAllCachedState() {
+    @Override
+    public void beforeComplete() {
+        // We throw away all state between builds
         files.clear();
+        cacheFiles.clear();
         trees.clear();
+        cacheTrees.clear();
+        snapshots.clear();
+        cacheSnapshots.clear();
     }
 }

@@ -22,12 +22,11 @@ import org.gradle.api.internal.TaskOutputCachingState;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
 
 class DefaultTaskOutputCachingState implements TaskOutputCachingState {
-    static final TaskOutputCachingState ENABLED = new DefaultTaskOutputCachingState(null, null);
-    static final TaskOutputCachingState DISABLED = disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
-
+    static TaskOutputCachingState enabled() {
+        return new DefaultTaskOutputCachingState(null, null);
+    }
     static TaskOutputCachingState disabled(TaskOutputCachingDisabledReasonCategory disabledReasonCategory, String disabledReason) {
         checkArgument(!isNullOrEmpty(disabledReason), "disabledReason must be set if task output caching is disabled");
         checkNotNull(disabledReasonCategory, "disabledReasonCategory must be set if task output caching is disabled");

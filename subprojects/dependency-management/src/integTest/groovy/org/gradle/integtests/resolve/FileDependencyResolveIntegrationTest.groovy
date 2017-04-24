@@ -56,7 +56,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         run ":checkDeps"
 
         then:
-        result.assertTasksExecuted(":jar", ":sub:jar", ":checkDeps");
+        executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
                 files << "main.jar"
@@ -101,7 +101,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         run ":checkDeps"
 
         then:
-        result.assertTasksExecuted(":jar", ":sub:jar", ":checkDeps");
+        executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
                 files << "main-1.jar"
@@ -114,6 +114,36 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 }
             }
         }
+    }
+
+    def "files are requested once only when dependency is resolved"() {
+        buildFile << '''
+            def jarFile = file("jar-1.jar")
+            jarFile << 'content'
+            def libFiles = new org.gradle.api.internal.file.collections.ListBackedFileSet(jarFile) {
+                Set<File> getFiles() {
+                    println "FILES REQUESTED"
+                    return super.getFiles()
+                }
+            }
+            
+            configurations { compile }
+            dependencies { 
+                compile new org.gradle.api.internal.file.collections.FileCollectionAdapter(libFiles)
+            }
+            
+            task checkFiles {
+                doLast {
+                    assert configurations.compile.files == [jarFile] as Set
+                }
+            }
+'''
+
+        when:
+        run ":checkFiles"
+
+        then:
+        output.count("FILES REQUESTED") == 1
     }
 
     def "files referenced by file dependency are included when there is a cycle in the dependency graph"() {
@@ -146,7 +176,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         run ":checkDeps"
 
         then:
-        result.assertTasksExecuted(":jar", ":sub:jar", ":checkDeps");
+        executed ":jar", ":sub:jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
                 files << "main.jar"
@@ -192,7 +222,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         run ":checkDeps"
 
         then:
-        result.assertTasksExecuted(":jar", ":checkDeps");
+        executed ":jar", ":checkDeps"
         resolve.expectGraph {
             root(":", ":main:") {
                 files << "main.jar"

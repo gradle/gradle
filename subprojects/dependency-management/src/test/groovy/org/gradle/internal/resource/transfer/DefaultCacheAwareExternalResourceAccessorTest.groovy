@@ -17,9 +17,10 @@
 package org.gradle.internal.resource.transfer
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.cached.CachedExternalResource
@@ -46,8 +47,14 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         createTemporaryFile(_, _, _) >> tempFile
     }
     final cacheLockingManager = Mock(CacheLockingManager)
-    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, moduleIdentifierFactory)
+    final cachePolicy = new DefaultExternalResourceCachePolicy()
+    final ProducerGuard<URI> producerGuard = Stub() {
+        guardByKey(_, _) >> { args ->
+            def (key, factory) = args
+            factory.create()
+        }
+    }
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def uri = new URI("scheme:thing")

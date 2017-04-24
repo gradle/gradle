@@ -35,7 +35,7 @@ allprojects {
 
     dependencies {
         attributesSchema {
-            attribute(usage)
+            attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
         }
     }
     configurations {
@@ -415,10 +415,12 @@ class FileSizer extends ArtifactTransform {
                 }
 
                 task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { 
-                        it.attribute(artifactType, 'jar') 
-                        it.attribute(Attribute.of('javaVersion', String), '7') 
-                        it.attribute(Attribute.of('color', String), 'red') 
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { 
+                            it.attribute(artifactType, 'jar') 
+                            it.attribute(Attribute.of('javaVersion', String), '7') 
+                            it.attribute(Attribute.of('color', String), 'red')
+                        } 
                     }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
@@ -520,10 +522,12 @@ class FileSizer extends ArtifactTransform {
                 }
         
                 task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { 
-                        it.attribute(artifactType, 'jar') 
-                        it.attribute(Attribute.of('javaVersion', String), '7') 
-                        it.attribute(Attribute.of('color', String), 'red') 
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { 
+                            it.attribute(artifactType, 'jar') 
+                            it.attribute(Attribute.of('javaVersion', String), '7') 
+                            it.attribute(Attribute.of('color', String), 'red')
+                        } 
                     }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
@@ -611,7 +615,9 @@ class FileSizer extends ArtifactTransform {
             }
 
             task resolve {
-                def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
                 inputs.files artifacts.artifactFiles
                 doLast {
                     println "files: " + artifacts.collect { it.file.name }
@@ -771,10 +777,14 @@ class FileSizer extends ArtifactTransform {
             task checkFiles {
                 doLast {
                     assert configurations.compile.collect { it.name } == ['test-1.3.jar']
-                    def transformed = configurations.compile.incoming.artifactView().attributes{ it.attribute(viewType, 'transformed') }.artifacts
+                    def transformed = configurations.compile.incoming.artifactView {
+                        attributes{ it.attribute(viewType, 'transformed') }
+                    }.artifacts
                     assert transformed.collect { it.file.name } == ['transformed.txt']
                     assert transformed.collect { it.variant.attributes.toString() } == ['{artifactType=txt, viewType=transformed}']
-                    def modified = configurations.compile.incoming.artifactView().attributes{ it.attribute(viewType, 'modified') }.artifacts
+                    def modified = configurations.compile.incoming.artifactView {
+                        attributes{ it.attribute(viewType, 'modified') }
+                    }.artifacts
                     assert modified.collect { it.file.name } == ['modified.txt']
                     assert modified.collect { it.variant.attributes.toString() } == ['{artifactType=txt, viewType=modified}']
                 }
@@ -782,6 +792,8 @@ class FileSizer extends ArtifactTransform {
 
             class ViewTransform extends ArtifactTransform {
                 private String outputName
+
+                @javax.inject.Inject
                 ViewTransform(String outputName) {
                     this.outputName = outputName
                 }
@@ -835,8 +847,12 @@ class FileSizer extends ArtifactTransform {
                 }
             }
 
-            def filteredView = configurations.selection.incoming.artifactView().attributes { it.attribute(viewType, 'filtered') }.files
-            def unfilteredView = configurations.selection.incoming.artifactView().attributes { it.attribute(viewType, 'unfiltered') }.files
+            def filteredView = configurations.selection.incoming.artifactView {
+                attributes { it.attribute(viewType, 'filtered') }
+            }.files
+            def unfilteredView = configurations.selection.incoming.artifactView {
+                attributes { it.attribute(viewType, 'unfiltered') }
+            }.files
 
             task checkFiles {
                 doLast {
@@ -848,6 +864,8 @@ class FileSizer extends ArtifactTransform {
 
             class ArtifactFilter extends ArtifactTransform {
                 boolean enableFilter
+                
+                @javax.inject.Inject
                 ArtifactFilter(boolean enableFilter) {
                     this.enableFilter = enableFilter
                 }
@@ -904,7 +922,9 @@ class FileSizer extends ArtifactTransform {
                 }
     
                 task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute (artifactType, 'transformed') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute (artifactType, 'transformed') }
+                    }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
                 }
@@ -921,7 +941,9 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'transformed'
+        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes:
+  - artifactType 'transformed'
+  - usage 'api'
 Found the following transforms:
   - Transform from variant:
       - artifactType 'type1'
@@ -986,7 +1008,9 @@ Found the following transforms:
                 }
     
                 task resolve(type: Copy) {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute (artifactType, 'transformed') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute (artifactType, 'transformed') }
+                    }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
                 }
@@ -1003,7 +1027,9 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes: artifactType 'transformed'
+        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes:
+  - artifactType 'transformed'
+  - usage 'api'
 Found the following transforms:
   - Transform from variant:
       - artifactType 'jar'
@@ -1116,7 +1142,9 @@ Found the following transforms:
             ${configurationAndTransform('FileSizer')}
 
             def configFiles = configurations.config1.incoming.files
-            def configView = configurations.config2.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.files
+            def configView = configurations.config2.incoming.artifactView {
+                attributes { it.attribute(artifactType, 'size') }
+            }.files
 
             task queryFiles {
                 doLast {
@@ -1146,8 +1174,9 @@ Found the following transforms:
         succeeds "queryFiles"
 
         then:
-        output.count("Transforming") == 0
-        output.count("Creating") == 0
+        output.count("Creating FileSizer") == 1
+        output.count("Transforming") == 1
+        output.count("Transforming test1-1.0.jar to test1-1.0.jar.txt") == 1
 
         when:
         server.resetExpectations()
@@ -1203,7 +1232,9 @@ Found the following transforms:
             ${configurationAndTransform('Hasher')}
 
             def configFiles = configurations.compile.incoming.files
-            def configView = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.files
+            def configView = configurations.compile.incoming.artifactView {
+                attributes { it.attribute(artifactType, 'size') }
+            }.files
 
             task queryFiles {
                 doLast {
@@ -1256,9 +1287,9 @@ Found the following transforms:
         given:
         buildFile << """
             def a = file('a.jar')
-            a.text = '1234'
+            a << '1234'
             def b = file('b.jar')
-            b.text = '321'
+            b << '321'
 
             dependencies {
                 compile files(a, b)
@@ -1286,6 +1317,13 @@ Found the following transforms:
 
         and:
         outputContains("Transforming b.jar")
+
+        when:
+        executer.withArgument("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains("files: [b.jar]")
     }
 
     def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
@@ -1329,6 +1367,16 @@ Found the following transforms:
         outputContains("Transforming test-api-1.3.jar to test-api-1.3.jar.txt")
         outputContains("Transforming test-impl2-1.3.jar to test-impl2-1.3.jar.txt")
         outputContains("Transforming test-2-0.1.jar to test-2-0.1.jar.txt")
+
+        when:
+        // We attempt to get the broken artifact each time we query the lenient view
+        4.times { m1.getArtifact(name: 'test-impl').expectGetBroken() }
+
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains("files: [test-api-1.3.jar.txt, test-impl2-1.3.jar.txt, test-2-0.1.jar.txt]")
     }
 
     def "user gets a reasonable error message when file dependency cannot be listed and continues with other inputs"() {
@@ -1356,6 +1404,13 @@ Found the following transforms:
         and:
         outputContains("Transforming thing1.jar to thing1.jar.txt")
         outputContains("Transforming thing2.jar to thing2.jar.txt")
+
+        when:
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains("files: [thing1.jar.txt, thing2.jar.txt]")
     }
 
     def "user gets a reasonable error message when a output property returns null"() {
@@ -1410,6 +1465,13 @@ Found the following transforms:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform NoExistTransform")
         failure.assertHasCause("Transform output file this_file_does_not.exist does not exist.")
+
+        when:
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains(":resolve NO-SOURCE")
     }
 
     def "user gets a reasonable error message when transform returns a file that is not input or in output directory"() {
@@ -1470,7 +1532,7 @@ Found the following transforms:
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform BrokenTransform")
-        failure.assertHasCause("Could not create instance of BrokenTransform.")
+        failure.assertHasCause("Could not create an instance of type BrokenTransform.")
         failure.assertHasCause("broken")
     }
 
@@ -1534,6 +1596,15 @@ Found the following transforms:
         outputContains("Transforming a.jar")
         outputContains("Transforming c.jar")
         outputContains("Transforming c-2.0.jar")
+
+        when:
+        4.times { m1.artifact.expectGetBroken() }
+
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains("files: [a.jar, c.jar, c-2.0.jar]")
     }
 
     def "provides useful error message when registration action fails"() {
@@ -1592,7 +1663,12 @@ Found the following transforms:
             }
 
             task resolve(type: Copy) {
-                def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                    if (project.hasProperty("lenient")) {
+                        lenient(true)
+                    }
+                }.artifacts
                 from artifacts.artifactFiles
                 into "\${buildDir}/libs"
                 doLast {

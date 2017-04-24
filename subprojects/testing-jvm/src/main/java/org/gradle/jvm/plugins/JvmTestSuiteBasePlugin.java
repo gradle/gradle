@@ -18,35 +18,39 @@ package org.gradle.jvm.plugins;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
-import org.gradle.jvm.internal.resolve.UsageKind;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.JvmBinarySpecInternal;
 import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.jvm.internal.resolve.DefaultVariantsMetaData;
+import org.gradle.jvm.internal.resolve.JvmLibraryResolveContext;
+import org.gradle.jvm.internal.resolve.UsageKind;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.JvmTestSuiteBinarySpecInternal;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.jvm.internal.resolve.DefaultVariantsMetaData;
-import org.gradle.jvm.internal.resolve.JvmLibraryResolveContext;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.*;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinaryTasks;
@@ -80,7 +84,7 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
                 test.dependsOn(jvmAssembly);
                 test.setTestClassesDir(binary.getClassesDir());
                 test.setClasspath(binary.getRuntimeClasspath());
-                configureReports((JvmTestSuiteBinarySpecInternal) binary, test);
+                configureReports(binary, test);
             }
 
             private void configureReports(JvmTestSuiteBinarySpecInternal binary, Test test) {
@@ -109,14 +113,14 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
         RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
         ModelSchema<? extends JvmTestSuiteBinarySpec> schema = Cast.uncheckedCast(modelSchemaStore.getSchema(((BinarySpecInternal) testBinary).getPublicType()));
-        AttributesSchema attributesSchema = serviceRegistry.get(AttributesSchema.class);
+        AttributesSchemaInternal attributesSchema = serviceRegistry.get(AttributesSchemaInternal.class);
         ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
-        ModuleExclusions moduleExclusions = serviceRegistry.get(ModuleExclusions.class);
-        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema, attributesSchema, moduleIdentifierFactory, moduleExclusions));
+        BuildOperationProcessor buildOperationProcessor = serviceRegistry.get(BuildOperationProcessor.class);
+        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema, attributesSchema, moduleIdentifierFactory, buildOperationProcessor));
     }
 
-    private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, AttributesSchema attributesSchema, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
-        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema, moduleIdentifierFactory), attributesSchema, moduleIdentifierFactory, moduleExclusions);
+    private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, AttributesSchemaInternal attributesSchema, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationProcessor buildOperationProcessor) {
+        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema, moduleIdentifierFactory), attributesSchema, buildOperationProcessor);
     }
 
     private static JvmLibraryResolveContext createResolveContext(JvmTestSuiteBinarySpecInternal testBinary, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

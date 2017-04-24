@@ -58,13 +58,13 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
 
     private NormalizedFileSnapshot readSnapshot(String absolutePath, Decoder decoder, StringInterner stringInterner) throws IOException {
         byte fileSnapshotKind = decoder.readByte();
-        IncrementalFileSnapshot snapshot;
+        FileContentSnapshot snapshot;
         switch (fileSnapshotKind) {
             case DIR_SNAPSHOT:
-                snapshot = DirSnapshot.getInstance();
+                snapshot = DirContentSnapshot.getInstance();
                 break;
             case MISSING_FILE_SNAPSHOT:
-                snapshot = MissingFileSnapshot.getInstance();
+                snapshot = MissingFileContentSnapshot.getInstance();
                 break;
             case REGULAR_FILE_SNAPSHOT:
                 snapshot = new FileHashSnapshot(hashCodeSerializer.read(decoder));
@@ -116,10 +116,10 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     }
 
     private void writeSnapshot(Encoder encoder, NormalizedFileSnapshot value) throws IOException {
-        IncrementalFileSnapshot snapshot = value.getSnapshot();
-        if (snapshot instanceof DirSnapshot) {
+        FileContentSnapshot snapshot = value.getSnapshot();
+        if (snapshot instanceof DirContentSnapshot) {
             encoder.writeByte(DIR_SNAPSHOT);
-        } else if (snapshot instanceof MissingFileSnapshot) {
+        } else if (snapshot instanceof MissingFileContentSnapshot) {
             encoder.writeByte(MISSING_FILE_SNAPSHOT);
         } else if (snapshot instanceof FileHashSnapshot) {
             encoder.writeByte(REGULAR_FILE_SNAPSHOT);

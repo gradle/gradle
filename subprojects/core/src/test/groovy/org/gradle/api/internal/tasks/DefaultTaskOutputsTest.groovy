@@ -307,7 +307,7 @@ class DefaultTaskOutputsTest extends Specification {
         !outputs.cachingState.enabled
 
         when:
-        outputs.doNotCacheIf { false }
+        outputs.doNotCacheIf("test") { false }
         then:
         !outputs.cachingState.enabled
 
@@ -317,7 +317,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.cachingState.enabled
 
         when:
-        outputs.doNotCacheIf { true }
+        outputs.doNotCacheIf("test") { true }
         then:
         !outputs.cachingState.enabled
     }
@@ -338,11 +338,20 @@ class DefaultTaskOutputsTest extends Specification {
 
         when:
         outputs.dir("someDir")
-
         then:
         outputs.cachingState.enabled
 
         when:
+        def taskHistory = Mock(TaskExecutionHistory)
+        outputs.setHistory(taskHistory)
+        taskHistory.getOverlappingOutputDetection() >> new TaskExecutionHistory.OverlappingOutputs("someProperty", "path/to/outputFile")
+        then:
+        !outputs.cachingState.enabled
+        outputs.cachingState.disabledReason == "Outputs created by something else (e.g. 'path/to/outputFile') were found in output property 'someProperty' before executing this task."
+        outputs.cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
+
+        when:
+        outputs.setHistory(null)
         outputs.doNotCacheIf("Caching manually disabled") { true }
 
         then:

@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.internal.component.model.ModuleSource
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
-import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.resolve.ArtifactResolveException
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor

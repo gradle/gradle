@@ -20,12 +20,11 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
-import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
 import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
@@ -41,13 +40,10 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCac
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -63,7 +59,6 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -83,27 +78,10 @@ import java.io.File;
  *     }
  * </pre>
  */
-@ParallelizableTask
 @CacheableTask
 public class JavaCompile extends AbstractCompile {
-    private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
     private JavaToolChain toolChain;
-
-    public JavaCompile() {
-        getOutputs().doNotCacheIf("Use depend is enabled", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task task) {
-                return DeprecationLogger.whileDisabled(new Factory<Boolean>() {
-                    @Override
-                    @SuppressWarnings("deprecation")
-                    public Boolean create() {
-                        return compileOptions.isUseDepend();
-                    }
-                });
-            }
-        });
-    }
 
     /**
      * {@inheritDoc}
@@ -184,7 +162,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     @Inject
-    protected CachingFileHasher getCachingFileHasher() {
+    protected FileHasher getCachingFileHasher() {
         throw new UnsupportedOperationException();
     }
 
@@ -245,7 +223,6 @@ public class JavaCompile extends AbstractCompile {
         setDidWork(result.getDidWork());
     }
 
-    @SuppressWarnings("deprecation")
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setSource(getSource());
@@ -254,31 +231,10 @@ public class JavaCompile extends AbstractCompile {
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
         spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
-        File dependencyCacheDir = DeprecationLogger.whileDisabled(new Factory<File>() {
-            @Override
-            @SuppressWarnings("deprecation")
-            public File create() {
-                return getDependencyCacheDir();
-            }
-        });
-        spec.setDependencyCacheDir(dependencyCacheDir);
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
         return spec;
-    }
-
-    @Internal
-    @Deprecated
-    public File getDependencyCacheDir() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaCompile.getDependencyCacheDir()");
-        return dependencyCacheDir;
-    }
-
-    @Deprecated
-    public void setDependencyCacheDir(File dependencyCacheDir) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaCompile.setDependencyCacheDir()");
-        this.dependencyCacheDir = dependencyCacheDir;
     }
 
     /**

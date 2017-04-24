@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Allows the test process and a single build process to synchronize.
+ *
+ * TODO - merge into {@link BlockingHttpServer} as they now have overlapping APIs.
  */
 public class CyclicBarrierHttpServer extends ExternalResource {
     private ExecutorService executor;
@@ -169,7 +171,15 @@ public class CyclicBarrierHttpServer extends ExternalResource {
     }
 
     public boolean waitFor() {
-        return waitFor(true);
+        return waitFor(true, 20);
+    }
+
+    public boolean waitFor(boolean failAtTimeout) {
+        return waitFor(failAtTimeout, 20);
+    }
+
+    public boolean waitFor(int timeoutSeconds) {
+        return waitFor(true, timeoutSeconds);
     }
 
     /**
@@ -177,11 +187,12 @@ public class CyclicBarrierHttpServer extends ExternalResource {
      * {@link #release()} is called.
      *
      * @param failAtTimeout if client connection timeout occurs: should the build fail directly or return with 'false'? (if it fails, it might hide the original error)
+     * @param timeoutSeconds timeout in seconds
      *
      * @return false on timeout
      */
-    public boolean waitFor(boolean failAtTimeout) {
-        long expiry = monotonicClockMillis() + 20000;
+    public boolean waitFor(boolean failAtTimeout, int timeoutSeconds) {
+        long expiry = monotonicClockMillis() + timeoutSeconds * 1000;
         synchronized (lock) {
             while (!connected && !stopped) {
                 long delay = expiry - monotonicClockMillis();

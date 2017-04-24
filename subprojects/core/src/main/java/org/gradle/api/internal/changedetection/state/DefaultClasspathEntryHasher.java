@@ -48,22 +48,22 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
     }
 
     @Override
-    public HashCode hash(FileDetails fileDetails) {
-        if (fileDetails.getType() == FileType.Directory || fileDetails.getType() == FileType.Missing) {
+    public HashCode hash(FileSnapshot fileSnapshot) {
+        if (fileSnapshot.getType() == FileType.Directory || fileSnapshot.getType() == FileType.Missing) {
             return null;
         }
 
-        String name = fileDetails.getName();
+        String name = fileSnapshot.getName();
         final Hasher hasher = createHasher();
         if (FileUtils.isJar(name)) {
-            return hashJar(fileDetails, hasher, classpathContentHasher);
+            return hashJar(fileSnapshot, hasher, classpathContentHasher);
         } else {
-            return hashFile(fileDetails, hasher, classpathContentHasher);
+            return hashFile(fileSnapshot, hasher, classpathContentHasher);
         }
     }
 
-    private HashCode hashJar(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
-        File jarFilePath = new File(fileDetails.getPath());
+    private HashCode hashJar(FileSnapshot fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+        File jarFilePath = new File(fileSnapshot.getPath());
         ZipInputStream zipInput = null;
         try {
             zipInput = new ZipInputStream(new FileInputStream(jarFilePath));
@@ -91,21 +91,21 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
             return hasher.hash();
         } catch (ZipException e) {
             // ZipExceptions point to a problem with the Zip, we try to be lenient for now.
-            return hashMalformedZip(fileDetails, hasher, classpathContentHasher);
+            return hashMalformedZip(fileSnapshot, hasher, classpathContentHasher);
         } catch (IOException e) {
             // IOExceptions other than ZipException are failures.
-            throw new UncheckedIOException("Error snapshotting jar [" + fileDetails.getName() + "]", e);
+            throw new UncheckedIOException("Error snapshotting jar [" + fileSnapshot.getName() + "]", e);
         } catch (Exception e) {
             // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
-            return hashMalformedZip(fileDetails, hasher, classpathContentHasher);
+            return hashMalformedZip(fileSnapshot, hasher, classpathContentHasher);
         } finally {
             IOUtils.closeQuietly(zipInput);
         }
     }
 
-    private HashCode hashMalformedZip(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
-        DeprecationLogger.nagUserWith("Malformed jar [" + fileDetails.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
-        return hashFile(fileDetails, hasher, classpathContentHasher);
+    private HashCode hashMalformedZip(FileSnapshot fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+        DeprecationLogger.nagUserWith("Malformed jar [" + fileSnapshot.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
+        return hashFile(fileSnapshot, hasher, classpathContentHasher);
     }
 
     private HashCode hashZipEntry(InputStream inputStream, ZipEntry zipEntry, ClasspathContentHasher classpathContentHasher) throws IOException {
@@ -114,11 +114,11 @@ public class DefaultClasspathEntryHasher implements ClasspathEntryHasher {
         return hasher.hash();
     }
 
-    private HashCode hashFile(FileDetails fileDetails, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
+    private HashCode hashFile(FileSnapshot fileSnapshot, Hasher hasher, ClasspathContentHasher classpathContentHasher) {
         InputStream inputStream = null;
         try {
-            inputStream = new FileInputStream(fileDetails.getPath());
-            classpathContentHasher.appendContent(fileDetails.getName(), inputStream, hasher);
+            inputStream = new FileInputStream(fileSnapshot.getPath());
+            classpathContentHasher.appendContent(fileSnapshot.getName(), inputStream, hasher);
             return hasher.hash();
         } catch (IOException e) {
             throw new UncheckedIOException(e);

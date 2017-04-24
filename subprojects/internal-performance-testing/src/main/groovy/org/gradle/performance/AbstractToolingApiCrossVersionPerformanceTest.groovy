@@ -38,13 +38,13 @@ import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.DefaultBuildExperimentInvocationInfo
-import org.gradle.performance.util.Git
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestGradleDistribution
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.fixture.PerformanceTestJvmOptions
+import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.results.BuildDisplayInfo
@@ -52,6 +52,7 @@ import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStoreHelper
+import org.gradle.performance.util.Git
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -88,9 +89,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     @Rule
-    RetryRule retry = RetryRule.retryIf(this) { Throwable failure ->
-        failure.message?.contains("slower")
-    }
+    RetryRule retry = new PerformanceTestRetryRule()
 
     public <T> Class<T> tapiClass(Class<T> clazz) {
         tapiClassLoader.loadClass(clazz.name)
@@ -195,6 +194,11 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     def toolingApi = tapiClazz.newInstance(new PerformanceTestGradleDistribution(dist, workingDirProvider.testDirectory), workingDirProvider)
                     toolingApi.requireIsolatedDaemons()
                     toolingApi.requireIsolatedUserHome()
+
+                    if (experimentSpec.listener) {
+                        experimentSpec.listener.beforeExperiment(experimentSpec, workingDirProvider.testDirectory)
+                    }
+
                     warmup(toolingApi, workingDirProvider.testDirectory)
                     measure(results, toolingApi, version, workingDirProvider.testDirectory)
                     toolingApi.daemons.killAll()

@@ -21,28 +21,31 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
+import org.gradle.workers.ForkMode
 import org.gradle.workers.WorkerConfiguration
+import org.junit.Rule
 import spock.lang.Specification
-
-import java.util.concurrent.atomic.AtomicBoolean
 
 @UsesNativeServices
 class DefaultWorkerExecutorTest extends Specification {
-    def workerDaemonFactory = Mock(WorkerDaemonFactory)
+    @Rule RedirectStdOutAndErr output = new RedirectStdOutAndErr()
+
+    def workerDaemonFactory = Mock(WorkerFactory)
+    def inProcessWorkerFactory = Mock(WorkerFactory)
     def executorFactory = Mock(ExecutorFactory)
-    def buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry)
+    def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(FileResolver)
     def factory = Mock(Factory)
-    def actionImpl = Mock(Runnable)
-    def serverImpl = Mock(WorkerDaemonProtocol)
+    def runnable = Mock(Runnable)
     def executor = Mock(StoppableExecutor)
-    def workerDaemon = Mock(WorkerDaemon)
+    def worker = Mock(Worker)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
@@ -50,7 +53,33 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * fileResolver.resolveLater(_) >> factory
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * executorFactory.create(_ as String) >> executor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, fileResolver, serverImpl.class, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
+    }
+
+    def "worker configuration fork property defaults to AUTO"() {
+        given:
+        WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver)
+
+        expect:
+        configuration.forkMode == ForkMode.AUTO
+
+        when:
+        configuration.forkMode = ForkMode.ALWAYS
+
+        then:
+        configuration.forkMode == ForkMode.ALWAYS
+
+        when:
+        configuration.forkMode = ForkMode.NEVER
+
+        then:
+        configuration.forkMode == ForkMode.NEVER
+
+        when:
+        configuration.forkMode = null
+
+        then:
+        configuration.forkMode == ForkMode.AUTO
     }
 
     def "can convert javaForkOptions to daemonForkOptions"() {
@@ -67,7 +96,7 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         when:
-        def daemonForkOptions = workerExecutor.getDaemonForkOptions(actionImpl.class, configuration)
+        def daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration)
 
         then:
         daemonForkOptions.minHeapSize == "128m"
@@ -85,50 +114,60 @@ class DefaultWorkerExecutorTest extends Specification {
         configuration.classpath([foo])
 
         when:
-        DaemonForkOptions daemonForkOptions = workerExecutor.getDaemonForkOptions(actionImpl.class, configuration)
+        DaemonForkOptions daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration)
 
         then:
         daemonForkOptions.classpath.contains(foo)
     }
 
     def "executor executes a given runnable in a daemon"() {
-        given:
-        AtomicBoolean executed = new AtomicBoolean(false)
-
         when:
         workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
-            configuration.params = executed
+            configuration.forkMode = ForkMode.ALWAYS
+            configuration.params = []
         }
 
         then:
-        1 * buildOperationWorkerRegistry.getCurrent()
+        1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
         1 * executor.execute(_ as ListenableFutureTask) >> { args -> task = args[0] }
 
         when:
         task.run()
 
         then:
-        1 * workerDaemonFactory.getDaemon(_, _, _) >> workerDaemon
-        1 * workerDaemon.execute(_, _, _, _) >> { action, spec, workOperation, buildOperation ->
-            action.execute(spec)
+        1 * workerDaemonFactory.getWorker(_, _, _) >> worker
+        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+            assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }
-
-        and:
-        executed.get()
     }
 
-    public static class TestRunnable implements Runnable {
-        private final AtomicBoolean executed
-
-        TestRunnable(AtomicBoolean executed) {
-            this.executed = executed
+    def "executor executes a given runnable in-process"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.forkMode = ForkMode.NEVER
+            configuration.params = []
         }
 
+        then:
+        1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
+        1 * executor.execute(_ as ListenableFutureTask) >> { args -> task = args[0] }
+
+        when:
+        task.run()
+
+        then:
+        1 * inProcessWorkerFactory.getWorker(_, _, _) >> worker
+        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+            assert spec.implementationClass == TestRunnable
+            return new DefaultWorkResult(true, null)
+        }
+    }
+
+    static class TestRunnable implements Runnable {
         @Override
         void run() {
             println "executing"
-            executed.set(true)
         }
     }
 }

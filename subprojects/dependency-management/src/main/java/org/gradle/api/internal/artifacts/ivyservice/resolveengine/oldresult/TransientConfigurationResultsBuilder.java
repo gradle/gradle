@@ -29,6 +29,7 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.time.Timer;
@@ -57,13 +58,15 @@ public class TransientConfigurationResultsBuilder {
 
     private BinaryStore binaryStore;
     private Store<TransientConfigurationResults> cache;
+    private final BuildOperationProcessor buildOperationProcessor;
     private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer;
     private BinaryStore.BinaryData binaryData;
 
-    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationProcessor buildOperationProcessor) {
         this.resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer(moduleIdentifierFactory);
         this.binaryStore = binaryStore;
         this.cache = cache;
+        this.buildOperationProcessor = buildOperationProcessor;
     }
 
     public void resolvedDependency(final Long id, final ResolvedConfigurationIdentifier details) {
@@ -117,7 +120,7 @@ public class TransientConfigurationResultsBuilder {
                     try {
                         return binaryData.read(new BinaryStore.ReadAction<TransientConfigurationResults>() {
                             public TransientConfigurationResults read(Decoder decoder) throws IOException {
-                                return deserialize(decoder, graphResults, artifactResults);
+                                return deserialize(decoder, graphResults, artifactResults, buildOperationProcessor);
                             }
                         });
                     } finally {
@@ -132,7 +135,7 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults) {
+    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationProcessor buildOperationProcessor) {
         Timer clock = Timers.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
         Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();
@@ -148,7 +151,7 @@ public class TransientConfigurationResultsBuilder {
                     case NEW_DEP:
                         id = decoder.readSmallLong();
                         ResolvedConfigurationIdentifier details = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        allDependencies.put(id, new DefaultResolvedDependency(id, details));
+                        allDependencies.put(id, new DefaultResolvedDependency(id, details, buildOperationProcessor));
                         break;
                     case ROOT:
                         id = decoder.readSmallLong();

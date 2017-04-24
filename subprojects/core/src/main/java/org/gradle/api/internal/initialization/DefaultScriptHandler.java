@@ -21,19 +21,22 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.net.URI;
 
-public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal {
+public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal, DynamicObjectAware {
     private static final Logger LOGGER = Logging.getLogger(DefaultScriptHandler.class);
 
     private final ResourceLocation scriptResource;
@@ -44,6 +47,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private DependencyHandler dependencyHandler;
     private ConfigurationContainer configContainer;
     private Configuration classpathConfiguration;
+    private DynamicObject dynamicObject;
 
     public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope) {
         this.dependencyResolutionServices = dependencyResolutionServices;
@@ -125,4 +129,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return classLoaderScope.getLocalClassLoader();
     }
 
+    @Override
+    public DynamicObject getAsDynamicObject() {
+        if (dynamicObject == null) {
+            dynamicObject = new BeanDynamicObject(this);
+        }
+        return dynamicObject;
+    }
 }

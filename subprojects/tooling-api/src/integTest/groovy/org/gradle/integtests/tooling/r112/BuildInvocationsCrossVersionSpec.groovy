@@ -125,14 +125,14 @@ project(':b:c') {
             it.forLaunchables(selectorT1, selectorT2)
         }
         then:
-        result.result.assertTasksExecuted(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+        result.result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
 
         when:
         result = withBuild { BuildLauncher it ->
             it.forLaunchables(selectorT2, selectorT1)
         }
         then:
-        result.result.assertTasksExecuted(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
+        result.result.assertTasksExecutedInOrder(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
     def "can fetch task selectors for root project from connection"() {
@@ -225,14 +225,14 @@ project(':b:c') {
         }
 
         then:
-        result.result.assertTasksExecuted(':t1', ':b:t2', ':b:c:t1')
+        result.result.assertTasksExecutedInOrder(':t1', ':b:t2', ':b:c:t1')
 
         when:
         result = withBuild { BuildLauncher it ->
             it.forLaunchables(taskBCT1, taskBT2, taskT1)
         }
         then:
-        result.result.assertTasksExecuted(':b:c:t1', ':b:t2', ':t1')
+        result.result.assertTasksExecutedInOrder(':b:c:t1', ':b:t2', ':t1')
     }
 
     @TargetGradleVersion(">=1.12")
@@ -251,7 +251,7 @@ project(':b:c') {
             it.forLaunchables(selectorBT1, selectorBT3, taskT1)
         }
         then:
-        result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
+        result.result.assertTasksExecutedInOrder(':b:c:t1', ':b:t3', ':t1')
     }
 
     def "build tasks and selectors in order cross version"() {
@@ -270,7 +270,7 @@ project(':b:c') {
             it.forLaunchables(taskT1, selectorT1, selectorT2, taskBT2)
         }
         then:
-        result.result.assertTasksExecuted(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+        result.result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
     }
 
     @TargetGradleVersion("=1.12")

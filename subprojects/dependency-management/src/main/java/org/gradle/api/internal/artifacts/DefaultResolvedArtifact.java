@@ -32,8 +32,8 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependency buildDependencies;
-    private Factory<File> artifactSource;
-    private File file;
+    private volatile Factory<File> artifactSource;
+    private volatile File file;
 
     public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, Factory<File> artifactSource) {
         this.owner = owner;
@@ -105,7 +105,11 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
 
     public File getFile() {
         if (file == null) {
-            file = artifactSource.create();
+            synchronized (this) {
+                if (file == null) {
+                    file = artifactSource.create();
+                }
+            }
             artifactSource = null;
         }
         return file;

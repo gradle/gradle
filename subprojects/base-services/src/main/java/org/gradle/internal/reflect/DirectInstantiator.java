@@ -50,8 +50,8 @@ public class DirectInstantiator implements Instantiator {
             return type.cast(match.newInstance(params));
         } catch (InvocationTargetException e) {
             throw new ObjectInstantiationException(type, e.getCause());
-        } catch (Exception e) {
-            throw new ObjectInstantiationException(type, e);
+        } catch (Throwable t) {
+            throw new ObjectInstantiationException(type, t);
         }
     }
 

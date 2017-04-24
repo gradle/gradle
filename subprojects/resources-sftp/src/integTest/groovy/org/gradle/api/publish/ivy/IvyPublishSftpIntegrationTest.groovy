@@ -31,6 +31,13 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         new IvySftpRepository(server, '/repo', m2Compatible, dirPattern)
     }
 
+    def setup() {
+        // SFTP test fixture does not handle parallel resolution requests
+        executer.beforeExecute {
+            it.withArgument("--max-workers=1")
+        }
+    }
+
     private void buildAndSettingsFilesForPublishing() {
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """

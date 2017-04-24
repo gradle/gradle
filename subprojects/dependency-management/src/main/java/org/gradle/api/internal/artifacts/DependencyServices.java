@@ -19,7 +19,12 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
+import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -38,6 +43,12 @@ public class DependencyServices implements PluginServiceRegistry, GradleUserHome
         registration.addProvider(new Object() {
             CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetaData artifactCacheMetaData) {
                 return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetaData);
+            }
+
+            TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager) {
+                DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter);
+                listenerManager.addListener(transformedFileCache);
+                return transformedFileCache;
             }
         });
     }

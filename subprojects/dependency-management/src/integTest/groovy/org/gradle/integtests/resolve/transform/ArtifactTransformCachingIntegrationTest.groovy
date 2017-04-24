@@ -17,7 +17,9 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -63,7 +65,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files 1: " + artifacts.artifactFiles.collect { it.name }
@@ -138,6 +142,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private String target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets(String target) {
                     this.target = target
                 }
@@ -178,8 +183,12 @@ allprojects {
                 }
                 task resolve {
                     doLast {
-                        def size = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
-                        def hash = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.artifacts
+                        def size = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'size') }
+                        }.artifacts
+                        def hash = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'hash') }
+                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "ids 1: " + size.collect { it.id }
                         println "components 1: " + size.collect { it.id.componentIdentifier }
@@ -252,6 +261,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private CustomType target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets(CustomType target) {
                     this.target = target
                 }
@@ -292,8 +302,12 @@ allprojects {
                 }
                 task resolve {
                     doLast {
-                        def size = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
-                        def hash = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.artifacts
+                        def size = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'size') }
+                        }.artifacts
+                        def hash = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'hash') }
+                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "files 2: " + hash.collect { it.file.name }
                     }
@@ -355,6 +369,7 @@ allprojects {
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private $type target
                 
+                @javax.inject.Inject
                 TransformWithMultipleTargets($type target) {
                     this.target = target
                 }
@@ -380,7 +395,9 @@ allprojects {
                 }
                 task resolve {
                     doLast {
-                        def values = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'value') }.artifacts
+                        def values = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'value') }
+                        }.artifacts
                         println "files 1: " + values.collect { it.file.name }
                         println "files 2: " + values.collect { it.file.name }
                     }
@@ -443,6 +460,7 @@ allprojects {
         given:
         buildFile << """
             class Sizer extends ArtifactTransform {
+                @javax.inject.Inject
                 Sizer(String target) {
                     // ignore config
                 }
@@ -458,6 +476,7 @@ allprojects {
             class Hasher extends ArtifactTransform {
                 private String target
                 
+                @javax.inject.Inject
                 Hasher(String target) {
                     // ignore config
                 }
@@ -486,8 +505,12 @@ allprojects {
                 }
                 task resolve {
                     doLast {
-                        def size = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
-                        def hash = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'hash') }.artifacts
+                        def size = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'size') }
+                        }.artifacts
+                        def hash = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'hash') }
+                        }.artifacts
                         println "files 1: " + size.collect { it.file.name }
                         println "ids 1: " + size.collect { it.id }
                         println "components 1: " + size.collect { it.id.componentIdentifier }
@@ -550,7 +573,7 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    def "transform is run again after it failed in previous build and old output is removed"() {
+    def "transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << """
             allprojects {
@@ -562,7 +585,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files 1: " + artifacts.artifactFiles.collect { it.name }
@@ -644,7 +669,7 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    def "transform is supplied with a different output directory when input file content changes"() {
+    def "transform is supplied with a different output directory when input file content changes between builds"() {
         given:
         buildFile << """
             allprojects {
@@ -655,7 +680,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -742,7 +769,8 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    def "transform is rerun when output is removed"() {
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "transform is supplied with a different output directory when input file content changed by a task during the build"() {
         given:
         buildFile << """
             allprojects {
@@ -753,7 +781,95 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    output.text = "transformed"
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                dependencies {
+                    compile files("lib1.jar")
+                }
+                artifacts {
+                    compile file("dir1.classes")
+                }
+                task src1 { 
+                    doLast {
+                        projectDir.mkdirs()
+                        file("lib1.jar").text = '123'
+                        file("dir1.classes").mkdirs()
+                        file("dir1.classes/file1.txt").text = 'abc'
+                    }
+                }
+                task src2 {
+                    doLast {
+                        projectDir.mkdirs()
+                        file("lib1.jar").text = '1234'
+                        file("dir1.classes").mkdirs()
+                        file("dir1.classes/file2.txt").text = 'new file'
+                    }
+                }
+            }
+            
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+                tasks.resolve.mustRunAfter(':lib:src2')
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+                tasks.resolve.mustRunAfter(':lib:src1')
+            }
+        """
+
+        when:
+        run "src1", ":app:resolve", "src2", ":util:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("Transforming") == 4
+
+        when:
+        run ":app:resolve", ":util:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, dir1.classes.txt]") == 2
+        output.count("Transforming") == 0
+    }
+
+    def "transform is rerun when output is removed between builds"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -859,7 +975,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -953,7 +1071,9 @@ allprojects {
                     }
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -962,6 +1082,7 @@ allprojects {
             }
 
             class FileSizer extends ArtifactTransform {
+                @javax.inject.Inject
                 FileSizer(Number n) { }
                 
                 List<File> transform(File input) {
@@ -1053,7 +1174,9 @@ allprojects {
                     resolutionStrategy.cacheChangingModulesFor(0, "seconds")
                 }
                 task resolve {
-                    def artifacts = configurations.compile.incoming.artifactView().attributes { it.attribute(artifactType, 'size') }.artifacts
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
                     inputs.files artifacts.artifactFiles
                     doLast {
                         println "files: " + artifacts.artifactFiles.collect { it.name }
@@ -1114,7 +1237,7 @@ allprojects {
         server.resetExpectations()
         m1.pom.expectHead()
         m1.artifact.expectHead()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1136,7 +1259,7 @@ allprojects {
         m1.artifact.expectHead()
         m1.artifact.sha1.expectGet()
         m1.artifact.expectGet()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1155,7 +1278,7 @@ allprojects {
         server.resetExpectations()
         m1.pom.expectHead()
         m1.artifact.expectHead()
-        m2.metaData.expectGet()
+        m2.metaData.expectHead()
         // TODO - these should not be required for unique versions
         m2.pom.expectHead()
         m2.artifact.expectHead()
@@ -1173,6 +1296,7 @@ allprojects {
         m1.pom.expectHead()
         m1.artifact.expectHead()
         m2.publishWithChangedContent()
+        m2.metaData.expectHead()
         m2.metaData.expectGet()
         m2.pom.expectHead()
         m2.pom.sha1.expectGet()

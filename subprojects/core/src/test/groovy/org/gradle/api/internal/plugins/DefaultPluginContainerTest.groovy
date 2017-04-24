@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.UnknownPluginException
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,9 +33,9 @@ public class DefaultPluginContainerTest extends Specification {
     def PluginInspector pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
-    def applicator = Mock(PluginApplicator)
+    def target = Mock(PluginTarget)
     def instantiator = DirectInstantiator.INSTANCE
-    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, applicator)
+    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationExecutor())
 
     @Subject
     def container = pluginManager.pluginContainer
@@ -257,20 +258,20 @@ public class DefaultPluginContainerTest extends Specification {
         plugins == []
     }
 
-    def "calls applicator for type only"() {
+    def "calls apply on target for type only"() {
         when:
         container.apply(plugin1Class)
 
         then:
-        1 * applicator.applyImperative(null, { plugin1Class.isInstance(it) })
+        1 * target.applyImperative(null, { plugin1Class.isInstance(it) })
     }
 
-    def "calls applicator for id"() {
+    def "calls apply on target for id"() {
         when:
         container.apply("plugin")
 
         then:
-        1 * applicator.applyImperative("plugin", { plugin1Class.isInstance(it) })
+        1 * target.applyImperative("plugin", { plugin1Class.isInstance(it) })
     }
 
     def "a useful error message is set when a plain rule source type is passed to withType"() {

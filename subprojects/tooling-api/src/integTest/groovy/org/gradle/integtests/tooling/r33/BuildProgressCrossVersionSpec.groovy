@@ -74,15 +74,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
-        configureRoot.descriptor.name == 'Project :'
+        configureRoot.descriptor.name == 'Project :' || configureRoot.descriptor.name == 'Configure project :'
 
         def configureA = events.operation("Configure project :a")
         configureA.parent == configureBuild
-        configureA.descriptor.name == 'Project :a'
+        configureA.descriptor.name == 'Project :a' || configureA.descriptor.name == 'Configure project :a'
 
         def configureB = events.operation("Configure project :b")
         configureB.parent == configureBuild
-        configureB.descriptor.name == 'Project :b'
+        configureB.descriptor.name == 'Project :b' || configureB.descriptor.name == 'Configure project :b'
 
         configureBuild.children.containsAll(configureRoot, configureA, configureB)
     }
@@ -126,6 +126,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureBuild.children == [configureRoot, configureA]
     }
 
+    @TargetGradleVersion(">=3.3 <4.0")
     def "generates events for project configuration where project configuration is nested"() {
         given:
         settingsFile << """
@@ -202,13 +203,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def compileTestJava = events.operation("Task :compileTestJava")
         def test = events.operation("Task :test")
 
-        def compileClasspath = events.operation("Resolve dependencies :compileClasspath")
+        def compileClasspath = events.operation("Resolve dependencies :compileClasspath", "Resolve dependencies of :compileClasspath")
         compileClasspath.parent == compileJava
 
-        def testCompileClasspath = events.operation("Resolve dependencies :testCompileClasspath")
+        def testCompileClasspath = events.operation("Resolve dependencies :testCompileClasspath", "Resolve dependencies of :testCompileClasspath")
         testCompileClasspath.parent == compileTestJava
 
-        def testRuntimeClasspath = events.operation("Resolve dependencies :testRuntime", "Resolve dependencies :testRuntimeClasspath")
+        def testRuntimeClasspath = events.operation(
+            "Resolve dependencies :testRuntime", "Resolve dependencies :testRuntimeClasspath",
+            "Resolve dependencies of :testRuntime", "Resolve dependencies of :testRuntimeClasspath")
         testRuntimeClasspath.parent == test
     }
 
@@ -236,7 +239,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         events.assertIsABuild()
 
-        events.operation("Resolve dependencies :compileClasspath")
+        events.operation("Resolve dependencies :compileClasspath", "Resolve dependencies of :compileClasspath")
         // TODO: currently not marked as failed
     }
 
@@ -302,7 +305,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureRoot.parent == configureBuild
         configureBuild.children.contains(configureRoot)
 
-        def resolveCompile = events.operation("Resolve dependencies :compile")
+        def resolveCompile = events.operation("Resolve dependencies :compile", "Resolve dependencies of :compile")
         resolveCompile.parent == configureRoot
         configureRoot.children == [resolveCompile]
 
@@ -310,7 +313,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureA.parent == resolveCompile
         resolveCompile.children == [configureA]
 
-        def resolveCompileA = events.operation("Resolve dependencies :a:compile")
+        def resolveCompileA = events.operation("Resolve dependencies :a:compile", "Resolve dependencies of :a:compile")
         resolveCompileA.parent == configureA
         configureA.children == [resolveCompileA]
 
@@ -348,8 +351,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         buildSrcCompileJava.descriptor.name == ':buildSrc:compileJava'
         buildSrcCompileJava.descriptor.taskPath == ':buildSrc:compileJava'
 
-        buildSrcTasks.child("Task :buildSrc:a:compileJava").child("Resolve dependencies :buildSrc:a:compileClasspath")
-        buildSrcTasks.child("Task :buildSrc:b:compileJava").child("Resolve dependencies :buildSrc:b:compileClasspath")
+        buildSrcTasks.child("Task :buildSrc:a:compileJava").child("Resolve dependencies :buildSrc:a:compileClasspath", "Resolve dependencies of :buildSrc:a:compileClasspath")
+        buildSrcTasks.child("Task :buildSrc:b:compileJava").child("Resolve dependencies :buildSrc:b:compileClasspath", "Resolve dependencies of :buildSrc:b:compileClasspath")
 
         buildSrcTasks.child("Task :buildSrc:a:test").descendant("Gradle Test Run :buildSrc:a:test")
         buildSrcTasks.child("Task :buildSrc:b:test")

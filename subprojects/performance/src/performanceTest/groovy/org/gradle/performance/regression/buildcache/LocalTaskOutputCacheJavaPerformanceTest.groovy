@@ -37,14 +37,10 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
                     cacheDir.deleteDir().mkdirs()
                     def settingsFile = new TestFile(invocationInfo.getProjectDir()).file('settings.gradle')
                     settingsFile << """
-                        if (GradleVersion.current() > GradleVersion.version('3.4')) {
-                            buildCache {
-                                local {
-                                    directory = '${cacheDir.absoluteFile.toURI()}'
-                                }
+                        buildCache {
+                            local {
+                                directory = '${cacheDir.absoluteFile.toURI()}'
                             }
-                        } else {    
-                            System.setProperty('org.gradle.cache.tasks.directory', '${cacheDir.absolutePath}')
                         }
                     """.stripIndent()
                 }
@@ -53,11 +49,16 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         })
     }
 
-    def "clean #tasks on #testProject with local cache"() {
+    @Unroll
+    def "clean #tasks on #testProject with local cache (parallel: #parallel)"() {
         given:
+        runner.previousTestIds = ["clean $tasks on $testProject with local cache"]
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ')
+        runner.tasksToRun = tasks.split(' ') as List
+        if (parallel) {
+            runner.args += "--parallel"
+        }
 
         when:
         def result = runner.run()
@@ -66,7 +67,8 @@ class LocalTaskOutputCacheJavaPerformanceTest extends AbstractTaskOutputCacheJav
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        [testProject, tasks] << scenarios
+        [testProject, tasks] << scenarios * 2
+        parallel << [true] * scenarios.size() + [false] * scenarios.size()
     }
 
     def "clean #tasks on #testProject with empty local cache"() {

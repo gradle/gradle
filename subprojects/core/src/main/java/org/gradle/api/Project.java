@@ -36,6 +36,8 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -49,6 +51,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>,
@@ -901,6 +904,30 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
+     * Creates a {@code Provider} implementation based on the provided value.
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
+     * @since 4.0
+     */
+    @Incubating
+    <T> Provider<T> provider(Callable<T> value);
+
+    /**
+     * Creates a {@code PropertyState} implementation based on the provided class.
+     *
+     * @param clazz The class to be used for property state.
+     * @return The property state. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
+     * @see org.gradle.api.provider.ProviderFactory#property(Class)
+     * @since 4.0
+     */
+    @Incubating
+    <T> PropertyState<T> property(Class<T> clazz);
+
+    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
@@ -1331,7 +1358,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The value of the property, possibly null or null if not found.
      * @see Project#property(String)
      */
-    @Incubating
+    @Incubating @Nullable
     Object findProperty(String propertyName);
 
     /**
@@ -1349,7 +1376,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Gradle getGradle();
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to control the logging level and
+     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this project's build script. By default, System.out is redirected to the Gradle
      * logging system at the QUIET log level, and System.err is redirected at the ERROR log level.
      *
@@ -1495,6 +1522,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     WorkResult copy(Closure closure);
 
     /**
+     * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
+     * copy the files.
+     * @see #copy(Closure)
+     * @param action Action to configure the CopySpec
+     * @return {@link WorkResult} that can be used to check if the copy did any work.
+     */
+    WorkResult copy(Action<? super CopySpec> action);
+
+    /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given closure is used
      * to configure the {@link CopySpec} before it is returned by this method.
      *
@@ -1516,15 +1552,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     CopySpec copySpec(Closure closure);
 
     /**
-     * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
-     * copy the files.
-     * @see #copy(Closure)
-     * @param action Action to configure the CopySpec
-     * @return {@link WorkResult} that can be used to check if the copy did any work.
-     */
-    WorkResult copy(Action<? super CopySpec> action);
-
-    /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
      * to configure the {@link CopySpec} before it is returned by this method.
      *
@@ -1540,6 +1567,42 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return a newly created copy spec
      */
     CopySpec copySpec();
+
+    /**
+     * Synchronizes the contents of a destination directory with some source directories and files.
+     * The given action is used to configure a {@link CopySpec}, which is then used to synchronize the files.
+     *
+     * <p>
+     * This method is like the {@link #copy(Action)} task, except the destination directory will only contain the files copied.
+     * All files that exist in the destination directory will be deleted before copying files, unless a preserve option is specified.
+     *
+     * <p>
+     * Example:
+     *
+     * <pre>
+     * project.sync {
+     *    from 'my/shared/dependencyDir'
+     *    into 'build/deps/compile'
+     * }
+     * </pre>
+     * Note that you can preserve output that already exists in the destination directory:
+     * <pre>
+     * project.sync {
+     *     from 'source'
+     *     into 'dest'
+     *     preserve {
+     *         include 'extraDir/**'
+     *         include 'dir1/**'
+     *         exclude 'dir1/extra.txt'
+     *     }
+     * }
+     * </pre>
+     *
+     * @param action Action to configure the CopySpec.
+     * @since 4.0
+     * @return {@link WorkResult} that can be used to check if the sync did any work.
+     */
+    WorkResult sync(Action<? super CopySpec> action);
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this
@@ -1606,5 +1669,4 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     SoftwareComponentContainer getComponents();
-
 }

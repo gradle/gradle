@@ -51,7 +51,7 @@
             on the other hand, not be exposed to consumers, and therefore not leak into the consumers' compile classpath. This comes with several benefits:
         </para>
         <itemizedlist>
-            <listitem>dependencies do not leak into the compile classpath of consumers anymore, so you will never accidently depend on a transitive dependency</listitem>
+            <listitem>dependencies do not leak into the compile classpath of consumers anymore, so you will never accidentally depend on a transitive dependency</listitem>
             <listitem>faster compilation thanks to reduced classpath size</listitem>
             <listitem>less recompilations when implementation dependencies change: consumers would not need to be recompiled</listitem>
             <listitem>cleaner publishing: when used in conjunction with the new <literal>maven-publish</literal> plugin, Java libraries produce POM files that distinguish exactly between what

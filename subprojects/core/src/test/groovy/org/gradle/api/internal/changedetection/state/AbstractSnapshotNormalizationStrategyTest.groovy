@@ -22,7 +22,6 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.internal.nativeintegration.filesystem.FileType
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSpec {
@@ -54,21 +53,21 @@ class AbstractSnapshotNormalizationStrategyTest extends AbstractProjectBuilderSp
     }
 
     protected def normalizeWith(SnapshotNormalizationStrategy type) {
-        List<FileDetails> fileTreeElements = []
+        List<FileSnapshot> fileTreeElements = []
         files.each { f ->
             if (f.file) {
-                fileTreeElements.add(new DefaultFileDetails(f.path, new RelativePath(true, f.name), FileType.RegularFile, true, new FileHashSnapshot(HashCode.fromInt(1))))
+                fileTreeElements.add(new RegularFileSnapshot(f.path, new RelativePath(true, f.name), true, new FileHashSnapshot(HashCode.fromInt(1))))
             } else {
-                fileTreeElements.add(new DefaultFileDetails(f.path, new RelativePath(false, f.name), FileType.Directory, true, DirSnapshot.instance))
+                fileTreeElements.add(new DirectoryFileSnapshot(f.path, new RelativePath(false, f.name), true))
                 project.fileTree(f).visit(new FileVisitor() {
                     @Override
                     void visitDir(FileVisitDetails dirDetails) {
-                        fileTreeElements.add(new DefaultFileDetails(dirDetails.file.path, dirDetails.relativePath, FileType.Directory, false, DirSnapshot.instance))
+                        fileTreeElements.add(new DirectoryFileSnapshot(dirDetails.file.path, dirDetails.relativePath, false))
                     }
 
                     @Override
                     void visitFile(FileVisitDetails fileDetails) {
-                        fileTreeElements.add(new DefaultFileDetails(fileDetails.file.path, fileDetails.relativePath, FileType.RegularFile, false, new FileHashSnapshot(HashCode.fromInt(1))))
+                        fileTreeElements.add(new RegularFileSnapshot(fileDetails.file.path, fileDetails.relativePath, false, new FileHashSnapshot(HashCode.fromInt(1))))
                     }
                 })
             }

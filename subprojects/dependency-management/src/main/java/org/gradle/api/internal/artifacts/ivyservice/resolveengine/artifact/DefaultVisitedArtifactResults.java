@@ -17,15 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.specs.Spec;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     private final Map<Long, ArtifactSet> artifactsById;
@@ -37,7 +37,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     }
 
     @Override
-    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         Set<ResolvedArtifactSet> allArtifactSets = newLinkedHashSet();
         ImmutableMap.Builder<Long, ResolvedArtifactSet> resolvedArtifactsById = ImmutableMap.builder();
 
@@ -52,7 +52,27 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
             resolvedArtifactsById.put(id, resolvedArtifacts);
         }
 
-        return new DefaultSelectedArtifactResults(CompositeArtifactSet.of(allArtifactSets), resolvedArtifactsById.build());
+        if (allArtifactSets.isEmpty()) {
+            return NoArtifactResults.INSTANCE;
+        }
+
+        ResolvedArtifactSet composite = CompositeArtifactSet.of(allArtifactSets);
+        return new DefaultSelectedArtifactResults(composite, resolvedArtifactsById.build());
+    }
+
+    private static class NoArtifactResults implements SelectedArtifactResults {
+
+        private static final NoArtifactResults INSTANCE = new NoArtifactResults();
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return EMPTY;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts(long id) {
+            return null;
+        }
     }
 
     private static class DefaultSelectedArtifactResults implements SelectedArtifactResults {

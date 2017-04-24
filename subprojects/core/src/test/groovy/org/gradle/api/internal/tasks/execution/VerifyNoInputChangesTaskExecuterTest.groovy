@@ -36,7 +36,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
     private String hashKeyBefore = "rsetnarosntanroston"
     private String hashKeyAfter = "345sratart22341234fw"
     private TaskArtifactState after = Mock()
-    private TaskStateInternal state = new TaskStateInternal("task")
+    private TaskStateInternal state = new TaskStateInternal()
     private TaskExecutionContext context = Mock()
     private VerifyNoInputChangesTaskExecuter executer = new VerifyNoInputChangesTaskExecuter(repository, delegate)
 

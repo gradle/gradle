@@ -16,20 +16,19 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.cache.DefaultFileContentCacheFactory;
 import org.gradle.api.internal.cache.FileContentCacheFactory;
-import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.delete.Deleter;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
-import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
-import org.gradle.api.internal.plugins.PluginApplicator;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
+import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -66,12 +65,13 @@ import org.gradle.internal.cleanup.DefaultBuildOutputDeleter;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -137,14 +137,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
+    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService) {
         Factory<TaskExecuter> taskExecuterFactory = new Factory<TaskExecuter>() {
             @Override
             public TaskExecuter create() {
                 return get(TaskExecuter.class);
             }
         };
-        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, taskExecuterFactory, cancellationToken, buildOperationExecutor);
+        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, taskExecuterFactory, cancellationToken, buildOperationExecutor, workerLeaseService, coordinationService);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -165,13 +165,13 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
 
-    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, DependencyInjectingInstantiator.ConstructorCache constructorCache) {
-        PluginApplicator applicator = new ImperativeOnlyPluginApplicator<Gradle>(gradleInternal);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, constructorCache), applicator);
+    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
+        PluginTarget target = new ImperativeOnlyPluginTarget<Gradle>(gradleInternal);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor);
     }
 
-    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileHasher fileHasher, FileSystem fileSystem, FileSystemMirror fileSystemMirror, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle) {
-        return new DefaultFileContentCacheFactory(listenerManager, fileHasher, fileSystem, fileSystemMirror, cacheRepository, inMemoryCacheDecoratorFactory, gradle);
+    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle) {
+        return new DefaultFileContentCacheFactory(listenerManager, fileSystemSnapshotter, cacheRepository, inMemoryCacheDecoratorFactory, gradle);
     }
 
     protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileResolver fileResolver) {

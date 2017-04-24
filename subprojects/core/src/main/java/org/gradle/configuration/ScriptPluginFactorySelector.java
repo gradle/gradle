@@ -21,7 +21,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.progress.BuildOperationExecutor;
 
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based
@@ -34,6 +34,8 @@ import org.gradle.internal.service.ServiceRegistry;
  * with a suffix of choice, e.g. "build.groovy" or "my.build" instead of the typical
  * "build.gradle" while preserving default behaviour.
  *
+ * This factory wraps each {@link ScriptPlugin} implementation in a {@link BuildOperationScriptPlugin}.
+ *
  * @see ScriptPluginFactoryProvider
  * @since 2.14
  */
@@ -41,19 +43,23 @@ import org.gradle.internal.service.ServiceRegistry;
 public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
     private final ScriptPluginFactory defaultScriptPluginFactory;
-    private final ServiceRegistry serviceRegistry;
+    private final DependencyInjectingServiceLoader serviceLoader;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public ScriptPluginFactorySelector(ScriptPluginFactory defaultScriptPluginFactory,
-                                       ServiceRegistry serviceRegistry) {
+                                       DependencyInjectingServiceLoader serviceLoader,
+                                       BuildOperationExecutor buildOperationExecutor) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
-        this.serviceRegistry = serviceRegistry;
+        this.serviceLoader = serviceLoader;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope,
                                ClassLoaderScope baseScope, boolean topLevelScript) {
-        return scriptPluginFactoryFor(scriptSource.getFileName())
+        ScriptPlugin scriptPlugin = scriptPluginFactoryFor(scriptSource.getFileName())
             .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
+        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationExecutor);
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {
@@ -73,10 +79,6 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private Iterable<ScriptPluginFactoryProvider> scriptPluginFactoryProviders() {
-        return serviceLoader().load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
-    }
-
-    private DependencyInjectingServiceLoader serviceLoader() {
-        return new DependencyInjectingServiceLoader(serviceRegistry);
+        return serviceLoader.load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
     }
 }

@@ -72,7 +72,7 @@ public class DefaultProjectDescriptorTest {
         final ProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(ProjectDescriptorRegistry.class);
         projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
         context.checking(new Expectations() {{
-            one(projectDescriptorRegistryMock).changeDescriptorPath(Path.path(TEST_NAME), Path.path(Project.PATH_SEPARATOR + newName));
+            one(projectDescriptorRegistryMock).changeDescriptorPath(Path.path(Project.PATH_SEPARATOR + TEST_NAME), Path.path(Project.PATH_SEPARATOR + newName));
         }});
         projectDescriptor.setName(newName);
         assertEquals(newName, projectDescriptor.getName());

@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks;
 
 public enum TaskOutputCachingDisabledReasonCategory {
+    UNKNOWN,
     BUILD_CACHE_DISABLED,
     NOT_ENABLED_FOR_TASK,
     NO_OUTPUTS_DECLARED,
     PLURAL_OUTPUTS,
     CACHE_IF_SPEC_NOT_SATISFIED,
-    DO_NOT_CACHE_IF_SPEC_SATISFIED
+    DO_NOT_CACHE_IF_SPEC_SATISFIED,
+    OVERLAPPING_OUTPUTS
 }

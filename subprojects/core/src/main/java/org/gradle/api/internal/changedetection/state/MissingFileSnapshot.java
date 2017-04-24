@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,50 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
+import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-class MissingFileSnapshot implements IncrementalFileSnapshot {
-    private static final MissingFileSnapshot INSTANCE = new MissingFileSnapshot();
-    private static final HashCode SIGNATURE = Hashing.md5().hashString(MissingFileSnapshot.class.getName(), Charsets.UTF_8);
+/**
+ * Snapshot for a missing file. Note that currently a missing file is always a root file.
+ */
+class MissingFileSnapshot implements FileSnapshot {
+    private final String path;
+    private final RelativePath relativePath;
 
-    private MissingFileSnapshot() {
-    }
-
-    static MissingFileSnapshot getInstance() {
-        return INSTANCE;
+    MissingFileSnapshot(String path, RelativePath relativePath) {
+        this.path = path;
+        this.relativePath = relativePath;
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot) {
-        return isContentUpToDate(snapshot);
+    public String toString() {
+        return getType() + " " + path;
     }
 
-    public boolean isContentUpToDate(IncrementalFileSnapshot snapshot) {
-        return snapshot instanceof MissingFileSnapshot;
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    @Override
+    public String getName() {
+        return relativePath.getLastName();
+    }
+
+    @Override
+    public boolean isRoot() {
+        return true;
+    }
+
+    @Override
+    public RelativePath getRelativePath() {
+        return relativePath;
+    }
+
+    @Override
+    public FileContentSnapshot getContent() {
+        return MissingFileContentSnapshot.getInstance();
     }
 
     @Override
@@ -47,12 +68,7 @@ class MissingFileSnapshot implements IncrementalFileSnapshot {
     }
 
     @Override
-    public HashCode getContentMd5() {
-        return SIGNATURE;
-    }
-
-    @Override
-    public String toString() {
-        return "MISSING";
+    public FileSnapshot withContentHash(HashCode contentHash) {
+        throw new UnsupportedOperationException("Cannot change the content of a missing file");
     }
 }

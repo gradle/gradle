@@ -35,6 +35,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private static final Pattern EXCEPTION_PATTERN = Pattern.compile("(?ms)^\\* Exception is:$(.+?):(.+?)$");
+    private static final Pattern EXCEPTION_CAUSE_PATTERN = Pattern.compile("(?ms)^Caused by: (.+?):(.+?)$");
     private final String description;
     private final String lineNumber;
     private final String fileName;
@@ -90,7 +91,8 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         } else {
             String exceptionClass = matcher.group(1).trim();
             String exceptionMessage = matcher.group(2).trim();
-            exception = recreateException(exceptionClass, exceptionMessage);
+            matcher = EXCEPTION_CAUSE_PATTERN.matcher(error);
+            exception = recreateException(exceptionClass, exceptionMessage, matcher);
         }
     }
 
@@ -119,9 +121,19 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return new Problem(description, causes);
     }
 
-    private Exception recreateException(String className, String message) {
+    private Exception recreateException(String className, String message, java.util.regex.Matcher exceptionCauseMatcher) {
+        Exception causedBy = null;
+        if (exceptionCauseMatcher.find()) {
+            String causedByClass = exceptionCauseMatcher.group(1).trim();
+            String causedByMessage = exceptionCauseMatcher.group(2).trim();
+            causedBy = recreateException(causedByClass, causedByMessage, exceptionCauseMatcher);
+        }
         try {
-            return (Exception) Class.forName(className).getConstructor(String.class).newInstance(message);
+            if (causedBy == null) {
+                return (Exception) Class.forName(className).getConstructor(String.class).newInstance(message);
+            } else {
+                return (Exception) Class.forName(className).getConstructor(String.class, Throwable.class).newInstance(message, causedBy);
+            }
         } catch (Exception e) {
             return new Exception(message);
         }

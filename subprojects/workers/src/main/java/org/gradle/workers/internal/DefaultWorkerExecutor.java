@@ -29,13 +29,14 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry.Operation;
+import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
+import org.gradle.workers.ForkMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
@@ -48,48 +49,56 @@ import java.util.concurrent.Future;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ListeningExecutorService executor;
-    private final WorkerDaemonFactory workerDaemonFactory;
-    private final Class<? extends WorkerDaemonProtocol> serverImplementationClass;
+    private final WorkerFactory workerDaemonFactory;
+    private final WorkerFactory workerInProcessFactory;
     private final FileResolver fileResolver;
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
 
-    public DefaultWorkerExecutor(WorkerDaemonFactory workerDaemonFactory, FileResolver fileResolver, Class<? extends WorkerDaemonProtocol> serverImplementationClass, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+    public DefaultWorkerExecutor(WorkerFactory workerDaemonFactory, WorkerFactory workerInProcessFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
         this.workerDaemonFactory = workerDaemonFactory;
+        this.workerInProcessFactory = workerInProcessFactory;
         this.fileResolver = fileResolver;
-        this.serverImplementationClass = serverImplementationClass;
         this.executor = MoreExecutors.listeningDecorator(executorFactory.create("Worker Daemon Execution"));
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
     }
 
     @Override
-    public void submit(Class<? extends Runnable> actionClass, Action<WorkerConfiguration> configAction) {
+    public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
         configAction.execute(configuration);
-        WorkSpec spec = new ParamSpec(configuration.getParams());
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
-        WorkerDaemonAction action = new WorkerDaemonRunnableAction(description, actionClass);
-        submit(action, spec, configuration.getForkOptions().getWorkingDir(), getDaemonForkOptions(actionClass, configuration));
+
+        // Serialize parameters in this thread prior to starting work in a separate thread
+        ActionExecutionSpec spec;
+        try {
+            spec = new ActionExecutionSpec(actionClass, description, configuration.getParams());
+        } catch (Throwable t) {
+            throw new WorkExecutionException(description, t);
+        }
+
+        submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getForkMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final WorkerDaemonAction action, final WorkSpec spec, final File workingDir, final DaemonForkOptions daemonForkOptions) {
-        final Operation currentWorkerOperation = buildOperationWorkerRegistry.getCurrent();
+    private void submit(final ActionExecutionSpec spec, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
+        final WorkerLease currentWorkerWorkerLease = workerLeaseRegistry.getCurrentWorkerLease();
         final BuildOperationExecutor.Operation currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
-                    WorkerDaemon daemon = workerDaemonFactory.getDaemon(serverImplementationClass, workingDir, daemonForkOptions);
-                    return daemon.execute(action, spec, currentWorkerOperation, currentBuildOperation);
+                    WorkerFactory workerFactory = fork == ForkMode.ALWAYS ? workerDaemonFactory : workerInProcessFactory;
+                    Worker<ActionExecutionSpec> worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
+                    return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
                 } catch (Throwable t) {
-                    throw new WorkExecutionException(action.getDescription(), t);
+                    throw new WorkExecutionException(spec.getDisplayName(), t);
                 }
             }
         });
-        registerAsyncWork(action.getDescription(), workerDaemonResult);
+        registerAsyncWork(spec.getDisplayName(), workerDaemonResult);
     }
 
     void registerAsyncWork(final String description, final Future<DefaultWorkResult> workItem) {
@@ -106,6 +115,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 } catch (ExecutionException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
+            }
+
+            @Override
+            public boolean isComplete() {
+                return workItem.isDone();
             }
         });
     }
@@ -142,14 +156,16 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
 
+        sharedPackagesBuilder.add("javax.inject");
+
         if (classpath != null) {
             classpathBuilder.addAll(classpath);
         }
 
-        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder);
+        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder, true);
 
         for (Class<?> paramClass : paramClasses) {
-            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder);
+            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
         }
 
         Iterable<File> daemonClasspath = classpathBuilder.build();
@@ -158,11 +174,17 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new DaemonForkOptions(forkOptions.getMinHeapSize(), forkOptions.getMaxHeapSize(), forkOptions.getAllJvmArgs(), daemonClasspath, daemonSharedPackages);
     }
 
-    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder) {
+    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder, boolean addToSharedPackages) {
         if (visibleClass.getClassLoader() != null) {
             classpathBuilder.addAll(ClasspathUtil.getClasspath(visibleClass.getClassLoader()).getAsFiles());
         }
 
+        if (addToSharedPackages) {
+            addVisiblePackage(visibleClass, sharedPackagesBuilder);
+        }
+    }
+
+    private static void addVisiblePackage(Class<?> visibleClass, ImmutableSet.Builder<String> sharedPackagesBuilder) {
         if (visibleClass.getPackage() == null || "".equals(visibleClass.getPackage().getName())) {
             sharedPackagesBuilder.add(FilteringClassLoader.DEFAULT_PACKAGE);
         } else {
@@ -172,11 +194,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Contextual
     private static class WorkExecutionException extends RuntimeException {
-        public WorkExecutionException(String description) {
-            this(description, null);
-        }
-
-        public WorkExecutionException(String description, Throwable cause) {
+        WorkExecutionException(String description, Throwable cause) {
             super("A failure occurred while executing " + description, cause);
         }
     }

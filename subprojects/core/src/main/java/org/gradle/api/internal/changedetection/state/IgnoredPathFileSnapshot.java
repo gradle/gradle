@@ -21,9 +21,9 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashUtil;
 
 public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
-    private final IncrementalFileSnapshot snapshot;
+    private final FileContentSnapshot snapshot;
 
-    public IgnoredPathFileSnapshot(IncrementalFileSnapshot snapshot) {
+    public IgnoredPathFileSnapshot(FileContentSnapshot snapshot) {
         this.snapshot = snapshot;
     }
 
@@ -33,7 +33,7 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
     }
 
     @Override
-    public IncrementalFileSnapshot getSnapshot() {
+    public FileContentSnapshot getSnapshot() {
         return snapshot;
     }
 

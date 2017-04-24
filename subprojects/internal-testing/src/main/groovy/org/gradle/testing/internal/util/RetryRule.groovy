@@ -16,6 +16,7 @@
 
 package org.gradle.testing.internal.util
 
+import groovy.transform.CompileStatic
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
@@ -34,12 +35,13 @@ import spock.lang.Specification
   If the test method depends on state held in the test instance, then retrying might not behave as expected.
   See this thread for more details: https://groups.google.com/forum/#!msg/spockframework/95ACCVg-aCQ/0SIvxoLhX7UJ:
  */
+@CompileStatic
 class RetryRule implements MethodRule {
 
     private Closure<Boolean> shouldRetry
     private Specification specification
 
-    private RetryRule(Specification specification, Closure<Boolean> shouldRetry) {
+    protected RetryRule(Specification specification, Closure<Boolean> shouldRetry) {
         this.specification = specification
         this.shouldRetry = shouldRetry
     }
@@ -54,6 +56,9 @@ class RetryRule implements MethodRule {
 
     @Override
     Statement apply(Statement base, FrameworkMethod method, Object target) {
+        if (specification == null) {
+            specification = target as Specification
+        }
         return {
             try {
                 base.evaluate()
@@ -82,7 +87,7 @@ class RetryRule implements MethodRule {
                     throw t1
                 }
             }
-        }
+        } as Statement
     }
 
     private void runCleanup(SpecInfo spec) {

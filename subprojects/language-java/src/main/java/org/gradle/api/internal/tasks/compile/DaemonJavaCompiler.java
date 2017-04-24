@@ -27,8 +27,8 @@ import java.util.Collections;
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("com.sun.tools.javac");
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory compilerDaemonFactory) {
-        super(daemonWorkingDir, delegate, compilerDaemonFactory);
+    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory workerDaemonFactory) {
+        super(daemonWorkingDir, delegate, workerDaemonFactory);
     }
 
     @Override

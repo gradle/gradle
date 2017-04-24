@@ -28,7 +28,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-
 class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
     private Map operations
@@ -52,6 +51,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                 
                 void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
                     operations[buildOperation.id] = [
+                        id: "\${buildOperation.id}",
                         displayName: "\${buildOperation.displayName}",
                         parentId: "\${buildOperation.parentId}",
                         name: "\${buildOperation.name}",
@@ -61,7 +61,12 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
 
                 void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
                     if (!operations[buildOperation.id]) {
-                        operations[buildOperation.id] = [:]
+                        operations[buildOperation.id] = [
+                            id: "\${buildOperation.id}",
+                            displayName: "\${buildOperation.displayName}",
+                            parentId: "\${buildOperation.parentId}",
+                            name: "\${buildOperation.name}"
+                        ]
                     }
                     operations[buildOperation.id].endTime = finishEvent.endTime
                     if (finishEvent.failure != null) {
@@ -93,7 +98,11 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
     }
 
     boolean hasOperation(String displayName) {
-        return operations.find { it.value.displayName == displayName } != null
+        return operation(displayName) != null
+    }
+
+    Object operation(String displayName) {
+        return operations.find { it.value.displayName == displayName }.value
     }
 
     Map getOperations() {

@@ -15,6 +15,7 @@
  */
 package org.gradle.process.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
@@ -28,7 +29,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private final PathToFileResolver resolver;
     private Object executable;
     private Factory<File> workingDir;
-    private final Map<String, Object> environment = new HashMap<String, Object>(Jvm.current().getInheritableEnvironmentVariables(System.getenv()));
+    private Map<String, Object> environment;
 
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
         this.resolver = resolver;
@@ -62,36 +63,41 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     public Map<String, Object> getEnvironment() {
+        if (environment == null) {
+            setEnvironment(Jvm.current().getInheritableEnvironmentVariables(System.getenv()));
+        }
         return environment;
     }
 
     public Map<String, String> getActualEnvironment() {
         Map<String, String> actual = new HashMap<String, String>();
-        for (Map.Entry<String, Object> entry : environment.entrySet()) {
+        for (Map.Entry<String, Object> entry : getEnvironment().entrySet()) {
             actual.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
         return actual;
     }
 
     public void setEnvironment(Map<String, ?> environmentVariables) {
-        environment.clear();
+        environment = Maps.newHashMap();
         environment.putAll(environmentVariables);
     }
 
     public ProcessForkOptions environment(String name, Object value) {
-        environment.put(name, value);
+        getEnvironment().put(name, value);
         return this;
     }
 
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        environment.putAll(environmentVariables);
+        getEnvironment().putAll(environmentVariables);
         return this;
     }
 
     public ProcessForkOptions copyTo(ProcessForkOptions target) {
         target.setExecutable(executable);
         target.setWorkingDir(workingDir);
-        target.setEnvironment(environment);
+        if (environment != null) {
+            target.setEnvironment(environment);
+        }
         return this;
     }
 }

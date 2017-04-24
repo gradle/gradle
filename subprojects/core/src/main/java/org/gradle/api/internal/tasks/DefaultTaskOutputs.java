@@ -37,7 +37,6 @@ import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -47,6 +46,8 @@ import java.util.concurrent.Callable;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
+    private static final TaskOutputCachingState ENABLED = DefaultTaskOutputCachingState.enabled();
+    public static final TaskOutputCachingState DISABLED = DefaultTaskOutputCachingState.disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
     private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task");
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
@@ -65,10 +66,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
-
-        final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-        buildDependencies.add(task);
-        this.allOutputFiles = new TaskOutputUnionFileCollection(buildDependencies);
+        this.allOutputFiles = new TaskOutputUnionFileCollection(task);
     }
 
     @Override
@@ -99,8 +97,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         if (cacheIfSpecs.isEmpty()) {
             return CACHING_NOT_ENABLED;
         }
+
         if (!hasDeclaredOutputs()) {
             return NO_OUTPUTS_DECLARED;
+        }
+
+        TaskExecutionHistory.OverlappingOutputs overlappingOutputs = getOverlapOutputs();
+        if (overlappingOutputs!=null) {
+            return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
+                String.format("Outputs created by something else (e.g. '%s') were found in output property '%s' before executing this task.",
+                    overlappingOutputs.getOverlappedFilePath(), overlappingOutputs.getPropertyName()));
         }
 
         for (TaskPropertySpec spec : getFileProperties()) {
@@ -113,6 +119,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 );
             }
         }
+
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
             if (!selfDescribingSpec.isSatisfiedBy(task)) {
                 return DefaultTaskOutputCachingState.disabled(
@@ -121,6 +128,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 );
             }
         }
+
         for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
             if (selfDescribingSpec.isSatisfiedBy(task)) {
                 return DefaultTaskOutputCachingState.disabled(
@@ -129,7 +137,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 );
             }
         }
-        return DefaultTaskOutputCachingState.ENABLED;
+        return ENABLED;
+    }
+
+    private TaskExecutionHistory.OverlappingOutputs getOverlapOutputs() {
+        return history!=null ? history.getOverlappingOutputDetection() : null;
     }
 
     @Override
@@ -144,12 +156,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 cacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingEnabledReason));
             }
         });
-    }
-
-    @Override
-    public void doNotCacheIf(final Spec<? super Task> spec) {
-        DeprecationLogger.nagUserOfReplacedMethod("doNotCacheIf(Spec)", "doNotCacheIf(String, Spec)");
-        doNotCacheIf("Task outputs not cacheable", spec);
     }
 
     @Override
@@ -200,7 +206,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.FILE, path));
+                return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(task.getName(), resolver, OutputType.FILE, path));
             }
         });
     }
@@ -210,7 +216,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.DIRECTORY, path));
+                return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(task.getName(), resolver, OutputType.DIRECTORY, path));
             }
         });
     }
@@ -220,7 +226,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CompositeTaskOutputPropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.FILE, paths));
+                return addSpec(new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.FILE, paths));
             }
         });
     }
@@ -230,7 +236,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dirs(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CompositeTaskOutputPropertySpec(DefaultTaskOutputs.this, task.getName(), resolver, OutputType.DIRECTORY, paths));
+                return addSpec(new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.DIRECTORY, paths));
             }
         });
     }
@@ -254,9 +260,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
-        private final DefaultTaskDependency buildDependencies;
+        private final TaskInternal buildDependencies;
 
-        public TaskOutputUnionFileCollection(DefaultTaskDependency buildDependencies) {
+        public TaskOutputUnionFileCollection(TaskInternal buildDependencies) {
             this.buildDependencies = buildDependencies;
         }
 

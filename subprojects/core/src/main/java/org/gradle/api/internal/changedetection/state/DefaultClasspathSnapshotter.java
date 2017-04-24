@@ -17,10 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.util.ArrayList;
@@ -29,17 +28,17 @@ import java.util.Comparator;
 import java.util.List;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private static final Comparator<FileDetails> FILE_DETAILS_COMPARATOR = new Comparator<FileDetails>() {
+    private static final Comparator<FileSnapshot> FILE_DETAILS_COMPARATOR = new Comparator<FileSnapshot>() {
         @Override
-        public int compare(FileDetails o1, FileDetails o2) {
+        public int compare(FileSnapshot o1, FileSnapshot o2) {
             return o1.getPath().compareTo(o2.getPath());
         }
     };
 
     private final ClasspathEntryHasher classpathEntryHasher;
 
-    public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror, ClasspathEntryHasher classpathEntryHasher) {
-        super(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
+    public DefaultClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, ClasspathEntryHasher classpathEntryHasher) {
+        super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         this.classpathEntryHasher = classpathEntryHasher;
     }
 
@@ -49,13 +48,18 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected List<FileDetails> normaliseTreeElements(List<FileDetails> fileDetails) {
-        // TODO: We could rework this to produce a FileDetails for the directory that
+    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
+        return super.snapshot(input, TaskFilePropertyCompareStrategy.ORDERED, snapshotNormalizationStrategy);
+    }
+
+    @Override
+    protected List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
+        // TODO: We could rework this to produce a FileSnapshot for the directory that
         // has a hash for the contents of this directory vs returning a list of the contents
         // of the directory with their hashes
         // Collect the signatures of each class file
-        List<FileDetails> sorted = new ArrayList<FileDetails>(fileDetails.size());
-        for (FileDetails details : fileDetails) {
+        List<FileSnapshot> sorted = new ArrayList<FileSnapshot>(fileDetails.size());
+        for (FileSnapshot details : fileDetails) {
             if (details.getType() == FileType.RegularFile) {
                 HashCode signatureForClass = classpathEntryHasher.hash(details);
                 if (signatureForClass == null) {
@@ -72,7 +76,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected FileDetails normaliseFileElement(FileDetails details) {
+    protected FileSnapshot normaliseFileElement(FileSnapshot details) {
         HashCode signature = classpathEntryHasher.hash(details);
         if (signature!=null) {
             return details.withContentHash(signature);

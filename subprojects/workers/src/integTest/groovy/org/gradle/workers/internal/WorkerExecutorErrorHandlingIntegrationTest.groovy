@@ -17,21 +17,24 @@
 package org.gradle.workers.internal
 
 import org.gradle.internal.jvm.Jvm
+import spock.lang.Unroll
 
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    def "produces a sensible error when there is a failure in the daemon runnable"() {
+    @Unroll
+    def "produces a sensible error when there is a failure in the worker runnable in #forkMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableThatFails
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
             }
-        """
+        """.stripIndent()
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing RunnableThatFails")
@@ -39,21 +42,22 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         and:
         failureHasCause("Failure from runnable")
 
-        and:
-        errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from runnable")
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error when there is a failure starting a daemon"() {
+    def "produces a sensible error when there is a failure starting a worker daemon"() {
         executer.withStackTraceChecksDisabled()
         withRunnableClassInBuildSrc()
 
         buildFile << """
-            task runInDaemon(type: DaemonTask) {
+            task runInDaemon(type: WorkerTask) {
+                forkMode = ForkMode.ALWAYS
                 additionalForkOptions = {
                     it.jvmArgs "-foo"
                 }
             }
-        """
+        """.stripIndent()
 
         when:
         fails("runInDaemon")
@@ -68,134 +72,164 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Failed to run Gradle Worker Daemon")
     }
 
-    def "produces a sensible error when a parameter can't be serialized"() {
+    @Unroll
+    def "produces a sensible error when a parameter can't be serialized to the worker in #forkMode"() {
         withRunnableClassInBuildSrc()
-        withUnserializableParameterInBuildSrc()
+        withParameterMemberThatFailsSerialization()
 
         buildFile << """
             $alternateRunnable
 
-            task runAgainInDaemon(type: DaemonTask) {
+            task runAgainInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
             
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 foo = new FooWithUnserializableBar()
-                finalizedBy runAgainInDaemon
+                finalizedBy runAgainInWorker
             }
-        """
+        """.stripIndent()
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
-        failureCauseContains("Could not write message")
-        errorOutput.contains("Caused by: java.io.NotSerializableException: org.gradle.error.Bar")
+        failureHasCause("Could not serialize parameters")
+        failureHasCause("Broken")
 
         and:
-        executedAndNotSkipped(":runAgainInDaemon")
-        assertRunnableExecuted("runAgainInDaemon")
+        executedAndNotSkipped(":runAgainInWorker")
+        assertRunnableExecuted("runAgainInWorker")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error when a parameter can't be de-serialized in the worker"() {
+    @Unroll
+    def "produces a sensible error when a parameter can't be de-serialized in the worker in #forkMode"() {
         def parameterJar = file("parameter.jar")
         withRunnableClassInBuildSrc()
-        withUnserializableParameterMemberInExternalJar(parameterJar)
+        withParameterMemberThatFailsDeserialization()
 
         buildFile << """  
             $alternateRunnable
 
-            task runAgainInDaemon(type: DaemonTask) {
+            task runAgainInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 additionalClasspath = files('${parameterJar.name}')
                 foo = new FooWithUnserializableBar()
-                finalizedBy runAgainInDaemon
+                finalizedBy runAgainInWorker
             }
         """
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
-        failureCauseContains("Could not read message")
-        errorOutput.contains("Caused by: java.lang.ClassNotFoundException: org.gradle.error.Bar")
+        failureHasCause("Could not deserialize parameters")
+        failureHasCause("Broken")
 
         and:
-        executedAndNotSkipped(":runAgainInDaemon")
-        assertRunnableExecuted("runAgainInDaemon")
+        executedAndNotSkipped(":runAgainInWorker")
+        assertRunnableExecuted("runAgainInWorker")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error even if the action failure cannot be fully serialized"() {
+    @Unroll
+    def "produces a sensible error even if the action failure cannot be fully serialized in #forkMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $alternateRunnable
 
-            task runAgainInDaemon(type: DaemonTask) {
+            task runAgainInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 runnableClass = AlternateRunnable.class
             }
 
             $runnableThatThrowsUnserializableMemberException
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
-                finalizedBy runAgainInDaemon
+                finalizedBy runAgainInWorker
             }
         """
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing RunnableThatFails")
         failureHasCause("Unserializable exception from runnable")
 
         and:
-        executedAndNotSkipped(":runAgainInDaemon")
-        assertRunnableExecuted("runAgainInDaemon")
+        executedAndNotSkipped(":runAgainInWorker")
+        assertRunnableExecuted("runAgainInWorker")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error when the runnable cannot be instantiated"() {
+    @Unroll
+    def "produces a sensible error when the runnable cannot be instantiated in #forkMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableThatFailsInstantiation
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 runnableClass = RunnableThatFails.class
             }
-        """
+        """.stripIndent()
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing RunnableThatFails")
+        failureHasCause("Could not create an instance of type RunnableThatFails.")
         failureHasCause("You shall not pass!")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
-    def "produces a sensible error when parameters are incorrect"() {
+    @Unroll
+    def "produces a sensible error when parameters are incorrect in #forkMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableWithDifferentConstructor
 
-            task runInDaemon(type: DaemonTask) {
+            task runInWorker(type: WorkerTask) {
+                forkMode = $forkMode
                 runnableClass = RunnableWithDifferentConstructor.class
             }
-        """
+        """.stripIndent()
 
         when:
-        fails("runInDaemon")
+        fails("runInWorker")
 
         then:
         failureHasCause("A failure occurred while executing RunnableWithDifferentConstructor")
-        failureHasCause("Could not find any public constructor for class RunnableWithDifferentConstructor which accepts parameters")
+        failureHasCause("Could not create an instance of type RunnableWithDifferentConstructor.")
+        failureHasCause("Too many parameters provided for constructor for class RunnableWithDifferentConstructor. Expected 2, received 3.")
+
+        where:
+        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
     }
 
     String getUnrecognizedOptionError() {
@@ -210,6 +244,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getRunnableThatFails() {
         return """
             public class RunnableThatFails implements Runnable {
+                @javax.inject.Inject
                 public RunnableThatFails(List<String> files, File outputDir, Foo foo) { }
 
                 public void run() {
@@ -222,6 +257,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getRunnableThatThrowsUnserializableMemberException() {
         return """
             public class RunnableThatFails implements Runnable {
+                @javax.inject.Inject
                 public RunnableThatFails(List<String> files, File outputDir, Foo foo) { }
 
                 public void run() {
@@ -241,11 +277,32 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         """
     }
 
-    String getUnserializableClass() {
+    String getClassThatFailsDeserialization() {
         return """
-            package org.gradle.error;
+            package org.gradle.other;
             
-            public class Bar {
+            import java.io.Serializable;
+            import java.io.IOException;
+            
+            public class Bar implements Serializable {
+                private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+                    throw new IOException("Broken");
+                }
+            }
+        """
+    }
+
+    String getClassThatFailsSerialization() {
+        return """
+            package org.gradle.other;
+            
+            import java.io.Serializable;
+            import java.io.IOException;
+            
+            public class Bar implements Serializable {
+                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                    throw new IOException("Broken");
+                }
             }
         """
     }
@@ -254,7 +311,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         return """
             package org.gradle.other;
             
-            import org.gradle.error.Bar;
             import java.io.Serializable;
             
             public class FooWithUnserializableBar extends Foo implements Serializable {
@@ -266,6 +322,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     String getRunnableThatFailsInstantiation() {
         return """
             public class RunnableThatFails implements Runnable {
+                @javax.inject.Inject
                 public RunnableThatFails(List<String> files, File outputDir, Foo foo) { 
                     throw new IllegalArgumentException("You shall not pass!")
                 }
@@ -276,10 +333,10 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         """
     }
 
-    void withUnserializableParameterInBuildSrc() {
+    void withParameterMemberThatFailsSerialization() {
         // Create an un-serializable class
-        file('buildSrc/src/main/java/org/gradle/error/Bar.java').text = """
-            $unserializableClass
+        file('buildSrc/src/main/java/org/gradle/other/Bar.java').text = """
+            $classThatFailsSerialization
         """
 
         // Create a Foo class with an un-serializable member
@@ -290,35 +347,24 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         addImportToBuildScript("org.gradle.other.FooWithUnserializableBar")
     }
 
-    void withUnserializableParameterMemberInExternalJar(File parameterJar) {
-        def builder = artifactBuilder()
-
-        builder.sourceFile("org/gradle/error/Bar.java") << """
-            $unserializableClass
-        """
-
+    void withParameterMemberThatFailsDeserialization() {
         // Overwrite the Foo class with a class with an un-serializable member
         file('buildSrc/src/main/java/org/gradle/other/FooWithUnserializableBar.java').text = """
             $parameterClassWithUnserializableMember
         """
 
-        // A serializable form of the class so we can get past sending the message
+        // An unserializable member class
         file('buildSrc/src/main/java/org/gradle/error/Bar.java').text = """
-            package org.gradle.error;
-            
-            import java.io.Serializable;
-            
-            public class Bar implements Serializable {
-            }
+            $classThatFailsDeserialization
         """
 
-        builder.buildJar(parameterJar)
         addImportToBuildScript("org.gradle.other.FooWithUnserializableBar")
     }
 
     String getRunnableWithDifferentConstructor() {
         return """
             public class RunnableWithDifferentConstructor implements Runnable {
+                @javax.inject.Inject
                 public RunnableWithDifferentConstructor(List<String> files, File outputDir) { 
                 }
 

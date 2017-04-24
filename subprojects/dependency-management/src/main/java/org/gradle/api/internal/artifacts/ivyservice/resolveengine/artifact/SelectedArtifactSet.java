@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-
-import java.io.File;
 import java.util.Collection;
 
 /**
@@ -30,22 +26,6 @@ public interface SelectedArtifactSet {
      * Collects the build dependencies required to build the artifacts in this result.
      */
     <T extends Collection<Object>> T collectBuildDependencies(T dest);
-
-    /**
-     * Collects files into the given collection. Fails when any file cannot be resolved.
-     *
-     * @return the collection
-     * @throws ResolveException On any failure.
-     */
-    <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException;
-
-    /**
-     * Collects all artifacts into the given collection. Fails when any artifact cannot be resolved.
-     *
-     * @return the collection
-     * @throws ResolveException On any failure.
-     */
-    <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException;
 
     /**
      * Visits the files and artifacts of this set.

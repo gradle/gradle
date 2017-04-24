@@ -20,7 +20,7 @@ import com.google.common.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 /**
- * An immutable snapshot of the type and content of a resource.
+ * An immutable snapshot of the type and content of a resource. Does not include any information about the identity of the resource. The resource may not exist.
  */
 public interface ResourceContentMetadataSnapshot {
     FileType getType();

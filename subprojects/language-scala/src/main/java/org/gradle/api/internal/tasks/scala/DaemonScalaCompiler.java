@@ -47,8 +47,8 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
             Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
     private final Iterable<File> zincClasspath;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
-        super(daemonWorkingDir, delegate, daemonFactory);
+    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath) {
+        super(daemonWorkingDir, delegate, workerDaemonFactory);
         this.zincClasspath = zincClasspath;
     }
 

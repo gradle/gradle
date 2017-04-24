@@ -35,8 +35,11 @@ import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
-    // Can we just override Task.getActions()?
-    // Would need to change return type on Task API to: List<? super Action<? super Task>> : not certain this is back-compatible
+    /**
+     * A more efficient version of {@link #getActions()}, which circumvents the
+     * validating change listener that normally prevents users from changing tasks
+     * once they start executing.
+     */
     @Internal
     List<ContextAwareTaskAction> getTaskActions();
 

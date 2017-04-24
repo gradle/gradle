@@ -19,7 +19,6 @@ package org.gradle.caching.internal.tasks
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
@@ -27,7 +26,10 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStra
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,10 +40,28 @@ import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.
 
 @CleanupTestDirectory(fieldName = "tempDir")
 abstract class AbstractTaskOutputPackerSpec extends Specification {
-    def taskOutputs = Mock(TaskOutputsInternal)
-
     @Rule
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    def readOrigin = Stub(TaskOutputOriginReader)
+    def writeOrigin = Stub(TaskOutputOriginWriter)
+
+    abstract TaskOutputPacker getPacker()
+
+    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, TaskOutputFilePropertySpec... propertySpecs) {
+        pack(output, writeOrigin, propertySpecs as SortedSet)
+    }
+
+    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, SortedSet<TaskOutputFilePropertySpec> propertySpecs) {
+        packer.pack(propertySpecs, output, writeOrigin)
+    }
+
+    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, TaskOutputFilePropertySpec... propertySpecs) {
+        unpack(input, readOrigin, propertySpecs as SortedSet)
+    }
+
+    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, SortedSet<TaskOutputFilePropertySpec> propertySpecs) {
+        packer.unpack(propertySpecs, input, readOrigin)
+    }
 
     @ToString
     @EqualsAndHashCode
@@ -76,5 +96,4 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
             propertyName <=> o.propertyName
         }
     }
-
 }

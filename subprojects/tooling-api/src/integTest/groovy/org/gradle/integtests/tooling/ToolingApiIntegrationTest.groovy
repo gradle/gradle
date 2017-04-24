@@ -283,7 +283,7 @@ allprojects {
         // Does the tooling API hold the JVM open (which will also hold the build open)?
         while (handle.running) {
             if (stopTimer.hasExpired()) {
-                throw new Exception("timeout after placing stop marker (JVM might have been held open")
+                throw new Exception("timeout after placing stop marker (JVM might have been held open)")
             }
             sleep retryIntervalMs
         }

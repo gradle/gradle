@@ -26,6 +26,7 @@ import org.gradle.testing.performance.generator.*
  */
 abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     int sourceFiles = 1
+    int projectCount = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
     int filesPerPackage = 100
@@ -43,7 +44,6 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
 
     AbstractProjectGeneratorTask() {
         super()
-        setProjects(1)
     }
 
     int getTestSourceFiles() {
@@ -51,18 +51,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     }
 
     void setProjects(int projectCount) {
-        if (projects.size() > projectCount) {
-            projects.subList(projectCount, projects.size()).clear()
-        } else {
-            while (projects.size() < projectCount) {
-                def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this, projects.size())
-                projects << project
-            }
-        }
-    }
-
-    int getProjectCount() {
-        projects.size()
+        this.projectCount = projectCount
     }
 
     void dependencyGraph(Closure configClosure) {
@@ -82,6 +71,11 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         println "  root project templates: ${rootProjectTemplates}"
         println "  project templates: ${subProjectTemplates}"
         println "  number of external dependencies: ${numberOfExternalDependencies}"
+
+        while (projects.size() < projectCount) {
+            def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this, projects.size())
+            projects << project
+        }
 
         ant.delete(dir: destDir)
         destDir.mkdirs()
@@ -106,11 +100,11 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         }
     }
 
-    List getSubprojectNames() {
+    protected List getSubprojectNames() {
         return getSubprojects().collect { it.name }
     }
 
-    TestProject getRootProject() {
+    protected TestProject getRootProject() {
         return projects[0]
     }
 
@@ -124,7 +118,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         return repo;
     }
 
-    List<TestProject> getSubprojects() {
+    protected List<TestProject> getSubprojects() {
         return projects.subList(1, projects.size())
     }
 

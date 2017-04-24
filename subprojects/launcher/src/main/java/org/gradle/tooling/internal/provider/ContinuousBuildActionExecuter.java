@@ -64,7 +64,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         this.operatingSystem = operatingSystem;
         this.changeWaiterFactory = changeWaiterFactory;
         this.executorFactory = executorFactory;
-        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.LIFECYCLE);
+        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.QUIET);
     }
 
     @Override

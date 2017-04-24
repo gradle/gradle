@@ -31,10 +31,10 @@ import spock.lang.Issue
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.5")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
-    public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
 
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
+    @TargetGradleVersion(">=3.5 <4.0")
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
@@ -74,7 +74,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureRoot.parent == configureBuild
         configureBuild.children.contains(configureRoot)
 
-        def resolveCompile = events.operation("Resolve dependencies :compile")
+        def resolveCompile = events.operation("Resolve dependencies :compile", "Resolve dependencies of :compile")
         def resolveArtifactAinRoot = events.operation(configureRoot, "Resolve artifact a.jar (project :a)")
         def resolveArtifactBinRoot = events.operation(configureRoot, "Resolve artifact b.jar (project :b)")
         resolveCompile.parent == configureRoot
@@ -84,7 +84,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureA.parent == resolveCompile
         resolveCompile.children == [configureA]
 
-        def resolveCompileA = events.operation("Resolve dependencies :a:compile")
+        def resolveCompileA = events.operation("Resolve dependencies :a:compile", "Resolve dependencies of :a:compile")
         def resolveArtifactBinA = events.operation(configureA, "Resolve artifact b.jar (project :b)")
 
         resolveCompileA.parent == configureA
@@ -95,6 +95,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveCompileA.children == [configureB]
     }
 
+    @TargetGradleVersion(">=3.5 <4.0")
     @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
@@ -140,9 +141,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                    .setJvmArguments("-D${REUSE_USER_HOME_SERVICES}=false")
-                    .addProgressListener(events)
-                    .run()
+                    .addProgressListener(events).run()
         }
 
         then:
@@ -154,7 +153,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureRoot.parent == configureBuild
         configureBuild.children.contains(configureRoot)
 
-        def resolveCompile = events.operation("Resolve dependencies :compile")
+        def resolveCompile = events.operation("Resolve dependencies :compile", "Resolve dependencies of :compile")
         def resolveArtifactA = events.operation("Resolve artifact a.jar (project :a)")
         def resolveArtifactB = events.operation("Resolve artifact projectB.jar (group:projectB:1.0)")
         def resolveArtifactC = events.operation("Resolve artifact projectC.jar (group:projectC:1.5)")
@@ -177,22 +176,16 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifactC.children == [downloadCArtifact]
 
         cleanup:
-        try {
-            toolingApi.getDaemons().killAll()
-        } catch (RuntimeException ex) {
-            //TODO once we figured out why pid from logfile can be null we should remove this again
-            LOGGER.warn("Unable to kill daemon(s)", ex);
-        }
-
+        toolingApi.daemons.killAll()
     }
 
     @Issue("gradle/gradle#1641")
+    @TargetGradleVersion(">=3.5 <4.0")
     @LeaksFileHandles
     def "generates download events during maven publish"() {
-        if (targetDist.version.version == "3.5-rc-1") { return }
-
         given:
         toolingApi.requireIsolatedUserHome()
+        if (targetDist.version.version == "3.5-rc-1") { return }
         def module = mavenHttpRepo.module('group', 'publish', '1')
 
         // module is published
@@ -251,6 +244,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             "Download ${module.rootMetaData.uri}",
             "Download ${module.rootMetaData.sha1.uri}"
         ]
+
+        cleanup:
+        toolingApi.daemons.killAll()
     }
 
     def "generate events for task actions"() {

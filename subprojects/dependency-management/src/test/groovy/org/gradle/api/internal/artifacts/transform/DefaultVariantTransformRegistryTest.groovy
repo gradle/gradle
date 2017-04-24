@@ -22,15 +22,16 @@ import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+
+import javax.inject.Inject
 
 class DefaultVariantTransformRegistryTest extends Specification {
     public static final TEST_ATTRIBUTE = Attribute.of("TEST", String)
@@ -39,15 +40,14 @@ class DefaultVariantTransformRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def instantiator = DirectInstantiator.INSTANCE
+    def instantiatorFactory = TestUtil.instantiatorFactory()
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
     def outputFile = outputDirectory.file('input/OUTPUT_FILE')
     def transformedFileCache = Mock(TransformedFileCache)
     def valueSnapshotter = Mock(ValueSnapshotter)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-    def fileCollectionSnapshotter = Mock(GenericFileCollectionSnapshotter)
     def attributesFactory = new DefaultImmutableAttributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiator, attributesFactory, transformedFileCache, fileCollectionSnapshotter, valueSnapshotter, classLoaderHierarchyHasher)
+    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, valueSnapshotter, classLoaderHierarchyHasher)
 
     def "creates registration without configuration"() {
         when:
@@ -78,7 +78,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         transformed.first() == new File(outputDirectory, "OUTPUT_FILE")
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
         1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
@@ -87,7 +86,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.artifactTransform(TestArtifactTransform) { artifactConfig ->
+            it.artifactTransform(TestArtifactTransformWithParams) { artifactConfig ->
                 artifactConfig.params("EXTRA_1", "EXTRA_2")
             }
         }
@@ -116,11 +115,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
         1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
-    def "fails when artifactTransform cannot be instantiated for registration"() {
+    def "fails when artifactTransform cannot be instantiated"() {
         when:
         registry.registerTransform {
             it.to.attribute(TEST_ATTRIBUTE, "TO")
@@ -141,12 +139,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         def e = thrown(ArtifactTransformException)
         e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.AbstractArtifactTransform"
-        e.cause instanceof VariantTransformConfigurationException
-        e.cause.message == 'Could not create instance of DefaultVariantTransformRegistryTest.AbstractArtifactTransform.'
-        e.cause.cause instanceof InstantiationException
+        e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type $AbstractArtifactTransform.name."
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
         1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
@@ -154,7 +150,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         when:
         registry.registerTransform {
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.artifactTransform(TestArtifactTransform) { artifactConfig ->
+            it.artifactTransform(TestArtifactTransformWithParams) { artifactConfig ->
                 artifactConfig.params("EXTRA_1", "EXTRA_2")
                 artifactConfig.params("EXTRA_3")
             }
@@ -162,7 +158,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new StringValueSnapshot("inputs")
-        1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransformWithParams.classLoader) >> HashCode.fromInt(123)
 
         and:
         registry.transforms.size() == 1
@@ -173,14 +169,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(ArtifactTransformException)
-        e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.TestArtifactTransform"
-        e.cause instanceof VariantTransformConfigurationException
-        e.cause.message == 'Could not create instance of DefaultVariantTransformRegistryTest.TestArtifactTransform.'
+        e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.TestArtifactTransformWithParams"
+        e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
         e.cause.cause instanceof IllegalArgumentException
-        e.cause.cause.message == 'Could not find any public constructor for ' + TestArtifactTransform + ' which accepts parameters [java.lang.String, java.lang.String, java.lang.String].'
+        e.cause.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
         1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
@@ -209,7 +204,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause.message == 'broken'
 
         and:
-        1 * fileCollectionSnapshotter.snapshot(_, _, _) >> Stub(FileCollectionSnapshot)
         1 * transformedFileCache.getResult(TEST_INPUT, _, _) >> { file, impl, transform -> return transform.apply(file, outputDirectory) }
     }
 
@@ -253,12 +247,20 @@ class DefaultVariantTransformRegistryTest extends Specification {
     }
 
     static class TestArtifactTransform extends ArtifactTransform {
+        @Override
+        List<File> transform(File input) {
+            assert input == TEST_INPUT
+            def outputFile = new File(outputDirectory, 'OUTPUT_FILE')
+            outputFile << "tmp"
+            [outputFile]
+        }
+    }
+
+    static class TestArtifactTransformWithParams extends ArtifactTransform {
         def outputFiles = ['OUTPUT_FILE']
 
-        TestArtifactTransform() {
-        }
-
-        TestArtifactTransform(String extra1, String extra2) {
+        @Inject
+        TestArtifactTransformWithParams(String extra1, String extra2) {
             outputFiles << extra1 << extra2
         }
 

@@ -24,15 +24,11 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.type.ModelType;
 
@@ -45,16 +41,14 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     private final ImmutableAttributes to;
     private final Class<? extends ArtifactTransform> implementation;
     private final HashCode inputsHash;
-    private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
     private final TransformedFileCache transformedFileCache;
     private final BiFunction<List<File>, File, File> transformer;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator) {
         this.from = from.asImmutable();
         this.to = to.asImmutable();
         this.implementation = implementation;
         this.transformedFileCache = transformedFileCache;
-        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
 
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putString(implementation.getName());
@@ -72,7 +66,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         snapshot.appendToHasher(hasher);
         inputsHash = hasher.hash();
 
-        this.transformer = new ArtifactTransformBackedTransformer(implementation, params);
+        this.transformer = new ArtifactTransformBackedTransformer(implementation, params, instantiator);
     }
 
     public AttributeContainerInternal getFrom() {
@@ -91,19 +85,9 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     public List<File> transform(File input) {
         try {
             File absoluteFile = input.getAbsoluteFile();
-
-            // Collect up hash of the input files, and of the transform's configuration params and implementation
-            FileCollectionSnapshot snapshot = fileCollectionSnapshotter.snapshot(new SimpleFileCollection(absoluteFile), TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
-
-            DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-            hasher.putBytes(inputsHash.asBytes());
-            snapshot.appendToHasher(hasher);
-
-            HashCode resultHash = hasher.hash();
-
-            return transformedFileCache.getResult(absoluteFile, resultHash, transformer);
-        } catch (Exception e) {
-            throw new ArtifactTransformException(input, to, implementation, e);
+            return transformedFileCache.getResult(absoluteFile, inputsHash, transformer);
+        } catch (Throwable t) {
+            throw new ArtifactTransformException(input, to, implementation, t);
         }
     }
 }

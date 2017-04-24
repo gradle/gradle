@@ -27,12 +27,10 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
-import org.gradle.api.internal.artifacts.VariantTransformRegistry;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.CompatibilityRuleChain;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
-import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.CollectionUtils;
@@ -44,17 +42,10 @@ import java.util.Map;
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
 public class DefaultDependencyHandler extends GroovyObjectSupport implements DependencyHandler, MethodMixIn {
-    private static final Action<AttributeMatchingStrategy<String>> ARTIFACT_ATTRIBUTE_CONFIG = new Action<AttributeMatchingStrategy<String>>() {
-        @Override
-        public void execute(AttributeMatchingStrategy<String> stringAttributeMatchingStrategy) {
-            CompatibilityRuleChain<String> compatibilityRules = stringAttributeMatchingStrategy.getCompatibilityRules();
-            compatibilityRules.assumeCompatibleWhenMissing();
-        }
-    };
     private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {
         @Override
         public void execute(AttributesSchema attributesSchema) {
-            attributesSchema.attribute(ARTIFACT_FORMAT, ARTIFACT_ATTRIBUTE_CONFIG);
+            attributesSchema.attribute(ARTIFACT_FORMAT).getCompatibilityRules().assumeCompatibleWhenMissing();
         }
     };
 
@@ -91,7 +82,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
 
     @Override
     public Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure) {
-        return doAdd(configurationContainer.findByName(configurationName), dependencyNotation, configureClosure);
+        return doAdd(configurationContainer.getByName(configurationName), dependencyNotation, configureClosure);
     }
 
     @Override
@@ -202,24 +193,24 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (arguments.length == 0) {
-                return;
+                return DynamicInvokeResult.notFound();
             }
             Configuration configuration = configurationContainer.findByName(name);
             if (configuration == null) {
-                return;
+                return DynamicInvokeResult.notFound();
             }
             List<?> normalizedArgs = CollectionUtils.flattenCollections(arguments);
             if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-                result.result(doAdd(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
+                return DynamicInvokeResult.found(doAdd(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
             } else if (normalizedArgs.size() == 1) {
-                result.result(doAdd(configuration, normalizedArgs.get(0), null));
+                return DynamicInvokeResult.found(doAdd(configuration, normalizedArgs.get(0), null));
             } else {
                 for (Object arg : normalizedArgs) {
                     doAdd(configuration, arg, null);
                 }
-                result.result(null);
+                return DynamicInvokeResult.found();
             }
         }
     }

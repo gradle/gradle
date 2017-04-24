@@ -45,7 +45,6 @@ public interface PersistentCache extends CacheAccess, Closeable {
      * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
      * In this instance, an exclusive lock will be held on the cache.
      *
-     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters);
 
@@ -55,7 +54,6 @@ public interface PersistentCache extends CacheAccess, Closeable {
      * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
      * In this instance, an exclusive lock will be held on the cache.
      *
-     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 

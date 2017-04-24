@@ -24,7 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -79,10 +79,12 @@ class RuntimeShadedJarCreator {
 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final ImplementationDependencyRelocator remapper;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper) {
+    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.remapper = remapper;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
@@ -169,7 +171,7 @@ class RuntimeShadedJarCreator {
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
         final List<FileVisitDetails> fileVisitDetails = new ArrayList<FileVisitDetails>();
-        new DirectoryFileTree(file).visit(new FileVisitor() {
+        directoryFileTreeFactory.create(file).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
                 fileVisitDetails.add(dirDetails);

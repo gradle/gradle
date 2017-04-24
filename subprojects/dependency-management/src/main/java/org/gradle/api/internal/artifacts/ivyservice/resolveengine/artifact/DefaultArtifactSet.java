@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -25,7 +24,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
@@ -33,14 +34,10 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -51,23 +48,23 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final ModuleSource moduleSource;
     private final ModuleExclusion exclusions;
     private final Set<? extends VariantMetadata> variants;
+    private final AttributesSchemaInternal schema;
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
     private final ImmutableAttributesFactory attributesFactory;
-    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema,  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
         this.exclusions = exclusions;
         this.variants = variants;
+        this.schema = schema;
         this.artifactResolver = artifactResolver;
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
         this.attributesFactory = attributesFactory;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -76,7 +73,7 @@ public class DefaultArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         return snapshot().select(componentFilter, selector);
     }
 
@@ -113,26 +110,28 @@ public class DefaultArtifactSet implements ArtifactSet {
 
                 ResolvedArtifact resolvedArtifact = allResolvedArtifacts.get(artifact.getId());
                 if (resolvedArtifact == null) {
-                    Factory<File> artifactSource = new BuildOperationArtifactSource(buildOperationExecutor, artifact.getId(), new LazyArtifactSource(artifact, moduleSource, artifactResolver));
+                    Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
                     resolvedArtifact = new DefaultResolvedArtifact(moduleVersionIdentifier, artifactName, artifact.getId(), artifact.getBuildDependencies(), artifactSource);
                     allResolvedArtifacts.put(artifact.getId(), resolvedArtifact);
                 }
                 resolvedArtifacts.add(resolvedArtifact);
             }
-            result.add(new DefaultResolvedVariant(attributes, ArtifactBackedArtifactSet.forVariant(attributes, resolvedArtifacts)));
+            result.add(ArtifactBackedResolvedVariant.create(attributes, resolvedArtifacts));
         }
-        return new ArtifactSetSnapshot(id, componentIdentifier, result.build());
+        return new ArtifactSetSnapshot(id, componentIdentifier, result.build(), schema);
     }
 
     private static class ArtifactSetSnapshot implements ArtifactSet {
         private final long id;
         private final ComponentIdentifier componentIdentifier;
         private final Set<ResolvedVariant> variants;
+        private final AttributesSchemaInternal schema;
 
-        ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants) {
+        ArtifactSetSnapshot(long id, ComponentIdentifier componentIdentifier, Set<ResolvedVariant> variants, AttributesSchemaInternal schema) {
             this.id = id;
             this.componentIdentifier = componentIdentifier;
             this.variants = variants;
+            this.schema = schema;
         }
 
         @Override
@@ -146,11 +145,11 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
 
         @Override
-        public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, Transformer<ResolvedArtifactSet, Collection<? extends ResolvedVariant>> selector) {
+        public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
             if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
                 return ResolvedArtifactSet.EMPTY;
             } else {
-                return selector.transform(variants);
+                return selector.select(variants, schema);
             }
         }
     }
@@ -173,48 +172,4 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
     }
 
-    private static class BuildOperationArtifactSource implements Factory<File> {
-
-        private final BuildOperationExecutor buildOperationExecutor;
-        private final ComponentArtifactIdentifier artifactId;
-        private final Factory<File> delegate;
-
-        BuildOperationArtifactSource(BuildOperationExecutor buildOperationExecutor, ComponentArtifactIdentifier artifactId, Factory<File> delegate){
-            this.buildOperationExecutor = buildOperationExecutor;
-            this.artifactId = artifactId;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public File create() {
-            String displayName = artifactId.getDisplayName();
-            BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Resolve artifact " + displayName).operationDescriptor(artifactId).build();
-            return buildOperationExecutor.run(operationDetails, new Transformer<File, BuildOperationContext>() {
-                @Override
-                public File transform(BuildOperationContext context) {
-                    return delegate.create();
-                }
-            });
-        }
-    }
-
-    private static class DefaultResolvedVariant implements ResolvedVariant {
-        private final AttributeContainerInternal attributes;
-        private final ResolvedArtifactSet artifactSet;
-
-        DefaultResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifactSet) {
-            this.attributes = attributes;
-            this.artifactSet = artifactSet;
-        }
-
-        @Override
-        public AttributeContainerInternal getAttributes() {
-            return attributes;
-        }
-
-        @Override
-        public ResolvedArtifactSet getArtifacts() {
-            return artifactSet;
-        }
-    }
 }

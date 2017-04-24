@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -36,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -75,13 +75,13 @@ public class DependencyGraphBuilder {
     private final ResolveContextToComponentResolver moduleResolver;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
-    private final AttributesSchema attributesSchema;
+    private final AttributesSchemaInternal attributesSchema;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ModuleExclusions moduleExclusions;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
-                                  ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter, AttributesSchema attributesSchema,
+                                  ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
                                   ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
@@ -379,12 +379,12 @@ public class DependencyGraphBuilder {
         private final ComponentMetaDataResolver metaDataResolver;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
-        private final AttributesSchema attributesSchema;
+        private final AttributesSchemaInternal attributesSchema;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ModuleExclusions moduleExclusions;
 
         public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
-                            ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchema attributesSchema,
+                            ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
                             ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
             this.idGenerator = idGenerator;
             this.idResolver = idResolver;
@@ -472,7 +472,7 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public AttributesSchema getAttributesSchema() {
+        public AttributesSchemaInternal getAttributesSchema() {
             return attributesSchema;
         }
     }

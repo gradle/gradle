@@ -32,7 +32,6 @@ import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
 
@@ -43,7 +42,6 @@ import java.util.concurrent.Callable;
 /**
  * Assembles a JAR archive.
  */
-@ParallelizableTask
 @Incubating
 public class Jar extends Zip {
 
@@ -61,7 +59,7 @@ public class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(new Callable<FileTreeAdapter>() {
             public FileTreeAdapter call() throws Exception {
-                MapFileTree manifestSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem());
+                MapFileTree manifestSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem(), getDirectoryFileTreeFactory());
                 manifestSource.add("MANIFEST.MF", new Action<OutputStream>() {
                     public void execute(OutputStream outputStream) {
                         Manifest manifest = getManifest();

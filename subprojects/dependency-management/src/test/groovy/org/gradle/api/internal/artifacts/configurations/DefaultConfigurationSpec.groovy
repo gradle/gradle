@@ -31,9 +31,7 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -49,7 +47,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
@@ -60,8 +57,10 @@ import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.Path
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -70,6 +69,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
+    Instantiator instantiator = DirectInstantiator.INSTANCE
 
     def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
@@ -84,8 +84,7 @@ class DefaultConfigurationSpec extends Specification {
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
 
     def setup() {
-        ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
-        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> broadcast
+        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
     }
 
     def void defaultValues() {
@@ -450,8 +449,8 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
-            collectFiles(_) >> { it[0].addAll(files); return it[0] }
+        _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
+            visitArtifacts(_) >> { ArtifactVisitor visitor ->  files.each { visitor.visitFile(null, null, it) } }
         }
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
@@ -467,8 +466,8 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def resolvedConfiguration = Stub(ResolvedConfiguration)
 
-        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
-            collectFiles(_) >> { throw failure }
+        _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
+            visitArtifacts(_) >> { throw failure }
         }
         _ * resolvedConfiguration.hasError() >> true
 
@@ -534,7 +533,7 @@ class DefaultConfigurationSpec extends Specification {
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _ , _) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _ , _, _) >> selectedArtifactSet
         _ * selectedArtifactSet.collectBuildDependencies(_) >> { it[0].add(artifactTaskDependencies); return it[0] }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -765,6 +764,51 @@ class DefaultConfigurationSpec extends Specification {
         assert copiedConfiguration.extendsFrom.empty
     }
 
+    @Issue("gradle/gradle#1567")
+    def "Calls resolve actions and closures from original configuration when copied configuration is resolved"() {
+        Action<ResolvableDependencies> beforeResolveAction = Mock()
+        Action<ResolvableDependencies> afterResolveAction = Mock()
+        def config = conf("conf")
+        def beforeResolveCalled = false
+        def afterResolveCalled = false
+
+        given:
+        config.incoming.beforeResolve(beforeResolveAction)
+        config.incoming.afterResolve(afterResolveAction)
+        config.incoming.beforeResolve {
+            beforeResolveCalled = true
+        }
+        config.incoming.afterResolve {
+            afterResolveCalled = true
+        }
+        def copy = config.copy()
+
+        when:
+        copy.resolvedConfiguration
+
+        then:
+        interaction { resolveConfig(copy) }
+        1 * beforeResolveAction.execute(copy.incoming)
+        1 * afterResolveAction.execute(copy.incoming)
+        beforeResolveCalled
+        afterResolveCalled
+    }
+
+    @Issue("gradle/gradle#1567")
+    def "A copy of a configuration that has no resolution listeners also has no resolution listeners"() {
+        given:
+        def config = conf("conf")
+
+        expect:
+        config.dependencyResolutionListeners.isEmpty()
+
+        when:
+        def copy = config.copy()
+
+        then:
+        copy.dependencyResolutionListeners.isEmpty()
+    }
+
     private prepareConfigurationForCopyTest() {
         def configuration = conf()
         configuration.visible = false
@@ -969,7 +1013,7 @@ class DefaultConfigurationSpec extends Specification {
         localComponentsResult.resolvedProjectConfigurations >> []
         def visitedArtifactSet = Mock(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { return it[0] }
         }
 
@@ -1470,11 +1514,12 @@ class DefaultConfigurationSpec extends Specification {
     def "the component filter of an artifact view can only be set once"() {
         given:
         def conf = conf()
-        def artifactView = conf.incoming.artifactView()
 
         when:
-        artifactView.componentFilter { true }
-        artifactView.componentFilter { true }
+        conf.incoming.artifactView {
+            it.componentFilter { true }
+            it.componentFilter { true }
+        }
 
         then:
         IllegalStateException t = thrown()
@@ -1485,12 +1530,13 @@ class DefaultConfigurationSpec extends Specification {
         def conf = conf()
         def a1 = Attribute.of('a1', Integer)
         def a2 = Attribute.of('a2', String)
-        def artifactView = conf.incoming.artifactView()
 
         when:
-        artifactView.attributes.attribute(a1, 1)
-        artifactView.attributes { it.attribute(a2, "A") }
-        artifactView.attributes.attribute(a1, 10)
+        def artifactView = conf.incoming.artifactView {
+            it.attributes.attribute(a1, 1)
+            it.attributes { it.attribute(a2, "A") }
+            it.attributes.attribute(a1, 10)
+        }
 
         then:
         artifactView.attributes.keySet() == [a1, a2] as Set
@@ -1498,62 +1544,18 @@ class DefaultConfigurationSpec extends Specification {
         artifactView.attributes.getAttribute(a2) == "A"
     }
 
-    def "accessing the artifacts in an artifact view makes the view attributes immutable"() {
+    def "attributes of view are immutable"() {
         given:
         def conf = conf()
         def a1 = Attribute.of('a1', String)
-        def artifactView = conf.incoming.artifactView()
+        def artifactView = conf.incoming.artifactView {}
 
         when:
-        artifactView.artifacts
-        artifactView.attributes { it.attribute(a1, "A") }
+        artifactView.attributes.attribute(a1, "A")
 
         then:
         UnsupportedOperationException t = thrown()
         t.message == "Mutation of attributes is not allowed"
-    }
-
-    def "accessing the files in an artifact view makes the view attributes immutable"() {
-        given:
-        def conf = conf()
-        def a1 = Attribute.of('a1', String)
-        def artifactView = conf.incoming.artifactView()
-
-        when:
-        artifactView.files
-        artifactView.attributes { it.attribute(a1, "A") }
-
-        then:
-        UnsupportedOperationException t = thrown()
-        t.message == "Mutation of attributes is not allowed"
-    }
-
-    def "the component filter of an artifact view can not be set after artifacts where accessed"() {
-        given:
-        def conf = conf()
-        def artifactView = conf.incoming.artifactView()
-
-        when:
-        artifactView.artifacts
-        artifactView.componentFilter { true }
-
-        then:
-        IllegalStateException t = thrown()
-        t.message == "The component filter can only be set once before the view was computed"
-    }
-
-    def "the component filter of an artifact view can not be set after files where accessed"() {
-        given:
-        def conf = conf()
-        def artifactView = conf.incoming.artifactView()
-
-        when:
-        artifactView.files
-        artifactView.componentFilter { true }
-
-        then:
-        IllegalStateException t = thrown()
-        t.message == "The component filter can only be set once before the view was computed"
     }
 
     def dumpString() {
@@ -1592,32 +1594,10 @@ All Artifacts:
     }
 
     private visitedArtifacts() {
-        def visitedArtifactSet = new VisitedArtifactSet() {
-            @Override
-            SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentSpec) {
-                return new SelectedArtifactSet() {
-                    @Override
-                    def <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-                        return dest
-                    }
-
-                    @Override
-                    def <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
-                        throw new UnsupportedOperationException()
-                    }
-
-                    @Override
-                    def <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
-                        throw new UnsupportedOperationException()
-                    }
-
-                    @Override
-                    void visitArtifacts(ArtifactVisitor visitor) {
-                        throw new UnsupportedOperationException()
-                    }
-                }
-            }
-        }
+        def visitedArtifactSet = Stub(VisitedArtifactSet)
+        def selectedArtifactSet = Stub(SelectedArtifactSet)
+        _ * visitedArtifactSet.select(_, _, _, _) >> selectedArtifactSet
+        _ * selectedArtifactSet.collectBuildDependencies(_) >> { Collection<Object> deps -> deps }
         visitedArtifactSet
     }
 
@@ -1628,7 +1608,7 @@ All Artifacts:
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
-            new TestBuildOperationExecutor(), DirectInstantiator.INSTANCE, Stub(NotationParser), immutableAttributesFactory, moduleIdentifierFactory)
+            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, moduleIdentifierFactory)
     }
 
     private DefaultPublishArtifact artifact(String name) {

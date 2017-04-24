@@ -41,7 +41,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -108,7 +107,6 @@ import java.util.Map;
  * @since 3.0
  */
 @Incubating
-@ParallelizableTask
 @CacheableTask
 @SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends DefaultTask implements VerificationTask {

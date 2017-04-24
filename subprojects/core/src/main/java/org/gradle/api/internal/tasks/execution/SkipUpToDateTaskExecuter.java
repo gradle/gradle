@@ -55,16 +55,12 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             }
             logOutOfDateMessages(messages, task, clock.getElapsed());
 
-            task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
-
             taskArtifactState.beforeTask();
-            try {
-                executer.execute(task, state, context);
-                if (state.getFailure() == null) {
-                    taskArtifactState.afterTask();
-                }
-            } finally {
-                task.getOutputs().setHistory(null);
+
+            executer.execute(task, state, context);
+
+            if (state.getFailure() == null) {
+                taskArtifactState.afterTask();
             }
         } finally {
             taskArtifactState.finished();

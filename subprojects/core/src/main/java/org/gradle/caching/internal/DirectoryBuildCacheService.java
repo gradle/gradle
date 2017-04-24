@@ -17,6 +17,7 @@
 package org.gradle.caching.internal;
 
 import com.google.common.io.Closer;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -27,6 +28,8 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.PathKeyFileStore;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,9 +41,11 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DirectoryBuildCacheService implements BuildCacheService {
+    private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
 
     public DirectoryBuildCacheService(CacheRepository cacheRepository, File baseDir) {
+        this.fileStore = new PathKeyFileStore(baseDir);
         this.persistentCache = cacheRepository
             .cache(checkDirectory(baseDir))
             .withDisplayName("Build cache")
@@ -70,40 +75,21 @@ public class DirectoryBuildCacheService implements BuildCacheService {
 
     @Override
     public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
-        return persistentCache.useCache(new Factory<Boolean>() {
+        // We need to lock here because garbage collection can be under way in another thread
+        return persistentCache.withFileLock(new Factory<Boolean>() {
             @Override
             public Boolean create() {
-                File file = getFile(key.getHashCode());
-                if (file.isFile()) {
-                    try {
-                        Closer closer = Closer.create();
-                        FileInputStream stream = closer.register(new FileInputStream(file));
-                        try {
-                            reader.readFrom(stream);
-                            return true;
-                        } finally {
-                            closer.close();
-                        }
-                    } catch (IOException ex) {
-                        throw new UncheckedIOException(ex);
-                    }
+                LocallyAvailableResource resource = fileStore.get(key.getHashCode());
+                if (resource == null) {
+                    return false;
                 }
-                return false;
-            }
-        });
-    }
 
-    @Override
-    public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws BuildCacheException {
-        persistentCache.useCache(new Runnable() {
-            @Override
-            public void run() {
-                File file = getFile(key.getHashCode());
                 try {
                     Closer closer = Closer.create();
-                    OutputStream output = closer.register(new FileOutputStream(file));
+                    FileInputStream stream = closer.register(new FileInputStream(resource.getFile()));
                     try {
-                        result.writeTo(output);
+                        reader.readFrom(stream);
+                        return true;
                     } finally {
                         closer.close();
                     }
@@ -114,8 +100,37 @@ public class DirectoryBuildCacheService implements BuildCacheService {
         });
     }
 
-    private File getFile(String key) {
-        return new File(persistentCache.getBaseDir(), key);
+    @Override
+    public void store(final BuildCacheKey key, final BuildCacheEntryWriter result) throws BuildCacheException {
+        final String hashCode = key.getHashCode();
+        final File tempFile;
+        try {
+            tempFile = File.createTempFile(hashCode, ".part", persistentCache.getBaseDir());
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+
+        try {
+            try {
+                Closer closer = Closer.create();
+                OutputStream output = closer.register(new FileOutputStream(tempFile));
+                try {
+                    result.writeTo(output);
+                } finally {
+                    closer.close();
+                }
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+            persistentCache.useCache(new Runnable() {
+                @Override
+                public void run() {
+                    fileStore.move(hashCode, tempFile);
+                }
+            });
+        } finally {
+            FileUtils.deleteQuietly(tempFile);
+        }
     }
 
     @Override

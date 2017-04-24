@@ -478,7 +478,7 @@ and the Gradle API to avoid classpath issues.
 Plugin developers using TestKit need to inject the classes-under-test by using the method `withPluginClasspath(Iterable<? extends File> classpath)`. TestKit proposes ways
 to determine the classpath in the user guide. This approach requires boiler plate code that needs to be copy/pasted from project to project. The goal of this story is
 to provide a simple way to remove boiler plate code by enhancing the [plugin development plugin](https://docs.gradle.org/current/userguide/javaGradle_plugin.html). The creation
-and usage of the `classpath.properties` method demonstrated in the user guide will be abstracted from the user and turned into into an automated process.
+and usage of the `classpath.properties` method demonstrated in the user guide will be abstracted from the user and turned into an automated process.
 
 ### Implementation
 
@@ -491,7 +491,7 @@ and usage of the `classpath.properties` method demonstrated in the user guide wi
     * The output file for the generated classpath is `$buildDir/$task.name/plugin-under-test-metadata.properties`. The task automatically creates the output directory if it doesn't exist yet.
     The file name is not configurable though the output directory is.
     * The contents of the properties file contains a single property `implementation-classpath`. The assigned value is the runtime classpath.
-* By default the the dependency on `gradleTestKit()` is automatically assigned to compile configuration of the `sourceSets.test`. A user can declare one or many source sets to be used
+* By default the dependency on `gradleTestKit()` is automatically assigned to compile configuration of the `sourceSets.test`. A user can declare one or many source sets to be used
 for functional testing with TestKit.
 * An extension is exposed that allows for configuring functional testing.
     * The source set for the project containing the code under test. Default value: `sourceSets.main`.

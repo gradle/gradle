@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.tasks;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -43,8 +44,10 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -60,6 +63,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
+    private ImmutableList<String> includePaths;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
@@ -169,9 +173,22 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * Returns the header directories to be used for compilation.
      */
-    @Input
+    @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
     public FileCollection getIncludes() {
         return includes;
+    }
+
+    @Input
+    protected Collection<String> getIncludePaths() {
+        if (includePaths == null) {
+            Set<File> roots = includes.getFiles();
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            for (File root : roots) {
+                builder.add(root.getAbsolutePath());
+            }
+            includePaths = builder.build();
+        }
+        return includePaths;
     }
 
     /**

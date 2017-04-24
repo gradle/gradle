@@ -24,7 +24,6 @@ def buckets = [
         ":toolingApi",
         ":compositeBuilds",
         ":resourcesS3",
-        ":jetty",
         ":resources",
         ":jvmServices",
         ":docs",
@@ -49,7 +48,6 @@ def buckets = [
     "4": [
         ":testKit",
         ":languageNative",
-        ":ui",
         ":ivy",
         ":wrapper",
         ":platformJvm",
@@ -97,7 +95,6 @@ def buckets = [
         ":messaging",
         ":logging",
         ":resourcesHttp",
-        ":openApi",
         ":versionInfo"
     ],
 

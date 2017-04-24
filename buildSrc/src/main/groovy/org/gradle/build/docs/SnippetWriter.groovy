@@ -39,9 +39,7 @@ class SnippetWriter {
     }
 
     def println(String line) {
-        if (writer) {
-            writer.println(line)
-        }
+        writer?.println(line)
     }
 
     def end() {
@@ -52,9 +50,7 @@ class SnippetWriter {
     }
 
     def close() {
-        if (writer) {
-            writer.close()
-        }
+        writer?.close()
         writer = null
     }
 }

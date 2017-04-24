@@ -157,7 +157,7 @@ User guide is updated with new output examples.
 
 # Milestone 2 - More granular work in-progress display
 
-## Story: Show ratio of work avoided on progress line
+## ~Story: Show ratio of work avoided on progress line~
 Give a very brief summary of how much work was skipped and why on the status line.
 
 ### User-facing Changes
@@ -183,6 +183,38 @@ attached console (if any).
 
 ### Open Issues
 * Display format
+
+## Story: Show ratio of work avoided in build result
+Instead of showing work avoided _during_ the build, show it afterward, in brief.
+
+### User-facing Changes
+**Before**
+```
+BUILD SUCCESSFUL
+
+Total time: 3 mins 5.652 secs
+
+Publishing build information...
+https://scans.gradle.com/s/3rafycnw2n2pg
+```
+
+**After**
+```
+BUILD SUCCESSFUL in 3m 5s
+Build Scan: https://scans.gradle.com/s/3rafycnw2n2pg
+Tasks: 109/419 (26%) AVOIDED, 310/419 (74%) EXECUTED
+```
+
+### Implementation
+Repurpose build cache build results report as a first-class thing and format it prettily.
+
+### Test Cases
+* Does not display or error when there are 0 tasks
+* Counts tasks from composite builds
+* Lifecycle/NO-SOURCE tasks should not be counted
+
+### Open Issues
+* How task outcomes are grouped. Avoided and executed are currently used by build scans.
 
 ## Story: Indicate Gradle's continued progress in absence of intra-operation updates
 Provide motion in output to indicate Gradle's working if build operations are long-running.

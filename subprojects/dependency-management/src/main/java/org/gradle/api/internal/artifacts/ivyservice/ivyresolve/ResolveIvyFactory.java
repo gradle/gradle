@@ -107,7 +107,6 @@ public class ResolveIvyFactory {
             if (baseRepository.isLocal()) {
                 moduleComponentRepository = new LocalModuleComponentRepository(baseRepository, metadataProcessor);
             } else {
-                moduleComponentRepository = new CacheLockReleasingModuleComponentsRepository(moduleComponentRepository, cacheLockingManager);
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
                 moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
                         cachePolicy, timeProvider, metadataProcessor, moduleIdentifierFactory);

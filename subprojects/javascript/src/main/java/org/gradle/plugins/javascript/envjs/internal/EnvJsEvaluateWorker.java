@@ -19,8 +19,8 @@ package org.gradle.plugins.javascript.envjs.internal;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
-import static org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils.DefaultScopeOperation;
-import static org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils.parseRhino;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.DefaultScopeOperation;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.parseRhino;
 
 public class EnvJsEvaluateWorker implements EnvJvEvaluateProtocol {
     @Override

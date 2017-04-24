@@ -36,7 +36,7 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        if (task.getActions().isEmpty()) {
+        if (task.getTaskActions().isEmpty()) {
             LOGGER.info("Skipping {} as it has no actions.", task);
             boolean upToDate = true;
             for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
@@ -45,6 +45,7 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
                     break;
                 }
             }
+            state.setActionable(false);
             state.setOutcome(upToDate ? TaskExecutionOutcome.UP_TO_DATE : TaskExecutionOutcome.EXECUTED);
             return;
         }

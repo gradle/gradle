@@ -20,10 +20,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import spock.lang.Specification
 
 class MavenResolverTest extends Specification {
-    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ImmutableModuleIdentifierFactory))
+    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ImmutableModuleIdentifierFactory), Stub(CacheAwareExternalResourceAccessor), Stub(FileStore))
 
     def "has useful string representation"() {
         expect:

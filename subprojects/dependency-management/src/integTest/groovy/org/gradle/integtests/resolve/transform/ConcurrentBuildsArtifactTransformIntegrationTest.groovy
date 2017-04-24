@@ -33,6 +33,7 @@ def color = Attribute.of("color", Color)
 class ToColor extends ArtifactTransform {
     Color color
 
+    @javax.inject.Inject
     ToColor(Color color) { this.color = color }
 
     List<File> transform(File input) { 
@@ -66,13 +67,17 @@ dependencies {
 
 task redThings {
     doLast {
-        configurations.compile.incoming.artifactView().attributes { it.attribute(color, Color.Red) }.files.files
+        configurations.compile.incoming.artifactView {
+            attributes { it.attribute(color, Color.Red) }
+        }.files.files
     }
 }
 
 task blueThings {
     doLast {
-        configurations.compile.incoming.artifactView().attributes { it.attribute(color, Color.Blue) }.files.files
+        configurations.compile.incoming.artifactView {
+            attributes { it.attribute(color, Color.Blue) }
+        }.files.files
     }
 }
 
@@ -106,11 +111,11 @@ block2.mustRunAfter blueThings
         when:
         // Block until first build has produced red things
         def build1 = executer.withTasks("redThings", "block1", "blueThings").start()
-        def server1WaitForResult = server1.waitFor(false)
+        def server1WaitForResult = server1.waitFor(false, 120)
 
         // Block until second build has produced blue things
         def build2 = executer.withTasks("redThings", "blueThings", "block2").start()
-        def server2WaitForResult = server2.waitFor(false)
+        def server2WaitForResult = server2.waitFor(false, 120)
 
         // Finish up first build while second build is still running
         server1.release()
@@ -120,12 +125,13 @@ block2.mustRunAfter blueThings
         def result2 = build2.waitForFinish()
 
         then:
+        server1WaitForResult && server2WaitForResult
+
+        and:
         result1.output.count("Transforming") == 1
         result1.output.count("Transforming thing.jar to Red") == 1
         result2.output.count("Transforming") == 1
         result2.output.count("Transforming thing.jar to Blue") == 1
-
-        server1WaitForResult && server2WaitForResult
     }
 
     def "file is transformed once only by concurrent builds"() {
@@ -152,10 +158,10 @@ redThings.mustRunAfter block2
         when:
         // Block until both builds are ready to start resolving
         def build1 = executer.withTasks("block1", "redThings", "blueThings").start()
-        def server1WaitForResult = server1.waitFor(false)
+        def server1WaitForResult = server1.waitFor(false, 120)
 
         def build2 = executer.withTasks("block2", "redThings", "blueThings").start()
-        def server2WaitForResult = server2.waitFor(false)
+        def server2WaitForResult = server2.waitFor(false, 120)
 
         // Resolve concurrently
         server1.release()
@@ -165,10 +171,11 @@ redThings.mustRunAfter block2
         def result2 = build2.waitForFinish()
 
         then:
+        server1WaitForResult && server2WaitForResult
+
+        and:
         result1.output.count("Transforming") + result2.output.count("Transforming") == 2
         result1.output.count("Transforming thing.jar to Red") + result2.output.count("Transforming thing.jar to Red") == 1
         result1.output.count("Transforming thing.jar to Blue") + result2.output.count("Transforming thing.jar to Blue") == 1
-
-        server1WaitForResult && server2WaitForResult
     }
 }

@@ -38,7 +38,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     abstract String getDistributionLabel()
 
     int getLibJarsCount() {
-        175
+        160
     }
 
     def "no duplicate entries"() {
@@ -112,7 +112,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def coreLibs = contentsDir.file("lib").listFiles().findAll {
             it.name.startsWith("gradle-") && !it.name.startsWith("gradle-script-kotlin")
         }
-        assert coreLibs.size() == 21
+        assert coreLibs.size() == 19
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
@@ -127,7 +127,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-antlr-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-announce-${baseVersion}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${baseVersion}.jar"))

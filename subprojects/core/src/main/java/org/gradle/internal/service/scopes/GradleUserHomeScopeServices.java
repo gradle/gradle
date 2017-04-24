@@ -28,8 +28,10 @@ import org.gradle.api.internal.changedetection.state.DefaultClasspathContentHash
 import org.gradle.api.internal.changedetection.state.DefaultClasspathEntryHasher;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror;
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
@@ -64,6 +66,8 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
+import java.util.List;
+
 /**
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
  */
@@ -81,12 +85,18 @@ public class GradleUserHomeScopeServices {
         }
     }
 
-    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new CrossBuildFileHashCache(cacheRepository, inMemoryCacheDecoratorFactory);
+    ListenerManager createListenerManager(ListenerManager parent) {
+        return parent.createChild();
     }
 
-    GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping) {
-        return new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
+    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory);
+    }
+
+    GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
+        GlobalScopeFileTimeStampInspector timeStampInspector = new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
+        listenerManager.addListener(timeStampInspector);
+        return timeStampInspector;
     }
 
     FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
@@ -112,18 +122,22 @@ public class GradleUserHomeScopeServices {
         return new CachingClasspathEntryHasher(new DefaultClasspathEntryHasher(new DefaultClasspathContentHasher()), signatureCache);
     }
 
-    FileSystemMirror createFileSystemMirror(ListenerManager listenerManager) {
-        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
+    FileSystemMirror createFileSystemMirror(ListenerManager listenerManager, List<CachedJarFileStore> fileStores) {
+        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(fileStores);
         listenerManager.addListener(fileSystemMirror);
         return fileSystemMirror;
     }
 
-    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
-        return new DefaultGenericFileCollectionSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory,  fileSystemMirror);
+    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
+        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ClasspathEntryHasher classpathEntryHasher, FileSystemMirror fileSystemMirror) {
-        return new DefaultClasspathSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror, classpathEntryHasher);
+    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+        return new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    }
+
+    ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, ClasspathEntryHasher classpathEntryHasher, FileSystemSnapshotter fileSystemSnapshotter) {
+        return new DefaultClasspathSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter, classpathEntryHasher);
     }
 
     ClasspathHasher createClasspathHasher(ClasspathSnapshotter snapshotter) {
@@ -138,7 +152,7 @@ public class GradleUserHomeScopeServices {
         return new DefaultClassLoaderCache(classLoaderFactory, classpathHasher);
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, ServiceRegistry serviceRegistry) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), serviceRegistry.getAll(CachedJarFileStore.class));
+    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, List<CachedJarFileStore> fileStores) {
+        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), fileStores);
     }
 }

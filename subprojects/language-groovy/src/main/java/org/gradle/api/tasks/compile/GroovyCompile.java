@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFa
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
-import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Internal;
@@ -40,7 +39,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
-import org.gradle.workers.internal.WorkerDaemonManager;
+import org.gradle.workers.internal.InProcessWorkerFactory;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.List;
@@ -67,10 +67,10 @@ public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec) {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
-            WorkerDaemonManager compilerDaemonManager = getServices().get(WorkerDaemonManager.class);
-            InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
+            WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
+            InProcessWorkerFactory inProcessWorkerFactory = getServices().get(InProcessWorkerFactory.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
+            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, workerDaemonFactory, inProcessWorkerFactory);
             Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
             compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
         }

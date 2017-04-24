@@ -31,7 +31,7 @@ import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
@@ -40,6 +40,8 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.resources.ResourceLockCoordinationService
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
@@ -55,7 +57,7 @@ public class GradleScopeServicesTest extends Specification {
     private PluginRegistry pluginRegistryChild = Stub()
 
     public void setup() {
-        parent.get(StartParameter) >> Stub(StartParameter)
+        parent.get(StartParameter) >> Stub(StartParameter) { _ * getMaxWorkerCount() >> 1 }
         parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         parent.get(InMemoryCacheDecoratorFactory) >> Stub(InMemoryCacheDecoratorFactory)
         parent.get(ListenerManager) >> new DefaultListenerManager()
@@ -68,8 +70,10 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
         parent.get(TimeProvider) >> Stub(TimeProvider)
         parent.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
+        parent.get(WorkerLeaseService) >> Stub(WorkerLeaseService)
+        parent.get(ResourceLockCoordinationService) >> Stub(ResourceLockCoordinationService)
         parent.get(Instantiator) >> Stub(Instantiator)
-        parent.get(BuildOperationWorkerRegistry) >> Stub(BuildOperationWorkerRegistry)
+        parent.get(WorkerLeaseRegistry) >> Stub(WorkerLeaseRegistry)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }

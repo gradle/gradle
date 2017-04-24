@@ -25,7 +25,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.workers.internal.WorkerDaemonFactory;
-import org.gradle.workers.internal.WorkerDaemonManager;
 
 import javax.inject.Inject;
 
@@ -85,9 +84,9 @@ public class ScalaCompile extends AbstractScalaCompile {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
-            WorkerDaemonFactory compilerDaemonFactory = getServices().get(WorkerDaemonManager.class);
+            WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
-                projectInternal.getRootProject().getProjectDir(), compilerDaemonFactory, getScalaClasspath(),
+                projectInternal.getRootProject().getProjectDir(), workerDaemonFactory, getScalaClasspath(),
                 getZincClasspath(), getProject().getGradle().getGradleUserHomeDir());
             compiler = scalaCompilerFactory.newCompiler(spec);
         }

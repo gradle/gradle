@@ -61,7 +61,8 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
             task check${name} {
                 doLast {
                     assert configurations.${name}.collect { it.name } == [${fileNames}]
-                    assert configurations.${name}.incoming.artifactView().files.collect { it.name } == [${fileNames}]
+                    assert configurations.${name}.incoming.artifactView{}.files.collect { it.name } == [${fileNames}]
+                    assert configurations.${name}.incoming.artifactView{}.artifacts.collect { it.file.name } == [${fileNames}]
                 }
             }
 """

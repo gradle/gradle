@@ -20,9 +20,9 @@ package org.gradle.internal.operations;
  * An individual active, single use, queue of build operations.
  * <p>
  * The queue is active in that operations are potentially executed as soon as they are added.
- * The queue is single use in that no further work can be added once {@link #waitForCompletion()} is called.
+ * The queue is single use in that no further work can be added once {@link #waitForCompletion()} has completed.
  * <p>
- * A queue instance is not threadsafe and MUST only be used from a single thread.
+ * A queue instance is threadsafe. Build operations can submit further operations to the queue but must not block waiting for them to complete.
  *
  * @param <T> type of build operations to hold
  */

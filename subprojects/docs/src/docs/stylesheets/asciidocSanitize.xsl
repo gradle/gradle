@@ -8,7 +8,7 @@
     <xsl:output method="xml" />
 
     <xsl:template match="/docbook:book">
-        <xsl:apply-templates select="docbook:chapter"/>
+        <xsl:apply-templates select="docbook:chapter | docbook:appendix"/>
     </xsl:template>
 
     <!-- Use <ulink url="..."/> instead of <link href="..."/> -->
@@ -18,7 +18,7 @@
             <xsl:attribute name="url">
                 <xsl:value-of select="@xlink:href"/>
             </xsl:attribute>
-            <xsl:apply-templates select="node()"/>
+            <xsl:apply-templates/>
         </ulink>
     </xsl:template>
 
@@ -26,27 +26,39 @@
 
     <xsl:template match="//docbook:table//docbook:row">
         <tr>
-            <xsl:apply-templates select="node()"/>
+            <xsl:apply-templates/>
         </tr>
     </xsl:template>
 
     <xsl:template match="//docbook:table//docbook:thead//docbook:entry">
         <th>
-            <xsl:apply-templates select="node()"/>
+            <xsl:apply-templates/>
         </th>
     </xsl:template>
 
     <xsl:template match="//docbook:table//docbook:entry">
         <td>
-            <xsl:apply-templates select="node()"/>
+            <xsl:apply-templates/>
         </td>
     </xsl:template>
 
     <xsl:template match="//docbook:table/docbook:tgroup">
-        <xsl:apply-templates select="node()"/>
+        <xsl:apply-templates/>
     </xsl:template>
 
+<!--
+    <xsl:template match="//docbook:entry/docbook:simpara[last() = 1]">
+        <xsl:apply-templates/>
+    </xsl:template>
+-->
+
     <xsl:template match="//docbook:colspec"/>
+
+    <xsl:template match="//docbook:simpara">
+        <para>
+            <xsl:apply-templates/>
+        </para>
+    </xsl:template>
 
     <!-- Remove namespaces from output -->
 

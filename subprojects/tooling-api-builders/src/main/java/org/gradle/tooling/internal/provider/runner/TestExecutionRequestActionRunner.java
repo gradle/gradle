@@ -19,14 +19,15 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.execution.BuildConfigurationActionExecuter;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import java.util.Collections;
 
@@ -35,7 +36,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
     private final BuildOperationService buildOperationService;
 
-    public TestExecutionRequestActionRunner(BuildOperationService buildOperationService){
+    public TestExecutionRequestActionRunner(BuildOperationService buildOperationService) {
         this.buildOperationService = buildOperationService;
     }
 
@@ -50,16 +51,17 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
             TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
             TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(testExecutionRequestAction);
             buildOperationService.addListener(testExecutionResultEvaluator);
-            try{
+            try {
                 doRun(testExecutionRequestAction, buildController);
-            }finally {
+            } finally {
                 buildOperationService.removeListener(testExecutionResultEvaluator);
             }
             testExecutionResultEvaluator.evaluate();
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
             if (throwable instanceof TestExecutionException) {
-                throw new InternalTestExecutionException("Error while running test(s)", throwable);
+                // Tunnel the failure through the reporting
+                throw new ReportedException(new InternalTestExecutionException("Error while running test(s)", throwable));
             } else {
                 throw rex;
             }

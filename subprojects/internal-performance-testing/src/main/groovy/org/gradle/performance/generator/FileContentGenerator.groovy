@@ -30,6 +30,8 @@ class FileContentGenerator {
             return ""
         }
         """
+        import org.gradle.util.GradleVersion
+
         def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')
 
         ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ") }
@@ -53,7 +55,7 @@ class FileContentGenerator {
             ${config.useTestNG ? 'useTestNG()' : ''}
             minHeapSize = testRunnerMemory
             maxHeapSize = testRunnerMemory
-            maxParallelForks = ${config.parallelForks}
+            maxParallelForks = ${config.maxParallelForks}
             forkEvery = testForkEvery
             
             if (!JavaVersion.current().java8Compatible) {
@@ -88,7 +90,7 @@ class FileContentGenerator {
         """
         org.gradle.jvmargs=-Xmxs${config.daemonMemory} -Xmx${config.daemonMemory}
         org.gradle.parallel=${config.parallel}
-        org.gradle.workers.max=${config.parallelForks}
+        org.gradle.workers.max=${config.maxWorkers}
         compilerMemory=${config.compilerMemory}
         testRunnerMemory=${config.testRunnerMemory}
         testForkEvery=${config.testForkEvery}
@@ -134,7 +136,7 @@ class FileContentGenerator {
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>2.19.1</version>
                         <configuration>
-                            <forkCount>${config.parallel ? 1 : config.parallelForks}</forkCount>
+                            <forkCount>${config.maxParallelForks}</forkCount>
                             <reuseForks>true</reuseForks>
                             <argLine>-Xms${config.testRunnerMemory} -Xmx${config.testRunnerMemory}</argLine>
                         </configuration>
@@ -149,7 +151,7 @@ class FileContentGenerator {
                                 <goals>
                                     <goal>report-only</goal>
                                 </goals>
-                                <phase>verify</phase>
+                                <phase>test</phase>
                             </execution>
                         </executions>
                     </plugin>

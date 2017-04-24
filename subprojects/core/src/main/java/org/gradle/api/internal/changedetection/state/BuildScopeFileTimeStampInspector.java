@@ -16,16 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.initialization.RootBuildLifecycleListener;
 
-public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector implements Stoppable {
+import java.io.File;
 
-    public BuildScopeFileTimeStampInspector(Gradle gradle, CacheScopeMapping cacheScopeMapping) {
-        super(cacheScopeMapping.getBaseDirectory(gradle, "file-changes", VersionStrategy.CachePerVersion));
-        updateOnStartBuild();
+public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
+    public BuildScopeFileTimeStampInspector(File workDir) {
+        super(workDir);
     }
 
     @Override
@@ -34,7 +31,12 @@ public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector imp
     }
 
     @Override
-    public void stop() {
+    public void afterStart() {
+        updateOnStartBuild();
+    }
+
+    @Override
+    public void beforeComplete() {
         updateOnFinishBuild();
     }
 }

@@ -128,7 +128,10 @@ project.logger.debug("debug logging");
     }
 
     String normaliseOutput(String output) {
-        return output.replaceFirst("Total time: .+ secs", "Total time: 0 secs")
+        // Must replace both build result formats for cross compat
+        return output
+            .replaceFirst(" in .+s", " in 0s")
+            .replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 
     void shouldNotContainProviderLogging(String output) {

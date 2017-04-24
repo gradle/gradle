@@ -16,88 +16,112 @@
 
 package org.gradle.internal.operations;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
-import com.google.common.util.concurrent.*;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.CountDownLatch;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
-    private final BuildOperationWorkerRegistry.Operation owner;
-    private final ListeningExecutorService executor;
+    private enum State {
+        Working, Cancelled, Done
+    }
+
+    private final WorkerLeaseService workerLeases;
+    private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
+    private final Executor executor;
     private final BuildOperationWorker<T> worker;
-
-    private final List<QueuedOperation> operations;
-
     private String logLocation;
 
-    private final AtomicBoolean waitingForCompletion = new AtomicBoolean();
-    private final AtomicBoolean canceled = new AtomicBoolean();
+    // Lock protects the following state, using an intentionally simple locking strategy
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition workAvailable = lock.newCondition();
+    private final Condition workDone = lock.newCondition();
+    private State state = State.Working;
+    private int workers;
+    private final Set<OperationHolder> notFinished = new HashSet<OperationHolder>();
+    private final LinkedList<OperationHolder> notYetStarted = new LinkedList<OperationHolder>();
+    private final LinkedList<Throwable> failures = new LinkedList<Throwable>();
 
-    DefaultBuildOperationQueue(BuildOperationWorkerRegistry.Operation owner, ExecutorService executor, BuildOperationWorker<T> worker) {
-        this.owner = owner;
-        this.executor = MoreExecutors.listeningDecorator(executor);
+    DefaultBuildOperationQueue(WorkerLeaseService workerLeases, ExecutorService executor, BuildOperationWorker<T> worker) {
+        this.workerLeases = workerLeases;
+        this.parentWorkerLease = workerLeases.getWorkerLease();
+        this.executor = executor;
         this.worker = worker;
-        this.operations = Collections.synchronizedList(Lists.<QueuedOperation>newArrayList());
     }
 
     @Override
     public void add(final T operation) {
-        if (waitingForCompletion.get()) {
-            throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
+        lock.lock();
+        try {
+            if (state == State.Done) {
+                throw new IllegalStateException("BuildOperationQueue cannot be reused once it has completed.");
+            }
+            if (state == State.Cancelled) {
+                // Discard
+                return;
+            }
+            OperationHolder operationHolder = new OperationHolder(parentWorkerLease, operation);
+            notFinished.add(operationHolder);
+            notYetStarted.add(operationHolder);
+            workAvailable.signalAll();
+            if (workers == 0 || workers < workerLeases.getMaxWorkerCount()) {
+                // This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
+                workers++;
+                executor.execute(new WorkerRunnable());
+            }
+        } finally {
+            lock.unlock();
         }
-        OperationHolder operationHolder = new OperationHolder(owner, operation);
-        ListenableFuture<?> future = executor.submit(operationHolder);
-        operations.add(new QueuedOperation(operationHolder, future));
     }
 
     @Override
     public void cancel() {
-        canceled.set(true);
-        for (QueuedOperation operation : operations) {
-            // Although we can cancel the future of a running operation, we have no way of knowing
-            // that the operation was canceled after it began executing (i.e. isCanceled always returns
-            // true) which is a problem because we need to know whether to wait on the result or not.
-            // So we have to maintain the running state ourselves and only cancel operations we know
-            // have not started executing.
-            if (!operation.operationHolder.isStarted()) {
-                operation.future.cancel(false);
+        lock.lock();
+        try {
+            if (state != State.Working) {
+                return;
             }
+
+            // Discard everything that has not been started and notify the workers to finish up
+            notFinished.removeAll(notYetStarted);
+            notYetStarted.clear();
+            state = State.Cancelled;
+            workAvailable.signalAll();
+            workDone.signalAll();
+        } finally {
+            lock.unlock();
         }
     }
 
     public void waitForCompletion() throws MultipleBuildOperationFailures {
-        waitingForCompletion.set(true);
-
-        CountDownLatch finished = new CountDownLatch(operations.size());
-        Queue<Throwable> failures = Queues.newConcurrentLinkedQueue();
-
-        for (QueuedOperation operation : operations) {
-            if (operation.future.isCancelled()) {
-                // If it's canceled, we'll never get a callback, so we just remove it from
-                // operations we're waiting for.
-                finished.countDown();
-            } else {
-                Futures.addCallback(operation.future, new CompletionCallback(finished, failures));
-            }
-        }
-
+        lock.lock();
         try {
-            finished.await();
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-
-        // all operations are complete, check for errors
-        if (!failures.isEmpty()) {
-            throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures, logLocation);
+            while (!notFinished.isEmpty()) {
+                try {
+                    workDone.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+            if (state == State.Done) {
+                throw new IllegalStateException("Cannot wait for completion more than once.");
+            }
+            state = State.Done;
+            workAvailable.signalAll();
+            // all operations are complete, check for errors
+            if (!failures.isEmpty()) {
+                throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures, logLocation);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -113,72 +137,74 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         return "Multiple build operations failed.";
     }
 
-    private static class CompletionCallback implements FutureCallback {
-        private final CountDownLatch finished;
-        private final Collection<Throwable> failures;
-
-        private CompletionCallback(CountDownLatch finished, Collection<Throwable> failures) {
-            this.finished = finished;
-            this.failures = failures;
-        }
-
-        @Override
-        public void onSuccess(Object result) {
-            finished.countDown();
-        }
-
-        @Override
-        public void onFailure(Throwable t) {
-            failures.add(t);
-            finished.countDown();
-        }
-    }
-
-    private class QueuedOperation {
-        final OperationHolder operationHolder;
-        final ListenableFuture future;
-
-        public QueuedOperation(OperationHolder operationHolder, ListenableFuture future) {
-            this.operationHolder = operationHolder;
-            this.future = future;
-        }
-    }
-
     private class OperationHolder implements Runnable {
-        private final BuildOperationWorkerRegistry.Operation owner;
+        private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
         private final T operation;
-        private final AtomicBoolean started = new AtomicBoolean();
 
-        OperationHolder(BuildOperationWorkerRegistry.Operation owner, T operation) {
-            this.owner = owner;
+        OperationHolder(WorkerLeaseRegistry.WorkerLease parentWorkerLease, T operation) {
+            this.parentWorkerLease = parentWorkerLease;
             this.operation = operation;
         }
 
         @Override
         public void run() {
-            // Don't execute if the queue has been canceled
-            started.set(!canceled.get());
-            if (started.get()) {
-                runBuildOperation();
-            }
-        }
-
-        private void runBuildOperation() {
-            BuildOperationWorkerRegistry.Completion workerLease = owner.operationStart();
-            try {
-                worker.execute(operation);
-            } finally {
-                workerLease.operationFinish();
-            }
-        }
-
-        public boolean isStarted() {
-            return started.get();
+            workerLeases.withLocks(parentWorkerLease.createChild()).execute(new Runnable() {
+                @Override
+                public void run() {
+                    worker.execute(operation);
+                }
+            });
         }
 
         @Override
         public String toString() {
             return "Worker ".concat(worker.getDisplayName()).concat(" for operation ").concat(operation.getDescription());
+        }
+    }
+
+    private class WorkerRunnable implements Runnable {
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    OperationHolder operation;
+                    lock.lock();
+                    try {
+                        while (state == State.Working && notYetStarted.isEmpty()) {
+                            workAvailable.await();
+                        }
+                        if (state != State.Working) {
+                            // Finish up
+                            return;
+                        }
+                        operation = notYetStarted.removeFirst();
+                    } finally {
+                        lock.unlock();
+                    }
+
+                    Throwable failure = null;
+                    try {
+                        operation.run();
+                    } catch (Throwable t) {
+                        failure = t;
+                    }
+
+                    lock.lock();
+                    try {
+                        if (failure != null) {
+                            failures.add(failure);
+                        }
+                        notFinished.remove(operation);
+                        if (notFinished.isEmpty()) {
+                            workDone.signalAll();
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
+                }
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 }

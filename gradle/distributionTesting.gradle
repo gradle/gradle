@@ -321,10 +321,5 @@ project(":") {
             }
         }
     }
-}
-
-allprojects {
-    tasks.whenTaskAdded {
-        it.dependsOn(':killExistingDaemons')
-    }
+    clean.dependsOn killExistingDaemons
 }

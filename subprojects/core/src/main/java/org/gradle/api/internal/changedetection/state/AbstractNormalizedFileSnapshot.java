@@ -20,14 +20,14 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashUtil;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {
-    private final IncrementalFileSnapshot snapshot;
+    private final FileContentSnapshot snapshot;
 
-    public AbstractNormalizedFileSnapshot(IncrementalFileSnapshot snapshot) {
+    public AbstractNormalizedFileSnapshot(FileContentSnapshot snapshot) {
         this.snapshot = snapshot;
     }
 
     @Override
-    public IncrementalFileSnapshot getSnapshot() {
+    public FileContentSnapshot getSnapshot() {
         return snapshot;
     }
 

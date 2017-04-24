@@ -71,7 +71,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     // This documents the current behavior, not necessarily the one we would want. Maybe
     // we will prefer failing with an error indicating incompatible types
-    def "fails if two configurations use the same attribute name with different types"() {
+    def "selects default when two configurations use the same attribute name with different types"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -81,6 +81,10 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 configurations {
                     _compileFreeDebug.attributes { $freeDebug }
                     _compileFreeRelease.attributes { $freeRelease }
+                }
+                dependencies.attributesSchema {
+                    attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                    attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -134,36 +138,43 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         run ':a:checkDebug'
 
         then:
-        notExecuted ':b:fooJar', ':b:barJar'
+        result.assertTasksExecuted(':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        notExecuted ':b:fooJar', ':b:barJar'
+        result.assertTasksExecuted(':a:checkRelease')
     }
 
-    def "selects best compatible match when multiple are possible"() {
+    def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
 
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    assert details.candidateValues*.value == ['FREE', 'free']
+                    details.candidateValues.each { producerValue ->
+                        if (producerValue.value == 'free') {
+                            details.closestMatch(producerValue)
+                        }
+                    }
+                }
+            }
+
             project(':a') {
                dependencies {
                    attributesSchema {
                       attribute(flavor) {
-                          compatibilityRules.@rules.clear() // dirty hack only for testing, don't do this at home!
-                          compatibilityRules.add { details ->
-                             details.compatible()
-                          }
-                          disambiguationRules.add { details ->
-                             details.candidateValues.each { producerValue ->
-                                if (producerValue.value.toLowerCase() == producerValue.value) {
-                                    details.closestMatch(producerValue)
-                                }
-                             }
-                          }
+                          compatibilityRules.add(FlavorCompatibilityRule)
+                          disambiguationRules.add(FlavorSelectionRule)
                       }
                    }
                }
@@ -187,7 +198,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             project(':b') {
                 configurations {
                     foo {
-                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("FREE")) }
+                        attributes { $debug; attribute(flavor, Flavor.of("FREE")) }
                     }
                     foo2 {
                         attributes { $freeDebug }
@@ -218,32 +229,37 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:foo2Jar'
-        notExecuted ':b:fooJar', ':b:barJar'
-
+        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
     }
 
-    def "cannot select best compatible match when multiple best matches are possible"() {
+    def "fails when multiple candidates are still available after disambiguation rules have been applied"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
 
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
+                        details.compatible()
+                    }
+                }
+            }
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    details.candidateValues.each { producerValue ->
+                        if (producerValue.value.toLowerCase() == producerValue.value) {
+                            details.closestMatch(producerValue)
+                        }
+                    }
+                }
+            }
+
             project(':a') {
                dependencies.attributesSchema {
                   attribute(flavor) {
-                      compatibilityRules.add { details ->
-                         if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
-                             details.compatible()
-                         }
-                      }
-                      disambiguationRules.add { details ->
-                         details.candidateValues.each { producerValue ->
-                            if (producerValue.value.toLowerCase() == producerValue.value) {
-                                details.closestMatch(producerValue)
-                            }
-                         }
-                      }
+                      compatibilityRules.add(FlavorCompatibilityRule)
+                      disambiguationRules.add(FlavorSelectionRule)
                   }
                }
             }
@@ -322,31 +338,44 @@ All of them match the consumer attributes:
         buildFile << """
             $typeDefs
 
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
+                        details.compatible()
+                    }
+                }
+            }
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    details.candidateValues.each { producerValue ->
+                        if (producerValue.value.toLowerCase() == producerValue.value) {
+                            details.closestMatch(producerValue)
+                        }
+                    }
+                }
+            }
+            class BuildTypeCompatibilityRule implements AttributeCompatibilityRule<BuildType> {
+                void execute(CompatibilityCheckDetails<BuildType> details) {
+                    details.compatible()
+                }
+            }
+            class SelectDebugRule implements AttributeDisambiguationRule<BuildType> {
+                void execute(MultipleCandidatesDetails<BuildType> details) {
+                    details.closestMatch(BuildType.debug)
+                }
+            }
+
             project(':a') {
                dependencies.attributesSchema {
                   attribute(flavor) {
-                      compatibilityRules.add { details ->
-                         if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
-                             details.compatible()
-                         }
-                      }
-                      disambiguationRules.add { details ->
-                         details.candidateValues.each { producerValue ->
-                            if (producerValue.value.toLowerCase() == producerValue.value) {
-                                details.closestMatch(producerValue)
-                            }
-                         }
-                      }
+                      compatibilityRules.add(FlavorCompatibilityRule)
+                      disambiguationRules.add(FlavorSelectionRule)
                   }
 
                   // for testing purposes, this strategy says that all build types are compatible, but returns the debug value as best
                   attribute(buildType) {
-                     compatibilityRules.add { details ->
-                        details.compatible()
-                     }
-                     disambiguationRules.add { details ->
-                         details.closestMatch(BuildType.debug)
-                     }
+                     compatibilityRules.add(BuildTypeCompatibilityRule)
+                     disambiguationRules.add(SelectDebugRule)
                   }
                }
             }
@@ -407,34 +436,167 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':b:foo2Jar'
-        notExecuted ':b:fooJar', ':b:barJar', ':b:bar2Jar'
+        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
     }
 
-    def "can select configuration thanks to producer schema disambiguation"() {
+    def "producer can apply additional compatibility rules when consumer does not have an opinion for attribute known to both"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
 
-            project(':b') {
-               dependencies.attributesSchema {
-                  attribute(buildType)
-                  attribute(flavor) {
-                       disambiguationRules.add { details ->
-                            details.closestMatch(details.candidateValues.sort { it }.first())
-                       }
-
-                  }
-               }
+            class DoNothingRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                }
+            }
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    if (details.consumerValue.value == 'free' && details.producerValue.value == 'preview') {
+                        details.compatible()
+                    }
+                }
             }
 
             project(':a') {
                 dependencies.attributesSchema {
-                    def field = delegate.class.superclass.getDeclaredField('strategies')
-                    field.accessible = true
-                    field.get(delegate).remove(flavor) // for tests only, don't do this at home!!!
+                    attribute(flavor) {
+                        compatibilityRules.add(DoNothingRule)
+                    }
                 }
+                configurations {
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                dependencies.attributesSchema {
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                    }
+                }
+                configurations {
+                    foo {
+                        attributes { $debug; attribute(flavor, Flavor.of("release")) }
+                    }
+                    bar {
+                        attributes { $debug; attribute(flavor, Flavor.of("preview")) }
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+    }
+
+    def "consumer can veto producers view of compatibility"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class VetoRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    if (details.producerValue.value == 'preview') {
+                        details.incompatible()
+                    }
+                }
+            }
+            class EverythingIsCompatibleRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+
+            project(':a') {
+                dependencies.attributesSchema {
+                    attribute(flavor) {
+                        compatibilityRules.add(VetoRule)
+                    }
+                }
+                configurations {
+                    _compileFreeDebug.attributes { $freeDebug }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                dependencies.attributesSchema {
+                    attribute(flavor) {
+                        compatibilityRules.add(EverythingIsCompatibleRule)
+                    }
+                }
+                configurations {
+                    foo {
+                        attributes { $debug; attribute(flavor, Flavor.of('preview')) }
+                    }
+                    bar {
+                        attributes { $debug; $free }
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+    }
+
+    def "producer can apply disambiguation for attribute known to both"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    details.closestMatch(details.candidateValues.sort { it.value }.last())
+                }
+            }
+
+            project(':a') {
                 configurations {
                     compile.attributes { $debug }
                 }
@@ -443,19 +605,77 @@ All of them match the consumer attributes:
                 }
                 task check(dependsOn: configurations.compile) {
                     doLast {
-                       assert configurations.compile.collect { it.name } == ['b-foo.jar']
+                       assert configurations.compile.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
+            
             project(':b') {
                 dependencies.attributesSchema {
                     attribute(flavor) {
                         compatibilityRules.assumeCompatibleWhenMissing()
+                        disambiguationRules.add(FlavorSelectionRule)
                     }
                 }
                 configurations {
                     foo.attributes { $free; $debug }
                     bar.attributes { $paid; $debug }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+        """
+
+        when:
+        run ':a:check'
+
+        then:
+        result.assertTasksExecuted(':b:barJar', ':a:check')
+    }
+
+    def "producer can apply disambiguation for attribute not known to consumer"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class SelectionRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    details.closestMatch(details.candidateValues.sort { it }.first())
+                }
+            }
+
+            def platform = Attribute.of('platform', String)
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       assert configurations.compile.collect { it.name } == ['b-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                dependencies.attributesSchema.attribute(platform) {
+                    compatibilityRules.assumeCompatibleWhenMissing()
+                    disambiguationRules.add(SelectionRule)
+                }
+                configurations {
+                    foo.attributes { attribute(platform, 'b'); $debug }
+                    bar.attributes { attribute(platform, 'a'); $debug }
                 }
                 task fooJar(type: Jar) {
                    baseName = 'b-foo'
@@ -475,8 +695,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        executedAndNotSkipped ':b:fooJar'
-        notExecuted ':b:barJar'
+        result.assertTasksExecuted(':b:barJar', ':a:check')
     }
 
     def "both dependencies will choose the same default value"() {
@@ -568,9 +787,353 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        executedAndNotSkipped ':b:barJar', ':c:barJar'
-        notExecuted ':b:fooJar', ':c:fooJar'
+        result.assertTasksExecuted(':b:barJar', ':c:barJar', ':a:check')
     }
 
+    def "can inject configuration into compatibility and disambiguation rules"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
 
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                String value
+            
+                @javax.inject.Inject
+                FlavorCompatibilityRule(String value) { this.value = value }
+
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    if (details.producerValue.value == value) {
+                        details.compatible()
+                    }
+                }
+            }
+
+            class BuildTypeSelectionRule implements AttributeDisambiguationRule<BuildType> {
+                BuildType value
+
+                @javax.inject.Inject
+                BuildTypeSelectionRule(BuildType value) { this.value = value }
+                void execute(MultipleCandidatesDetails<BuildType> details) {
+                    if (details.candidateValues.contains(value)) {
+                        details.closestMatch(value)
+                    }
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor) {
+                            compatibilityRules.add(FlavorCompatibilityRule) { params("full") }
+                        }
+                        attribute(buildType) {
+                            compatibilityRules.assumeCompatibleWhenMissing()
+                            disambiguationRules.add(BuildTypeSelectionRule) { params(BuildType.debug) }
+                        }
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile { attributes { $free } }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task checkDebug(dependsOn: configurations.compile) {
+                    doLast {
+                        // Compatibility rules select paid flavors, disambiguation rules select debug
+                        assert configurations.compile.collect { it.name } == ['b-foo2.jar']
+                    }
+                }
+            }
+            project(':b') {
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task foo2Jar(type: Jar) {
+                   baseName = 'b-foo2'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                configurations {
+                    c1 { attributes { attribute(flavor, Flavor.of('preview')); $debug } }
+                    c2 { attributes { attribute(flavor, Flavor.of('preview')); $release } }
+                    c3 { attributes { attribute(flavor, Flavor.of('full')); $debug } }
+                    c4 { attributes { attribute(flavor, Flavor.of('full')); $release } }
+                }
+                artifacts {
+                    c1 fooJar
+                    c2 fooJar
+                    c3 foo2Jar
+                    c4 barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+    }
+
+    def "user receives reasonable error message when compatibility rule cannot be created"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                FlavorCompatibilityRule(String thing) { }
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                }
+            }
+
+            allprojects {
+                dependencies.attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $free; $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       configurations.compile.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    bar.attributes { $paid; $debug }
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails("a:check")
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
+        failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
+        failure.assertHasCause("Class FlavorCompatibilityRule has no constructor that is annotated with @Inject.")
+    }
+
+    def "user receives reasonable error message when compatibility rule fails"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    throw new RuntimeException("broken!")
+                }
+            }
+
+            allprojects {
+                dependencies.attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $free; $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       configurations.compile.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    bar.attributes { $paid; $debug }
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails("a:check")
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
+        failure.assertHasCause("broken!")
+    }
+
+    def "user receives reasonable error message when disambiguation rule cannot be created"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                FlavorSelectionRule(String thing) {
+                }
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                }
+            }
+
+            allprojects {
+                dependencies.attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                        disambiguationRules.add(FlavorSelectionRule)
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $free; $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       configurations.compile.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes { $free; $debug }
+                    bar.attributes { $paid; $debug }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails("a:check")
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
+        failure.assertHasCause("Class FlavorSelectionRule has no constructor that is annotated with @Inject.")
+    }
+
+    def "user receives reasonable error message when disambiguation rule fails"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+
+            class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
+                void execute(MultipleCandidatesDetails<Flavor> details) {
+                    throw new RuntimeException("broken!")
+                }
+            }
+
+            allprojects {
+                dependencies.attributesSchema {
+                    attribute(buildType)
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                        disambiguationRules.add(FlavorSelectionRule)
+                    }
+                }
+            }
+
+            project(':a') {
+                configurations {
+                    compile.attributes { $free; $debug }
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                       configurations.compile.files
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes { $free; $debug }
+                    bar.attributes { $paid; $debug }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails("a:check")
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("broken!")
+    }
 }

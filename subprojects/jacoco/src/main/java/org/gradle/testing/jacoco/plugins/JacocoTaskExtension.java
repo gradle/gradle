@@ -19,9 +19,11 @@ package org.gradle.testing.jacoco.plugins;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -52,11 +54,11 @@ public class JacocoTaskExtension {
         }
     }
 
-    private JacocoAgentJar agent;
+    private final JacocoAgentJar agent;
     private final JavaForkOptions task;
 
     private boolean enabled = true;
-    private File destinationFile;
+    private final PropertyState<File> destinationFile;
     private boolean append = true;
     private List<String> includes = new ArrayList<String>();
     private List<String> excludes = new ArrayList<String>();
@@ -73,12 +75,14 @@ public class JacocoTaskExtension {
     /**
      * Creates a Jacoco task extension.
      *
+     * @param project the project
      * @param agent the agent JAR to use for analysis
      * @param task the task we extend
      */
-    public JacocoTaskExtension(JacocoAgentJar agent, JavaForkOptions task) {
+    public JacocoTaskExtension(Project project, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
+        destinationFile = project.property(File.class);
     }
 
     /**
@@ -96,11 +100,15 @@ public class JacocoTaskExtension {
      * The path for the execution data to be written to.
      */
     public File getDestinationFile() {
-        return destinationFile;
+        return destinationFile.getOrNull();
+    }
+
+    public void setDestinationFile(Provider<File> destinationFile) {
+        this.destinationFile.set(destinationFile);
     }
 
     public void setDestinationFile(File destinationFile) {
-        this.destinationFile = destinationFile;
+        this.destinationFile.set(destinationFile);
     }
 
     /**
@@ -217,21 +225,6 @@ public class JacocoTaskExtension {
 
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
-     */
-    @Deprecated
-    public File getClassDumpFile() {
-        DeprecationLogger.nagUserOfReplacedMethod("JacocoTaskExtension.getClassDumpFile()", "getClassDumpDir()");
-        return getClassDumpDir();
-    }
-
-    @Deprecated
-    public void setClassDumpFile(File classDumpFile) {
-        DeprecationLogger.nagUserOfReplacedMethod("JacocoTaskExtension.setClassDumpFile(File)", "setClassDumpDir(File)");
-        setClassDumpDir(classDumpFile);
-    }
-
-    /**
-     * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
      *
      * @since 3.4
      */
@@ -259,24 +252,6 @@ public class JacocoTaskExtension {
 
     public void setJmx(boolean jmx) {
         this.jmx = jmx;
-    }
-
-    /**
-     * agent
-     * @deprecated Agent should be considered final.
-     */
-    @Deprecated
-    public JacocoAgentJar getAgent() {
-        return agent;
-    }
-
-    /**
-     * agent
-     * @deprecated Agent should be considered final.
-     */
-    @Deprecated
-    public void setAgent(JacocoAgentJar agent) {
-        this.agent = agent;
     }
 
     /**

@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -351,7 +350,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec) {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
             return this;
         }
 
@@ -365,14 +364,5 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             throw wrapException(e, configuration);
         }
 
-        @Override
-        public <T extends Collection<? super File>> T collectFiles(T dest) throws ResolveException {
-            throw wrapException(e, configuration);
-        }
-
-        @Override
-        public <T extends Collection<? super ResolvedArtifactResult>> T collectArtifacts(T dest) throws ResolveException {
-            throw wrapException(e, configuration);
-        }
     }
 }

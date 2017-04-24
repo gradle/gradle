@@ -26,7 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
 import java.io.File;
-import java.util.LinkedHashSet;
+import java.util.Collection;
 import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
@@ -57,7 +57,17 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        return configuration.select(dependencySpec).collectFiles(new LinkedHashSet<File>());
+        ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
+        try {
+            configuration.select(dependencySpec).visitArtifacts(visitor);
+        } catch (Throwable t) {
+            visitor.visitFailure(t);
+        }
+        Collection<Throwable> failures = visitor.getFailures();
+        if (!failures.isEmpty()) {
+            throw new DefaultLenientConfiguration.ArtifactResolveException("files", configuration.getConfiguration().getPath(), configuration.getConfiguration().getDisplayName(), failures);
+        }
+        return visitor.getFiles();
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
@@ -74,6 +84,6 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         rethrowFailure();
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         configuration.select().visitArtifacts(visitor);
-        return visitor.artifacts;
+        return visitor.getArtifacts();
     }
 }

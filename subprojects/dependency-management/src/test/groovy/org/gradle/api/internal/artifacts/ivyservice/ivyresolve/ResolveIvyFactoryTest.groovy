@@ -118,7 +118,7 @@ class ResolveIvyFactoryTest extends Specification {
         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor = Stub()
         VersionLister versionLister = Stub()
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
-        FileStore<ModuleComponentArtifactMetadata> fileStore = Stub()
+        FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
@@ -128,7 +128,7 @@ class ResolveIvyFactoryTest extends Specification {
                     cacheAwareExternalResourceAccessor,
                     versionLister,
                     locallyAvailableResourceFinder,
-                    fileStore,
+                    artifactFileStore,
                     moduleIdentifierFactory
             ]
         ) {

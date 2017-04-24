@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
 
 public class DefaultVariant implements ConfigurationVariant {
@@ -44,7 +45,12 @@ public class DefaultVariant implements ConfigurationVariant {
         this.name = name;
         attributes = new DefaultMutableAttributeContainer(cache, parentAttributes);
         this.artifactNotationParser = artifactNotationParser;
-        artifacts = new DefaultPublishArtifactSet(name + " artifacts", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class), fileCollectionFactory);
+        artifacts = new DefaultPublishArtifactSet(new Factory<String>() {
+            @Override
+            public String create() {
+                return DefaultVariant.this.name + " artifacts";
+            }
+        }, new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class), fileCollectionFactory);
     }
 
     @Override

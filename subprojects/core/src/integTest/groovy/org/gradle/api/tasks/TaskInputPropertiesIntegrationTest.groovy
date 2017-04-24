@@ -183,7 +183,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skipped ':test'
     }
 
-    def "no deprecation warning printed when @OutputDirectories or @OutputFiles is used on Map property"() {
+    def "can annotate Map property with @OutputDirectories and @OutputFiles"() {
         file("buildSrc/src/main/groovy/TaskWithOutputFilesProperty.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
@@ -205,102 +205,42 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
-    @Unroll("deprecation warning printed when TaskInputs.#method is called")
-    def "deprecation warning printed when deprecated source method is used"() {
+    @Unroll
+    def "fails when inputs calls are chained (#method)"() {
         buildFile << """
             task test {
-                inputs.${call}
+                inputs.${call}.${call}
             }
         """
-        executer.expectDeprecationWarning()
-        executer.requireGradleDistribution()
 
         expect:
-        succeeds "test"
-        outputContains "The TaskInputs.${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use TaskInputs.${replacementMethod}.skipWhenEmpty() instead."
+        fails "test"
+        failureCauseContains "Chaining of the TaskInputs.$method method is not supported since Gradle 4.0."
 
         where:
-        method              | replacementMethod  | call
-        "source(Object)"    | "file(Object)"     | 'source("a")'
-        "sourceDir(Object)" | "dir(Object)"      | 'sourceDir("a")'
-        "source(Object...)" | "files(Object...)" | 'source("a", "b")'
+        method              | call
+        "file(Object)"      | 'file("a")'
+        "dir(Object)"       | 'dir("a")'
+        "files(Object...)"  | 'files("a", "b")'
     }
 
     @Unroll
-    def "deprecation warning printed when deprecated order sensitivity is set via #method"() {
+    def "fails when outputs calls are chained (#method)"() {
         buildFile << """
             task test {
-                inputs.files([]).${call}
+                outputs.${call}.${call}
             }
         """
-        executer.expectDeprecationWarning()
-        executer.requireGradleDistribution()
 
         expect:
-        succeeds "test"
-        outputContains "The TaskInputFilePropertyBuilder.${method} method has been deprecated and is scheduled to be removed in Gradle 4.0."
+        fails "test"
+        failureCauseContains "Chaining of the TaskOutputs.$method method is not supported since Gradle 4.0."
 
         where:
-        method                    | call
-        "orderSensitive()"        | "orderSensitive()"
-        "orderSensitive(boolean)" | "orderSensitive(true)"
-    }
-
-    def "deprecation warning printed when deprecated @OrderSensitivity annotation is used"() {
-        buildFile << """
-            class TaskWithOrderSensitiveProperty extends DefaultTask {
-                @OrderSensitive @InputFiles def inputFiles = project.files()
-                @TaskAction void action() {}
-            }
-
-            task test(type: TaskWithOrderSensitiveProperty) {
-            }
-        """
-
-        executer.expectDeprecationWarning()
-
-        when:
-        succeeds "test"
-        then:
-        outputContains "The @OrderSensitive annotation has been deprecated and is scheduled to be removed in Gradle 4.0. For classpath properties, use the @Classpath annotation instead."
-    }
-
-    def "no deprecation warning printed when @Classpath annotation is used"() {
-        buildFile << """
-            class TaskWithClasspathProperty extends DefaultTask {
-                @Classpath @InputFiles def classpath = project.files()
-                @TaskAction void action() {}
-            }
-
-            task test(type: TaskWithClasspathProperty) {
-            }
-        """
-
-        expect:
-        succeeds "test"
-    }
-
-    @Unroll
-    def "deprecation warning printed when inputs calls are chained"() {
-        buildFile << """
-            task test {
-                ${what}.${call}.${call}
-            }
-        """
-        executer.expectDeprecationWarning()
-        executer.requireGradleDistribution()
-
-        expect:
-        succeeds "test"
-        outputContains "The chaining of the ${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use the ${method} method on Task${what.capitalize()} directly instead."
-
-        where:
-        what     | method              | call
-        "inputs" | "file(Object)"      | 'file("a")'
-        "inputs" | "dir(Object)"       | 'dir("a")'
-        "inputs" | "files(Object...)"  | 'files("a", "b")'
+        method             | call
+        "file(Object)"     | 'file("a")'
+        "dir(Object)"      | 'dir("a")'
+        "files(Object...)" | 'files("a", "b")'
     }
 
     def "task depends on other task whose outputs are its inputs"() {
@@ -318,7 +258,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "b" assertTasksExecuted ":a", ":b"
+        succeeds "b" assertTasksExecutedInOrder ":a", ":b"
     }
 
     def "task is out of date when property added"() {

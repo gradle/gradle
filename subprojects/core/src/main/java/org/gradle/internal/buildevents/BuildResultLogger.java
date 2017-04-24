@@ -18,6 +18,7 @@ package org.gradle.internal.buildevents;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.format.DurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
@@ -31,10 +32,12 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
 public class BuildResultLogger extends BuildAdapter {
     private final StyledTextOutputFactory textOutputFactory;
     private final Clock buildTimeClock;
+    private final DurationFormatter durationFormatter;
 
-    public BuildResultLogger(StyledTextOutputFactory textOutputFactory, Clock buildTimeClock) {
+    public BuildResultLogger(StyledTextOutputFactory textOutputFactory, Clock buildTimeClock, DurationFormatter durationFormatter) {
         this.textOutputFactory = textOutputFactory;
         this.buildTimeClock = buildTimeClock;
+        this.durationFormatter = durationFormatter;
     }
 
     public void buildFinished(BuildResult result) {
@@ -46,8 +49,7 @@ public class BuildResultLogger extends BuildAdapter {
         } else {
             textOutput.withStyle(Failure).text(action + " FAILED");
         }
-        textOutput.println();
-        textOutput.println();
-        textOutput.formatln("Total time: %s", buildTimeClock.getElapsed());
+
+        textOutput.formatln(" in %s", durationFormatter.format(buildTimeClock.getElapsedMillis()));
     }
 }

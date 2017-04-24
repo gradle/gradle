@@ -61,33 +61,24 @@ public class BuildCacheServiceProvider {
         BuildCache local = buildCacheConfiguration.getLocal();
         BuildCache remote = buildCacheConfiguration.getRemote();
 
+        boolean canUseRemoteBuildCache = remote != null && remote.isEnabled();
+
+        if (canUseRemoteBuildCache && startParameter.isOffline()) {
+            LOGGER.warn("Remote build cache is disabled when running with --offline.");
+        }
+
         RoleAwareBuildCacheService buildCacheService;
         if (local.isEnabled()) {
-            if (remote != null && remote.isEnabled()) {
+            if (canUseRemoteBuildCache && !startParameter.isOffline()) {
                 buildCacheService = createDispatchingBuildCacheService(local, remote);
             } else {
                 buildCacheService = createStandaloneLocalBuildService(local);
             }
-        } else if (remote != null && remote.isEnabled()) {
+        } else if (canUseRemoteBuildCache && !startParameter.isOffline()) {
             buildCacheService = createStandaloneRemoteBuildService(remote);
         } else {
             LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
             return new NoOpBuildCacheService();
-        }
-
-        // TODO Remove this when the system properties are removed
-        if (buildCacheConfiguration.isPullDisabled() || buildCacheConfiguration.isPushDisabled()) {
-            if (buildCacheConfiguration.isPushDisabled()) {
-                LOGGER.warn("Pushing to any build cache is globally disabled.");
-            }
-            if (buildCacheConfiguration.isPullDisabled()) {
-                LOGGER.warn("Pulling from any build cache is globally disabled.");
-            }
-            buildCacheService = new PushOrPullPreventingBuildCacheServiceDecorator(
-                buildCacheConfiguration.isPushDisabled(),
-                buildCacheConfiguration.isPullDisabled(),
-                buildCacheService
-            );
         }
 
         return buildCacheService;

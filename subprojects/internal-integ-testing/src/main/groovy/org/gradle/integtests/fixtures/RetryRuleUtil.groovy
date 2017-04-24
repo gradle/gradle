@@ -25,6 +25,8 @@ import spock.lang.Specification
 
 class RetryRuleUtil {
 
+    static private final String[] FILES_TO_PRESERVE = ['reproducible-archives-init.gradle']
+
     static RetryRule retryCrossVersionTestOnIssueWithReleasedGradleVersion(Specification specification) {
         RetryRule.retryIf(specification) { t ->
             Throwable failure = t
@@ -123,7 +125,8 @@ class RetryRuleUtil {
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): gradle/gradle#1111
         if (runsOnWindowsAndJava7or8() && daemonFixture != null) {
             if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
-                getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine") {
+                getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine" ||
+                getRootCauseMessage(failure) == "Connection refused: no further information") {
 
                 for (def daemon : daemonFixture.daemons) {
                     if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
@@ -173,11 +176,15 @@ class RetryRuleUtil {
         }
         if (specification.hasProperty("projectDir")) {
             specification.projectDir.listFiles().each {
-                it.deleteDir()
+                if (!FILES_TO_PRESERVE.contains(it.name)) {
+                    it.deleteDir()
+                }
             }
         } else if (specification.hasProperty("testDirectory")) {
             specification.testDirectory.listFiles().each {
-                it.deleteDir()
+                if (!FILES_TO_PRESERVE.contains(it.name)) {
+                    it.deleteDir()
+                }
             }
         }
         true

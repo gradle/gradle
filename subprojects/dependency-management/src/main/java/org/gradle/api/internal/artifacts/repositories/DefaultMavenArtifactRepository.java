@@ -49,6 +49,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final FileStore<String> resourcesFileStore;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -56,7 +57,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                           MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                           AuthenticationContainer authenticationContainer,
-                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                          FileStore<String> resourcesFileStore) {
         super(instantiator, authenticationContainer);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
@@ -64,10 +66,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.artifactFileStore = artifactFileStore;
         this.pomParser = pomParser;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.resourcesFileStore = resourcesFileStore;
     }
 
     public URI getUrl() {
         return url == null ? null : fileResolver.resolveUri(url);
+    }
+
+    public void setUrl(URI url) {
+        this.url = url;
     }
 
     public void setUrl(Object url) {
@@ -114,7 +121,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore);
     }
 
     public MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {

@@ -83,10 +83,39 @@ class HttpBuildCacheServiceTest extends Specification {
         destFile.text == "Data"
     }
 
+    def "can cache artifact with redirect"() {
+        def destFile = tempDir.file("cached.zip")
+        server.expectPutRedirected("/cache/${key.hashCode}","/redirect/cache/${key.hashCode}")
+        server.expectPut("/redirect/cache/${key.hashCode}", destFile)
+
+        when:
+        cache.store(key) { output ->
+            output << "Data"
+        }
+        then:
+        destFile.text == "Data"
+    }
+
     def "can load artifact from cache"() {
         def srcFile = tempDir.file("cached.zip")
         srcFile.text = "Data"
         server.expectGet("/cache/${key.hashCode}", srcFile)
+
+        when:
+        def receivedInput = null
+        cache.load(key) { input ->
+            receivedInput = input.text
+        }
+
+        then:
+        receivedInput == "Data"
+    }
+
+    def "can load artifact from cache through redirect"() {
+        def srcFile = tempDir.file("cached.zip")
+        srcFile.text = "Data"
+        server.expectGetRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
+        server.expectGet("/redirect/cache/${key.hashCode}", srcFile)
 
         when:
         def receivedInput = null

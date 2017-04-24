@@ -50,7 +50,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLocalComponentMetadata implements LocalComponentMetadata, BuildableLocalComponentMetadata {
-    private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newHashMap();
+    private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newLinkedHashMap();
     private final Multimap<String, LocalComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
     private final Multimap<String, LocalFileDependencyMetadata> allFiles = ArrayListMultimap.create();
     private final SetMultimap<String, DefaultVariantMetadata> allVariants = LinkedHashMultimap.create();
@@ -228,7 +228,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
+    public synchronized List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
         if (consumableConfigurations == null) {
             consumableConfigurations = Lists.newArrayListWithExpectedSize(allConfigurations.size());
             for (DefaultLocalConfigurationMetadata metadata : allConfigurations.values()) {

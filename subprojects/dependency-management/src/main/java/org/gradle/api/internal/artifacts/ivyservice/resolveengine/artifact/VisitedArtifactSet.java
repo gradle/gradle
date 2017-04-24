@@ -33,6 +33,7 @@ public interface VisitedArtifactSet {
      * @param dependencySpec Select only those artifacts reachable from first level dependencies that match the given spec.
      * @param requestedAttributes Select only those artifacts that match the provided attributes.
      * @param componentSpec Select only those artifacts source from components matching the given spec.
+     * @param allowNoMatchingVariant When true, ignore those components which have no matching variants. When false, fail when any component has no matching variant.
      */
-    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec);
+    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant);
 }

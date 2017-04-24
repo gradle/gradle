@@ -25,12 +25,12 @@ import java.io.File;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final File daemonWorkingDir;
-    private final WorkerDaemonFactory compilerDaemonFactory;
+    private final WorkerDaemonFactory workerDaemonFactory;
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, WorkerDaemonFactory compilerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+    public DefaultJavaCompilerFactory(File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
-        this.compilerDaemonFactory = compilerDaemonFactory;
+        this.workerDaemonFactory = workerDaemonFactory;
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
     }
 
@@ -56,7 +56,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
         Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type) && !jointCompilation) {
-            return new DaemonJavaCompiler(daemonWorkingDir, compiler, compilerDaemonFactory);
+            return new DaemonJavaCompiler(daemonWorkingDir, compiler, workerDaemonFactory);
         }
 
         return compiler;

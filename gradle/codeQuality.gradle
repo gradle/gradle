@@ -57,3 +57,7 @@ tasks.withType(Checkstyle) { task ->
 task codeQuality {
     dependsOn codeQualityTasks
 }
+
+tasks.withType(Test) {
+    shouldRunAfter codeQualityTasks
+}

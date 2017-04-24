@@ -16,21 +16,21 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
+import org.gradle.api.internal.InstantiatorFactory;
 
-public class WorkerDaemonServer implements WorkerDaemonProtocol {
-    private static final Logger LOGGER = Logging.getLogger(WorkerDaemonServer.class);
+public class WorkerDaemonServer implements WorkerProtocol<ActionExecutionSpec> {
+    private final InstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator());
 
     @Override
-    public <T extends WorkSpec> DefaultWorkResult execute(WorkerDaemonAction<T> action, T spec) {
+    public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            LOGGER.info("Executing {} in worker daemon.", action.getDescription());
-            DefaultWorkResult result = action.execute(spec);
-            LOGGER.info("Successfully executed {} in worker daemon.", action.getDescription());
-            return result;
+            Class<? extends Runnable> implementationClass = spec.getImplementationClass();
+            Runnable runnable = instantiatorFactory.inject().newInstance(implementationClass, spec.getParams(implementationClass.getClassLoader()));
+            runnable.run();
+            return new DefaultWorkResult(true, null);
         } catch (Throwable t) {
-            LOGGER.info("Exception executing {} in worker daemon: {}.", action.getDescription(), t);
             return new DefaultWorkResult(true, t);
         }
     }

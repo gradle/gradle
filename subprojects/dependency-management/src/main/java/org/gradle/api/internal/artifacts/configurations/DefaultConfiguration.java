@@ -38,6 +38,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -58,6 +59,9 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
@@ -81,6 +85,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -96,6 +101,7 @@ import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -118,8 +124,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
-    private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
-    private final ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
+    private final ConfigurationResolvableDependencies resolvableDependencies;
+    private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
@@ -165,7 +171,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeResolved = true;
     private AttributeContainerInternal configurationAttributes;
     private final ImmutableAttributesFactory attributesFactory;
-    private final FileCollection intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+    private final FileCollection intrinsicFiles;
+
+    String displayName;
 
     public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -204,21 +212,43 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = new DefaultMutableAttributeContainer(attributesFactory);
+        this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+
+        this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
-        final String displayName = getDisplayName();
-        dependencies = new DefaultDependencySet(displayName + " dependencies", this, ownDependencies);
+        dependencies = new DefaultDependencySet(new Factory<String>() {
+            @Override
+            public String create() {
+                return getDisplayName() + " dependencies";
+            }
+        }, this, ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        allDependencies = new DefaultDependencySet(displayName + " all dependencies", this, inheritedDependencies);
+        allDependencies = new DefaultDependencySet(new Factory<String>() {
+            @Override
+            public String create() {
+                return getDisplayName() + " all dependencies";
+            }
+        }, this, inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
 
-        artifacts = new DefaultPublishArtifactSet(displayName + " artifacts", ownArtifacts, fileCollectionFactory);
+        artifacts = new DefaultPublishArtifactSet(new Factory<String>() {
+            @Override
+            public String create() {
+                return getDisplayName() + " artifacts";
+            }
+        }, ownArtifacts, fileCollectionFactory);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
-        allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
+        allArtifacts = new DefaultPublishArtifactSet(new Factory<String>() {
+            @Override
+            public String create() {
+                return getDisplayName() + " all artifacts";
+            }
+        }, inheritedArtifacts, fileCollectionFactory);
 
         outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
     }
@@ -452,7 +482,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (resolvedState != UNRESOLVED) {
             throw new IllegalStateException("Graph resolution already performed");
         }
-        buildOperationExecutor.run("Resolve dependencies " + identityPath, new Action<BuildOperationContext>() {
+        buildOperationExecutor.run("Resolve dependencies of " + identityPath, new Action<BuildOperationContext>() {
             @Override
             public void execute(BuildOperationContext buildOperationContext) {
                 lockAttributes();
@@ -559,11 +589,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("configuration '");
-        builder.append(identityPath);
-        builder.append("'");
-        return builder.toString();
+        if (displayName == null) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("configuration '");
+            builder.append(identityPath);
+            builder.append("'");
+            displayName = builder.toString();
+        }
+        return displayName;
     }
 
     public ResolvableDependencies getIncoming() {
@@ -624,6 +657,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.description = description;
 
         copiedConfiguration.defaultDependencyActions = defaultDependencyActions;
+        copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners;
 
         copiedConfiguration.canBeConsumed = canBeConsumed;
         copiedConfiguration.canBeResolved = canBeResolved;
@@ -764,20 +798,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super Dependency> dependencySpec;
         private final AttributeContainerInternal viewAttributes;
         private final Spec<? super ComponentIdentifier> componentSpec;
+        private final boolean lenient;
+        private final boolean allowNoMatchingVariants;
         private SelectedArtifactSet selectedArtifacts;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
             assertResolvingAllowed();
             this.dependencySpec = dependencySpec;
-            this.viewAttributes = ImmutableAttributes.EMPTY;
+            this.viewAttributes = configurationAttributes;
             this.componentSpec = Specs.satisfyAll();
+            lenient = false;
+            allowNoMatchingVariants = false;
         }
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec, AttributeContainerInternal viewAttributes,
-                                            Spec<? super ComponentIdentifier> componentSpec) {
+                                            Spec<? super ComponentIdentifier> componentSpec, boolean lenient, boolean allowNoMatchingVariants) {
             this.dependencySpec = dependencySpec;
             this.viewAttributes = viewAttributes.asImmutable();
             this.componentSpec = componentSpec;
+            this.lenient = lenient;
+            this.allowNoMatchingVariants = allowNoMatchingVariants;
         }
 
         private ConfigurationFileCollection(Closure dependencySpecClosure) {
@@ -795,7 +835,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public TaskDependency getBuildDependencies() {
             assertResolvingAllowed();
-            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec);
+            return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
         }
 
         public Spec<? super Dependency> getDependencySpec() {
@@ -807,18 +847,38 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            return getSelectedArtifacts().collectFiles(new LinkedHashSet<File>());
+            ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
+            getSelectedArtifacts().visitArtifacts(visitor);
+
+            if (!lenient) {
+                rethrowFailure("files", visitor.getFailures());
+            }
+            return visitor.getFiles();
         }
 
         private SelectedArtifactSet getSelectedArtifacts() {
             assertResolvingAllowed();
             if (selectedArtifacts == null) {
                 resolveToStateOrLater(ARTIFACTS_RESOLVED);
-                selectedArtifacts = cachedResolverResults.getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec);
+                selectedArtifacts = cachedResolverResults.getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
             }
             return selectedArtifacts;
         }
     }
+
+    private void rethrowFailure(String type, Collection<Throwable> failures) {
+        if (failures.isEmpty()) {
+            return;
+        }
+        if (failures.size() == 1) {
+            Throwable failure = failures.iterator().next();
+            if (failure instanceof ResolveException) {
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
+        }
+        throw new DefaultLenientConfiguration.ArtifactResolveException(type, getPath(), getDisplayName(), failures);
+    }
+
 
     private void assertResolvingAllowed() {
         if (!canBeResolved) {
@@ -921,7 +981,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return reply.toString();
     }
 
-    private class ConfigurationResolvableDependencies implements ResolvableDependencies {
+    public class ConfigurationResolvableDependencies implements ResolvableDependencies {
         public String getName() {
             return name;
         }
@@ -969,66 +1029,120 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return new ConfigurationArtifactCollection();
         }
 
-        public ArtifactView artifactView() {
-            return new ConfigurationViewBuilder();
+        @Override
+        public ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction) {
+            ArtifactViewConfiguration config = createArtifactViewConfiguration();
+            configAction.execute(config);
+            return createArtifactView(config);
         }
 
-        private class ConfigurationViewBuilder implements ArtifactView {
-            private AttributeContainerInternal viewAttributes;
-            private Spec<? super ComponentIdentifier> componentFilter;
+        private ArtifactView createArtifactView(ArtifactViewConfiguration config) {
+            ImmutableAttributes viewAttributes = config.lockViewAttributes();
+            // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
+            boolean allowNoMatchingVariants = config.attributesUsed;
+            return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
+        }
+
+        private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
+            return instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes);
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return configurationAttributes;
+        }
+
+        private class ConfigurationArtifactView implements ArtifactView {
+            private final ImmutableAttributes viewAttributes;
+            private final Spec<? super ComponentIdentifier> componentFilter;
+            private final boolean lenient;
+            private final boolean allowNoMatchingVariants;
+
+            ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
+                this.viewAttributes = viewAttributes;
+                this.componentFilter = componentFilter;
+                this.lenient = lenient;
+                this.allowNoMatchingVariants = allowNoMatchingVariants;
+            }
 
             @Override
             public AttributeContainer getAttributes() {
-                if (viewAttributes == null) {
-                    viewAttributes = new DefaultMutableAttributeContainer(attributesFactory);
-                }
                 return viewAttributes;
-            }
-
-            @Override
-            public ArtifactView attributes(Action<? super AttributeContainer> action) {
-                action.execute(getAttributes());
-                return this;
-            }
-
-            @Override
-            public ArtifactView componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
-                assertComponentFilterUnset();
-                this.componentFilter = componentFilter;
-                return this;
-            }
-
-            private void assertComponentFilterUnset() {
-                if (componentFilter != null) {
-                    throw new IllegalStateException("The component filter can only be set once before the view was computed");
-                }
             }
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return new ConfigurationArtifactCollection(lockViewAttributes(), lockComponentFilter());
+                return new ConfigurationArtifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
             }
 
             @Override
             public FileCollection getFiles() {
-                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), lockViewAttributes(), lockComponentFilter());
+                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
             }
+        }
+    }
 
-            private Spec<? super ComponentIdentifier> lockComponentFilter() {
-                if (componentFilter == null) {
-                    componentFilter = Specs.satisfyAll();
-                }
-                return componentFilter;
-            }
+    public static class ArtifactViewConfiguration implements ArtifactView.ViewConfiguration {
+        private final ImmutableAttributesFactory attributesFactory;
+        private final AttributeContainerInternal configurationAttributes;
+        private AttributeContainerInternal viewAttributes;
+        private Spec<? super ComponentIdentifier> componentFilter;
+        private boolean lenient;
+        private boolean attributesUsed;
 
-            private AttributeContainerInternal lockViewAttributes() {
-                if (viewAttributes == null) {
-                    viewAttributes = ImmutableAttributes.EMPTY;
-                } else {
-                    viewAttributes = viewAttributes.asImmutable();
-                }
-                return viewAttributes;
+        public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
+            this.attributesFactory = attributesFactory;
+            this.configurationAttributes = configurationAttributes;
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            if (viewAttributes == null) {
+                viewAttributes = new DefaultMutableAttributeContainer(attributesFactory, configurationAttributes);
+                attributesUsed = true;
             }
+            return viewAttributes;
+        }
+
+        @Override
+        public ArtifactViewConfiguration attributes(Action<? super AttributeContainer> action) {
+            action.execute(getAttributes());
+            return this;
+        }
+
+        @Override
+        public ArtifactViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
+            assertComponentFilterUnset();
+            this.componentFilter = componentFilter;
+            return this;
+        }
+
+        @Override
+        public ArtifactViewConfiguration lenient(boolean lenient) {
+            this.lenient = lenient;
+            return this;
+        }
+
+        private void assertComponentFilterUnset() {
+            if (componentFilter != null) {
+                throw new IllegalStateException("The component filter can only be set once before the view was computed");
+            }
+        }
+
+        private Spec<? super ComponentIdentifier> lockComponentFilter() {
+            if (componentFilter == null) {
+                componentFilter = Specs.satisfyAll();
+            }
+            return componentFilter;
+        }
+
+        private ImmutableAttributes lockViewAttributes() {
+            if (viewAttributes == null) {
+                viewAttributes = configurationAttributes.asImmutable();
+            } else {
+                viewAttributes = viewAttributes.asImmutable();
+            }
+            return viewAttributes.asImmutable();
         }
     }
 
@@ -1036,16 +1150,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final ConfigurationFileCollection fileCollection;
         private final AttributeContainerInternal viewAttributes;
         private final Spec<? super ComponentIdentifier> componentFilter;
+        private final boolean lenient;
+        private Set<ResolvedArtifactResult> artifactResults;
+        private Set<Throwable> failures;
 
         ConfigurationArtifactCollection() {
-            this(ImmutableAttributes.EMPTY, Specs.<ComponentIdentifier>satisfyAll());
+            this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll(), false, false);
         }
 
-        ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter) {
+        ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
             assertResolvingAllowed();
             this.viewAttributes = attributes.asImmutable();
             this.componentFilter = componentFilter;
-            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, this.componentFilter);
+            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, this.componentFilter, lenient, allowNoMatchingVariants);
+            this.lenient = lenient;
         }
 
         @Override
@@ -1055,12 +1173,36 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public Set<ResolvedArtifactResult> getArtifacts() {
-            return fileCollection.getSelectedArtifacts().collectArtifacts(new LinkedHashSet<ResolvedArtifactResult>());
+            ensureResolved();
+            return artifactResults;
         }
 
         @Override
         public Iterator<ResolvedArtifactResult> iterator() {
-            return getArtifacts().iterator();
+            ensureResolved();
+            return artifactResults.iterator();
+        }
+
+        @Override
+        public Collection<Throwable> getFailures() {
+            ensureResolved();
+            return failures;
+        }
+
+        private synchronized void ensureResolved() {
+            if (artifactResults != null) {
+                return;
+            }
+
+            ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
+            fileCollection.getSelectedArtifacts().visitArtifacts(visitor);
+
+            artifactResults = visitor.getArtifacts();
+            failures = visitor.getFailures();
+
+            if (!lenient) {
+                rethrowFailure("artifacts", failures);
+            }
         }
     }
 
@@ -1068,11 +1210,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super Dependency> dependencySpec;
         private final AttributeContainerInternal requestedAttributes;
         private final Spec<? super ComponentIdentifier> componentIdentifierSpec;
+        private final boolean allowNoMatchingVariants;
 
-        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec) {
+        ConfigurationTaskDependency(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentIdentifierSpec, boolean allowNoMatchingVariants) {
             this.dependencySpec = dependencySpec;
             this.requestedAttributes = requestedAttributes;
             this.componentIdentifierSpec = componentIdentifierSpec;
+            this.allowNoMatchingVariants = allowNoMatchingVariants;
         }
 
         @Override
@@ -1092,7 +1236,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     results = cachedResolverResults;
                 }
                 List<Object> buildDependencies = new ArrayList<Object>();
-                results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec).collectBuildDependencies(buildDependencies);
+                results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants).collectBuildDependencies(buildDependencies);
                 for (Object buildDependency : buildDependencies) {
                     context.add(buildDependency);
                 }

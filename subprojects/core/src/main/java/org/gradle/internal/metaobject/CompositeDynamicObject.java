@@ -50,23 +50,25 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public void getProperty(String name, GetPropertyResult result) {
+    public DynamicInvokeResult tryGetProperty(String name) {
         for (DynamicObject object : objects) {
-            object.getProperty(name, result);
+            DynamicInvokeResult result = object.tryGetProperty(name);
             if (result.isFound()) {
-                return;
+                return result;
             }
         }
+        return DynamicInvokeResult.notFound();
     }
 
     @Override
-    public void setProperty(String name, Object value, SetPropertyResult result) {
+    public DynamicInvokeResult trySetProperty(String name, Object value) {
         for (DynamicObject object : updateObjects) {
-            object.setProperty(name, value, result);
+            DynamicInvokeResult result = object.trySetProperty(name, value);
             if (result.isFound()) {
-                return;
+                return result;
             }
         }
+        return DynamicInvokeResult.notFound();
     }
 
     @Override
@@ -91,12 +93,13 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+    public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
         for (DynamicObject object : objects) {
-            object.invokeMethod(name, result, arguments);
+            DynamicInvokeResult result = object.tryInvokeMethod(name, arguments);
             if (result.isFound()) {
-                return;
+                return result;
             }
         }
+        return DynamicInvokeResult.notFound();
     }
 }

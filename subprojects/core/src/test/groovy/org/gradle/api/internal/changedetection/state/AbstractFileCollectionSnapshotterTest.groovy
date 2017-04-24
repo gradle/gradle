@@ -34,11 +34,8 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnap
 
 class AbstractFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()
-    def fileSystemMirror = Stub(FileSystemMirror) {
-        getFile(_) >> null
-        getDirectoryTree(_) >> null
-    }
-    def snapshotter = new AbstractFileCollectionSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror) {
+    def fileSystemMirror = new DefaultFileSystemMirror([])
+    def snapshotter = new AbstractFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)) {
         @Override
         Class<? extends FileCollectionSnapshotter> getRegisteredType() {
             FileCollectionSnapshotter
@@ -123,6 +120,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         def snapshot = snapshotter.snapshot(files(file1), UNORDERED, ABSOLUTE)
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(files(file1, file2), UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -154,6 +152,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2), UNORDERED, ABSOLUTE)
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(files(file1), UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -168,8 +167,10 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE)
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE), snapshot, listener)
         file.setLastModified(45600L)
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -186,6 +187,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
         file.delete()
         file.createDir()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -199,6 +201,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE)
         file.write('new content')
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -211,7 +214,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir), UNORDERED, ABSOLUTE)
-
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(files(dir), UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -227,6 +230,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
         dir.deleteDir()
         dir.createFile()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -239,6 +243,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE)
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -253,6 +258,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
         file.createFile()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -267,6 +273,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE)
         file.delete()
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(fileCollection, UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -279,6 +286,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2), UNORDERED, ABSOLUTE)
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(snapshotter.snapshot(files(file1), UNORDERED, ABSOLUTE), snapshot, listener)
 
         then:
@@ -291,6 +299,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
         when:
         FileCollectionSnapshot snapshot = FileCollectionSnapshot.EMPTY
         FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file), UNORDERED, ABSOLUTE)
+        fileSystemMirror.beforeTaskOutputsGenerated()
         changes(newSnapshot, snapshot, listener)
 
         then:
@@ -299,7 +308,7 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
         0 * listener._
     }
 
-    private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
+    private void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
         newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE").each { FileChange change ->
             switch (change.type) {
                 case ChangeType.ADDED:

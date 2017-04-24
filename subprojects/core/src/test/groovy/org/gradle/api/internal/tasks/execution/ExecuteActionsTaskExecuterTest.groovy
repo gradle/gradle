@@ -41,7 +41,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
     private final TaskInternal task = Mock(TaskInternal);
     private final ContextAwareTaskAction action1 = Mock(ContextAwareTaskAction)
     private final ContextAwareTaskAction action2 = Mock(ContextAwareTaskAction)
-    private final TaskStateInternal state = new TaskStateInternal("<task>")
+    private final TaskStateInternal state = new TaskStateInternal()
     private final TaskExecutionContext executionContext = Mock(TaskExecutionContext)
     private final ScriptSource scriptSource = Mock(ScriptSource)
     private final StandardOutputCapture standardOutputCapture = Mock(StandardOutputCapture)
@@ -87,6 +87,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         state.outcome == TaskExecutionOutcome.UP_TO_DATE
         !state.didWork
         !state.executing
+        !state.actionsWereExecuted
     }
 
     def executesEachActionInOrder() {
@@ -138,6 +139,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         state.didWork
         state.outcome == TaskExecutionOutcome.EXECUTED
         !state.failure
+        state.actionsWereExecuted
     }
 
     def executeDoesOperateOnNewActionListInstance() {
@@ -209,6 +211,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         !state.executing
         state.didWork
         state.outcome == TaskExecutionOutcome.EXECUTED
+        state.actionsWereExecuted
 
         TaskExecutionException wrappedFailure = (TaskExecutionException) state.failure
         wrappedFailure instanceof TaskExecutionException
@@ -301,6 +304,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         state.outcome == TaskExecutionOutcome.EXECUTED
         !state.executing
         !state.failure
+        state.actionsWereExecuted
 
         noMoreInteractions()
     }

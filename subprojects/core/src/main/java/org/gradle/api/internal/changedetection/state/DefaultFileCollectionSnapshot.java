@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -72,7 +73,7 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        compareStrategy.appendToHasher(hasher, snapshots);
+        compareStrategy.appendToHasher(hasher, snapshots.values());
     }
 
     @Override
@@ -96,7 +97,7 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     private List<File> doGetFiles() {
         List<File> files = Lists.newArrayList();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
-            if (entry.getValue().getSnapshot() instanceof FileHashSnapshot) {
+            if (entry.getValue().getSnapshot().getType() == FileType.RegularFile) {
                 files.add(new File(entry.getKey()));
             }
         }

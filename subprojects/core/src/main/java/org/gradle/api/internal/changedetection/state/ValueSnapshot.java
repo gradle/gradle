@@ -16,17 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
-
 /**
- * An immutable snapshot of the state of some value.
+ * An immutable snapshot of the state of some Java object or object graph.
  */
-public interface ValueSnapshot {
-    /**
-     * Appends the snapshot to the given hasher.
-     */
-    void appendToHasher(BuildCacheHasher hasher);
-
+public interface ValueSnapshot extends Snapshot {
     /**
      * Takes a snapshot of the given value, using this as a candidate snapshot. If the value is the same as the value represented by this snapshot, this snapshot _must_ be returned.
      */

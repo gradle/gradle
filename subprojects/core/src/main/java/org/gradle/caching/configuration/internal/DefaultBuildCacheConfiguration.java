@@ -18,7 +18,6 @@ package org.gradle.caching.configuration.internal;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -26,7 +25,6 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +32,6 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
-    public static final String BUILD_CACHE_CAN_PULL = "org.gradle.cache.tasks.pull";
-    public static final String BUILD_CACHE_CAN_PUSH = "org.gradle.cache.tasks.push";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheConfiguration.class);
 
     private final Instantiator instantiator;
@@ -43,18 +39,11 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     private BuildCache local;
     private BuildCache remote;
 
-    private final boolean pullDisabled;
-    private final boolean pushDisabled;
-
     private final Set<BuildCacheServiceRegistration> registrations;
 
-    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices, StartParameter startParameter) {
+    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
         this.instantiator = instantiator;
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
-
-        // TODO: Drop these system properties
-        this.pullDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PULL);
-        this.pushDisabled = isDisabled(startParameter, BUILD_CACHE_CAN_PUSH);
 
         // By default the local cache is a directory cache
         this.local = createLocalCacheConfiguration(instantiator, DirectoryBuildCache.class);
@@ -157,28 +146,5 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
         // Couldn't find a registration for the given type
         throw new IllegalArgumentException(String.format("No build cache service factory for configuration type '%s' could be found.", configurationType.getSuperclass().getCanonicalName()));
-    }
-
-    @Override
-    public boolean isPushDisabled() {
-        return pushDisabled;
-    }
-
-    @Override
-    public boolean isPullDisabled() {
-        return pullDisabled;
-    }
-
-    private static boolean isDisabled(StartParameter startParameter, String property) {
-        String value = startParameter.getSystemPropertiesArgs().get(property);
-        if (value == null) {
-            value = System.getProperty(property);
-        }
-        if (value == null) {
-            return false;
-        }
-        SingleMessageLogger.nagUserOfDiscontinuedProperty(property, "Use the build cache DSL instead.");
-        value = value.toLowerCase().trim();
-        return value.equals("false");
     }
 }

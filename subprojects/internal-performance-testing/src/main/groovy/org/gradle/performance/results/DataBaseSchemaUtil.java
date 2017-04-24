@@ -37,10 +37,10 @@ class DataBaseSchemaUtil {
     static void removeOutdatedColumnsFromTestDB(Connection connection, Statement statement) throws SQLException {
         for (String removedColumn : REMOVED_COLUMNS) {
             if (columnExists(connection, "TESTOPERATION", removedColumn.toUpperCase())) {
-                statement.execute("alter table testOperation alter column " + removedColumn + " decimal null");
+                statement.execute("alter table testOperation drop column " + removedColumn);
             }
             if (columnExists(connection, "TESTEXECUTION", removedColumn.toUpperCase())) {
-                statement.execute("alter table testExecution alter column " + removedColumn + " decimal null");
+                statement.execute("alter table testExecution drop column " + removedColumn);
             }
         }
     }

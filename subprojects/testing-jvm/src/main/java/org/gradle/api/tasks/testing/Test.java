@@ -70,7 +70,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -89,7 +88,7 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -156,7 +155,6 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 
  */
 @CacheableTask
-@ParallelizableTask
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
@@ -617,7 +615,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         if (testExecuter == null) {
             testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-                getServices().get(BuildOperationWorkerRegistry.class),
+                getServices().get(WorkerLeaseRegistry.class),
                 getServices().get(BuildOperationExecutor.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount());
         }

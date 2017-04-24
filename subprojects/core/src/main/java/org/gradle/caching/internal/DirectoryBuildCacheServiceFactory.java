@@ -30,7 +30,7 @@ import java.io.File;
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     private static final String BUILD_CACHE_VERSION = "1";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
-    
+
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
     private final FileResolver resolver;

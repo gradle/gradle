@@ -26,13 +26,14 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.internal.tasks.testing.processors.WorkerLeaseHolderTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -50,15 +51,15 @@ public class DefaultTestExecuter implements TestExecuter {
     private final WorkerProcessFactory workerFactory;
     private final ActorFactory actorFactory;
     private final ModuleRegistry moduleRegistry;
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final int maxWorkerCount;
 
-    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry buildOperationWorkerRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount) {
+    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
         this.moduleRegistry = moduleRegistry;
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.maxWorkerCount = maxWorkerCount;
     }
@@ -67,28 +68,33 @@ public class DefaultTestExecuter implements TestExecuter {
     public void execute(final Test testTask, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testTask.getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
-        final BuildOperationWorkerRegistry.Operation currentOperation = buildOperationWorkerRegistry.getCurrent();
+        final WorkerLeaseRegistry.WorkerLease currentWorkerLease = workerLeaseRegistry.getCurrentWorkerLease();
         final Set<File> classpath = ImmutableSet.copyOf(testTask.getClasspath());
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, testTask,
-                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry, currentOperation);
+                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry);
             }
         };
-        Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
+        final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testTask.getForkEvery());
             }
         };
+        final Factory<TestClassProcessor> workerLeaseHolderProcessorFactory = new Factory<TestClassProcessor>() {
+            @Override
+            public TestClassProcessor create() {
+                return new WorkerLeaseHolderTestClassProcessor(currentWorkerLease, reforkingProcessorFactory);
+            }
+        };
 
-        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testTask),
-            reforkingProcessorFactory, actorFactory);
+        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testTask), workerLeaseHolderProcessorFactory, actorFactory);
 
         final FileTree testClassFiles = testTask.getCandidateClassFiles();
 
         Runnable detector;
         if (testTask.isScanForTestClasses()) {
-            TestFrameworkDetector testFrameworkDetector = testTask.getTestFramework().getDetector();
+            TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClassesDirectory(testTask.getTestClassesDir());
             testFrameworkDetector.setTestClasspath(classpath);
             detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);

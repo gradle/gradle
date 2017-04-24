@@ -25,13 +25,12 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.CachingFileHasher
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
+import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileTimeStampInspector
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -88,9 +87,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         CrossBuildInMemoryCacheFactory cacheFactory = new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())
         TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, cacheFactory))
         def stringInterner = new StringInterner()
-        def snapshotter = new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, Stub(FileTimeStampInspector), "fileCaches", TestFiles.fileSystem())
-        fileSystemMirror = new DefaultFileSystemMirror()
-        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
+        def snapshotter = new DefaultFileHasher()
+        fileSystemMirror = new DefaultFileSystemMirror([])
+        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)

@@ -67,6 +67,8 @@ class ForkingGradleSession implements GradleSession {
     private void run(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
 
+        String jvmArgs = invocation.jvmOpts.collect { '\'' + it + '\'' }.join(' ')
+        Map<String, String> env = [:]
         List<String> args = []
         if (OperatingSystem.current().isWindows()) {
             args << "cmd.exe" << "/C"
@@ -75,16 +77,18 @@ class ForkingGradleSession implements GradleSession {
         args << "--gradle-user-home" << new File(invocationInfo.projectDir, "gradle-user-home").absolutePath
         args << "--no-search-upward"
         args << "--stacktrace"
-        args << "-Dorg.gradle.jvmargs=${invocation.jvmOpts.collect { '\'' + it + '\'' }.join(' ')}".toString()
-        args += invocation.args
         if (invocation.useDaemon) {
             args << "--daemon"
+            args << "-Dorg.gradle.jvmargs=${ jvmArgs }".toString()
         } else {
             args << "--no-daemon"
+            args << '-Dorg.gradle.jvmargs'
+            env.put("GRADLE_OPTS", jvmArgs)
         }
+        args += invocation.args
 
-        ProcessBuilder run = newProcessBuilder(invocationInfo, args + invocation.tasksToRun)
-        stop = newProcessBuilder(invocationInfo, args + "--stop")
+        ProcessBuilder run = newProcessBuilder(invocationInfo, args + invocation.tasksToRun, env)
+        stop = newProcessBuilder(invocationInfo, args + "--stop", env)
 
         def exitCode = run.start().waitFor()
         if (exitCode != 0 && !invocation.expectFailure) {
@@ -92,12 +96,14 @@ class ForkingGradleSession implements GradleSession {
         }
     }
 
-    private ProcessBuilder newProcessBuilder(BuildExperimentInvocationInfo invocationInfo, List<String> args) {
-        new ProcessBuilder()
+    private ProcessBuilder newProcessBuilder(BuildExperimentInvocationInfo invocationInfo, List<String> args, Map<String, String> env) {
+        def builder = new ProcessBuilder()
             .directory(invocationInfo.projectDir)
             .redirectOutput(Redirect.appendTo(getBuildLog(invocationInfo)))
             .redirectError(Redirect.appendTo(getBuildLog(invocationInfo)))
             .command(args)
+        builder.environment().putAll(env)
+        builder
     }
 
     private File getBuildLog(BuildExperimentInvocationInfo invocationInfo) {

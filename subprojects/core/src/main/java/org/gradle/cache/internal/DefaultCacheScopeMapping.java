@@ -57,6 +57,9 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
         if (scope == null) {
             return globalCacheDir;
         }
+        if (scope instanceof File) {
+            return (File) scope;
+        }
         if (scope instanceof Gradle) {
             Gradle gradle = (Gradle) scope;
             return getBuildCacheDir(gradle.getRootProject());

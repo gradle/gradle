@@ -17,6 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.apache.commons.lang.WordUtils;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -29,6 +30,7 @@ import org.gradle.api.Named;
  *
  * @since 3.3
  */
+@Incubating
 public class Attribute<T> implements Named {
     private final String name;
     private final Class<T> type;

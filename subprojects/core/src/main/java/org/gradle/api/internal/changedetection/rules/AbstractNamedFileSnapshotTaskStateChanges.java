@@ -136,5 +136,4 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     public void snapshotAfterTask() {
         saveCurrent();
     }
-
 }

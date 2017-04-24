@@ -25,7 +25,7 @@ class ResourceOperationTest extends Specification {
 
     def "no progress event is logged for files < 1024bytes"(){
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1023)
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1023, "res")
         when:
         operation.logProcessedBytes(1023)
         then:
@@ -34,7 +34,7 @@ class ResourceOperationTest extends Specification {
 
     def "logs processed bytes in kbyte intervalls"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1024 * 10)
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 1024 * 10, "res")
         when:
         operation.logProcessedBytes(512 * 0)
         operation.logProcessedBytes(512 * 1)
@@ -45,38 +45,38 @@ class ResourceOperationTest extends Specification {
         operation.logProcessedBytes(512 * 1)
         operation.logProcessedBytes(512 * 2)
         then:
-        1 * progressLogger.progress("1 KB/10 KB downloaded")
-        1 * progressLogger.progress("2 KB/10 KB downloaded")
+        1 * progressLogger.progress("1 KB/10 KB downloaded: res")
+        1 * progressLogger.progress("2 KB/10 KB downloaded: res")
         0 * progressLogger.progress(_)
     }
 
     def "last chunk of bytes <1k is not logged"(){
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 2000)
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.download, 2000, "res")
         when:
         operation.logProcessedBytes(1000)
         operation.logProcessedBytes(1000)
         then:
-        1 * progressLogger.progress("1 KB/1 KB downloaded")
+        1 * progressLogger.progress("1 KB/1 KB downloaded: res")
         0 * progressLogger.progress(_)
     }
 
     def "adds operationtype information in progress output"() {
         given:
-        def operation = new ResourceOperation(progressLogger, type, 1024 * 10)
+        def operation = new ResourceOperation(progressLogger, type, 1024 * 10, "res")
         when:
         operation.logProcessedBytes(1024)
         then:
         1 * progressLogger.progress(message)
         where:
         type                            | message
-        ResourceOperation.Type.download | "1 KB/10 KB downloaded"
-        ResourceOperation.Type.upload   | "1 KB/10 KB uploaded"
+        ResourceOperation.Type.download | "1 KB/10 KB downloaded: res"
+        ResourceOperation.Type.upload   | "1 KB/10 KB uploaded: res"
     }
 
     void "completed completes progressLogger"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 1)
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 1, "res")
         when:
         operation.completed()
         then:
@@ -85,11 +85,11 @@ class ResourceOperationTest extends Specification {
 
     void "handles unknown content length"() {
         given:
-        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 0)
+        def operation = new ResourceOperation(progressLogger, ResourceOperation.Type.upload, 0, "res")
         when:
         operation.logProcessedBytes(1024)
         then:
-        1 * progressLogger.progress("1 KB/unknown size uploaded")
+        1 * progressLogger.progress("1 KB/unknown size uploaded: res")
     }
 }
 

@@ -169,13 +169,18 @@ ext {
     groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
-        'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
+        'plugins', 'codeQuality', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'buildCacheHttp'
+        'resourcesSftp', 'resourcesS3', 'compositeBuilds', 'buildCacheHttp'
+    ].collect {
+        project(it)
+    }
+    implementationPluginProjects = [
+            'toolingApiBuilders'
     ].collect {
         project(it)
     }
@@ -208,7 +213,6 @@ apply from: "gradle/classycle.gradle"
 apply from: "gradle/strictCompile.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
-apply from: "gradle/taskOrdering.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
 
@@ -218,17 +222,6 @@ allprojects {
     repositories {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
-    }
-
-    // Force clean tasks to run before any other tasks
-    tasks.withType(Delete) { cleanTask ->
-        tasks.all { otherTask ->
-            if (cleanTask != otherTask &&
-                !(otherTask instanceof Delete) &&
-                !(otherTask.name in [ 'killExistingDaemons', 'tasks' ])) {
-                otherTask.mustRunAfter cleanTask
-            }
-        }
     }
 }
 
@@ -293,6 +286,7 @@ dependencies {
     runtime project(":installationBeacon")
     runtime patchedExternalModules
     gradlePlugins pluginProjects
+    gradlePlugins implementationPluginProjects
     gradlePlugins project(':workers')
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
@@ -348,10 +342,6 @@ task installAll(type: Install) {
     installDirPropertyName = 'gradle_installPath'
 }
 
-clean {
-    dependsOn ':killExistingDaemons'
-}
-
 apply from: "gradle/intTestImage.gradle"
 apply from: 'gradle/pullRequestBuild.gradle'
 
@@ -402,4 +392,3 @@ if (isCiServer) {
         }
     }
 }
-

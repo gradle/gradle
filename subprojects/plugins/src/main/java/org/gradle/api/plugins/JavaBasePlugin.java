@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -45,7 +46,6 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.Classpath;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -64,7 +64,6 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -124,7 +123,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureSchema(ProjectInternal project) {
-        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
+        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().assumeCompatibleWhenMissing();
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -316,23 +315,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-        project.getTasks().withType(JavaCompile.class, new Action<JavaCompile>() {
-            @Override
-            public void execute(final JavaCompile compile) {
-                ConventionMapping conventionMapping = compile.getConventionMapping();
-                conventionMapping.map("dependencyCacheDir", new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        return DeprecationLogger.whileDisabled(new Factory<Object>() {
-                            @Override
-                            public Object create() {
-                                return javaConvention.getDependencyCacheDir();
-                            }
-                        });
-                    }
-                });
-            }
-        });
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
@@ -376,16 +358,23 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
         project.getTasks().withType(Test.class, new Action<Test>() {
-            public void execute(Test test) {
+            public void execute(final Test test) {
                 configureTestDefaults(test, project, convention);
             }
         });
-        project.afterEvaluate(new Action<Project>() {
-            public void execute(Project project) {
+        project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
+            @Override
+            public void execute(final TaskExecutionGraph taskExecutionGraph) {
                 project.getTasks().withType(Test.class, new Action<Test>() {
+
+                    @Override
                     public void execute(Test test) {
-                        configureBasedOnSingleProperty(test);
-                        overwriteDebugIfDebugPropertyIsSet(test);
+                        if (taskExecutionGraph.hasTask(test)) {
+                            //TODO we should deprecate and remove these old properties
+                            //they can be replaced by --tests and --debug-jvm
+                            configureBasedOnSingleProperty(test);
+                            overwriteDebugIfDebugPropertyIsSet(test);
+                        }
                     }
                 });
             }

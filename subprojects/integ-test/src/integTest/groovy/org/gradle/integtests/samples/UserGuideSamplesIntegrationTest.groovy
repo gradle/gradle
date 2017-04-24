@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.samples
 
+import org.junit.Ignore
 import org.junit.runner.RunWith
 
 @RunWith(UserGuideSamplesRunner.class)
+@Ignore
 class UserGuideSamplesIntegrationTest {
     /*
     Important info:

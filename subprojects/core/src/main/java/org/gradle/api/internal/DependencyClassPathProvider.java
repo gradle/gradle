@@ -55,7 +55,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
                 classpath = classpath.plus(module.getClasspath());
             }
         }
-        for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
+        for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
             classpath = classpath.plus(pluginModule.getClasspath());
         }
         return classpath;

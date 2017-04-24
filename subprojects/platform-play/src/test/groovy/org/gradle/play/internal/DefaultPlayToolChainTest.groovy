@@ -29,18 +29,18 @@ import org.gradle.play.internal.toolchain.DefaultPlayToolChain
 import org.gradle.play.internal.twirl.TwirlCompileSpec
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.process.internal.worker.WorkerProcessFactory
-import org.gradle.workers.internal.WorkerDaemonManager
+import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultPlayToolChainTest extends Specification {
     FileResolver fileResolver = Mock()
-    WorkerDaemonManager compilerDaemonManager = Mock()
+    WorkerDaemonFactory workerDaemonFactory = Mock()
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Stub(PlayPlatform)
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
-    def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory)
+    def toolChain = new DefaultPlayToolChain(fileResolver, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory)
 
     def setup() {
         playPlatform.playVersion >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION

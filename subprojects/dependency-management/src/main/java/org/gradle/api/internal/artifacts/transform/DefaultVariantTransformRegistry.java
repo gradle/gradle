@@ -18,38 +18,35 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformConfiguration;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.DefaultActionConfiguration;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.reflect.Instantiator;
 
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
     private static final Object[] NO_PARAMETERS = new Object[0];
     private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final GenericFileCollectionSnapshotter fileCollectionSnapshotter;
     private final TransformedFileCache transformedFileCache;
     private final ValueSnapshotter valueSnapshotter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final Instantiator instantiator;
+    private final InstantiatorFactory instantiatorFactory;
 
-    public DefaultVariantTransformRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, GenericFileCollectionSnapshotter fileCollectionSnapshotter, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        this.instantiator = instantiator;
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        this.instantiatorFactory = instantiatorFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
-        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
         this.transformedFileCache = transformedFileCache;
         this.valueSnapshotter = valueSnapshotter;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -57,7 +54,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
-        RecordingRegistration reg = instantiator.newInstance(RecordingRegistration.class, immutableAttributesFactory);
+        RecordingRegistration reg = instantiatorFactory.decorate().newInstance(RecordingRegistration.class, immutableAttributesFactory);
         registrationAction.execute(reg);
         if (reg.type == null) {
             throw new VariantTransformConfigurationException("Could not register transform: ArtifactTransform must be provided for registration.");
@@ -66,7 +63,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters,  transformedFileCache, fileCollectionSnapshotter, valueSnapshotter, classLoaderHierarchyHasher);
+        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters,  transformedFileCache, valueSnapshotter, classLoaderHierarchyHasher, instantiatorFactory.inject());
         transforms.add(registration);
     }
 
@@ -74,11 +71,11 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return transforms;
     }
 
-    private Object[] getTransformParameters(Action<ArtifactTransformConfiguration> configAction) {
+    private Object[] getTransformParameters(Action<? super ActionConfiguration> configAction) {
         if (configAction == null) {
             return NO_PARAMETERS;
         }
-        ArtifactTransformConfiguration config = new DefaultArtifactTransformConfiguration();
+        ActionConfiguration config = new DefaultActionConfiguration();
         configAction.execute(config);
         return config.getParams();
     }
@@ -87,7 +84,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
         private Class<? extends ArtifactTransform> type;
-        private Action<ArtifactTransformConfiguration> config;
+        private Action<? super ActionConfiguration> config;
 
         public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
             from = new DefaultMutableAttributeContainer(immutableAttributesFactory);
@@ -110,7 +107,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<ArtifactTransformConfiguration> config) {
+        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ActionConfiguration> config) {
             if (this.type != null) {
                 throw new VariantTransformConfigurationException("Could not register transform: only one ArtifactTransform may be provided for registration.");
             }
@@ -118,25 +115,4 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             this.config = config;
         }
     }
-
-    private static class DefaultArtifactTransformConfiguration implements ArtifactTransformConfiguration {
-        private final List<Object> params = Lists.newArrayList();
-
-        @Override
-        public void params(Object... params) {
-            Collections.addAll(this.params, params);
-        }
-
-        @Override
-        public void setParams(Object... params) {
-            this.params.clear();
-            Collections.addAll(this.params, params);
-        }
-
-        @Override
-        public Object[] getParams() {
-            return this.params.toArray();
-        }
-    }
-
 }

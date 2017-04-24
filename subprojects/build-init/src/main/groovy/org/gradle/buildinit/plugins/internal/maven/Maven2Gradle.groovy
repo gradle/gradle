@@ -269,9 +269,8 @@ version = '$project.version'""";
         def systemScope = []
 
         //cleanup duplicates from parent
-
-// using Groovy Looping and mapping a Groovy Closure to each element, we collect together all
-// the dependency nodes into corresponding collections depending on their scope value.
+        // using Groovy Looping and mapping a Groovy Closure to each element, we collect together all
+        // the dependency nodes into corresponding collections depending on their scope value.
         dependencies.each() {
             if (!duplicateDependency(it, project, allProjects)) {
                 def scope = (elementHasText(it.scope)) ? it.scope : "compile"
@@ -307,18 +306,12 @@ version = '$project.version'""";
             if (projectDep) {
                 createProjectDependency(projectDep, sb, scope, allProjects)
             } else {
-                def providedMessage = "";
                 if (!war && scope == 'providedCompile') {
-                    scope = 'compile'
-                    providedMessage = '''\
-                       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
-                       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
-                       Please review and delete this closure when resolved. */
-                       '''.stripIndent(16)
+                    scope = 'compileOnly'
                 }
                 def exclusions = mavenDependency.exclusions.exclusion
-                if (exclusions.size() > 0 || providedMessage != "") {
-                    createComplexDependency(mavenDependency, sb, scope, providedMessage)
+                if (exclusions.size() > 0) {
+                    createComplexDependency(mavenDependency, sb, scope)
                 } else {
                     createBasicDependency(mavenDependency, sb, scope)
                 }
@@ -493,13 +486,10 @@ project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as
  * iterate over each <exclusion> node and print out the artifact id.
  * It also provides review comments for the user.
  */
-    private def createComplexDependency(it, build, scope, providedMessage) {
+    private def createComplexDependency(it, build, scope) {
         build.append("    ${scope}(${contructSignature(it)}) {\n")
         it.exclusions.exclusion.each() {
             build.append("exclude(module: '${it.artifactId}')\n")
-        }
-        if (providedMessage) {
-            build.append(providedMessage)
         }
         build.append("    }\n")
     }

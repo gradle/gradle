@@ -436,7 +436,7 @@
                         type and anything else that can be passed to either the
                         <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>
                         method - for single file/directory properties - or the
-                        <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>
+                        <apilink class="org.gradle.api.Project" method="files(java.lang.Object...)"/>
                         method.</para>
                     </listitem>
                     <listitem><para>Nested values</para>
@@ -659,7 +659,7 @@
                                 can be any type accepted by
                                 <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>
                                 and <literal>Iterable&lt;File&gt;</literal> can be any type accepted by
-                                <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>.
+                                <apilink class="org.gradle.api.Project" method="files(java.lang.Object...)"/>.
                                 This includes instances of <literal>Callable</literal>, such as closures,
                                 allowing for lazy evaluation of the property values. Be aware that the types
                                 <literal>FileCollection</literal> and <literal>FileTree</literal> are
@@ -709,20 +709,6 @@
                             This annotation disables validation checks on the corresponding property.
                             See <link linkend="sec:task_input_output_validation">the section on validation</link>
                             for more details.
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><literal>@<apilink class="org.gradle.api.tasks.OrderSensitive"/></literal></td>
-                        <td>
-                            <para>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
-                                to tell Gradle that a change in the order of the files should mark the task
-                                out-of-date.
-                            </para>
-                            <note>
-                                <para>This functionality is deprecated and will be removed in Gradle 4.0.
-                                    For classpath properties, use <literal>@Classpath</literal> instead.
-                                </para>
-                            </note>
                         </td>
                     </tr>
                     <tr>

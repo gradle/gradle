@@ -32,8 +32,8 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
     }
 
     @Override
-    public HashCode hash(FileDetails fileDetails) {
-        HashCode contentMd5 = fileDetails.getContent().getContentMd5();
+    public HashCode hash(FileSnapshot fileSnapshot) {
+        HashCode contentMd5 = fileSnapshot.getContent().getContentMd5();
 
         HashCode signature = persistentCache.get(contentMd5);
         if (signature != null) {
@@ -43,7 +43,7 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
             return signature;
         }
 
-        signature = delegate.hash(fileDetails);
+        signature = delegate.hash(fileSnapshot);
 
         if (signature!=null) {
             persistentCache.put(contentMd5, signature);

@@ -16,11 +16,11 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -163,34 +163,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         nonSkippedTasks.containsAll ":compileJava", ":jar"
     }
 
-    def "task results don't get loaded when pulling is disabled"() {
-        expect:
-        cacheDir.listFiles() as List == []
-
-        when:
-        withBuildCache().succeeds "jar"
-        def originalCacheContents = listCacheFiles()
-        def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
-        then:
-        skippedTasks.empty
-        originalCacheContents.size() > 0
-
-        expect:
-        withBuildCache().succeeds "clean"
-
-        when:
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-        withBuildCache().succeeds "jar", "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false"
-        def updatedCacheContents = listCacheFiles()
-        def updatedModificationTimes = updatedCacheContents*.lastModified()
-        then:
-        nonSkippedTasks.containsAll ":compileJava", ":jar"
-        updatedCacheContents == originalCacheContents
-        originalModificationTimes.size().times { i ->
-            assert originalModificationTimes[i] < updatedModificationTimes[i]
-        }
-    }
-
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
@@ -301,22 +273,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         file("build/classes/main/Hello.class").exists()
     }
 
-    def "using `doNotCacheIf` without reason is deprecated"() {
-        given:
-        buildFile << """
-            task adHocTask {
-                outputs.doNotCacheIf { true }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        withBuildCache().succeeds 'adHocTask'
-
-        then:
-        output.contains "The doNotCacheIf(Spec) method has been deprecated and is scheduled to be removed in Gradle 4.0. Please use the doNotCacheIf(String, Spec) method instead."
-    }
-
     def "error message contains spec which failed to evaluate"() {
         given:
         buildFile << """
@@ -362,78 +318,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         skippedTasks.contains ':compileJava'
-    }
-
-    def "task execution statistics are reported"() {
-        given:
-        // Force a forking executer
-        // This is necessary since for the embedded executer
-        // the Task statistics are not part of the output
-        // returned by "this.output"
-        executer.requireGradleDistribution()
-
-        file("input.txt") << "data"
-        buildFile << """
-            task adHocTask {
-                def outputFile = file("\$buildDir/output.txt")
-                inputs.file(file("input.txt"))
-                outputs.file(outputFile)
-                doLast {
-                    project.mkdir outputFile.parentFile
-                    outputFile.text = file("input.txt").text
-                }
-                outputs.cacheIf { true }
-            }
-
-            task executedTask {
-                doLast {
-                    println 'Hello world'
-                }
-            }
-        """
-
-        when:
-        withBuildCache().run 'adHocTask', 'executedTask', 'compileJava'
-
-        then:
-        output.contains """
-            3 tasks in build, out of which 3 (100%) were executed
-            2  (67%) cache miss
-            1  (33%) not cacheable
-        """ .stripIndent()
-
-        when:
-        assert file('build/output.txt').delete()
-        withBuildCache().run 'adHocTask', 'executedTask', 'compileJava'
-
-        then:
-        output.contains """
-            3 tasks in build, out of which 1 (33%) were executed
-            1  (33%) up-to-date
-            1  (33%) loaded from cache
-            1  (33%) not cacheable
-        """.stripIndent()
-    }
-
-    def "previous outputs are cleared before task is loaded from cache"() {
-        when:
-        withBuildCache().succeeds "jar"
-        then:
-        skippedTasks.empty
-
-        when:
-        assert file("build/classes/main/Hello.class").delete()
-        assert file("build/classes/main/Hi.class") << "A fake class that somehow got in the way"
-        withBuildCache().succeeds "compileJava"
-        then:
-        skippedTasks.contains ":compileJava"
-        file("build/classes/main/Hello.class").exists()
-        !file("build/classes/main/Hi.class").exists()
-
-        when:
-        withBuildCache().succeeds "jar"
-        then:
-        skippedTasks.containsAll ":compileJava", ":jar"
     }
 
     def "outputs loaded from the cache are snapshotted as outputs"() {
@@ -516,5 +400,55 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
+    }
+
+    @Ignore
+    def "order of resources on classpath does not affect how we calculate the cache key"() {
+        buildFile << """
+            apply plugin: 'base'
+            
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile File outputFile = new File(temporaryDir, "output.txt")
+                @Classpath FileCollection classpath = project.fileTree("resources")
+                
+                @TaskAction void generate() {
+                    outputFile.text = "done"
+                } 
+            }
+            
+            task cacheable(type: CustomTask)
+        """
+
+        def resources = file("resources")
+        resources.mkdirs()
+
+        def make = { String resource ->
+            resources.file(resource).text = "content"
+        }
+        def gradleUserHome = file("gradle-user-home")
+        executer.withGradleUserHomeDir(gradleUserHome)
+
+        // Make A then B and populate cache
+        expect:
+        make("A")
+        succeeds("cacheable")
+        make("B")
+        // populate the cache
+        withBuildCache().succeeds("cacheable")
+
+        when:
+        gradleUserHome.deleteDir() // nuke the cache
+        resources.deleteDir().mkdirs()
+        succeeds("clean")
+        and:
+        // Building with the resources seen in the opposite order
+        // shouldn't make a difference
+        make("B")
+        succeeds("cacheable")
+        make("A")
+        withBuildCache().succeeds("cacheable")
+        then:
+        result.assertTaskSkipped(":cacheable")
     }
 }

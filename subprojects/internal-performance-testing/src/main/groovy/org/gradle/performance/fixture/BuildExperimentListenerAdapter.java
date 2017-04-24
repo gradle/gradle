@@ -18,7 +18,14 @@ package org.gradle.performance.fixture;
 
 import org.gradle.performance.measure.MeasuredOperation;
 
+import java.io.File;
+
 public class BuildExperimentListenerAdapter implements BuildExperimentListener {
+    @Override
+    public void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+
+    }
+
     @Override
     public void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
 

@@ -30,5 +30,5 @@ public interface MethodAccess {
     /**
      * Invokes the method with the given name and arguments.
      */
-    void invokeMethod(String name, InvokeMethodResult result, Object... arguments);
+    DynamicInvokeResult tryInvokeMethod(String name, Object... arguments);
 }

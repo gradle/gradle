@@ -23,30 +23,39 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
 /**
- * This class delegates worker leases management to {@link DefaultBuildOperationWorkerRegistry} and require that a current operation is in flight.
+ * This class delegates worker leases management to {@link org.gradle.internal.work.DefaultWorkerLeaseService} and require that a current operation is in flight.
  */
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
+    private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final StoppableExecutor fixedSizePool;
 
-    public DefaultBuildOperationProcessor(BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+    public DefaultBuildOperationProcessor(BuildOperationExecutor buildOperationExecutor, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
     }
 
     @Override
     public <T extends BuildOperation> void run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
-        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(fixedSizePool, worker);
+        doRun(worker, generator);
+    }
+
+    private <T extends BuildOperation> void doRun(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator) {
+        BuildOperationQueue<T> queue = buildOperationQueueFactory.create(fixedSizePool, new ParentBuildOperationAwareWorker<T>(worker));
 
         List<GradleException> failures = Lists.newArrayList();
         try {
@@ -96,5 +105,42 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
                 return e.getMessage();
             }
         }), LINE_SEPARATOR + "AND" + LINE_SEPARATOR);
+    }
+
+    private class ParentBuildOperationAwareWorker<T extends BuildOperation> implements BuildOperationWorker<T> {
+        private final BuildOperationExecutor.Operation parentOperation;
+        private final BuildOperationWorker<T> delegate;
+
+        private ParentBuildOperationAwareWorker(BuildOperationWorker<T> delegate) {
+            this.parentOperation = GradleThread.isManaged() ? buildOperationExecutor.getCurrentOperation() : null;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
+        }
+
+        @Override
+        public void execute(final T t) {
+            buildOperationExecutor.run(createBuildOperationDetails(t), new Action<BuildOperationContext>() {
+                @Override
+                public void execute(BuildOperationContext buildOperationContext) {
+                    delegate.execute(t);
+                }
+            });
+        }
+
+        private BuildOperationDetails createBuildOperationDetails(T buildOperation) {
+            BuildOperationDetails.Builder builder = BuildOperationDetails.displayName(buildOperation.getDescription());
+            if (buildOperation instanceof DescribableBuildOperation) {
+                DescribableBuildOperation describableBuildOperation = (DescribableBuildOperation) buildOperation;
+                Object operationDescriptor = describableBuildOperation.getOperationDescriptor();
+                builder.operationDescriptor(operationDescriptor);
+                String displayName = describableBuildOperation.getProgressDisplayName();
+                builder.progressDisplayName(displayName);
+            }
+            return builder.parent(parentOperation).build();
+        }
     }
 }

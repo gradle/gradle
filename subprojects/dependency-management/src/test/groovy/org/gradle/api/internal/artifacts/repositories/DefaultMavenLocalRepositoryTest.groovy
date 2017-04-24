@@ -23,10 +23,10 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transport.ExternalResourceRepository
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import spock.lang.Specification
 
 class DefaultMavenLocalRepositoryTest extends Specification {
@@ -40,7 +40,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(
-            resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser, authenticationContainer, moduleIdentifierFactory)
+        resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser, authenticationContainer, moduleIdentifierFactory)
     final ProgressLoggerFactory progressLoggerFactory = Mock()
 
     def "creates local repository"() {

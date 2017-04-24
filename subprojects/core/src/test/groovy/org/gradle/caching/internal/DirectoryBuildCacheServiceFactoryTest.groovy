@@ -24,9 +24,11 @@ import org.gradle.cache.internal.VersionStrategy
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 @CleanupTestDirectory
 class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheRepository = Mock(CacheRepository)

@@ -728,4 +728,31 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.noneRecompiled()
     }
 
+    def "does not recompile on non-abi change across projects"() {
+        java api: ["class A { }"],
+            impl: ["class B { A a; }", "class C { B b; }"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class A { \n}"]
+        run "impl:compileJava"
+
+        then:
+        impl.noneRecompiled()
+    }
+
+    // This test checks the current behavior, not necessarily the desired one.
+    // If all classes are compiled by the same compile task, we do not know if a
+    // change is an abi change or not. Hence, an abi change is always assumed.
+    def "does recompile on non-abi changes inside one project"() {
+        java impl: ["class A { }", "class B { A a; }", "class C { B b; }"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java impl: ["class A { \n}"]
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses 'A', 'B', 'C'
+    }
 }

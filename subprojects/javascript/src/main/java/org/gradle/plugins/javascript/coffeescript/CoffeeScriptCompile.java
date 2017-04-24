@@ -28,8 +28,8 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.DefaultCoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.rhino.RhinoCoffeeScriptCompiler;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
+import org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerHandleFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;

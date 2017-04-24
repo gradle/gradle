@@ -17,19 +17,20 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
-import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
-import org.gradle.api.internal.plugins.PluginApplicator;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
+import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -60,9 +61,9 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(settings.getClassLoaderScope());
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, PluginRegistry pluginRegistry, DependencyInjectingInstantiator.ConstructorCache cachedConstructors) {
-        PluginApplicator applicator = new ImperativeOnlyPluginApplicator<SettingsInternal>(settings);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, cachedConstructors), applicator);
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
+        PluginTarget target = new ImperativeOnlyPluginTarget<SettingsInternal>(settings);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor);
     }
 
     protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {

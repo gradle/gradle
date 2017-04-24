@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -25,10 +26,8 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
-import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -50,6 +49,8 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final Instantiator instantiator;
+
+    private Map<Object, BeanDynamicObject> dynamicObjects;
 
     /**
      * This method should not be used in runtime code proper as means that the convention cannot create
@@ -202,6 +203,11 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     @Override
+    public <T> void configure(String name, Action<? super T> action) {
+        extensionsStorage.configureExtension(name, action);
+    }
+
+    @Override
     public Map<String, Object> getAsMap() {
         return extensionsStorage.getAsMap();
     }
@@ -242,7 +248,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 return true;
             }
             for (Object object : plugins.values()) {
-                if (new BeanDynamicObject(object).hasProperty(name)) {
+                if (asDynamicObject(object).hasProperty(name)) {
                     return true;
                 }
             }
@@ -255,26 +261,26 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
             Collections.reverse(reverseOrder);
             for (Object object : reverseOrder) {
-                properties.putAll(new BeanDynamicObject(object).getProperties());
+                properties.putAll(asDynamicObject(object).getProperties());
             }
             properties.putAll(extensionsStorage.getAsMap());
             return properties;
         }
 
         @Override
-        public void getProperty(String name, GetPropertyResult result) {
+        public DynamicInvokeResult tryGetProperty(String name) {
             Object extension = extensionsStorage.findByName(name);
             if (extension != null) {
-                result.result(extension);
-                return;
+                return DynamicInvokeResult.found(extension);
             }
             for (Object object : plugins.values()) {
-                DynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
-                dynamicObject.getProperty(name, result);
+                DynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
+                DynamicInvokeResult result = dynamicObject.tryGetProperty(name);
                 if (result.isFound()) {
-                    return;
+                    return result;
                 }
             }
+            return DynamicInvokeResult.notFound();
         }
 
         public Object propertyMissing(String name) {
@@ -282,15 +288,16 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         @Override
-        public void setProperty(String name, Object value, SetPropertyResult result) {
+        public DynamicInvokeResult trySetProperty(String name, Object value) {
             checkExtensionIsNotReassigned(name);
             for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
-                dynamicObject.setProperty(name, value, result);
+                BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
+                DynamicInvokeResult result = dynamicObject.trySetProperty(name, value);
                 if (result.isFound()) {
-                    return;
+                    return result;
                 }
             }
+            return DynamicInvokeResult.notFound();
         }
 
         public void propertyMissing(String name, Object value) {
@@ -298,18 +305,18 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... args) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
-                result.result(configureExtension(name, args));
-                return;
+                return DynamicInvokeResult.found(configureExtension(name, args));
             }
             for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
-                dynamicObject.invokeMethod(name, result, args);
+                BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
+                DynamicInvokeResult result = dynamicObject.tryInvokeMethod(name, args);
                 if (result.isFound()) {
-                    return;
+                    return result;
                 }
             }
+            return DynamicInvokeResult.notFound();
         }
 
         public Object methodMissing(String name, Object args) {
@@ -322,12 +329,24 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 return true;
             }
             for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
+                BeanDynamicObject dynamicObject = asDynamicObject(object);
                 if (dynamicObject.hasMethod(name, args)) {
                     return true;
                 }
             }
             return false;
+        }
+
+        private BeanDynamicObject asDynamicObject(Object object) {
+            if (dynamicObjects == null) {
+                dynamicObjects = Maps.newIdentityHashMap();
+            }
+            BeanDynamicObject dynamicObject = dynamicObjects.get(object);
+            if (dynamicObject == null) {
+                dynamicObject = new BeanDynamicObject(object);
+                dynamicObjects.put(object, dynamicObject);
+            }
+            return dynamicObject;
         }
     }
 

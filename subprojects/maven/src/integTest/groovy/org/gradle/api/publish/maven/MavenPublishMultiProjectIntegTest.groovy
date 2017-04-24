@@ -54,13 +54,13 @@ project(":project3") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.parsedPom.scopes.runtime.assertDependsOn("changed.group:changed-artifact-id:changed", "org.gradle.test:project2:2.0")
+        project1.parsedPom.scopes.compile.assertDependsOn("changed.group:changed-artifact-id:changed", "org.gradle.test:project2:2.0")
 
         project2.assertPublishedAsJavaModule()
-        project2.parsedPom.scopes.runtime.assertDependsOn("changed.group:changed-artifact-id:changed")
+        project2.parsedPom.scopes.compile.assertDependsOn("changed.group:changed-artifact-id:changed")
 
         project3.assertPublishedAsJavaModule()
-        project3.parsedPom.scopes.runtime == null
+        project3.parsedPom.scopes.compile == null
 
         and:
         resolveArtifacts(project1) == ['changed-artifact-id-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
@@ -128,10 +128,10 @@ project(":project2") {
 
     private def projectsCorrectlyPublished() {
         project1.assertPublishedAsJavaModule()
-        project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project2:2.0", "org.gradle.test:project3:3.0")
+        project1.parsedPom.scopes.compile.assertDependsOn("org.gradle.test:project2:2.0", "org.gradle.test:project3:3.0")
 
         project2.assertPublishedAsJavaModule()
-        project2.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project3:3.0")
+        project2.parsedPom.scopes.compile.assertDependsOn("org.gradle.test:project3:3.0")
 
         project3.assertPublishedAsJavaModule()
         project3.parsedPom.scopes == null
@@ -186,7 +186,7 @@ project(":project2") {
         then:
 
         project1.assertPublishedAsJavaModule()
-        project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project2:2.0")
+        project1.parsedPom.scopes.compile.assertDependsOn("org.gradle.test:project2:2.0")
     }
 
     @Issue("GRADLE-3366")
@@ -244,7 +244,7 @@ project(":project2") {
 
         then:
         project2.assertPublishedAsJavaModule()
-        def dependency = project2.parsedPom.scopes.runtime.expectDependency("org.gradle.test:project1:1.0")
+        def dependency = project2.parsedPom.scopes.compile.expectDependency("org.gradle.test:project1:1.0")
         dependency.exclusions.size() == 2
         def sorted = dependency.exclusions.sort { it.groupId }
         sorted[0].groupId == "*"

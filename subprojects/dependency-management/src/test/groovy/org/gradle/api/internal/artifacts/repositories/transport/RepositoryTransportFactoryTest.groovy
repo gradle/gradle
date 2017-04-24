@@ -17,10 +17,12 @@
 package org.gradle.api.internal.artifacts.repositories.transport
 
 import com.google.common.collect.Lists
+import org.gradle.StartParameter
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.credentials.Credentials
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride
 import org.gradle.authentication.Authentication
+import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.authentication.AbstractAuthentication
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
@@ -31,6 +33,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def connectorFactory1 = Mock(ResourceConnectorFactory)
     def connectorFactory2 = Mock(ResourceConnectorFactory)
+    def producerGuard = Mock(ProducerGuard)
     def repositoryTransportFactory
 
     def setup() {
@@ -39,7 +42,8 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, Mock(ImmutableModuleIdentifierFactory), null)
+        StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameter())
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, null, override, producerGuard)
     }
 
     def "cannot create a transport for url with unsupported scheme"() {

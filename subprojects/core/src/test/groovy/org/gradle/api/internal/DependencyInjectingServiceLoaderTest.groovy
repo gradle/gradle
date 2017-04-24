@@ -17,6 +17,7 @@
 package org.gradle.api.internal
 
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -36,7 +37,7 @@ class DependencyInjectingServiceLoaderTest extends Specification {
         def dependency = Mock(ServiceDependency)
         def serviceRegistry = Mock(ServiceRegistry)
         1 * serviceRegistry.get(ServiceDependency) >> dependency
-        1 * serviceRegistry.get(DependencyInjectingInstantiator.ConstructorCache) >> constructorCache()
+        1 * serviceRegistry.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
 
         def subject = new DependencyInjectingServiceLoader(serviceRegistry)
 
@@ -45,10 +46,6 @@ class DependencyInjectingServiceLoaderTest extends Specification {
 
         then:
         dependency == service.dependency
-    }
-
-    private DependencyInjectingInstantiator.ConstructorCache constructorCache() {
-        new DependencyInjectingInstantiator.ConstructorCache()
     }
 
     def resources(byte[] content) {

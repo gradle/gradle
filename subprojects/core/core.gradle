@@ -99,4 +99,13 @@ task pluginsManifest(type: WriteProperties) {
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
+task implementationPluginsManifest(type: WriteProperties) {
+    property("plugins") {
+        project.implementationPluginProjects.collect { it.archivesBaseName }.sort().join(',')
+    }
+    outputFile = new File(project.generatedResourcesDir, "gradle-implementation-plugins.properties")
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: implementationPluginsManifest
+
 verifyTestFilesCleanup.errorWhenNotEmpty = false

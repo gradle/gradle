@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
@@ -33,6 +34,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter) {
         super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties());
         this.outputSnapshotter = outputSnapshotter;
+        detectOverlappingOutputs();
     }
 
     @Override
@@ -66,5 +68,18 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
             }
         }
         return FileCollectionSnapshot.EMPTY;
+    }
+
+    private void detectOverlappingOutputs() {
+        for (Map.Entry<String, FileCollectionSnapshot> entry : getCurrent().entrySet()) {
+            String propertyName = entry.getKey();
+            FileCollectionSnapshot beforeExecution = entry.getValue();
+            FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
+            TaskExecutionHistory.OverlappingOutputs overlappingOutputs = outputSnapshotter.detectOverlappingOutputs(propertyName, afterPreviousExecution, beforeExecution);
+            if (overlappingOutputs !=null) {
+                current.setDetectedOverlappingOutputs(overlappingOutputs);
+                return;
+            }
+        }
     }
 }

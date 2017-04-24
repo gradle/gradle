@@ -140,6 +140,41 @@
         </para>
     </section>
 
+    <section id="sec:mapping_extension_properties_to_task_properties">
+        <title>Mapping extension properties to task properties</title>
+        <para>
+            Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is considered a best practice.
+            The end user only interacts with the exposed DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
+        </para>
+        <para>
+            The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's
+            configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase.
+            For more information please see <xref linkend="sec:build_phases"/>. Gradle's API offers the mutable type <apilink class="org.gradle.api.provider.PropertyState"/> for representing
+            a property that should be lazily evaluated e.g. during execution time. The method <apilink class="org.gradle.api.provider.PropertyState" method="set(T)"/> provides the value,
+            <apilink class="org.gradle.api.provider.Provider" method="get()"/> returns the value upon request.
+        </para>
+        <para>
+            The following demonstrates the usage of the type for mapping an extension property to a task property:
+        </para>
+        <sample id="mapExtensionPropertiesToTaskProperties" dir="userguide/tasks/mapExtensionPropertiesToTaskProperties" includeLocation="true" title="Mapping extension properties to task properties">
+            <sourcefile file="build.gradle"/>
+            <output args="-q hello"/>
+        </sample>
+        <para>
+            The example above uses instances of <apilink class="org.gradle.api.provider.Provider"/> and <apilink class="org.gradle.api.provider.PropertyState"/>. The main difference between these two
+            interfaces is attributed to mutability. A <apilink class="org.gradle.api.provider.Provider"/> is immutable and can be created with the method
+            <apilink class="org.gradle.api.Project" method="provider(java.util.concurrent.Callable)"/>. <apilink class="org.gradle.api.provider.PropertyState"/> extends the interface
+            <apilink class="org.gradle.api.provider.Provider"/>, represents a mutable value and can be created with the method <apilink class="org.gradle.api.Project" method="property(java.lang.Class)"/>.
+        </para>
+        <note>
+            <para>
+                The <apilink class="org.gradle.api.Project"/> does not provide a specific method signature for creating a provider by passing in a <literal>groovy.lang.Closure</literal> as parameter.
+                When writing a plugin implementation with Groovy, you can use the method signature accepting a <literal>java.util.concurrent.Callable</literal> parameter.
+                Groovy's <ulink url="http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type">Closure to type coercion</ulink> will take of the rest.
+            </para>
+        </note>
+    </section>
+
     <section id="sec:custom_plugins_standalone_project">
         <title>A standalone project</title>
         <para>Now we will move our plugin to a standalone project, so we can publish it and share it with others.

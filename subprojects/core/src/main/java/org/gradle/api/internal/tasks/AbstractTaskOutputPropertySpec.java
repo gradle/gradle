@@ -23,17 +23,12 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStra
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.api.tasks.TaskOutputs;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
 
 abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
     private boolean optional;
     private SnapshotNormalizationStrategy snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
-
-    protected AbstractTaskOutputPropertySpec(TaskOutputs taskOutputs) {
-        super(taskOutputs);
-    }
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {

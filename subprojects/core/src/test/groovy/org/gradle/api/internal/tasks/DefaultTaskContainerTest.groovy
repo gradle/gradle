@@ -29,7 +29,6 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.registry.DefaultModelRegistry
-import org.gradle.util.GUtil
 import spock.lang.Specification
 
 import static java.util.Collections.singletonMap
@@ -60,9 +59,8 @@ public class DefaultTaskContainerTest extends Specification {
 
     void "creates by name"() {
         given:
-        def options = singletonMap(Task.TASK_NAME, "task")
         def task = task("task")
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         expect:
         container.create("task") == task
@@ -70,21 +68,19 @@ public class DefaultTaskContainerTest extends Specification {
 
     void "creates by name and type"() {
         given:
-        def options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, Task.class)
-        def task = task("task")
-        taskFactory.createTask(options) >> task
+        def task = task("task", CustomTask)
+        taskFactory.create("task", CustomTask) >> task
 
         expect:
-        container.create("task", Task.class) == task
+        container.create("task", CustomTask.class) == task
     }
 
     void "creates by name and closure"() {
         given:
         final Closure action = {}
-        def options = singletonMap(Task.TASK_NAME, "task")
         def task = task("task")
 
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def added = container.create("task", action)
@@ -97,10 +93,9 @@ public class DefaultTaskContainerTest extends Specification {
     void "creates by name and action"() {
         given:
         def action = Mock(Action)
-        def options = singletonMap(Task.TASK_NAME, "task")
         def task = task("task")
 
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def added = container.create("task", action)
@@ -112,9 +107,8 @@ public class DefaultTaskContainerTest extends Specification {
 
     void "replaces task by name"() {
         given:
-        def options = singletonMap(Task.TASK_NAME, "task")
         def task = task("task")
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def replaced = container.replace("task")
@@ -126,21 +120,19 @@ public class DefaultTaskContainerTest extends Specification {
 
     void "replaces by name and type"() {
         given:
-        def options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, Task.class)
-        def task = task("task")
-        taskFactory.createTask(options) >> task
+        def task = task("task", CustomTask)
+        taskFactory.create("task", CustomTask) >> task
 
         expect:
-        container.replace("task", Task.class) == task
+        container.replace("task", CustomTask.class) == task
     }
 
     void "does not fire rule when adding task"() {
         def rule = Mock(Rule)
-        def options = singletonMap(Task.TASK_NAME, "task")
         def task = task("task")
 
         container.addRule(rule)
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         container.create("task")
@@ -152,14 +144,14 @@ public class DefaultTaskContainerTest extends Specification {
     void "prevents duplicate tasks"() {
         given:
         def task = addTask("task")
-        taskFactory.createTask(singletonMap(Task.TASK_NAME, "task")) >> { this.task("task") }
+        taskFactory.create("task", DefaultTask) >> { this.task("task") }
 
         when:
         container.create("task")
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Cannot add Mock for type 'TaskInternal' named '[task1]' as a task with that name already exists."
+        ex.message == "Cannot add Mock for type 'DefaultTask' named '[task2]' as a task with that name already exists."
         container.getByName("task") == task
     }
 
@@ -167,7 +159,7 @@ public class DefaultTaskContainerTest extends Specification {
         given:
         addTask("task")
         def newTask = task("task")
-        taskFactory.createTask(singletonMap(Task.TASK_NAME, "task")) >> newTask
+        taskFactory.create("task", DefaultTask) >> newTask
 
         when:
         container.replace("task")
@@ -358,10 +350,9 @@ public class DefaultTaskContainerTest extends Specification {
 
     void "maybeCreate creates new task"() {
         given:
-        def options = singletonMap(Task.TASK_NAME, "task")
         def task = task("task")
 
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def added = container.maybeCreate("task")
@@ -380,10 +371,9 @@ public class DefaultTaskContainerTest extends Specification {
 
     void "maybeCreate creates new task with type"() {
         given:
-        def options = [name: "task", type: CustomTask]
         def task = task("task", CustomTask)
 
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", CustomTask) >> task
 
         when:
         def added = container.maybeCreate("task", CustomTask)
@@ -413,7 +403,7 @@ public class DefaultTaskContainerTest extends Specification {
     }
 
     private TaskInternal task(final String name) {
-        task(name, TaskInternal)
+        task(name, DefaultTask)
     }
 
     private <U extends TaskInternal> U task(final String name, Class<U> type) {
@@ -433,7 +423,7 @@ public class DefaultTaskContainerTest extends Specification {
         def task = task(name)
         def options = singletonMap(Task.TASK_NAME, name)
         taskFactory.createTask(options) >> task
-        container.create(name)
+        container.create(options)
         return task;
     }
 
@@ -441,7 +431,7 @@ public class DefaultTaskContainerTest extends Specification {
         def task = task(name, type)
         def options = [name: name, type: type]
         taskFactory.createTask(options) >> task
-        container.create(name, type)
+        container.create(options)
         return task;
     }
 

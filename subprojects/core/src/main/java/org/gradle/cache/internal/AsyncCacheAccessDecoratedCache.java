@@ -29,6 +29,11 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
         this.persistentCache = persistentCache;
     }
 
+    @Override
+    public String toString() {
+        return "{async-cache cache: " + persistentCache + "}";
+    }
+
     @Nullable
     @Override
     public V get(final K key) {

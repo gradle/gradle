@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public class CompositeArtifactSet implements ResolvedArtifactSet {
     private final List<ResolvedArtifactSet> sets;
@@ -49,12 +48,12 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts() {
-        Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
+    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+        List<Completion> results = new ArrayList<Completion>(sets.size());
         for (ResolvedArtifactSet set : sets) {
-            allArtifacts.addAll(set.getArtifacts());
+            results.add(set.startVisit(actions, listener));
         }
-        return allArtifacts;
+        return new CompositeResult(results);
     }
 
     @Override
@@ -64,10 +63,18 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
         }
     }
 
-    @Override
-    public void visit(ArtifactVisitor visitor) {
-        for (ResolvedArtifactSet set : sets) {
-            set.visit(visitor);
+    private static class CompositeResult implements Completion {
+        private final List<Completion> results;
+
+        CompositeResult(List<Completion> results) {
+            this.results = results;
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            for (Completion result : results) {
+                result.visit(visitor);
+            }
         }
     }
 }

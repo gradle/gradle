@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -29,8 +28,6 @@ import org.gradle.internal.component.model.AttributeMatcher;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,34 +41,6 @@ public class VariantAttributeMatchingCache {
         this.variantTransforms = variantTransforms;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
-    }
-
-    public <T extends HasAttributes> List<T> selectMatches(Collection<T> candidates, AttributeContainerInternal requested) {
-        if (requested.isEmpty() && candidates.size() == 1) {
-            return Collections.singletonList(candidates.iterator().next());
-        }
-
-        List<AttributeContainer> candidateAttributes = new ArrayList<AttributeContainer>(candidates.size());
-        for (T candidate : candidates) {
-            candidateAttributes.add(candidate.getAttributes());
-        }
-
-        AttributeSpecificCache toCache = getCache(requested);
-        List<AttributeContainer> matching = toCache.matching.get(candidateAttributes);
-        if (matching == null) {
-            matching = schema.ignoreAdditionalProducerAttributes().matches(candidateAttributes, requested);
-            toCache.matching.put(candidateAttributes, matching);
-        }
-        if (matching.size() == 0) {
-            return Collections.emptyList();
-        }
-        List<T> result = new ArrayList<T>(matching.size());
-        for (T candidate : candidates) {
-            if (matching.contains(candidate.getAttributes())) {
-                result.add(candidate);
-            }
-        }
-        return result;
     }
 
     public void collectConsumerVariants(AttributeContainerInternal actual, AttributeContainerInternal requested, ConsumerVariantMatchResult result) {
@@ -140,13 +109,13 @@ public class VariantAttributeMatchingCache {
             if (requested.isEmpty()) {
                 return true;
             }
-            schemaToMatchOn = schema.ignoreAdditionalProducerAttributes();
+            schemaToMatchOn = schema.matcher().ignoreAdditionalProducerAttributes();
             cache = getCache(requested).ignoreExtraActual;
         } else { // ignore additional requested
             if (actual.isEmpty()) {
                 return true;
             }
-            schemaToMatchOn = schema.ignoreAdditionalConsumerAttributes();
+            schemaToMatchOn = schema.matcher().ignoreAdditionalConsumerAttributes();
             cache = getCache(requested).ignoreExtraRequested;
         }
 
@@ -162,6 +131,5 @@ public class VariantAttributeMatchingCache {
         private final Map<AttributeContainer, Boolean> ignoreExtraRequested = Maps.newConcurrentMap();
         private final Map<AttributeContainer, Boolean> ignoreExtraActual = Maps.newConcurrentMap();
         private final Map<AttributeContainer, ConsumerVariantMatchResult> transforms = Maps.newConcurrentMap();
-        private final Map<List<AttributeContainer>, List<AttributeContainer>> matching = Maps.newConcurrentMap();
     }
 }

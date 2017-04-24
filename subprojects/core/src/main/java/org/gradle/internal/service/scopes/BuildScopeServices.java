@@ -24,9 +24,10 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
+import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
@@ -51,6 +52,7 @@ import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.project.ProjectConfigurator;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -65,8 +67,11 @@ import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
+import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
@@ -75,8 +80,6 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.BuildCacheServiceProvider;
 import org.gradle.caching.internal.DirectoryBuildCacheServiceFactory;
-import org.gradle.caching.internal.tasks.TaskExecutionStatisticsEventAdapter;
-import org.gradle.caching.internal.tasks.statistics.TaskExecutionStatisticsListener;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
@@ -228,17 +231,17 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new InstantiatingBuildLoader(get(IProjectFactory.class)));
     }
 
-    protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
+    protected ProjectEvaluator createProjectEvaluator(ProjectConfigurator projectConfigurator, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
             PluginsProjectConfigureActions.from(cachingServiceLocator),
             new BuildScriptProcessor(scriptPluginFactory),
             new DelayedConfigurationActions()
         );
-        return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
+        return new LifecycleProjectEvaluator(projectConfigurator, withActionsEvaluator);
     }
 
-    protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(ServiceRegistry registry) {
-        return new DefaultTaskClassValidatorExtractor(registry.getAll(PropertyAnnotationHandler.class));
+    protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(List<PropertyAnnotationHandler> annotationHandlers) {
+        return new DefaultTaskClassValidatorExtractor(annotationHandlers);
     }
 
     protected TaskClassInfoStore createTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {
@@ -287,8 +290,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             classLoaderHierarchyHasher);
     }
 
-    protected ScriptPluginFactory createScriptPluginFactory() {
-        return new ScriptPluginFactorySelector(defaultScriptPluginFactory(), this);
+    protected ScriptPluginFactory createScriptPluginFactory(BuildOperationExecutor buildOperationExecutor) {
+        DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
+        DependencyInjectingServiceLoader serviceLoader = new DependencyInjectingServiceLoader(this);
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, serviceLoader, buildOperationExecutor);
+        defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
+        return scriptPluginFactorySelector;
     }
 
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {
@@ -303,7 +310,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(DocumentationRegistry.class),
             get(ModelRuleSourceDetector.class),
             get(PluginRepositoryRegistry.class),
-            get(PluginRepositoryFactory.class));
+            get(PluginRepositoryFactory.class),
+            get(ProviderFactory.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
@@ -389,12 +397,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }
 
-    protected TaskExecutionStatisticsEventAdapter createTaskExecutionStatisticsEventAdapter(ListenerManager listenerManager) {
-        return new TaskExecutionStatisticsEventAdapter(listenerManager.getBroadcaster(TaskExecutionStatisticsListener.class));
-    }
-
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
         return new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope());
+    }
+
+    protected TaskExecutionStatisticsEventAdapter createTaskExecutionStatisticsEventAdapter(ListenerManager listenerManager) {
+        return new TaskExecutionStatisticsEventAdapter(listenerManager.getBroadcaster(TaskExecutionStatisticsListener.class));
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -443,16 +451,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildScanRequest();
     }
 
-    BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator, StartParameter startParameter) {
-        List<BuildCacheServiceRegistration> allBuildCacheServiceFactories = getAll(BuildCacheServiceRegistration.class);
-        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories, startParameter);
+    BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator, StartParameter startParameter, List<BuildCacheServiceRegistration> allBuildCacheServiceFactories) {
+        return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
     }
 
-    BuildCacheServiceProvider createBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor, TemporaryFileProvider temporaryFileProvider) {
+    BuildCacheServiceProvider createBuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, BuildOperationExecutor buildOperationExecutor, TemporaryFileProvider temporaryFileProvider, InstantiatorFactory instantiatorFactory) {
         return new BuildCacheServiceProvider(
             buildCacheConfiguration,
             startParameter,
-            new DependencyInjectingInstantiator(this, new DependencyInjectingInstantiator.ConstructorCache()),
+            instantiatorFactory.inject(this),
             buildOperationExecutor,
             temporaryFileProvider);
     }
