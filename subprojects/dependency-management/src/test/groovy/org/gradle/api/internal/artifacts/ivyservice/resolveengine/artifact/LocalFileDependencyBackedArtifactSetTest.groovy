@@ -55,7 +55,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def visitor = Mock(ArtifactVisitor)
 
         when:
-        set.addPrepareActions(Stub(BuildOperationQueue), listener).visit(visitor)
+        set.startVisit(Stub(BuildOperationQueue), listener).visit(visitor)
 
         then:
         1 * listener.includeFileDependencies() >> false
@@ -68,7 +68,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def visitor = Mock(ArtifactVisitor)
 
         when:
-        def result = set.addPrepareActions(Stub(BuildOperationQueue), listener)
+        def result = set.startVisit(Stub(BuildOperationQueue), listener)
         result.visit(visitor)
 
         then:
@@ -92,7 +92,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def files = Mock(FileCollection)
 
         when:
-        set.addPrepareActions(Stub(BuildOperationQueue), listener).visit(visitor)
+        set.startVisit(Stub(BuildOperationQueue), listener).visit(visitor)
 
         then:
         _ * dep.componentId >> null
@@ -112,7 +112,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def files = Mock(FileCollection)
 
         when:
-        def result = set.addPrepareActions(Stub(BuildOperationQueue), listener)
+        def result = set.startVisit(Stub(BuildOperationQueue), listener)
 
         then:
         _ * dep.componentId >> id
@@ -150,7 +150,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def files = Mock(FileCollection)
 
         when:
-        set.addPrepareActions(Stub(BuildOperationQueue), listener).visit(visitor)
+        set.startVisit(Stub(BuildOperationQueue), listener).visit(visitor)
 
         then:
         _ * dep.componentId >> null
@@ -171,7 +171,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        def result = set.addPrepareActions(Stub(BuildOperationQueue), listener)
+        def result = set.startVisit(Stub(BuildOperationQueue), listener)
         result.visit(visitor)
 
         then:

@@ -37,8 +37,8 @@ public class NoBuildDependenciesArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
-        return set.addPrepareActions(actions, visitor);
+    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+        return set.startVisit(actions, listener);
     }
 
     @Override

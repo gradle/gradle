@@ -52,8 +52,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
-        if (!visitor.includeFileDependencies()) {
+    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+        if (!listener.includeFileDependencies()) {
             return EMPTY_RESULT;
         }
 
@@ -86,7 +86,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             selectedArtifacts.add(selector.select(Collections.singleton(variant), EmptySchema.INSTANCE));
         }
 
-        return CompositeArtifactSet.of(selectedArtifacts).addPrepareActions(actions, visitor);
+        return CompositeArtifactSet.of(selectedArtifacts).startVisit(actions, listener);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         dest.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final AttributeContainerInternal variantAttributes;
@@ -113,17 +113,17 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
-            if (visitor.includeFileDependencies()) {
-                visitor.fileAvailable(file);
-                return new Completion() {
-                    @Override
-                    public void visit(ArtifactVisitor visitor) {
-                        visitor.visitFile(artifactIdentifier, variantAttributes, file);
-                    }
-                };
+        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+            if (listener.includeFileDependencies()) {
+                listener.fileAvailable(file);
+                return this;
             }
             return EMPTY_RESULT;
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            visitor.visitFile(artifactIdentifier, variantAttributes, file);
         }
 
         @Override

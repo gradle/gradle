@@ -48,25 +48,33 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
-        final List<Completion> results = new ArrayList<Completion>(sets.size());
+    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+        List<Completion> results = new ArrayList<Completion>(sets.size());
         for (ResolvedArtifactSet set : sets) {
-            results.add(set.addPrepareActions(actions, visitor));
+            results.add(set.startVisit(actions, listener));
         }
-        return new Completion() {
-            @Override
-            public void visit(ArtifactVisitor visitor) {
-                for (Completion result : results) {
-                    result.visit(visitor);
-                }
-            }
-        };
+        return new CompositeResult(results);
     }
 
     @Override
     public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
         for (ResolvedArtifactSet set : sets) {
             set.collectBuildDependencies(dest);
+        }
+    }
+
+    private static class CompositeResult implements Completion {
+        private final List<Completion> results;
+
+        CompositeResult(List<Completion> results) {
+            this.results = results;
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            for (Completion result : results) {
+                result.visit(visitor);
+            }
         }
     }
 }

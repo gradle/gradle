@@ -103,7 +103,7 @@ public abstract class ParallelResolveArtifactSet {
 
             @Override
             public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                result = artifacts.addPrepareActions(buildOperationQueue, new AsyncArtifactListenerAdapter(visitor));
+                result = artifacts.startVisit(buildOperationQueue, new AsyncArtifactListenerAdapter(visitor));
             }
         }
     }

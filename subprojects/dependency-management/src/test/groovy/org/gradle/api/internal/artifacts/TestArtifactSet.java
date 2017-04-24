@@ -42,7 +42,7 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
+    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         return new Completion() {
             @Override
             public void visit(ArtifactVisitor visitor) {

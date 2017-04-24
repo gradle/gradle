@@ -45,11 +45,11 @@ class CompositeArtifactSetTest extends Specification {
         def result2 = Mock(ResolvedArtifactSet.Completion)
 
         when:
-        def result = CompositeArtifactSet.of([set1, set2]).addPrepareActions(queue, asyncListener)
+        def result = CompositeArtifactSet.of([set1, set2]).startVisit(queue, asyncListener)
 
         then:
-        1 * set1.addPrepareActions(queue, asyncListener) >> result1
-        1 * set2.addPrepareActions(queue, asyncListener) >> result2
+        1 * set1.startVisit(queue, asyncListener) >> result1
+        1 * set2.startVisit(queue, asyncListener) >> result2
         0 * _
 
         when:

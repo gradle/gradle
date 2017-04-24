@@ -117,10 +117,10 @@ class DefaultArtifactTransformsTest extends Specification {
         def result = transforms.variantSelector(targetAttributes, true).select([variant1, variant2], producerSchema)
 
         when:
-        result.addPrepareActions(new TestBuildOperationQueue(), listener).visit(visitor)
+        result.startVisit(new TestBuildOperationQueue(), listener).visit(visitor)
 
         then:
-        _ * variant1Artifacts.addPrepareActions(_, _) >> { BuildOperationQueue q, ResolvedArtifactSet.AsyncArtifactListener l ->
+        _ * variant1Artifacts.startVisit(_, _) >> { BuildOperationQueue q, ResolvedArtifactSet.AsyncArtifactListener l ->
             l.artifactAvailable(sourceArtifact)
             l.fileAvailable(sourceFile)
             return new ResolvedArtifactSet.Completion() {

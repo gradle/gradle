@@ -31,9 +31,9 @@ public interface ResolvedArtifactSet {
     /**
      * Starts preparing the result of this set for later visiting. To visit the final result, call {@link Completion#visit(ArtifactVisitor)} after all work added to the supplied queue has completed.
      *
-     * The implementation should notify the provided visitor as soon as individual artifacts become available.
+     * The implementation should notify the provided listener as soon as individual artifacts become available.
      */
-    Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor);
+    Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener);
 
     /**
      * Collects the build dependencies required to build the artifacts in this set.
@@ -48,7 +48,7 @@ public interface ResolvedArtifactSet {
 
     ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
         @Override
-        public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
+        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
             return EMPTY_RESULT;
         }
 

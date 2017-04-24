@@ -16,104 +16,56 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.DescribableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 
-class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailuresCollector, ResolvedArtifactSet {
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
+
+class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final AttributeContainerInternal attributes;
-    private final ImmutableSet<ResolvedArtifact> artifacts;
-    private volatile Map<ResolvedArtifact, Throwable> failures;
+    private final ResolvedArtifactSet artifacts;
 
-    private ArtifactBackedResolvedVariant(AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
+    private ArtifactBackedResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
         this.attributes = attributes;
-        this.artifacts = ImmutableSet.copyOf(artifacts);
+        this.artifacts = artifacts;
     }
 
     public static ResolvedVariant create(AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
         if (artifacts.isEmpty()) {
-            return new EmptyResolvedVariant(attributes);
+            return new ArtifactBackedResolvedVariant(attributes, EMPTY);
         }
         if (artifacts.size() == 1) {
-            return new SingleArtifactResolvedVariant(attributes, artifacts.iterator().next());
+            return new ArtifactBackedResolvedVariant(attributes, new SingleArtifactSet(attributes, artifacts.iterator().next()));
         }
-        return new ArtifactBackedResolvedVariant(attributes, artifacts);
+        List<SingleArtifactSet> artifactSets = new ArrayList<SingleArtifactSet>();
+        for (ResolvedArtifact artifact : artifacts) {
+            artifactSets.add(new SingleArtifactSet(attributes, artifact));
+        }
+        return new ArtifactBackedResolvedVariant(attributes, CompositeArtifactSet.of(artifactSets));
     }
 
     @Override
     public ResolvedArtifactSet getArtifacts() {
-        return this;
-    }
-
-    @Override
-    public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
-        if (visitor.requireArtifactFiles()) {
-            for (ResolvedArtifact artifact : artifacts) {
-                if (!isFromIncludedBuild(artifact)) {
-                    actions.add(new DownloadArtifactFile(artifact, this, visitor));
-                }
-            }
-        }
-        return new Completion() {
-            @Override
-            public void visit(ArtifactVisitor visitor) {
-                ArtifactBackedResolvedVariant.this.visit(visitor);
-            }
-        };
-    }
-
-    public void visit(ArtifactVisitor visitor) {
-        for (ResolvedArtifact artifact : artifacts) {
-            if (hasFailure(artifact)) {
-                visitor.visitFailure(getFailure(artifact));
-            } else {
-                visitor.visitArtifact(attributes, artifact);
-            }
-        }
-    }
-
-    @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-        for (ResolvedArtifact artifact : artifacts) {
-            dest.add(((Buildable) artifact).getBuildDependencies());
-        }
+        return artifacts;
     }
 
     @Override
     public AttributeContainerInternal getAttributes() {
         return attributes;
-    }
-
-    @Override
-    // May be accessed concurrently, by download workers
-    public synchronized void addFailure(ResolvedArtifact resolvedArtifact, Throwable err) {
-        if (failures == null) {
-            failures = Maps.newHashMap();
-        }
-        failures.put(resolvedArtifact, err);
-    }
-
-    // always accessed from the same thread, doesn't need synchronization
-    private boolean hasFailure(ResolvedArtifact artifact) {
-        return failures != null && failures.containsKey(artifact);
-    }
-
-    // always accessed from the same thread, doesn't need synchronization
-    private Throwable getFailure(ResolvedArtifact artifact) {
-        // no null-check here since it's illegal to call this without checking hasFailure first
-        return failures.get(artifact);
     }
 
     private static boolean isFromIncludedBuild(ResolvedArtifact artifact) {
@@ -122,38 +74,25 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
             && !((ProjectComponentIdentifier) id).getBuild().isCurrentBuild();
     }
 
-    private static class SingleArtifactResolvedVariant implements ResolvedVariant, ArtifactFailuresCollector, ResolvedArtifactSet {
-        private final AttributeContainerInternal variantAttributes;
+    private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
+        private final AttributeContainer variantAttributes;
         private final ResolvedArtifact artifact;
         private volatile Throwable failure;
 
-        SingleArtifactResolvedVariant(AttributeContainerInternal variantAttributes, ResolvedArtifact artifact) {
+        SingleArtifactSet(AttributeContainer variantAttributes, ResolvedArtifact artifact) {
             this.variantAttributes = variantAttributes;
             this.artifact = artifact;
         }
 
-        public AttributeContainerInternal getAttributes() {
-            return variantAttributes;
-        }
-
         @Override
-        public ResolvedArtifactSet getArtifacts() {
+        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+            if (listener.requireArtifactFiles() && !isFromIncludedBuild(artifact))  {
+                actions.add(new DownloadArtifactFile(artifact, this, listener));
+            }
             return this;
         }
 
         @Override
-        public Completion addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener visitor) {
-            if (visitor.requireArtifactFiles() && !isFromIncludedBuild(artifact))  {
-                actions.add(new DownloadArtifactFile(artifact, this, visitor));
-            }
-            return new Completion() {
-                @Override
-                public void visit(ArtifactVisitor visitor) {
-                    SingleArtifactResolvedVariant.this.visit(visitor);
-                }
-            };
-        }
-
         public void visit(ArtifactVisitor visitor) {
             if (failure != null) {
                 visitor.visitFailure(failure);
@@ -166,31 +105,26 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant, ArtifactFailures
         public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
             dest.add(((Buildable) artifact).getBuildDependencies());
         }
-
-        @Override
-        public void addFailure(ResolvedArtifact resolvedArtifact, Throwable err) {
-            failure = err;
-        }
     }
 
     private static class DownloadArtifactFile implements RunnableBuildOperation, DescribableBuildOperation<ComponentArtifactIdentifier> {
         private final ResolvedArtifact artifact;
-        private final ArtifactFailuresCollector artifactFailures;
-        private final AsyncArtifactListener visitor;
+        private final SingleArtifactSet owner;
+        private final AsyncArtifactListener listener;
 
-        DownloadArtifactFile(ResolvedArtifact artifact, ArtifactFailuresCollector artifactFailures, AsyncArtifactListener visitor) {
+        DownloadArtifactFile(ResolvedArtifact artifact, SingleArtifactSet owner, AsyncArtifactListener visitor) {
             this.artifact = artifact;
-            this.artifactFailures = artifactFailures;
-            this.visitor = visitor;
+            this.owner = owner;
+            this.listener = visitor;
         }
 
         @Override
         public void run() {
             try {
                 artifact.getFile();
-                visitor.artifactAvailable(artifact);
+                listener.artifactAvailable(artifact);
             } catch (Throwable t) {
-                artifactFailures.addFailure(artifact, t);
+                owner.failure = t;
             }
         }
 
