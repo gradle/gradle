@@ -25,7 +25,6 @@ import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
@@ -76,7 +75,6 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
         BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
                                           List<SubscribableBuildActionRunnerRegistration> registrations,
                                           GradleLauncherFactory gradleLauncherFactory,
-                                          BuildOperationExecutor buildOperationExecutor,
                                           BuildOperationService buildOperationService,
                                           FileWatcherFactory fileWatcherFactory,
                                           ListenerManager listenerManager,
@@ -94,8 +92,7 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
                                         new SubscribableBuildActionRunner(
                                             new RunAsBuildOperationBuildActionRunner(
                                                 new ValidatingBuildActionRunner(
-                                                    new ChainingBuildActionRunner(buildActionRunners)),
-                                                buildOperationExecutor),
+                                                    new ChainingBuildActionRunner(buildActionRunners))),
                                             buildOperationService, registrations)),
                                     fileWatcherFactory,
                                     listenerManager,

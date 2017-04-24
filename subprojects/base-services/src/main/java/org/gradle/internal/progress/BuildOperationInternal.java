@@ -21,40 +21,19 @@ import org.gradle.api.Nullable;
  *
  * This class is consumed by the build scan plugin.
  *
+ * TODO remove this subclass, consider moving complete content of this package to 'operations'
  * */
-public final class BuildOperationInternal {
-    private final Object id;
-    private final Object parentId;
-    private final String name;
-    private final String displayName;
-    private final Object operationDescriptor;
+public final class BuildOperationInternal extends BuildOperationDescriptor {
 
-    public BuildOperationInternal(Object id, Object parentId, String name, String displayName, Object operationDescriptor) {
-        this.id = id;
-        this.parentId = parentId;
-        this.name = name;
-        this.displayName = displayName;
-        this.operationDescriptor = operationDescriptor;
+    protected BuildOperationInternal(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details) {
+        super(id, parentId, name, displayName, progressDisplayName, details);
     }
 
-    public Object getId() {
-        return id;
-    }
-
+    /**
+     * Arbitrary metadata for the operation.
+     */
     @Nullable
-    public Object getParentId() {
-        return parentId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
     public Object getOperationDescriptor() {
-        return operationDescriptor;
+        return getDetails();
     }
 }

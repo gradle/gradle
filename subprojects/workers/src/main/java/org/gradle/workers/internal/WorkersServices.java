@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;

@@ -17,6 +17,7 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -37,7 +38,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final WorkerLeaseService workerLeases;
     private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
     private final Executor executor;
-    private final BuildOperationWorker<T> worker;
+    private final QueueWorker<T> queueWorker;
     private String logLocation;
 
     // Lock protects the following state, using an intentionally simple locking strategy
@@ -50,11 +51,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final LinkedList<OperationHolder> notYetStarted = new LinkedList<OperationHolder>();
     private final LinkedList<Throwable> failures = new LinkedList<Throwable>();
 
-    DefaultBuildOperationQueue(WorkerLeaseService workerLeases, ExecutorService executor, BuildOperationWorker<T> worker) {
+    DefaultBuildOperationQueue(WorkerLeaseService workerLeases, ExecutorService executor, QueueWorker<T> queueWorker) {
         this.workerLeases = workerLeases;
         this.parentWorkerLease = workerLeases.getWorkerLease();
         this.executor = executor;
-        this.worker = worker;
+        this.queueWorker = queueWorker;
     }
 
     @Override
@@ -140,6 +141,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private class OperationHolder implements Runnable {
         private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
         private final T operation;
+        private BuildOperationDescriptor operationDescription;
 
         OperationHolder(WorkerLeaseRegistry.WorkerLease parentWorkerLease, T operation) {
             this.parentWorkerLease = parentWorkerLease;
@@ -151,14 +153,17 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             workerLeases.withLocks(parentWorkerLease.createChild()).execute(new Runnable() {
                 @Override
                 public void run() {
-                    worker.execute(operation);
+                    queueWorker.execute(operation);
                 }
             });
         }
 
         @Override
         public String toString() {
-            return "Worker ".concat(worker.getDisplayName()).concat(" for operation ").concat(operation.getDescription());
+            if (operationDescription == null) {
+                operationDescription = operation.description().build();
+            }
+            return "Worker ".concat(queueWorker.getDisplayName()).concat(" for operation ").concat(operationDescription.getDisplayName());
         }
     }
 

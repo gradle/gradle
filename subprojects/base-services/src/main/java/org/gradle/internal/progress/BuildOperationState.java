@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.internal.progress;
 
-import org.gradle.internal.progress.BuildOperationState;
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
+public interface BuildOperationState {
+    Object getId();
 
-/**
- * A service that executes work in a (potentially) long-lived process or in-process.
- */
-public interface Worker<T extends WorkSpec> {
-    DefaultWorkResult execute(T spec);
-    DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation);
+    Object getParentId();
 }

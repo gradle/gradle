@@ -87,11 +87,10 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -241,7 +240,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     @Inject
-    protected BuildOperationProcessor getBuildOperationProcessor() {
+    protected BuildOperationExecutor getBuildOperationExecutor() {
         throw new UnsupportedOperationException();
     }
 
@@ -641,7 +640,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationProcessor());
+                testReporter = new DefaultTestReport(getBuildOperationExecutor());
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
@@ -649,7 +648,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                         ? TestOutputAssociation.WITH_TESTCASE
                         : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationProcessor(), getInetAddressFactory().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 

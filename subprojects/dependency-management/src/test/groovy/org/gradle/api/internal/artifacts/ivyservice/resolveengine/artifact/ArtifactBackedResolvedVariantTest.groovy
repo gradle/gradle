@@ -19,14 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.api.internal.artifacts.TestBuildOperationQueue
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class ArtifactBackedResolvedVariantTest extends Specification {
     def variant = Mock(AttributeContainerInternal)
-    def queue = new TestBuildOperationQueue()
+    def queue = new TestBuildOperationExecutor.TestBuildOperationQueue()
     def artifact1 = Mock(TestArtifact)
     def artifact2 = Mock(TestArtifact)
 

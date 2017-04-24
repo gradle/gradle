@@ -22,7 +22,7 @@ import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.local.DirectoryBuildCache
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 

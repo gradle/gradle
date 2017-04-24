@@ -24,7 +24,7 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.internal.Cast;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;

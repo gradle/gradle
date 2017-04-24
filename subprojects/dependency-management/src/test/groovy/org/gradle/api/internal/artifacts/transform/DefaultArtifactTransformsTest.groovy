@@ -20,7 +20,6 @@ import org.gradle.api.Buildable
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.TestBuildOperationQueue
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -33,6 +32,8 @@ import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.operations.BuildOperationQueue
+import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
@@ -117,7 +118,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def result = transforms.variantSelector(targetAttributes, true).select([variant1, variant2], producerSchema)
 
         when:
-        result.startVisit(new TestBuildOperationQueue(), listener).visit(visitor)
+        result.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), listener).visit(visitor)
 
         then:
         _ * variant1Artifacts.startVisit(_, _) >> { BuildOperationQueue q, ResolvedArtifactSet.AsyncArtifactListener l ->

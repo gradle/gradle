@@ -36,7 +36,7 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry

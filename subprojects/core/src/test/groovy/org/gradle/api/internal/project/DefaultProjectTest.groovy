@@ -65,7 +65,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.metaobject.BeanDynamicObject
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource

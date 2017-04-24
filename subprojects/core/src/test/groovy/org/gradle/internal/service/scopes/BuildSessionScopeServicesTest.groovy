@@ -29,17 +29,19 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.progress.BuildOperationExecutor
-import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.remote.MessagingServer
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.resources.ProjectLeaseRegistry
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
@@ -88,15 +90,19 @@ class BuildSessionScopeServicesTest extends Specification {
         registry.get(ProjectLeaseRegistry) == registry.get(ProjectLeaseRegistry)
     }
 
-    def "provides a BuildOperationProcessor"() {
+    def "provides a BuildOperationExecutor"() {
         given:
-        _ * parent.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
+        def listenerManager = Mock(ListenerManager)
+        listenerManager.createChild() >> Mock(ListenerManager)
+        _ * parent.get(ListenerManager) >> listenerManager
+        _ * parent.get(TimeProvider) >> Mock(TimeProvider)
+        _ * parent.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * parent.get(ExecutorFactory) >> Mock(ExecutorFactory)
 
         expect:
-        registry.get(BuildOperationProcessor) instanceof DefaultBuildOperationProcessor
-        registry.get(BuildOperationProcessor) == registry.get(BuildOperationProcessor)
+        registry.get(BuildOperationExecutor) instanceof DefaultBuildOperationExecutor
+        registry.get(BuildOperationExecutor) == registry.get(BuildOperationExecutor)
     }
 
     def "provides a WorkerProcessBuilder factory"() {

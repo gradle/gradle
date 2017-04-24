@@ -21,7 +21,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based

@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.operations;
 
-/**
- * Interface used by build operations which also provide a display name
- * or an operation descriptor.
- *
- * @param <T> the type of the operation descriptor
- */
-public interface DescribableBuildOperation<T> extends BuildOperation {
-    T getOperationDescriptor();
-    String getProgressDisplayName();
+public interface CallableBuildOperation<T> extends BuildOperation {
+
+    T call(BuildOperationContext context);
 }

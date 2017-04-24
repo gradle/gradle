@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,30 @@
 package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 /**
  * Meta-data about a build operation.
  */
-public class BuildOperationDetails {
-    private final BuildOperationExecutor.Operation parent;
+public class BuildOperationDescriptor {
+    private final Object id;
+    private final Object parentId;
     private final String displayName;
     private final String name;
     private final String progressDisplayName;
-    private final Object operationDescriptor;
+    private final Object details;
 
-    private BuildOperationDetails(BuildOperationExecutor.Operation parent, String name, String displayName, String progressDisplayName, Object operationDescriptor) {
-        this.parent = parent;
+    protected BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details) {
+        this.id = id;
+        this.parentId = parentId;
         this.name = name;
         this.displayName = displayName;
         this.progressDisplayName = progressDisplayName;
-        this.operationDescriptor = operationDescriptor;
+        this.details = details;
+    }
+
+    public Object getId() {
+        return id;
     }
 
     /**
@@ -68,16 +75,16 @@ public class BuildOperationDetails {
      * Arbitrary metadata for the operation.
      */
     @Nullable
-    public Object getOperationDescriptor() {
-        return operationDescriptor;
+    public Object getDetails() {
+        return details;
     }
 
     /**
      * The parent for the operation, if any. When null, the operation of the current thread is used.
      */
     @Nullable
-    public BuildOperationExecutor.Operation getParent() {
-        return parent;
+    public Object getParentId() {
+        return parentId;
     }
 
     public static Builder displayName(String displayName) {
@@ -87,9 +94,9 @@ public class BuildOperationDetails {
     public static class Builder {
         private final String displayName;
         private String name;
-        private BuildOperationExecutor.Operation parent;
         private String progressDisplayName;
-        private Object operationDescriptor;
+        private Object details;
+        private BuildOperationState parent;
 
         private Builder(String displayName) {
             this.displayName = displayName;
@@ -106,18 +113,31 @@ public class BuildOperationDetails {
             return this;
         }
 
-        public Builder operationDescriptor(Object descriptor) {
-            this.operationDescriptor = descriptor;
+        public Builder details(Object details) {
+            this.details = details;
             return this;
         }
 
-        public Builder parent(BuildOperationExecutor.Operation parent) {
+        /**
+         * Define the parent of the operation. Needs to be the state of an operations that is running at the same time
+         * the described operation will run (see: {@link BuildOperationExecutor#getCurrentOperation()}).
+         * If parent ID is not set, The last started operation of the executing thread will be used as parent.
+         */
+        public Builder parent(BuildOperationState parent) {
             this.parent = parent;
             return this;
         }
 
-        public BuildOperationDetails build() {
-            return new BuildOperationDetails(parent, name, displayName, progressDisplayName, operationDescriptor);
+        public BuildOperationInternal build() {
+            return build(null, null);
+        }
+
+        BuildOperationState getParentState() {
+            return parent;
+        }
+
+        BuildOperationInternal build(@Nullable Object id, @Nullable Object defaultParentId) {
+            return new BuildOperationInternal(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details);
         }
     }
 }

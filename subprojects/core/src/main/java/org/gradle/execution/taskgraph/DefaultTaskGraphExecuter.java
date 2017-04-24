@@ -41,13 +41,15 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
@@ -225,30 +227,35 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
      */
     private class EventFiringTaskWorker implements Action<TaskInternal> {
         private final TaskExecuter taskExecuter;
-        private final BuildOperationExecutor.Operation parentOperation;
+        private final BuildOperationState parentOperation;
 
-        EventFiringTaskWorker(TaskExecuter taskExecuter, BuildOperationExecutor.Operation parentOperation) {
+        EventFiringTaskWorker(TaskExecuter taskExecuter, BuildOperationState parentOperation) {
             this.taskExecuter = taskExecuter;
             this.parentOperation = parentOperation;
         }
 
         @Override
         public void execute(final TaskInternal task) {
-            TaskOperationDescriptor taskOperation = new TaskOperationDescriptor(task);
-            BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Task " + task.getIdentityPath()).name(task.getIdentityPath().toString()).parent(parentOperation).operationDescriptor(taskOperation).build();
-            buildOperationExecutor.run(buildOperationDetails, new Action<BuildOperationContext>() {
+            buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
-                public void execute(final BuildOperationContext buildOperationContext) {
-                    final BuildOperationExecutor.Operation currentOperation = buildOperationExecutor.getCurrentOperation();
+                public void run(BuildOperationContext context) {
+                    final Object taskExecutionOperationId = buildOperationExecutor.getCurrentOperation().getId();
                     // These events are used by build scans
-                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, currentOperation.getId());
+                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, taskExecutionOperationId);
                     internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
                     TaskStateInternal state = task.getState();
                     taskListeners.getSource().beforeExecute(task);
                     taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
                     taskListeners.getSource().afterExecute(task, state);
-                    buildOperationContext.failed(state.getFailure());
+                    context.failed(state.getFailure());
                     internalTaskListener.afterExecute(legacyOperation, new OperationResult(0, 0, state.getFailure(), null));
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    TaskOperationDescriptor taskOperation = new TaskOperationDescriptor(task);
+                    return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath()).name(task.getIdentityPath().toString()).
+                        details(taskOperation).parent(parentOperation);
                 }
             });
         }

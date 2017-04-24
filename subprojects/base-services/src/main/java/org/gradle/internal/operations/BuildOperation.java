@@ -16,12 +16,14 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.progress.BuildOperationDescriptor;
+
 /**
  * Represents some chunk of work.
  */
 public interface BuildOperation {
     /**
-     * Returns a human consumable name for this operation.
+     * Returns a description of the build operation for visualization purposes.
      */
-    String getDescription();
+    BuildOperationDescriptor.Builder description();
 }

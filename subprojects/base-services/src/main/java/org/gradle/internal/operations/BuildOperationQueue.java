@@ -53,4 +53,9 @@ public interface BuildOperationQueue<T extends BuildOperation> {
      * Sets the location of a log file where build operation output can be found.  For use in exceptions.
      */
     void setLogLocation(String logLocation);
+
+    interface QueueWorker<O extends BuildOperation> {
+        void execute(O buildOperation);
+        String getDisplayName();
+    }
 }

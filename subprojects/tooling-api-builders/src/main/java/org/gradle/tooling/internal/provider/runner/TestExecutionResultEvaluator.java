@@ -130,16 +130,16 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
 
     @Override
     public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationDescriptor)) {
+        if (!(buildOperation.getDetails() instanceof TaskOperationDescriptor)) {
             return;
         }
-        TaskInternal task = ((TaskOperationDescriptor) buildOperation.getOperationDescriptor()).getTask();
+        TaskInternal task = ((TaskOperationDescriptor) buildOperation.getDetails()).getTask();
         runningTasks.put(buildOperation.getId(), task.getPath());
     }
 
     @Override
     public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
-        if (!(buildOperation.getOperationDescriptor() instanceof TaskOperationDescriptor)) {
+        if (!(buildOperation.getDetails() instanceof TaskOperationDescriptor)) {
             return;
         }
         runningTasks.remove(buildOperation.getId());

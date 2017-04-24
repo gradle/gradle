@@ -51,6 +51,8 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.api.internal.project.BuildOperationProjectConfigurator;
+import org.gradle.api.internal.project.ProjectConfigurator;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
@@ -67,11 +69,12 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.operations.DefaultBuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.internal.progress.DefaultBuildOperationExecutor;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
@@ -80,6 +83,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
@@ -122,8 +126,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultDeploymentRegistry();
     }
 
-    BuildOperationProcessor createBuildOperationProcessor(WorkerLeaseService workerLeaseService, BuildOperationExecutor buildOperationExecutor, StartParameter startParameter, ExecutorFactory executorFactory) {
-        return new DefaultBuildOperationProcessor(buildOperationExecutor, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, startParameter.getMaxWorkerCount());
+    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory, WorkerLeaseService workerLeaseService, StartParameter startParameter, ExecutorFactory executorFactory) {
+        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, startParameter.getMaxWorkerCount());
     }
 
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
@@ -157,6 +161,10 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
+    }
+
+    ProjectConfigurator createProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
+        return new BuildOperationProjectConfigurator(buildOperationExecutor);
     }
 
     static class CacheLayout {
