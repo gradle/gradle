@@ -30,8 +30,8 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
 
-import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
 import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
 import org.gradle.script.lang.kotlin.support.compilerMessageFor
 import org.gradle.script.lang.kotlin.support.userHome
@@ -116,20 +116,31 @@ class KotlinBuildScriptCompiler(
 
     private
     fun executeScriptBodyOn(project: Project) {
-        val compiledScript = compileScriptFile(additionalSourceFilesFor(project))
-        executeCompileScript(compiledScript, targetScope.createChild("script"), project)
+        val accessorsClassPath = accessorsClassPathFor(project)
+        val compiledScript = compileScriptFile(compilationClassPath + accessorsClassPath)
+        val scriptScope = scriptClassLoaderScopeWith(accessorsClassPath)
+        executeCompiledScript(compiledScript, scriptScope, project)
     }
+
+    private
+    fun accessorsClassPathFor(project: Project) =
+        if (topLevelScript) accessorsClassPathFor(project, compilationClassPath)
+        else ClassPath.EMPTY
+
+    private
+    fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
+        targetScope.createChild("script").apply { local(accessorsClassPath) }
 
     private
     fun executeBuildscriptBlockOn(target: Project) {
         extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
             val compiledScript = compileBuildscriptBlock(buildscriptRange)
-            executeCompileScript(compiledScript, baseScope.createChild("buildscript"), target)
+            executeCompiledScript(compiledScript, baseScope.createChild("buildscript"), target)
         }
     }
 
     private
-    fun executeCompileScript(
+    fun executeCompiledScript(
         compiledScript: CachingKotlinCompiler.CompiledScript,
         scope: ClassLoaderScope,
         target: Project) {
@@ -213,11 +224,10 @@ class KotlinBuildScriptCompiler(
             baseScope.exportClassLoader)
 
     private
-    fun compileScriptFile(additionalSourceFiles: List<File>) =
+    fun compileScriptFile(classPath: ClassPath) =
         kotlinCompiler.compileBuildScript(
             scriptFile,
-            additionalSourceFiles,
-            compilationClassPath,
+            classPath,
             targetScope.exportClassLoader)
 
     private
@@ -228,16 +238,9 @@ class KotlinBuildScriptCompiler(
     private
     fun classLoaderFor(location: File, scope: ClassLoaderScope) =
         scope.run {
-            local(DefaultClassPath.of(listOf(location)))
+            local(DefaultClassPath(location))
             lock()
             localClassLoader
-        }
-
-    private
-    fun additionalSourceFilesFor(project: Project): List<File> =
-        when {
-            topLevelScript -> additionalSourceFilesForBuildscriptOf(project)
-            else -> emptyList()
         }
 
     private

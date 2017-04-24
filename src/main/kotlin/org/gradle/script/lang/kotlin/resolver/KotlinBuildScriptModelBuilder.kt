@@ -17,16 +17,14 @@
 package org.gradle.script.lang.kotlin.resolver
 
 import org.gradle.api.Project
-
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.classpath.ClassPath
 
-import org.gradle.script.lang.kotlin.accessors.additionalSourceFilesForBuildscriptOf
-import org.gradle.script.lang.kotlin.provider.CachingKotlinCompiler
+import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
 import org.gradle.script.lang.kotlin.provider.KotlinScriptClassPathProvider
 import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
+import org.gradle.script.lang.kotlin.support.serviceOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -74,35 +72,17 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
     private
     fun scriptCompilationClassPathOf(project: Project): List<File> {
-        val accessorsCompilationClassPath =
-            exportClassPathFromHierarchyOf(classLoaderScopeOf(project)) + gradleScriptKotlinApiOf(project)
-        return accessorsCompilationClassPath.asFiles + compiledAccessorsFor(project, accessorsCompilationClassPath)
+        val compilationClassPath = classPathOf(project) + gradleScriptKotlinApiOf(project)
+        return (compilationClassPath + accessorsClassPathFor(project, compilationClassPath)).asFiles
     }
+
+    private
+    fun classPathOf(project: Project) =
+        exportClassPathFromHierarchyOf(classLoaderScopeOf(project))
 
     private
     fun classLoaderScopeOf(project: Project) =
         (project as ProjectInternal).classLoaderScope
-
-    private
-    fun compiledAccessorsFor(project: Project, classPath: ClassPath): List<File> =
-        additionalSourceFilesForBuildscriptOf(project)
-            .takeIf { it.isNotEmpty() }
-            ?.let { compiledLibFrom(it, classPath, project) }
-            ?.let { listOf(it) }
-            ?: emptyList()
-
-    private
-    fun compiledLibFrom(sourceFiles: List<File>, classPath: ClassPath, project: Project) =
-        try {
-            cachingKotlinCompilerOf(project).compileLib(sourceFiles, classPath)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-
-    private
-    fun cachingKotlinCompilerOf(project: Project) =
-        project.serviceOf<CachingKotlinCompiler>()
 
     private
     fun scriptPluginClassPathOf(project: Project) =
@@ -131,8 +111,3 @@ fun gradleScriptKotlinApiOf(project: Project): List<File> =
 internal
 fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
-
-
-internal inline
-fun <reified T : Any> Project.serviceOf(): T =
-    (this as ProjectInternal).services[T::class.java]!!

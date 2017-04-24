@@ -74,6 +74,8 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given a Kotlin project in buildSrc, it will be added to the compilation classpath`() {
 
+        withKotlinBuildSrc()
+
         withFile("buildSrc/src/main/kotlin/build/DeepThought.kt", """
             package build
 
@@ -100,23 +102,6 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
                         }
                     }
                 }
-            }
-        """)
-
-        withBuildScriptIn("buildSrc", """
-            buildscript {
-                configure(listOf(repositories, project.repositories)) {
-                    gradleScriptKotlin()
-                }
-                dependencies {
-                    classpath(kotlinModule("gradle-plugin"))
-                }
-            }
-            apply {
-                plugin("kotlin")
-            }
-            dependencies {
-                compile(gradleScriptKotlinApi())
             }
         """)
 

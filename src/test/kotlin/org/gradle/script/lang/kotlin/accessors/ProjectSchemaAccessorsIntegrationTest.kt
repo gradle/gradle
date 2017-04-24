@@ -11,6 +11,7 @@ import org.junit.Test
 
 import java.io.File
 
+
 class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
@@ -53,11 +54,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
-        val buildFile = withBuildScript("""
+        withKotlinBuildSrc()
 
-            apply {
-                plugin<DocumentationPlugin>()
-            }
+        withFile("buildSrc/src/main/kotlin/my/DocumentationPlugin.kt", """
+            package my
+
+            import org.gradle.api.*
 
             class DocumentationPlugin : Plugin<Project> {
 
@@ -68,6 +70,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
 
             data class Book(val name: String)
+
+        """)
+
+        val buildFile = withBuildScript("""
+
+            apply<my.DocumentationPlugin>()
 
         """)
 
@@ -169,6 +177,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
+
         withFile("settings.gradle", """
             include 'a'
             project(':a').buildFileName = 'build.gradle.kts'
@@ -189,21 +198,11 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     }
 
     private
-    fun setOfAutomaticAccessorsFor(plugins: Set<String>): Set<File> {
+    fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
         val buildFile = withBuildScript(script, produceFile = this::newOrExisting)
-        return accessorClassFilesFor(buildFile)
+        return accessorsJarFor(buildFile)!!.relativeTo(buildFile.parentFile)
     }
-
-    private
-    fun accessorClassFilesFor(buildFile: File): Set<File> =
-        accessorsClassPathFor(buildFile)!!.let { baseDir ->
-            classFilesIn(baseDir).map { it.relativeTo(baseDir) }.toSet()
-        }
-
-    private
-    fun classFilesIn(baseDir: File) =
-        baseDir.walkTopDown().filter { it.isFile && it.extension == "class" }
 
     private
     fun assertAccessorsInClassPathOf(buildFile: File) {
@@ -212,14 +211,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun hasAccessorsInClassPathOf(buildFile: File) =
-        accessorsClassPathFor(buildFile) != null
+        accessorsJarFor(buildFile) != null
 
     private
-    fun accessorsClassPathFor(buildFile: File) =
+    fun accessorsJarFor(buildFile: File) =
         canonicalClassPathFor(projectRoot, buildFile)
-            .find { isAccessorsClassPath(it) }
-
-    private
-    fun isAccessorsClassPath(it: File) =
-        it.isDirectory && File(it, "org/gradle/script/lang/kotlin/__accessorsKt.class").isFile
+            .find { it.isFile && it.name == "gradle-script-kotlin-accessors.jar" }
 }

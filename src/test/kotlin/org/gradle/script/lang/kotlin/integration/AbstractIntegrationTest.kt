@@ -47,6 +47,26 @@ open class AbstractIntegrationTest {
     }
 
     protected
+    fun withKotlinBuildSrc() {
+        withBuildScriptIn("buildSrc", """
+            buildscript {
+                configure(listOf(repositories, project.repositories)) {
+                    gradleScriptKotlin()
+                }
+                dependencies {
+                    classpath(kotlinModule("gradle-plugin"))
+                }
+            }
+            apply {
+                plugin("kotlin")
+            }
+            dependencies {
+                compile(gradleScriptKotlinApi())
+            }
+        """)
+    }
+
+    protected
     fun withClassJar(fileName: String, vararg classes: Class<*>) =
         newFile(fileName).apply {
             zipTo(this, classEntriesFor(*classes))

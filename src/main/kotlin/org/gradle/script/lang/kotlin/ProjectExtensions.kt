@@ -53,7 +53,7 @@ import kotlin.reflect.KProperty
  * @see PluginManager.apply
  */
 inline
-fun <reified T : Plugin<Project>> Project.apply() =
+fun <reified T : Plugin<Project>> Project.apply(): Unit =
     pluginManager.apply(T::class.java)
 
 

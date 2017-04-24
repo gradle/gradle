@@ -67,7 +67,6 @@ fun compileKotlinScriptToDirectory(
     outputDirectory: File,
     scriptFile: File,
     scriptDef: KotlinScriptDefinition,
-    additionalSourceFiles: List<File>,
     classPath: List<File>,
     classLoader: ClassLoader,
     messageCollector: MessageCollector): Class<*> {
@@ -76,7 +75,7 @@ fun compileKotlinScriptToDirectory(
 
         withCompilationExceptionHandler(messageCollector) {
 
-            val sourceFiles = listOf(scriptFile) + additionalSourceFiles
+            val sourceFiles = listOf(scriptFile)
             val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, true)
                 put(OUTPUT_DIRECTORY, outputDirectory)

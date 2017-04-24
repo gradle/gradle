@@ -16,22 +16,20 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.script.lang.kotlin.KotlinBuildScript
+import org.gradle.script.lang.kotlin.cache.ScriptCache
 
 import org.gradle.script.lang.kotlin.support.loggerFor
 import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.KotlinBuildscriptBlock
 import org.gradle.script.lang.kotlin.support.KotlinPluginsBlock
 import org.gradle.script.lang.kotlin.support.compileKotlinScriptToDirectory
-import org.gradle.script.lang.kotlin.support.compileToDirectory
 import org.gradle.script.lang.kotlin.support.messageCollectorFor
 
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
@@ -45,10 +43,8 @@ import kotlin.reflect.KClass
 
 
 class CachingKotlinCompiler(
-    val cacheKeyBuilder: CacheKeyBuilder,
-    val cacheRepository: CacheRepository,
-    val progressLoggerFactory: ProgressLoggerFactory,
-    val recompileScripts: Boolean) {
+    val scriptCache: ScriptCache,
+    val progressLoggerFactory: ProgressLoggerFactory) {
 
     private
     val logger = loggerFor<KotlinScriptPluginFactory>()
@@ -57,7 +53,7 @@ class CachingKotlinCompiler(
     val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-script-kotlin")
 
     private
-    val cacheProperties = mapOf("version" to "4")
+    val cacheProperties = mapOf("version" to "5")
 
     fun compileBuildscriptBlockOf(
         scriptFile: File,
@@ -85,13 +81,14 @@ class CachingKotlinCompiler(
 
         val (lineNumber, plugins) = lineNumberedPluginsBlock
         val scriptFileName = scriptFile.name
-        val compiledScript = compileScript(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
-            ScriptCompilationSpec(
-                KotlinPluginsBlock::class,
-                scriptFile,
-                cacheFileFor(plugins, cacheDir, scriptFileName),
-                scriptFileName + " plugins block")
-        }
+        val compiledScript =
+            compileScript(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
+                ScriptCompilationSpec(
+                    KotlinPluginsBlock::class,
+                    scriptFile,
+                    cacheFileFor(plugins, cacheDir, scriptFileName),
+                    scriptFileName + " plugins block")
+            }
         return CompiledPluginsBlock(lineNumber, compiledScript)
     }
 
@@ -99,7 +96,6 @@ class CachingKotlinCompiler(
 
     fun compileBuildScript(
         scriptFile: File,
-        additionalSourceFiles: List<File>,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
@@ -109,22 +105,8 @@ class CachingKotlinCompiler(
                 KotlinBuildScript::class,
                 scriptFile,
                 scriptFile,
-                scriptFileName,
-                additionalSourceFiles)
+                scriptFileName)
         }
-    }
-
-    fun compileLib(sourceFiles: List<File>, classPath: ClassPath): File =
-        withCacheFor(cacheKeySpecOf(sourceFiles, classPath)) {
-            withProgressLoggingFor("Compiling Kotlin build script library") {
-                compileToDirectory(baseDir, sourceFiles, logger, classPath.asFiles)
-            }
-        }
-
-    private
-    fun cacheKeySpecOf(sourceFiles: List<File>, classPath: ClassPath): CacheKeySpec {
-        require(sourceFiles.isNotEmpty()) { "Expecting at least one Kotlin source file, got none." }
-        return sourceFiles.fold(cacheKeyPrefix + classPath, CacheKeySpec::plus)
     }
 
     private
@@ -134,7 +116,7 @@ class CachingKotlinCompiler(
         parentClassLoader: ClassLoader,
         compilationSpecFor: (File) -> ScriptCompilationSpec): CompiledScript {
 
-        val cacheDir = withCacheFor(cacheKeySpec + parentClassLoader) {
+        val cacheDir = cacheDirFor(cacheKeySpec + parentClassLoader) {
             val scriptClass =
                 compileScriptTo(classesDirOf(baseDir), compilationSpecFor(baseDir), classPath, parentClassLoader)
             writeClassNameTo(baseDir, scriptClass.name)
@@ -142,24 +124,11 @@ class CachingKotlinCompiler(
         return CompiledScript(classesDirOf(cacheDir), readClassNameFrom(cacheDir))
     }
 
-    private
-    fun withCacheFor(cacheKeySpec: CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
-        cacheRepository
-            .cache(cacheKeyFor(cacheKeySpec))
-            .withProperties(cacheProperties)
-            .let { if (recompileScripts) it.withValidator { false } else it }
-            .withInitializer(initializer)
-            .open().run {
-                close()
-                baseDir
-            }
-
     data class ScriptCompilationSpec(
         val scriptTemplate: KClass<out Any>,
         val originalFile: File,
         val scriptFile: File,
-        val description: String,
-        val additionalSourceFiles: List<File> = emptyList())
+        val description: String)
 
     private
     fun compileScriptTo(
@@ -175,7 +144,6 @@ class CachingKotlinCompiler(
                     outputDir,
                     scriptFile,
                     scriptDefinitionFromTemplate(scriptTemplate),
-                    additionalSourceFiles,
                     classPath.asFiles,
                     parentClassLoader,
                     messageCollectorFor(logger) { path ->
@@ -185,9 +153,9 @@ class CachingKotlinCompiler(
             }
         }
 
-
     private
-    fun cacheKeyFor(spec: CacheKeySpec) = cacheKeyBuilder.build(spec)
+    fun cacheDirFor(cacheKeySpec: CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
+        scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
 
     private
     fun writeClassNameTo(cacheDir: File, className: String) =

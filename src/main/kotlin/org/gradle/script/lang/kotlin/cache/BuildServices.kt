@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.accessors
+package org.gradle.script.lang.kotlin.cache
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.StartParameter
+
+import org.gradle.cache.CacheRepository
+import org.gradle.cache.internal.CacheKeyBuilder
 
 
-open class DisplayAccessors : DefaultTask() {
-
-    override fun getGroup() =
-        "help"
-
-    override fun getDescription() =
-        "Displays the Kotlin code for accessing the available project extensions and conventions."
+object BuildServices {
 
     @Suppress("unused")
-    @TaskAction
-    fun printExtensions() {
-        schemaFor(project).withKotlinTypeStrings().forEachAccessor {
-            println()
-            println(it)
-            println()
-        }
-    }
+    private
+    fun createScriptCache(
+        cacheKeyBuilder: CacheKeyBuilder,
+        cacheRepository: CacheRepository,
+        startParameters: StartParameter) =
+
+        ScriptCache(
+            cacheRepository, cacheKeyBuilder, startParameters.isRecompileScripts)
 }
-
-
-

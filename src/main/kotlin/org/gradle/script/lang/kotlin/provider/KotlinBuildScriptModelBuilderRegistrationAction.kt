@@ -21,7 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.project.ProjectConfigureAction
 
 import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModelBuilder
-import org.gradle.script.lang.kotlin.resolver.serviceOf
+
+import org.gradle.script.lang.kotlin.support.serviceOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 

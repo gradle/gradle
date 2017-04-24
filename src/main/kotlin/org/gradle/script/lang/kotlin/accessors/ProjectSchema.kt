@@ -23,9 +23,6 @@ import org.gradle.api.Project
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.reflect.TypeOf.typeOf
 
-import org.jetbrains.kotlin.lexer.KotlinLexer
-import org.jetbrains.kotlin.lexer.KtTokens
-
 import java.io.File
 import java.io.Serializable
 
@@ -45,6 +42,7 @@ data class ProjectSchema<out T>(
 internal
 fun multiProjectKotlinStringSchemaFor(root: Project): Map<String, ProjectSchema<String>> =
     multiProjectSchemaFor(root).mapValues { it.value.withKotlinTypeStrings() }
+
 
 internal
 fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> =
@@ -84,6 +82,7 @@ internal
 fun toJson(multiProjectStringSchema: Map<String, ProjectSchema<String>>): String =
     toJson(multiProjectStringSchema)
 
+
 internal
 fun ProjectSchema<TypeOf<*>>.withKotlinTypeStrings() =
     map(::kotlinTypeStringFor)
@@ -100,73 +99,18 @@ fun loadMultiProjectSchemaFrom(file: File) =
 
 
 internal
-fun ProjectSchema<String>.forEachAccessor(action: (String) -> Unit) {
-    extensions.forEach { (name, type) ->
-        extensionAccessorFor(name, type)?.let(action)
-    }
-    conventions.forEach { (name, type) ->
-        if (name !in extensions) {
-            conventionAccessorFor(name, type)?.let(action)
+fun kotlinTypeStringFor(type: TypeOf<*>): String =
+    type.run {
+        when {
+            isArray ->
+                "Array<${kotlinTypeStringFor(componentType)}>"
+            isParameterized ->
+                "$parameterizedTypeDefinition<${actualTypeArguments.joinToString(transform = ::kotlinTypeStringFor)}>"
+            isWildcard ->
+                upperBound?.let(::kotlinTypeStringFor) ?: "Any"
+            else ->
+                toString().let { primitiveTypeStrings[it] ?: it }
         }
-    }
-}
-
-private
-fun extensionAccessorFor(name: String, type: String): String? =
-    if (isLegalExtensionName(name))
-        """
-            /**
-             * Retrieves the [$name][$type] project extension.
-             */
-            val Project.`$name`: $type get() =
-                extensions.getByName("$name") as $type
-
-            /**
-             * Configures the [$name][$type] project extension.
-             */
-            fun Project.`$name`(configure: $type.() -> Unit): Unit =
-                extensions.configure("$name", configure)
-
-        """.replaceIndent()
-    else null
-
-private
-fun conventionAccessorFor(name: String, type: String): String? =
-    if (isLegalExtensionName(name))
-        """
-            /**
-             * Retrieves the [$name][$type] project convention.
-             */
-            val Project.`$name`: $type get() =
-                convention.getPluginByName<$type>("$name")
-
-            /**
-             * Configures the [$name][$type] project convention.
-             */
-            fun Project.`$name`(configure: $type.() -> Unit): Unit =
-                convention.getPluginByName<$type>("$name").configure()
-
-        """.replaceIndent()
-    else null
-
-
-private
-val invalidNameChars = charArrayOf('.', '/', '\\')
-
-
-internal
-fun isLegalExtensionName(name: String): Boolean =
-    isKotlinIdentifier("`$name`")
-        && name.indexOfAny(invalidNameChars) < 0
-
-
-private
-fun isKotlinIdentifier(candidate: String): Boolean =
-    KotlinLexer().run {
-        start(candidate)
-        tokenStart == 0
-            && tokenEnd == candidate.length
-            && tokenType == KtTokens.IDENTIFIER
     }
 
 
@@ -191,20 +135,4 @@ val primitiveTypeStrings =
         "float" to "Float",
         "java.lang.Double" to "Double",
         "double" to "Double")
-
-
-internal
-fun kotlinTypeStringFor(type: TypeOf<*>): String =
-    type.run {
-        when {
-            isArray ->
-                "Array<${kotlinTypeStringFor(componentType)}>"
-            isParameterized ->
-                "$parameterizedTypeDefinition<${actualTypeArguments.joinToString(transform = ::kotlinTypeStringFor)}>"
-            isWildcard ->
-                upperBound?.let(::kotlinTypeStringFor) ?: "Any"
-            else ->
-                toString().let { primitiveTypeStrings[it] ?: it }
-        }
-    }
 

@@ -14,38 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.accessors
-
-import groovy.json.JsonOutput.prettyPrint
+package org.gradle.script.lang.kotlin.accessors.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-import java.io.File
+import org.gradle.script.lang.kotlin.accessors.*
 
-open class GenerateProjectSchema : DefaultTask() {
+
+open class DisplayAccessors : DefaultTask() {
 
     override fun getGroup() =
-        "Build Setup"
+        "help"
 
     override fun getDescription() =
-        "Generates Kotlin code for accessing and configuring the currently available project extensions and conventions."
-
-    @Suppress("unused")
-    @Input
-    fun getSchemaInput(): Map<String, Any> = schema
-
-    @get:OutputFile
-    var destinationFile: File? = null
-
-    private
-    val schema by lazy { multiProjectKotlinStringSchemaFor(project) }
+        "Displays the Kotlin code for accessing the available project extensions and conventions."
 
     @Suppress("unused")
     @TaskAction
-    fun generateProjectSchema() {
-        destinationFile!!.writeText(prettyPrint(toJson(schema)))
+    fun printExtensions() {
+        schemaFor(project).withKotlinTypeStrings().forEachAccessor {
+            println()
+            println(it)
+            println()
+        }
     }
 }
