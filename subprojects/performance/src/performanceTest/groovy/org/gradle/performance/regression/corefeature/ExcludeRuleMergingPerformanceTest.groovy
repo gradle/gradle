@@ -18,6 +18,7 @@ package org.gradle.performance.regression.corefeature
 
 import org.apache.mina.util.AvailablePortFinder
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.fixture.TestProjectLocator
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.resource.Resource
@@ -34,7 +35,7 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
         server = new Server(serverPort)
         WebAppContext context = new WebAppContext()
         context.setContextPath("/")
-        context.setBaseResource(Resource.newResource(new File(runner.testProjectLocator.findProjectDir('excludeRuleMergingBuild'), 'repository').getAbsolutePath()))
+        context.setBaseResource(Resource.newResource(new File(new TestProjectLocator().findProjectDir(TEST_PROJECT_NAME), 'repository').getAbsolutePath()))
         server.addHandler(context)
         server.start()
     }
