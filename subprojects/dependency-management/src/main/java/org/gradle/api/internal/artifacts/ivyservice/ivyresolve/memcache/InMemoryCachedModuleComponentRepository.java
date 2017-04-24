@@ -107,5 +107,13 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
                 artifactsCache.newArtifact(artifact.getId(), result);
             }
         }
+
+        @Override
+        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
+            if (metaDataCache.isMetadataCached(moduleComponentIdentifier)) {
+                return true;
+            }
+            return super.isMetadataAvailableLocally(moduleComponentIdentifier);
+        }
     }
 }

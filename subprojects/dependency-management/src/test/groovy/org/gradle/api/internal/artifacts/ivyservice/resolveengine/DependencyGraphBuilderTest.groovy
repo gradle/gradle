@@ -132,7 +132,7 @@ class DependencyGraphBuilderTest extends Specification {
         def c = revision('c') //transitive of evicted a
         def d = revision('d')
 
-        traverses root, a
+        doesNotTraverse root, a
         traverses root, b
         doesNotResolve a, c
         traverses b, d
@@ -373,7 +373,7 @@ class DependencyGraphBuilderTest extends Specification {
         def c = revision('c')
         traverses root, selected
         traverses selected, b
-        traverses root, evicted // this is traversed because of concurrent edge resolution, but will not appear in final result
+        doesNotTraverse root, evicted
         doesNotResolve evicted, c
 
         when:
@@ -399,7 +399,7 @@ class DependencyGraphBuilderTest extends Specification {
         def b = revision('b')
         def c = revision('c')
         def d = revision('d')
-        traverses root, evicted  // this is traversed because of concurrent edge resolution, but will not appear in final result
+        doesNotTraverse root, evicted
         doesNotResolve evicted, d
         traverses root, selected
         traverses selected, c
@@ -430,10 +430,10 @@ class DependencyGraphBuilderTest extends Specification {
         def selectedB = revision('b', '2.2')
         def evictedB = revision('b', '2.1')
         def c = revision('c')
-        traverses root, evictedA1  // this is traversed because of concurrent edge resolution, but will not appear in final result
+        doesNotTraverse root, evictedA1
         traverses root, selectedA
         traverses selectedA, c
-        traverses root, evictedB  // this is traversed because of concurrent edge resolution, but will not appear in final result
+        doesNotTraverse root, evictedB
         traverses root, selectedB
         doesNotTraverse selectedB, evictedA2
 

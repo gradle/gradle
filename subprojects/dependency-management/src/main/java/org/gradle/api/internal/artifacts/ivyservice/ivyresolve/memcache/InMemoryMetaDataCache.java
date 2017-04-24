@@ -31,6 +31,10 @@ class InMemoryMetaDataCache {
     private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = new HashMap<ModuleVersionSelector, Set<String>>();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
 
+    public boolean isMetadataCached(ModuleComponentIdentifier requested) {
+        return metaData.get(requested) != null;
+    }
+
     public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
         Set<String> versions = moduleVersionListing.get(requested);
         if (versions == null) {

@@ -267,7 +267,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier) // in-memory check first
+            ModuleComponentRepositoryAccess localAccess = delegate.getLocalAccess();
+            return localAccess.isMetadataAvailableLocally(moduleComponentIdentifier) // in-memory check first
                 || isMetadataAvailableInCacheAndUpToDate(moduleComponentIdentifier);
         }
 

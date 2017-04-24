@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -130,6 +131,7 @@ public class DependencyGraphBuilder {
         resolveState.onMoreSelected(resolveState.root);
         final List<DependencyEdge> dependencies = Lists.newArrayList();
         final List<DependencyEdge> dependenciesMissingLocalMetadata = Lists.newArrayList();
+        final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
 
         while (resolveState.peek() != null || conflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
@@ -141,7 +143,7 @@ public class DependencyGraphBuilder {
                 dependenciesMissingLocalMetadata.clear();
                 node.visitOutgoingDependencies(dependencies);
 
-                resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState);
+                resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState, componentIdentifierCache);
 
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
@@ -198,13 +200,14 @@ public class DependencyGraphBuilder {
     private void resolveEdges(final ConfigurationNode node,
                               final List<DependencyEdge> dependencies,
                               final List<DependencyEdge> dependenciesMissingMetadataLocally,
-                              final ResolveState resolveState) {
+                              final ResolveState resolveState,
+                              final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
         if (dependencies.isEmpty()) {
             return;
         }
-        computePreemptiveDownloadList(dependencies, dependenciesMissingMetadataLocally);
-        resolveEdgesSerially(dependencies, resolveState);
-        downloadMetadataConcurrently(node, dependenciesMissingMetadataLocally, resolveState);
+        performSelectionSerially(dependencies, resolveState);
+        computePreemptiveDownloadList(dependencies, dependenciesMissingMetadataLocally, componentIdentifierCache);
+        downloadMetadataConcurrently(node, dependenciesMissingMetadataLocally);
         attachToTargetRevisionsSerially(dependencies);
 
     }
@@ -214,13 +217,13 @@ public class DependencyGraphBuilder {
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
         for (DependencyEdge dependency : dependencies) {
-            if (dependency.targetModuleRevision != null) {
+            if (dependency.targetModuleRevision != null && dependency.targetModuleRevision.state == ModuleState.Selected) {
                 dependency.attachToTargetConfigurations();
             }
         }
     }
 
-    private void downloadMetadataConcurrently(ConfigurationNode node, final List<DependencyEdge> dependencies, final ResolveState resolveState) {
+    private void downloadMetadataConcurrently(ConfigurationNode node, final List<DependencyEdge> dependencies) {
         if (dependencies.isEmpty()) {
             return;
         }
@@ -235,9 +238,9 @@ public class DependencyGraphBuilder {
         });
     }
 
-    private void resolveEdgesSerially(List<DependencyEdge> dependencies, ResolveState resolveState) {
+    private void performSelectionSerially(List<DependencyEdge> dependencies, ResolveState resolveState) {
         for (DependencyEdge dependency : dependencies) {
-            ModuleVersionResolveState moduleRevision = dependency.targetModuleRevision;
+            ModuleVersionResolveState moduleRevision = dependency.resolveModuleRevisionId();
             if (moduleRevision != null) {
                 performSelection(resolveState, moduleRevision);
             }
@@ -249,18 +252,35 @@ public class DependencyGraphBuilder {
      * if we should perform concurrent resolution, based on the the number of edges, and whether they have unresolved
      * metadata. Determining this requires calls to `resolveModuleRevisionId`, which will *not* trigger metadata download.
      *
-     * @param dependencies the dependencies to be resolved  @return true if they should be resolved serially, false if they should be resolved concurrently
-     * @param dependenciesToBeResolvedInParallel output, edges which will need parallel resolution
+     * @param dependencies the dependencies to be resolved
+     * @param dependenciesToBeResolvedInParallel output, edges which will need parallel metadata download
      */
-    private void computePreemptiveDownloadList(List<DependencyEdge> dependencies, List<DependencyEdge> dependenciesToBeResolvedInParallel) {
+    private void computePreemptiveDownloadList(List<DependencyEdge> dependencies, List<DependencyEdge> dependenciesToBeResolvedInParallel, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
         for (DependencyEdge dependency : dependencies) {
-            ModuleVersionResolveState state = dependency.resolveModuleRevisionId();
-            if (state != null) {
-                if (!metaDataResolver.isAvailableLocally(DefaultModuleComponentIdentifier.newId(state.getId()))) {
+            ModuleVersionResolveState state = dependency.targetModuleRevision;
+            if (state != null && state.metaData == null && performPreemptiveDownload(state.state)) {
+                if (!metaDataResolver.isAvailableLocally(toComponentId(state.getId(), componentIdentifierCache))) {
                     dependenciesToBeResolvedInParallel.add(dependency);
                 }
             }
         }
+        if (dependenciesToBeResolvedInParallel.size() == 1) {
+            // don't bother doing anything in parallel if there's a single edge
+            dependenciesToBeResolvedInParallel.clear();
+        }
+    }
+
+    private static ComponentIdentifier toComponentId(ModuleVersionIdentifier id, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
+        ComponentIdentifier identifier = componentIdentifierCache.get(id);
+        if (identifier == null) {
+            identifier = DefaultModuleComponentIdentifier.newId(id);
+            componentIdentifierCache.put(id, identifier);
+        }
+        return identifier;
+    }
+
+    private static boolean performPreemptiveDownload(ModuleState state) {
+        return state == ModuleState.Selected;
     }
 
     /**
@@ -662,7 +682,7 @@ public class DependencyGraphBuilder {
         private final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
         private final Long resultId;
         private final ModuleResolveState module;
-        private ComponentResolveMetadata metaData;
+        private volatile ComponentResolveMetadata metaData;
         private ModuleState state = ModuleState.New;
         private ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         private ModuleVersionResolveException failure;
