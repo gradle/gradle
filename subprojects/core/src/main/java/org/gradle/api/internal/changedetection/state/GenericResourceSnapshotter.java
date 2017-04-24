@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
+import org.gradle.api.internal.changedetection.resources.AbstractResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
@@ -25,7 +25,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.IOException;
 
-public class GenericResourceSnapshotter extends AbstractSnapshotter {
+public class GenericResourceSnapshotter extends AbstractResourceSnapshotter {
     private final boolean noneNormalizationStrategy;
     private final SnapshotNormalizationStrategy normalizationStrategy;
     private final TaskFilePropertyCompareStrategy compareStrategy;

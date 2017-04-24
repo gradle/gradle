@@ -22,7 +22,7 @@ import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
+import org.gradle.api.internal.changedetection.resources.AbstractResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
@@ -40,14 +40,14 @@ import java.util.Collections;
 
 import static com.google.common.base.Charsets.UTF_8;
 
-public class CompileClasspathEntrySnapshotter extends AbstractSnapshotter {
+public class CompileClasspathEntryResourceSnapshotter extends AbstractResourceSnapshotter {
     private final PersistentIndexedCache<HashCode, HashCode> signatureCache;
     private final HashCode snapshotterHash;
     private final StringInterner stringInterner;
     private final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(Collections.<String>emptySet());
     private static final HashCode IGNORED = Hashing.md5().hashString("Ignored ABI", UTF_8);
 
-    public CompileClasspathEntrySnapshotter(PersistentIndexedCache<HashCode, HashCode> signatureCache, StringInterner stringInterner) {
+    public CompileClasspathEntryResourceSnapshotter(PersistentIndexedCache<HashCode, HashCode> signatureCache, StringInterner stringInterner) {
         this.signatureCache = signatureCache;
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         appendConfigurationToHasher(hasher);

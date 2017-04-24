@@ -24,7 +24,7 @@ import org.gradle.internal.IoActions;
 
 import java.io.IOException;
 
-public abstract class AbstractSnapshotter implements ResourceSnapshotter {
+public abstract class AbstractResourceSnapshotter implements ResourceSnapshotter {
     @Override
     public void snapshot(Snapshottable snapshottable, SnapshottingResultRecorder recorder) {
         if (snapshottable instanceof SnapshottableResourceTree) {

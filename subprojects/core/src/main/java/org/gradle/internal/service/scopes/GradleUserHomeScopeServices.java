@@ -24,8 +24,8 @@ import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshot
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.ClasspathEntrySnapshotter;
-import org.gradle.api.internal.changedetection.state.CompileClasspathEntrySnapshotter;
+import org.gradle.api.internal.changedetection.state.ClasspathEntryResourceSnapshotter;
+import org.gradle.api.internal.changedetection.state.CompileClasspathEntryResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
@@ -143,7 +143,7 @@ public class GradleUserHomeScopeServices {
         factories.put(RuntimeClasspath.class, new ResourceSnapshotterFactory<RuntimeClasspath>() {
                 @Override
                 public ResourceSnapshotter create(RuntimeClasspath configuration) {
-                    ResourceSnapshotter classpathEntrySnapshotter = new ClasspathEntrySnapshotter(configuration, stringInterner);
+                    ResourceSnapshotter classpathEntrySnapshotter = new ClasspathEntryResourceSnapshotter(configuration, stringInterner);
                     return new CachingResourceSnapshotter(
                         new ClasspathResourceSnapshotter(classpathEntrySnapshotter, stringInterner),
                         cache
@@ -153,7 +153,7 @@ public class GradleUserHomeScopeServices {
         factories.put(CompileClasspath.class, new ResourceSnapshotterFactory<CompileClasspath>() {
                 @Override
                 public ResourceSnapshotter create(CompileClasspath configuration) {
-                    ResourceSnapshotter classpathEntrySnapshotter = new CompileClasspathEntrySnapshotter(cache, stringInterner);
+                    ResourceSnapshotter classpathEntrySnapshotter = new CompileClasspathEntryResourceSnapshotter(cache, stringInterner);
                     return new CachingResourceSnapshotter(
                         new ClasspathResourceSnapshotter(classpathEntrySnapshotter, stringInterner),
                         cache

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
-class DefaultResourceSnapshotterTest extends AbstractSnapshotterTest {
+class DefaultResourceSnapshotterTest extends AbstractResourceSnapshotterTest {
     List entryHashes = []
 
     def setup() {

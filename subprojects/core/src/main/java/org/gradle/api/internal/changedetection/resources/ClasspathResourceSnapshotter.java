@@ -31,7 +31,7 @@ import org.gradle.util.DeprecationLogger;
 import java.io.IOException;
 import java.util.zip.ZipException;
 
-public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
+public class ClasspathResourceSnapshotter extends AbstractResourceSnapshotter {
     private final ResourceSnapshotter entrySnapshotter;
     private StringInterner stringInterner;
 

@@ -34,7 +34,7 @@ import spock.lang.Specification
 
 @CleanupTestDirectory(fieldName = "tmpDir")
 @UsesNativeServices
-class AbstractSnapshotterTest extends Specification {
+class AbstractResourceSnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 

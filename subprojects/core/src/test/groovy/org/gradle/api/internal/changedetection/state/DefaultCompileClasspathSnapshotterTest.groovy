@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
 
-class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
+class DefaultCompileClasspathSnapshotterTest extends AbstractResourceSnapshotterTest {
     private static final String JAR_FILE_HASH = '2795ef480ca940f05aad4c08c2510346'
     public static final String IGNORED_SIGNATURE = 'd9866ca2e5b4d2d882a57251c5e35f4a'
 

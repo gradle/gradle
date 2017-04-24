@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
+import org.gradle.api.internal.changedetection.resources.AbstractResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
@@ -26,11 +26,11 @@ import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingR
 import org.gradle.api.snapshotting.RuntimeClasspath;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public class ClasspathEntrySnapshotter extends AbstractSnapshotter {
+public class ClasspathEntryResourceSnapshotter extends AbstractResourceSnapshotter {
     private final RuntimeClasspath configuration;
     private final StringInterner stringInterner;
 
-    public ClasspathEntrySnapshotter(RuntimeClasspath configuration, StringInterner stringInterner) {
+    public ClasspathEntryResourceSnapshotter(RuntimeClasspath configuration, StringInterner stringInterner) {
         this.configuration = configuration;
         this.stringInterner = stringInterner;
     }
