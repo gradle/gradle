@@ -131,8 +131,8 @@ class DefaultArtifactTransformsTest extends Specification {
                 }
             }
         }
-        2 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
-        2 * transformer.transform(sourceFile) >> [outFile3, outFile4]
+        1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
+        1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(targetAttributes, {it.file == outFile2})
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), targetAttributes, outFile3)
