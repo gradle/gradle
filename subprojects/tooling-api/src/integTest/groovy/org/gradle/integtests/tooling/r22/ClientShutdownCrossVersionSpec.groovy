@@ -45,7 +45,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.withConnection {}
         then:
         IllegalStateException e = thrown()
-        e
     }
 
     @TargetGradleVersion(">=2.2")
