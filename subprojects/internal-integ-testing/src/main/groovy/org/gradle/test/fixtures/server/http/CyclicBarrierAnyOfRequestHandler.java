@@ -37,11 +37,13 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     private final List<String> received = new ArrayList<String>();
     private final Set<String> released = new HashSet<String>();
     private final Map<String, ResourceHandler> expected = new HashMap<String, ResourceHandler>();
-    private int pending;
+    private final int timeoutMs;
+    private int waitingFor;
     private AssertionError failure;
 
-    CyclicBarrierAnyOfRequestHandler(int pending, Collection<? extends ResourceHandler> expectedCalls) {
-        this.pending = pending;
+    CyclicBarrierAnyOfRequestHandler(int timeoutMs, int maxConcurrent, Collection<? extends ResourceHandler> expectedCalls) {
+        this.timeoutMs = timeoutMs;
+        this.waitingFor = maxConcurrent;
         for (ResourceHandler call : expectedCalls) {
             expected.put(call.getPath(), call);
         }
@@ -49,7 +51,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
 
     @Override
     public boolean handle(int id, HttpExchange httpExchange) throws Exception {
-        Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + 30000);
+        Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + timeoutMs);
         ResourceHandler handler;
         lock.lock();
         try {
@@ -63,23 +65,23 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             }
 
             String path = httpExchange.getRequestURI().getPath().substring(1);
-            if (!expected.containsKey(path) || pending == 0) {
-                failure = new AssertionError(String.format("Unexpected request to '%s' received. Waiting for %s more concurrent calls, already received %s, released %s, still expecting %s.", path, pending, received, released, expected.keySet()));
+            if (!expected.containsKey(path) || waitingFor == 0) {
+                failure = new AssertionError(String.format("Unexpected request to '%s' received. Waiting for %s further requests, already received %s, released %s, still expecting %s.", path, waitingFor, received, released, expected.keySet()));
                 condition.signalAll();
                 throw failure;
             }
 
             handler = expected.remove(path);
             received.add(path);
-            pending--;
-            if (pending == 0) {
+            waitingFor--;
+            if (waitingFor == 0) {
                 condition.signalAll();
             }
 
             while (!released.contains(path) && failure == null) {
                 System.out.println(String.format("[%d] waiting to be released", id));
                 if (!condition.awaitUntil(expiry)) {
-                    failure = new AssertionError(String.format("Timeout waiting for other concurrent requests to be received. Waiting for %s more concurrent calls, received %s, released %s, still expecting %s.", pending, received, released, expected.keySet()));
+                    failure = new AssertionError(String.format("Timeout waiting to be released. Waiting for %s further requests, received %s, released %s, still expecting %s.", waitingFor, received, released, expected.keySet()));
                     condition.signalAll();
                     throw failure;
                 }
@@ -100,7 +102,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
         lock.lock();
         try {
             if (!expected.isEmpty()) {
-                throw new AssertionError(String.format("Did not handle all expected concurrent requests. Waiting for %d more concurrent calls, received %s, released %s, still expecting %s.", pending, received, released, expected.keySet()));
+                throw new AssertionError(String.format("Did not handle all expected requests. Waiting for %d further requests, received %s, released %s, still expecting %s.", waitingFor, received, released, expected.keySet()));
             }
         } finally {
             lock.unlock();
@@ -115,12 +117,16 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             for (int i = 0; releaseCount < count && i < received.size(); i++) {
                 String call = received.get(i);
                 if (!released.contains(call)) {
-                    System.out.println(String.format("[test] releasing %s", call));
+                    System.out.println(String.format("[release] releasing %s", call));
                     released.add(call);
                     releaseCount++;
                 }
             }
-            pending += count;
+            if (releaseCount != count) {
+                throw new IllegalStateException("Too few requests released, should wait for pending calls first.");
+            }
+            waitingFor = Math.min(expected.size(), waitingFor + count);
+            System.out.println(String.format("[release] now expecting %d further requests", waitingFor));
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -128,24 +134,24 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     }
 
     @Override
-    public void waitForAllPendingCalls(int timeoutSeconds) {
-        Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + 30000);
+    public void waitForAllPendingCalls() {
+        Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + timeoutMs);
         lock.lock();
         try {
-            while (pending > 0 && failure == null) {
-                System.out.println(String.format("[test] waiting for %d more concurrent calls, received %s, released %s, still expecting %s", pending, received, released, expected.keySet()));
+            while (waitingFor > 0 && failure == null) {
+                System.out.println(String.format("[wait] waiting for %d further requests, received %s, released %s, still expecting %s", waitingFor, received, released, expected.keySet()));
                 try {
                     if (!condition.awaitUntil(expiry)) {
-                        throw new AssertionError(String.format("Timeout waiting for expected concurrent calls. Waiting for %d more concurrent calls, received %s, released %s, still expecting %s.", pending, received, released, expected.keySet()));
+                        throw new AssertionError(String.format("Timeout waiting for expected requests. Waiting for %d further requests, received %s, released %s, still expecting %s.", waitingFor, received, released, expected.keySet()));
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
             if (failure != null) {
-                throw new AssertionError("Could not wait for pending calls due to a request failure", failure);
+                throw new AssertionError("Could not wait for pending requests due to a request failure", failure);
             }
-            System.out.println(String.format("[test] waiting for no more concurrent calls, received %s, released %s, still expecting %s", received, released, expected.keySet()));
+            System.out.println(String.format("[wait] expected requests received, received %s, released %s, still expecting %s", received, released, expected.keySet()));
         }  finally {
             lock.unlock();
         }

@@ -34,9 +34,11 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
     private final Condition condition = lock.newCondition();
     private final List<String> received = new ArrayList<String>();
     private final Map<String, ResourceHandler> pending;
+    private final int timeoutMs;
     private AssertionError failure;
 
-    CyclicBarrierRequestHandler(Collection<? extends ResourceHandler> expectedCalls) {
+    CyclicBarrierRequestHandler(int timeoutMs, Collection<? extends ResourceHandler> expectedCalls) {
+        this.timeoutMs = timeoutMs;
         pending = new HashMap<String, ResourceHandler>();
         for (ResourceHandler call : expectedCalls) {
             pending.put(call.getPath(), call);
@@ -45,7 +47,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
 
     @Override
     public boolean handle(int id, HttpExchange httpExchange) throws Exception {
-        Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + 30000);
+        Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + timeoutMs);
         ResourceHandler handler;
         lock.lock();
         try {
@@ -74,7 +76,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
             while (!pending.isEmpty() && failure == null) {
                 System.out.println(String.format("[%d] waiting for other requests", id));
                 if (!condition.awaitUntil(expiry)) {
-                    failure = new AssertionError(String.format("Timeout waiting for other concurrent requests to be received. Waiting for %s, received %s.", pending.keySet(), received));
+                    failure = new AssertionError(String.format("Timeout waiting for other requests to be received. Waiting for %s, received %s.", pending.keySet(), received));
                     condition.signalAll();
                     throw failure;
                 }
@@ -95,7 +97,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
 
     public void assertComplete() {
         if (!pending.isEmpty()) {
-            throw new AssertionError(String.format("Did not receive expected concurrent requests. Waiting for %s, received %s", pending.keySet(), received));
+            throw new AssertionError(String.format("Did not receive expected requests. Waiting for %s, received %s", pending.keySet(), received));
         }
     }
 }

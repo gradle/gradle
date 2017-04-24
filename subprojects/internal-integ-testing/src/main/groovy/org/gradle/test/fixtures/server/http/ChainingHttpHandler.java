@@ -57,11 +57,13 @@ class ChainingHttpHandler implements HttpHandler {
         System.out.println(String.format("[%d] handling %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
 
         try {
-            for (TrackingHttpHandler handler : handlers) {
-                if (handler.handle(id, httpExchange)) {
-                    httpExchange.close();
-                    System.out.println(String.format("[%d] handled", id));
-                    return;
+            if (httpExchange.getRequestMethod().equals("GET")) {
+                for (TrackingHttpHandler handler : handlers) {
+                    if (handler.handle(id, httpExchange)) {
+                        httpExchange.close();
+                        System.out.println(String.format("[%d] handled", id));
+                        return;
+                    }
                 }
             }
             failures.add(new AssertionError(String.format("Received unexpected request %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath())));

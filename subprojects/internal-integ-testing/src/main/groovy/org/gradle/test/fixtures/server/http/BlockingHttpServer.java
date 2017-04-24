@@ -36,13 +36,19 @@ import java.util.concurrent.Executors;
 public class BlockingHttpServer extends ExternalResource {
     private final HttpServer server;
     private final ChainingHttpHandler handler;
+    private final int timeoutMs;
 
     public BlockingHttpServer() throws IOException {
+        this(30000);
+    }
+
+    public BlockingHttpServer(int timeoutMs) throws IOException {
         // Use an OS selected port
         server = HttpServer.create(new InetSocketAddress(0), 10);
         server.setExecutor(Executors.newCachedThreadPool());
         handler = new ChainingHttpHandler();
         server.createContext("/", handler);
+        this.timeoutMs = timeoutMs;
     }
 
     /**
@@ -83,7 +89,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (String call : additionalExpectedCalls) {
             resourceHandlers.add(resourceHandler(call));
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, resourceHandlers));
     }
 
     /**
@@ -94,7 +100,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (String call : expectedCalls) {
             resourceHandlers.add(resourceHandler(call));
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, resourceHandlers));
     }
 
     /**
@@ -105,18 +111,18 @@ public class BlockingHttpServer extends ExternalResource {
         for (Resource call : expectedCalls) {
             resourceHandlers.add((ResourceHandler) call);
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, resourceHandlers));
     }
 
     /**
-     * Returns a resource from this server that contains the same contents as the file.
+     * Expect a GET request to the given path, and return the contents of the given file.
      */
     public Resource file(String path, File file) {
         return new FileResourceHandler(removeLeadingSlash(path), file);
     }
 
     /**
-     * Returns a resource from this server that contains some arbitrary content.
+     * Expect a GET request to the given path.
      */
     public Resource resource(String path) {
         return resourceHandler(path);
@@ -142,7 +148,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (String call : expectedCalls) {
             resourceHandlers.add(resourceHandler(call));
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(concurrent, resourceHandlers);
+        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(timeoutMs, concurrent, resourceHandlers);
         handler.addHandler(requestHandler);
         return requestHandler;
     }
@@ -156,7 +162,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (Resource call : expectedCalls) {
             resourceHandlers.add((ResourceHandler) call);
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(concurrent, resourceHandlers);
+        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(timeoutMs, concurrent, resourceHandlers);
         handler.addHandler(requestHandler);
         return requestHandler;
     }
@@ -165,14 +171,14 @@ public class BlockingHttpServer extends ExternalResource {
      * Expects the given call to be made.
      */
     public void expectSerialExecution(String expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(Collections.singleton(resourceHandler(expectedCall))));
+        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, Collections.singleton(resourceHandler(expectedCall))));
     }
 
     /**
      * Expects the given call to be made.
      */
     public void expectSerialExecution(Resource expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(Collections.singleton((ResourceHandler) expectedCall)));
+        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, Collections.singleton((ResourceHandler) expectedCall)));
     }
 
     public void start() {
@@ -211,7 +217,7 @@ public class BlockingHttpServer extends ExternalResource {
     public interface BlockingHandler {
         void release(int count);
 
-        void waitForAllPendingCalls(int timeoutSeconds);
+        void waitForAllPendingCalls();
     }
 
 }

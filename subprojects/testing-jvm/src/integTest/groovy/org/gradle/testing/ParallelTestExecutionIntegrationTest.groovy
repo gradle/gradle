@@ -73,17 +73,17 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         def gradle = executer.withTasks('test').start()
 
         then:
-        handler.waitForAllPendingCalls(120)
+        handler.waitForAllPendingCalls()
         handler.release(1)
 
         and:
         if (maxConcurrency - 1 > 0) {
-            handler.waitForAllPendingCalls(120)
+            handler.waitForAllPendingCalls()
             handler.release(maxConcurrency - 1)
         }
 
         and:
-        handler.waitForAllPendingCalls(120)
+        handler.waitForAllPendingCalls()
         handler.release(maxConcurrency)
 
         then:

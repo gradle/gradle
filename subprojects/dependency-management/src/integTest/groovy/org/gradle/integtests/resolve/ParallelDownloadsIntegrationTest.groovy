@@ -163,10 +163,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         executer.withArguments('--max-workers', '2')
         def build = executer.withTasks("resolve").start()
 
-        requests.waitForAllPendingCalls(20)
+        requests.waitForAllPendingCalls()
         requests.release(2)
 
-        requests.waitForAllPendingCalls(20)
+        requests.waitForAllPendingCalls()
         requests.release(2)
 
         build.waitForFinish()
