@@ -18,18 +18,14 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
 import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
-import org.gradle.api.internal.changedetection.resources.SnapshottableReadableResource;
-import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.snapshotting.SnapshotterCacheKey;
 import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.api.snapshotting.ClasspathEntry;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
@@ -46,7 +42,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
         ClasspathEntry classpathEntry = configuration.get(ClasspathEntry.class);
         HashCode snapshotterHash = hashConfiguration(valueSnapshotter, new SnapshotterCacheKey(getClass(), classpathEntry));
         this.resourceSnapshotter = new CachingResourceSnapshotter(
-            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(classpathEntry), this),
+            new ClasspathResourceSnapshotter(new ClasspathEntrySnapshotter(classpathEntry, stringInterner), stringInterner),
             store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true),
             snapshotterHash);
     }
@@ -57,40 +53,17 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new FileCollectionSnapshotBuilder(TaskFilePropertySnapshotNormalizationStrategy.NONE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
+    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return resourceSnapshotter;
     }
 
     @Override
-    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+    public ResourceSnapshotter getResourceSnapshotter() {
         return resourceSnapshotter;
     }
 
     @Override
     public SnapshottingResultRecorder create() {
         return new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
-    }
-
-    private class ClasspathEntrySnapshotter extends AbstractSnapshotter {
-        private Spec<String> filterSpec;
-
-        public ClasspathEntrySnapshotter(ClasspathEntry entrySnapshotter) {
-            filterSpec = entrySnapshotter.getSpec();
-        }
-
-        @Override
-        protected void snapshotResource(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
-            if (resource instanceof SnapshottableReadableResource) {
-                if (filterSpec.isSatisfiedBy(resource.getPath())) {
-                    HashCode signatureForClass = resource.getContent().getContentMd5();
-                    recorder.recordResult(resource, signatureForClass);
-                }
-            }
-        }
-
-        @Override
-        protected void snapshotTree(SnapshottableResourceTree snapshottable, SnapshottingResultRecorder recorder) {
-            throw new UnsupportedOperationException("Trees cannot be classpath entries");
-        }
     }
 }

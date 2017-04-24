@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
@@ -32,22 +31,7 @@ class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
             fileSystemSnapshotter,
             stringInterner,
             store
-        ) {
-            private ReportingFileCollectionSnapshotBuilder reportingFileCollectionSnapshotBuilder
-
-            @Override
-            protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-                reportingFileCollectionSnapshotBuilder = new ReportingFileCollectionSnapshotBuilder(super.createFileCollectionSnapshotBuilder(normalizationStrategy, compareStrategy), snapshots)
-                return reportingFileCollectionSnapshotBuilder
-            }
-
-            @Override
-            SnapshottingResultRecorder create() {
-                def jarContents = [:]
-                entryHashes.add(jarContents)
-                return new ReportingSnapshottingResultRecorder(null, super.create(), jarContents)
-            }
-        }
+        )
     }
 
     def "ignores non-class files"() {
@@ -68,13 +52,14 @@ class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
                 'hash': '3063e74bd8d52219df6cc61dab5c51cd',
             ],
             'root2.other-root-file': 'd41d8cd98f00b204e9800998ecf8427e',
-            'library.jar': JAR_FILE_HASH
+            'library.jar': JAR_FILE_HASH,
+            hash: '98662b9287e007cc283a8d14d0c5ffc5'
         ]
-        entryHashes as Set == [
-            [hash: 'd41d8cd98f00b204e9800998ecf8427e'],
-            ['file1.class': '826e8142e6baabe8af779f5f490cf5f5', hash: '3063e74bd8d52219df6cc61dab5c51cd'],
-            ['FirstClass.class': '7631ebee7806788b6a4b762baa86faf0', 'subpackage/SomeOtherClass.class': 'f27ec3cd67613786a02a2ee4fc622567', hash: JAR_FILE_HASH]
-        ] as Set
+//        entryHashes as Set == [
+//            [hash: 'd41d8cd98f00b204e9800998ecf8427e'],
+//            ['file1.class': '826e8142e6baabe8af779f5f490cf5f5', hash: '3063e74bd8d52219df6cc61dab5c51cd'],
+//            ['FirstClass.class': '7631ebee7806788b6a4b762baa86faf0', 'subpackage/SomeOtherClass.class': 'f27ec3cd67613786a02a2ee4fc622567', hash: JAR_FILE_HASH]
+//        ] as Set
         hash == '98662b9287e007cc283a8d14d0c5ffc5'
         fileCollectionSnapshot == [
             ['root1.jar', '', 'd41d8cd98f00b204e9800998ecf8427e'],
@@ -92,7 +77,7 @@ class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
         snapshot(jarFile)
 
         then:
-        entryHashes.size() == 1
+//        entryHashes.size() == 1
         jarCache.allEntries.size() == 1
         def key = jarCache.allEntries.keySet().iterator().next()
         jarCache.get(key).toString() == JAR_FILE_HASH
@@ -102,7 +87,7 @@ class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
         snapshot(jarFile)
 
         then:
-        entryHashes.empty
+//        entryHashes.empty
         jarCache.allEntries.size() == 1
         jarCache.get(key).toString() == JAR_FILE_HASH
     }
@@ -117,7 +102,7 @@ class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
         snapshot(rootDir)
 
         then:
-        entryHashes.size() == 1
+//        entryHashes.size() == 1
         jarCache.allEntries.size() == 3
         allCachedValues == ['7631ebee7806788b6a4b762baa86faf0', '39d6f939a32937f26e63bde2949e8d30', IGNORED_SIGNATURE] as Set
 
@@ -126,7 +111,7 @@ class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
         snapshot(rootDir)
 
         then:
-        entryHashes.size() == 1
+//        entryHashes.size() == 1
         jarCache.allEntries.size() == 3
         allCachedValues == ['7631ebee7806788b6a4b762baa86faf0', '39d6f939a32937f26e63bde2949e8d30', IGNORED_SIGNATURE] as Set
     }

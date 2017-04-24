@@ -19,9 +19,12 @@ package org.gradle.api.internal.changedetection.resources.recorders;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 
 public interface SnapshottingResultRecorder {
     void recordResult(SnapshottableResource resource, HashCode hash);
     SnapshottingResultRecorder recordCompositeResult(SnapshottableResource resource, SnapshottingResultRecorder recorder);
     HashCode getHash(NormalizedFileSnapshotCollector collector);
+    TaskFilePropertyCompareStrategy getCompareStrategy();
+    boolean isNormalizedPathAbsolute();
 }

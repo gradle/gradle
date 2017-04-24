@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.changedetection.resources;
 
-import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
+import com.google.common.hash.HashCode;
+import org.gradle.api.snapshotting.Snapshotter;
 
-public interface ResourceSnapshotter {
-    void snapshot(Snapshottable snapshottable, SnapshottingResultRecorder recorder);
-    SnapshottingResultRecorder createResultRecorder();
+public interface ResourceSnapshotterFactory {
+    <T extends ResourceSnapshotter> T create(Class<T> resourceSnapshotterClass, Class<? extends Snapshotter> configurationType);
+    <T extends ResourceSnapshotter> T create(Class<T> snapshotterType, Class<? extends Snapshotter> configurationType, ResourceSnapshotter dependency);
+    HashCode getSeed(ResourceSnapshotter resourceSnapshotter);
 }

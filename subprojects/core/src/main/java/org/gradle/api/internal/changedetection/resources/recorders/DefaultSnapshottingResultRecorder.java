@@ -79,4 +79,14 @@ public class DefaultSnapshottingResultRecorder implements SnapshottingResultReco
         normalizedResources.clear();
         return hasher.hash();
     }
+
+    @Override
+    public TaskFilePropertyCompareStrategy getCompareStrategy() {
+        return compareStrategy;
+    }
+
+    @Override
+    public boolean isNormalizedPathAbsolute() {
+        return normalizationStrategy.isPathAbsolute();
+    }
 }

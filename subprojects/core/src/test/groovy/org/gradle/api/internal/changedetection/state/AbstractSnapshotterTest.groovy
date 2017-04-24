@@ -57,7 +57,9 @@ class AbstractSnapshotterTest extends Specification {
 
     def snapshot(File... classpath) {
         snapshots.clear()
-        def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, null)
+        def resourceSnapshotter = snapshotter.resourceSnapshotter
+        def builder = new FileCollectionSnapshotBuilder(new ReportingSnapshottingResultRecorder(null, resourceSnapshotter.createResultRecorder(), snapshots), resourceSnapshotter)
+        def fileCollectionSnapshot = builder.addAll(fileSystemSnapshotter.snapshotFileCollection(files(classpath))).build()
         return [
             fileCollectionSnapshot.hash.toString(),
             snapshots,
@@ -109,32 +111,6 @@ trait ReportingResultRecorder implements SnapshottingResultRecorder {
     }
 }
 
-class ReportingFileCollectionSnapshotBuilder extends FileCollectionSnapshotBuilder implements ReportingResultRecorder {
-    final Map snapshots
-    final FileCollectionSnapshotBuilder delegate
-
-    ReportingFileCollectionSnapshotBuilder(FileCollectionSnapshotBuilder delegate, snapshots) {
-        super(null, null, null)
-        this.snapshots = snapshots
-        this.delegate = delegate
-    }
-
-    @Override
-    void collectSnapshot(String absolutePath, NormalizedFileSnapshot normalizedSnapshot) {
-        delegate.collectSnapshot(absolutePath, normalizedSnapshot)
-    }
-
-    @Override
-    FileCollectionSnapshot build() {
-        return delegate.build()
-    }
-
-    @Override
-    String getPath() {
-        return null
-    }
-}
-
 class ReportingSnapshottingResultRecorder implements ReportingResultRecorder {
     String path
     final SnapshottingResultRecorder delegate
@@ -144,6 +120,16 @@ class ReportingSnapshottingResultRecorder implements ReportingResultRecorder {
         this.snapshots = snapshots
         this.path = path
         this.delegate = delegate
+    }
+
+    @Override
+    TaskFilePropertyCompareStrategy getCompareStrategy() {
+        return delegate.getCompareStrategy()
+    }
+
+    @Override
+    boolean isNormalizedPathAbsolute() {
+        return delegate.isNormalizedPathAbsolute()
     }
 }
 

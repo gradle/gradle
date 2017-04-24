@@ -17,10 +17,13 @@
 package org.gradle.api.internal.changedetection.resources;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.zip.SnapshottableZipTree;
 import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.internal.IoActions;
 import org.gradle.util.DeprecationLogger;
 
@@ -29,11 +32,11 @@ import java.util.zip.ZipException;
 
 public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     private final ResourceSnapshotter entrySnapshotter;
-    private final Factory<SnapshottingResultRecorder> entryRecorderFactory;
+    private StringInterner stringInterner;
 
-    public ClasspathResourceSnapshotter(ResourceSnapshotter entrySnapshotter, Factory<SnapshottingResultRecorder> entryRecorderFactory) {
+    public ClasspathResourceSnapshotter(ResourceSnapshotter entrySnapshotter, StringInterner stringInterner) {
         this.entrySnapshotter = entrySnapshotter;
-        this.entryRecorderFactory = entryRecorderFactory;
+        this.stringInterner = stringInterner;
     }
 
     @Override
@@ -51,7 +54,7 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     @Override
     protected void snapshotTree(SnapshottableResourceTree tree, SnapshottingResultRecorder recorder) {
         try {
-            SnapshottingResultRecorder entryRecorder = entryRecorderFactory.create();
+            SnapshottingResultRecorder entryRecorder = entrySnapshotter.createResultRecorder();
             if (!(tree instanceof SnapshottableZipTree)) {
                 entryRecorder = recorder.recordCompositeResult(tree.getRoot(), entryRecorder);
             }
@@ -82,5 +85,10 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     private void hashMalformedZip(SnapshottableResource zipFile, SnapshottingResultRecorder recorder) {
         DeprecationLogger.nagUserWith("Malformed jar [" + zipFile.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
         recorder.recordResult(zipFile, zipFile.getContent().getContentMd5());
+    }
+
+    @Override
+    public SnapshottingResultRecorder createResultRecorder() {
+        return new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.NONE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
     }
 }

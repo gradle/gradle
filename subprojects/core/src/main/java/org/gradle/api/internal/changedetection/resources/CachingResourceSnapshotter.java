@@ -21,6 +21,7 @@ import com.google.common.hash.Hashing;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotCollector;
 import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
@@ -48,6 +49,11 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
         } else {
             delegate.snapshot(snapshottable, recorder);
         }
+    }
+
+    @Override
+    public SnapshottingResultRecorder createResultRecorder() {
+        return delegate.createResultRecorder();
     }
 
     private HashCode cacheKey(SnapshottableResource resource) {
@@ -93,6 +99,16 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
             }
             return hash;
         }
+
+        @Override
+        public TaskFilePropertyCompareStrategy getCompareStrategy() {
+            return delegate.getCompareStrategy();
+        }
+
+        @Override
+        public boolean isNormalizedPathAbsolute() {
+            return delegate.isNormalizedPathAbsolute();
+        }
     }
 
     private class CachingCompositeSnapshottingResultRecorder implements SnapshottingResultRecorder {
@@ -121,6 +137,16 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
             HashCode hash = delegate.getHash(collector);
             cache.put(cacheKey(resourceToCache), hash);
             return hash;
+        }
+
+        @Override
+        public TaskFilePropertyCompareStrategy getCompareStrategy() {
+            return delegate.getCompareStrategy();
+        }
+
+        @Override
+        public boolean isNormalizedPathAbsolute() {
+            return delegate.isNormalizedPathAbsolute();
         }
     }
 }

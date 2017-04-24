@@ -60,5 +60,5 @@ public interface FileSystemSnapshotter {
     /**
      * Returns the current snapshots of the root elements of the given file collection.
      */
-    List<Snapshottable> fileCollection(FileCollection input);
+    List<Snapshottable> snapshotFileCollection(FileCollection input);
 }

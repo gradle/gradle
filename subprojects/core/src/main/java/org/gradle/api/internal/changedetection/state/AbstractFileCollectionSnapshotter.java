@@ -47,19 +47,16 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        List<Snapshottable> snapshottables = fileSystemSnapshotter.fileCollection(input);
+        List<Snapshottable> snapshottables = fileSystemSnapshotter.snapshotFileCollection(input);
 
         if (snapshottables.isEmpty()) {
             return FileCollectionSnapshot.EMPTY;
         }
 
-        FileCollectionSnapshotBuilder builder = createFileCollectionSnapshotBuilder(snapshotNormalizationStrategy, compareStrategy);
-
         ResourceSnapshotter snapshotter = createSnapshotter(snapshotNormalizationStrategy, compareStrategy);
-        for (Snapshottable snapshottable : snapshottables) {
-            snapshotter.snapshot(snapshottable, builder);
-        }
-        return builder.build();
+        return new FileCollectionSnapshotBuilder(snapshotter)
+            .addAll(snapshottables)
+            .build();
     }
 
     protected HashCode hashConfiguration(ValueSnapshotter valueSnapshotter, SnapshotterCacheKey snapshotterCacheKey) {
@@ -72,7 +69,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         return hasher.hash();
     }
 
-    protected abstract FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy);
-
     protected abstract ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy);
+
+     public abstract ResourceSnapshotter getResourceSnapshotter();
 }

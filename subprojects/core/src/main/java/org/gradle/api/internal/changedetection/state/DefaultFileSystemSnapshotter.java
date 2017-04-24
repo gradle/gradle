@@ -161,7 +161,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public List<Snapshottable> fileCollection(FileCollection input) {
+    public List<Snapshottable> snapshotFileCollection(FileCollection input) {
         LinkedList<Snapshottable> fileTreeElements = Lists.newLinkedList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);

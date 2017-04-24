@@ -18,20 +18,25 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Maps;
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.Snapshottable;
+import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 
+import java.util.List;
 import java.util.Map;
 
-public class FileCollectionSnapshotBuilder extends DefaultSnapshottingResultRecorder implements NormalizedFileSnapshotCollector {
-    private final TaskFilePropertyCompareStrategy compareStrategy;
-    private final SnapshotNormalizationStrategy normalizationStrategy;
+public class FileCollectionSnapshotBuilder implements NormalizedFileSnapshotCollector {
+    private final SnapshottingResultRecorder resultRecorder;
+    private final ResourceSnapshotter snapshotter;
     Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
 
-    public FileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
-        super(normalizationStrategy, compareStrategy, stringInterner);
-        this.compareStrategy = compareStrategy;
-        this.normalizationStrategy = normalizationStrategy;
+    public FileCollectionSnapshotBuilder(ResourceSnapshotter snapshotter) {
+        this(snapshotter.createResultRecorder(), snapshotter);
+    }
+
+    public FileCollectionSnapshotBuilder(SnapshottingResultRecorder resultRecorder, ResourceSnapshotter snapshotter) {
+        this.resultRecorder = resultRecorder;
+        this.snapshotter = snapshotter;
     }
 
     @Override
@@ -42,7 +47,19 @@ public class FileCollectionSnapshotBuilder extends DefaultSnapshottingResultReco
     }
 
     public FileCollectionSnapshot build() {
-        HashCode hash = getHash(this);
-        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, normalizationStrategy.isPathAbsolute(), hash);
+        HashCode hash = resultRecorder.getHash(this);
+        return new DefaultFileCollectionSnapshot(snapshots, resultRecorder.getCompareStrategy(), resultRecorder.isNormalizedPathAbsolute(), hash);
+    }
+
+    public FileCollectionSnapshotBuilder add(Snapshottable snapshottable) {
+        snapshotter.snapshot(snapshottable, resultRecorder);
+        return this;
+    }
+
+    public FileCollectionSnapshotBuilder addAll(List<Snapshottable> snapshottables) {
+        for (Snapshottable snapshottable : snapshottables) {
+            add(snapshottable);
+        }
+        return this;
     }
 }

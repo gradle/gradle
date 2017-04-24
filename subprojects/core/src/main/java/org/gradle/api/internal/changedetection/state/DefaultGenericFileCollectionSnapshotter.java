@@ -20,6 +20,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.resources.AbstractSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
+import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
@@ -29,6 +30,7 @@ import java.io.IOException;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
     private final StringInterner stringInterner;
+    private DefaultGenericFileCollectionSnapshotter.GenericResourceSnapshotter resourceSnapshotter;
 
     public DefaultGenericFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(fileSystemSnapshotter, stringInterner);
@@ -41,13 +43,14 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
     }
 
     @Override
-    protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new FileCollectionSnapshotBuilder(normalizationStrategy, compareStrategy, stringInterner);
+    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        resourceSnapshotter = new DefaultGenericFileCollectionSnapshotter.GenericResourceSnapshotter(normalizationStrategy, compareStrategy, stringInterner);
+        return resourceSnapshotter;
     }
 
     @Override
-    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new GenericResourceSnapshotter(normalizationStrategy == TaskFilePropertySnapshotNormalizationStrategy.NONE);
+    public ResourceSnapshotter getResourceSnapshotter() {
+        return resourceSnapshotter;
     }
 
     @Override
@@ -57,9 +60,15 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
 
     public static class GenericResourceSnapshotter extends AbstractSnapshotter {
         private final boolean noneNormalizationStrategy;
+        private final SnapshotNormalizationStrategy normalizationStrategy;
+        private final TaskFilePropertyCompareStrategy compareStrategy;
+        private final StringInterner stringInterner;
 
-        public GenericResourceSnapshotter(boolean isNoneNormalisationStrategy) {
-            noneNormalizationStrategy = isNoneNormalisationStrategy;
+        public GenericResourceSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy, StringInterner stringInterner) {
+            noneNormalizationStrategy = normalizationStrategy == TaskFilePropertySnapshotNormalizationStrategy.NONE;
+            this.normalizationStrategy = normalizationStrategy;
+            this.compareStrategy = compareStrategy;
+            this.stringInterner = stringInterner;
         }
 
         @Override
@@ -73,6 +82,11 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
             if (!noneNormalizationStrategy || snapshottable.getType() != FileType.Directory || !snapshottable.isRoot()) {
                 recorder.recordResult(snapshottable, snapshottable.getContent().getContentMd5());
             }
+        }
+
+        @Override
+        public SnapshottingResultRecorder createResultRecorder() {
+            return new DefaultSnapshottingResultRecorder(normalizationStrategy, compareStrategy, stringInterner);
         }
     }
 }

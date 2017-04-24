@@ -62,7 +62,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         HashCode snapshotterHash = hashConfiguration(null, new SnapshotterCacheKey(getClass()));
         HashCode entrySnapshotterHash = hashConfiguration(null, new SnapshotterCacheKey(CompileClasspathEntrySnapshotter.class));
         this.resourceSnapshotter = new CachingResourceSnapshotter(
-            new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(signatureCache, entrySnapshotterHash), this),
+            new ClasspathResourceSnapshotter(new CompileClasspathEntrySnapshotter(signatureCache, entrySnapshotterHash, stringInterner), stringInterner),
             signatureCache,
             snapshotterHash);
     }
@@ -77,24 +77,25 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     }
 
     @Override
-    protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-        return new FileCollectionSnapshotBuilder(TaskFilePropertySnapshotNormalizationStrategy.NONE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
+    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+        return resourceSnapshotter;
     }
 
-    @Override
-    protected ResourceSnapshotter createSnapshotter(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
+    public ResourceSnapshotter getResourceSnapshotter() {
         return resourceSnapshotter;
     }
 
     private static class CompileClasspathEntrySnapshotter extends AbstractSnapshotter {
         private final PersistentIndexedCache<HashCode, HashCode> signatureCache;
         private final HashCode snapshotterHash;
+        private final StringInterner stringInterner;
         private final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(Collections.<String>emptySet());
         private static final HashCode IGNORED = Hashing.md5().hashString("Ignored ABI", UTF_8);
 
-        CompileClasspathEntrySnapshotter(PersistentIndexedCache<HashCode, HashCode> signatureCache, HashCode snapshotterHash) {
+        CompileClasspathEntrySnapshotter(PersistentIndexedCache<HashCode, HashCode> signatureCache, HashCode snapshotterHash, StringInterner stringInterner) {
             this.signatureCache = signatureCache;
             this.snapshotterHash = snapshotterHash;
+            this.stringInterner = stringInterner;
         }
 
         @Override
@@ -164,6 +165,11 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
                 HashCode cacheKey = cacheKey(resource);
                 signatureCache.put(cacheKey, signatureHash);
             }
+        }
+
+        @Override
+        public SnapshottingResultRecorder createResultRecorder() {
+            return new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
         }
     }
 }

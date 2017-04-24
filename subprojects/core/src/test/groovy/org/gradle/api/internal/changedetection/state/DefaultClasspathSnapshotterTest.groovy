@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder
 import org.gradle.api.internal.changedetection.snapshotting.DefaultSnapshottingConfiguration
 import org.gradle.api.snapshotting.ClasspathEntry
 import org.gradle.internal.reflect.DirectInstantiator
@@ -33,19 +32,7 @@ class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
             stringInterner,
             store,
             new DefaultSnapshottingConfiguration([ClasspathEntry], DirectInstantiator.INSTANCE)
-        ) {
-            @Override
-            protected FileCollectionSnapshotBuilder createFileCollectionSnapshotBuilder(SnapshotNormalizationStrategy normalizationStrategy, TaskFilePropertyCompareStrategy compareStrategy) {
-                return new ReportingFileCollectionSnapshotBuilder(super.createFileCollectionSnapshotBuilder(normalizationStrategy, compareStrategy), snapshots)
-            }
-
-            @Override
-            SnapshottingResultRecorder create() {
-                def jarContents = [:]
-                entryHashes.add(jarContents)
-                return new ReportingSnapshottingResultRecorder(null, super.create(), jarContents)
-            }
-        }
+        )
     }
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
@@ -68,7 +55,7 @@ class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
             'root2.txt': 'd41d8cd98f00b204e9800998ecf8427e',
             'root1.txt': 'd41d8cd98f00b204e9800998ecf8427e',
         ]
-        snapshots == expectedEntrySnapshots
+        snapshots == expectedEntrySnapshots + [hash: 'c27b1bdb349f6f8b9fe70a6a1b05d400']
         fileCollectionSnapshot == [
             ['root1.txt', '', 'd41d8cd98f00b204e9800998ecf8427e'],
             ['dir', '', 'DIR'],
@@ -82,7 +69,7 @@ class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
         (hash, snapshots, fileCollectionSnapshot) = snapshot(rootFile2, rootFile1, rootDir)
         then:
         hash == '14b6545b017e1edb1734aee0f1d8e058'
-        snapshots == expectedEntrySnapshots
+        snapshots == expectedEntrySnapshots + [hash: '14b6545b017e1edb1734aee0f1d8e058']
         fileCollectionSnapshot == [
             ['root2.txt', '', 'd41d8cd98f00b204e9800998ecf8427e'],
             ['root1.txt', '', 'd41d8cd98f00b204e9800998ecf8427e'],
@@ -129,23 +116,24 @@ class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
                 'thirdFile.txt': '728271a3405e112740bfd3198cfa70de',
                 hash: 'fa5654d3c632f8b6e29ecaee439a5f15',
             ],
-            'library.jar': 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
+            'library.jar': 'f31495fd1bb4b8c3b8fb1f46a68adf9e',
+            hash: '8d79d677c7cba1841912a5e15ab847c8'
         ]
 
-        entryHashes as Set == [
-            [
-                'firstFile.txt': '9db5682a4d778ca2cb79580bdb67083f',
-                'secondFile.txt': '82e72efeddfca85ddb625e88af3fe973',
-                'subdir/someOtherFile.log': 'a9cca315f4b8650dccfa3d93284998ef',
-                hash: 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
-            ],
-            [
-                'fourthFile.txt': '8fd6978401143ae9adc277e9ce819f7e',
-                'subdir/build.log': 'abf951c0fe2b682313add34f016bcb30',
-                'thirdFile.txt': '728271a3405e112740bfd3198cfa70de',
-                hash: 'fa5654d3c632f8b6e29ecaee439a5f15',
-            ]
-        ] as Set
+//        entryHashes as Set == [
+//            [
+//                'firstFile.txt': '9db5682a4d778ca2cb79580bdb67083f',
+//                'secondFile.txt': '82e72efeddfca85ddb625e88af3fe973',
+//                'subdir/someOtherFile.log': 'a9cca315f4b8650dccfa3d93284998ef',
+//                hash: 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
+//            ],
+//            [
+//                'fourthFile.txt': '8fd6978401143ae9adc277e9ce819f7e',
+//                'subdir/build.log': 'abf951c0fe2b682313add34f016bcb30',
+//                'thirdFile.txt': '728271a3405e112740bfd3198cfa70de',
+//                hash: 'fa5654d3c632f8b6e29ecaee439a5f15',
+//            ]
+//        ] as Set
 
         jarCache.allEntries.size() == 1
         def key = jarCache.allEntries.keySet().iterator().next()
@@ -177,10 +165,11 @@ class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
         then:
         snapshots == [
                 'library.jar': 'f31495fd1bb4b8c3b8fb1f46a68adf9e',
-                'another-library.jar': '4c54ecab47d005e6862ced54627c6208'
+                'another-library.jar': '4c54ecab47d005e6862ced54627c6208',
+                hash: '3c034ccdc7dc2fd2a5e84b573a772f1c'
         ]
         hash == '3c034ccdc7dc2fd2a5e84b573a772f1c'
-        entryHashes.size() == 2
+//        entryHashes.size() == 2
         jarCache.allEntries.size() == 2
         def values = jarCache.allEntries.keySet().collect { jarCache.get(it).toString() } as Set
         values == ['f31495fd1bb4b8c3b8fb1f46a68adf9e', '4c54ecab47d005e6862ced54627c6208'] as Set
@@ -193,10 +182,11 @@ class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
         then:
         snapshots == [
             'library.jar': 'f31495fd1bb4b8c3b8fb1f46a68adf9e',
-            'another-library.jar': '4c54ecab47d005e6862ced54627c6208'
+            'another-library.jar': '4c54ecab47d005e6862ced54627c6208',
+            hash: '3c034ccdc7dc2fd2a5e84b573a772f1c'
         ]
         hash == '3c034ccdc7dc2fd2a5e84b573a772f1c'
-        entryHashes.empty
+//        entryHashes.empty
         jarCache.allEntries.size() == 2
         values == ['f31495fd1bb4b8c3b8fb1f46a68adf9e', '4c54ecab47d005e6862ced54627c6208'] as Set
     }
