@@ -72,6 +72,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         builder.setBaseName("Gradle Test Executor");
         builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
         builder.applicationClasspath(classPath);
+        builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         options.copyTo(builder.getJavaCommand());
         buildConfigAction.execute(builder);
 

@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessFactory
@@ -60,6 +61,7 @@ class ForkingTestClassProcessorTest extends Specification {
         setup:
         1 * workerProcessFactory.create(_) >> workerProcessBuilder
         1 * workerProcessBuilder.build() >> workerProcess
+        _ * workerProcessBuilder.getJavaCommand() >> Stub (JavaExecHandleBuilder)
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) { addOutgoing(_) >> Stub(RemoteTestClassProcessor) }
 
         when:
