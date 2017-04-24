@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
@@ -55,8 +54,7 @@ import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.snapshotting.ClasspathEntry;
-import org.gradle.api.snapshotting.Snapshotter;
+import org.gradle.api.snapshotting.internal.ResourceSnapshotterRegistry;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -81,7 +79,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Contains the services for a given project.
@@ -177,11 +174,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator);
     }
 
-    protected SnapshottingConfigurationInternal createSnapshotterConfiguration() {
-        Instantiator instantiator = get(Instantiator.class);
-        List<Class<? extends Snapshotter>> snapshotterTypes = Lists.newLinkedList();
-        snapshotterTypes.add(ClasspathEntry.class);
-        return instantiator.newInstance(DefaultSnapshottingConfiguration.class, snapshotterTypes, instantiator);
+    protected SnapshottingConfigurationInternal createSnapshotterConfiguration(ResourceSnapshotterRegistry snapshotterRegistry, Instantiator instantiator) {
+        return instantiator.newInstance(DefaultSnapshottingConfiguration.class, snapshotterRegistry, instantiator);
     }
 
     protected ProjectFinder createProjectFinder() {

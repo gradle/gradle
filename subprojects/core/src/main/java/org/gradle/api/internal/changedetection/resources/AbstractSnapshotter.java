@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.resources;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
 
 import java.io.IOException;
@@ -45,4 +46,9 @@ public abstract class AbstractSnapshotter implements ResourceSnapshotter {
     protected abstract void snapshotTree(SnapshottableResourceTree snapshottable, SnapshottingResultRecorder recorder) throws IOException;
 
     protected abstract void snapshotResource(SnapshottableResource resource, SnapshottingResultRecorder recorder);
+
+    @Override
+    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+        hasher.putString(getClass().getName());
+    }
 }

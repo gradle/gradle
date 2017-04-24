@@ -16,22 +16,26 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.snapshotting.DefaultSnapshottingConfiguration;
+import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.ClasspathEntrySnapshotter;
+import org.gradle.api.internal.changedetection.state.CompileClasspathEntrySnapshotter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.GenericResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -40,9 +44,16 @@ import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
-import org.gradle.api.snapshotting.ClasspathEntry;
-import org.gradle.api.snapshotting.Snapshotter;
+import org.gradle.api.snapshotting.CompileClasspath;
+import org.gradle.api.snapshotting.RuntimeClasspath;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
+import org.gradle.api.snapshotting.internal.DefaultResourceSnapshotterRegistry;
+import org.gradle.api.snapshotting.internal.GenericSnapshotters;
+import org.gradle.api.snapshotting.internal.ResourceSnapshotterFactory;
+import org.gradle.api.snapshotting.internal.ResourceSnapshotterRegistry;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
@@ -60,7 +71,7 @@ import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -125,17 +136,51 @@ public class GradleUserHomeScopeServices {
         return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
     }
 
-    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        return new DefaultGenericFileCollectionSnapshotter(fileSystemSnapshotter, stringInterner);
+    ResourceSnapshotterRegistry createResourceSnapshotterRegistry(final StringInterner stringInterner, final TaskHistoryStore store) {
+        final PersistentIndexedCache<HashCode, HashCode> cache = store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+
+        ImmutableMap.Builder<Class<? extends SnapshotterConfiguration>, ResourceSnapshotterFactory<?>> factories = ImmutableMap.builder();
+        factories.put(RuntimeClasspath.class, new ResourceSnapshotterFactory<RuntimeClasspath>() {
+                @Override
+                public ResourceSnapshotter create(RuntimeClasspath configuration) {
+                    ResourceSnapshotter classpathEntrySnapshotter = new ClasspathEntrySnapshotter(configuration, stringInterner);
+                    return new CachingResourceSnapshotter(
+                        new ClasspathResourceSnapshotter(classpathEntrySnapshotter, stringInterner),
+                        cache
+                    );
+                }
+            });
+        factories.put(CompileClasspath.class, new ResourceSnapshotterFactory<CompileClasspath>() {
+                @Override
+                public ResourceSnapshotter create(CompileClasspath configuration) {
+                    ResourceSnapshotter classpathEntrySnapshotter = new CompileClasspathEntrySnapshotter(cache, stringInterner);
+                    return new CachingResourceSnapshotter(
+                        new ClasspathResourceSnapshotter(classpathEntrySnapshotter, stringInterner),
+                        cache
+                    );
+                }
+            });
+        for (final PathSensitivity pathSensitivity : PathSensitivity.values()) {
+            Class<? extends SnapshotterConfiguration> configurationType = GenericSnapshotters.valueOf(pathSensitivity);
+            factories.put(configurationType, new ResourceSnapshotterFactory<SnapshotterConfiguration>() {
+                @Override
+                public ResourceSnapshotter create(SnapshotterConfiguration configuration) {
+                    return new GenericResourceSnapshotter(TaskFilePropertySnapshotNormalizationStrategy.valueOf(pathSensitivity), TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
+                }
+            });
+        }
+        factories.put(GenericSnapshotters.Output.class, new ResourceSnapshotterFactory<SnapshotterConfiguration>() {
+            @Override
+            public ResourceSnapshotter create(SnapshotterConfiguration configuration) {
+                return new GenericResourceSnapshotter(TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE, TaskFilePropertyCompareStrategy.OUTPUT, stringInterner);
+            }
+        });
+        return new DefaultResourceSnapshotterRegistry(factories.build());
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, TaskHistoryStore store, Instantiator instantiator) {
-        // TODO: depending on ValueSnapshotter would introduce a cyclic dependency between ClassLoaderHierarchyHasher and ClasspathSnapshotter
-        return new DefaultClasspathSnapshotter(fileSystemSnapshotter, new ValueSnapshotter(null), stringInterner, store, new DefaultSnapshottingConfiguration(ImmutableList.<Class<? extends Snapshotter>>of(ClasspathEntry.class), instantiator));
-    }
-
-    ClasspathHasher createClasspathHasher(ClasspathSnapshotter snapshotter) {
-        return new DefaultClasspathHasher(snapshotter);
+    ClasspathHasher createClasspathHasher(FileSystemSnapshotter fileSystemSnapshotter, ResourceSnapshotterRegistry snapshotterRegistry) {
+        ResourceSnapshotter runtimeClasspathSnapshotter = snapshotterRegistry.createSnapshotter(new RuntimeClasspath());
+        return new DefaultClasspathHasher(fileSystemSnapshotter, runtimeClasspathSnapshotter);
     }
 
     HashingClassLoaderFactory createClassLoaderFactory(ClasspathHasher classpathHasher) {

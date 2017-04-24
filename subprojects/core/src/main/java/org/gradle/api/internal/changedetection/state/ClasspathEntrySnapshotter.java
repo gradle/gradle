@@ -23,22 +23,22 @@ import org.gradle.api.internal.changedetection.resources.SnapshottableReadableRe
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource;
 import org.gradle.api.internal.changedetection.resources.recorders.DefaultSnapshottingResultRecorder;
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
-import org.gradle.api.snapshotting.ClasspathEntry;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.snapshotting.RuntimeClasspath;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 public class ClasspathEntrySnapshotter extends AbstractSnapshotter {
-    private final Spec<String> filterSpec;
+    private final RuntimeClasspath configuration;
     private final StringInterner stringInterner;
 
-    public ClasspathEntrySnapshotter(ClasspathEntry entrySnapshotter, StringInterner stringInterner) {
-        this.filterSpec = entrySnapshotter.getSpec();
+    public ClasspathEntrySnapshotter(RuntimeClasspath configuration, StringInterner stringInterner) {
+        this.configuration = configuration;
         this.stringInterner = stringInterner;
     }
 
     @Override
     protected void snapshotResource(SnapshottableResource resource, SnapshottingResultRecorder recorder) {
         if (resource instanceof SnapshottableReadableResource) {
-            if (filterSpec.isSatisfiedBy(resource.getPath())) {
+            if (configuration.isSatisfiedBy(resource.getPath())) {
                 HashCode signatureForClass = resource.getContent().getContentMd5();
                 recorder.recordResult(resource, signatureForClass);
             }
@@ -53,5 +53,11 @@ public class ClasspathEntrySnapshotter extends AbstractSnapshotter {
     @Override
     public SnapshottingResultRecorder createResultRecorder() {
         return new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.RELATIVE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
+    }
+
+    @Override
+    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+        super.appendConfigurationToHasher(hasher);
+        configuration.appendToHasher(hasher);
     }
 }

@@ -20,9 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.hash.DefaultFileHasher
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
@@ -35,12 +33,8 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnap
 class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror([])
-    def snapshotter = new DefaultGenericFileCollectionSnapshotter(new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror), stringInterner) {
-        @Override
-        Class<? extends FileCollectionSnapshotter> getRegisteredType() {
-            FileCollectionSnapshotter
-        }
-    }
+//    def snapshotter = new DefaultGenericFileCollectionSnapshotter(new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror), stringInterner) {
+//    }
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

@@ -23,10 +23,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
@@ -42,20 +42,20 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     private final String taskName;
     private final String title;
     private final ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties;
-    private final FileCollectionSnapshotterRegistry snapshotterRegistry;
     protected final TaskExecution previous;
     protected final TaskExecution current;
     private final SnapshottingConfigurationInternal snapshottingConfiguration;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, SnapshottingConfigurationInternal snapshottingConfiguration) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, SnapshottingConfigurationInternal snapshottingConfiguration, FileSystemSnapshotter fileSystemSnapshotter) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;
-        this.snapshotterRegistry = snapshotterRegistry;
         this.title = title;
         this.fileProperties = fileProperties;
         this.snapshottingConfiguration = snapshottingConfiguration;
-        this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties, snapshottingConfiguration);
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, fileSystemSnapshotter, title, fileProperties, snapshottingConfiguration);
     }
 
     protected String getTaskName() {
@@ -74,8 +74,8 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
 
     protected abstract void saveCurrent();
 
-    protected FileCollectionSnapshotterRegistry getSnapshotterRegistry() {
-        return snapshotterRegistry;
+    protected FileSystemSnapshotter getFileSystemSnapshotter() {
+        return fileSystemSnapshotter;
     }
 
     public SnapshottingConfigurationInternal getSnapshottingConfiguration() {
@@ -86,13 +86,13 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return fileSnapshotsBeforeExecution;
     }
 
-    protected static ImmutableSortedMap<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties, SnapshottingConfigurationInternal snapshottingConfiguration) {
+    protected static ImmutableSortedMap<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileSystemSnapshotter fileSystemSnapshotter, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties, SnapshottingConfigurationInternal snapshottingConfiguration) {
         ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {
             FileCollectionSnapshot result;
             try {
-                FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter(), snapshottingConfiguration);
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getSnapshotNormalizationStrategy());
+                ResourceSnapshotter resourceSnapshotter = snapshottingConfiguration.createSnapshotter(propertySpec.getSnapshotter());
+                result = fileSystemSnapshotter.snapshotFileCollection(propertySpec.getPropertyFiles(), resourceSnapshotter);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
             }

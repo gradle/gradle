@@ -17,9 +17,6 @@
 package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.api.UncheckedIOException
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
 import spock.lang.Issue
 import spock.lang.Subject
@@ -31,14 +28,14 @@ class InputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
-        def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
+//        def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
+//        def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
         new InputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, mockInputFileSnapshotterRegistry)
 
         then:
-        1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter, _) >> mockInputFileSnapshotter
+        1 * mockInputFileSnapshotterRegistry.getSnapshotter(_, _) >> mockInputFileSnapshotter
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
         1 * mockInputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
         0 * _

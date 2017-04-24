@@ -17,18 +17,16 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
+import org.gradle.api.snapshotting.RuntimeClasspath;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
-public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileSnapshottingPropertyAnnotationHandler {
+public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Classpath.class;
@@ -39,13 +37,8 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
         return InputFiles.class;
     }
 
-    public Class<? extends FileCollectionSnapshotter> getSnapshotterType() {
-        return ClasspathSnapshotter.class;
-    }
-
-    @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType() {
-        return DefaultClasspathSnapshotter.class;
+    public Class<? extends SnapshotterConfiguration> getSnapshotterType() {
+        return RuntimeClasspath.class;
     }
 
     @Override
@@ -54,7 +47,6 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
             public void update(TaskInternal task, Callable<Object> futureValue) {
                 ((TaskInputFilePropertyBuilderInternal) task.getInputs().files(futureValue))
                     .withPropertyName(context.getName())
-                    .withSnapshotNormalizationStrategy(TaskFilePropertySnapshotNormalizationStrategy.NONE)
                     .withSnapshotter(getSnapshotterType())
                     .optional(context.isOptional());
             }

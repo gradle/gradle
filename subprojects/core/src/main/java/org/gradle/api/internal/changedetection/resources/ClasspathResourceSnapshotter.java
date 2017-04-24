@@ -24,6 +24,7 @@ import org.gradle.api.internal.changedetection.resources.zip.SnapshottableZipTre
 import org.gradle.api.internal.changedetection.state.SnapshottableResourceTree;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
 import org.gradle.util.DeprecationLogger;
 
@@ -90,5 +91,11 @@ public class ClasspathResourceSnapshotter extends AbstractSnapshotter {
     @Override
     public SnapshottingResultRecorder createResultRecorder() {
         return new DefaultSnapshottingResultRecorder(TaskFilePropertySnapshotNormalizationStrategy.NONE, TaskFilePropertyCompareStrategy.ORDERED, stringInterner);
+    }
+
+    @Override
+    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+        super.appendConfigurationToHasher(hasher);
+        entrySnapshotter.appendConfigurationToHasher(hasher);
     }
 }

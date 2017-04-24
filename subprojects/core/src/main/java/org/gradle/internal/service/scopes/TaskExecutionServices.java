@@ -15,12 +15,10 @@
  */
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
@@ -28,20 +26,15 @@ import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactS
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.taskfactory.FileSnapshottingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
@@ -82,14 +75,12 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.util.List;
 
 public class TaskExecutionServices {
 
@@ -150,17 +141,7 @@ public class TaskExecutionServices {
         return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry, InstantiatorFactory instantiatorFactory) {
-        List<FileSnapshottingPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileSnapshottingPropertyAnnotationHandler.class);
-        ImmutableMap.Builder<Class<? extends FileCollectionSnapshotter>, Class<? extends FileCollectionSnapshotter>> snapshotters = ImmutableMap.builder();
-        snapshotters.put(GenericFileCollectionSnapshotter.class, DefaultGenericFileCollectionSnapshotter.class);
-        for (FileSnapshottingPropertyAnnotationHandler handler : handlers) {
-            snapshotters.put(handler.getSnapshotterType(), handler.getSnapshotterImplementationType());
-        }
-        return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build(), instantiatorFactory.inject(serviceRegistry));
-    }
-
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter, FileSystemSnapshotter fileSystemSnapshotter) {
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter();
 
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
@@ -179,11 +160,11 @@ public class TaskExecutionServices {
                 taskHistoryRepository,
                 instantiator,
                 outputFilesSnapshotter,
-                fileCollectionSnapshotterRegistry,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher,
                 cacheKeyCalculator,
-                valueSnapshotter
+                valueSnapshotter,
+                fileSystemSnapshotter
             )
         );
     }

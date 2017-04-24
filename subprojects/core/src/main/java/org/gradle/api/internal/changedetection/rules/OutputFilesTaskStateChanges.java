@@ -23,7 +23,7 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
@@ -32,8 +32,8 @@ import java.util.Map;
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     private final OutputFilesSnapshotter outputSnapshotter;
 
-    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter) {
-        super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties(), (SnapshottingConfigurationInternal) task.getProject().getSnapshotting());
+    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, OutputFilesSnapshotter outputSnapshotter, FileSystemSnapshotter fileSystemSnapshotter) {
+        super(task.getName(), previous, current, "Output", task.getOutputs().getFileProperties(), (SnapshottingConfigurationInternal) task.getProject().getSnapshotting(), fileSystemSnapshotter);
         this.outputSnapshotter = outputSnapshotter;
         detectOverlappingOutputs();
     }
@@ -45,7 +45,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
 
     @Override
     public void saveCurrent() {
-        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties(), getSnapshottingConfiguration());
+        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getFileSystemSnapshotter(), getTitle(), getFileProperties(), getSnapshottingConfiguration());
 
         ImmutableSortedMap<String, FileCollectionSnapshot> results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(getCurrent(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
             @Override

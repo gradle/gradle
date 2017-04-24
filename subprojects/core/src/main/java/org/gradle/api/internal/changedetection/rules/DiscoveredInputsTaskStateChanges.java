@@ -21,15 +21,13 @@ import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.snapshotting.internal.GenericSnapshotters;
 
 import java.io.File;
 import java.util.Collection;
@@ -39,16 +37,17 @@ import java.util.Set;
 
 public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, DiscoveredInputsListener {
     private final String taskName;
-    private final FileCollectionSnapshotter snapshotter;
+    private final ResourceSnapshotter absolutePathResourceSnapshotter;
     private final FileCollectionFactory fileCollectionFactory;
     private final TaskExecution previous;
     private final TaskExecution current;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private Collection<File> discoveredFiles = Collections.emptySet();
 
-    public DiscoveredInputsTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory,
-                                            TaskInternal task) {
+    public DiscoveredInputsTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, FileCollectionFactory fileCollectionFactory, TaskInternal task, FileSystemSnapshotter fileSystemSnapshotter) {
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.taskName = task.getName();
-        this.snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class, (SnapshottingConfigurationInternal) task.getProject().getSnapshotting());
+        this.absolutePathResourceSnapshotter = ((SnapshottingConfigurationInternal) task.getProject().getSnapshotting()).createSnapshotter(GenericSnapshotters.Absolute.class);
         this.fileCollectionFactory = fileCollectionFactory;
         this.previous = previous;
         this.current = current;
@@ -61,7 +60,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
     private FileCollectionSnapshot getCurrent() {
         if (getPrevious() != null) {
             // Get the current state of the files from the previous execution
-            return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getElements()));
+            return createSnapshot(fileCollectionFactory.fixed("Discovered input files", getPrevious().getElements()));
         } else {
             return null;
         }
@@ -77,7 +76,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
 
     @Override
     public void snapshotAfterTask() {
-        FileCollectionSnapshot discoveredFilesSnapshot = createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", discoveredFiles));
+        FileCollectionSnapshot discoveredFilesSnapshot = createSnapshot(fileCollectionFactory.fixed("Discovered input files", discoveredFiles));
         current.setDiscoveredInputFilesSnapshot(discoveredFilesSnapshot);
     }
 
@@ -86,9 +85,9 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
         this.discoveredFiles = files;
     }
 
-    private FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
+    private FileCollectionSnapshot createSnapshot(FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
+            return fileSystemSnapshotter.snapshotFileCollection(fileCollection, absolutePathResourceSnapshotter);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for task '%s' during up-to-date check.", taskName), e);
         }

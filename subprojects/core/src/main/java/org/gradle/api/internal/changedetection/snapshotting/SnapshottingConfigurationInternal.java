@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.changedetection.snapshotting;
 
-import org.gradle.api.snapshotting.Snapshotter;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
 import org.gradle.api.snapshotting.SnapshottingConfiguration;
 
 public interface SnapshottingConfigurationInternal extends SnapshottingConfiguration {
-    <T extends Snapshotter> T get(Class<T> snapshotterType);
+    ResourceSnapshotter createSnapshotter(Class<? extends SnapshotterConfiguration> snapshotterType);
 }

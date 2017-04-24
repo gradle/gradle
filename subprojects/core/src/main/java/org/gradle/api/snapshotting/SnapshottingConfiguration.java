@@ -28,5 +28,5 @@ import org.gradle.internal.HasInternalProtocol;
 @HasInternalProtocol
 @Incubating
 public interface SnapshottingConfiguration {
-    <T extends Snapshotter> void snapshotter(Class<T> snapshotter, Action<T> configureAction);
+    <T extends SnapshotterConfiguration> void snapshotter(Class<T> snapshotter, Action<T> configureAction);
 }

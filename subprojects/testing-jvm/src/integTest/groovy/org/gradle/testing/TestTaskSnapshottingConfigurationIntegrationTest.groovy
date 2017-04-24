@@ -64,11 +64,11 @@ class TestTaskSnapshottingConfigurationIntegrationTest extends AbstractIntegrati
         createTestProject('consumer')
 
         buildFile << """     
-            import org.gradle.api.snapshotting.ClasspathEntry
+            import org.gradle.api.snapshotting.RuntimeClasspath
         
             allprojects {
                 snapshotting {
-                    snapshotter(ClasspathEntry) {
+                    snapshotter(RuntimeClasspath) {
                         exclude 'foo.properties'
                     }
                 }
@@ -92,10 +92,10 @@ class TestTaskSnapshottingConfigurationIntegrationTest extends AbstractIntegrati
         createTestProject('consumer')
         createTestProject('defaultSnapshotting')
         file('consumer/build.gradle') << """
-            import org.gradle.api.snapshotting.ClasspathEntry
+            import org.gradle.api.snapshotting.RuntimeClasspath
 
             snapshotting {
-                snapshotter(ClasspathEntry) {
+                snapshotter(RuntimeClasspath) {
                     exclude 'foo.properties'
                 }
             }            

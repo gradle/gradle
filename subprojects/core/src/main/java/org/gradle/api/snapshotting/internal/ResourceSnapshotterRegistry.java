@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.resources;
+package org.gradle.api.snapshotting.internal;
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.snapshotting.Snapshotter;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
 
-public interface ResourceSnapshotterFactory {
-    <T extends ResourceSnapshotter> T create(Class<T> resourceSnapshotterClass, Class<? extends Snapshotter> configurationType);
-    <T extends ResourceSnapshotter> T create(Class<T> snapshotterType, Class<? extends Snapshotter> configurationType, ResourceSnapshotter dependency);
-    HashCode getSeed(ResourceSnapshotter resourceSnapshotter);
+import java.util.Set;
+
+public interface ResourceSnapshotterRegistry {
+    <T extends SnapshotterConfiguration> ResourceSnapshotter createSnapshotter(T configuration);
+    Set<Class<? extends SnapshotterConfiguration>> getConfigurationTypes();
 }

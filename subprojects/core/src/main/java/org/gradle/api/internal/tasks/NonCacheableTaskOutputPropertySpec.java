@@ -17,10 +17,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
 import org.gradle.api.tasks.TaskPropertyBuilder;
 
 public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputFilePropertySpec {
@@ -44,18 +42,8 @@ public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputsDepre
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
+    public Class<? extends SnapshotterConfiguration> getSnapshotter() {
         return parent.getSnapshotter();
-    }
-
-    @Override
-    public TaskFilePropertyCompareStrategy getCompareStrategy() {
-        return parent.getCompareStrategy();
-    }
-
-    @Override
-    public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return parent.getSnapshotNormalizationStrategy();
     }
 
     @Override

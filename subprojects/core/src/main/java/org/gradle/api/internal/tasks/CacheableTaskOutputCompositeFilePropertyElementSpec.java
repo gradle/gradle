@@ -17,11 +17,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
 
 import java.io.File;
 import java.util.Collections;
@@ -60,18 +57,8 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public TaskFilePropertyCompareStrategy getCompareStrategy() {
-        return parentProperty.getCompareStrategy();
-    }
-
-    @Override
-    public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return parentProperty.getSnapshotNormalizationStrategy();
-    }
-
-    @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
-        return GenericFileCollectionSnapshotter.class;
+    public Class<? extends SnapshotterConfiguration> getSnapshotter() {
+        return parentProperty.getSnapshotter();
     }
 
     @Override

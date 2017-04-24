@@ -17,25 +17,26 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
 
 public class DefaultClasspathHasher implements ClasspathHasher {
 
-    private final ClasspathSnapshotter snapshotter;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final ResourceSnapshotter resourceSnapshotter;
 
-    public DefaultClasspathHasher(ClasspathSnapshotter snapshotter) {
-        this.snapshotter = snapshotter;
+    public DefaultClasspathHasher(FileSystemSnapshotter fileSystemSnapshotter, ResourceSnapshotter resourceSnapshotter) {
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.resourceSnapshotter = resourceSnapshotter;
     }
 
     @Override
     public HashCode hash(ClassPath classpath) {
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(new SimpleFileCollection(classpath.getAsFiles()), TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE);
+        FileCollectionSnapshot snapshot = fileSystemSnapshotter.snapshotFileCollection(new SimpleFileCollection(classpath.getAsFiles()), resourceSnapshotter);
         return snapshot.getHash();
     }
 }

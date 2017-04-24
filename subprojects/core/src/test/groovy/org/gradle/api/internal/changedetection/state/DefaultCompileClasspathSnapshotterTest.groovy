@@ -27,11 +27,11 @@ class DefaultCompileClasspathSnapshotterTest extends AbstractSnapshotterTest {
     List entryHashes = []
 
     def setup() {
-        snapshotter = new DefaultCompileClasspathSnapshotter(
-            fileSystemSnapshotter,
-            stringInterner,
-            store
-        )
+//        snapshotter = new DefaultCompileClasspathSnapshotter(
+//            fileSystemSnapshotter,
+//            stringInterner,
+//            store
+//        )
     }
 
     def "ignores non-class files"() {

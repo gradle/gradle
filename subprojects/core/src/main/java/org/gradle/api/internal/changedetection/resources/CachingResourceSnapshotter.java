@@ -23,6 +23,8 @@ import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshotColle
 import org.gradle.api.internal.changedetection.state.SnapshottableFileSystemResource;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 public class CachingResourceSnapshotter implements ResourceSnapshotter {
@@ -30,10 +32,12 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
     private final ResourceSnapshotter delegate;
     private final HashCode snapshotterHash;
 
-    public CachingResourceSnapshotter(ResourceSnapshotter delegate, PersistentIndexedCache<HashCode, HashCode> cache, HashCode snapshotterHash) {
+    public CachingResourceSnapshotter(ResourceSnapshotter delegate, PersistentIndexedCache<HashCode, HashCode> cache) {
         this.cache = cache;
         this.delegate = delegate;
-        this.snapshotterHash = snapshotterHash;
+        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        delegate.appendConfigurationToHasher(hasher);
+        this.snapshotterHash = hasher.hash();
     }
 
     @Override
@@ -54,6 +58,11 @@ public class CachingResourceSnapshotter implements ResourceSnapshotter {
     @Override
     public SnapshottingResultRecorder createResultRecorder() {
         return delegate.createResultRecorder();
+    }
+
+    @Override
+    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+        delegate.appendConfigurationToHasher(hasher);
     }
 
     private HashCode cacheKey(SnapshottableResource resource) {

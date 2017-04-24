@@ -17,27 +17,21 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
+import org.gradle.api.snapshotting.internal.GenericSnapshotters;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 
 import java.util.Map;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
-
 public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder implements TaskInputPropertySpecAndBuilder {
 
     private final TaskPropertyFileCollection files;
     private boolean skipWhenEmpty;
     private boolean optional;
-    private SnapshotNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
-    private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
+    private Class<? extends SnapshotterConfiguration> snapshotter = GenericSnapshotters.Absolute.class;
 
     public DefaultTaskInputPropertySpec(String taskName, FileResolver resolver, Object paths) {
         this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
@@ -85,40 +79,24 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     }
 
     @Override
-    public TaskFilePropertyCompareStrategy getCompareStrategy() {
-        return TaskFilePropertyCompareStrategy.UNORDERED;
-    }
-
-    @Override
-    public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-        return snapshotNormalizationStrategy;
-    }
-
-    @Override
     public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
-        return withSnapshotNormalizationStrategy(TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity));
+        return withSnapshotter(GenericSnapshotters.valueOf(sensitivity));
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
-        return this;
-    }
-
-    @Override
-    public TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter) {
+    public TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends SnapshotterConfiguration> snapshotter) {
         this.snapshotter = snapshotter;
         return this;
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
+    public Class<? extends SnapshotterConfiguration> getSnapshotter() {
         return snapshotter;
     }
 
     @Override
     public String toString() {
-        return getPropertyName() + " (" + snapshotNormalizationStrategy + ")";
+        return getPropertyName() + " (" + snapshotter.getName() + ")";
     }
 
     // --- See CompatibilityAdapterForTaskInputs for an explanation for why these methods are here

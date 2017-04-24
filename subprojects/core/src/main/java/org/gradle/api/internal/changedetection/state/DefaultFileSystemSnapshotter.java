@@ -25,6 +25,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.Snapshottable;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
@@ -41,7 +42,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -62,7 +62,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final ProducerGuard<String> producingSelfSnapshots = new DefaultProducerGuard<String>();
     private final ProducerGuard<String> producingTrees = new DefaultProducerGuard<String>();
     private final ProducerGuard<String> producingAllSnapshots = new DefaultProducerGuard<String>();
-    private final DefaultGenericFileCollectionSnapshotter snapshotter;
+    private final ResourceSnapshotter absolutePathResourceSnapshotter;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         this.hasher = hasher;
@@ -70,7 +70,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.fileSystem = fileSystem;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemMirror = fileSystemMirror;
-        this.snapshotter = new DefaultGenericFileCollectionSnapshotter(this, stringInterner);
+        this.absolutePathResourceSnapshotter = new GenericResourceSnapshotter(TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE, TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
     }
 
     @Override
@@ -99,7 +99,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public Snapshot create() {
                 Snapshot snapshot = fileSystemMirror.getContent(path);
                 if (snapshot == null) {
-                    FileCollectionSnapshot fileCollectionSnapshot = snapshotter.snapshot(new SimpleFileCollection(file), TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
+                    FileCollectionSnapshot fileCollectionSnapshot = snapshotFileCollection(new SimpleFileCollection(file), absolutePathResourceSnapshotter);
                     HashCode hashCode = fileCollectionSnapshot.getHash();
                     snapshot = new HashBackedSnapshot(hashCode);
                     String internedPath = getPath(file);
@@ -161,12 +161,19 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public List<Snapshottable> snapshotFileCollection(FileCollection input) {
-        LinkedList<Snapshottable> fileTreeElements = Lists.newLinkedList();
+    public FileCollectionSnapshot snapshotFileCollection(FileCollection input, ResourceSnapshotter resourceSnapshotter) {
+        List<Snapshottable> snapshottables = Lists.newArrayList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(snapshottables);
         fileCollection.visitRootElements(visitor);
-        return fileTreeElements;
+
+        if (snapshottables.isEmpty()) {
+            return FileCollectionSnapshot.EMPTY;
+        }
+
+        return new FileCollectionSnapshotBuilder(resourceSnapshotter)
+            .addAll(snapshottables)
+            .build();
     }
 
     private SnapshottableDirectoryTree doSnapshot(DirectoryFileTree directoryTree) {

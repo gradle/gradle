@@ -16,14 +16,12 @@
 
 package org.gradle.api.snapshotting;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Incubating;
-import org.gradle.api.specs.Spec;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Snapshotter for files in a classpath entry.
@@ -31,38 +29,26 @@ import java.util.Map;
  * @since 4.0
  */
 @Incubating
-public class ClasspathEntry implements Snapshotter {
-    List<String> excludes = new LinkedList<String>();
+public class RuntimeClasspath implements SnapshotterConfiguration {
+    private final List<String> excludes = new LinkedList<String>();
 
-    @Override
     public void exclude(String... patterns) {
         excludes.addAll(Arrays.asList(patterns));
     }
 
-    @Override
-    public Map<String, Object> getInputs() {
-        return ImmutableMap.<String, Object>of("excludes", excludes);
-    }
-
-    public Spec<String> getSpec() {
-        return new ExcludeSpec(excludes);
-    }
-
-    private static class ExcludeSpec implements Spec<String> {
-        private final List<String> excludes;
-
-        public ExcludeSpec(List<String> excludes) {
-            this.excludes = excludes;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(String element) {
-            for (String exclude : excludes) {
-                if (element.endsWith(exclude)) {
-                    return false;
-                }
+    public boolean isSatisfiedBy(String element) {
+        for (String exclude : excludes) {
+            if (element.endsWith(exclude)) {
+                return false;
             }
-            return true;
+        }
+        return true;
+    }
+
+    public void appendToHasher(BuildCacheHasher hasher) {
+        hasher.putInt(excludes.size());
+        for (String exclude : excludes) {
+            hasher.putString(exclude);
         }
     }
 }

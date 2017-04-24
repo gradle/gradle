@@ -22,15 +22,12 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.api.snapshotting.SnapshotterConfiguration
+import org.gradle.api.snapshotting.internal.GenericSnapshotters
 import spock.lang.Specification
 
 abstract class AbstractTaskStateChangesTest extends Specification {
@@ -56,8 +53,6 @@ abstract class AbstractTaskStateChangesTest extends Specification {
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
-                compareStrategy: TaskFilePropertyCompareStrategy.UNORDERED,
-                snapshotNormalizationStrategy: TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
             )
         })
     }
@@ -65,9 +60,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
     protected static class PropertySpec implements TaskInputFilePropertySpec {
         String propertyName
         FileCollection propertyFiles
-        TaskFilePropertyCompareStrategy compareStrategy
-        SnapshotNormalizationStrategy snapshotNormalizationStrategy
-        Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter
+        Class<? extends SnapshotterConfiguration> snapshotter = GenericSnapshotters.Absolute
 
         @Override
         int compareTo(TaskPropertySpec o) {

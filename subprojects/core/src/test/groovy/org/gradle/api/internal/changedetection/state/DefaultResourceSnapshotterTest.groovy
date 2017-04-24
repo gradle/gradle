@@ -16,23 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.internal.changedetection.snapshotting.DefaultSnapshottingConfiguration
-import org.gradle.api.snapshotting.ClasspathEntry
-import org.gradle.internal.reflect.DirectInstantiator
-import spock.lang.Subject
-
-@Subject(DefaultClasspathSnapshotter)
-class DefaultClasspathSnapshotterTest extends AbstractSnapshotterTest {
+class DefaultResourceSnapshotterTest extends AbstractSnapshotterTest {
     List entryHashes = []
 
     def setup() {
-        snapshotter = new DefaultClasspathSnapshotter(
-            fileSystemSnapshotter,
-            new ValueSnapshotter(null),
-            stringInterner,
-            store,
-            new DefaultSnapshottingConfiguration([ClasspathEntry], DirectInstantiator.INSTANCE)
-        )
+//        snapshotter = new DefaultClasspathSnapshotter(
+//            fileSystemSnapshotter
+//            ,
+//            stringInterner,
+//            store,
+//            new DefaultSnapshottingConfiguration([RuntimeClasspath], DirectInstantiator.INSTANCE)
+//        )
     }
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {

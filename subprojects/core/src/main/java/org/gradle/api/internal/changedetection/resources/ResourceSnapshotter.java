@@ -17,8 +17,10 @@
 package org.gradle.api.internal.changedetection.resources;
 
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 public interface ResourceSnapshotter {
     void snapshot(Snapshottable snapshottable, SnapshottingResultRecorder recorder);
     SnapshottingResultRecorder createResultRecorder();
+    void appendConfigurationToHasher(BuildCacheHasher hasher);
 }

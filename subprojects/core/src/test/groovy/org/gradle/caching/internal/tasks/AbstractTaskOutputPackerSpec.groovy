@@ -19,15 +19,12 @@ package org.gradle.caching.internal.tasks
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.api.snapshotting.SnapshotterConfiguration
+import org.gradle.api.snapshotting.internal.GenericSnapshotters
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -69,7 +66,7 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
         String propertyName
         File outputFile
         CacheableTaskOutputFilePropertySpec.OutputType outputType
-        Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter
+        Class<? extends SnapshotterConfiguration> snapshotter = GenericSnapshotters.Output
 
         @Override
         FileCollection getPropertyFiles() {
@@ -79,16 +76,6 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
         @Override
         CacheableTaskOutputFilePropertySpec.OutputType getOutputType() {
             return outputType ?: outputFile.directory ? DIRECTORY : FILE
-        }
-
-        @Override
-        TaskFilePropertyCompareStrategy getCompareStrategy() {
-            TaskFilePropertyCompareStrategy.OUTPUT
-        }
-
-        @Override
-        SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-            TaskFilePropertySnapshotNormalizationStrategy.RELATIVE
         }
 
         @Override

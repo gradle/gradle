@@ -25,13 +25,10 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry
+import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
-import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -77,7 +74,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             return temporaryFolder.createDir("history-cache")
         }
     }
-    DefaultGenericFileCollectionSnapshotter fileCollectionSnapshotter
+//    DefaultGenericFileCollectionSnapshotter fileCollectionSnapshotter
     DefaultTaskArtifactStateRepository repository
     DefaultFileSystemMirror fileSystemMirror
     TaskCacheKeyCalculator cacheKeyCalculator = Mock(TaskCacheKeyCalculator)
@@ -91,20 +88,18 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def stringInterner = new StringInterner()
         def snapshotter = new DefaultFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror([])
-        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(new DefaultFileSystemSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror), stringInterner)
+//        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(new DefaultFileSystemSnapshotter(snapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror), stringInterner)
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter()
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
         def fileCollectionSnapshotterInstantiator = Stub(Instantiator) {
-            newInstance(DefaultGenericFileCollectionSnapshotter, _) >> fileCollectionSnapshotter
+//            newInstance(DefaultGenericFileCollectionSnapshotter, _) >> fileCollectionSnapshotter
         }
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
-        fileCollectionSnapshotter.registerSerializers(serializerRegistry)
+        serializerRegistry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner)
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, new DefaultFileCollectionSnapshotterRegistry(
-            [(GenericFileCollectionSnapshotter): DefaultGenericFileCollectionSnapshotter], fileCollectionSnapshotterInstantiator
-        ), TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher, cacheKeyCalculator, new ValueSnapshotter(null))
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher, cacheKeyCalculator, new ValueSnapshotter(null))
     }
 
     def artifactsAreNotUpToDateWhenCacheIsEmpty() {

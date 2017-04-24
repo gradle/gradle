@@ -49,7 +49,7 @@ class AbstractSnapshotterTest extends Specification {
         createCache(_, _, _, _, _) >> jarCache
     }
     def snapshots = [:]
-    AbstractFileCollectionSnapshotter snapshotter
+//    AbstractFileCollectionSnapshotter snapshotter
 
     def files(File... files) {
         return new SimpleFileCollection(files)

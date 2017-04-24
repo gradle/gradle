@@ -17,32 +17,40 @@
 package org.gradle.api.internal.changedetection.snapshotting;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
-import org.gradle.api.snapshotting.Snapshotter;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
+import org.gradle.api.snapshotting.internal.ResourceSnapshotterRegistry;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultSnapshottingConfiguration implements SnapshottingConfigurationInternal {
-    private final Map<Class<? extends Snapshotter>, Snapshotter> snapshotters;
+    private final Map<Class<? extends SnapshotterConfiguration>, SnapshotterConfiguration> snapshotters;
+    private final ResourceSnapshotterRegistry snapshotterRegistry;
 
-    public DefaultSnapshottingConfiguration(List<Class<? extends Snapshotter>> snapshotterTypes, Instantiator instantiator) {
-        snapshotters = new HashMap<Class<? extends Snapshotter>, Snapshotter>(snapshotterTypes.size());
-        for (Class<? extends Snapshotter> snapshotterType : snapshotterTypes) {
-            snapshotters.put(snapshotterType, instantiator.newInstance(snapshotterType));
+    public DefaultSnapshottingConfiguration(ResourceSnapshotterRegistry snapshotterRegistry, Instantiator instantiator) {
+        this.snapshotterRegistry = snapshotterRegistry;
+        ImmutableMap.Builder<Class<? extends SnapshotterConfiguration>, SnapshotterConfiguration> builder = ImmutableMap.builder();
+        for (Class<? extends SnapshotterConfiguration> snapshotterType : snapshotterRegistry.getConfigurationTypes()) {
+            builder.put(snapshotterType, instantiator.newInstance(snapshotterType));
         }
+        this.snapshotters = builder.build();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends Snapshotter> T get(Class<T> snapshotterType) {
-        return (T) snapshotters.get(snapshotterType);
-    }
-
-    @Override
-    public <T extends Snapshotter> void snapshotter(Class<T> snapshotter, Action<T> configureAction) {
+    public <T extends SnapshotterConfiguration> void snapshotter(Class<T> snapshotter, Action<T> configureAction) {
         configureAction.execute(Preconditions.checkNotNull(get(snapshotter), "Unknown snapshotter type " + snapshotter.getName()));
+    }
+
+    @Override
+    public ResourceSnapshotter createSnapshotter(Class<? extends SnapshotterConfiguration> snapshotterType) {
+        SnapshotterConfiguration configuration = get(snapshotterType);
+        return snapshotterRegistry.createSnapshotter(configuration);
+    }
+
+    private <T extends SnapshotterConfiguration> T get(Class<T> snapshotterType) {
+        return snapshotterType.cast(snapshotters.get(snapshotterType));
     }
 }

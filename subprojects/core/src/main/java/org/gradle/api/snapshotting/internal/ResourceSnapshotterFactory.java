@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.snapshotting.internal;
 
-/**
- * Responsible for calculating a {@link FileCollectionSnapshot} for a {@link org.gradle.api.file.FileCollection} representing a Java classpath. Compared to {@link GenericFileCollectionSnapshotter} this snapshotter orders files within any sub-tree.
- *
- * @see org.gradle.api.tasks.Classpath
- */
-public interface ClasspathSnapshotter extends FileCollectionSnapshotter {
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
+
+public interface ResourceSnapshotterFactory<T extends SnapshotterConfiguration> {
+    ResourceSnapshotter create(T configuration);
 }

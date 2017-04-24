@@ -30,10 +30,8 @@ import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInsp
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -187,10 +185,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
-    }
-
-    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        return new DefaultGenericFileCollectionSnapshotter(fileSystemSnapshotter, stringInterner);
     }
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {
