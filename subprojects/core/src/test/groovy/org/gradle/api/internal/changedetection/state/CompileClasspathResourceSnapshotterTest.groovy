@@ -16,22 +16,23 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.snapshotting.CompileClasspath
+import org.gradle.api.snapshotting.internal.CompileClasspathResourceSnapshotterFactory
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
 
-class DefaultCompileClasspathSnapshotterTest extends AbstractResourceSnapshotterTest {
+class CompileClasspathResourceSnapshotterTest extends AbstractResourceSnapshotterTest {
     private static final String JAR_FILE_HASH = '2795ef480ca940f05aad4c08c2510346'
     public static final String IGNORED_SIGNATURE = 'd9866ca2e5b4d2d882a57251c5e35f4a'
 
     List entryHashes = []
 
     def setup() {
-//        snapshotter = new DefaultCompileClasspathSnapshotter(
-//            fileSystemSnapshotter,
-//            stringInterner,
-//            store
-//        )
+        snapshotter = new CompileClasspathResourceSnapshotterFactory(
+            stringInterner,
+            jarCache
+        ).create(new CompileClasspath())
     }
 
     def "ignores non-class files"() {

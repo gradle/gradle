@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.snapshotting.internal.GenericSnapshotters
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Subject
 
@@ -34,25 +35,22 @@ class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
     def setup() {
         this.stubHistory = Stub(TaskHistoryRepository.History)
         this.stubOutputFileSnapshotter = Stub(OutputFilesSnapshotter)
-//        this.stubInputFileSnapshotter = Stub(FileCollectionSnapshotter)
     }
 
     def "constructor invokes snapshots" () {
         setup:
         def stubSnapshot = Stub(FileCollectionSnapshot)
         def mockOutputFileSnapshotter = Mock(OutputFilesSnapshotter)
-//        def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
-//        def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher, new ValueSnapshotter(), fileSystemSnapshotter)
+        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher, new ValueSnapshotter(classLoaderHierarchyHasher), mockFileSystemSnapshotter)
 
         then:
         noExceptionThrown()
         1 * mockInputs.getProperties() >> [:]
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        (1.._) * mockInputFileSnapshotterRegistry.getSnapshotter(_, _) >> mockInputFileSnapshotter
-        (1.._) * mockInputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
+        (1.._) * mockSnapshottingConfiguration.createSnapshotter(GenericSnapshotters.Absolute) >> mockResourceSnapshotter
+        (1.._) * mockFileSystemSnapshotter.snapshotFileCollection(_, mockResourceSnapshotter) >> stubSnapshot
     }
 }

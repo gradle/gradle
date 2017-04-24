@@ -20,12 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.resources.CachingResourceSnapshotter;
-import org.gradle.api.internal.changedetection.resources.ClasspathResourceSnapshotter;
 import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.ClasspathEntryResourceSnapshotter;
-import org.gradle.api.internal.changedetection.state.CompileClasspathEntryResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
@@ -47,10 +43,12 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.api.snapshotting.CompileClasspath;
 import org.gradle.api.snapshotting.RuntimeClasspath;
 import org.gradle.api.snapshotting.SnapshotterConfiguration;
+import org.gradle.api.snapshotting.internal.CompileClasspathResourceSnapshotterFactory;
 import org.gradle.api.snapshotting.internal.DefaultResourceSnapshotterRegistry;
 import org.gradle.api.snapshotting.internal.GenericSnapshotters;
 import org.gradle.api.snapshotting.internal.ResourceSnapshotterFactory;
 import org.gradle.api.snapshotting.internal.ResourceSnapshotterRegistry;
+import org.gradle.api.snapshotting.internal.RuntimeClasspathResourceSnapshotterFactory;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
@@ -140,26 +138,8 @@ public class GradleUserHomeScopeServices {
         final PersistentIndexedCache<HashCode, HashCode> cache = store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
 
         ImmutableMap.Builder<Class<? extends SnapshotterConfiguration>, ResourceSnapshotterFactory<?>> factories = ImmutableMap.builder();
-        factories.put(RuntimeClasspath.class, new ResourceSnapshotterFactory<RuntimeClasspath>() {
-                @Override
-                public ResourceSnapshotter create(RuntimeClasspath configuration) {
-                    ResourceSnapshotter classpathEntrySnapshotter = new ClasspathEntryResourceSnapshotter(configuration, stringInterner);
-                    return new CachingResourceSnapshotter(
-                        new ClasspathResourceSnapshotter(classpathEntrySnapshotter, stringInterner),
-                        cache
-                    );
-                }
-            });
-        factories.put(CompileClasspath.class, new ResourceSnapshotterFactory<CompileClasspath>() {
-                @Override
-                public ResourceSnapshotter create(CompileClasspath configuration) {
-                    ResourceSnapshotter classpathEntrySnapshotter = new CompileClasspathEntryResourceSnapshotter(cache, stringInterner);
-                    return new CachingResourceSnapshotter(
-                        new ClasspathResourceSnapshotter(classpathEntrySnapshotter, stringInterner),
-                        cache
-                    );
-                }
-            });
+        factories.put(RuntimeClasspath.class, new RuntimeClasspathResourceSnapshotterFactory(stringInterner, cache));
+        factories.put(CompileClasspath.class, new CompileClasspathResourceSnapshotterFactory(stringInterner, cache));
         for (final PathSensitivity pathSensitivity : PathSensitivity.values()) {
             Class<? extends SnapshotterConfiguration> configurationType = GenericSnapshotters.valueOf(pathSensitivity);
             factories.put(configurationType, new ResourceSnapshotterFactory<SnapshotterConfiguration>() {
@@ -194,4 +174,5 @@ public class GradleUserHomeScopeServices {
     CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, List<CachedJarFileStore> fileStores) {
         return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), fileStores);
     }
+
 }

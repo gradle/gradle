@@ -21,19 +21,25 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter
 import org.gradle.api.internal.changedetection.snapshotting.SnapshottingConfigurationInternal
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
 import org.gradle.api.snapshotting.SnapshotterConfiguration
 import org.gradle.api.snapshotting.internal.GenericSnapshotters
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 abstract class AbstractTaskStateChangesTest extends Specification {
     protected mockInputs = Mock(TaskInputsInternal)
     protected mockOutputs = Mock(TaskOutputsInternal)
     protected mockSnapshottingConfiguration = Mock(SnapshottingConfigurationInternal)
+    protected mockFileSystemSnapshotter = Mock(FileSystemSnapshotter)
+    protected mockResourceSnapshotter = Mock(ResourceSnapshotter)
     protected stubProject = Stub(ProjectInternal) {
         getSnapshotting() >> mockSnapshottingConfiguration
     }

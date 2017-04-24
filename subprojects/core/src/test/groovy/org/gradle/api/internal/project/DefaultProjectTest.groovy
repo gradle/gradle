@@ -58,6 +58,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.snapshotting.SnapshottingConfiguration
+import org.gradle.api.snapshotting.internal.DefaultResourceSnapshotterRegistry
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
@@ -102,7 +103,7 @@ class DefaultProjectTest {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    Task testTask;
+    Task testTask
 
     DefaultProject project, child1, child2, childchild
 
@@ -143,7 +144,7 @@ class DefaultProjectTest {
     AttributesSchema attributesSchema = context.mock(AttributesSchema)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     ProjectConfigurator projectConfigurator = new BuildOperationProjectConfigurator(buildOperationExecutor)
-    DefaultSnapshottingConfiguration snapshottingConfiguration= new DefaultSnapshottingConfiguration([], null)
+    DefaultSnapshottingConfiguration snapshottingConfiguration= new DefaultSnapshottingConfiguration(new DefaultResourceSnapshotterRegistry([:]), null)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -223,7 +224,7 @@ class DefaultProjectTest {
 
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
-            allowing(build).getProjectEvaluationBroadcaster();
+            allowing(build).getProjectEvaluationBroadcaster()
             will(returnValue(listener))
 
             allowing(build).getParent()
@@ -233,11 +234,11 @@ class DefaultProjectTest {
             will(returnValue(Path.ROOT))
             allowing(build).getIdentityPath()
             will(returnValue(Path.ROOT))
-            allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));
+            allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()))
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
-        project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope, baseClassLoaderScope);
+        project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope, baseClassLoaderScope)
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1")
         child1 = classGenerator.newInstance(DefaultProject.class, "child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope, baseClassLoaderScope)
         project.addChildProject(child1)
@@ -296,7 +297,7 @@ class DefaultProjectTest {
     }
 
     @Test
-    public void testNullVersionAndStatus() {
+    void testNullVersionAndStatus() {
         project.version = 'version'
         project.status = 'status'
         assertEquals('version', project.version)
@@ -320,7 +321,7 @@ class DefaultProjectTest {
     }
 
     @Test
-    public void testExecutesActionBeforeEvaluation() {
+    void testExecutesActionBeforeEvaluation() {
         Action<Project> listener = context.mock(Action)
         context.checking {
             one(listener).execute(project)
@@ -330,7 +331,7 @@ class DefaultProjectTest {
     }
 
     @Test
-    public void testExecutesActionAfterEvaluation() {
+    void testExecutesActionAfterEvaluation() {
         Action<Project> listener = context.mock(Action)
         context.checking {
             one(listener).execute(project)
@@ -340,7 +341,7 @@ class DefaultProjectTest {
     }
 
     @Test
-    public void testExecutesClosureBeforeEvaluation() {
+    void testExecutesClosureBeforeEvaluation() {
         TestClosure listener = context.mock(TestClosure)
         context.checking {
             one(listener).call(project)
@@ -351,7 +352,7 @@ class DefaultProjectTest {
     }
 
     @Test
-    public void testExecutesClosureAfterEvaluation() {
+    void testExecutesClosureAfterEvaluation() {
         TestClosure listener = context.mock(TestClosure)
         context.checking {
             one(listener).call(project)
@@ -416,7 +417,7 @@ class DefaultProjectTest {
         project.projectEvaluator = mockReader1
         child1.projectEvaluator = mockReader2
         child2.projectEvaluator = mockReader3
-        project.evaluate();
+        project.evaluate()
         assertTrue mockReader1Called
     }
 
@@ -462,21 +463,21 @@ class DefaultProjectTest {
     }
 
     @Test
-    public void testDefaultTasks() {
-        project.defaultTasks("a", "b");
+    void testDefaultTasks() {
+        project.defaultTasks("a", "b")
         assertEquals(["a", "b"], project.getDefaultTasks())
-        project.defaultTasks("c");
+        project.defaultTasks("c")
         assertEquals(["c"], project.getDefaultTasks())
     }
 
     @Test(expected = InvalidUserDataException)
-    public void testDefaultTasksWithNull() {
-        project.defaultTasks(null);
+    void testDefaultTasksWithNull() {
+        project.defaultTasks(null)
     }
 
     @Test(expected = InvalidUserDataException)
-    public void testDefaultTasksWithSingleNullValue() {
-        project.defaultTasks("a", null);
+    void testDefaultTasksWithSingleNullValue() {
+        project.defaultTasks("a", null)
     }
 
     @Test
@@ -668,7 +669,7 @@ def scriptMethod(Closure closure) {
     }
 
     @Test(expected = MissingPropertyException)
-    public void testPropertyMissingWithUnknownProperty() {
+    void testPropertyMissingWithUnknownProperty() {
         project.unknownProperty
     }
 

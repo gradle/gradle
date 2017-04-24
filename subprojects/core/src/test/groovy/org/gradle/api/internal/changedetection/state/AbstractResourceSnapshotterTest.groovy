@@ -18,11 +18,14 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter
+import org.gradle.api.internal.changedetection.resources.Snapshottable
 import org.gradle.api.internal.changedetection.resources.SnapshottableResource
 import org.gradle.api.internal.changedetection.resources.recorders.SnapshottingResultRecorder
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultFileHasher
+import org.gradle.caching.internal.BuildCacheHasher
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -45,11 +48,8 @@ class AbstractResourceSnapshotterTest extends Specification {
     def directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror([]))
     InMemoryIndexedCache<HashCode, HashCode> jarCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
-    TaskHistoryStore store = Stub(TaskHistoryStore) {
-        createCache(_, _, _, _, _) >> jarCache
-    }
     def snapshots = [:]
-//    AbstractFileCollectionSnapshotter snapshotter
+    ResourceSnapshotter snapshotter
 
     def files(File... files) {
         return new SimpleFileCollection(files)
@@ -57,9 +57,8 @@ class AbstractResourceSnapshotterTest extends Specification {
 
     def snapshot(File... classpath) {
         snapshots.clear()
-        def resourceSnapshotter = snapshotter.resourceSnapshotter
-        def builder = new FileCollectionSnapshotBuilder(new ReportingSnapshottingResultRecorder(null, resourceSnapshotter.createResultRecorder(), snapshots), resourceSnapshotter)
-        def fileCollectionSnapshot = builder.addAll(fileSystemSnapshotter.snapshotFileCollection(files(classpath))).build()
+        def fileCollectionSnapshot = fileSystemSnapshotter.snapshotFileCollection(files(classpath),
+            new ReportingSnapshotter(snapshotter, snapshots))
         return [
             fileCollectionSnapshot.hash.toString(),
             snapshots,
@@ -74,10 +73,42 @@ class AbstractResourceSnapshotterTest extends Specification {
     }
 
 }
-trait ReportingResultRecorder implements SnapshottingResultRecorder {
-    abstract Map getSnapshots()
-    abstract SnapshottingResultRecorder getDelegate()
-    abstract String getPath()
+
+class ReportingSnapshotter implements ResourceSnapshotter {
+    private final ResourceSnapshotter delegate
+    private final Map snapshots
+
+    ReportingSnapshotter(ResourceSnapshotter delegate, Map snapshots) {
+        this.snapshots = snapshots
+        this.delegate = delegate
+    }
+
+    @Override
+    void snapshot(Snapshottable snapshottable, SnapshottingResultRecorder recorder) {
+        delegate.snapshot(snapshottable, recorder)
+    }
+
+    @Override
+    SnapshottingResultRecorder createResultRecorder() {
+        return new ReportingSnapshottingResultRecorder(null, delegate.createResultRecorder(), snapshots)
+    }
+
+    @Override
+    void appendConfigurationToHasher(BuildCacheHasher hasher) {
+        delegate.appendConfigurationToHasher(hasher)
+    }
+}
+
+class ReportingSnapshottingResultRecorder implements SnapshottingResultRecorder {
+    String path
+    final SnapshottingResultRecorder delegate
+    final Map snapshots
+
+    ReportingSnapshottingResultRecorder(String path, SnapshottingResultRecorder delegate, Map snapshots) {
+        this.snapshots = snapshots
+        this.path = path
+        this.delegate = delegate
+    }
 
     @Override
     void recordResult(SnapshottableResource resource, HashCode hash) {
@@ -108,18 +139,6 @@ trait ReportingResultRecorder implements SnapshottingResultRecorder {
     private void report(String type, String filePath, HashCode hash) {
         def event = "$type: ${getFullPath(filePath)} - $hash"
         println event
-    }
-}
-
-class ReportingSnapshottingResultRecorder implements ReportingResultRecorder {
-    String path
-    final SnapshottingResultRecorder delegate
-    final Map snapshots
-
-    ReportingSnapshottingResultRecorder(String path, SnapshottingResultRecorder delegate, Map snapshots) {
-        this.snapshots = snapshots
-        this.path = path
-        this.delegate = delegate
     }
 
     @Override

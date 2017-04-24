@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state
 
-class DefaultResourceSnapshotterTest extends AbstractResourceSnapshotterTest {
+import org.gradle.api.snapshotting.RuntimeClasspath
+import org.gradle.api.snapshotting.internal.RuntimeClasspathResourceSnapshotterFactory
+
+class RuntimeClasspathSnapshotterTest extends AbstractResourceSnapshotterTest {
     List entryHashes = []
 
     def setup() {
-//        snapshotter = new DefaultClasspathSnapshotter(
-//            fileSystemSnapshotter
-//            ,
-//            stringInterner,
-//            store,
-//            new DefaultSnapshottingConfiguration([RuntimeClasspath], DirectInstantiator.INSTANCE)
-//        )
+        snapshotter = new RuntimeClasspathResourceSnapshotterFactory(
+            stringInterner,
+            jarCache).create(new RuntimeClasspath())
     }
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
