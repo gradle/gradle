@@ -75,8 +75,13 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     }
 
     private static String fullPath(BuildIdentifier build, String projectPath) {
+        // TODO:DAZ We _really_ should not use ':' as the root build 'name'
         if (build.isCurrentBuild()) {
-            return projectPath;
+            if (build.getName().equals(":")) {
+                return projectPath;
+            } else {
+                return "[" + build.getName() + "]" + projectPath;
+            }
         }
         return ":" + build.getName() + projectPath;
     }

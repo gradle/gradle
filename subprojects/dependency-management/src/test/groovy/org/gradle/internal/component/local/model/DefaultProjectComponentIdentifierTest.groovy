@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.local.model
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import spock.lang.Specification
@@ -33,14 +34,24 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         defaultBuildComponentIdentifier.toString() == 'project :myPath'
     }
 
-    def "non-current build includes build name in display name"() {
+    def "non-current build includes build name in path"() {
         when:
-        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(":myPath", false)
+        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(buildId("TEST"), ":myPath")
 
         then:
         defaultBuildComponentIdentifier.projectPath == ':myPath'
         defaultBuildComponentIdentifier.displayName == 'project :TEST:myPath'
         defaultBuildComponentIdentifier.toString() == 'project :TEST:myPath'
+    }
+
+    def "current build includes build name in display name"() {
+        when:
+        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(buildId("TEST", true), ":myPath")
+
+        then:
+        defaultBuildComponentIdentifier.projectPath == ':myPath'
+        defaultBuildComponentIdentifier.displayName == 'project [TEST]:myPath'
+        defaultBuildComponentIdentifier.toString() == 'project [TEST]:myPath'
     }
 
     def "is instantiated with null constructor parameter value"() {
@@ -67,8 +78,16 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         ':myProjectPath2' | false    | false    | false
     }
 
-    private static newProjectId(String path, boolean current = true) {
-        new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("TEST", current), path)
+    private static newProjectId(String path) {
+        newProjectId(buildId(":"), path)
+    }
+
+    private static newProjectId(BuildIdentifier build, String path) {
+        new DefaultProjectComponentIdentifier(build, path)
+    }
+
+    private static buildId(String name, boolean current = (name == ":")) {
+        return new DefaultBuildIdentifier(name, current)
     }
 
 }
