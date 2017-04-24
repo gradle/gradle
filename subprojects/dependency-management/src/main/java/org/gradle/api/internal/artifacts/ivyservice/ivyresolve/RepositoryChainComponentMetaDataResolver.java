@@ -63,7 +63,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     public boolean isAvailableLocally(ComponentIdentifier identifier) {
         if (identifier instanceof ModuleComponentIdentifier) {
             for (ModuleComponentRepository repository : repositories) {
-                if (repository.getLocalAccess().isMetadataAvailableLocally((ModuleComponentIdentifier) identifier)) {
+                ModuleComponentRepositoryAccess localAccess = repository.getLocalAccess();
+                if (localAccess.isMetadataAvailableLocally((ModuleComponentIdentifier) identifier)) {
                     return true;
                 }
             }
