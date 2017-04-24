@@ -74,15 +74,13 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         settingsFile << """
             pluginManagement {
                 repositories {
-                    ${
-            repositories.collect {
-                if (it instanceof MavenFileRepository) {
-                    "maven { url '${it.uri}' }"
-                } else {
-                    "ivy { url '${it.uri}' }"
-                }
-            }.join('\n')
-        }
+                    ${repositories.collect {
+                        if (it instanceof MavenFileRepository) {
+                            "maven { url '${it.uri}' }"
+                        } else {
+                            "ivy { url '${it.uri}' }"
+                        }
+                      }.join('\n')}
                 }
             }
         """
