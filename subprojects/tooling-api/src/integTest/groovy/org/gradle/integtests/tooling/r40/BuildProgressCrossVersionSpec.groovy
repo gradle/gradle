@@ -191,11 +191,11 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         applyBuildScript.child("Resolve dependencies of :compile").with {
             it.child "Configure project :a"
-            it.child "Download http://localhost:${server.port}${projectB.pomPath}"
-            it.child "Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml"
-            it.child "Download http://localhost:${server.port}${projectC.pomPath}"
-            it.child "Download http://localhost:${server.port}${projectD.metaDataPath}"
-            it.child "Download http://localhost:${server.port}${projectD.pomPath}"
+            it.descendant "Download http://localhost:${server.port}${projectB.pomPath}"
+            it.descendant "Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml"
+            it.descendant "Download http://localhost:${server.port}${projectC.pomPath}"
+            it.descendant "Download http://localhost:${server.port}${projectD.metaDataPath}"
+            it.descendant "Download http://localhost:${server.port}${projectD.pomPath}"
         }
 
         resolveArtifacts.child("Resolve artifact a.jar (project :a)").children.isEmpty()
