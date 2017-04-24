@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.process.internal.worker.child;
 
-import org.gradle.api.Describable;
-import java.io.Serializable;
+import org.gradle.internal.logging.events.OperationIdentifier;
 
-public interface WorkSpec extends Serializable, Describable {
+public interface WorkerOperationIdentifierProtocol {
+    void operationId(OperationIdentifier operationId);
 }

@@ -125,6 +125,8 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         context.level = level
     }
 
+    // TODO(ew): Add test coverage here
+
     def "isTraceEnabled returns false when level is #level"() {
         when:
         globalLevel = level

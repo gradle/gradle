@@ -18,6 +18,7 @@ package org.gradle.internal.logging.events;
 
 import java.io.Serializable;
 
+// TODO(ew): move this to base services
 public class OperationIdentifier implements Serializable {
     private final long id;
 

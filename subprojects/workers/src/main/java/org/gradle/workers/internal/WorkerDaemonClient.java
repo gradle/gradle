@@ -43,12 +43,15 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     @Override
     public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, BuildOperationExecutor.Operation parentBuildOperation) {
         WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
+        // TODO(daniel): We may be able to attach the currently running BuildOperation#getId() to the worker lease.
+        // TODO(daniel): We still need a way to get the lease where the log event coming from the worker are processed.
         try {
             BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
             return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
                 @Override
                 public DefaultWorkResult transform(BuildOperationContext buildOperationContext) {
                     uses++;
+                    // TODO(daniel): The execution context have access to the currently executing BuildOperation.
                     return workerDaemonProcess.execute(spec);
                 }
             });

@@ -60,6 +60,7 @@ public class MessageHub implements AsyncStoppable {
     public MessageHub(String displayName, ExecutorFactory executorFactory, Action<? super Throwable> errorHandler) {
         this.displayName = displayName;
         this.errorHandler = errorHandler;
+        // TODO(daniel): This is the Executor containing all the threads used for sending/receiving data from workers (and other use)
         workers = executorFactory.create(displayName + " workers");
     }
 
@@ -144,6 +145,8 @@ public class MessageHub implements AsyncStoppable {
         try {
             assertRunning("add connection");
             ConnectionState connectionState = connections.add(connection);
+
+            // TODO(daniel): Registering the unit of work to be done inside another thread.
             workers.execute(new ConnectionDispatch(connectionState));
             workers.execute(new ConnectionReceive(connectionState));
         } finally {

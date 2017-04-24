@@ -86,6 +86,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             }
             parentId = parent.id;
         }
+        // FIXME(adam): BuildOperationExecutor should take care of tracking and setting the operation ids in the registry.
+        // It might do this by delegating to ProgressLogger and passing in the id of the build operation.
+
         OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
         OperationDetails currentOperation = new OperationDetails(parent, id, operationDetails);
         currentOperation.setRunning(true);
@@ -100,7 +103,18 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             BuildOperationContextImpl context = new BuildOperationContextImpl();
             try {
                 ProgressLogger progressLogger;
+                // TODO(ew): set progress display name everywhere we can
                 if (operationDetails.getProgressDisplayName() != null) {
+                    // FIXME(ADAM): We want the worker stuff to work in terms of build operations, not progress events.
+                    // It should be the business of the build operation stuff to bridge across whatever it needs into the progress events.
+                    // So, this would mean shipping around a build operation id rather than a progress operation id.
+                    // TODO(ew): ship around build operation ID rather than progress operation id
+
+                    // FIXME(ADAM): It would also mean adding a way to tell the BuildOperationProcessor what the parent build operation id
+                    // is rather than setting the current progress operation id.
+                    // TODO(EW): What does this mean?
+
+                    // 1 progress logger to 1 build operation
                     progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
                     progressLogger.setDescription(operationDetails.getDisplayName());
                     progressLogger.setShortDescription(operationDetails.getProgressDisplayName());

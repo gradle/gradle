@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.events;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
@@ -32,28 +33,36 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         this(timestamp, category, StyledTextOutput.Style.Normal, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, String text) {
-        this(timestamp, category, logLevel, StyledTextOutput.Style.Normal, text);
+    public StyledTextOutputEvent(long timestamp, String category, @Nullable OperationIdentifier operationId, String text) {
+        this(timestamp, category, operationId, StyledTextOutput.Style.Normal, text);
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier operationId, String text) {
+        this(timestamp, category, logLevel, operationId, StyledTextOutput.Style.Normal, text);
     }
 
     public StyledTextOutputEvent(long timestamp, String category, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, null, style, text);
+        this(timestamp, category, null, null, style, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, logLevel, Collections.singletonList(new Span(style, text)));
+    public StyledTextOutputEvent(long timestamp, String category, @Nullable OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
+        this(timestamp, category, null, operationId, style, text);
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier operationId, StyledTextOutput.Style style, String text) {
+        this(timestamp, category, logLevel, operationId, Collections.singletonList(new Span(style, text)));
     }
 
     public StyledTextOutputEvent(long timestamp, String category, List<Span> spans) {
-        this(timestamp, category, null, spans);
+        this(timestamp, category, null, null, spans);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, Span... spans) {
-        this(timestamp, category, logLevel, Arrays.asList(spans));
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier operationId, Span... spans) {
+        this(timestamp, category, logLevel, operationId, Arrays.asList(spans));
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, List<Span> spans) {
-        super(timestamp, category, logLevel);
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier operationId, List<Span> spans) {
+        super(timestamp, category, logLevel, operationId);
         this.spans = new ArrayList<Span>(spans);
     }
 
@@ -75,7 +84,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     }
 
     public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, spans);
+        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, getOperationId(), spans);
     }
 
     public List<Span> getSpans() {

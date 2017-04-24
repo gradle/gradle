@@ -22,3 +22,11 @@ classpathManifest {
 
 useTestFixtures()
 useClassycle()
+
+// TODO(daniel): Eric use this if you want to get a break point inside a worker process for debugging.
+//      Simply invoke: gradle-built-from-source/bin/gradle :baseServices:clean :baseServices:compileJava
+//      This compileJava generate LogEvent from the worker process so it's easy to debug.
+//compileJava {
+//    options.fork = true
+//    options.forkOptions.jvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5013"]
+//}

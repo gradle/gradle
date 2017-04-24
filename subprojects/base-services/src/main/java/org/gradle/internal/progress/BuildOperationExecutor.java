@@ -80,6 +80,7 @@ public interface BuildOperationExecutor {
      * A handle to an operation. Can be used to reference an operation from several threads to run nested operations.
      */
     interface Operation {
+        // TODO(ew): Is this just Object because OperationIdentifier is in :logging?
         Object getId();
 
         @Nullable

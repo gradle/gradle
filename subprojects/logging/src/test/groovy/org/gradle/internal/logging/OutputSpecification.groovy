@@ -43,23 +43,23 @@ abstract class OutputSpecification extends Specification {
     }
 
     LogEvent event(String text) {
-        return new LogEvent(tenAm, 'category', LogLevel.INFO, text, null)
+        return new LogEvent(tenAm, 'category', LogLevel.INFO, null, text, null)
     }
 
     LogEvent event(String text, LogLevel logLevel) {
-        return new LogEvent(tenAm, 'category', logLevel, text, null)
+        return new LogEvent(tenAm, 'category', logLevel, null, text, null)
     }
 
     LogEvent event(long timestamp, String text, LogLevel logLevel) {
-        return new LogEvent(timestamp, 'category', logLevel, text, null)
+        return new LogEvent(timestamp, 'category', logLevel, null, text, null)
     }
 
     LogEvent event(long timestamp, String text) {
-        return new LogEvent(timestamp, 'category', LogLevel.INFO, text, null)
+        return new LogEvent(timestamp, 'category', LogLevel.INFO, null, text, null)
     }
 
     LogEvent event(String text, Throwable throwable) {
-        return new LogEvent(tenAm, 'category', LogLevel.INFO, text, throwable)
+        return new LogEvent(tenAm, 'category', LogLevel.INFO, null, text, throwable)
     }
 
     ProgressStartEvent start(String description) {

@@ -26,6 +26,8 @@ import org.gradle.internal.serialize.SerializerSpec
 class DaemonMessageSerializerTest extends SerializerSpec {
     def serializer = DaemonMessageSerializer.create()
 
+    // TODO(ew): fix tests/add coverage here
+
     def "can serialize BuildEvent messages"() {
         expect:
         def event = new BuildEvent(["a", "b", "c"])
@@ -36,30 +38,32 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize LogEvent messages"() {
         expect:
-        def event = new LogEvent(1234, "category", LogLevel.LIFECYCLE, "message", new RuntimeException())
+        def event = new LogEvent(1234, "category", LogLevel.LIFECYCLE, new OperationIdentifier(42L), "message", new RuntimeException())
         def result = serialize(event, serializer)
         result instanceof LogEvent
         result.timestamp == 1234
         result.category == "category"
         result.logLevel == LogLevel.LIFECYCLE
+        result.operationId.id == 42
         result.message == "message"
         result.throwable.getClass() == event.throwable.getClass()
         result.throwable.message == event.throwable.message
         result.throwable.stackTrace == event.throwable.stackTrace
 
-        def event2 = new LogEvent(1234, "category", LogLevel.LIFECYCLE, "message", null)
+        def event2 = new LogEvent(1234, "category", LogLevel.LIFECYCLE, null, "message", null)
         def result2 = serialize(event2, serializer)
         result2 instanceof LogEvent
         result2.timestamp == 1234
         result2.category == "category"
         result2.logLevel == LogLevel.LIFECYCLE
+        result2.operationId == null
         result2.message == "message"
         result2.throwable == null
     }
 
     def "can serialize StyledTextOutputEvent messages"() {
         expect:
-        def event = new StyledTextOutputEvent(1234, "category", LogLevel.LIFECYCLE,
+        def event = new StyledTextOutputEvent(1234, "category", LogLevel.LIFECYCLE, new OperationIdentifier(42L),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Description, "description"),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Error, "error"))
         def result = serialize(event, serializer)
@@ -67,6 +71,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.timestamp == 1234
         result.category == "category"
         result.logLevel == LogLevel.LIFECYCLE
+        result.operationId.id == 42
         result.spans.size() == 2
         result.spans[0].style == StyledTextOutput.Style.Description
         result.spans[0].text == "description"
