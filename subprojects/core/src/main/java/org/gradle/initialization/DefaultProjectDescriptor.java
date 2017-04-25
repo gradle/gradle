@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -133,11 +134,12 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
         DefaultProjectDescriptor that = (DefaultProjectDescriptor) o;
 
-        return this.getPath().equals(that.getPath());
+        return Objects.equal(this.getParent(), that.getParent())
+            && Objects.equal(this.getName(), that.getName());
     }
 
     public int hashCode() {
-        return this.getPath().hashCode();
+        return Objects.hashCode(this.getParent(), this.getName());
     }
 
     @Override

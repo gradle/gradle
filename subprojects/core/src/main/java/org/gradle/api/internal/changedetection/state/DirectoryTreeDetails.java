@@ -38,7 +38,7 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
     }
 
     @Override
-    public List<FileSnapshot> getDescendents() {
+    public List<FileSnapshot> getDescendants() {
         return elements;
     }
 }

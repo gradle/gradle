@@ -271,14 +271,25 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             // TODO: Reuse more of BuildActionsFactory
             BuildAction action = new ExecuteBuildAction(startParameter);
             BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
-            BuildRequestContext buildRequestContext = createBuildRequestContext(outputListener, errorListener);
-            startMeasurement();
-            actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
+            BuildRequestContext buildRequestContext = createBuildRequestContext();
+            LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
+            loggingManager.addStandardOutputListener(outputListener);
+            loggingManager.addStandardErrorListener(errorListener);
+            loggingManager.start();
+            try {
+                startMeasurement();
+                try {
+                    actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
+                } finally {
+                    stopMeasurement();
+                }
+            } finally {
+                loggingManager.stop();
+            }
             return new BuildResult(null, null);
         } catch (ReportedException e) {
             return new BuildResult(null, e.getCause());
         } finally {
-            stopMeasurement();
             listenerManager.removeListener(listener);
         }
     }
@@ -296,12 +307,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         );
     }
 
-    private BuildRequestContext createBuildRequestContext(StandardOutputListener outputListener, StandardOutputListener errorListener) {
+    private BuildRequestContext createBuildRequestContext() {
         return new DefaultBuildRequestContext(
             new DefaultBuildRequestMetaData(new GradleLauncherMetaData()),
             new DefaultBuildCancellationToken(),
-            new NoOpBuildEventConsumer(),
-            outputListener, errorListener);
+            new NoOpBuildEventConsumer());
     }
 
     public void assertCanExecute() {

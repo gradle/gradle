@@ -135,7 +135,7 @@ import java.util.Set;
  * <p>
  * By default, tasks are not executed in parallel unless a task is waiting on asynchronous work and another task (which
  * is not dependent) is ready to execute.
- * 
+ *
  * Parallel execution can be enabled by the <code>--parallel</code> flag when the build is initiated.
  * In parallel mode, the tasks of different projects (i.e. in a multi project build) are able to be executed in parallel.
  */
@@ -434,7 +434,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Logger getLogger();
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to control the logging level and
+     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this task. By default, System.out is redirected to the Gradle logging system at
      * the QUIET log level, and System.err is redirected at the ERROR log level.
      *

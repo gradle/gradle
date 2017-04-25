@@ -701,6 +701,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public void setBuildDir(File path) {
+        setBuildDir((Object) path);
+    }
+
+    @Override
     public void setBuildDir(Object path) {
         buildDir = path;
         buildDirCached = null;
@@ -1283,7 +1288,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    protected ProjectConfigurator getProjectConfigurator() {
+    protected CrossProjectConfigurator getProjectConfigurator() {
         throw new UnsupportedOperationException();
     }
 

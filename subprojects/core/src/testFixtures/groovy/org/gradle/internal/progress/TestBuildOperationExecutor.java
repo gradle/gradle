@@ -18,8 +18,15 @@ package org.gradle.internal.progress;
 
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
+import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.BuildOperation;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.BuildOperationWorker;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -29,45 +36,42 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Simply execute given operations, does not support current/parent operations.
  */
 public class TestBuildOperationExecutor implements BuildOperationExecutor {
-    public final List<BuildOperationDetails> operations = new CopyOnWriteArrayList<BuildOperationDetails>();
+    public final List<BuildOperationDescriptor> operations = new CopyOnWriteArrayList<BuildOperationDescriptor>();
 
     @Override
-    public Operation getCurrentOperation() {
-        return new Operation() {
+    public BuildOperationState getCurrentOperation() {
+        return new BuildOperationState() {
             @Override
             public Object getId() {
-                return "current";
+                return new OperationIdentifier(0);
             }
 
             @Override
             public Object getParentId() {
-                return "parent";
+                return null;
             }
         };
     }
 
     @Override
-    public <T> T run(String displayName, Transformer<T, ? super BuildOperationContext> factory) {
-        operations.add(BuildOperationDetails.displayName(displayName).build());
-        return factory.transform(new TestBuildOperationContext());
+    public void run(RunnableBuildOperation buildOperation) {
+        operations.add(buildOperation.description().build());
+        buildOperation.run(new TestBuildOperationContext());
     }
 
     @Override
-    public <T> T run(BuildOperationDetails operationDetails, Transformer<T, ? super BuildOperationContext> factory) {
-        operations.add(operationDetails);
-        return factory.transform(new TestBuildOperationContext());
+    public <T> T call(CallableBuildOperation<T> buildOperation) {
+        operations.add(buildOperation.description().build());
+        return buildOperation.call(new TestBuildOperationContext());
+    }
+    @Override
+    public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> generator) {
+        generator.execute(new TestBuildOperationQueue<O>(operations));
     }
 
     @Override
-    public void run(String displayName, Action<? super BuildOperationContext> action) {
-        operations.add(BuildOperationDetails.displayName(displayName).build());
-        action.execute(new TestBuildOperationContext());
-    }
-
-    @Override
-    public void run(BuildOperationDetails operationDetails, Action<? super BuildOperationContext> action) {
-        operations.add(operationDetails);
-        action.execute(new TestBuildOperationContext());
+    public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
+        throw new UnsupportedOperationException();
     }
 
     private static class TestBuildOperationContext implements BuildOperationContext {
@@ -77,6 +81,40 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
         @Override
         public void setResult(@Nullable Object result) {
+        }
+    }
+
+    public static class TestBuildOperationQueue<O extends RunnableBuildOperation> implements BuildOperationQueue<O> {
+        public final List<BuildOperationDescriptor> operations;
+
+        public TestBuildOperationQueue() {
+            this(new CopyOnWriteArrayList<BuildOperationDescriptor>());
+        }
+
+        public TestBuildOperationQueue(List<BuildOperationDescriptor> operations) {
+            this.operations = operations;
+        }
+
+
+        @Override
+        public void add(O operation) {
+            operations.add(operation.description().build());
+            operation.run(new TestBuildOperationContext());
+        }
+
+        @Override
+        public void cancel() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void waitForCompletion() throws MultipleBuildOperationFailures {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setLogLocation(String logLocation) {
+            throw new UnsupportedOperationException();
         }
     }
 }

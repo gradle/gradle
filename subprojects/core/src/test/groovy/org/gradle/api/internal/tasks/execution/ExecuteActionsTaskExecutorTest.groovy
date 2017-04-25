@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.api.Action
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -30,15 +29,16 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
 
 import static java.util.Collections.emptyList
 
-public class ExecuteActionsTaskExecuterTest extends Specification {
-    private final TaskInternal task = Mock(TaskInternal);
+class ExecuteActionsTaskExecutorTest extends Specification {
+    private final TaskInternal task = Mock(TaskInternal)
     private final ContextAwareTaskAction action1 = Mock(ContextAwareTaskAction)
     private final ContextAwareTaskAction action2 = Mock(ContextAwareTaskAction)
     private final TaskStateInternal state = new TaskStateInternal()
@@ -53,7 +53,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
-        task.getProject() >> project;
+        task.getProject() >> project
         task.getState() >> state
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
@@ -75,7 +75,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         task.getTaskActions() >> emptyList()
 
         when:
-        executer.execute(task, state, executionContext);
+        executer.execute(task, state, executionContext)
 
         then:
         1 * publicListener.beforeActions(task)
@@ -114,7 +114,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -128,7 +128,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -170,7 +170,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -202,7 +202,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -244,7 +244,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -280,7 +280,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -294,7 +294,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_)
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -331,7 +331,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -376,7 +376,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -420,7 +420,7 @@ public class ExecuteActionsTaskExecuterTest extends Specification {
             throw new DefaultMultiCauseException("mock failures", failure)
         }
         then:
-        1 * buildOperationExecutor.run(_ as String, _ as Action) >> { args -> args[1].execute(Stub(BuildOperationContext)) }
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:

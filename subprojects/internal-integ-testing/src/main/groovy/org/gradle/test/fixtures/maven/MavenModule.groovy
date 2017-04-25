@@ -16,6 +16,7 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.Module
+import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
 
 interface MavenModule extends Module {
@@ -70,7 +71,11 @@ interface MavenModule extends Module {
 
     String getVersion()
 
+    ModuleArtifact getPom();
+
     TestFile getPomFile()
+
+    ModuleArtifact getArtifact();
 
     TestFile getArtifactFile()
 

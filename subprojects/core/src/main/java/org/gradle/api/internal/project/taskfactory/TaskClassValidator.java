@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
@@ -29,12 +30,14 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class TaskClassValidator implements TaskValidator, Action<Task> {
-    private final Set<TaskPropertyInfo> validatedProperties;
-    private final Set<String> nonAnnotatedPropertyNames;
+    private final ImmutableSortedSet<TaskPropertyInfo> annotatedProperties;
+    private final ImmutableList<TaskClassValidationMessage> validationMessages;
+    private final boolean cacheable;
 
-    public TaskClassValidator(Set<TaskPropertyInfo> validatedProperties, Set<String> nonAnnotatedPropertyNames) {
-        this.validatedProperties = ImmutableSet.copyOf(validatedProperties);
-        this.nonAnnotatedPropertyNames = ImmutableSet.copyOf(nonAnnotatedPropertyNames);
+    public TaskClassValidator(Set<TaskPropertyInfo> annotatedProperties, List<TaskClassValidationMessage> validationMessages, boolean cacheable) {
+        this.annotatedProperties = ImmutableSortedSet.copyOf(annotatedProperties);
+        this.validationMessages = ImmutableList.copyOf(validationMessages);
+        this.cacheable = cacheable;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
 
     public void addInputsAndOutputs(final TaskInternal task) {
         task.addValidator(this);
-        for (TaskPropertyInfo property : validatedProperties) {
+        for (TaskPropertyInfo property : annotatedProperties) {
             property.getConfigureAction().update(task, new FutureValue(property, task));
         }
     }
@@ -71,7 +74,7 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
     @Override
     public void validate(TaskInternal task, Collection<String> messages) {
         List<TaskPropertyValue> propertyValues = new ArrayList<TaskPropertyValue>();
-        for (TaskPropertyInfo property : validatedProperties) {
+        for (TaskPropertyInfo property : annotatedProperties) {
             propertyValues.add(property.getValue(task));
         }
         for (TaskPropertyValue propertyValue : propertyValues) {
@@ -83,14 +86,18 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
     }
 
     public boolean hasAnythingToValidate() {
-        return !validatedProperties.isEmpty();
+        return !annotatedProperties.isEmpty();
     }
 
-    public Set<TaskPropertyInfo> getValidatedProperties() {
-        return validatedProperties;
+    public ImmutableSortedSet<TaskPropertyInfo> getAnnotatedProperties() {
+        return annotatedProperties;
     }
 
-    public Set<String> getNonAnnotatedPropertyNames() {
-        return nonAnnotatedPropertyNames;
+    public ImmutableList<TaskClassValidationMessage> getValidationMessages() {
+        return validationMessages;
+    }
+
+    public boolean isCacheable() {
+        return cacheable;
     }
 }

@@ -48,6 +48,11 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
     }
 
     @Override
+    public String toString() {
+        return "{in-memory-cache cache: " + delegate + "}";
+    }
+
+    @Override
     public V get(final K key) {
         assert key instanceof String || key instanceof Long || key instanceof File || key instanceof HashCode : "Unsupported key type: " + key;
         Object value;

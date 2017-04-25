@@ -29,7 +29,7 @@ public interface TransformedFileCache {
      * Returns the result of applying the given transform to the given file.
      *
      * @param inputFile The file to transform
-     * @param inputsHash The hash of the input file, transform implementation and configuration
+     * @param inputsHash The hash of the other inputs of the transform, such as transform implementation and configuration, but excluding the input file.
      * @param transformer The transformer to apply to produce the output, if not already available
      */
     List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer);

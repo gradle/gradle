@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
+package org.gradle.test.fixtures.server.http;
 
-/**
- * A ResolvedArtifactSet instance where the set of resolved artifacts may change over time.
- */
-public interface DynamicResolvedArtifactSet extends ResolvedArtifactSet {
-    /**
-     * Produce a static snapshot of this artifact set.
-     */
-    ResolvedArtifactSet snapshot();
+import com.sun.net.httpserver.HttpExchange;
+
+import java.io.IOException;
+
+interface ResourceHandler {
+    String getPath();
+
+    void writeTo(HttpExchange exchange) throws IOException;
 }

@@ -30,7 +30,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;

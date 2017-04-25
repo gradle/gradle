@@ -17,51 +17,93 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.util.Collection;
+import java.io.File;
 
 /**
- * A ResolvedArtifactSet wrapper that prepares artifacts in parallel when visiting the delegate.
+ * A wrapper that prepares artifacts in parallel when visiting the delegate.
  * This is done by collecting all artifacts to prepare and/or visit in a first step.
  * The collected artifacts are prepared in parallel and subsequently visited in sequence.
  */
-public class ParallelResolveArtifactSet implements ResolvedArtifactSet {
-    private final ResolvedArtifactSet delegate;
-    private final BuildOperationProcessor buildOperationProcessor;
+public abstract class ParallelResolveArtifactSet {
+    private static final EmptySet EMPTY = new EmptySet();
 
-    public ParallelResolveArtifactSet(ResolvedArtifactSet delegate, BuildOperationProcessor buildOperationProcessor) {
-        this.delegate = delegate;
-        this.buildOperationProcessor = buildOperationProcessor;
+    public abstract void visit(ArtifactVisitor visitor);
+    public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
+        if (artifacts == ResolvedArtifactSet.EMPTY) {
+            return EMPTY;
+        }
+        return new VisitingSet(artifacts, buildOperationProcessor);
     }
 
-    @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
-        throw new UnsupportedOperationException();
+    private static class EmptySet extends ParallelResolveArtifactSet {
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+        }
     }
 
-    @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-        delegate.collectBuildDependencies(dest);
-    }
+    private static class VisitingSet extends ParallelResolveArtifactSet {
+        private final ResolvedArtifactSet artifacts;
+        private final BuildOperationExecutor buildOperationProcessor;
 
-    @Override
-    public void visit(final ArtifactVisitor visitor) {
-        // Create a snapshot so that we use the same set of backing variants for prepare and visit
-        final ResolvedArtifactSet snapshot = delegate instanceof DynamicResolvedArtifactSet ? ((DynamicResolvedArtifactSet) delegate).snapshot() : delegate;
+        VisitingSet(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
+            this.artifacts = artifacts;
+            this.buildOperationProcessor = buildOperationProcessor;
+        }
 
-        // Execute all 'prepare' calls in parallel
-        buildOperationProcessor.run(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
+        public void visit(final ArtifactVisitor visitor) {
+            // Start preparing the result
+            StartVisitAction visitAction = new StartVisitAction(visitor);
+            buildOperationProcessor.runAll(visitAction);
+
+            // Now visit the result in order
+            visitAction.result.visit(visitor);
+        }
+
+        private static class AsyncArtifactListenerAdapter implements ResolvedArtifactSet.AsyncArtifactListener {
+            private final ArtifactVisitor visitor;
+
+            AsyncArtifactListenerAdapter(ArtifactVisitor visitor) {
+                this.visitor = visitor;
+            }
+
+            @Override
+            public void artifactAvailable(ResolvedArtifact artifact) {
+                // Don't care, collect the artifacts later (in the correct order)
+            }
+
+            @Override
+            public boolean requireArtifactFiles() {
+                return visitor.requireArtifactFiles();
+            }
+
+            @Override
+            public boolean includeFileDependencies() {
+                return visitor.includeFiles();
+            }
+
+            @Override
+            public void fileAvailable(File file) {
+                // Don't care, collect the files later (in the correct order)
+            }
+        }
+
+        private class StartVisitAction implements Action<BuildOperationQueue<RunnableBuildOperation>> {
+            private final ArtifactVisitor visitor;
+            ResolvedArtifactSet.Completion result;
+
+            StartVisitAction(ArtifactVisitor visitor) {
+                this.visitor = visitor;
+            }
+
             @Override
             public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                snapshot.addPrepareActions(buildOperationQueue, visitor);
+                result = artifacts.startVisit(buildOperationQueue, new AsyncArtifactListenerAdapter(visitor));
             }
-        });
-
-        // Now visit the set in order
-        snapshot.visit(visitor);
+        }
     }
 }

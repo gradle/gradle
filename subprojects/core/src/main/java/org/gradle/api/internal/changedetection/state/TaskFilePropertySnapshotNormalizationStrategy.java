@@ -47,7 +47,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
 
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-            // Ignore path of root directories
+            // Ignore path of root directories, use base name of root files
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
                 return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
             }

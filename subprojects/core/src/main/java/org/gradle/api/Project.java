@@ -260,6 +260,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
+     * generated into.</p>
+     *
+     * @param path The build directory
+     * @since 4.0
+     */
+    void setBuildDir(File path);
+
+    /**
+     * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
      * generated into. The path parameter is evaluated as described for {@link #file(Object)}. This mean you can use,
      * amongst other things, a relative or absolute path or File object to specify the build directory.</p>
      *
@@ -1376,7 +1385,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Gradle getGradle();
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to control the logging level and
+     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this project's build script. By default, System.out is redirected to the Gradle
      * logging system at the QUIET log level, and System.err is redirected at the ERROR log level.
      *

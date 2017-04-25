@@ -319,6 +319,15 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
 
     /**
      * Sets the output file to store the report in.
+     *
+     * @since 4.0
+     */
+    public void setOutputFile(File outputFile) {
+        setOutputFile((Object) outputFile);
+    }
+
+    /**
+     * Sets the output file to store the report in.
      */
     public void setOutputFile(Object outputFile) {
         this.outputFile = outputFile;

@@ -81,7 +81,6 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (Project p : allProjects) {
             p.getPluginManager().apply(IdeaPlugin.class);
         }
-        ideaPluginFor(root).performPostEvaluationActions();
     }
 
     private DefaultIdeaProject build(Project project, DefaultGradleProject rootGradleProject) {

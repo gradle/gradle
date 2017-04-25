@@ -112,6 +112,18 @@ When two tasks write into the same directory, Gradle will now disable task outpu
 
 You can diagnose overlapping task output issues by running Gradle at the `--info` log level. If you are using [Gradle Build Scans](https://gradle.com/scans/get-started), the same detailed reason for disabling task output caching will be included in the build timeline. 
 
+#### Stricter validation of task properties
+
+When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin will go through validation. In Gradle 4.0, additional problems are now detected. 
+
+A warning is shown when:
+* a task has a property without an input or output annotation (this might indicate a forgotten input or output),
+* a task has `@Input` on a `File` property (instead of using `@InputFile` of `@InputDirectory`),
+* a task declares conflicting types for a property (say, both `@InputFile` and `@InputDirectory`),
+* a cacheable task declares a property without specifying `@PathSensitive`. In such a case, we default to `ABSOLUTE` path sensitivity, which will prevent the task's outputs from being shared across different users via a shared cache.
+
+For more info on using task property annotations, see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
+
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
 This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases.
@@ -146,6 +158,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### maven-publish and ivy-publish mirror multi-project behavior
+
+When using the `java` plugin, all `compile` and `runtime` dependencies will now be mapped to the `compile` scope, i.e. "leaked" into the consumer's compile classpath. This is in line with how
+ these legacy configurations work in multi-project builds. We strongly encourage you to use the `api`(java-library plugin only), `implementation` and `runtimeOnly` configurations instead. These
+ are mapped as expected, with `api` being exposed to the consumer's compile classpath and `implementation` and `runtimeOnly` only available on the consumer's runtime classpath.
 <!--
 ### Example breaking change
 -->
@@ -178,9 +195,34 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Removed Ant <depend> related classes `AntDepend`, `AntDependsStaleClassCleaner`, and `DependOptions`
 - Removed `Javadoc#setOptions`
 - Removed `Manifest.writeTo(Writer)`. Please use `Manifest.writeTo(Object)`
+- Removed `TaskInputs.source()` and `sourceDir()`. Please use `TaskInputs.file().skipWhenEmpty()`, `files().skipWhenEmpty()` and `dir().skipWhenEmpty()`.
+- Chaining calls to `TaskInputs.file()`, `files()`, `dir()` and `TaskOutputs.file()`, `files()` and `dir()` are not supported anymore.
+- Removed `TaskOutputs.doNotCacheIf(Spec)`, use `doNotCacheIf(String, Spec)` instead.
 
 The deprecated `jetty` plugin has been removed. We recommend using the [Gretty plugin](https://github.com/akhikhl/gretty) for developing Java web applications.
 The deprecated `pluginRepositories` block for declaring custom plugin repositories has been removed in favor of `pluginManagement.repositories`.
+
+### Adding copy specs is not allowed during task execution of a `AbstractCopyTask` task
+
+You can no longer add copy specs to a copy (like `Copy` and `Sync`) or archive task (like `Zip` and `Tar`) when the task is executing. Tasks that used this behavior could produce incorrect results and not honor task dependencies. 
+
+Starting with Gradle 4.0, builds that rely on this behavior will fail.  Previously, Gradle only failed if the task was cacheable and emitted a warning otherwise. 
+
+```groovy
+// This task adds a copy spec during the execution phase.
+task copy(type: Copy) {
+    from ("some-dir")
+    into ("build/output")
+
+    doFirst {
+        // Adding copy specs during runtime is not allowed anymore
+        // The build will fail with 4.0
+        from ("some-other-dir") {
+            exclude "non-existent-file"
+        }
+    }
+}
+```
 
 ## External contributions
 
@@ -201,7 +243,8 @@ We would like to thank the following community members for making contributions 
 - [Lari Hotari](https://github.com/lhtorai) - Issue: #1730 Memory leak in Gradle daemon
  ([gradle/gradle#1736](https://github.com/gradle/gradle/pull/1736))
 - [Andy Bell](https://github.com/andyrbell) - Prevent NullPointerException for JUnit Categories for test description with null test class([gradle/gradle#1511](https://github.com/gradle/gradle/pull/1511))
-
+- [Piotr Kubowicz](https://github.com/pkubowicz) - Default to compileClasspath configuration in DependencyInsightReportTask ([gradle/gradle#1376](https://github.com/gradle/gradle/pull/1395))
+- [Chris Gavin](https://github.com/chrisgavin) - Clean up Sign task API ([gradle/gradle#1679](https://github.com/gradle/gradle/pull/1679))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

@@ -25,9 +25,9 @@ import java.util.Collection;
 import java.util.List;
 
 public class CompositeArtifactSet implements ResolvedArtifactSet {
-    protected final Iterable<ResolvedArtifactSet> sets;
+    private final List<ResolvedArtifactSet> sets;
 
-    CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
+    private CompositeArtifactSet(List<ResolvedArtifactSet> sets) {
         this.sets = sets;
     }
 
@@ -48,10 +48,12 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+        List<Completion> results = new ArrayList<Completion>(sets.size());
         for (ResolvedArtifactSet set : sets) {
-            set.addPrepareActions(actions, visitor);
+            results.add(set.startVisit(actions, listener));
         }
+        return new CompositeResult(results);
     }
 
     @Override
@@ -61,10 +63,18 @@ public class CompositeArtifactSet implements ResolvedArtifactSet {
         }
     }
 
-    @Override
-    public void visit(ArtifactVisitor visitor) {
-        for (ResolvedArtifactSet set : sets) {
-            set.visit(visitor);
+    private static class CompositeResult implements Completion {
+        private final List<Completion> results;
+
+        CompositeResult(List<Completion> results) {
+            this.results = results;
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            for (Completion result : results) {
+                result.visit(visitor);
+            }
         }
     }
 }

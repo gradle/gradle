@@ -15,13 +15,15 @@
  */
 package org.gradle.api.internal.tasks.execution.statistics;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildListener;
+import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.initialization.BuildCompletionListener;
 
-public class TaskExecutionStatisticsEventAdapter implements BuildCompletionListener, TaskExecutionListener {
+public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements BuildListener, TaskExecutionListener {
     private final TaskExecutionStatisticsListener listener;
     private int executedTasksCount;
     private int avoidedTasksCount;
@@ -31,8 +33,11 @@ public class TaskExecutionStatisticsEventAdapter implements BuildCompletionListe
     }
 
     @Override
-    public void completed() {
-        listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, avoidedTasksCount));
+    public void buildFinished(BuildResult result) {
+        // Do not report stats for nested builds
+        if (result.getGradle().getParent() == null) {
+            listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, avoidedTasksCount));
+        }
     }
 
     @Override
@@ -42,11 +47,17 @@ public class TaskExecutionStatisticsEventAdapter implements BuildCompletionListe
 
     @Override
     public void afterExecute(Task task, TaskState state) {
-        TaskStateInternal stateInternal = (TaskStateInternal) state;
-        if (stateInternal.isAvoided()) {
-            avoidedTasksCount++;
-        } else if (stateInternal.isActionsWereExecuted()) {
-            executedTasksCount++;
+        if (!taskIsForNestedBuild(task)) {
+            TaskStateInternal stateInternal = (TaskStateInternal) state;
+            if (stateInternal.isAvoided()) {
+                avoidedTasksCount++;
+            } else if (stateInternal.isActionsWereExecuted()) {
+                executedTasksCount++;
+            }
         }
+    }
+
+    private boolean taskIsForNestedBuild(Task task) {
+        return task.getProject().getGradle().getParent() != null;
     }
 }

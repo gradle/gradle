@@ -20,13 +20,19 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
@@ -39,22 +45,24 @@ import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable {
+public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
     private final FileStore<String> fileStore;
-    private final Object lock = new Object();
-    private final Set<HashCode> transforming = new HashSet<HashCode>();
+    private final ProducerGuard<HashCode> producing = new DefaultProducerGuard<HashCode>();
+    private final Map<HashCode, List<File>> resultHashToResult = new ConcurrentHashMap<HashCode, List<File>>();
+    private final FileSystemSnapshotter fileSystemSnapshotter;
 
-    public DefaultTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
+    public DefaultTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         File transformsStoreDirectory = artifactCacheMetaData.getTransformsStoreDirectory();
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         fileStore = new PathKeyFileStore(filesOutputDirectory);
@@ -76,63 +84,69 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     @Override
-    public List<File> getResult(final File inputFile, final HashCode inputsHash, final BiFunction<List<File>, File, File> transformer) {
+    public void afterStart() {
+    }
+
+    @Override
+    public void beforeComplete() {
+        // Discard cached results between builds
+        resultHashToResult.clear();
+    }
+
+    @Override
+    public List<File> getResult(final File inputFile, HashCode inputsHash, final BiFunction<List<File>, File, File> transformer) {
+        // Collect up hash of the input files and of the transform's configuration params and implementation to calculate the key
+        Snapshot inputFileSnapshot = fileSystemSnapshotter.snapshotAll(inputFile);
+        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        hasher.putBytes(inputsHash.asBytes());
+        inputFileSnapshot.appendToHasher(hasher);
+        final HashCode resultHash = hasher.hash();
+
         // Apply locking so that only this process is writing to the file store and only a single thread is running this particular transform
-        transforming(inputsHash);
-        try {
-            return cache.withFileLock(new Factory<List<File>>() {
-                @Override
-                public List<File> create() {
-                    List<File> files = indexedCache.get(inputsHash);
-                    if (files != null) {
-                        boolean allExist = true;
-                        for (File file : files) {
-                            if (!file.exists()) {
-                                allExist = false;
-                                break;
+        return producing.guardByKey(resultHash, new Factory<List<File>>() {
+            @Override
+            public List<File> create() {
+                List<File> files = resultHashToResult.get(resultHash);
+                if (files != null) {
+                    return files;
+                }
+
+                files = cache.withFileLock(new Factory<List<File>>() {
+                    @Override
+                    public List<File> create() {
+                        List<File> files = indexedCache.get(resultHash);
+                        if (files != null) {
+                            boolean allExist = true;
+                            for (File file : files) {
+                                if (!file.exists()) {
+                                    allExist = false;
+                                    break;
+                                }
                             }
+                            if (allExist) {
+                                return files;
+                            }
+                            // Else, recreate outputs
                         }
-                        if (allExist) {
-                            return files;
+
+                        // File store takes care of cleaning up on failure/crash
+                        String key = inputFile.getName() + "/" + resultHash;
+                        TransformAction action = new TransformAction(transformer, inputFile);
+                        try {
+                            fileStore.add(key, action);
+                        } catch (FileStoreAddActionException e) {
+                            throw UncheckedException.throwAsUncheckedException(e.getCause());
                         }
-                        // Else, recreate outputs
+
+                        indexedCache.put(resultHash, action.result);
+                        return action.result;
                     }
+                });
 
-                    // File store takes care of cleaning up on failure/crash
-                    String key = inputFile.getName() + "/" + inputsHash;
-                    TransformAction action = new TransformAction(transformer, inputFile);
-                    try {
-                        fileStore.add(key, action);
-                    } catch (FileStoreAddActionException e) {
-                        throw UncheckedException.throwAsUncheckedException(e.getCause());
-                    }
-
-                    indexedCache.put(inputsHash, action.result);
-                    return action.result;
-                }
-            });
-        } finally {
-            notTransforming(inputsHash);
-        }
-    }
-
-    private void transforming(HashCode inputsHash) {
-        synchronized (lock) {
-            while (!transforming.add(inputsHash)) {
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                resultHashToResult.put(resultHash, files);
+                return files;
             }
-        }
-    }
-
-    private void notTransforming(HashCode inputsHash) {
-        synchronized (lock) {
-            transforming.remove(inputsHash);
-            lock.notifyAll();
-        }
+        });
     }
 
     private static class TransformAction implements Action<File> {

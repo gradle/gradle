@@ -84,6 +84,13 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    public void setAllJvmArgs(List<String> arguments) {
+        javaExecHandleBuilder.setAllJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public void setAllJvmArgs(Iterable<?> arguments) {
         javaExecHandleBuilder.setAllJvmArgs(arguments);
     }
@@ -93,6 +100,13 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     public List<String> getJvmArgs() {
         return javaExecHandleBuilder.getJvmArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setJvmArgs(List<String> arguments) {
+        javaExecHandleBuilder.setJvmArgs(arguments);
     }
 
     /**
@@ -266,6 +280,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    public JavaExec setArgs(List<String> applicationArgs) {
+        javaExecHandleBuilder.setArgs(applicationArgs);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public JavaExec setArgs(Iterable<?> applicationArgs) {
         javaExecHandleBuilder.setArgs(applicationArgs);
         return this;
@@ -329,6 +351,13 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    public void setExecutable(String executable) {
+        javaExecHandleBuilder.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public void setExecutable(Object executable) {
         javaExecHandleBuilder.setExecutable(executable);
     }
@@ -347,6 +376,13 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     public File getWorkingDir() {
         return javaExecHandleBuilder.getWorkingDir();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setWorkingDir(File dir) {
+        javaExecHandleBuilder.setWorkingDir(dir);
     }
 
     /**

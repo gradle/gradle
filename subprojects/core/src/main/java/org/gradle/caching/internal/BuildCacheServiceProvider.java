@@ -24,7 +24,7 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.internal.Cast;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
@@ -79,21 +79,6 @@ public class BuildCacheServiceProvider {
         } else {
             LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
             return new NoOpBuildCacheService();
-        }
-
-        // TODO Remove this when the system properties are removed
-        if (buildCacheConfiguration.isPullDisabled() || buildCacheConfiguration.isPushDisabled()) {
-            if (buildCacheConfiguration.isPushDisabled()) {
-                LOGGER.warn("Pushing to any build cache is globally disabled.");
-            }
-            if (buildCacheConfiguration.isPullDisabled()) {
-                LOGGER.warn("Pulling from any build cache is globally disabled.");
-            }
-            buildCacheService = new PushOrPullPreventingBuildCacheServiceDecorator(
-                buildCacheConfiguration.isPushDisabled(),
-                buildCacheConfiguration.isPullDisabled(),
-                buildCacheService
-            );
         }
 
         return buildCacheService;

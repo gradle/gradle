@@ -97,7 +97,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
-                FileSnapshot details = fileSystemSnapshotter.snapshotFile(file);
+                FileSnapshot details = fileSystemSnapshotter.snapshotSelf(file);
                 switch (details.getType()) {
                     case Missing:
                         fileTreeElements.add(details);
@@ -126,7 +126,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
             FileTreeSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            List<FileSnapshot> elements = treeSnapshot.getDescendents();
+            List<FileSnapshot> elements = treeSnapshot.getDescendants();
             elements = normaliseTreeElements(elements);
             fileTreeElements.addAll(elements);
         }

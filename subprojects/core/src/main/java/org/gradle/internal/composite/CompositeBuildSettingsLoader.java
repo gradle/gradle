@@ -45,7 +45,10 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+        CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
+
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+        compositeContextBuilder.setRootBuild(settings);
 
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
@@ -55,8 +58,7 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
                 LOGGER.warn("[composite-build] Warning: continuous build doesn't detect changes in included builds.");
             }
 
-            CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
-            compositeContextBuilder.addToCompositeContext(includedBuilds);
+            compositeContextBuilder.addIncludedBuilds(includedBuilds);
         }
 
         return settings;

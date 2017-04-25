@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -29,8 +28,7 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     private final FileResolver resolver;
     private final Object path;
 
-    public DefaultCacheableTaskOutputFilePropertySpec(TaskOutputs taskOutputs, String taskName, FileResolver resolver, OutputType outputType, Object path) {
-        super(taskOutputs);
+    public DefaultCacheableTaskOutputFilePropertySpec(String taskName, FileResolver resolver, OutputType outputType, Object path) {
         this.resolver = resolver;
         this.outputType = outputType;
         this.path = path;

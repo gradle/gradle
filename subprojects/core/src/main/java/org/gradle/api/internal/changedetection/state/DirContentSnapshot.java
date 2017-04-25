@@ -21,14 +21,14 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-class DirSnapshot implements FileContentSnapshot {
-    private static final DirSnapshot INSTANCE = new DirSnapshot();
-    private static final HashCode SIGNATURE = Hashing.md5().hashString(DirSnapshot.class.getName(), Charsets.UTF_8);
+class DirContentSnapshot implements FileContentSnapshot {
+    private static final DirContentSnapshot INSTANCE = new DirContentSnapshot();
+    private static final HashCode SIGNATURE = Hashing.md5().hashString(DirContentSnapshot.class.getName(), Charsets.UTF_8);
 
-    private DirSnapshot() {
+    private DirContentSnapshot() {
     }
 
-    static DirSnapshot getInstance() {
+    static DirContentSnapshot getInstance() {
         return INSTANCE;
     }
 
@@ -38,7 +38,7 @@ class DirSnapshot implements FileContentSnapshot {
     }
 
     public boolean isContentUpToDate(FileContentSnapshot snapshot) {
-        return snapshot instanceof DirSnapshot;
+        return snapshot instanceof DirContentSnapshot;
     }
 
     @Override

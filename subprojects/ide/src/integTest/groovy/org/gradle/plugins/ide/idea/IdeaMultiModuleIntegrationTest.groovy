@@ -75,6 +75,39 @@ project(':shared:model') {
         dependencies.assertHasModule("TEST", "util")
     }
 
+
+    @Test
+    void buildsCorrectModuleDependenciesForDependencyOnRoot() {
+        file("settings.gradle") << """
+rootProject.name = 'root-project-1'
+include 'api'
+        """
+
+        file("build.gradle") << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+project(':api') {
+    dependencies {
+        compile project(':')
+    }
+}
+"""
+
+        //when
+        executer.withTasks("ideaModule").run()
+
+        //then
+        def dependencies = parseIml("api/api.iml").dependencies
+        assert dependencies.modules.size() == 3
+        dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "root-project-1")
+
+        dependencies = parseIml("root-project-1.iml").dependencies
+        assert dependencies.modules.size() == 0
+    }
+
     @Test
     void respectsApiOfJavaLibraries() {
         def settingsFile = file("master/settings.gradle")
@@ -126,15 +159,17 @@ project(":application") {
 
     @Test
     void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
-        def settingsFile = file("settings.gradle")
-        settingsFile << """
+        file("settings.gradle") << """
+rootProject.name = 'root-project-1'
+
 include 'api'
 include 'util'
 include 'other'
         """
 
-        def buildFile = file("build.gradle")
-        buildFile << """
+        file("build.gradle") << """
+apply plugin: 'java'
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
@@ -150,16 +185,28 @@ project(':api') {
 project(':other') {
     idea.module.name = 'other-renamed'
 }
+
+project(':util') {
+    dependencies {
+        testCompile project(':')
+    }
+}
+
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        executer.withTasks("ideaModule").run()
 
         //then
         def dependencies = parseIml("api/api.iml").dependencies
         assert dependencies.modules.size() == 6
         dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "util")
         dependencies.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "other-renamed")
+
+        def utilDependencies = parseIml("util/util.iml").dependencies
+        assert utilDependencies.modules.size() == 1
+        // This name is incorrect (see gradle/composite-builds#99)
+        utilDependencies.assertHasModule(['TEST'], ":")
     }
 
     @Test
@@ -172,11 +219,11 @@ project(':other') {
           -api
           -model
         -services
-          -util
+          -utilities (renamed by user to 'util')
         -util
         -contrib
           -services
-            -utilities (renamed by user to 'util'
+            -util
       */
 
         def settingsFile = file("master/settings.gradle")
@@ -232,12 +279,12 @@ project(':services:utilities') {
         moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "shared-api")
         moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "very-cool-model")
 
-        moduleDeps = parseIml("master/services/utilities/master-services-util.iml").dependencies
+        moduleDeps = parseIml("master/services/utilities/util.iml").dependencies
         assert moduleDeps.modules.size() == 12
         moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "shared-api")
         moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "very-cool-model")
         moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "master-util")
-        moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "contrib-services-util")
+        moduleDeps.assertHasModule(['PROVIDED', 'RUNTIME','TEST'], "services-util")
     }
 
     def assertIprContainsCorrectModules() {
@@ -245,8 +292,8 @@ project(':services:utilities') {
 
         ['master.iml',
          'shared-api.iml', 'shared.iml',
-         'master-services.iml', 'master-services-util.iml',
-         'contrib-services-util.iml', 'contrib.iml', 'contrib-services.iml',
+         'master-services.iml', 'services-util.iml',
+         'util.iml', 'contrib.iml', 'contrib-services.iml',
          'very-cool-model.iml',
          'master-api.iml',
          'master-util.iml'].each {

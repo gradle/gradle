@@ -19,14 +19,11 @@ package org.gradle.api.internal.project;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.internal.operations.BuildOperationContext;
 
-public interface ProjectConfigurator {
+public interface CrossProjectConfigurator {
     Project project(Project project, Closure<? super Project> configureClosure);
 
     Project project(Project project, Action<? super Project> configureAction);
-
-    Project projectBuildOperationAction(Project project, Action<BuildOperationContext> action);
 
     void subprojects(Iterable<Project> projects, Closure<? super Project> configureClosure);
 

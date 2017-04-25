@@ -29,26 +29,8 @@ class EclipseProjectNameDeduplicationIntegrationTest extends AbstractIdeDeduplic
         return "eclipse"
     }
 
-    def "explicit configured eclipse project name is used"() {
-        given:
-        project("root") {
-            project("foo") {
-                project("app") {
-                    buildFile << "eclipse.project.name = 'custom-app'"
-                }
-            }
-            project("bar") {
-                project("app") {}
-            }
-        }
-
-        when:
-        run ideName
-
-        then:
-        projectName("foo") == "foo"
-        projectName("foo/app") == "custom-app"
-        projectName("bar") == "bar"
-        projectName("bar/app") == "app"
+    @Override
+    protected String getConfiguredModule() {
+        return "eclipse.project"
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.workers.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.process.internal.JavaExecHandleBuilder;

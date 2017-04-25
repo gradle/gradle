@@ -42,20 +42,21 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void addPrepareActions(BuildOperationQueue<RunnableBuildOperation> actions, ArtifactVisitor visitor) {
+    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+        return new Completion() {
+            @Override
+            public void visit(ArtifactVisitor visitor) {
+                for (ResolvedArtifact artifact : artifacts) {
+                    visitor.visitArtifact(variant, artifact);
+                }
+            }
+        };
     }
 
     @Override
     public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
         for (ResolvedArtifact artifact : artifacts) {
             dest.add(((Buildable) artifact).getBuildDependencies());
-        }
-    }
-
-    @Override
-    public void visit(ArtifactVisitor visitor) {
-        for (ResolvedArtifact artifact : artifacts) {
-            visitor.visitArtifact(variant, artifact);
         }
     }
 }

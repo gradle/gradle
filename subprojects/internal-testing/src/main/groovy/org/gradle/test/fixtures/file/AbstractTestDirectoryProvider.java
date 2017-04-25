@@ -23,8 +23,6 @@ import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Random;
@@ -35,7 +33,6 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  */
 abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractTestDirectoryProvider.class);
     protected static TestFile root;
 
     private static final Random RANDOM = new Random();

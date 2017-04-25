@@ -21,6 +21,8 @@ import org.gradle.api.Nullable;
 
 /**
  * Maintains an in-memory mirror of the state of the filesystem.
+ *
+ * This is intended to only be used by {@link DefaultFileSystemSnapshotter}. Use {@link FileSystemSnapshotter} instead.
  */
 @ThreadSafe
 public interface FileSystemMirror {
@@ -28,6 +30,11 @@ public interface FileSystemMirror {
     FileSnapshot getFile(String path);
 
     void putFile(FileSnapshot file);
+
+    @Nullable
+    Snapshot getContent(String path);
+
+    void putContent(String path, Snapshot snapshot);
 
     @Nullable
     FileTreeSnapshot getDirectoryTree(String path);

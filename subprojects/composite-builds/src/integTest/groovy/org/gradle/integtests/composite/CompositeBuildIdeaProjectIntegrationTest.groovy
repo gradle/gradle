@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
@@ -290,7 +291,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
-        // This is actually invalid: no `buildC.iml` file exists in the project. Should not substitute?
+        // This is actually invalid: no `buildC.iml` file exists in the project. Should generated buildC iml file even when plugin not applied.
         imlHasDependencies "buildB", "buildC"
     }
 
@@ -321,8 +322,142 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/c2/c2.iml"
-        // This is actually invalid: no `buildC.iml` file exists in the project. Should not substitute?
+        // This is actually invalid: no `buildC.iml` file exists in the project. Should generated buildC iml file even when plugin not applied.
         imlHasDependencies "b1", "buildC", "c2"
+    }
+
+    def "de-duplicates module names for included builds"() {
+        given:
+        dependency "org.test:b1:1.0"
+        dependency "org.buildC:b1:1.0"
+        dependency "org.buildD:b1:1.0"
+
+        def buildC = multiProjectBuild("buildC", ['b1']) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    apply plugin: 'idea'
+                    group = 'org.buildC'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        def buildD = singleProjectBuild("b1") {
+            buildFile << """
+                apply plugin: 'java'
+                apply plugin: 'idea'
+                group = 'org.buildD' 
+"""
+        }
+        includedBuilds << buildD
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml",
+            "../buildB/buildB.iml",
+            "../buildB/b1/buildB-b1.iml",
+            "../buildB/b2/b2.iml",
+            "../buildC/buildC.iml",
+            "../buildC/b1/buildC-b1.iml",
+            "../b1/b1.iml"
+
+        imlHasDependencies "buildB-b1", "buildC-b1", "b1"
+    }
+
+    def "de-duplicates module names between including and included builds"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile 'org.buildC:buildA:1.0'
+                compile project(':b1')
+                compile 'org.test:b1:1.0'
+            }
+"""
+
+        buildA.addChildDir("b1")
+        buildA.settingsFile << """
+            include 'b1'
+"""
+        buildA.buildFile << """
+            subprojects { 
+                apply plugin: 'idea'
+                apply plugin: 'java'
+                
+                group = 'org.buildA'
+            }
+"""
+
+        def buildC = multiProjectBuild("buildC", ["buildA"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    apply plugin: 'idea'
+                    
+                    group = 'org.buildC'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml",
+            "b1/buildA-b1.iml",
+            "../buildB/buildB.iml",
+            "../buildB/b1/buildB-b1.iml",
+            "../buildB/b2/b2.iml",
+            "../buildC/buildC.iml",
+            "../buildC/buildA/buildC-buildA.iml"
+
+        imlHasDependencies "buildC-buildA", "buildA-b1", "buildB-b1"
+    }
+
+    @NotYetImplemented // Should be fixed with gradle/composite-builds#99
+    def "de-duplicates module names when not all projects have IDEA plugin applied"() {
+        given:
+        dependency "org.test:b1:1.0"
+        dependency "org.buildC:b1:1.0"
+        dependency "org.buildD:b1:1.0"
+
+        def buildC = multiProjectBuild("buildC", ['b1']) {
+            buildFile << """
+                // Idea plugin only applied to root
+                apply plugin: 'idea'
+
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.buildC'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        def buildD = singleProjectBuild("b1") {
+            buildFile << """
+                apply plugin: 'java'
+                group = 'org.buildD' 
+"""
+        }
+        includedBuilds << buildD
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml",
+            "../buildB/buildB.iml",
+            "../buildB/b1/buildB-b1.iml",
+            "../buildB/b2/b2.iml",
+            "../buildC/buildC.iml",
+            "../buildC/b1/buildC-b1.iml",
+            "../b1/b1.iml"
+
+        imlHasDependencies "buildB-b1", "buildC-b1", "b1"
     }
 
     def idea(BuildTestFile projectDir = buildA) {
@@ -332,14 +467,12 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
     def ipr(TestFile projectDir = buildA) {
         def iprFile = projectDir.file(projectDir.name + ".ipr")
         assert iprFile.exists()
-//        println iprFile.text
         return IdeaFixtures.parseIpr(iprFile)
     }
 
     def iml(TestFile projectDir = buildA) {
         def imlFile = projectDir.file(projectDir.name + ".iml")
         assert imlFile.exists()
-//        println imlFile.text
         return IdeaFixtures.parseIml(imlFile)
     }
 

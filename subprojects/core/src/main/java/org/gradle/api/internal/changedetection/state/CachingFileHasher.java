@@ -48,8 +48,9 @@ public class CachingFileHasher implements FileHasher {
         this.timestampInspector = timestampInspector;
     }
 
-    public static boolean isLog() {
-        return System.getProperty("org.gradle.internal.changes.log", "false").equalsIgnoreCase("true");
+    @Override
+    public String toString() {
+        return "{hasher cache: " + cache + "}";
     }
 
     @Override

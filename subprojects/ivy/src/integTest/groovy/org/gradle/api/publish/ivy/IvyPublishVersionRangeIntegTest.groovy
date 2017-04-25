@@ -57,11 +57,11 @@ class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
         then:
         ivyModule.assertPublishedAsJavaModule()
         ivyModule.parsedIvy.assertDependsOn(
-            "group:projectA:latest.release@runtime",
-            "group:projectB:latest.integration@runtime",
-            "group:projectC:1.+@runtime",
-            "group:projectD:[1.0,2.0)@runtime",
-            "group:projectE:[1.0]@runtime"
+            "group:projectA:latest.release@compile",
+            "group:projectB:latest.integration@compile",
+            "group:projectC:1.+@compile",
+            "group:projectD:[1.0,2.0)@compile",
+            "group:projectE:[1.0]@compile"
         )
     }
 

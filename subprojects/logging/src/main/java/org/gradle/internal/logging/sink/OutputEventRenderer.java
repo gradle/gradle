@@ -20,6 +20,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
@@ -55,15 +56,15 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
+    private final Object lock = new Object();
+    private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
+    private final AtomicInteger maxWorkerCount = new AtomicInteger();
+    private final TimeProvider timeProvider;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-    private final Object lock = new Object();
-    private final DefaultColorMap colourMap = new DefaultColorMap();
-    private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
-    private final AtomicInteger maxWorkerCount = new AtomicInteger();
-    private final ConsoleConfigureAction consoleConfigureAction;
-    private final TimeProvider timeProvider;
+
+    private ColorMap colourMap;
     private OutputStream originalStdOut;
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
@@ -75,12 +76,21 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     OutputEventRenderer(TimeProvider timeProvider) {
-        OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
-        formatters.add(stdOutChain);
-        OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
-        formatters.add(stdErrChain);
-        this.consoleConfigureAction = new ConsoleConfigureAction();
         this.timeProvider = timeProvider;
+        OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
+            @Override
+            public OutputEventListener create() {
+                return onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
+            }
+        });
+        formatters.add(stdOutChain);
+        OutputEventListener stdErrChain = new LazyListener(new Factory<OutputEventListener>() {
+            @Override
+            public OutputEventListener create() {
+                return onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
+            }
+        });
+        formatters.add(stdErrChain);
     }
 
     @Override
@@ -117,6 +127,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public ColorMap getColourMap() {
+        synchronized (lock) {
+            if (colourMap == null) {
+                colourMap = new DefaultColorMap();
+            }
+        }
         return colourMap;
     }
 
@@ -130,7 +145,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
         synchronized (lock) {
-            consoleConfigureAction.execute(this, consoleOutput);
+            ConsoleConfigureAction.execute(this, consoleOutput);
         }
     }
 
@@ -138,7 +153,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         synchronized (lock) {
             ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-            Console console = new AnsiConsole(writer, writer, colourMap, consoleMetaData, true);
+            Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
             addConsole(console, true, true, consoleMetaData);
         }
     }
@@ -324,6 +339,24 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             this.logLevel = logLevel;
             this.console = console;
             this.maxWorkerCount = maxWorkerCount;
+        }
+    }
+
+    private static class LazyListener implements OutputEventListener {
+        private Factory<OutputEventListener> factory;
+        private OutputEventListener delegate;
+
+        private LazyListener(Factory<OutputEventListener> factory) {
+            this.factory = factory;
+        }
+
+        @Override
+        public void onOutput(OutputEvent event) {
+            if (delegate == null) {
+                delegate = factory.create();
+                factory = null;
+            }
+            delegate.onOutput(event);
         }
     }
 }

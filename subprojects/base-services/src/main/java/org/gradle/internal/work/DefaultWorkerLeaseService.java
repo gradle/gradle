@@ -61,6 +61,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    public int getMaxWorkerCount() {
+        return maxWorkerCount;
+    }
+
+    @Override
     public WorkerLease getCurrentWorkerLease() {
         Collection<? extends ResourceLock> operations = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         if (operations.isEmpty()) {

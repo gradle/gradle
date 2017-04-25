@@ -172,10 +172,6 @@ class Main {
         executedAndNotSkipped ":project-lib:jar", ":verify"
     }
 
-    // TODO:DAZ Not sure if this is really important. Artifact identifiers are not currently serializable, which makes this tough.
-    def "task is not up-to-date when metadata of input artifact changes"() {
-    }
-
     def "failure to resolve artifact collection"() {
         given:
         buildFile << """

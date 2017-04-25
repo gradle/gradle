@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Transformers;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
@@ -192,9 +192,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 VariantsMetaData variantsMetaData = DefaultVariantsMetaData.extractFrom(binary, schema);
                 AttributesSchemaInternal attributesSchema = serviceRegistry.get(AttributesSchemaInternal.class);
                 ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
-                BuildOperationProcessor buildOperationProcessor = serviceRegistry.get(BuildOperationProcessor.class);
+                BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
 
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, buildOperationProcessor);
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, buildOperationExecutor);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

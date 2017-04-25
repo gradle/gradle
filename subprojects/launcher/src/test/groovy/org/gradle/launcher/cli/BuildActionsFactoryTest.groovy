@@ -20,9 +20,11 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.LayoutCommandLineConverter
+import org.gradle.internal.Factory
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
@@ -38,10 +40,13 @@ import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
-import org.gradle.tooling.internal.provider.ContinuousBuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.ContinuousBuildActionExecuter
 import org.gradle.tooling.internal.provider.GradleThreadBuildActionExecuter
 import org.gradle.tooling.internal.provider.ServicesSetupBuildActionExecuter
+import org.gradle.tooling.internal.provider.SessionFailureReportingActionExecuter
+import org.gradle.tooling.internal.provider.SetupLoggingActionExecuter
+import org.gradle.tooling.internal.provider.StartParamsValidatingActionExecuter
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -71,6 +76,7 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.getAll(BuildActionRunner) >> []
         _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
         _ * loggingServices.get(FileSystem) >> Mock(FileSystem)
+        _ * loggingServices.getFactory(LoggingManagerInternal) >> Mock(Factory)
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
         _ * loggingServices.getAll(_) >> []
     }
@@ -151,7 +157,7 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     def convert(String... args) {
-        def CommandLineParser parser = new CommandLineParser()
+        def parser = new CommandLineParser()
         factory.configureCommandLineParser(parser)
         def cl = parser.parse(args)
         return factory.createAction(parser, cl)
@@ -164,10 +170,13 @@ class BuildActionsFactoryTest extends Specification {
 
     void isInProcess(def action) {
         assert action instanceof RunBuildAction
-        assert action.executer instanceof GradleThreadBuildActionExecuter
-        assert action.executer.delegate instanceof ServicesSetupBuildActionExecuter
-        assert action.executer.delegate.delegate instanceof ContinuousBuildActionExecuter
-        assert action.executer.delegate.delegate.delegate instanceof InProcessBuildActionExecuter
+        assert action.executer instanceof SetupLoggingActionExecuter
+        assert action.executer.delegate instanceof SessionFailureReportingActionExecuter
+        assert action.executer.delegate.delegate instanceof StartParamsValidatingActionExecuter
+        assert action.executer.delegate.delegate.delegate instanceof GradleThreadBuildActionExecuter
+        assert action.executer.delegate.delegate.delegate.delegate instanceof ServicesSetupBuildActionExecuter
+        assert action.executer.delegate.delegate.delegate.delegate.delegate instanceof ContinuousBuildActionExecuter
+        assert action.executer.delegate.delegate.delegate.delegate.delegate.delegate instanceof InProcessBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

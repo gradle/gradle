@@ -30,7 +30,7 @@ public class DefaultOperationDescriptor implements OperationDescriptor, Operatio
     private final OperationDescriptor parent;
     private InternalOperationDescriptor internalDescriptor;
 
-    public DefaultOperationDescriptor(InternalOperationDescriptor internalDescriptor,  OperationDescriptor parent) {
+    public DefaultOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent) {
         this.name = internalDescriptor.getName();
         this.displayName = internalDescriptor.getDisplayName();
         this.parent = parent;

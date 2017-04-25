@@ -18,37 +18,12 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
-import spock.lang.Ignore
 
 class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
 
-    @Ignore("Must fix for 4.0")
-    def "changing child specs of the copy task while executing is deprecated"() {
+    def "changing child specs of the copy task while executing is disallowed"() {
         given:
-        setupCopyTaskModifyingChildSpecsAtExecutionTime()
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "copy"
-
-        then:
-        output.contains("Configuring child specs of a copy task at execution time of the task has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Consider configuring the spec during configuration time, or using a separate task to do the configuration.")
-    }
-
-    def "changing child specs of the copy task is disallowed if caching is enabled"() {
-        given:
-        setupCopyTaskModifyingChildSpecsAtExecutionTime()
-
-        when:
-        withBuildCache().fails "copy"
-
-        then:
-        failure.assertHasCause("It is not allowed to modify child specs of the task at execution time when task output caching is enabled. " +
-            "Consider configuring the spec during configuration time, or using a separate task to do the configuration.")
-    }
-
-    void setupCopyTaskModifyingChildSpecsAtExecutionTime() {
+        file("some-dir/input.txt") << "Data"
         buildScript """
             task copy(type: Copy) {
                 outputs.cacheIf { true }
@@ -62,6 +37,11 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
                 }
             }
         """
-        file("some-dir/first-file") << "first file"
+
+        when:
+        fails "copy"
+
+        then:
+        failure.assertHasCause("You cannot add child specs at execution time. Consider configuring this task during configuration time or using a separate task to do the configuration.")
     }
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
@@ -29,13 +28,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemMirror, TaskOutputsGenerationListener {
-    // Maps from interned absolute path for a file to known details for the file. Currently not shared with trees
+/**
+ * See {@link DefaultFileSystemSnapshotter} for some more details
+ */
+public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputsGenerationListener, RootBuildLifecycleListener {
+    // Maps from interned absolute path for a file to known details for the file.
     private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
     private final Map<String, FileSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSnapshot>();
     // Maps from interned absolute path for a directory to known details for the directory.
     private final Map<String, FileTreeSnapshot> trees = new ConcurrentHashMap<String, FileTreeSnapshot>();
     private final Map<String, FileTreeSnapshot> cacheTrees = new ConcurrentHashMap<String, FileTreeSnapshot>();
+    // Maps from interned absolute path to a snapshot
+    private final Map<String, Snapshot> snapshots = new ConcurrentHashMap<String, Snapshot>();
+    private final Map<String, Snapshot> cacheSnapshots = new ConcurrentHashMap<String, Snapshot>();
     private final FileHierarchySet cachedDirectories;
 
     public DefaultFileSystemMirror(List<CachedJarFileStore> fileStores) {
@@ -51,6 +56,8 @@ public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemM
     @Nullable
     @Override
     public FileSnapshot getFile(String path) {
+        // Could potentially also look whether we have the details for an ancestor directory tree
+        // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
         if (cachedDirectories.contains(path)) {
             return cacheFiles.get(path);
         } else {
@@ -69,7 +76,28 @@ public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemM
 
     @Nullable
     @Override
+    public Snapshot getContent(String path) {
+        if (cachedDirectories.contains(path)) {
+            return cacheSnapshots.get(path);
+        } else {
+            return snapshots.get(path);
+        }
+    }
+
+    @Override
+    public void putContent(String path, Snapshot snapshot) {
+        if (cachedDirectories.contains(path)) {
+            cacheSnapshots.put(path, snapshot);
+        } else {
+            snapshots.put(path, snapshot);
+        }
+    }
+
+    @Nullable
+    @Override
     public FileTreeSnapshot getDirectoryTree(String path) {
+        // Could potentially also look whether we have the details for an ancestor directory tree
+        // Could possibly also short-circuit some scanning if we have details for some sub trees
         if (cachedDirectories.contains(path)) {
             return cacheTrees.get(path);
         } else {
@@ -92,14 +120,21 @@ public class DefaultFileSystemMirror extends BuildAdapter implements FileSystemM
         // This is intentionally very simple, to be improved later
         files.clear();
         trees.clear();
+        snapshots.clear();
     }
 
     @Override
-    public void buildFinished(BuildResult result) {
+    public void afterStart() {
+    }
+
+    @Override
+    public void beforeComplete() {
         // We throw away all state between builds
         files.clear();
         cacheFiles.clear();
         trees.clear();
         cacheTrees.clear();
+        snapshots.clear();
+        cacheSnapshots.clear();
     }
 }

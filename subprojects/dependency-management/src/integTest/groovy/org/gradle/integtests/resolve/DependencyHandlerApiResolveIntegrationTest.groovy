@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec {
     public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-'
@@ -114,7 +113,6 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         result.error.contains('package org.gradle.testkit.runner does not exist')
     }
 
-    @Ignore("Must fix for 4.0")
     def "artifact metadata is available for files added by dependency declarations"() {
         given:
         buildFile << """

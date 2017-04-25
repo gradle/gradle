@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.Actions
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -184,8 +183,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skipped ':test'
     }
 
-    @Ignore("Must fix for 4.0")
-    def "no deprecation warning printed when @OutputDirectories or @OutputFiles is used on Map property"() {
+    def "can annotate Map property with @OutputDirectories and @OutputFiles"() {
         file("buildSrc/src/main/groovy/TaskWithOutputFilesProperty.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
@@ -207,65 +205,42 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
-    @Ignore("Must fix for 4.0")
-    @Unroll("deprecation warning printed when TaskInputs.#method is called")
-    def "deprecation warning printed when deprecated source method is used"() {
-        buildFile << """
-            task test {
-                inputs.${call}
-            }
-        """
-        executer.expectDeprecationWarning()
-        executer.requireGradleDistribution()
-
-        expect:
-        succeeds "test"
-        outputContains "The TaskInputs.${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use TaskInputs.${replacementMethod}.skipWhenEmpty() instead."
-
-        where:
-        method              | replacementMethod  | call
-        "source(Object)"    | "file(Object)"     | 'source("a")'
-        "sourceDir(Object)" | "dir(Object)"      | 'sourceDir("a")'
-        "source(Object...)" | "files(Object...)" | 'source("a", "b")'
-    }
-
-    def "no deprecation warning printed when @Classpath annotation is used"() {
-        buildFile << """
-            class TaskWithClasspathProperty extends DefaultTask {
-                @Classpath @InputFiles def classpath = project.files()
-                @TaskAction void action() {}
-            }
-
-            task test(type: TaskWithClasspathProperty) {
-            }
-        """
-
-        expect:
-        succeeds "test"
-    }
-
-    @Ignore("Must fix for 4.0")
     @Unroll
-    def "deprecation warning printed when inputs calls are chained"() {
+    def "fails when inputs calls are chained (#method)"() {
         buildFile << """
             task test {
-                ${what}.${call}.${call}
+                inputs.${call}.${call}
             }
         """
-        executer.expectDeprecationWarning()
-        executer.requireGradleDistribution()
 
         expect:
-        succeeds "test"
-        outputContains "The chaining of the ${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use the ${method} method on Task${what.capitalize()} directly instead."
+        fails "test"
+        failureCauseContains "Chaining of the TaskInputs.$method method is not supported since Gradle 4.0."
 
         where:
-        what     | method              | call
-        "inputs" | "file(Object)"      | 'file("a")'
-        "inputs" | "dir(Object)"       | 'dir("a")'
-        "inputs" | "files(Object...)"  | 'files("a", "b")'
+        method              | call
+        "file(Object)"      | 'file("a")'
+        "dir(Object)"       | 'dir("a")'
+        "files(Object...)"  | 'files("a", "b")'
+    }
+
+    @Unroll
+    def "fails when outputs calls are chained (#method)"() {
+        buildFile << """
+            task test {
+                outputs.${call}.${call}
+            }
+        """
+
+        expect:
+        fails "test"
+        failureCauseContains "Chaining of the TaskOutputs.$method method is not supported since Gradle 4.0."
+
+        where:
+        method             | call
+        "file(Object)"     | 'file("a")'
+        "dir(Object)"      | 'dir("a")'
+        "files(Object...)" | 'files("a", "b")'
     }
 
     def "task depends on other task whose outputs are its inputs"() {

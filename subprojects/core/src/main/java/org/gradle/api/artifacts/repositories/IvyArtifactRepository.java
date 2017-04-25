@@ -30,7 +30,7 @@ import java.net.URI;
  * <p>
  * When used to upload metadata and artifact files, only a single, primary pattern will be used:
  * <ol>
- * <li>If a URL is specified via {@link #setUrl} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
+ * <li>If a URL is specified via {@link #setUrl(Object)} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
  * <li>If no URL has been specified but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then the first defined pattern will be used.</li>
  * </ol>
  * <p>
@@ -54,6 +54,14 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     URI getUrl();
 
     /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     * @since 4.0
+     */
+    void setUrl(URI url);
+
+    /**
      * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
      * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
      *
@@ -70,7 +78,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
      * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
-     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
      *
      * @param pattern The artifact pattern.
      */
@@ -82,7 +90,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
      * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
-     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
      *
      * @param pattern The ivy pattern.
      */

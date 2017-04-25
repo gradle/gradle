@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
-import com.google.common.base.Splitter;
+
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +36,7 @@ public class TestSelectionMatcher {
 
     private Pattern preparePattern(String input) {
         StringBuilder pattern = new StringBuilder();
-        Iterable<String> split = Splitter.on('*').split(input);
+        String[] split = StringUtils.splitPreserveAllTokens(input, '*');
         for (String s : split) {
             if (s.equals("")) {
                 pattern.append(".*"); //replace wildcard '*' with '.*'

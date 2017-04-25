@@ -16,7 +16,6 @@
 
 package org.gradle.caching.configuration.internal
 
-import org.gradle.StartParameter
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.local.DirectoryBuildCache
@@ -26,18 +25,6 @@ import spock.lang.Specification
 class DefaultBuildCacheConfigurationTest extends Specification {
     def instantiator = Mock(Instantiator) {
         newInstance(DirectoryBuildCache) >> { Stub(DirectoryBuildCache) }
-    }
-
-    def 'push disabled is read from start parameter'() {
-        def buildCacheConfiguration = createConfig((DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH): "false")
-        expect:
-        buildCacheConfiguration.isPushDisabled()
-    }
-
-    def 'pull disabled is read from start parameter'() {
-        def buildCacheConfiguration = createConfig((DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL): "false")
-        expect:
-        buildCacheConfiguration.isPullDisabled()
     }
 
     def 'can reconfigure remote'() {
@@ -116,10 +103,7 @@ class DefaultBuildCacheConfigurationTest extends Specification {
 
     static class OtherCustomBuildCache extends AbstractBuildCache {}
 
-    private def createConfig(def systemProperties = [:]) {
-        def startParameter = Stub(StartParameter) {
-            getSystemPropertiesArgs() >> systemProperties
-        }
-        return new DefaultBuildCacheConfiguration(instantiator, [], startParameter)
+    private def createConfig() {
+        return new DefaultBuildCacheConfiguration(instantiator, [])
     }
 }

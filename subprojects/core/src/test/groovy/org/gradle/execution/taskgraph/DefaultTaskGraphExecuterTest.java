@@ -38,7 +38,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.progress.TestBuildOperationExecutor;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.work.DefaultWorkerLeaseService;

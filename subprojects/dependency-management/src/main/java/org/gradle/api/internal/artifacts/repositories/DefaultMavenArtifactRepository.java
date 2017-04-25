@@ -73,6 +73,10 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return url == null ? null : fileResolver.resolveUri(url);
     }
 
+    public void setUrl(URI url) {
+        this.url = url;
+    }
+
     public void setUrl(Object url) {
         this.url = url;
     }
@@ -87,6 +91,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     public void artifactUrls(Object... urls) {
         additionalUrls.addAll(Lists.newArrayList(urls));
+    }
+
+    @Override
+    public void setArtifactUrls(Set<URI> urls) {
+        setArtifactUrls((Iterable<?>) urls);
     }
 
     public void setArtifactUrls(Iterable<?> urls) {

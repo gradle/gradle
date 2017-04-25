@@ -206,8 +206,7 @@ $lastOutput
     }
 
     private OutputScrapingExecutionResult createExecutionResult(String out, String err) {
-        //noinspection GroovyConditionalWithIdenticalBranches
-        out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
+        out.contains("BUILD FAILED") || err.contains("FAILURE: Build failed with an exception.") ? new OutputScrapingExecutionFailure(out, err) : new OutputScrapingExecutionResult(out, err)
     }
 
     void parseResults(String out, String err) {

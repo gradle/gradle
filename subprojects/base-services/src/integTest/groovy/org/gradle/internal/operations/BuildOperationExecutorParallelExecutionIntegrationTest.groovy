@@ -19,19 +19,21 @@ package org.gradle.internal.operations
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Matchers
 
-class BuildOperationProcessorIntegrationTest extends AbstractIntegrationSpec {
+class BuildOperationExecutorParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "produces sensible error when there are failures both enqueueing and running operations" () {
         buildFile << """
-            import org.gradle.internal.operations.BuildOperationProcessor
+            import org.gradle.internal.operations.BuildOperationExecutor
             import org.gradle.internal.operations.RunnableBuildOperation
+            import org.gradle.internal.operations.BuildOperationContext
+            import org.gradle.internal.progress.BuildOperationDescriptor
             import java.util.concurrent.CountDownLatch
 
             def startedLatch = new CountDownLatch(2)
             task causeErrors {
                 doLast {
-                    def buildOperationProcessor = services.get(BuildOperationProcessor)
-                    buildOperationProcessor.run { queue ->
+                    def buildOperationExecutor = services.get(BuildOperationExecutor)
+                    buildOperationExecutor.runAll { queue ->
                         queue.add(new TestOperation(startedLatch))
                         queue.add(new TestOperation(startedLatch))
                         startedLatch.await()
@@ -48,12 +50,12 @@ class BuildOperationProcessorIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Override
-                public String getDescription() {
-                    return "test operation"
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("test operation");
                 }
 
                 @Override
-                public void run() {
+                public void run(BuildOperationContext context) {
                     startedLatch.countDown()
                     throw new Exception("operation failure")
                 }

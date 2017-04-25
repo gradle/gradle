@@ -35,7 +35,6 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -47,8 +46,8 @@ import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMet
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -99,10 +98,12 @@ public class IdeaPlugin extends IdePlugin {
     private final Instantiator instantiator;
     private IdeaModel ideaModel;
     private List<Project> allJavaProjects;
+    private final UniqueProjectNameProvider uniqueProjectNameProvider;
 
     @Inject
-    public IdeaPlugin(Instantiator instantiator) {
+    public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider) {
         this.instantiator = instantiator;
+        this.uniqueProjectNameProvider = uniqueProjectNameProvider;
     }
 
     public IdeaModel getModel() {
@@ -127,43 +128,19 @@ public class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project);
         configureForWarPlugin(project);
         configureForScalaPlugin();
-        postProcess("idea", new Action<Gradle>() {
-            @Override
-            public void execute(Gradle gradle) {
-                performPostEvaluationActions();
-            }
-        });
+        registerImlArtifact(project);
     }
 
-    public void performPostEvaluationActions() {
-        makeSureModuleNamesAreUnique();
-        // This needs to happen after de-duplication
-        registerImlArtifacts();
-    }
-
-    private void makeSureModuleNamesAreUnique() {
-        new IdeaNameDeduper().configureRoot(project.getRootProject());
-    }
-
-    private void registerImlArtifacts() {
-        Set<Project> projectsWithIml = Sets.filter(project.getRootProject().getAllprojects(), new Predicate<Project>() {
-            @Override
-            public boolean apply(Project project) {
-                return project.getPlugins().hasPlugin(IdeaPlugin.class);
-            }
-        });
-        for (Project project : projectsWithIml) {
-            ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
-            ProjectComponentIdentifier projectId = newProjectId(project);
-            projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project));
-        }
+    private void registerImlArtifact(Project project) {
+        ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
+        ProjectComponentIdentifier projectId = newProjectId(project);
+        projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project));
     }
 
     private static LocalComponentArtifactMetadata createImlArtifact(ProjectComponentIdentifier projectId, Project project) {
-        String moduleName = project.getExtensions().getByType(IdeaModel.class).getModule().getName();
-        File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
+        IdeaModule module = project.getExtensions().getByType(IdeaModel.class).getModule();
         Task byName = project.getTasks().getByName("ideaModule");
-        PublishArtifact publishArtifact = new DefaultPublishArtifact(moduleName, "iml", "iml", null, null, imlFile, byName);
+        PublishArtifact publishArtifact = new ImlArtifact(module, byName);
         return new PublishArtifactLocalArtifactMetadata(projectId, publishArtifact);
     }
 
@@ -273,19 +250,16 @@ public class IdeaPlugin extends IdePlugin {
         IdeaModuleIml iml = new IdeaModuleIml(task.getXmlTransformer(), project.getProjectDir());
         final IdeaModule module = instantiator.newInstance(IdeaModule.class, project, iml);
         task.setModule(module);
-
         ideaModel.setModule(module);
+
+        final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);
+        module.setName(defaultModuleName);
+
         ConventionMapping conventionMapping = ((IConventionAware) module).getConventionMapping();
         conventionMapping.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
                 return Sets.newHashSet();
-            }
-        });
-        conventionMapping.map("name", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return project.getName();
             }
         });
         conventionMapping.map("contentRoot", new Callable<File>() {
@@ -489,6 +463,27 @@ public class IdeaPlugin extends IdePlugin {
 
     private static boolean isRoot(Project project) {
         return project.getParent() == null;
+    }
+
+    private static class ImlArtifact extends DefaultPublishArtifact {
+        private final IdeaModule module;
+        private final File projectDir;
+
+        public ImlArtifact(IdeaModule module, Object... tasks) {
+            super(null, "iml", "iml", null, null, null, tasks);
+            this.module = module;
+            this.projectDir = module.getProject().getProjectDir();
+        }
+
+        @Override
+        public String getName() {
+            return module.getName();
+        }
+
+        @Override
+        public File getFile() {
+            return new File(projectDir, getName() + ".iml");
+        }
     }
 
 }

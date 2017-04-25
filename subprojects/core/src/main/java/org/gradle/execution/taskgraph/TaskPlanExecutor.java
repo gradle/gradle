@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 
 /**
- * Will be merged with {@link org.gradle.internal.operations.BuildOperationProcessor}
+ * Will be merged with {@link org.gradle.internal.operations.BuildOperationExecutor}
  */
 public interface TaskPlanExecutor {
     /**

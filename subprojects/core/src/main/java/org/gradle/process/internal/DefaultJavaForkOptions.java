@@ -42,12 +42,20 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         return options.getAllJvmArgs();
     }
 
+    public void setAllJvmArgs(List<String> arguments) {
+        options.setAllJvmArgs(arguments);
+    }
+
     public void setAllJvmArgs(Iterable<?> arguments) {
         options.setAllJvmArgs(arguments);
     }
 
     public List<String> getJvmArgs() {
         return options.getJvmArgs();
+    }
+
+    public void setJvmArgs(List<String> arguments) {
+        options.setJvmArgs(arguments);
     }
 
     public void setJvmArgs(Iterable<?> arguments) {

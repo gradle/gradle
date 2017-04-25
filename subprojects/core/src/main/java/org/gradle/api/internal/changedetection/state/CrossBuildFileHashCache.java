@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.Nullable;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -24,6 +26,7 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -32,9 +35,10 @@ public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
     private final PersistentCache cache;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
 
-    public CrossBuildFileHashCache(CacheRepository repository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public CrossBuildFileHashCache(@Nullable File cacheDir, CacheRepository repository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        cache = repository.cache("fileHashes")
+        CacheBuilder cacheBuilder = cacheDir != null ? repository.cache(cacheDir) : repository.cache("fileHashes");
+        cache = cacheBuilder
             .withDisplayName("file hash cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();

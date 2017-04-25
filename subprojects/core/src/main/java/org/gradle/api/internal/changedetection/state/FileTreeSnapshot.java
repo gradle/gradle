@@ -19,16 +19,16 @@ package org.gradle.api.internal.changedetection.state;
 import java.util.List;
 
 /**
- * An immutable snapshot of the content and meta-data of some part of the file system. The file may be a regular file, directory or missing.
+ * An immutable snapshot of the content and meta-data of some part of the file system based at some root directory.
  */
 public interface FileTreeSnapshot {
     /**
-     * The absolute path of this file. Can safely be used as a cache key.
+     * The absolute path of the root directory of the tree. Can safely be used as a cache key.
      */
     String getPath();
 
     /**
-     * The descendents of this file, if any. Includes direct and indirect children. Does not include the root file.
+     * The descendants of the root directory, if any. Includes direct and indirect children. Does not include the root directory.
      */
-    List<FileSnapshot> getDescendents();
+    List<FileSnapshot> getDescendants();
 }

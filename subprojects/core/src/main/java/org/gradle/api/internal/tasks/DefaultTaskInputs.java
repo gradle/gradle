@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.HashMap;
 import java.util.List;
@@ -120,48 +119,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return allSourceFiles;
     }
 
-    @Override
-    public TaskInputs source(final Object... paths) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.source(Object...)", "Please use TaskInputs.files(Object...).skipWhenEmpty() instead.");
-        taskMutator.mutate("TaskInputs.source(Object...)", new Runnable() {
-            @Override
-            public void run() {
-                addSpec(paths, true);
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public TaskInputs source(final Object path) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.source(Object)", "Please use TaskInputs.file(Object).skipWhenEmpty() instead.");
-        taskMutator.mutate("TaskInputs.source(Object)", new Runnable() {
-            @Override
-            public void run() {
-                addSpec(path, true);
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public TaskInputs sourceDir(final Object path) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.sourceDir(Object)", "Please use TaskInputs.dir(Object).skipWhenEmpty() instead.");
-        taskMutator.mutate("TaskInputs.sourceDir(Object)", new Runnable() {
-            @Override
-            public void run() {
-                addSpec(resolver.resolveFilesAsTree(path), true);
-            }
-        });
-        return this;
-    }
-
     private TaskInputFilePropertyBuilderInternal addSpec(Object paths) {
-        return addSpec(paths, false);
-    }
-
-    private TaskInputFilePropertyBuilderInternal addSpec(Object paths, boolean skipWhenEmpty) {
-        DefaultTaskInputPropertySpec spec = new DefaultTaskInputPropertySpec(this, task.getName(), skipWhenEmpty, resolver, paths);
+        DefaultTaskInputPropertySpec spec = new DefaultTaskInputPropertySpec(task.getName(), resolver, paths);
         filePropertiesInternal.add(spec);
         return spec;
     }

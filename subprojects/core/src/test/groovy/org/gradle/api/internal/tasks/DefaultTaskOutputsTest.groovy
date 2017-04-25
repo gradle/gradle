@@ -307,7 +307,7 @@ class DefaultTaskOutputsTest extends Specification {
         !outputs.cachingState.enabled
 
         when:
-        outputs.doNotCacheIf { false }
+        outputs.doNotCacheIf("test") { false }
         then:
         !outputs.cachingState.enabled
 
@@ -317,7 +317,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.cachingState.enabled
 
         when:
-        outputs.doNotCacheIf { true }
+        outputs.doNotCacheIf("test") { true }
         then:
         !outputs.cachingState.enabled
     }

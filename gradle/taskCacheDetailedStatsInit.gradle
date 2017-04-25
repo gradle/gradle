@@ -61,7 +61,7 @@ gradle.addListener(new TaskExecutionListener() {
             type: type,
             hasCustomActions: ((TaskInternal) task).hasCustomActions,
             outcome: state.outcome,
-            cacheable: state.cacheable,
+            cacheable: state.taskOutputCaching.enabled,
             time: clock.elapsedMillis
         )
         // println " >> $info.type.name took $info.time ms"

@@ -16,10 +16,11 @@
 
 package org.gradle.performance.experiment.buildcache
 
-import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
-import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.BuildExperimentSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -31,29 +32,45 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
 
     @Unroll
     def "#tasks on #testProject with local cache (build comparison)"() {
+        def noPushInitScript = temporaryFolder.file("no-push.gradle")
+        noPushInitScript << """
+            settingsEvaluated { settings ->
+                settings.buildCache {
+                    local {
+                        push = false
+                    }
+                }
+            }
+        """.stripIndent()
+        def cacheDir = temporaryFolder.file("local-cache")
+
         when:
+        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+                cacheDir.deleteDir().mkdirs()
+                def settingsFile = new TestFile(projectDir).file('settings.gradle')
+                settingsFile << """
+                    buildCache {
+                        local {
+                            directory = '${cacheDir.absoluteFile.toURI()}'
+                        }
+                    }
+                """.stripIndent()
+            }
+        }
         runner.testGroup = "task output cache"
         runner.buildSpec {
             projectName(testProject.projectName).displayName("always-miss pull-only cache").invocation {
                 tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
-                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
-                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true",
-                    "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PUSH}=false")
-            }
-        }
-        runner.buildSpec {
-            projectName(testProject.projectName).displayName("push-only cache").invocation {
-                tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
-                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
-                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true",
-                    "-D${DefaultBuildCacheConfiguration.BUILD_CACHE_CAN_PULL}=false")
+                    "--build-cache",
+                    "--init-script", noPushInitScript.absolutePath.replace('\\', '/'))
             }
         }
         runner.buildSpec {
             projectName(testProject.projectName).displayName("fully cached").invocation {
                 tasksToRun("clean", *tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").useDaemon().args(
-                    "-D${GradleProperties.TASK_OUTPUT_CACHE_PROPERTY}=true",
-                    "-D${GradleProperties.BUILD_CACHE_PROPERTY}=true")
+                    "--build-cache")
             }
         }
         runner.baseline {

@@ -16,31 +16,36 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.Action;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
 public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
 
-    public RunAsBuildOperationBuildActionRunner(BuildActionRunner delegate, BuildOperationExecutor buildOperationExecutor) {
+    public RunAsBuildOperationBuildActionRunner(BuildActionRunner delegate) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public void run(final BuildAction action, final BuildController buildController) {
-        buildOperationExecutor.run("Run build", new Action<BuildOperationContext>() {
+        BuildOperationExecutor buildOperationExecutor = buildController.getGradle().getServices().get(BuildOperationExecutor.class);
+        buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
-            public void execute(BuildOperationContext buildOperationContext) {
+            public void run(BuildOperationContext context) {
                 delegate.run(action, buildController);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Run build");
             }
         });
     }

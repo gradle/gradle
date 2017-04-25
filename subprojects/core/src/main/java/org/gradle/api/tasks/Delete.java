@@ -95,6 +95,16 @@ public class Delete extends ConventionTask implements DeleteSpec {
     /**
      * Sets the files to be deleted by this task.
      *
+     * @param targets A set of any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @since 4.0
+     */
+    public void setDelete(Set<Object> targets) {
+        this.delete = targets;
+    }
+
+    /**
+     * Sets the files to be deleted by this task.
+     *
      * @param target Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      */
     public void setDelete(Object target) {

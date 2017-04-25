@@ -17,13 +17,14 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
@@ -74,28 +75,32 @@ public class LauncherServices implements PluginServiceRegistry, GradleUserHomeSc
         BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
                                           List<SubscribableBuildActionRunnerRegistration> registrations,
                                           GradleLauncherFactory gradleLauncherFactory,
-                                          BuildOperationExecutor buildOperationExecutor,
                                           BuildOperationService buildOperationService,
                                           FileWatcherFactory fileWatcherFactory,
                                           ListenerManager listenerManager,
                                           StyledTextOutputFactory styledTextOutputFactory,
                                           ExecutorFactory executorFactory,
+                                          Factory<LoggingManagerInternal> loggingManagerFactory,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
-            return new GradleThreadBuildActionExecuter(
-                new ServicesSetupBuildActionExecuter(
-                    new ContinuousBuildActionExecuter(
-                        new InProcessBuildActionExecuter(gradleLauncherFactory,
-                            new SubscribableBuildActionRunner(
-                                new RunAsBuildOperationBuildActionRunner(
-                                    new ValidatingBuildActionRunner(
-                                        new ChainingBuildActionRunner(buildActionRunners)),
-                                    buildOperationExecutor),
-                                buildOperationService, registrations)),
-                        fileWatcherFactory,
-                        listenerManager,
-                        styledTextOutputFactory,
-                        executorFactory),
-                    userHomeServiceRegistry));
+            return new SetupLoggingActionExecuter(
+                new SessionFailureReportingActionExecuter(
+                    new StartParamsValidatingActionExecuter(
+                        new GradleThreadBuildActionExecuter(
+                            new ServicesSetupBuildActionExecuter(
+                                new ContinuousBuildActionExecuter(
+                                    new InProcessBuildActionExecuter(gradleLauncherFactory,
+                                        new SubscribableBuildActionRunner(
+                                            new RunAsBuildOperationBuildActionRunner(
+                                                new ValidatingBuildActionRunner(
+                                                    new ChainingBuildActionRunner(buildActionRunners))),
+                                            buildOperationService, registrations)),
+                                    fileWatcherFactory,
+                                    listenerManager,
+                                    styledTextOutputFactory,
+                                    executorFactory),
+                                userHomeServiceRegistry))),
+                    styledTextOutputFactory),
+                loggingManagerFactory.create());
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

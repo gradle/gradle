@@ -16,13 +16,14 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
@@ -41,15 +42,19 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
     }
 
     @Override
-    public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, BuildOperationExecutor.Operation parentBuildOperation) {
+    public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
         WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
         try {
-            BuildOperationDetails buildOperation = BuildOperationDetails.displayName(spec.getDisplayName()).parent(parentBuildOperation).build();
-            return buildOperationExecutor.run(buildOperation, new Transformer<DefaultWorkResult, BuildOperationContext>() {
+            return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
                 @Override
-                public DefaultWorkResult transform(BuildOperationContext buildOperationContext) {
+                public DefaultWorkResult call(BuildOperationContext context) {
                     uses++;
                     return workerDaemonProcess.execute(spec);
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
                 }
             });
         } finally {

@@ -179,6 +179,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return baseUrl == null ? null : fileResolver.resolveUri(baseUrl);
     }
 
+    @Override
+    public void setUrl(URI url) {
+        baseUrl = url;
+    }
+
     public void setUrl(Object url) {
         baseUrl = url;
     }

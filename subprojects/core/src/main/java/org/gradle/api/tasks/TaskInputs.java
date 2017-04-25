@@ -110,40 +110,4 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * @return The set of source files for this task.
      */
     FileCollection getSourceFiles();
-
-    /**
-     * Registers some source files for this task. Note that source files are also considered input files, so calling this method implies
-     * a call to {@link #files(Object...)}.
-     *
-     * @param paths The paths. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return this
-     *
-     * @deprecated Use {@link #files(Object...)} instead and set {@code skipWhenEmpty} to {@code true}.
-     */
-    @Deprecated
-    TaskInputs source(Object... paths);
-
-    /**
-     * Registers some source files for this task. Note that source files are also considered input files, so calling this method implies
-     * a call to {@link #files(Object...)}.
-     *
-     * @param path The path. This is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return this
-     *
-     * @deprecated Use {@link #file(Object)} instead and set {@code skipWhenEmpty} to {@code true}.
-     */
-    @Deprecated
-    TaskInputs source(Object path);
-
-    /**
-     * Registers a source directory for this task. All files under this directory are treated as source files for this task. Note that
-     * source files are also considered input files, so calling this method implies a call to {@link #dir(Object)}.
-     *
-     * @param path The path. This is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * @return this
-     *
-     * @deprecated Use {@link #dir(Object)} instead and set {@code skipWhenEmpty} to {@code true}.
-     */
-    @Deprecated
-    TaskInputs sourceDir(Object path);
 }

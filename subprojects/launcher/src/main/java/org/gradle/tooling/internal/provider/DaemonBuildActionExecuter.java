@@ -32,6 +32,7 @@ import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 import java.io.File;
@@ -59,6 +60,10 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);
         } catch (ReportedException e) {
             Throwable t = e.getCause();
+            // Unpack tunnelled test request failure
+            if (t instanceof InternalTestExecutionException) {
+                throw (InternalTestExecutionException) t;
+            }
             while (t != null) {
                 if (t instanceof BuildCancelledException) {
                     throw new InternalBuildCancelledException(e.getCause());

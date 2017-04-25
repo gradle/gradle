@@ -16,10 +16,17 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 
-class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
+class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
     def setup() {
+        server.start()
+
         settingsFile << """
             rootProject.name = 'root'
         """
@@ -39,22 +46,15 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class SynchronizedTransform extends ArtifactTransform {
-                static cyclicBarrier = new java.util.concurrent.CyclicBarrier(3, {
-                    println "BARRIER HIT"
-                })
-
                 List<File> transform(File input) {
-                    try {
-                        if (input.name.startsWith("bad")) {
-                            throw new RuntimeException("Transform Failure: " + input.name)
-                        }
-                        def output = new File(outputDirectory, input.name + ".txt")
-                        println "Transforming \${input.name} to \${output.name}"
-                        output.text = String.valueOf(input.length())
-                        return [output]
-                    } finally {
-                        cyclicBarrier.await()
+                    new URL('${server.uri}' + input.name).text
+                    if (input.name.startsWith("bad")) {
+                        throw new RuntimeException("Transform Failure: " + input.name)
                     }
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
                 }
             }
 """
@@ -89,12 +89,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        server.expectConcurrentExecution("test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
+
         when:
         succeeds ":resolve"
 
         then:
-        outputContains("BARRIER HIT")
-
         outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
         outputContains("Transforming test2-2.3.jar to test2-2.3.jar.txt")
         outputContains("Transforming test3-3.3.jar to test3-3.3.jar.txt")
@@ -124,12 +124,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        server.expectConcurrentExecution("a.jar", "b.jar", "c.jar")
+
         when:
         succeeds ":resolve"
 
         then:
-        outputContains("BARRIER HIT")
-
         outputContains("Transforming a.jar to a.jar.txt")
         outputContains("Transforming b.jar to b.jar.txt")
         outputContains("Transforming c.jar to c.jar.txt")
@@ -174,12 +174,13 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        server.expectConcurrentExecution("a.jar", "b.jar", "c.jar", "test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
+
         when:
+        executer.withArguments("--max-workers=6")
         succeeds ":resolve"
 
         then:
-        output.count("BARRIER HIT") == 2
-
         outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
         outputContains("Transforming a.jar to a.jar.txt")
         outputContains("Transforming b.jar to b.jar.txt")
@@ -209,12 +210,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        server.expectConcurrentExecution("a.jar", "bad-b.jar", "bad-c.jar")
+
         when:
         fails ":resolve"
 
         then:
-        outputContains("BARRIER HIT")
-
         failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
         failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
     }

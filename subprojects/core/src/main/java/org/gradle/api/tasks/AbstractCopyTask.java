@@ -41,7 +41,6 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.FilterReader;
@@ -55,8 +54,6 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
-    private static final String CONFIGURE_SPEC_DURING_CONFIGURATION = "Consider configuring the spec during configuration time, or using a separate task to do the configuration";
-
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
 
@@ -66,15 +63,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             @Override
             public void childSpecAdded(CopySpecInternal.CopySpecAddress path, final CopySpecInternal spec) {
                 if (getState().getExecuting()) {
-                    if (getProject().getGradle().getStartParameter().isBuildCacheEnabled() && getState().getTaskOutputCaching().isEnabled()) {
-                        throw new GradleException("It is not allowed to modify child specs of the task at execution time when task output caching is enabled. "
-                            + CONFIGURE_SPEC_DURING_CONFIGURATION + ".");
-                    }
-                    DeprecationLogger.nagUserOfDeprecated(
-                        "Configuring child specs of a copy task at execution time of the task",
-                        CONFIGURE_SPEC_DURING_CONFIGURATION
-                    );
-                    return;
+                    throw new GradleException("You cannot add child specs at execution time. Consider configuring this task during configuration time or using a separate task to do the configuration.");
                 }
 
                 StringBuilder specPropertyNameBuilder = new StringBuilder("rootSpec");

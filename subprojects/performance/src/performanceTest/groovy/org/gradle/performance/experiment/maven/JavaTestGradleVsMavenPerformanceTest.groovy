@@ -60,17 +60,15 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         def results = runner.run()
 
         then:
-        if (gradleTask != "test" || testProject != MEDIUM_JAVA_MULTI_PROJECT) { //there seems to be some inefficiency when testing with --parallel
-            results.assertFasterThanMaven()
-        }
+        results.assertFasterThanMaven()
 
         where:
         testProject                    | gradleTask    | mavenTask | gradleCleanupTask | mavenCleanupTask
         MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'    | 'package' | 'clean'           | 'clean'
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'        | 'test'    | 'cleanTest'       | 'help'
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'        | 'test'    | 'cleanTest'       | '-help'
 
         MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'    | 'package' | 'clean'           | 'clean'
-        MEDIUM_JAVA_MULTI_PROJECT      | 'test'        | 'test'    | 'cleanTest'       | 'help'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'        | 'test'    | 'cleanTest'       | '-help'
     }
 
     @Unroll

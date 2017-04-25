@@ -19,12 +19,12 @@ package org.gradle.internal.logging.console;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.OperationIdentifier;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -65,7 +65,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
         if (event instanceof ProgressStartEvent) {
             progressArea.setVisible(true);
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            ProgressOperation op = operations.start(startEvent.getShortDescription(), startEvent.getStatus(), startEvent.getCategory(), startEvent.getOperationId(), startEvent.getParentId());
+            ProgressOperation op = operations.start(startEvent.getShortDescription(), startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId());
             attach(op);
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;

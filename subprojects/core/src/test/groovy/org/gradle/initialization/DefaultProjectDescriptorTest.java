@@ -67,6 +67,16 @@ public class DefaultProjectDescriptorTest {
     }
 
     @Test
+    public void differentRoot() {
+        DefaultProjectDescriptor otherParent = new DefaultProjectDescriptor(null, "other", new File("other"),
+                testProjectDescriptorRegistry, FILE_RESOLVER);
+        DefaultProjectDescriptor otherDescriptor = new DefaultProjectDescriptor(otherParent, TEST_NAME, TEST_DIR,
+                testProjectDescriptorRegistry, FILE_RESOLVER);
+
+        assertNotEquals(projectDescriptor, otherDescriptor);
+    }
+
+    @Test
     public void setName() {
         final String newName = "newName";
         final ProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(ProjectDescriptorRegistry.class);

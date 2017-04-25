@@ -27,6 +27,7 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -189,8 +190,8 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Map<String, NormalizedFileSnapshot> snapshots) {
-        List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots.values());
+    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+        List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots);
         Collections.sort(normalizedSnapshots);
         for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
             normalizedSnapshot.appendToHasher(hasher);

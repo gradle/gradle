@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
@@ -33,6 +32,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -50,8 +51,9 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -89,10 +91,10 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    private BuildOperationDetails computeResolveAllBuildOperationDetails(AttributeContainer requestedAttributes) {
+    private BuildOperationDescriptor.Builder computeResolveAllBuildOperationDetails(AttributeContainer requestedAttributes) {
         String displayName = "Resolve artifacts "
             + (requestedAttributes == null || requestedAttributes.isEmpty() ? "of " : "view of ") + configuration.getPath();
-        return BuildOperationDetails.displayName(displayName).operationDescriptor(requestedAttributes).build();
+        return BuildOperationDescriptor.displayName(displayName).details(requestedAttributes);
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
@@ -253,11 +255,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return files;
     }
 
-    private void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final SelectedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor, @Nullable AttributeContainer requestedAttributes) {
-        buildOperationExecutor.run(computeResolveAllBuildOperationDetails(requestedAttributes), new Action<BuildOperationContext>() {
+    private void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final SelectedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor, @Nullable final AttributeContainer requestedAttributes) {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
-            public void execute(BuildOperationContext buildOperationContext) {
+            public void run(BuildOperationContext context) {
                 visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
+
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return computeResolveAllBuildOperationDetails(requestedAttributes);
             }
         });
     }
@@ -268,31 +276,35 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
      * @param dependencySpec dependency spec
      */
     private void visitArtifacts(Spec<? super Dependency> dependencySpec, SelectedArtifactResults artifactResults, SelectedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
+        List<ResolvedArtifactSet> artifactSets = new ArrayList<ResolvedArtifactSet>(2);
+
         //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
         //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
         if (dependencySpec == Specs.SATISFIES_ALL) {
             if (visitor.includeFiles()) {
-                fileDependencyResults.getArtifacts().visit(visitor);
+                artifactSets.add(fileDependencyResults.getArtifacts());
             }
-            artifactResults.getArtifacts().visit(visitor);
+            artifactSets.add(artifactResults.getArtifacts());
+            ParallelResolveArtifactSet.wrap(CompositeArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
             return;
         }
 
         if (visitor.includeFiles()) {
             for (Map.Entry<FileCollectionDependency, ResolvedArtifactSet> entry : fileDependencyResults.getFirstLevelFiles().entrySet()) {
                 if (dependencySpec.isSatisfiedBy(entry.getKey())) {
-                    entry.getValue().visit(visitor);
+                    artifactSets.add(entry.getValue());
                 }
             }
         }
 
-        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(visitor, fileDependencyResults));
+        CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact> walker = new CachingDirectedGraphWalker<DependencyGraphNodeResult, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph(visitor.includeFiles(), fileDependencyResults, artifactSets));
         DependencyGraphNodeResult rootNode = loadTransientGraphResults(artifactResults).getRootNode();
         for (DependencyGraphNodeResult node : getFirstLevelNodes(dependencySpec)) {
-            node.getArtifactsForIncomingEdge(rootNode).visit(visitor);
+            artifactSets.add(node.getArtifactsForIncomingEdge(rootNode));
             walker.add(node);
         }
         walker.findValues();
+        ParallelResolveArtifactSet.wrap(CompositeArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
     }
 
     public ConfigurationInternal getConfiguration() {
@@ -359,26 +371,28 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     }
 
     private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<DependencyGraphNodeResult, ResolvedArtifact> {
-        private final ArtifactVisitor artifactsVisitor;
         private final SelectedFileDependencyResults fileDependencyResults;
+        private final List<ResolvedArtifactSet> dest;
+        private final boolean includeFiles;
 
-        ResolvedDependencyArtifactsGraph(ArtifactVisitor artifactsVisitor, SelectedFileDependencyResults fileDependencyResults) {
-            this.artifactsVisitor = artifactsVisitor;
+        ResolvedDependencyArtifactsGraph(boolean includeFiles, SelectedFileDependencyResults fileDependencyResults, List<ResolvedArtifactSet> dest) {
+            this.includeFiles = includeFiles;
             this.fileDependencyResults = fileDependencyResults;
+            this.dest = dest;
         }
 
         @Override
         public void getNodeValues(DependencyGraphNodeResult node, Collection<? super ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
             connectedNodes.addAll(node.getOutgoingEdges());
-            if (artifactsVisitor.includeFiles()) {
-                fileDependencyResults.getArtifacts(node.getNodeId()).visit(artifactsVisitor);
+            if (includeFiles) {
+                dest.add(fileDependencyResults.getArtifacts(node.getNodeId()));
             }
         }
 
         @Override
         public void getEdgeValues(DependencyGraphNodeResult from, DependencyGraphNodeResult to,
                                   Collection<ResolvedArtifact> values) {
-            to.getArtifactsForIncomingEdge(from).visit(artifactsVisitor);
+            dest.add(to.getArtifactsForIncomingEdge(from));
         }
     }
 
