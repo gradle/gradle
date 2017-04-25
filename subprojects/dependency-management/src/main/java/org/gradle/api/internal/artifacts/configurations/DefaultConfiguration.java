@@ -328,6 +328,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Configuration> getHierarchy() {
+        if (extendsFrom.isEmpty()) {
+            return Collections.<Configuration>singleton(this);
+        }
         Set<Configuration> result = WrapUtil.<Configuration>toLinkedSet(this);
         collectSuperConfigs(this, result);
         return result;
