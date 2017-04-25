@@ -56,14 +56,9 @@ public class ClasspathResourceSnapshotter extends AbstractResourceSnapshotter {
     protected void snapshotTree(SnapshottableResourceTree tree, SnapshottingResultRecorder recorder) {
         try {
             SnapshottingResultRecorder entryRecorder = entrySnapshotter.createResultRecorder();
-            if (!(tree instanceof SnapshottableZipTree)) {
-                entryRecorder = recorder.recordCompositeResult(tree.getRoot(), entryRecorder);
-            }
+            entryRecorder = recorder.recordCompositeResult(tree.getRoot(), entryRecorder);
             for (SnapshottableResource resource : tree.getDescendants()) {
                 entrySnapshotter.snapshot(resource, entryRecorder);
-            }
-            if (tree instanceof SnapshottableZipTree) {
-                recorder.recordResult(tree.getRoot(), entryRecorder.getHash(null));
             }
         } catch (ZipException e) {
             // ZipExceptions point to a problem with the Zip, we try to be lenient for now.
