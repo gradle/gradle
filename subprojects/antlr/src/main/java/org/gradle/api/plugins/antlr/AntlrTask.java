@@ -245,8 +245,7 @@ public class AntlrTask extends SourceTask {
      */
     @Override
     public void setSource(FileTree source) {
-        super.setSource(source);
-        handleSourceDirectorySet(source);
+        setSource((Object) source);
     }
 
     /**
@@ -262,10 +261,6 @@ public class AntlrTask extends SourceTask {
     @Override
     public void setSource(Object source) {
         super.setSource(source);
-        handleSourceDirectorySet(source);
-    }
-
-    private void handleSourceDirectorySet(Object source) {
         if (source instanceof SourceDirectorySet) {
             this.sourceDirectorySet = (SourceDirectorySet) source;
         }
