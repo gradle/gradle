@@ -384,7 +384,7 @@ public class DefaultListenerManager implements ListenerManager {
             // block until the listener has finished notifying.
             notifyingLock.lock();
             try {
-                for (EventBroadcast<?> broadcaster : broadcasters.values()) {
+                for (EventBroadcast<?> broadcaster : Lists.newArrayList(broadcasters.values())) {
                     broadcaster.maybeRemove(this);
                 }
             } finally {
