@@ -43,7 +43,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.assertIsABuild()
 
-        def configureBuild = events.operation("Configure build")
+        def configureBuild = events.operation("CONFIGURING")
 
         def configureRootProject = events.operation("Configure project :")
         configureRootProject.parent == configureBuild
@@ -70,7 +70,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.assertIsABuild()
 
-        def configureBuild = events.operation("Configure build")
+        def configureBuild = events.operation("CONFIGURING")
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
@@ -112,7 +112,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         events.assertIsABuild()
 
-        def configureBuild = events.operation("Configure build")
+        def configureBuild = events.operation("CONFIGURING")
         configureBuild.failed
 
         def configureRoot = events.operation("Configure project :")
@@ -154,7 +154,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.assertIsABuild()
 
-        def configureBuild = events.operation("Configure build")
+        def configureBuild = events.operation("CONFIGURING")
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
@@ -299,7 +299,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.assertIsABuild()
 
-        def configureBuild = events.operation("Configure build")
+        def configureBuild = events.operation("CONFIGURING")
 
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == configureBuild
@@ -340,7 +340,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         def buildSrc = events.operation("Build buildSrc")
-        def configureBuildSrc = buildSrc.child("Configure build")
+        def configureBuildSrc = buildSrc.child("CONFIGURING")
         configureBuildSrc.child("Configure project :buildSrc")
         configureBuildSrc.child("Configure project :buildSrc:a")
         configureBuildSrc.child("Configure project :buildSrc:b")

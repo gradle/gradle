@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.events.PhaseProgressStartEvent
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
@@ -31,6 +32,9 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ConsoleFunctionalTest extends Specification {
+    public static final String CATEGORY = 'CATEGORY'
+    public static final String DESCRIPTION = 'DESCRIPTION'
+    public static final String STATUS = 'STATUS'
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
     private final TimeProvider timeProvider = Mock(TimeProvider)
@@ -44,46 +48,50 @@ class ConsoleFunctionalTest extends Specification {
         renderer.configure(LogLevel.INFO)
         renderer.addConsole(console, true, true, metaData)
         _ * metaData.getRows() >> 10
-        _ * metaData.getCols() >> 35
+        _ * metaData.getCols() >> 40
         _ * timeProvider.getCurrentTime() >> { currentTimeMs }
     }
 
     def "renders initial state"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, 'INITIALIZATION PHASE', '<---> 0% INITIALIZING'))
+        renderer.onOutput(rootStartEvent())
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% INITIALIZING [0s]'
+            assert statusBar.display == '<-------------> 0% INITIALIZING [0s]'
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
 
     def "renders configuration progress"() {
+        given:
+        def phaseProgressOperationId = 2
+
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, 'CONFIGURATION PHASE', '<---> 0% CONFIGURING'))
-        renderer.onOutput(startEvent(2, 1, 'category', 'Configuring root project', 'root project', null, 'root project'))
+        renderer.onOutput(rootStartEvent())
+        renderer.onOutput(phaseProgressStartEvent(phaseProgressOperationId, 'CONFIGURING', 3))
+        renderer.onOutput(startEvent(4, phaseProgressOperationId, CATEGORY, 'Configuring root project', 'root project', null, 'root project', new OperationIdentifier(2L), new OperationIdentifier(1L)))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% CONFIGURING [0s]'
+            assert statusBar.display == '<-------------> 0% CONFIGURING [0s]'
             assert progressArea.display == ['> root project', IDLE, IDLE, IDLE]
         }
 
         when:
         currentTimeMs += 2000L;
-        renderer.onOutput(completeEvent(2, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY))
-        renderer.onOutput(progressEvent(1, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, '<=--> 33% CONFIGURING'))
+        renderer.onOutput(completeEvent(4, CATEGORY))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<=--> 33% CONFIGURING [2s]'
+            assert statusBar.display == '<====---------> 33% CONFIGURING [2s]'
             assert progressArea.display == [IDLE, IDLE, IDLE, IDLE]
         }
     }
 
     def "removes operation display from progress area upon completion"() {
         when:
+        renderer.onOutput(phaseProgressStartEvent(1L, 'EXECUTING', 3))
         renderer.onOutput(startEvent(2, ':foo'))
 
         then:
@@ -92,7 +100,7 @@ class ConsoleFunctionalTest extends Specification {
         }
 
         when:
-        renderer.onOutput(completeEvent(2, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY))
+        renderer.onOutput(completeEvent(2))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -102,6 +110,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "renders parallel execution progress"() {
         when:
+        renderer.onOutput(phaseProgressStartEvent(1L, 'EXECUTING', 4))
         renderer.onOutput(startEvent(2, ':foo'))
         renderer.onOutput(startEvent(3, ':bar'))
         renderer.onOutput(startEvent(4, ':baz'))
@@ -115,6 +124,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "renders child operation work inline"() {
         when:
+        renderer.onOutput(phaseProgressStartEvent(1L, 'EXECUTING', 3))
         renderer.onOutput(startEvent(1, ':foo'))
         renderer.onOutput(startEvent(2, 1, null, null, null, null, ':bar'))
 
@@ -126,20 +136,20 @@ class ConsoleFunctionalTest extends Specification {
 
     def "trims progress display to console width"() {
         given:
-        _ * metaData.getCols() >> 25
+        _ * metaData.getCols() >> 40
 
         when:
-        renderer.onOutput(startEvent(1, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJK'))
+        renderer.onOutput(startEvent(1, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzABCDEF', IDLE, IDLE, IDLE]
+            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzABCDEFGHIJK', IDLE, IDLE, IDLE]
         }
     }
 
     def "progress display is removed upon build completion"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, 'EXECUTION PHASE', '<---> 0% EXECUTING'))
+        renderer.onOutput(phaseProgressStartEvent(1, 'INITIALIZING', 1))
         renderer.onOutput(startEvent(2, ':foo'))
 
         then:
@@ -177,7 +187,7 @@ class ConsoleFunctionalTest extends Specification {
         }
 
         when:
-        renderer.onOutput(progressEvent(2, 'CATEGORY', '[35 / 50] :foo'))
+        renderer.onOutput(progressEvent(2, CATEGORY, '[35 / 50] :foo'))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -218,9 +228,9 @@ class ConsoleFunctionalTest extends Specification {
     def "multiple events for same operation are coalesced and rendered once"() {
         when:
         renderer.onOutput(startEvent(1, ':wat'))
-        renderer.onOutput(progressEvent(1, 'CATEGORY', '[1 / 7] :wat'))
-        renderer.onOutput(progressEvent(1, 'CATEGORY', '[2 / 7] :wat'))
-        renderer.onOutput(progressEvent(1, 'CATEGORY', '[3 / 7] :wat'))
+        renderer.onOutput(progressEvent(1, CATEGORY, '[1 / 7] :wat'))
+        renderer.onOutput(progressEvent(1, CATEGORY, '[2 / 7] :wat'))
+        renderer.onOutput(progressEvent(1, CATEGORY, '[3 / 7] :wat'))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -230,7 +240,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "operation that finishes immediately is not rendered"() {
         when:
-        [startEvent(1, ':wat'), progressEvent(1, 'CATEGORY', ':wat'), completeEvent(1, 'CATEGORY', null, ':wat')].each {
+        [startEvent(1, ':wat'), progressEvent(1, CATEGORY, ':wat'), completeEvent(1, CATEGORY, null, ':wat')].each {
             renderer.onOutput(it)
         }
 
@@ -242,7 +252,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "progress display uses short description if status is empty"() {
         when:
-        renderer.onOutput(startEvent(1, null, 'CATEGORY', 'DESCRIPTION', 'SHORT_DESCRIPTION', 'LOGGING_HEADER', ''))
+        renderer.onOutput(startEvent(1, null, CATEGORY, DESCRIPTION, 'SHORT_DESCRIPTION', 'LOGGING_HEADER', ''))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -250,22 +260,30 @@ class ConsoleFunctionalTest extends Specification {
         }
     }
 
-    ProgressStartEvent startEvent(Long id, Long parentId=null, category='CATEGORY', description='DESCRIPTION', shortDescription='SHORT_DESCRIPTION', loggingHeader='LOGGING_HEADER', status='STATUS') {
+    ProgressStartEvent rootStartEvent() {
+        new ProgressStartEvent(new OperationIdentifier(1), null, timeProvider.currentTime, CATEGORY, DESCRIPTION, null, null, null, new OperationIdentifier(0L), null)
+    }
+
+    PhaseProgressStartEvent phaseProgressStartEvent(Long id, String name, long children) {
+        new PhaseProgressStartEvent(new OperationIdentifier(id), new OperationIdentifier(1L), timeProvider.currentTime, CATEGORY, name, null, null, null, new OperationIdentifier(1L), new OperationIdentifier(0L), children)
+    }
+
+    ProgressStartEvent startEvent(Long id, Long parentId=null, String category=CATEGORY, String description=DESCRIPTION, String shortDescription='SHORT_DESCRIPTION', String loggingHeader='LOGGING_HEADER', String status= STATUS, Object buildOperationId=null, Object parentBuildOperationId=null) {
         long timestamp = timeProvider.currentTime
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
-        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, null)
+        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, buildOperationId, parentBuildOperationId)
     }
 
     ProgressStartEvent startEvent(Long id, String status) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, null)
+        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, null, null)
     }
 
-    ProgressEvent progressEvent(Long id, category='CATEGORY', status='STATUS') {
+    ProgressEvent progressEvent(Long id, category=CATEGORY, status=STATUS) {
         long timestamp = timeProvider.currentTime
         new ProgressEvent(new OperationIdentifier(id), timestamp, category, status)
     }
 
-    ProgressCompleteEvent completeEvent(Long id, category='CATEGORY', description='DESCRIPTION', status='STATUS') {
+    ProgressCompleteEvent completeEvent(Long id, category=CATEGORY, description=DESCRIPTION, status=STATUS) {
         long timestamp = timeProvider.currentTime
         new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, category, description, status)
     }

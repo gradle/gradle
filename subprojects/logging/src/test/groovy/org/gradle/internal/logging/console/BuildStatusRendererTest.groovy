@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.BatchOutputEventListener
 import org.gradle.internal.logging.events.EndOutputEvent
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.time.TimeProvider
@@ -43,7 +44,7 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def "schedules render at fixed rate once an root progress event is started"() {
-        def event = startRoot("message")
+        def event = startRoot()
 
         when:
         renderer.onOutput([event] as ArrayList<OutputEvent>)
@@ -63,25 +64,25 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def "correctly format and set the text's label from the event"() {
-        def event1 = startRoot('message')
-        def event2 = event('2')
+        def event1 = startRoot()
+        def event2 = event('message')
 
         when:
         renderer.onOutput([event1] as ArrayList<OutputEvent>)
 
         then:
-        label.display == "message [0s]"
+        label.display == "<-------------> 0% INITIALIZING [0s]"
 
         when:
         currentTimeMs += 1000
         renderer.onOutput([event2] as ArrayList<OutputEvent>)
 
         then:
-        label.display == "message [1s]"
+        label.display == "<-------------> 0% INITIALIZING [1s]"
     }
 
     def "correctly cancel the future once the end event is received"() {
-        def startEvent = startRoot('message')
+        def startEvent = startRoot()
         def end = new EndOutputEvent()
 
         given:
@@ -94,7 +95,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         1 * future.cancel(false)
     }
 
-    def startRoot(String description) {
-        start(parentId: null, category: BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, shortDescription: description)
+    def startRoot() {
+        start(parentId: null, category: 'category', shortDescription: '', buildOperationId: new OperationIdentifier(0L))
     }
 }

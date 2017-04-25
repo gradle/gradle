@@ -44,6 +44,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
+                // TODO(ew): better progress display name here
                 return BuildOperationDescriptor.displayName("Configure settings").progressDisplayName("settings");
             }
         });

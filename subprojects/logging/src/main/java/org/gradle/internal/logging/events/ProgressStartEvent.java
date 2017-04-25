@@ -27,6 +27,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
     private final String loggingHeader;
     private final String status;
     private final Object buildOperationId;
+    private final Object parentBuildOperationId;
 
     public ProgressStartEvent(OperationIdentifier progressOperationId,
                               @Nullable OperationIdentifier parentProgressOperationId,
@@ -36,7 +37,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
                               @Nullable String shortDescription,
                               @Nullable String loggingHeader,
                               String status,
-                              @Nullable Object buildOperationId) {
+                              @Nullable Object buildOperationId,
+                              @Nullable Object parentBuildOperationId) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
@@ -45,6 +47,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
         this.loggingHeader = loggingHeader;
         this.status = status;
         this.buildOperationId = buildOperationId;
+        this.parentBuildOperationId = parentBuildOperationId;
     }
 
     @Nullable
@@ -82,5 +85,10 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
     @Nullable
     public Object getBuildOperationId() {
         return buildOperationId;
+    }
+
+    @Nullable
+    public Object getParentBuildOperationId() {
+        return parentBuildOperationId;
     }
 }

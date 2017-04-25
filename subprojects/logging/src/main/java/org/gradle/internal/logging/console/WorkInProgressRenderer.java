@@ -19,12 +19,12 @@ package org.gradle.internal.logging.console;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -69,10 +69,10 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
             attach(op);
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
-            detach(operations.complete(completeEvent.getOperationId()));
+            detach(operations.complete(completeEvent.getProgressOperationId()));
         } else if (event instanceof ProgressEvent) {
             ProgressEvent progressEvent = (ProgressEvent) event;
-            operations.progress(progressEvent.getStatus(), progressEvent.getOperationId());
+            operations.progress(progressEvent.getStatus(), progressEvent.getProgressOperationId());
         } else if (event instanceof EndOutputEvent) {
             progressArea.setVisible(false);
         } else if (event instanceof MaxWorkerCountChangeEvent) {
@@ -112,7 +112,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
 
     private void attach(ProgressOperation operation) {
         // Skip attach if a children is already present
-        if (isChildAssociationAlreadyExists(operation.getOperationId())) {
+        if (isChildAssociationAlreadyExists(operation.getOperationId()) || operation.getMessage() == null) {
             return;
         }
 
@@ -170,7 +170,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     private void removeDirectChildOperationId(OperationIdentifier parentId, OperationIdentifier childId) {
         Set<OperationIdentifier> children = parentIdToChildrenIds.get(parentId);
         if (children == null) {
-            throw new IllegalStateException("");
+            return;
         }
         children.remove(childId);
         if (children.isEmpty()) {

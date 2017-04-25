@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.serialize
+package org.gradle.internal.logging.serializer
 
-import org.gradle.internal.logging.events.ProgressStartEvent
-import org.gradle.internal.logging.serializer.ProgressStartEventSerializer
 import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.events.ProgressStartEvent
 import spock.lang.Subject
 
 @Subject(ProgressStartEventSerializer)
-class ProgressStartEventSerializerTest extends SerializerSpec {
+class ProgressStartEventSerializerTest extends LogSerializerSpec {
     private static final long TIMESTAMP = 42L
     private static final String CATEGORY = "category"
     private static final String DESCRIPTION = "description"
@@ -31,7 +30,7 @@ class ProgressStartEventSerializerTest extends SerializerSpec {
 
     def "can serialize ProgressStartEvent messages"() {
         given:
-        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, "short", "header", "status", new OperationIdentifier(42L))
+        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, "short", "header", "status", new OperationIdentifier(42L), new OperationIdentifier(41L))
 
         when:
         def result = serialize(event, serializer)
@@ -47,11 +46,12 @@ class ProgressStartEventSerializerTest extends SerializerSpec {
         result.loggingHeader == "header"
         result.status == "status"
         result.buildOperationId == new OperationIdentifier(42L)
+        result.parentBuildOperationId == new OperationIdentifier(41L)
     }
 
     def "can serialize ProgressStartEvent messages with empty fields"() {
         given:
-        def event = new ProgressStartEvent(OPERATION_ID, null, TIMESTAMP, CATEGORY, DESCRIPTION, null, null, "", null)
+        def event = new ProgressStartEvent(OPERATION_ID, null, TIMESTAMP, CATEGORY, DESCRIPTION, null, null, "", null, null)
 
         when:
         def result = serialize(event, serializer)
@@ -67,11 +67,12 @@ class ProgressStartEventSerializerTest extends SerializerSpec {
         result.loggingHeader == null
         result.status == ""
         result.buildOperationId == null
+        result.parentBuildOperationId == null
     }
 
     def "can serialize build operation ids with large long values"() {
         given:
-        def event = new ProgressStartEvent(new OperationIdentifier(1_000_000_000_000L), null, TIMESTAMP, CATEGORY, DESCRIPTION, null, null, "", new OperationIdentifier(42_000_000_000_000L))
+        def event = new ProgressStartEvent(new OperationIdentifier(1_000_000_000_000L), null, TIMESTAMP, CATEGORY, DESCRIPTION, null, null, "", new OperationIdentifier(42_000_000_000_000L), null)
 
         when:
         def result = serialize(event, serializer)

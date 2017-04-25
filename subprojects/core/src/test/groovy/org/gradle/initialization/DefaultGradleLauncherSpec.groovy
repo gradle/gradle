@@ -250,9 +250,10 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void expectedBuildOperationsFired() {
         assert buildOperationExecutor.operations.size() == 3
-        assert buildOperationExecutor.operations[0].displayName == "Configure build"
+//        assert buildOperationExecutor.operations[0].displayName == "INITIALIZING"
+        assert buildOperationExecutor.operations[0].displayName == "CONFIGURING"
         assert buildOperationExecutor.operations[1].displayName == "Calculate task graph"
-        assert buildOperationExecutor.operations[2].displayName == "Run tasks"
+        assert buildOperationExecutor.operations[2].displayName == "EXECUTING"
     }
 
     private void expectInitScriptsExecuted() {

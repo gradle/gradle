@@ -44,6 +44,7 @@ public class LogEvent extends RenderableOutputEvent {
     }
 
     public void render(StyledTextOutput output) {
+//        output.text(getBuildOperationId() == null ? "null " : getBuildOperationId() + " ");
         output.text(message);
         output.println();
         if (throwable != null) {

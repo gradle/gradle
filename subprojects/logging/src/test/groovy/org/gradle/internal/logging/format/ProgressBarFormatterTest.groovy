@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.progress
+package org.gradle.internal.logging.format
 
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Subject(ProgressBar)
-class ProgressBarTest extends Specification {
+@Subject(ProgressBarFormatter)
+class ProgressBarFormatterTest extends Specification {
     public static final String INCOMPLETE_CHAR = ' '
     public static final String COMPLETE_CHAR = '#'
     public static final String SUFFIX = ']'
@@ -28,10 +28,10 @@ class ProgressBarTest extends Specification {
     public static final int PROGRESS_BAR_WIDTH = 10
     public static final String BUILD_PHASE = 'EXECUTING'
 
-    ProgressBar progressBar
+    ProgressBarFormatter progressBar
 
     def setup() {
-        progressBar = new ProgressBar(PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 10)
+        progressBar = new ProgressBarFormatter(PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 10)
     }
 
     def "formats progress bar"() {
