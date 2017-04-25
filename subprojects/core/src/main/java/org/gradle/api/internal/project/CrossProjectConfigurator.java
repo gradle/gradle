@@ -19,15 +19,11 @@ package org.gradle.api.internal.project;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
 
-public interface ProjectConfigurator {
+public interface CrossProjectConfigurator {
     Project project(Project project, Closure<? super Project> configureClosure);
 
     Project project(Project project, Action<? super Project> configureAction);
-
-    void projectBuildOperation(ConfigureProjectBuildOperation configureProjectBuildOperation);
 
     void subprojects(Iterable<Project> projects, Closure<? super Project> configureClosure);
 
@@ -38,18 +34,4 @@ public interface ProjectConfigurator {
     void allprojects(Iterable<Project> projects, Action<? super Project> configureAction);
 
     Project rootProject(Project project, Action<Project> buildOperationExecutor);
-
-    abstract class ConfigureProjectBuildOperation implements RunnableBuildOperation {
-        private Project project;
-
-        public ConfigureProjectBuildOperation(Project project) {
-            this.project = project;
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            String name = "Configure project " + ((ProjectInternal) project).getIdentityPath().toString();
-            return BuildOperationDescriptor.displayName(name);
-        }
-    }
 }

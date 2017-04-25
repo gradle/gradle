@@ -51,8 +51,8 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.api.internal.project.BuildOperationProjectConfigurator;
-import org.gradle.api.internal.project.ProjectConfigurator;
+import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
+import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
@@ -163,8 +163,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
-    ProjectConfigurator createProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperationProjectConfigurator(buildOperationExecutor);
+    CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
+        return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
     }
 
     static class CacheLayout {

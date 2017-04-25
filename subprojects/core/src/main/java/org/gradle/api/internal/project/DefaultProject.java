@@ -1288,7 +1288,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    protected ProjectConfigurator getProjectConfigurator() {
+    protected CrossProjectConfigurator getProjectConfigurator() {
         throw new UnsupportedOperationException();
     }
 

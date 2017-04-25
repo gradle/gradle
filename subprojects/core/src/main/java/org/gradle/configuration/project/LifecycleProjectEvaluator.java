@@ -17,10 +17,12 @@ package org.gradle.configuration.project;
 
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.internal.project.ProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +32,11 @@ import org.slf4j.LoggerFactory;
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);
 
-    private final ProjectConfigurator projectConfigurator;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectEvaluator delegate;
 
-    public LifecycleProjectEvaluator(ProjectConfigurator buildOperationProjectConfigurator, ProjectEvaluator delegate) {
-        this.projectConfigurator = buildOperationProjectConfigurator;
+    public LifecycleProjectEvaluator(BuildOperationExecutor buildOperationExecutor, ProjectEvaluator delegate) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
     }
 
@@ -43,13 +45,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             return;
         }
 
-        projectConfigurator.projectBuildOperation(new ProjectConfigurator.ConfigureProjectBuildOperation(project) {
-            @Override
-            public void run(BuildOperationContext context) {
-                doConfigure(project, state);
-                state.rethrowFailure();
-            }
-        });
+        buildOperationExecutor.run(new ConfigureProjectBuildOperation(project, state));
     }
 
     private void doConfigure(ProjectInternal project, ProjectStateInternal state) {
@@ -89,5 +85,28 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e) {
         ProjectConfigurationException failure = new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
         state.executed(failure);
+    }
+
+    private class ConfigureProjectBuildOperation implements RunnableBuildOperation {
+        private ProjectInternal project;
+        private ProjectStateInternal state;
+
+        public ConfigureProjectBuildOperation(ProjectInternal project, ProjectStateInternal state) {
+            this.project = project;
+            this.state = state;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            doConfigure(project, state);
+            state.rethrowFailure();
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            String name = "Configure project " + project.getIdentityPath().toString();
+            return BuildOperationDescriptor.displayName(name).details(
+                new ConfigureProjectBuildOperationDetails(project.getProjectPath(), project.getGradle().getIdentityPath()));
+        }
     }
 }
