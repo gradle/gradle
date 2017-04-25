@@ -142,6 +142,11 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    public void setEvents(Set<TestLogEvent> events) {
+        getLifecycle().setEvents(events);
+    }
+
+    @Override
     public void setEvents(Iterable<?> events) {
         getLifecycle().setEvents(events);
     }
@@ -217,6 +222,11 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        setExceptionFormat((Object) exceptionFormat);
+    }
+
+    @Override
     public void setExceptionFormat(Object exceptionFormat) {
         getLifecycle().setExceptionFormat(exceptionFormat);
     }
@@ -224,6 +234,11 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     @Override
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return getLifecycle().getStackTraceFilters();
+    }
+
+    @Override
+    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces) {
+        getLifecycle().setStackTraceFilters(stackTraces);
     }
 
     @Override

@@ -93,6 +93,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         additionalUrls.addAll(Lists.newArrayList(urls));
     }
 
+    @Override
+    public void setArtifactUrls(Set<URI> urls) {
+        setArtifactUrls((Iterable<?>) urls);
+    }
+
     public void setArtifactUrls(Iterable<?> urls) {
         additionalUrls = Lists.newArrayList(urls);
     }

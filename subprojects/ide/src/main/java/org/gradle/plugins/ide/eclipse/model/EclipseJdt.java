@@ -81,6 +81,15 @@ public class EclipseJdt {
         return sourceCompatibility;
     }
 
+    /**
+     * Sets source compatibility.
+     *
+     * @since 4.0
+     */
+    public void setSourceCompatibility(JavaVersion sourceCompatibility) {
+        setSourceCompatibility((Object) sourceCompatibility);
+    }
+
     public void setSourceCompatibility(Object sourceCompatibility) {
         JavaVersion version = JavaVersion.toVersion(sourceCompatibility);
         if (version != null) {
@@ -95,6 +104,15 @@ public class EclipseJdt {
      */
     public JavaVersion getTargetCompatibility() {
         return targetCompatibility;
+    }
+
+    /**
+     * Sets target compatibility.
+     *
+     * @since 4.0
+     */
+    public void setTargetCompatibility(JavaVersion targetCompatibility) {
+        setTargetCompatibility((Object) targetCompatibility);
     }
 
     public void setTargetCompatibility(Object targetCompatibility) {

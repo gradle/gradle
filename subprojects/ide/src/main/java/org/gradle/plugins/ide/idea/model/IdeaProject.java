@@ -223,6 +223,18 @@ public class IdeaProject {
 
     /**
      * Sets the java language level for the project.
+     * <p>
+     * When explicitly set in the build script, this setting overrides any calculated values for Idea project
+     * and Idea module.
+     *
+     * @since 4.0
+     */
+    public void setLanguageLevel(IdeaLanguageLevel languageLevel) {
+        this.languageLevel = languageLevel;
+    }
+
+    /**
+     * Sets the java language level for the project.
      * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
      * <p>
      * See the examples in the docs for {@link IdeaProject}.

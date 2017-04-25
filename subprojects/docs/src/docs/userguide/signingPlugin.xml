@@ -161,7 +161,7 @@ gradle.taskGraph.whenReady { taskGraph ->
             <para>
                 In this example, we only want to require signing if we are building a release version and we are going to publish it. Because we are inspecting the task
                 graph to determine if we are going to be publishing, we must set the <literal>signing.required</literal> property to a closure to defer the evaluation. See
-                <apilink class="org.gradle.plugins.signing.SigningExtension" method="setRequired" /> for more information.
+                <apilink class="org.gradle.plugins.signing.SigningExtension" method="setRequired(java.lang.Object)" /> for more information.
             </para>
         </section>
     </section>

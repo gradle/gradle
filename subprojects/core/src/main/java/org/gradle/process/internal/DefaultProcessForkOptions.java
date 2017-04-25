@@ -40,6 +40,10 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         return executable == null ? null : executable.toString();
     }
 
+    public void setExecutable(String executable) {
+        this.executable = executable;
+    }
+
     public void setExecutable(Object executable) {
         this.executable = executable;
     }
@@ -51,6 +55,10 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     public File getWorkingDir() {
         return workingDir.create();
+    }
+
+    public void setWorkingDir(File dir) {
+        this.workingDir = resolver.resolveLater(dir);
     }
 
     public void setWorkingDir(Object dir) {

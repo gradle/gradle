@@ -99,7 +99,7 @@ public class DefaultProcessForkOptionsTest {
 
         ProcessForkOptions target = context.mock(ProcessForkOptions.class)
         context.checking {
-            one(target).setExecutable('executable')
+            one(target).setExecutable('executable' as Object)
             one(target).setWorkingDir(workingDir)
             one(target).setEnvironment(withParam(not(isEmptyMap())))
         }
