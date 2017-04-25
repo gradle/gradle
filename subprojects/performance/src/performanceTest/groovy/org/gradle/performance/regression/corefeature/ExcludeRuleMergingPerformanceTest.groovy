@@ -30,21 +30,26 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
     Server server
     int serverPort
 
-    def setup() {
-        serverPort = AvailablePortFinder.getNextAvailable(5000)
-        server = new Server(serverPort)
-        WebAppContext context = new WebAppContext()
-        context.setContextPath("/")
-        context.setBaseResource(Resource.newResource(new File(new TestProjectLocator().findProjectDir(TEST_PROJECT_NAME), 'repository').getAbsolutePath()))
-        server.addHandler(context)
-        server.start()
+    private void startServer() {
+        def repoDir = new File(new TestProjectLocator().findProjectDir(TEST_PROJECT_NAME), 'repository')
+        if (repoDir.exists()) {
+            serverPort = AvailablePortFinder.getNextAvailable(5000)
+            server = new Server(serverPort)
+            WebAppContext context = new WebAppContext()
+            context.setContextPath("/")
+            context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
+            server.addHandler(context)
+            server.start()
+        }
     }
 
-    def cleanup() {
-        server.stop()
+    private void stopServer() {
+        server?.stop()
     }
 
     def "merge exclude rules"() {
+        startServer()
+
         given:
         runner.testProject = TEST_PROJECT_NAME
         runner.tasksToRun = ['resolveDependencies']
@@ -57,9 +62,14 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        cleanup:
+        stopServer()
     }
 
     def "merge exclude rules (parallel)"() {
+        startServer()
+
         given:
         runner.testProject = TEST_PROJECT_NAME
         runner.tasksToRun = ['resolveDependencies']
@@ -71,5 +81,8 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        cleanup:
+        stopServer()
     }
 }
