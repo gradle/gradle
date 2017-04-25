@@ -221,7 +221,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             task assertExpectedMaxWorkerCount {
                 doLast {
                     def outputRenderer = gradle.services.get(OutputEventRenderer)
-                    assert outputRenderer.maxWorkerCount == ${expectedMaxWorkerCount}
+                    assert outputRenderer.maxWorkerCount.get() == ${expectedMaxWorkerCount}
                 }
             }
         """
