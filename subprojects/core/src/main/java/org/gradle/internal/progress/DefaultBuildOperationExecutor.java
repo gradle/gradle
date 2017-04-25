@@ -35,6 +35,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationQueueFactory;
 import org.gradle.internal.operations.BuildOperationQueueFailure;
@@ -161,7 +162,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
         DefaultBuildOperationState operationBefore = this.currentOperation.get();
         this.currentOperation.set(currentOperation);
-
+        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(this.currentOperation.get().getId());
         try {
             listener.started((BuildOperationInternal) descriptor, new OperationStartEvent(currentOperation.getStartTime()));
 
@@ -194,6 +195,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
         } finally {
             this.currentOperation.set(operationBefore);
+            if (parent != null) {
+                BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(parent.getId());
+            } else {
+                BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
+            }
             currentOperation.setRunning(false);
         }
     }
@@ -214,7 +220,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     @Nullable
     private ProgressLogger maybeStartProgressLogging(DefaultBuildOperationState currentOperation) {
         if (providesProgressLogging(currentOperation)) {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class);
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, (OperationIdentifier) currentOperation.getId());
             progressLogger.setDescription(currentOperation.getDescription().getDisplayName());
             progressLogger.setShortDescription(currentOperation.getDescription().getProgressDisplayName());
             progressLogger.started();

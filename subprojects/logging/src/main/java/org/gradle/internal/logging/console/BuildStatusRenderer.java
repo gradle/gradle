@@ -16,17 +16,17 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.Arrays;
@@ -82,8 +82,8 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
             // if it has no parent ID, assign this operation as the root operation
-            if (startEvent.getParentId() == null && BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
-                rootOperationId = startEvent.getOperationId();
+            if (startEvent.getParentProgressOperationId() == null && BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
+                rootOperationId = startEvent.getProgressOperationId();
                 buildStarted(startEvent);
             }
         } else if (event instanceof ProgressCompleteEvent) {

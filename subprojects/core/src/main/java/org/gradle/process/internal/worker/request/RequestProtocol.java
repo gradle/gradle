@@ -17,7 +17,7 @@
 package org.gradle.process.internal.worker.request;
 
 public interface RequestProtocol {
-    void run(String methodName, Class<?>[] paramTypes, Object[] args);
-    void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args);
+    void run(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier);
+    void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier);
     void stop();
 }

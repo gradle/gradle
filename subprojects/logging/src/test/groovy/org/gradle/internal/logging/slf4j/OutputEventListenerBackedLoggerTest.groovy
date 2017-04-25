@@ -19,6 +19,8 @@ package org.gradle.internal.logging.slf4j
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEventListener
@@ -69,6 +71,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         private long timestamp
         private Throwable throwable
         private LogLevel logLevel
+        private OperationIdentifier operationIdentifier
         private boolean eventExpected = true
 
         SingleLogEventSpecificationBuilder message(String message) {
@@ -91,6 +94,11 @@ class OutputEventListenerBackedLoggerTest extends Specification {
             this
         }
 
+        SingleLogEventSpecificationBuilder operationIdentifier(OperationIdentifier operationIdentifier) {
+            this.operationIdentifier = operationIdentifier
+            this
+        }
+
         SingleLogEventSpecificationBuilder eventExpected(boolean eventExpected) {
             this.eventExpected = eventExpected
             this
@@ -109,6 +117,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
             assert event.timestamp == now
             assert event.throwable == throwable
             assert event.logLevel == logLevel
+            assert event.buildOperationId == operationIdentifier
             return true
         }
     }
@@ -929,6 +938,21 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
+    }
+
+    def "log events include build operation id"() {
+        given:
+        def operationId = new OperationIdentifier(42L)
+        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(operationId)
+
+        when:
+        logger().error('message')
+
+        then:
+        singleLogEvent().message('message').logLevel(ERROR).operationIdentifier(operationId).eventExpected(true)
+
+        cleanup:
+        BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier()
     }
 
     private String stacktrace(Exception e) {

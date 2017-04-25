@@ -25,7 +25,11 @@ public class LogEvent extends RenderableOutputEvent {
     private final Throwable throwable;
 
     public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
-        super(timestamp, category, logLevel);
+        this(timestamp, category, logLevel, message, throwable, null);
+    }
+
+    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable Object operationIdentifier) {
+        super(timestamp, category, logLevel, operationIdentifier);
         this.message = message;
         this.throwable = throwable;
     }
