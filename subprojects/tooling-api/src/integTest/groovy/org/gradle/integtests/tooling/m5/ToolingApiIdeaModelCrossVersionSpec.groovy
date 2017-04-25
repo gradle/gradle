@@ -216,7 +216,7 @@ project(':impl') {
 
         IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency } as IdeaModuleDependency
 
-        if (currentVersion >= GradleVersion.version("3.1")) {
+        if (targetVersion >= GradleVersion.version("3.1") && currentVersion >= GradleVersion.version("3.1")) {
             mod.targetModuleName == project.modules.find { it.name == 'api' }.getName()
         }
 
@@ -263,8 +263,10 @@ project(':contrib:impl') {
         IdeaModule impl = project.modules.find { it.name == 'impl' }
         IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
 
-        impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'api' }
-        contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+        if (currentVersion < GradleVersion.version('4.0')) {
+            impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'api' }
+            contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+        }
     }
 
     def "module has access to gradle project and its tasks"() {
@@ -332,7 +334,7 @@ project(':impl') {
             }
         }
 
-        if (currentVersion >= GradleVersion.version('3.1')) {
+        if (currentVersion >= GradleVersion.version('3.1') && targetVersion >= GradleVersion.version('3.1')) {
             libs.each {
                 it.targetModuleName == project.modules.find { it.name == 'api' }.name
             }
