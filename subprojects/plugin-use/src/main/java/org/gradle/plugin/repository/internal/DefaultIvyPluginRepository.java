@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.repository.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -29,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.plugin.repository.IvyPluginRepository;
-import org.gradle.util.ConfigureUtil;
 
 class DefaultIvyPluginRepository extends AbstractArtifactPluginRepository implements IvyPluginRepository {
     private static final String IVY = "ivy";
@@ -92,14 +90,12 @@ class DefaultIvyPluginRepository extends AbstractArtifactPluginRepository implem
         this.ivyPattern = pattern;
     }
 
+    @Override
     public void layout(String layoutName) {
         this.layoutName = layoutName;
     }
 
-    public void layout(String layoutName, Closure config) {
-        layout(layoutName, ConfigureUtil.<RepositoryLayout>configureUsing(config));
-    }
-
+    @Override
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
         layout(layoutName);
         layoutAction = config;

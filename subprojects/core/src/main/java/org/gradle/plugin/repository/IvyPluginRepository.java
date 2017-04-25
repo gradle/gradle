@@ -16,10 +16,10 @@
 
 package org.gradle.plugin.repository;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 
 import java.net.URI;
@@ -75,7 +75,7 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
 
     /**
      * Specifies the layout to use with this repository, based on the root url.
-     * See {@link #layout(String, Closure)}.
+     * See {@link #layout(String, Action)}.
      *
      * @param layoutName The name of the layout to use.
      */
@@ -92,16 +92,16 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value #GRADLE_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value #GRADLE_IVY_PATTERN}</code></li>
+     *     <li>Artifacts: <code>$baseUri/{@value IvyArtifactRepository#GRADLE_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value IvyArtifactRepository#GRADLE_IVY_PATTERN}</code></li>
      * </ul>
      * </p>
      * <h4>'maven'</h4>
      * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value #MAVEN_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value #MAVEN_IVY_PATTERN}</code></li>
+     *     <li>Artifacts: <code>$baseUri/{@value IvyArtifactRepository#MAVEN_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value IvyArtifactRepository#MAVEN_IVY_PATTERN}</code></li>
      * </ul>
      * </p>
      * <p>
@@ -111,8 +111,8 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value #IVY_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value #IVY_ARTIFACT_PATTERN}</code></li>
+     *     <li>Artifacts: <code>$baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
      * </ul>
      * </p>
      * <p><b>Note:</b> this pattern is currently {@link org.gradle.api.Incubating incubating}.</p>
@@ -137,13 +137,4 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * @since 2.3 (feature was already present in Groovy DSL, this particular method introduced in 2.3)
      */
     void layout(String layoutName, Action<? extends RepositoryLayout> config);
-
-    /**
-     * Specifies how the items of the repository are organized. See {@link #layout(String, org.gradle.api.Action)}
-     *
-     * @param layoutName The name of the layout to use.
-     * @param config The closure used to configure the layout.
-     * An instance of {@link RepositoryLayout} is passed as a parameter to the closure.
-     */
-    void layout(String layoutName, Closure config);
 }
