@@ -17,10 +17,11 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
+import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,8 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
         buffer.append(endOfLine);
         spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
         buffer.setLength(0);
-        listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, spans));
+        Object buildOperationId = BuildOperationIdentifierRegistry.getCurrentOperationIdentifier();
+        listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, buildOperationId, spans));
         spans = new ArrayList<StyledTextOutputEvent.Span>();
     }
 }

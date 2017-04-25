@@ -36,5 +36,15 @@ public interface ProgressLoggerFactory {
      */
     ProgressLogger newOperation(Class<?> loggerCategory);
 
+    /**
+     * Creates a new long-running operation which has not been started, associated
+     * with the given build operation id.
+     *
+     * @param loggerCategory The logger category.
+     * @param buildOperationId OperationIdentifier to be associated with all logs produced by the new ProgressLogger.
+     * @return the progress logger for the operation.
+     */
+    ProgressLogger newOperation(Class<?> loggerCategory, Object buildOperationId);
+
     ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent);
 }
