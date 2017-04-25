@@ -30,13 +30,13 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 
 public class AmbiguousVariantSelectionException extends RuntimeException {
 
-    public AmbiguousVariantSelectionException(AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher) {
-        super(format(requested, matches, matcher));
+    public AmbiguousVariantSelectionException(String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher) {
+        super(format(producerDisplayName, requested, matches, matcher));
     }
 
-    private static String format(AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher) {
+    private static String format(String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("More than one variant matches the consumer attributes");
+        formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {
             formatter.node("Variant");

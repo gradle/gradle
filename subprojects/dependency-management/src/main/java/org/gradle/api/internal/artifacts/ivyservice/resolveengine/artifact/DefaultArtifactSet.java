@@ -121,7 +121,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         return new ArtifactSetSnapshot(id, componentIdentifier, result.build(), schema);
     }
 
-    private static class ArtifactSetSnapshot implements ArtifactSet {
+    private static class ArtifactSetSnapshot implements ArtifactSet, ResolvedVariantSet {
         private final long id;
         private final ComponentIdentifier componentIdentifier;
         private final Set<ResolvedVariant> variants;
@@ -145,11 +145,26 @@ public class DefaultArtifactSet implements ArtifactSet {
         }
 
         @Override
+        public String getDisplayName() {
+            return componentIdentifier.getDisplayName();
+        }
+
+        @Override
+        public AttributesSchemaInternal getSchema() {
+            return schema;
+        }
+
+        @Override
+        public Set<ResolvedVariant> getVariants() {
+            return variants;
+        }
+
+        @Override
         public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
             if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
                 return ResolvedArtifactSet.EMPTY;
             } else {
-                return selector.select(variants, schema);
+                return selector.select(this);
             }
         }
     }

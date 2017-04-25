@@ -26,13 +26,13 @@ import java.util.List;
 import static org.gradle.internal.component.AmbiguousVariantSelectionException.formatAttributes;
 
 public class AmbiguousTransformException extends RuntimeException {
-    public AmbiguousTransformException(AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
-        super(format(requested, candidates));
+    public AmbiguousTransformException(String producerDisplayName, AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
+        super(format(producerDisplayName, requested, candidates));
     }
 
-    private static String format(AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
+    private static String format(String producerDisplayName, AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Found multiple transforms that can produce a variant for consumer attributes");
+        formatter.node("Found multiple transforms that can produce a variant of " + producerDisplayName + " for consumer attributes");
         formatAttributes(formatter, requested);
         formatter.node("Found the following transforms");
         formatter.startChildren();

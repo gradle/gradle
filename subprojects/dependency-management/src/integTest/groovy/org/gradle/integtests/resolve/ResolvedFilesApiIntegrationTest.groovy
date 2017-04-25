@@ -364,7 +364,7 @@ task show {
 """
         expect:
         fails("show")
-        failure.assertHasCause("""More than one variant matches the consumer attributes:
+        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
   - Variant:
       - Found artifactType 'jar' but wasn't required.
       - Found flavor 'free' but wasn't required.
@@ -447,7 +447,7 @@ task show {
 
         expect:
         fails("show")
-        failure.assertHasCause("""No variants match the consumer attributes:
+        failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Variant:
       - Found artifactType 'jar' but wasn't required.
       - Required flavor 'preview' and found incompatible value 'free'.

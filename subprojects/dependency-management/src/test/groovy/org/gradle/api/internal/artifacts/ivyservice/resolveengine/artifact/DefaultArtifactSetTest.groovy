@@ -44,7 +44,7 @@ class DefaultArtifactSetTest extends Specification {
         def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null)
 
         given:
-        selector.select(_, schema) >> resolvedVariant1
+        selector.select(_) >> resolvedVariant1
 
         expect:
         def selected = artifactSet.select({true}, selector)

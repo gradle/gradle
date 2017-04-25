@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
@@ -50,37 +51,46 @@ class DefaultArtifactTransformsTest extends Specification {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
         def variant1Artifacts = Stub(ResolvedArtifactSet)
+        def set = Stub(ResolvedVariantSet)
+        def variants = [variant1, variant2] as Set
 
         given:
+        set.schema >> producerSchema
+        set.variants >> variants
         variant1.attributes >> typeAttributes("classes")
         variant1.artifacts >> variant1Artifacts
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches([variant1, variant2], typeAttributes("classes")) >> [variant1]
+        attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1]
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("classes"), true).select([variant1, variant2], producerSchema)
+        def result = transforms.variantSelector(typeAttributes("classes"), true).select(set)
         result == variant1Artifacts
     }
 
     def "fails when multiple producer variants match"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
+        def set = Stub(ResolvedVariantSet)
+        def variants = [variant1, variant2] as Set
 
         given:
+        set.displayName >> '<component>'
+        set.schema >> producerSchema
+        set.variants >> variants
         variant1.attributes >> typeAttributes("classes")
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches([variant1, variant2], typeAttributes("classes")) >> [variant1, variant2]
+        attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1, variant2]
 
         when:
-        transforms.variantSelector(typeAttributes("classes"), true).select([variant1, variant2], producerSchema)
+        transforms.variantSelector(typeAttributes("classes"), true).select(set)
 
         then:
         def e = thrown(AmbiguousVariantSelectionException)
-        e.message == toPlatformLineSeparators("""More than one variant matches the consumer attributes:
+        e.message == toPlatformLineSeparators("""More than one variant of <component> matches the consumer attributes:
   - Variant: Required artifactType 'classes' and found incompatible value 'classes'.
   - Variant: Required artifactType 'classes' and found incompatible value 'jar'.""")
     }
@@ -97,12 +107,16 @@ class DefaultArtifactTransformsTest extends Specification {
         def outFile2 = new File("out2.classes")
         def outFile3 = new File("out3.classes")
         def outFile4 = new File("out4.classes")
+        def set = Stub(ResolvedVariantSet)
+        def variants = [variant1, variant2] as Set
         def transformer = Mock(Transformer)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
         def targetAttributes = typeAttributes("classes")
 
         given:
+        set.schema >> producerSchema
+        set.variants >> variants
         variant1.attributes >> typeAttributes("jar")
         variant1.artifacts >> variant1Artifacts
         variant2.attributes >> typeAttributes("dll")
@@ -115,7 +129,7 @@ class DefaultArtifactTransformsTest extends Specification {
         }
         matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
 
-        def result = transforms.variantSelector(targetAttributes, true).select([variant1, variant2], producerSchema)
+        def result = transforms.variantSelector(targetAttributes, true).select(set)
 
         when:
         result.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), listener).visit(visitor)
@@ -145,8 +159,13 @@ class DefaultArtifactTransformsTest extends Specification {
     def "fails when multiple transforms match"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
+        def set = Stub(ResolvedVariantSet)
+        def variants = [variant1, variant2] as Set
 
         given:
+        set.schema >> producerSchema
+        set.variants >> variants
+        set.displayName >> '<component>'
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
@@ -160,11 +179,11 @@ class DefaultArtifactTransformsTest extends Specification {
         def selector = transforms.variantSelector(typeAttributes("dll"), true)
 
         when:
-        selector.select([variant1, variant2], producerSchema)
+        selector.select(set)
 
         then:
         def e = thrown(AmbiguousTransformException)
-        e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant for consumer attributes: artifactType 'dll'
+        e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant of <component> for consumer attributes: artifactType 'dll'
 Found the following transforms:
   - Transform from variant: artifactType 'jar'
   - Transform from variant: artifactType 'classes'""")
@@ -173,8 +192,12 @@ Found the following transforms:
     def "returns empty variant when no variants match and ignore no matching enabled"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
+        def set = Stub(ResolvedVariantSet)
+        def variants = [variant1, variant2] as Set
 
         given:
+        set.schema >> producerSchema
+        set.variants >> variants
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
@@ -185,15 +208,20 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("dll"), true).select([variant1, variant2], producerSchema)
+        def result = transforms.variantSelector(typeAttributes("dll"), true).select(set)
         result == ResolvedArtifactSet.EMPTY
     }
 
     def "fails when no variants match and ignore no matching disabled"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
+        def set = Stub(ResolvedVariantSet)
+        def variants = [variant1, variant2] as Set
 
         given:
+        set.schema >> producerSchema
+        set.variants >> variants
+        set.displayName >> '<component>'
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
@@ -204,11 +232,11 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         when:
-        transforms.variantSelector(typeAttributes("dll"), false).select([variant1, variant2], producerSchema)
+        transforms.variantSelector(typeAttributes("dll"), false).select(set)
 
         then:
         def e = thrown(NoMatchingVariantSelectionException)
-        e.message == toPlatformLineSeparators("""No variants match the consumer attributes:
+        e.message == toPlatformLineSeparators("""No variants of <component> match the consumer attributes:
   - Variant: Required artifactType 'dll' and found incompatible value 'jar'.
   - Variant: Required artifactType 'dll' and found incompatible value 'classes'.""")
     }

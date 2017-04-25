@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -82,8 +83,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             }
 
             AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
-            ResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes, dependencyMetadata);
-            selectedArtifacts.add(selector.select(Collections.singleton(variant), EmptySchema.INSTANCE));
+            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes, dependencyMetadata);
+            selectedArtifacts.add(selector.select(variant));
         }
 
         return CompositeArtifactSet.of(selectedArtifacts).startVisit(actions, listener);
@@ -94,7 +95,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         dest.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final AttributeContainerInternal variantAttributes;
@@ -110,6 +111,21 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public ResolvedArtifactSet getArtifacts() {
             return this;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return artifactIdentifier.getDisplayName();
+        }
+
+        @Override
+        public Set<ResolvedVariant> getVariants() {
+            return Collections.<ResolvedVariant>singleton(this);
+        }
+
+        @Override
+        public AttributesSchemaInternal getSchema() {
+            return EmptySchema.INSTANCE;
         }
 
         @Override

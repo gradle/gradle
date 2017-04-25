@@ -26,13 +26,13 @@ import java.util.Collection;
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
 
 public class NoMatchingVariantSelectionException extends RuntimeException {
-    public NoMatchingVariantSelectionException(AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
-        super(format(consumer, candidates, matcher));
+    public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
+        super(format(producerDisplayName, consumer, candidates, matcher));
     }
 
-    private static String format(AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
+    private static String format(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("No variants match the consumer attributes");
+        formatter.node("No variants of " + producerDisplayName + " match the consumer attributes");
         formatter.startChildren();
         for (ResolvedVariant variant : candidates) {
             formatter.node("Variant");

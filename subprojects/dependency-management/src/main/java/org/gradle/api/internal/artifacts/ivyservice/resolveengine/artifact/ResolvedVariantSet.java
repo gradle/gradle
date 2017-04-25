@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
-public interface VariantSelector {
-    ResolvedArtifactSet select(ResolvedVariantSet candidates);
+import java.util.Set;
+
+/**
+ * Represents some provider of {@link ResolvedVariant} instances to select from.
+ */
+public interface ResolvedVariantSet {
+    String getDisplayName();
+
+    AttributesSchemaInternal getSchema();
+
+    Set<ResolvedVariant> getVariants();
 }

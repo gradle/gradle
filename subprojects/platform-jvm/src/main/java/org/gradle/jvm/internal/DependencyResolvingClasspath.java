@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Defau
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -52,7 +52,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -200,9 +199,9 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         public void finishArtifacts() {
             artifactsResults = artifactsBuilder.complete().select(Specs.<ComponentIdentifier>satisfyAll(), new VariantSelector() {
                 @Override
-                public ResolvedArtifactSet select(Collection<? extends ResolvedVariant> variants, AttributesSchemaInternal producerSchema) {
+                public ResolvedArtifactSet select(ResolvedVariantSet variants) {
                     // Select the first variant
-                    return variants.iterator().next().getArtifacts();
+                    return variants.getVariants().iterator().next().getArtifacts();
                 }
             });
         }

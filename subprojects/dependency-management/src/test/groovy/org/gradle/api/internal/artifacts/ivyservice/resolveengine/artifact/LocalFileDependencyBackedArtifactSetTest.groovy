@@ -120,7 +120,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * listener.includeFileDependencies() >> true
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_, _) >> { Set<ResolvedVariant> variants, schema -> variants.first() }
+        2 * selector.select(_) >> { ResolvedVariantSet variants -> variants.variants.first() }
         1 * listener.fileAvailable(f1)
         1 * listener.fileAvailable(f2)
         0 * _
@@ -158,7 +158,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * filter.isSatisfiedBy(_) >> true
         _ * listener.includeFileDependencies() >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_, _) >> { Set<ResolvedVariant> variants, schema -> variants.first() }
+        2 * selector.select(_) >> { ResolvedVariantSet variants -> variants.variants.first() }
         1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f1), DefaultArtifactAttributes.forFile(f1, attributesFactory), f1)
         1 * visitor.visitFile(new OpaqueComponentArtifactIdentifier(f2), DefaultArtifactAttributes.forFile(f2, attributesFactory), f2)
         0 * visitor._

@@ -469,7 +469,7 @@ task show {
         fails 'show'
 
         then:
-        failure.assertHasCause("""More than one variant matches the consumer attributes:
+        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
   - Variant:
       - Found artifactType 'jar' but wasn't required.
       - Found buildType 'debug' but wasn't required.
