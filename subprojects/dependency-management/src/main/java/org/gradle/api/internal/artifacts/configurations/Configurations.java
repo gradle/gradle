@@ -18,11 +18,17 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Configuration;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Configurations {
     public static Set<String> getNames(Collection<Configuration> configurations) {
+        if (configurations.isEmpty()) {
+            return Collections.emptySet();
+        } else if (configurations.size()==1) {
+            return Collections.singleton(configurations.iterator().next().getName());
+        }
         Set<String> names = new LinkedHashSet<String>(configurations.size());
         for (Configuration configuration : configurations) {
             names.add(configuration.getName());
