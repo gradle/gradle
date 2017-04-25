@@ -28,6 +28,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperation;
@@ -160,7 +161,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
 
         DefaultBuildOperationState operationBefore = this.currentOperation.get();
         this.currentOperation.set(currentOperation);
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier((OperationIdentifier) this.currentOperation.get().getId());
+        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(this.currentOperation.get().getId());
         try {
             listener.started((BuildOperationInternal) descriptor, new OperationStartEvent(currentOperation.getStartTime()));
 
@@ -193,6 +194,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
             LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
         } finally {
             this.currentOperation.set(operationBefore);
+            if (parent != null) {
+                BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(parent.getId());
+            } else {
+                BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
+            }
             currentOperation.setRunning(false);
         }
     }

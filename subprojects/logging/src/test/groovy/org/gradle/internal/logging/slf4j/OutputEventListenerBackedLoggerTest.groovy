@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry
-import org.gradle.internal.progress.OperationIdentifier
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEventListener
@@ -117,7 +117,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
             assert event.timestamp == now
             assert event.throwable == throwable
             assert event.logLevel == logLevel
-            assert event.buildOperationIdentifier == operationIdentifier
+            assert event.buildOperationId == operationIdentifier
             return true
         }
     }

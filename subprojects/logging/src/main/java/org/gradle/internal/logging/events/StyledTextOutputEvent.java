@@ -19,7 +19,6 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.progress.OperationIdentifier;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,7 +28,11 @@ import java.util.List;
 public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final List<Span> spans;
 
-    private StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable Object buildOperationIdentifier, String text) {
+        this(timestamp, category, logLevel, buildOperationIdentifier, Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable Object buildOperationIdentifier, List<Span> spans) {
         super(timestamp, category, logLevel, buildOperationIdentifier);
         this.spans = new ArrayList<Span>(spans);
     }
@@ -51,6 +54,10 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         return builder.toString();
     }
 
+    public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
+        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, getBuildOperationId(), spans);
+    }
+
     public List<Span> getSpans() {
         return spans;
     }
@@ -61,12 +68,6 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
             output.style(span.style);
             output.text(span.text);
         }
-    }
-
-    public StyledTextOutputEvent.Builder toBuilder() {
-        return new StyledTextOutputEvent.Builder(getTimestamp(), getCategory(), spans)
-            .forOperation(getBuildOperationIdentifier())
-            .withLogLevel(getLogLevel());
     }
 
     public static class Span implements Serializable {
@@ -89,42 +90,6 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
 
         public String getText() {
             return text;
-        }
-    }
-
-    public static class Builder {
-        private long timestamp;
-        private String category;
-        private List<Span> spans;
-        private @Nullable LogLevel logLevel;
-        private @Nullable OperationIdentifier operationIdentifier;
-
-        public Builder(long timestamp, String category, String text) {
-            this(timestamp, category, Collections.singletonList(new Span(text)));
-        }
-
-        public Builder(long timestamp, String category, List<Span> spans) {
-            this(timestamp, category);
-            this.spans = spans;
-        }
-
-        private Builder(long timestamp, String category) {
-            this.timestamp = timestamp;
-            this.category = category;
-        }
-
-        public StyledTextOutputEvent.Builder withLogLevel(LogLevel logLevel) {
-            this.logLevel = logLevel;
-            return this;
-        }
-
-        public StyledTextOutputEvent.Builder forOperation(OperationIdentifier operationIdentifier) {
-            this.operationIdentifier = operationIdentifier;
-            return this;
-        }
-
-        public StyledTextOutputEvent build() {
-            return new StyledTextOutputEvent(timestamp, category, logLevel, operationIdentifier, spans);
         }
     }
 }

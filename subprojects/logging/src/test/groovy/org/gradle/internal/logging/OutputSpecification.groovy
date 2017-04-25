@@ -17,10 +17,10 @@ package org.gradle.internal.logging
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
-import org.gradle.internal.progress.OperationIdentifier
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -48,34 +48,23 @@ abstract class OutputSpecification extends Specification {
     }
 
     LogEvent event(String text) {
-        return new LogEvent.Builder(tenAm, CATEGORY, LogLevel.INFO, text)
-            .forOperation(new OperationIdentifier(1L))
-            .build()
+        return new LogEvent(tenAm, 'category', LogLevel.INFO, text, null)
     }
 
     LogEvent event(String text, LogLevel logLevel) {
-        return new LogEvent.Builder(tenAm, CATEGORY, logLevel, text)
-            .forOperation(new OperationIdentifier(1L))
-            .build()
+        return new LogEvent(tenAm, 'category', logLevel, text, null)
     }
 
     LogEvent event(long timestamp, String text, LogLevel logLevel) {
-        return new LogEvent.Builder(timestamp, CATEGORY, logLevel, text)
-            .forOperation(new OperationIdentifier(1L))
-            .build()
+        return new LogEvent(timestamp, 'category', logLevel, text, null)
     }
 
     LogEvent event(long timestamp, String text) {
-        return new LogEvent.Builder(timestamp, CATEGORY, LogLevel.INFO, text)
-            .forOperation(new OperationIdentifier(1L))
-            .build()
+        return new LogEvent(timestamp, 'category', LogLevel.INFO, text, null)
     }
 
     LogEvent event(String text, Throwable throwable) {
-        return new LogEvent.Builder(tenAm, CATEGORY, LogLevel.INFO, text)
-            .forOperation(new OperationIdentifier(1L))
-            .withThrowable(throwable)
-            .build()
+        return new LogEvent(tenAm, 'category', LogLevel.INFO, text, throwable)
     }
 
     ProgressStartEvent start(String description) {

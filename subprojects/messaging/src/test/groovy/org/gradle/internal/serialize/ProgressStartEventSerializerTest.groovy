@@ -17,12 +17,16 @@ package org.gradle.internal.serialize
 
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.serializer.ProgressStartEventSerializer
-import org.gradle.internal.progress.OperationIdentifier
+import org.gradle.internal.logging.events.OperationIdentifier
 import spock.lang.Subject
 
 @Subject(ProgressStartEventSerializer)
 class ProgressStartEventSerializerTest extends SerializerSpec {
-    public static final String DESCRIPTION = "description"
+    private static final long TIMESTAMP = 42L
+    private static final String CATEGORY = "category"
+    private static final String DESCRIPTION = "description"
+    private static final OperationIdentifier OPERATION_ID = new OperationIdentifier(1234L)
+
     ProgressStartEventSerializer serializer = new ProgressStartEventSerializer()
 
     def "can serialize ProgressStartEvent messages"() {
@@ -63,5 +67,17 @@ class ProgressStartEventSerializerTest extends SerializerSpec {
         result.loggingHeader == null
         result.status == ""
         result.buildOperationId == null
+    }
+
+    def "can serialize build operation ids with large long values"() {
+        given:
+        def event = new ProgressStartEvent(new OperationIdentifier(1_000_000_000_000L), null, TIMESTAMP, CATEGORY, DESCRIPTION, null, null, "", new OperationIdentifier(42_000_000_000_000L))
+
+        when:
+        def result = serialize(event, serializer)
+
+        then:
+        result.progressOperationId == new OperationIdentifier(1_000_000_000_000L)
+        result.buildOperationId == new OperationIdentifier(42_000_000_000_000L)
     }
 }

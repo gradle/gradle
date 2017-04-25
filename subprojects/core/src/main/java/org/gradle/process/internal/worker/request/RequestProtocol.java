@@ -16,10 +16,8 @@
 
 package org.gradle.process.internal.worker.request;
 
-import org.gradle.internal.progress.OperationIdentifier;
-
 public interface RequestProtocol {
-    void run(String methodName, Class<?>[] paramTypes, Object[] args, OperationIdentifier operationIdentifier);
-    void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, OperationIdentifier operationIdentifier);
+    void run(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier);
+    void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier);
     void stop();
 }

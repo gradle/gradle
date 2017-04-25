@@ -19,7 +19,6 @@ package org.gradle.process.internal.worker.request;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
-import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
@@ -70,7 +69,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     }
 
     @Override
-    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, OperationIdentifier operationIdentifier) {
+    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier) {
         try {
             run(methodName, paramTypes, args, operationIdentifier);
         } finally {
@@ -79,7 +78,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     }
 
     @Override
-    public void run(String methodName, Class<?>[] paramTypes, Object[] args, OperationIdentifier operationIdentifier) {
+    public void run(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier) {
         if (failure != null) {
             responder.infrastructureFailed(failure);
             return;
@@ -103,6 +102,8 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             responder.completed(result);
         } catch (Throwable t) {
             responder.infrastructureFailed(t);
+        } finally {
+            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
         }
     }
 

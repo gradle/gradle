@@ -16,17 +16,16 @@
 package org.gradle.internal.operations;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.progress.OperationIdentifier;
 
 public class BuildOperationIdentifierRegistry {
-    private static ThreadLocal<OperationIdentifier> localOperationId = new ThreadLocal<OperationIdentifier>();
+    private static ThreadLocal<Object> localOperationId = new ThreadLocal<Object>();
 
     @Nullable
-    public static OperationIdentifier getCurrentOperationIdentifier() {
+    public static Object getCurrentOperationIdentifier() {
         return localOperationId.get();
     }
 
-    public static void setCurrentOperationIdentifier(OperationIdentifier operationId) {
+    public static void setCurrentOperationIdentifier(Object operationId) {
         if (operationId == null) {
             localOperationId.remove();
         } else {

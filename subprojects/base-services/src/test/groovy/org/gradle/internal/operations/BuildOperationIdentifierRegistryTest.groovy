@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations
 
-import org.gradle.internal.progress.OperationIdentifier
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -27,10 +26,10 @@ class BuildOperationIdentifierRegistryTest extends Specification {
         BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() == null
 
         when:
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(new OperationIdentifier(1L))
+        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(1L)
 
         then:
-        BuildOperationIdentifierRegistry.getCurrentOperationIdentifier().id == 1L
+        BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() == 1L
 
         when:
         BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier()

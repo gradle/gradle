@@ -24,7 +24,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.progress.OperationIdentifier;
+import org.gradle.internal.logging.events.OperationIdentifier;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

@@ -18,6 +18,7 @@ package org.gradle.internal.progress;
 
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.operations.BuildOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;

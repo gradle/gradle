@@ -28,15 +28,12 @@ class TextStreamOutputEventListenerTest extends Specification {
     def attachesLogLevelToTextOutputEvent() {
         StyledTextOutputEvent event = Mock()
         StyledTextOutputEvent transformed = Mock()
-        StyledTextOutputEvent.Builder eventBuilder = Mock()
 
         when:
         listener.onOutput(event)
 
         then:
-        1 * event.toBuilder() >> eventBuilder
-        1 * eventBuilder.withLogLevel(LogLevel.LIFECYCLE) >> eventBuilder
-        1 * eventBuilder.build() >> transformed
+        1 * event.withLogLevel(LogLevel.LIFECYCLE) >> transformed
         1 * target.onOutput(transformed)
         0 * target._
     }
@@ -56,16 +53,13 @@ class TextStreamOutputEventListenerTest extends Specification {
     def doesNotForwardLogLevelChangeEvents() {
         StyledTextOutputEvent event = Mock()
         StyledTextOutputEvent transformed = Mock()
-        StyledTextOutputEvent.Builder eventBuilder = Mock()
 
         when:
         listener.onOutput(new LogLevelChangeEvent(LogLevel.ERROR))
         listener.onOutput(event)
 
         then:
-        1 * event.toBuilder() >> eventBuilder
-        1 * eventBuilder.withLogLevel(LogLevel.ERROR) >> eventBuilder
-        1 * eventBuilder.build() >> transformed
+        1 * event.withLogLevel(LogLevel.ERROR) >> transformed
         1 * target.onOutput(transformed)
         0 * target._
     }
