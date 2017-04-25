@@ -110,10 +110,11 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
 
         @Override
         public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            if (metaDataCache.isMetadataCached(moduleComponentIdentifier)) {
-                return true;
+            Boolean cached = metaDataCache.isMetadataCached(moduleComponentIdentifier);
+            if (cached != null) {
+                return cached;
             }
-            return super.isMetadataAvailableLocally(moduleComponentIdentifier);
+            return metaDataCache.cacheMetadataAvailability(moduleComponentIdentifier, super.isMetadataAvailableLocally(moduleComponentIdentifier));
         }
     }
 }
