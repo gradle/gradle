@@ -26,6 +26,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -51,7 +52,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 //TODO move to base-services once the ProgressLogger dependency is removed
-public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
+public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
@@ -269,6 +270,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor {
         }), LINE_SEPARATOR + "AND" + LINE_SEPARATOR);
     }
 
+    @Override
     public void stop() {
         fixedSizePool.stop();
     }
