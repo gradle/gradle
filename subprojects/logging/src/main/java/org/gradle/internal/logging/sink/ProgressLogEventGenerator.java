@@ -18,6 +18,7 @@ package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -25,10 +26,10 @@ import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
-import org.gradle.internal.progress.OperationIdentifier;
 import org.gradle.util.GUtil;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -96,7 +97,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onStart(ProgressStartEvent progressStartEvent) {
-        Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp(), progressStartEvent.getProgressOperationId());
+        Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp(), progressStartEvent.getBuildOperationId());
         operations.put(progressStartEvent.getProgressOperationId(), operation);
 
         if (!deferHeader || !(progressStartEvent.getLoggingHeader() != null && progressStartEvent.getLoggingHeader().equals(progressStartEvent.getShortDescription()))) {
@@ -107,7 +108,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     enum State {None, HeaderStarted, HeaderCompleted, Completed}
 
     private class Operation {
-        private final OperationIdentifier buildOperationIdentifier;
+        private final Object buildOperationIdentifier;
         private final String category;
         private final String loggingHeader;
         private final long startTime;
@@ -116,7 +117,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         private State state = State.None;
         private long completeTime;
 
-        private Operation(String category, String loggingHeader, long startTime, OperationIdentifier buildOperationIdentifier) {
+        private Operation(String category, String loggingHeader, long startTime, Object buildOperationIdentifier) {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.startTime = startTime;
@@ -125,17 +126,11 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         }
 
         private StyledTextOutputEvent plainTextEvent(long timestamp, String text) {
-            return new StyledTextOutputEvent.Builder(timestamp, category, text)
-                .forOperation(buildOperationIdentifier)
-                .withLogLevel(LogLevel.LIFECYCLE)
-                .build();
+            return new StyledTextOutputEvent(timestamp, category, LogLevel.LIFECYCLE, buildOperationIdentifier, Collections.singletonList(new StyledTextOutputEvent.Span(text)));
         }
 
         private StyledTextOutputEvent styledTextEvent(long timestamp, StyledTextOutputEvent.Span... spans) {
-            return new StyledTextOutputEvent.Builder(timestamp, category, Arrays.asList(spans))
-                .forOperation(buildOperationIdentifier)
-                .withLogLevel(LogLevel.LIFECYCLE)
-                .build();
+            return new StyledTextOutputEvent(timestamp, category, LogLevel.LIFECYCLE, buildOperationIdentifier, Arrays.asList(spans));
         }
 
         private void doOutput(RenderableOutputEvent event) {

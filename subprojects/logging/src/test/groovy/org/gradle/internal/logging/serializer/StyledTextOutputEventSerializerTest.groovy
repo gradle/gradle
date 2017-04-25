@@ -14,39 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize
+package org.gradle.internal.logging.serializer
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.StyledTextOutputEvent
-import org.gradle.internal.logging.serializer.SpanSerializer
-import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer
 import org.gradle.internal.logging.text.StyledTextOutput
-import org.gradle.internal.progress.OperationIdentifier
+import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.serialize.ListSerializer
+import org.gradle.internal.serialize.Serializer
 import spock.lang.Subject
 
 @Subject(StyledTextOutputEventSerializer)
-class StyledTextOutputEventSerializerTest extends SerializerSpec {
+class StyledTextOutputEventSerializerTest extends LogSerializerSpec {
     StyledTextOutputEventSerializer serializer
 
     def setup() {
         BaseSerializerFactory serializerFactory = new BaseSerializerFactory()
         Serializer<LogLevel> logLevelSerializer = serializerFactory.getSerializerFor(LogLevel.class)
-        Serializer<OperationIdentifier> operationIdentifierSerializer = serializerFactory.getSerializerFor(OperationIdentifier.class)
         serializer = new StyledTextOutputEventSerializer(
             logLevelSerializer,
             new ListSerializer<StyledTextOutputEvent.Span>(
-                new SpanSerializer(serializerFactory.getSerializerFor(StyledTextOutput.Style.class))),
-            operationIdentifierSerializer)
+                new SpanSerializer(serializerFactory.getSerializerFor(StyledTextOutput.Style.class))))
     }
 
     def "can serialize StyledTextOutputEvent messages"() {
         expect:
         List spans = [new StyledTextOutputEvent.Span(StyledTextOutput.Style.Description, "description"),
                       new StyledTextOutputEvent.Span(StyledTextOutput.Style.Error, "error")]
-        def event = new StyledTextOutputEvent.Builder(TIMESTAMP, CATEGORY, spans)
-            .withLogLevel(LogLevel.LIFECYCLE)
-            .forOperation(OPERATION_ID)
-            .build()
+        def event = new StyledTextOutputEvent(TIMESTAMP, CATEGORY, LogLevel.LIFECYCLE, new OperationIdentifier(42L), spans)
         def result = serialize(event, serializer)
         result instanceof StyledTextOutputEvent
         result.timestamp == TIMESTAMP
@@ -57,6 +53,6 @@ class StyledTextOutputEventSerializerTest extends SerializerSpec {
         result.spans[0].text == "description"
         result.spans[1].style == StyledTextOutput.Style.Error
         result.spans[1].text == "error"
-        result.buildOperationIdentifier == OPERATION_ID
+        result.buildOperationId == new OperationIdentifier(42L)
     }
 }

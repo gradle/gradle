@@ -18,10 +18,10 @@ package org.gradle.internal.logging.source
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogLevelChangeEvent
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry
-import org.gradle.internal.progress.OperationIdentifier
 import org.gradle.internal.time.TimeProvider
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -83,7 +83,7 @@ class PrintStreamLoggingSystemTest extends Specification {
                 it.category == 'category' &&
                 it.timestamp == 1200 &&
                 it.spans[0].text == withEOL('info') &&
-                it.buildOperationIdentifier.id == 42L
+                it.buildOperationId.id == 42L
         })
 
         cleanup:

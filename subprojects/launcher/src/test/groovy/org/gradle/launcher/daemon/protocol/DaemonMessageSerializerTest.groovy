@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.protocol
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogLevelChangeEvent
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
@@ -26,7 +27,6 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 
 class DaemonMessageSerializerTest extends SerializerSpec {
-    public static final long FAKE_TIMESTAMP_2 = 321L
     def serializer = DaemonMessageSerializer.create()
 
     def "can serialize BuildEvent messages"() {
@@ -47,24 +47,24 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize ProgressCompleteEvent messages"() {
         expect:
-        def event = new ProgressCompleteEvent(OPERATION_ID, FAKE_TIMESTAMP_2, CATEGORY, "description", "status")
+        def event = new ProgressCompleteEvent(new OperationIdentifier(1234L), 321L, "category", "description", "status")
         def result = serialize(event, serializer)
         result instanceof ProgressCompleteEvent
-        result.operationId == OPERATION_ID
-        result.timestamp == FAKE_TIMESTAMP_2
-        result.category == CATEGORY
+        result.operationId == new OperationIdentifier(1234L)
+        result.timestamp == 321L
+        result.category == "category"
         result.description == "description"
         result.status == "status"
     }
 
     def "can serialize ProgressEvent messages"() {
         expect:
-        def event = new ProgressEvent(OPERATION_ID, FAKE_TIMESTAMP_2, CATEGORY, "status")
+        def event = new ProgressEvent(new OperationIdentifier(1234L), 321L, "category", "status")
         def result = serialize(event, serializer)
         result instanceof ProgressEvent
-        result.operationId == OPERATION_ID
-        result.timestamp == FAKE_TIMESTAMP_2
-        result.category == CATEGORY
+        result.operationId == new OperationIdentifier(1234L)
+        result.timestamp == 321L
+        result.category == "category"
         result.status == "status"
     }
 

@@ -14,32 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize
+package org.gradle.internal.logging.serializer
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.serializer.LogEventSerializer
-import org.gradle.internal.progress.OperationIdentifier
+import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.serialize.Serializer
 import spock.lang.Subject
 
 @Subject(LogEventSerializer)
-class LogEventSerializerTest extends SerializerSpec {
+class LogEventSerializerTest extends LogSerializerSpec {
     LogEventSerializer serializer
 
     def setup() {
         BaseSerializerFactory serializerFactory = new BaseSerializerFactory()
         Serializer<LogLevel> logLevelSerializer = serializerFactory.getSerializerFor(LogLevel.class)
         Serializer<Throwable> throwableSerializer = serializerFactory.getSerializerFor(Throwable.class)
-        Serializer<OperationIdentifier> operationIdentifierSerializer = serializerFactory.getSerializerFor(OperationIdentifier.class)
-        serializer = new LogEventSerializer(logLevelSerializer, throwableSerializer, operationIdentifierSerializer)
+        serializer = new LogEventSerializer(logLevelSerializer, throwableSerializer)
     }
 
-    def "can serialize LogEvent messages with failures and operation id"() {
+    def "can serialize LogEvent messages with failure and operation id"() {
         when:
-        def event = new LogEvent.Builder(TIMESTAMP, CATEGORY, LogLevel.LIFECYCLE, MESSAGE)
-            .withThrowable(new RuntimeException())
-            .forOperation(OPERATION_ID)
-            .build()
+        def event = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.LIFECYCLE, MESSAGE, new RuntimeException(), new OperationIdentifier(42L))
         def result = serialize(event, serializer)
 
         then:
@@ -51,12 +48,12 @@ class LogEventSerializerTest extends SerializerSpec {
         result.throwable.getClass() == event.throwable.getClass()
         result.throwable.message == event.throwable.message
         result.throwable.stackTrace == event.throwable.stackTrace
-        result.buildOperationIdentifier == OPERATION_ID
+        result.buildOperationId == new OperationIdentifier(42L)
     }
 
     def "can serialize LogEvent messages"() {
         when:
-        def event = new LogEvent.Builder(TIMESTAMP, CATEGORY, LogLevel.LIFECYCLE, MESSAGE).build()
+        def event = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.LIFECYCLE, MESSAGE, null, null)
         def result = serialize(event, serializer)
 
         then:
@@ -66,6 +63,6 @@ class LogEventSerializerTest extends SerializerSpec {
         result.logLevel == LogLevel.LIFECYCLE
         result.message == MESSAGE
         result.throwable == null
-        result.buildOperationIdentifier == null
+        result.buildOperationId == null
     }
 }

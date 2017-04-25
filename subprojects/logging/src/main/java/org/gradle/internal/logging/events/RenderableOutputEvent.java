@@ -19,14 +19,13 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.progress.OperationIdentifier;
 
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
-    private OperationIdentifier buildOperationIdentifier;
+    private Object buildOperationId;
 
-    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier) {
+    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable Object buildOperationId) {
         super(timestamp, category, logLevel);
-        this.buildOperationIdentifier = buildOperationIdentifier;
+        this.buildOperationId = buildOperationId;
     }
 
     /**
@@ -39,7 +38,7 @@ public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     public abstract void render(StyledTextOutput output);
 
     @Nullable
-    public OperationIdentifier getBuildOperationIdentifier() {
-        return buildOperationIdentifier;
+    public Object getBuildOperationId() {
+        return buildOperationId;
     }
 }

@@ -26,7 +26,7 @@ import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
-import org.gradle.internal.progress.OperationIdentifier;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.Arrays;

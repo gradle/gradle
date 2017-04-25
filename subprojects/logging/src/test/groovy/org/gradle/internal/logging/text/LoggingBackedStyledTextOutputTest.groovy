@@ -17,7 +17,7 @@ package org.gradle.internal.logging.text
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry
-import org.gradle.internal.progress.OperationIdentifier
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.OutputSpecification
@@ -55,7 +55,7 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
             assert event.logLevel == LogLevel.INFO
             assert event.timestamp == 1200
             assert event.spans[0].text == toNative('message\n')
-            assert event.buildOperationIdentifier == operationIdentifier
+            assert event.buildOperationId == operationIdentifier
         }
         0 * listener._
 

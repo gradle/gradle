@@ -17,7 +17,6 @@ package org.gradle.internal.logging.events
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.text.StyledTextOutput
-import org.gradle.internal.progress.OperationIdentifier
 import spock.lang.Specification
 
 class LogEventTest extends Specification {
@@ -28,7 +27,7 @@ class LogEventTest extends Specification {
 
     def renderWritesMessageToTextOutput() {
         given:
-        def logEvent = new LogEvent.Builder(TIMESTAMP, CATEGORY, LogLevel.INFO, MESSAGE).build()
+        def logEvent = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.INFO, MESSAGE, null)
 
         when:
         logEvent.render(output)
@@ -42,10 +41,7 @@ class LogEventTest extends Specification {
     def renderWritesMessageAndExceptionToTextOutput() {
         given:
         def failure = new RuntimeException()
-        def logEvent = new LogEvent.Builder(TIMESTAMP, CATEGORY, LogLevel.INFO, MESSAGE)
-            .forOperation(new OperationIdentifier(42L))
-            .withThrowable(failure)
-            .build()
+        def logEvent = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.INFO, MESSAGE, failure)
 
         when:
         logEvent.render(output)

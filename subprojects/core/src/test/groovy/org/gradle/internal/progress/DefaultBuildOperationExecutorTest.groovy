@@ -18,6 +18,7 @@ package org.gradle.internal.progress
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
