@@ -31,8 +31,8 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
     int serverPort
 
     private void startServer() {
-        def repoDir = new File(new TestProjectLocator().findProjectDir(TEST_PROJECT_NAME), 'repository')
-        if (repoDir.exists()) {
+        try {
+            def repoDir = new File(new TestProjectLocator().findProjectDir(TEST_PROJECT_NAME), 'repository')
             serverPort = AvailablePortFinder.getNextAvailable(5000)
             server = new Server(serverPort)
             WebAppContext context = new WebAppContext()
@@ -40,6 +40,8 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
             context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
             server.addHandler(context)
             server.start()
+        } catch (IllegalArgumentException ex) {
+            server = null // repository not found, probably running on coordinator. If not, error will be caught later
         }
     }
 
