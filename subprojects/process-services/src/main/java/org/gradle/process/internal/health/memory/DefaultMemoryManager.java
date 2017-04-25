@@ -79,7 +79,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     }
 
     private void start() {
-        scheduler.scheduleAtFixedRate(new MemoryCheck(), 0, STATUS_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(new MemoryCheck(), STATUS_INTERVAL_SECONDS, STATUS_INTERVAL_SECONDS, TimeUnit.SECONDS);
         LOGGER.debug("Memory status broadcaster started");
         if (osMemoryStatusSupported) {
             addListener(osMemoryStatusListener);

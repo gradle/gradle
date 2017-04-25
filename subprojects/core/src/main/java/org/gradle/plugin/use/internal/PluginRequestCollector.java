@@ -16,22 +16,23 @@
 
 package org.gradle.plugin.use.internal;
 
-import com.google.common.collect.ListMultimap;
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
-import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static org.gradle.util.CollectionUtils.collect;
 
@@ -95,7 +96,7 @@ public class PluginRequestCollector {
             }
         });
 
-        ListMultimap<PluginId, PluginRequestInternal> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequestInternal>() {
+        Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequestInternal>() {
             public PluginId transform(PluginRequestInternal pluginRequest) {
                 return pluginRequest.getId();
             }
@@ -103,7 +104,7 @@ public class PluginRequestCollector {
 
         // Check for duplicates
         for (PluginId key : groupedById.keySet()) {
-            List<PluginRequestInternal> pluginRequestsForId = groupedById.get(key);
+            Collection<PluginRequestInternal> pluginRequestsForId = groupedById.get(key);
             if (pluginRequestsForId.size() > 1) {
                 PluginRequestInternal first = pluginRequests.get(0);
                 PluginRequestInternal second = pluginRequests.get(1);

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.event;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
@@ -24,6 +23,9 @@ import org.gradle.internal.dispatch.ReflectionDispatch;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -71,9 +73,9 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
     public abstract BroadcastDispatch<T> remove(Object listener);
 
-    public abstract BroadcastDispatch<T> addAll(Iterable<? extends T> listeners);
+    public abstract BroadcastDispatch<T> addAll(Collection<? extends T> listeners);
 
-    public abstract BroadcastDispatch<T> removeAll(Iterable<?> listeners);
+    public abstract BroadcastDispatch<T> removeAll(Collection<?> listeners);
 
     private static class ActionInvocationHandler implements Dispatch<MethodInvocation> {
         private final String methodName;
@@ -112,7 +114,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
-        public BroadcastDispatch<T> removeAll(Iterable<?> listeners) {
+        public BroadcastDispatch<T> removeAll(Collection<?> listeners) {
             return this;
         }
 
@@ -122,12 +124,14 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
-        public BroadcastDispatch<T> addAll(Iterable<? extends T> listeners) {
-            ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
+        public BroadcastDispatch<T> addAll(Collection<? extends T> listeners) {
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
             for (T listener : listeners) {
-                builder.add(new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener)));
+                SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
+                if (!result.contains(dispatch)) {
+                    result.add(dispatch);
+                }
             }
-            ImmutableSet<SingletonDispatch<T>> result = builder.build();
             if (result.isEmpty()) {
                 return this;
             }
@@ -173,20 +177,25 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
             if (this.handler == handler || this.handler.equals(handler)) {
                 return this;
             }
-            return new CompositeDispatch<T>(type, ImmutableSet.of(this, new SingletonDispatch<T>(type, handler, dispatch)));
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
+            result.add(this);
+            result.add(new SingletonDispatch<T>(type, handler, dispatch));
+            return new CompositeDispatch<T>(type, result);
         }
 
         @Override
-        public BroadcastDispatch<T> addAll(Iterable<? extends T> listeners) {
-            ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
-            builder.add(this);
+        public BroadcastDispatch<T> addAll(Collection<? extends T> listeners) {
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
+            result.add(this);
             for (T listener : listeners) {
                 if (handler == listener || handler.equals(listener)) {
                     continue;
                 }
-                builder.add(new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener)));
+                SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
+                if (!result.contains(dispatch)) {
+                    result.add(dispatch);
+                }
             }
-            ImmutableSet<SingletonDispatch<T>> result = builder.build();
             if (result.size() == 1) {
                 return this;
             }
@@ -202,7 +211,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
-        public BroadcastDispatch<T> removeAll(Iterable<?> listeners) {
+        public BroadcastDispatch<T> removeAll(Collection<?> listeners) {
             for (Object listener : listeners) {
                 if (handler == listener || handler.equals(listener)) {
                     return new EmptyDispatch<T>(type);
@@ -223,9 +232,9 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
     }
 
     private static class CompositeDispatch<T> extends BroadcastDispatch<T> {
-        private final ImmutableSet<SingletonDispatch<T>> dispatchers;
+        private final List<SingletonDispatch<T>> dispatchers;
 
-        CompositeDispatch(Class<T> type, ImmutableSet<SingletonDispatch<T>> dispatchers) {
+        CompositeDispatch(Class<T> type, List<SingletonDispatch<T>> dispatchers) {
             super(type);
             this.dispatchers = dispatchers;
         }
@@ -237,26 +246,28 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         BroadcastDispatch<T> add(Object handler, Dispatch<MethodInvocation> dispatch) {
-            ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
             for (SingletonDispatch<T> listener : dispatchers) {
                 if (listener.handler == handler || listener.handler.equals(handler)) {
                     return this;
                 }
-                builder.add(listener);
+                result.add(listener);
             }
-            builder.add(new SingletonDispatch<T>(type, handler, dispatch));
-            return new CompositeDispatch<T>(type, builder.build());
+            result.add(new SingletonDispatch<T>(type, handler, dispatch));
+            return new CompositeDispatch<T>(type, result);
         }
 
         @Override
-        public BroadcastDispatch<T> addAll(Iterable<? extends T> listeners) {
-            ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
-            builder.addAll(this.dispatchers);
+        public BroadcastDispatch<T> addAll(Collection<? extends T> listeners) {
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
+            result.addAll(dispatchers);
             for (T listener : listeners) {
-                builder.add(new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener)));
+                SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
+                if (!result.contains(dispatch)) {
+                    result.add(dispatch);
+                }
             }
-            ImmutableSet<SingletonDispatch<T>> result = builder.build();
-            if (result.equals(this.dispatchers)) {
+            if (result.equals(dispatchers)) {
                 return this;
             }
             return new CompositeDispatch<T>(type, result);
@@ -264,19 +275,18 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public BroadcastDispatch<T> remove(Object listener) {
-            ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
             boolean found = false;
             for (SingletonDispatch<T> dispatch : dispatchers) {
                 if (dispatch.handler == listener || dispatch.handler.equals(listener)) {
                     found = true;
                 } else {
-                    builder.add(dispatch);
+                    result.add(dispatch);
                 }
             }
             if (!found) {
                 return this;
             }
-            ImmutableSet<SingletonDispatch<T>> result = builder.build();
             if (result.size() == 1) {
                 return result.iterator().next();
             }
@@ -284,15 +294,14 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
-        public BroadcastDispatch<T> removeAll(Iterable<?> listeners) {
+        public BroadcastDispatch<T> removeAll(Collection<?> listeners) {
             Set<Object> listenerList = CollectionUtils.toSet(listeners);
-            ImmutableSet.Builder<SingletonDispatch<T>> builder = ImmutableSet.builder();
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
             for (SingletonDispatch<T> dispatch : this.dispatchers) {
                 if (!listenerList.contains(dispatch.handler)) {
-                    builder.add(dispatch);
+                    result.add(dispatch);
                 }
             }
-            ImmutableSet<SingletonDispatch<T>> result = builder.build();
             if (result.size() == 0) {
                 return new EmptyDispatch<T>(type);
             }
