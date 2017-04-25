@@ -16,6 +16,8 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.HashCode;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -26,13 +28,17 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.DefaultGeneratedGradleJarCache;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.resources.ResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.api.internal.changedetection.state.GenericResourceSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -41,7 +47,18 @@ import org.gradle.api.internal.hash.DefaultFileHasher;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.project.BuildOperationProjectConfigurator;
 import org.gradle.api.internal.project.ProjectConfigurator;
+import org.gradle.api.snapshotting.CompileClasspath;
+import org.gradle.api.snapshotting.RuntimeClasspath;
+import org.gradle.api.snapshotting.SnapshotterConfiguration;
+import org.gradle.api.snapshotting.internal.CompileClasspathResourceSnapshotterFactory;
+import org.gradle.api.snapshotting.internal.DefaultResourceSnapshotterRegistry;
+import org.gradle.api.snapshotting.internal.GenericSnapshotters;
+import org.gradle.api.snapshotting.internal.ResourceSnapshotterFactory;
+import org.gradle.api.snapshotting.internal.ResourceSnapshotterRegistry;
+import org.gradle.api.snapshotting.internal.RuntimeClasspathResourceSnapshotterFactory;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
@@ -66,6 +83,7 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -185,6 +203,30 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
+    }
+
+    ResourceSnapshotterRegistry createResourceSnapshotterRegistry(final StringInterner stringInterner, final TaskHistoryStore store) {
+        final PersistentIndexedCache<HashCode, HashCode> cache = store.createCache("snapshottingCache", HashCode.class, new HashCodeSerializer(), 400000, true);
+
+        ImmutableMap.Builder<Class<? extends SnapshotterConfiguration>, ResourceSnapshotterFactory<?>> factories = ImmutableMap.builder();
+        factories.put(RuntimeClasspath.class, new RuntimeClasspathResourceSnapshotterFactory(stringInterner, cache));
+        factories.put(CompileClasspath.class, new CompileClasspathResourceSnapshotterFactory(stringInterner, cache));
+        for (final PathSensitivity pathSensitivity : PathSensitivity.values()) {
+            Class<? extends SnapshotterConfiguration> configurationType = GenericSnapshotters.valueOf(pathSensitivity);
+            factories.put(configurationType, new ResourceSnapshotterFactory<SnapshotterConfiguration>() {
+                @Override
+                public ResourceSnapshotter create(SnapshotterConfiguration configuration) {
+                    return new GenericResourceSnapshotter(TaskFilePropertySnapshotNormalizationStrategy.valueOf(pathSensitivity), TaskFilePropertyCompareStrategy.UNORDERED, stringInterner);
+                }
+            });
+        }
+        factories.put(GenericSnapshotters.Output.class, new ResourceSnapshotterFactory<SnapshotterConfiguration>() {
+            @Override
+            public ResourceSnapshotter create(SnapshotterConfiguration configuration) {
+                return new GenericResourceSnapshotter(TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE, TaskFilePropertyCompareStrategy.OUTPUT, stringInterner);
+            }
+        });
+        return new DefaultResourceSnapshotterRegistry(factories.build());
     }
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {
