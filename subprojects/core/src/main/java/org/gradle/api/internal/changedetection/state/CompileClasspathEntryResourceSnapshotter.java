@@ -71,7 +71,7 @@ public class CompileClasspathEntryResourceSnapshotter extends AbstractResourceSn
                 HashCode cacheKey = cacheKey(resource);
                 HashCode signatureHash = signatureCache.get(cacheKey);
                 if (signatureHash != null) {
-                    if (signatureHash != IGNORED) {
+                    if (!signatureHash.equals(IGNORED)) {
                         recorder.recordResult(resource, signatureHash);
                     }
                     return;
