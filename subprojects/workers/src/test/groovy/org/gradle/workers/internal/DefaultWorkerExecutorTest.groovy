@@ -30,6 +30,7 @@ import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @UsesNativeServices
 class DefaultWorkerExecutorTest extends Specification {
@@ -192,7 +193,105 @@ class DefaultWorkerExecutorTest extends Specification {
             return new DefaultWorkResult(true, null)
         }
     }
-    
+
+    def "cannot set classpath in isolation mode NONE"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = IsolationMode.NONE
+            configuration.params = []
+            configuration.classpath([new File("foo")])
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker classpath cannot be set when using isolation mode NONE"
+    }
+
+    @Unroll
+    def "cannot set bootstrap classpath in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.bootstrapClasspath new File("foo")
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker bootstrap classpath cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
+    @Unroll
+    def "cannot set jvm arguments in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.jvmArgs "foo"
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker jvm arguments cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
+    @Unroll
+    def "cannot set system properties in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.systemProperty "FOO", "bar"
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker system properties cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
+    @Unroll
+    def "cannot set maximum heap in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.maxHeapSize = "foo"
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker maximum heap size cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
+    @Unroll
+    def "cannot set minimum heap in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.minHeapSize = "foo"
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker minimum heap size cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
     static class TestRunnable implements Runnable {
         @Override
         void run() {
