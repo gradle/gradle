@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 public interface RootComponentMetadataBuilder {
     ComponentResolveMetadata toRootComponentMetaData();
+    RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider provider);
 }
