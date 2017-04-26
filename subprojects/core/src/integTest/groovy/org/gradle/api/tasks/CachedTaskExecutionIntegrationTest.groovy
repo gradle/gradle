@@ -16,11 +16,11 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -402,7 +402,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.empty
     }
 
-    @Ignore
+    @NotYetImplemented
     def "order of resources on classpath does not affect how we calculate the cache key"() {
         buildFile << """
             apply plugin: 'base'
@@ -438,7 +438,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds("cacheable")
 
         when:
-        gradleUserHome.deleteDir() // nuke the cache
+        gradleUserHome.deleteDir() // nuke the file snapshot cache
         resources.deleteDir().mkdirs()
         succeeds("clean")
         and:
