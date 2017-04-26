@@ -16,62 +16,49 @@
 package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.BuildProjectRegistry;
+import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.util.Path;
 
 import java.util.Map;
 
 public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvider {
-    private final BuildProjectRegistry projectRegistry;
-    private Map<ProjectIdentifier, String> deduplicated;
+    private final ProjectPathRegistry projectRegistry;
+    private Map<Path, String> deduplicated;
 
-    public DefaultUniqueProjectNameProvider(BuildProjectRegistry projectRegistry) {
+    public DefaultUniqueProjectNameProvider(ProjectPathRegistry projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 
     @Override
     public String getUniqueName(Project project) {
-        Map<ProjectIdentifier, String> deduplicated = getDeduplicatedNames();
-
-        // Need to iterate, since `ProjectInternal` and `DefaultProjectDescriptor` don't have compatible equals() methods.
-        for (ProjectIdentifier projectIdentifier : deduplicated.keySet()) {
-            if (equals(projectIdentifier, (ProjectInternal) project)) {
-                return deduplicated.get(projectIdentifier);
-            }
+        String uniqueName = getDeduplicatedNames().get(((ProjectInternal) project).getIdentityPath());
+        if (uniqueName != null) {
+            return uniqueName;
         }
         return project.getName();
     }
 
-    private synchronized Map<ProjectIdentifier, String> getDeduplicatedNames() {
+    private synchronized Map<Path, String> getDeduplicatedNames() {
         if (deduplicated == null) {
-            HierarchicalElementDeduplicator<ProjectIdentifier> deduplicator = new HierarchicalElementDeduplicator<ProjectIdentifier>(new ProjectIdentifierDeduplicationAdapter());
-            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
+            HierarchicalElementDeduplicator<Path> deduplicator = new HierarchicalElementDeduplicator<Path>(new ProjectPathDeduplicationAdapter());
+            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjectPaths());
         }
         return deduplicated;
     }
 
-    private boolean equals(ProjectIdentifier one, ProjectInternal two) {
-        if (one == null && two == null) {
-            return true;
-        }
-        if (one == null || two == null) {
-            return false;
-        }
-        return one.getName().equals(two.getName())
-            && one.getPath().equals(two.getPath())
-            && equals(one.getParentIdentifier(), two.getParent());
-    }
-
-    private static class ProjectIdentifierDeduplicationAdapter implements HierarchicalElementAdapter<ProjectIdentifier> {
+    private class ProjectPathDeduplicationAdapter implements HierarchicalElementAdapter<Path> {
         @Override
-        public String getName(ProjectIdentifier element) {
+        public String getName(Path element) {
+            if (element == Path.ROOT) {
+                return projectRegistry.getProjectComponentIdentifier(Path.ROOT).getBuild().getName();
+            }
             return element.getName();
         }
 
         @Override
-        public ProjectIdentifier getParent(ProjectIdentifier element) {
-            return element.getParentIdentifier();
+        public Path getParent(Path element) {
+            return element.getParent();
         }
     }
 }

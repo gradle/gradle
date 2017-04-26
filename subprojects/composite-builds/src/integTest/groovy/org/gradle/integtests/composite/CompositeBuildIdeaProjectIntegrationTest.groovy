@@ -362,9 +362,9 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
             "../buildB/b2/b2.iml",
             "../buildC/buildC.iml",
             "../buildC/b1/buildC-b1.iml",
-            "../b1/b1.iml"
+            "../b1/buildA-b1.iml"
 
-        imlHasDependencies "buildB-b1", "buildC-b1", "b1"
+        imlHasDependencies "buildB-b1", "buildC-b1", "buildA-b1"
     }
 
     def "de-duplicates module names between including and included builds"() {

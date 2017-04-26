@@ -15,23 +15,29 @@
  */
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Sets;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.initialization.BuildProjectRegistry;
+import com.google.common.collect.Maps;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.util.Path;
 
-import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 // TODO:DAZ Scope this correctly so it can be made immutable
-public class CompositeBuildProjectRegistry implements BuildProjectRegistry {
-    private final Set<ProjectIdentifier> allProjects = Sets.newLinkedHashSet();
+public class DefaultProjectPathRegistry implements ProjectPathRegistry {
+    private final Map<Path, ProjectComponentIdentifier> allProjects = Maps.newLinkedHashMap();
 
-    void registerProjects(Collection<? extends ProjectIdentifier> projectIdentifiers) {
-        allProjects.addAll(projectIdentifiers);
+    void add(Path projectIdentityPath, ProjectComponentIdentifier identifier) {
+        allProjects.put(projectIdentityPath, identifier);
     }
 
     @Override
-    public Set<ProjectIdentifier> getAllProjects() {
-        return allProjects;
+    public Set<Path> getAllProjectPaths() {
+        return allProjects.keySet();
+    }
+
+    @Override
+    public ProjectComponentIdentifier getProjectComponentIdentifier(Path identityPath) {
+        return allProjects.get(identityPath);
     }
 }

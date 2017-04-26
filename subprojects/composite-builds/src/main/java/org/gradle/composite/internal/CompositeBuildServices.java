@@ -65,11 +65,11 @@ public class CompositeBuildServices implements PluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext(includedBuilds, moduleIdentifierFactory);
         }
 
-        public CompositeBuildProjectRegistry createCompositeBuildProjectRegistry() {
-            return new CompositeBuildProjectRegistry();
+        public DefaultProjectPathRegistry createProjectPathRegistry() {
+            return new DefaultProjectPathRegistry();
         }
 
-        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, CompositeBuildProjectRegistry projectRegistry, CompositeBuildContext context) {
+        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, DefaultProjectPathRegistry projectRegistry, CompositeBuildContext context) {
             return new DefaultCompositeContextBuilder(includedBuilds, projectRegistry, context);
         }
 

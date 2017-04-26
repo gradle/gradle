@@ -15,14 +15,20 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.util.Path;
 
 import java.util.Set;
 
-public interface BuildProjectRegistry {
+public interface ProjectPathRegistry {
     /**
-     * Returns an identifier for every project in a build, including projects from included builds.
+     * Returns an path for every project in a build, including projects from included builds.
      * Always returns the same set for the lifetime of the build.
      */
-    Set<ProjectIdentifier> getAllProjects();
+    Set<Path> getAllProjectPaths();
+
+    /**
+     * Returns a ProjectComponentIdentifier for the given identity path in this build.
+     */
+    ProjectComponentIdentifier getProjectComponentIdentifier(Path identityPath);
 }

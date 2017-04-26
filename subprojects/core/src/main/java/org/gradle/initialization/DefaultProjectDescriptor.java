@@ -146,4 +146,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public String toString() {
         return getPath();
     }
+
+    public Path path() {
+        return path;
+    }
 }

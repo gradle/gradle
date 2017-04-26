@@ -21,7 +21,7 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
-import org.gradle.initialization.BuildProjectRegistry
+import org.gradle.initialization.ProjectPathRegistry
 import org.gradle.initialization.IncludedBuildExecuter
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.xml.XmlTransformer
@@ -65,7 +65,7 @@ class IdeaModelTest extends Specification {
         def xmlAction = {} as Action<XmlProvider>
         def gradleProject = Stub(ProjectInternal) {
             getServices() >> Stub(ServiceRegistry) {
-                get(BuildProjectRegistry) >> (BuildProjectRegistry) null
+                get(ProjectPathRegistry) >> (ProjectPathRegistry) null
                 get(LocalComponentRegistry) >> (LocalComponentRegistry) null
                 get(IncludedBuildExecuter) >> (IncludedBuildExecuter) null
                 get(BuildIdentity) >> (BuildIdentity) null
