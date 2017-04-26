@@ -42,12 +42,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Unroll
-    def "can create and use a worker runnable defined in buildSrc in #forkMode"() {
+    def "can create and use a worker runnable defined in buildSrc in #isolationMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
             }
         """
 
@@ -58,16 +58,16 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertRunnableExecuted("runInWorker")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     @Unroll
-    def "can create and use a worker runnable defined in build script in #forkMode"() {
+    def "can create and use a worker runnable defined in build script in #isolationMode"() {
         withRunnableClassInBuildScript()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
             }
         """
 
@@ -78,11 +78,11 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertRunnableExecuted("runInWorker")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     @Unroll
-    def "can create and use a worker runnable defined in an external jar in #forkMode"() {
+    def "can create and use a worker runnable defined in an external jar in #isolationMode"() {
         def runnableJarName = "runnable.jar"
         withRunnableClassInExternalJar(file(runnableJarName))
 
@@ -94,7 +94,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             }
 
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
             }
         """
 
@@ -105,7 +105,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         assertRunnableExecuted("runInWorker")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     def "re-uses an existing idle worker daemon"() {
@@ -114,11 +114,11 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         buildFile << """
             task runInDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
             }
 
             task reuseDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
                 dependsOn runInDaemon
             }
         """
@@ -138,7 +138,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
             task startNewDaemon(type: WorkerTask) {
                 dependsOn runInDaemon
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
 
                 // Force a new daemon to be used
                 additionalForkOptions = {
@@ -163,12 +163,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         buildFile << """
             task runInDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
                 runnableClass = BlockingRunnable.class
             }
 
             task startNewDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
                 runnableClass = BlockingRunnable.class
             }
 
@@ -192,11 +192,11 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         buildFile << """
             task runInDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
             }
 
             task reuseDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
                 runnableClass = AlternateRunnable.class
                 dependsOn runInDaemon
             }
@@ -210,7 +210,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Unroll
-    def "throws if worker used from a thread with no current build operation in #forkMode"() {
+    def "throws if worker used from a thread with no current build operation in #isolationMode"() {
         given:
         withRunnableClassInBuildSrc()
 
@@ -225,7 +225,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                         public void run() {
                             try {
                                 workerExecutor.submit(runnableClass) { config ->
-                                    config.forkMode = $forkMode
+                                    config.isolationMode = $isolationMode
                                     config.forkOptions(additionalForkOptions)
                                     config.classpath(additionalClasspath)
                                     config.params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
@@ -253,7 +253,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         failure.assertHasCause 'No worker lease associated with the current thread'
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     @Requires(TestPrecondition.JDK_ORACLE)
@@ -268,7 +268,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             $optionVerifyingRunnable
 
             task runInDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
                 runnableClass = OptionVerifyingRunnable.class
                 additionalForkOptions = { options ->
                     options.with {
@@ -306,7 +306,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             ${getExecutableVerifyingRunnable(differentJvm.javaHome)}
 
             task runInDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
                 runnableClass = ExecutableVerifyingRunnable.class
                 additionalForkOptions = { options ->
                     options.executable = new File('${differentJavaExecutablePath}')
@@ -322,12 +322,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     }
 
     @Unroll
-    def "can set a custom display name for work items in #forkMode"() {
+    def "can set a custom display name for work items in #isolationMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 displayName = "Test Work"
             }
         """.stripIndent()
@@ -339,16 +339,16 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         buildOperations.hasOperation("Test Work")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
-    def "can use a parameter that references classes in other packages in #forkMode"() {
+    def "can use a parameter that references classes in other packages in #isolationMode"() {
         withRunnableClassInBuildSrc()
         withParameterClassReferencingClassInAnotherPackage()
 
         buildFile << """
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
             }
         """
 
@@ -356,7 +356,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         succeeds("runInWorker")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     void withParameterClassReferencingClassInAnotherPackage() {

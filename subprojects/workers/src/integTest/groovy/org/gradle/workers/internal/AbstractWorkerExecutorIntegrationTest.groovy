@@ -18,9 +18,11 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
+import org.gradle.workers.IsolationMode
 
 
 abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegrationSpec {
+    public static final ISOLATION_MODES = (IsolationMode.values() - IsolationMode.AUTO).collect { "IsolationMode.${it.toString()}" }
     def outputFileDir = file("build/workers")
     def outputFileDirPath = TextUtil.normaliseFileSeparators(outputFileDir.absolutePath)
     def list = [ 1, 2, 3 ]
@@ -65,7 +67,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
                 def additionalClasspath = project.files()
                 def foo = new Foo()
                 def displayName = null
-                def forkMode = ForkMode.AUTO
+                def isolationMode = IsolationMode.AUTO
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -75,7 +77,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
                 @TaskAction
                 void executeTask() {
                     workerExecutor.submit(runnableClass) {
-                        forkMode = this.forkMode
+                        isolationMode = this.isolationMode
                         displayName = this.displayName
                         forkOptions(additionalForkOptions)
                         classpath(additionalClasspath)

@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.util.GUtil;
-import org.gradle.workers.ForkMode;
+import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 
 import java.io.File;
@@ -31,7 +31,7 @@ import java.util.List;
 
 public class DefaultWorkerConfiguration extends DefaultActionConfiguration implements WorkerConfiguration {
     private final JavaForkOptions forkOptions;
-    private ForkMode forkMode = ForkMode.AUTO;
+    private IsolationMode isolationMode = IsolationMode.AUTO;
     private List<File> classpath = Lists.newArrayList();
     private String displayName;
 
@@ -51,13 +51,12 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     }
 
     @Override
-    public ForkMode getForkMode() {
-        return forkMode;
+    public IsolationMode getIsolationMode() {
+        return isolationMode;
     }
 
-    @Override
-    public void setForkMode(ForkMode fork) {
-        this.forkMode = fork == null ? ForkMode.AUTO : fork;
+    public void setIsolationMode(IsolationMode isolationMode) {
+        this.isolationMode = isolationMode == null ? IsolationMode.AUTO : isolationMode;
     }
 
     @Override
