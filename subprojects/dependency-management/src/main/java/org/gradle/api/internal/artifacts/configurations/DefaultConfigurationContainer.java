@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -64,7 +63,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
 
     private int detachedConfigurationDefaultNameCounter = 1;
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
+    private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
 
     public DefaultConfigurationContainer(ConfigurationResolver resolver,
                                          final Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
@@ -101,6 +100,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context.identityPath(name), context.projectPath(name), name, this, resolver,
             listenerManager, dependencyMetaDataProvider, resolutionStrategyFactory, projectAccessListener, projectFinder,
             fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, rootComponentMetadataBuilder);
+        configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
     }
 
