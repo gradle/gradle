@@ -17,18 +17,19 @@
 package org.gradle.workers.internal
 
 import org.gradle.internal.jvm.Jvm
+import org.gradle.workers.IsolationMode
 import spock.lang.Unroll
 
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Unroll
-    def "produces a sensible error when there is a failure in the worker runnable in #forkMode"() {
+    def "produces a sensible error when there is a failure in the worker runnable in #isolationMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableThatFails
 
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 runnableClass = RunnableThatFails.class
             }
         """.stripIndent()
@@ -43,7 +44,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Failure from runnable")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     def "produces a sensible error when there is a failure starting a worker daemon"() {
@@ -52,7 +53,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         buildFile << """
             task runInDaemon(type: WorkerTask) {
-                forkMode = ForkMode.ALWAYS
+                isolationMode = IsolationMode.PROCESS
                 additionalForkOptions = {
                     it.jvmArgs "-foo"
                 }
@@ -73,7 +74,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     }
 
     @Unroll
-    def "produces a sensible error when a parameter can't be serialized to the worker in #forkMode"() {
+    def "produces a sensible error when a parameter can't be serialized to the worker in #isolationMode"() {
         withRunnableClassInBuildSrc()
         withParameterMemberThatFailsSerialization()
 
@@ -81,12 +82,12 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
             $alternateRunnable
 
             task runAgainInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 runnableClass = AlternateRunnable.class
             }
             
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 foo = new FooWithUnserializableBar()
                 finalizedBy runAgainInWorker
             }
@@ -105,11 +106,11 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         assertRunnableExecuted("runAgainInWorker")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     @Unroll
-    def "produces a sensible error when a parameter can't be de-serialized in the worker in #forkMode"() {
+    def "produces a sensible error when a parameter can't be de-serialized in the worker in #isolationMode"() {
         def parameterJar = file("parameter.jar")
         withRunnableClassInBuildSrc()
         withParameterMemberThatFailsDeserialization()
@@ -118,12 +119,12 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
             $alternateRunnable
 
             task runAgainInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 runnableClass = AlternateRunnable.class
             }
 
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 additionalClasspath = files('${parameterJar.name}')
                 foo = new FooWithUnserializableBar()
                 finalizedBy runAgainInWorker
@@ -143,25 +144,25 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         assertRunnableExecuted("runAgainInWorker")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.PROCESS]
     }
 
     @Unroll
-    def "produces a sensible error even if the action failure cannot be fully serialized in #forkMode"() {
+    def "produces a sensible error even if the action failure cannot be fully serialized in #isolationMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $alternateRunnable
 
             task runAgainInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 runnableClass = AlternateRunnable.class
             }
 
             $runnableThatThrowsUnserializableMemberException
 
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 runnableClass = RunnableThatFails.class
                 finalizedBy runAgainInWorker
             }
@@ -179,18 +180,18 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         assertRunnableExecuted("runAgainInWorker")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     @Unroll
-    def "produces a sensible error when the runnable cannot be instantiated in #forkMode"() {
+    def "produces a sensible error when the runnable cannot be instantiated in #isolationMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableThatFailsInstantiation
 
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 runnableClass = RunnableThatFails.class
             }
         """.stripIndent()
@@ -204,18 +205,18 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("You shall not pass!")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     @Unroll
-    def "produces a sensible error when parameters are incorrect in #forkMode"() {
+    def "produces a sensible error when parameters are incorrect in #isolationMode"() {
         withRunnableClassInBuildSrc()
 
         buildFile << """
             $runnableWithDifferentConstructor
 
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
                 runnableClass = RunnableWithDifferentConstructor.class
             }
         """.stripIndent()
@@ -229,7 +230,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Too many parameters provided for constructor for class RunnableWithDifferentConstructor. Expected 2, received 3.")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     String getUnrecognizedOptionError() {

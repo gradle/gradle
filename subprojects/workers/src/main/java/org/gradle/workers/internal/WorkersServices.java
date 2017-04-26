@@ -63,12 +63,16 @@ public class WorkersServices implements PluginServiceRegistry {
             return new WorkerDaemonFactory(workerDaemonClientsManager, memoryManager, workerLeaseRegistry, buildOperationExecutor);
         }
 
-        WorkerExecutor createWorkerExecutor(Instantiator instantiator, WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
-            return instantiator.newInstance(DefaultWorkerExecutor.class, workerDaemonFactory, inProcessWorkerFactory, fileResolver, executorFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker);
+        WorkerExecutor createWorkerExecutor(Instantiator instantiator, WorkerDaemonFactory workerDaemonFactory, InProcessWorkerFactory inProcessWorkerFactory, NoIsolationWorkerFactory noIsolationWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+            return instantiator.newInstance(DefaultWorkerExecutor.class, workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker);
         }
 
         InProcessWorkerFactory createInProcessWorkerFactory(ClassLoaderFactory classLoaderFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
             return new InProcessWorkerFactory(classLoaderFactory, workerLeaseRegistry, buildOperationExecutor);
+        }
+
+        NoIsolationWorkerFactory createNoIsolationWorkerFactory(WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
+            return new NoIsolationWorkerFactory(workerLeaseRegistry, buildOperationExecutor);
         }
     }
 }

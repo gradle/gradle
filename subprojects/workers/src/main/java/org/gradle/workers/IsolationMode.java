@@ -19,22 +19,26 @@ package org.gradle.workers;
 import org.gradle.api.Incubating;
 
 /**
- * Forking mode for workers.
+ * Isolation mode for workers.
  *
  * @since 3.5
  */
 @Incubating
-public enum ForkMode {
+public enum IsolationMode {
     /**
      * Let Gradle decide, this is the default.
      */
     AUTO,
     /**
-     * Never fork, aka. use in-process workers.
+     * Don't attempt to isolate the work, use in-process workers.
      */
-    NEVER,
+    NONE,
     /**
-     * Always fork, aka. use out-of-process workers.
+     * Isolate the work in it's own classloader, use in-process workers.
      */
-    ALWAYS;
+    CLASSLOADER,
+    /**
+     * Isolate the work in a separate process, use out-of-process workers.
+     */
+    PROCESS
 }

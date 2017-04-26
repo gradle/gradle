@@ -37,7 +37,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
-import org.gradle.workers.ForkMode;
+import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
@@ -52,14 +52,16 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ListeningExecutorService executor;
     private final WorkerFactory workerDaemonFactory;
     private final WorkerFactory workerInProcessFactory;
+    private final WorkerFactory workerNoIsolationFactory;
     private final FileResolver fileResolver;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
 
-    public DefaultWorkerExecutor(WorkerFactory workerDaemonFactory, WorkerFactory workerInProcessFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+    public DefaultWorkerExecutor(WorkerFactory workerDaemonFactory, WorkerFactory workerInProcessFactory, WorkerFactory workerNoIsolationFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
         this.workerDaemonFactory = workerDaemonFactory;
         this.workerInProcessFactory = workerInProcessFactory;
+        this.workerNoIsolationFactory = workerNoIsolationFactory;
         this.fileResolver = fileResolver;
         this.executor = MoreExecutors.listeningDecorator(executorFactory.create("Worker Daemon Execution"));
         this.workerLeaseRegistry = workerLeaseRegistry;
@@ -81,17 +83,17 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             throw new WorkExecutionException(description, t);
         }
 
-        submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getForkMode(), getDaemonForkOptions(actionClass, configuration));
+        submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getIsolationMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final ActionExecutionSpec spec, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
+    private void submit(final ActionExecutionSpec spec, final File workingDir, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
         final WorkerLease currentWorkerWorkerLease = workerLeaseRegistry.getCurrentWorkerLease();
         final BuildOperationState currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
-                    WorkerFactory workerFactory = fork == ForkMode.ALWAYS ? workerDaemonFactory : workerInProcessFactory;
+                    WorkerFactory workerFactory = getWorkerFactory(isolationMode);
                     Worker<ActionExecutionSpec> worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
                     return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
                 } catch (Throwable t) {
@@ -100,6 +102,20 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             }
         });
         registerAsyncWork(spec.getDisplayName(), workerDaemonResult);
+    }
+
+    private WorkerFactory getWorkerFactory(IsolationMode isolationMode) {
+        switch(isolationMode) {
+            case AUTO:
+            case CLASSLOADER:
+                return workerInProcessFactory;
+            case NONE:
+                return workerNoIsolationFactory;
+            case PROCESS:
+                return workerDaemonFactory;
+            default:
+                throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
+        }
     }
 
     void registerAsyncWork(final String description, final Future<DefaultWorkResult> workItem) {
