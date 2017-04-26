@@ -73,4 +73,39 @@ task check {
         expect:
         succeeds 'check'
     }
+
+    def "will cache when offline"() {
+        given:
+        String scriptName = "script-${System.currentTimeMillis()}.gradle"
+        executer.withDefaultCharacterEncoding("ISO-8859-15")
+        server.start()
+
+        and:
+        def scriptFile = file("script.gradle")
+        scriptFile.setText("""
+task check {
+}
+""", "UTF-8")
+        server.expectGet('/' + scriptName, scriptFile)
+
+        and:
+        buildFile << "apply from: 'http://localhost:${server.port}/${scriptName}'"
+
+        expect:
+        succeeds 'check'
+
+        and:
+        server.stop()
+
+        when:
+        scriptFile.setText("""
+task check {
+throw new GradleException()
+}
+""", "UTF-8")
+
+        then:
+        args("--offline")
+        succeeds 'check'
+    }
 }
