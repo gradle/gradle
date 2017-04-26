@@ -1,5 +1,3 @@
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.provider.PropertyState
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFiles
@@ -32,36 +30,38 @@ open class GreetingPlugin : Plugin<Project> {
 }
 
 open class GreetingPluginExtension(val project: Project) {
-    private val messageState: PropertyState<String>
-    private val outputFileCollection: ConfigurableFileCollection
+    private
+    val messageState = project.property(String::class.java)
 
-    var message: String
+    private
+    val outputFileCollection = project.files()
+
+    var message
         get() = messageState.get()
         set(value) = messageState.set(value)
-    val messageProvider: Provider<String>
 
-    var outputFiles: ConfigurableFileCollection
+    val messageProvider
+        get() = messageState
+
+    var outputFiles
         get() = outputFileCollection
         set(value) = outputFileCollection.setFrom(value)
-
-    init {
-        messageState = project.property(String::class.java)
-        messageProvider = messageState
-        outputFileCollection = project.files()
-    }
 }
 
 open class Greeting : DefaultTask() {
-    private val messageState: PropertyState<String> = project.property(String::class.java)
-    private val outputFileCollection: ConfigurableFileCollection = project.files()
+    private
+    val messageState = project.property(String::class.java)
+
+    private
+    val outputFileCollection = project.files()
 
     @get:Input
-    var message: String
+    var message
         get() = messageState.get()
         set(value) = messageState.set(value)
 
     @get:OutputFiles
-    var outputFiles: ConfigurableFileCollection
+    var outputFiles
         get() = outputFileCollection
         set(value) = outputFileCollection.setFrom(value)
 
