@@ -61,4 +61,10 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         configurationComponentMetaDataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         return metaData;
     }
+
+    public RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider alternateProvider) {
+        return new DefaultRootComponentMetadataBuilder(
+            metaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, configurationComponentMetaDataBuilder, alternateProvider
+        );
+    }
 }
