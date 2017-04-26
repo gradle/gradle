@@ -56,6 +56,12 @@ public class ResourceCollectionSnapshotBuilder implements ResourceCollectionVisi
         collectFileSnapshot(missingFile);
     }
 
+    public void collectNormalizedFileSnapshot(String absolutePath, NormalizedFileSnapshot normalizedSnapshot) {
+        if (normalizedSnapshot != null && !snapshots.containsKey(absolutePath)) {
+            snapshots.put(absolutePath, normalizedSnapshot);
+        }
+    }
+
     public FileCollectionSnapshot build() {
         if (snapshots.isEmpty()) {
             return FileCollectionSnapshot.EMPTY;
@@ -67,9 +73,7 @@ public class ResourceCollectionSnapshotBuilder implements ResourceCollectionVisi
         String absolutePath = fileSnapshot.getPath();
         if (!snapshots.containsKey(absolutePath)) {
             NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
-            if (normalizedSnapshot != null) {
-                snapshots.put(absolutePath, normalizedSnapshot);
-            }
+            collectNormalizedFileSnapshot(absolutePath, normalizedSnapshot);
         }
     }
 }

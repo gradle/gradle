@@ -15,24 +15,24 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
+import org.gradle.internal.IoActions;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.internal.Java9ClassReader;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.zip.ZipEntry;
 
 public class AbiExtractingClasspathContentHasher implements ClasspathContentHasher {
-    private final ClasspathContentHasher fallback;
-
-    public AbiExtractingClasspathContentHasher(ClasspathContentHasher fallback) {
-        this.fallback = fallback;
-    }
-
-    private void hashClassBytes(InputStream inputStream, Hasher hasher) throws IOException {
+    private HashCode hashClassBytes(InputStream inputStream) throws IOException {
         // Use the ABI as the hash
         byte[] classBytes = ByteStreams.toByteArray(inputStream);
         ApiClassExtractor extractor = new ApiClassExtractor(Collections.<String>emptySet());
@@ -40,21 +40,44 @@ public class AbiExtractingClasspathContentHasher implements ClasspathContentHash
         if (extractor.shouldExtractApiClassFrom(reader)) {
             byte[] signature = extractor.extractApiClassFrom(reader);
             if (signature != null) {
+                Hasher hasher = Hashing.md5().newHasher();
                 hasher.putBytes(signature);
+                return hasher.hash();
             }
+        }
+        return null;
+    }
+
+    @Override
+    public HashCode getHash(RegularFileSnapshot fileSnapshot) {
+        String name = fileSnapshot.getName();
+        if (!isClassFile(name)) {
+            return null;
+        }
+        InputStream inputStream = null;
+        try {
+            inputStream = Files.newInputStream(Paths.get(fileSnapshot.getPath()));
+            return hashClassBytes(inputStream);
+        } catch (Exception e) {
+            DeprecationLogger.nagUserWith("Malformed class file [" + name + "] found on compile classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
+            return fileSnapshot.getContent().getContentMd5();
+        } finally {
+            IoActions.closeQuietly(inputStream);
         }
     }
 
     @Override
-    public void appendContent(String name, InputStream inputStream, Hasher hasher) {
-        // ignore non-class files
-        if (name.endsWith(".class")) {
-            try {
-                hashClassBytes(inputStream, hasher);
-            } catch (Exception e) {
-                fallback.appendContent(name, inputStream, hasher);
-                DeprecationLogger.nagUserWith("Malformed class file [" + name + "] found on compile classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
-            }
+    public HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+        if (!isClassFile(zipEntry.getName())) {
+            return null;
         }
+        return hashClassBytes(zipInput);
+    }
+
+    private boolean isClassFile(String name) {
+        if (name.endsWith(".class")) {
+            return true;
+        }
+        return false;
     }
 }

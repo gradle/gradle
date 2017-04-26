@@ -23,29 +23,21 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
-    private static final Comparator<FileSnapshot> FILE_DETAILS_COMPARATOR = new Comparator<FileSnapshot>() {
-        @Override
-        public int compare(FileSnapshot o1, FileSnapshot o2) {
-            return o1.getPath().compareTo(o2.getPath());
-        }
-    };
-    private static final HashCode IGNORED = HashCode.fromInt((DefaultCompileClasspathSnapshotter.class.getName() + " : ignored").hashCode());
-    private final ClasspathEntryHasher classpathEntryHasher;
+    private final ClasspathContentHasher classpathContentHasher;
 
-    public DefaultCompileClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, ClasspathEntryHasher classpathEntryHasher) {
+    public DefaultCompileClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, ClasspathContentHasher classpathContentHasher) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
-        this.classpathEntryHasher = classpathEntryHasher;
+        this.classpathContentHasher = classpathContentHasher;
     }
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        return super.snapshot(files, new CompileClasspathResourceCollectionSnapshotBuilder(classpathEntryHasher, getStringInterner()));
+        return super.snapshot(
+            files,
+            new CompileClasspathResourceCollectionSnapshotBuilder(classpathContentHasher, getStringInterner()));
     }
 
     @Override
@@ -53,55 +45,34 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         return CompileClasspathSnapshotter.class;
     }
 
-    private static class CompileClasspathResourceCollectionSnapshotBuilder extends ResourceCollectionSnapshotBuilder {
-        private final ClasspathEntryHasher classpathEntryHasher;
+    private class CompileClasspathResourceCollectionSnapshotBuilder extends ResourceCollectionSnapshotBuilder {
+        private final ClasspathContentHasher classpathContentHasher;
 
-        public CompileClasspathResourceCollectionSnapshotBuilder(ClasspathEntryHasher classpathEntryHasher, StringInterner stringInterner) {
-            super(TaskFilePropertyCompareStrategy.ORDERED, ClasspathSnapshotNormalizationStrategy.INSTANCE, stringInterner);
-            this.classpathEntryHasher = classpathEntryHasher;
+        public CompileClasspathResourceCollectionSnapshotBuilder(ClasspathContentHasher classpathContentHasher, StringInterner stringInterner) {
+            super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
+            this.classpathContentHasher = classpathContentHasher;
         }
 
         @Override
         public void visitResourceTree(List<FileSnapshot> descendants) {
-            super.visitResourceTree(normaliseTreeElements(descendants));
-        }
-
-        private List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
-            // TODO: We could rework this to produce a FileSnapshot for the directory that
-            // has a hash for the contents of this directory vs returning a list of the contents
-            // of the directory with their hashes
-            // Collect the signatures of each class file
-            List<FileSnapshot> sorted = new ArrayList<FileSnapshot>(fileDetails.size());
-            for (FileSnapshot details : fileDetails) {
-                if (details.getType() == FileType.RegularFile) {
-                    HashCode signatureForClass = classpathEntryHasher.hash(details);
-                    if (signatureForClass == null) {
-                        // Should be excluded
-                        continue;
-                    }
-                    sorted.add(details.withContentHash(signatureForClass));
+            ClasspathEntryResourceCollectionBuilder entryResourceCollectionBuilder = new ClasspathEntryResourceCollectionBuilder(getStringInterner());
+            for (FileSnapshot descendant : descendants) {
+                if (descendant.getType() == FileType.RegularFile) {
+                    RegularFileSnapshot fileSnapshot = (RegularFileSnapshot) descendant;
+                    entryResourceCollectionBuilder.visitFile(fileSnapshot, classpathContentHasher.getHash(fileSnapshot));
                 }
             }
-
-            // Sort as their order is not important
-            Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
-            return sorted;
+            entryResourceCollectionBuilder.collectNormalizedSnapshots(this);
         }
 
         @Override
         public void visitFile(RegularFileSnapshot file) {
-            super.visitFile(normaliseFileElement(file));
-        }
-
-        private RegularFileSnapshot normaliseFileElement(RegularFileSnapshot details) {
-            if (FileUtils.isJar(details.getName())) {
-                HashCode signature = classpathEntryHasher.hash(details);
-                if (signature != null) {
-                    return details.withContentHash(signature);
+            if (FileUtils.isJar(file.getName())) {
+                HashCode hash = new ZipResourceTree(file, classpathContentHasher, getStringInterner()).getHash();
+                if (hash != null) {
+                    super.visitFile(file.withContentHash(hash));
                 }
             }
-
-            return details.withContentHash(IGNORED);
         }
     }
 }

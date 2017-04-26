@@ -16,26 +16,26 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.Funnels;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.ZipEntry;
 
 public class DefaultClasspathContentHasher implements ClasspathContentHasher {
     @Override
-    public void appendContent(String name, InputStream inputStream, Hasher hasher) {
-        // TODO: Deeper analysis of .class files for runtime
-        // TODO: Sort entries in META-INF/ignore some entries
-        // TODO: Sort entries in .properties/ignore some entries
-        try {
-            hasher.putString(name, Charsets.UTF_8);
-            ByteStreams.copy(inputStream, Funnels.asOutputStream(hasher));
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Failed to hash file '%s' found on classpath", name), e);
-        }
+    public HashCode getHash(RegularFileSnapshot fileSnapshot) {
+        return fileSnapshot.getContent().getContentMd5();
+    }
+
+    @Override
+    public HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+        Hasher hasher = Hashing.md5().newHasher();
+        ByteStreams.copy(zipInput, Funnels.asOutputStream(hasher));
+        return hasher.hash();
     }
 }

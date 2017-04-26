@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.Hasher;
+import com.google.common.hash.HashCode;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.ZipEntry;
 
 /**
  * Hashes an element in a classpath entry (e.g., the .class file in a jar or a .class file in a directory)
  */
 public interface ClasspathContentHasher {
-    void appendContent(String name, InputStream inputStream, Hasher hasher);
+    HashCode getHash(RegularFileSnapshot fileSnapshot);
+    HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
 }
