@@ -212,10 +212,17 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private class CalculateTaskGraphBuildOperation implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext buildOperationContext) {
-            buildConfigurationActionExecuter.select(gradle);
+            try {
+                buildConfigurationActionExecuter.select(gradle);
+            } catch (RuntimeException ex) {
+                buildOperationContext.failed(ex);
+                throw ex;
+            }
+
             if (isConfigureOnDemand()) {
                 projectsEvaluated();
             }
+
             // make requested tasks available from according build operation.
             buildOperationContext.setResult(new CalculateTaskGraphOperationResult(CollectionUtils.collect(gradle.getTaskGraph().getRequestedTasks(), new Transformer<String, Task>() {
                 @Override
@@ -223,9 +230,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     return task.getPath();
                 }
             })));
+
         }
 
         @Override
+
         public BuildOperationDescriptor.Builder description() {
             StartParameter startParameter = gradle.getStartParameter();
             CalculateTaskGraphDescriptor calculateTaskGraphDescriptor = new CalculateTaskGraphDescriptor(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames());
