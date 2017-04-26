@@ -58,7 +58,7 @@ project(':contrib:impl') {
         IdeaModule impl = project.modules.find { it.name == 'root-impl' }
         IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
 
-        impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'root-api' }
-        contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+        impl.dependencies[0].targetModuleName == project.modules.find { it.name == 'root-api' }.getName()
+        contribImpl.dependencies[0].targetModuleName == project.modules.find { it.name == 'contrib-api' }.getName()
     }
 }

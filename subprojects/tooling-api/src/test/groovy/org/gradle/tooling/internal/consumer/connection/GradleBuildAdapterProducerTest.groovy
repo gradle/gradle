@@ -20,7 +20,8 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.protocol.ModelBuilder
+import org.gradle.tooling.internal.protocol.InternalCancellableConnection
+
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.ProjectIdentifier
@@ -30,7 +31,7 @@ import spock.lang.Specification
 class GradleBuildAdapterProducerTest extends Specification {
     def adapter = Mock(ProtocolToModelAdapter);
     def mapping = Mock(ModelMapping);
-    def builder = Mock(ModelBuilder);
+    def builder = Mock(InternalCancellableConnection);
     def delegate = Mock(ModelProducer)
     def mappingProvider = Mock(HasCompatibilityMapping)
 

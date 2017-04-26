@@ -215,7 +215,8 @@ project(':impl') {
         lib.scope.scope == 'TEST'
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
-        mod.dependencyModule == project.modules.find { it.name == 'api'}
+//        mod.dependencyModule == project.modules.find { it.name == 'api'}
+        mod.targetModuleName == project.modules.find { it.name == 'api'}.getName()
         if (targetVersion >= GradleVersion.version("3.4")) {
             mod.scope.scope == 'PROVIDED'
         } else {
@@ -318,7 +319,7 @@ project(':impl') {
             libs.size() == 1
         }
         libs.each {
-            it.dependencyModule == project.modules.find { it.name == 'api' }
+            it.targetModuleName == project.modules.find { it.name == 'api' }.getName()
         }
     }
 }

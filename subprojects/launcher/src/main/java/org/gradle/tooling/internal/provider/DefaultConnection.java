@@ -28,25 +28,18 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParameters;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.ConfigurableConnection;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionParameters;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
-import org.gradle.tooling.internal.protocol.InternalConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.internal.protocol.ShutdownParameters;
 import org.gradle.tooling.internal.protocol.StoppableConnection;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
@@ -63,8 +56,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
-    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
+public class DefaultConnection implements ConnectionVersion4,
+    ConfigurableConnection, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("2.0");
     private ProtocolToModelAdapter adapter;
@@ -136,30 +129,6 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
      */
     public void shutdown(ShutdownParameters parameters) {
         CompositeStoppable.stoppable(services).stop();
-    }
-
-    /**
-     * This is used by consumers 1.0-milestone-3 to 1.1.
-     */
-    @Deprecated
-    public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        throw unsupportedConnectionException();
-    }
-
-    /**
-     * This is used by consumers 1.0-milestone-3 to 1.0-milestone-7
-     */
-    @Deprecated
-    public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
-        throw unsupportedConnectionException();
-    }
-
-    /**
-     * This is used by consumers 1.0-milestone-8 to 1.1
-     */
-    @Deprecated
-    public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
-        throw unsupportedConnectionException();
     }
 
     /**

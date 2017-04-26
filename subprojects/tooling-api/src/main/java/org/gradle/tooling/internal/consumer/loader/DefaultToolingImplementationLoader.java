@@ -29,11 +29,8 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.AbstractConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection;
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter;
 import org.gradle.tooling.internal.consumer.connection.ParameterValidatingConsumerConnection;
@@ -42,12 +39,9 @@ import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConn
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
-import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.StoppableConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.slf4j.Logger;
@@ -90,12 +84,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 adaptedConnection = new ShutdownAwareConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof InternalCancellableConnection) {
                 adaptedConnection = new CancellableConsumerConnection(connection, modelMapping, adapter);
-            } else if (connection instanceof ModelBuilder && connection instanceof InternalBuildActionExecutor) {
-                adaptedConnection = new ActionAwareConsumerConnection(connection, modelMapping, adapter);
-            } else if (connection instanceof ModelBuilder) {
-                adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, modelMapping, adapter);
-            } else if (connection instanceof BuildActionRunner) {
-                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
                 return new UnsupportedOlderVersionConnection(connection, adapter);
             }

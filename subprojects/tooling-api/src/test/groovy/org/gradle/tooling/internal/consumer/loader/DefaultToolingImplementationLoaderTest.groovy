@@ -23,34 +23,31 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection
+
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection
+
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection
-import org.gradle.tooling.internal.protocol.BuildActionRunner
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+
 import org.gradle.tooling.internal.protocol.BuildParameters
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
+
 import org.gradle.tooling.internal.protocol.BuildResult
 import org.gradle.tooling.internal.protocol.ConfigurableConnection
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.InternalBuildAction
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor
+
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection
 import org.gradle.tooling.internal.protocol.InternalCancellationToken
-import org.gradle.tooling.internal.protocol.InternalConnection
+
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
-import org.gradle.tooling.internal.protocol.ModelBuilder
+
 import org.gradle.tooling.internal.protocol.ModelIdentifier
-import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ShutdownParameters
 import org.gradle.tooling.internal.protocol.StoppableConnection
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException
@@ -102,9 +99,6 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         connectionImplementation  | adapter                                          | wrappedToNonCancellableAdapter
         TestConnection.class      | ShutdownAwareConsumerConnection.class            | false
         TestR21Connection.class   | CancellableConsumerConnection.class              | false
-        TestR18Connection.class   | ActionAwareConsumerConnection.class              | true
-        TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class       | true
-        TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class  | true
     }
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
@@ -190,7 +184,7 @@ class TestR21Connection extends TestR18Connection implements InternalCancellable
     }
 }
 
-class TestR18Connection extends TestR16Connection implements InternalBuildActionExecutor {
+class TestR18Connection extends TestR16Connection {
     def <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
@@ -200,7 +194,7 @@ class TestR18Connection extends TestR16Connection implements InternalBuildAction
     }
 }
 
-class TestR16Connection extends TestR12Connection implements ModelBuilder {
+class TestR16Connection extends TestR12Connection {
     BuildResult<Object> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw new UnsupportedOperationException()
     }
@@ -210,7 +204,7 @@ class TestR16Connection extends TestR12Connection implements ModelBuilder {
     }
 }
 
-class TestR12Connection extends TestR10M8Connection implements BuildActionRunner, ConfigurableConnection {
+class TestR12Connection extends TestR10M8Connection implements ConfigurableConnection {
     void configure(org.gradle.tooling.internal.protocol.ConnectionParameters parameters) {
         configured = parameters.verboseLogging
     }
@@ -229,11 +223,7 @@ class TestR12Connection extends TestR10M8Connection implements BuildActionRunner
     }
 }
 
-class TestR10M8Connection extends TestR10M3Connection implements InternalConnection {
-    def <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
-
+class TestR10M8Connection extends TestR10M3Connection {
     void configureLogging(boolean verboseLogging) {
         configured = verboseLogging
     }
@@ -256,13 +246,5 @@ class TestR10M3Connection implements ConnectionVersion4 {
 
     ConnectionMetaDataVersion1 getMetaData() {
         return new TestMetaData('1.0-milestone-3')
-    }
-
-    ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
-
-    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
     }
 }
