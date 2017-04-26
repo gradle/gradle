@@ -48,39 +48,56 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        return super.snapshot(input, TaskFilePropertyCompareStrategy.ORDERED, snapshotNormalizationStrategy);
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
+        return super.snapshot(files, new ClasspathResourceCollectionSnapshotBuilder(classpathEntryHasher, getStringInterner()));
     }
 
-    @Override
-    protected List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
-        // TODO: We could rework this to produce a FileSnapshot for the directory that
-        // has a hash for the contents of this directory vs returning a list of the contents
-        // of the directory with their hashes
-        // Collect the signatures of each class file
-        List<FileSnapshot> sorted = new ArrayList<FileSnapshot>(fileDetails.size());
-        for (FileSnapshot details : fileDetails) {
-            if (details.getType() == FileType.RegularFile) {
-                HashCode signatureForClass = classpathEntryHasher.hash(details);
-                if (signatureForClass == null) {
-                    // Should be excluded
-                    continue;
+    private static class ClasspathResourceCollectionSnapshotBuilder extends ResourceCollectionSnapshotBuilder {
+        private final ClasspathEntryHasher classpathEntryHasher;
+
+        public ClasspathResourceCollectionSnapshotBuilder(ClasspathEntryHasher classpathEntryHasher, StringInterner stringInterner) {
+            super(TaskFilePropertyCompareStrategy.ORDERED, ClasspathSnapshotNormalizationStrategy.INSTANCE, stringInterner);
+            this.classpathEntryHasher = classpathEntryHasher;
+        }
+
+        @Override
+        public void visitResourceTree(List<FileSnapshot> descendants) {
+            super.visitResourceTree(normaliseTreeElements(descendants));
+        }
+
+        private List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> fileDetails) {
+            // TODO: We could rework this to produce a FileSnapshot for the directory that
+            // has a hash for the contents of this directory vs returning a list of the contents
+            // of the directory with their hashes
+            // Collect the signatures of each class file
+            List<FileSnapshot> sorted = new ArrayList<FileSnapshot>(fileDetails.size());
+            for (FileSnapshot details : fileDetails) {
+                if (details.getType() == FileType.RegularFile) {
+                    HashCode signatureForClass = classpathEntryHasher.hash(details);
+                    if (signatureForClass == null) {
+                        // Should be excluded
+                        continue;
+                    }
+                    sorted.add(details.withContentHash(signatureForClass));
                 }
-                sorted.add(details.withContentHash(signatureForClass));
             }
+
+            // Sort as their order is not important
+            Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
+            return sorted;
         }
 
-        // Sort as their order is not important
-        Collections.sort(sorted, FILE_DETAILS_COMPARATOR);
-        return sorted;
-    }
-
-    @Override
-    protected FileSnapshot normaliseFileElement(FileSnapshot details) {
-        HashCode signature = classpathEntryHasher.hash(details);
-        if (signature!=null) {
-            return details.withContentHash(signature);
+        @Override
+        public void visitFile(RegularFileSnapshot file) {
+            super.visitFile(normaliseFileElement(file));
         }
-        return details;
+
+        private RegularFileSnapshot normaliseFileElement(RegularFileSnapshot details) {
+            HashCode signature = classpathEntryHasher.hash(details);
+            if (signature!=null) {
+                return details.withContentHash(signature);
+            }
+            return details;
+        }
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
 
+import java.util.List;
 import java.util.Map;
 
 public class ResourceCollectionSnapshotBuilder implements ResourceCollectionVisitor {
@@ -34,8 +35,8 @@ public class ResourceCollectionSnapshotBuilder implements ResourceCollectionVisi
     }
 
     @Override
-    public void visitResourceTree(FileTreeSnapshot resourceTree) {
-        for (FileSnapshot fileSnapshot : resourceTree.getDescendants()) {
+    public void visitResourceTree(List<FileSnapshot> descendants) {
+        for (FileSnapshot fileSnapshot : descendants) {
             collectFileSnapshot(fileSnapshot);
         }
     }

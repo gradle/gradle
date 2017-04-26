@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.util.List;
+
 public interface ResourceCollectionVisitor {
-    void visitResourceTree(FileTreeSnapshot resourceTree);
+    void visitResourceTree(List<FileSnapshot> descendants);
     void visitDirectory(DirectoryFileSnapshot directory);
     void visitFile(RegularFileSnapshot file);
     void visitMissingFile(MissingFileSnapshot missingFile);
