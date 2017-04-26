@@ -54,12 +54,11 @@ project(':impl') {
         then:
         def libs = module.dependencies
 
-        IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency }
+        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
         mod.targetModuleName == 'api'
     }
 
-    @ToolingApiVersion(">=2.0 !3.0")
-    // broken on 3.0
+    @ToolingApiVersion(">=2.0 !3.0") // broken on 3.0
     @TargetGradleVersion(">=1.8")
     def "can query dependencies for model produced from BuildAction"() {
         def fakeRepo = new MavenFileRepository(file("repo"))
@@ -96,7 +95,7 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        IdeaSingleEntryLibraryDependency lib = libs.find { it instanceof IdeaSingleEntryLibraryDependency }
+        IdeaSingleEntryLibraryDependency lib = libs.find {it instanceof IdeaSingleEntryLibraryDependency}
 
         lib.file.exists()
         lib.file.path.endsWith('coolLib-1.0.jar')
@@ -109,7 +108,7 @@ project(':impl') {
 
         lib.scope.scope == 'TEST'
 
-        IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency }
+        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
 
         if (currentVersion >= GradleVersion.version('3.1')) {
             mod.targetModuleName == project.modules.find { it.name == 'api' }.name
