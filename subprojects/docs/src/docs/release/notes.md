@@ -124,6 +124,10 @@ A warning is shown when:
 
 For more info on using task property annotations, see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
 
+### Parallel download of dependencies
+
+Gradle will now download dependencies from remote repositories in parallel. It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
+
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
 This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases.
