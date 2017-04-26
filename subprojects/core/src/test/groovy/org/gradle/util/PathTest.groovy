@@ -115,6 +115,30 @@ class PathTest extends Specification {
         path.relativePath('path') == 'path'
     }
 
+    def appendsPathToAbsolutePath() {
+        when:
+        def path = Path.path(':path')
+
+        then:
+        path.append(Path.ROOT).is(path)
+        path.append(Path.path(':absolute')) == Path.path(':path:absolute')
+        path.append(Path.path(':absolute:subpath')) == Path.path(':path:absolute:subpath')
+        path.append(Path.path('relative')) == Path.path(':path:relative')
+        path.append(Path.path('relative:subpath')) == Path.path(':path:relative:subpath')
+    }
+
+    def appendsPathToRelativePath() {
+        when:
+        def path = Path.path('path')
+
+        then:
+        path.append(Path.ROOT).is(path)
+        path.append(Path.path(':absolute')) == Path.path('path:absolute')
+        path.append(Path.path(':absolute:subpath')) == Path.path('path:absolute:subpath')
+        path.append(Path.path('relative')) == Path.path('path:relative')
+        path.append(Path.path('relative:subpath')) == Path.path('path:relative:subpath')
+    }
+
     def sortsPathsDepthFirstCaseInsensitive() {
         expect:
         paths(['a', 'b', 'A', 'abc']).sort() == paths(['A', 'a', 'abc', 'b'])
