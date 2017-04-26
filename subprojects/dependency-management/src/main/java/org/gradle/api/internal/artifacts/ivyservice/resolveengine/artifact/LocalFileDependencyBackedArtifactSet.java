@@ -67,7 +67,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         try {
             files = dependencyMetadata.getFiles().getFiles();
         } catch (Throwable throwable) {
-            return new BrokenResult(throwable);
+            return new BrokenResolvedArtifactSet(throwable);
         }
 
         List<ResolvedArtifactSet> selectedArtifacts = Lists.newArrayListWithCapacity(files.size());
@@ -150,19 +150,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
-        }
-    }
-
-    private class BrokenResult implements Completion {
-        private final Throwable throwable;
-
-        BrokenResult(Throwable throwable) {
-            this.throwable = throwable;
-        }
-
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-            visitor.visitFailure(throwable);
         }
     }
 }

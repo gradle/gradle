@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -82,6 +83,14 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
 
         @Override
         public ResolvedArtifactSet select(ResolvedVariantSet producer) {
+            try {
+                return doSelect(producer);
+            } catch (Throwable t) {
+                return new BrokenResolvedArtifactSet(t);
+            }
+        }
+
+        private ResolvedArtifactSet doSelect(ResolvedVariantSet producer) {
             AttributeMatcher matcher = schema.withProducer(producer.getSchema());
             List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), requested);
             if (matches.size() == 1) {

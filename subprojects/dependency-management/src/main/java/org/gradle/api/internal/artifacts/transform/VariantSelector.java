@@ -20,5 +20,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 
 public interface VariantSelector {
+    /**
+     * Selects matching artifacts from a given set of candidates.
+     *
+     * On failure, returns a set that forwards the failure to the {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor}.
+     */
     ResolvedArtifactSet select(ResolvedVariantSet candidates);
 }

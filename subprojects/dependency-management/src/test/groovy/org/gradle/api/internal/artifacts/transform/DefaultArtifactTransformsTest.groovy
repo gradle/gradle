@@ -86,7 +86,8 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1, variant2]
 
         when:
-        transforms.variantSelector(typeAttributes("classes"), true).select(set)
+        def result = transforms.variantSelector(typeAttributes("classes"), true).select(set)
+        visit(result)
 
         then:
         def e = thrown(AmbiguousVariantSelectionException)
@@ -179,7 +180,8 @@ class DefaultArtifactTransformsTest extends Specification {
         def selector = transforms.variantSelector(typeAttributes("dll"), true)
 
         when:
-        selector.select(set)
+        def result = selector.select(set)
+        visit(result)
 
         then:
         def e = thrown(AmbiguousTransformException)
@@ -232,13 +234,20 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(typeAttributes("dll"), typeAttributes("classes"), _) >> null
 
         when:
-        transforms.variantSelector(typeAttributes("dll"), false).select(set)
+        def result = transforms.variantSelector(typeAttributes("dll"), false).select(set)
+        visit(result)
 
         then:
         def e = thrown(NoMatchingVariantSelectionException)
         e.message == toPlatformLineSeparators("""No variants of <component> match the consumer attributes:
   - Variant: Required artifactType 'dll' and found incompatible value 'jar'.
   - Variant: Required artifactType 'dll' and found incompatible value 'classes'.""")
+    }
+
+    def visit(ResolvedArtifactSet set) {
+        def visitor = Stub(ArtifactVisitor)
+        _ * visitor.visitFailure(_) >> { Throwable t -> throw t }
+        set.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), Stub(ResolvedArtifactSet.AsyncArtifactListener)).visit(visitor)
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {
