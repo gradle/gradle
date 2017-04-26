@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 
-public class ClasspathEntryResourceCollectionBuilder {
+public class ClasspathEntryHasher {
     private static final Ordering<Map.Entry<String, NormalizedFileSnapshot>> SNAPSHOT_ENTRY_ORDERING = Ordering.natural().onResultOf(new Function<Map.Entry<String, NormalizedFileSnapshot>, Comparable<NormalizedFileSnapshot>>() {
         @Override
         public NormalizedFileSnapshot apply(Map.Entry<String, NormalizedFileSnapshot> input) {
@@ -43,7 +43,7 @@ public class ClasspathEntryResourceCollectionBuilder {
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final Multimap<String, NormalizedFileSnapshot> normalizedSnapshots;
 
-    public ClasspathEntryResourceCollectionBuilder(StringInterner stringInterner) {
+    public ClasspathEntryHasher(StringInterner stringInterner) {
         this.normalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.RELATIVE;
         this.compareStrategy = TaskFilePropertyCompareStrategy.UNORDERED;
         this.stringInterner = stringInterner;
@@ -72,7 +72,7 @@ public class ClasspathEntryResourceCollectionBuilder {
         return hasher.hash();
     }
 
-    void collectNormalizedSnapshots(ResourceCollectionSnapshotBuilder builder) {
+    void collectNormalizedSnapshots(FileCollectionSnapshotBuilder builder) {
         if (normalizedSnapshots.isEmpty()) {
             return;
         }
@@ -82,5 +82,4 @@ public class ClasspathEntryResourceCollectionBuilder {
             builder.collectNormalizedFileSnapshot(normalizedFileSnapshotEntry.getKey(), normalizedFileSnapshotEntry.getValue());
         }
     }
-
 }

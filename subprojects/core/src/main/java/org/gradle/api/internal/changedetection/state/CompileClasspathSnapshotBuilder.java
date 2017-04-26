@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import java.util.List;
+import org.gradle.api.internal.cache.StringInterner;
 
-public interface ResourceCollectionVisitor {
-    void visitResourceTree(List<FileSnapshot> descendants);
-    void visitDirectory(DirectoryFileSnapshot directory);
-    void visitFile(RegularFileSnapshot file);
-    void visitMissingFile(MissingFileSnapshot missingFile);
+public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
+    public CompileClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher zipContentHasher, StringInterner stringInterner) {
+        super(classpathContentHasher, zipContentHasher, stringInterner);
+    }
+
+    @Override
+    protected void visitNonJar(RegularFileSnapshot file) {
+    }
 }

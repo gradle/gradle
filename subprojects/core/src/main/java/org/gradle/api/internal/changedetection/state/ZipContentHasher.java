@@ -44,7 +44,7 @@ public class ZipContentHasher implements ContentHasher {
         String jarFilePath = zipFile.getPath();
         ZipInputStream zipInput = null;
         try {
-            ClasspathEntryResourceCollectionBuilder entryResourceCollectionBuilder = new ClasspathEntryResourceCollectionBuilder(stringInterner);
+            ClasspathEntryHasher entryResourceCollectionBuilder = new ClasspathEntryHasher(stringInterner);
             zipInput = new ZipInputStream(Files.newInputStream(Paths.get(jarFilePath)));
             ZipEntry zipEntry;
 

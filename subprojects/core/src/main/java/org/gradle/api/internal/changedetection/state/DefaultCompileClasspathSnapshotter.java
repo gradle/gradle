@@ -16,14 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
-
-import java.util.List;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
     private final ContentHasher classpathContentHasher;
@@ -39,44 +34,11 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
         return super.snapshot(
             files,
-            new CompileClasspathResourceCollectionSnapshotBuilder(classpathContentHasher, getStringInterner(), zipContentHasher));
+            new CompileClasspathSnapshotBuilder(classpathContentHasher, zipContentHasher, getStringInterner()));
     }
 
     @Override
     public Class<? extends FileCollectionSnapshotter> getRegisteredType() {
         return CompileClasspathSnapshotter.class;
-    }
-
-    private class CompileClasspathResourceCollectionSnapshotBuilder extends ResourceCollectionSnapshotBuilder {
-        private final ContentHasher classpathContentHasher;
-        private final ContentHasher zipContentHasher;
-
-        public CompileClasspathResourceCollectionSnapshotBuilder(ContentHasher classpathContentHasher, StringInterner stringInterner, ContentHasher zipContentHasher) {
-            super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
-            this.classpathContentHasher = classpathContentHasher;
-            this.zipContentHasher = zipContentHasher;
-        }
-
-        @Override
-        public void visitResourceTree(List<FileSnapshot> descendants) {
-            ClasspathEntryResourceCollectionBuilder entryResourceCollectionBuilder = new ClasspathEntryResourceCollectionBuilder(getStringInterner());
-            for (FileSnapshot descendant : descendants) {
-                if (descendant.getType() == FileType.RegularFile) {
-                    RegularFileSnapshot fileSnapshot = (RegularFileSnapshot) descendant;
-                    entryResourceCollectionBuilder.visitFile(fileSnapshot, classpathContentHasher.getHash(fileSnapshot));
-                }
-            }
-            entryResourceCollectionBuilder.collectNormalizedSnapshots(this);
-        }
-
-        @Override
-        public void visitFile(RegularFileSnapshot file) {
-            if (FileUtils.isJar(file.getName())) {
-                HashCode hash = zipContentHasher.getHash(file);
-                if (hash != null) {
-                    super.visitFile(file.withContentHash(hash));
-                }
-            }
-        }
     }
 }

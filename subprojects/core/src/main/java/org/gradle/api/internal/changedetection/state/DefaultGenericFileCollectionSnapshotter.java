@@ -32,6 +32,6 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        return super.snapshot(files, new ResourceCollectionSnapshotBuilder(compareStrategy, snapshotNormalizationStrategy, getStringInterner()));
+        return super.snapshot(files, new FileCollectionSnapshotBuilder(compareStrategy, snapshotNormalizationStrategy, getStringInterner()));
     }
 }

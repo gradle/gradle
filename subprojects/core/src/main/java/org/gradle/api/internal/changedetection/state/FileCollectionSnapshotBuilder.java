@@ -22,38 +22,46 @@ import org.gradle.api.internal.cache.StringInterner;
 import java.util.List;
 import java.util.Map;
 
-public class ResourceCollectionSnapshotBuilder implements ResourceCollectionVisitor {
+public class FileCollectionSnapshotBuilder implements FileSnapshotVisitor {
     private final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
     private final SnapshotNormalizationStrategy snapshotNormalizationStrategy;
     private final StringInterner stringInterner;
     private final TaskFilePropertyCompareStrategy compareStrategy;
 
-    public ResourceCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, StringInterner stringInterner) {
+    public FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, StringInterner stringInterner) {
         this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
         this.stringInterner = stringInterner;
         this.compareStrategy = compareStrategy;
     }
 
     @Override
-    public void visitResourceTree(List<FileSnapshot> descendants) {
+    public void visitFileTreeSnapshot(List<FileSnapshot> descendants) {
         for (FileSnapshot fileSnapshot : descendants) {
             collectFileSnapshot(fileSnapshot);
         }
     }
 
     @Override
-    public void visitDirectory(DirectoryFileSnapshot directory) {
+    public void visitDirectorySnapshot(DirectoryFileSnapshot directory) {
         collectFileSnapshot(directory);
     }
 
     @Override
-    public void visitFile(RegularFileSnapshot file) {
+    public void visitFileSnapshot(RegularFileSnapshot file) {
         collectFileSnapshot(file);
     }
 
     @Override
-    public void visitMissingFile(MissingFileSnapshot missingFile) {
+    public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
         collectFileSnapshot(missingFile);
+    }
+
+    protected void collectFileSnapshot(FileSnapshot fileSnapshot) {
+        String absolutePath = fileSnapshot.getPath();
+        if (!snapshots.containsKey(absolutePath)) {
+            NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
+            collectNormalizedFileSnapshot(absolutePath, normalizedSnapshot);
+        }
     }
 
     public void collectNormalizedFileSnapshot(String absolutePath, NormalizedFileSnapshot normalizedSnapshot) {
@@ -67,13 +75,5 @@ public class ResourceCollectionSnapshotBuilder implements ResourceCollectionVisi
             return FileCollectionSnapshot.EMPTY;
         }
         return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
-    }
-
-    private void collectFileSnapshot(FileSnapshot fileSnapshot) {
-        String absolutePath = fileSnapshot.getPath();
-        if (!snapshots.containsKey(absolutePath)) {
-            NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
-            collectNormalizedFileSnapshot(absolutePath, normalizedSnapshot);
-        }
     }
 }

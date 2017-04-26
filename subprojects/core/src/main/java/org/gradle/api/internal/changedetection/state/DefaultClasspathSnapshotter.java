@@ -16,14 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
-
-import java.util.List;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private final ContentHasher classpathContentHasher;
@@ -42,39 +37,6 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        return super.snapshot(files, new ClasspathResourceCollectionSnapshotBuilder(getStringInterner(), zipContentHasher));
-    }
-
-    public class ClasspathResourceCollectionSnapshotBuilder extends ResourceCollectionSnapshotBuilder {
-        private final ContentHasher zipContentHasher;
-
-        public ClasspathResourceCollectionSnapshotBuilder(StringInterner stringInterner, ContentHasher zipContentHasher) {
-            super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
-            this.zipContentHasher = zipContentHasher;
-        }
-
-        @Override
-        public void visitResourceTree(List<FileSnapshot> descendants) {
-            ClasspathEntryResourceCollectionBuilder entryResourceCollectionBuilder = new ClasspathEntryResourceCollectionBuilder(getStringInterner());
-            for (FileSnapshot descendant : descendants) {
-                if (descendant.getType() == FileType.RegularFile) {
-                    RegularFileSnapshot fileSnapshot = (RegularFileSnapshot) descendant;
-                    entryResourceCollectionBuilder.visitFile(fileSnapshot, classpathContentHasher.getHash(fileSnapshot));
-                }
-            }
-            entryResourceCollectionBuilder.collectNormalizedSnapshots(this);
-        }
-
-        @Override
-        public void visitFile(RegularFileSnapshot file) {
-            if (FileUtils.isJar(file.getName())) {
-                HashCode hash = zipContentHasher.getHash(file);
-                if (hash != null) {
-                    super.visitFile(file.withContentHash(hash));
-                }
-            } else {
-                super.visitFile(file);
-            }
-        }
+        return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, zipContentHasher, getStringInterner()));
     }
 }
