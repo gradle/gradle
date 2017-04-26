@@ -47,7 +47,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
-import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -80,13 +80,13 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
     def moduleExclusions = new ModuleExclusions(moduleIdentifierFactory)
-    def buildOperationProcessor = Mock(BuildOperationProcessor) {
+    def buildOperationProcessor = Mock(BuildOperationExecutor) {
         def queue = Mock(BuildOperationQueue) {
             add(_) >> { args ->
                 args[0].run()
             }
         }
-        run(_) >> { args ->
+        runAll(_) >> { args ->
             args[0].execute(queue)
         }
     }
