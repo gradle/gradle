@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
+
 /**
  * Dependency substitution is performed for models in a composite build
  */
@@ -63,7 +65,9 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         assert eclipseProject.projectDependencies.size() == 1
         with(eclipseProject.projectDependencies.first()) {
             it.path == 'b1'
-            it.targetProject == null
+            if (currentVersion < GradleVersion.version('4.0')) {
+                it.targetProject == null
+            }
         }
     }
 

@@ -185,6 +185,7 @@ When using the `java` plugin, all `compile` and `runtime` dependencies will now 
 - Removed the method `registerWatchPoints(FileSystemSubset.Builder)` from `FileCollectionDependency`.
 - Removed the method `getConfiguration()` from `ModuleDependency`.
 - Removed the method `getProjectConfiguration()` from `ProjectDependency`.
+- Removed the method `getTargetProject()` from `EclipseProjectDependency`.
 - Removed class `BuildCache`.
 - Removed class `MapBasedBuildCache`.
 - Removed class `ActionBroadcast`.

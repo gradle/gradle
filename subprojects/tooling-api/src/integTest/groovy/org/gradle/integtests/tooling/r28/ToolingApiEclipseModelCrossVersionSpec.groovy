@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r28
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.util.GradleVersion
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
@@ -55,8 +56,14 @@ project(':contrib:impl') {
         EclipseProject contribApiProject = contribProject.children.find { it.name == 'contrib-api' }
 
         then:
-        contribImplProject.projectDependencies.any { it.path == 'contrib-api' && it.targetProject == contribApiProject }
-        rootImplProject.projectDependencies.any { it.path == 'root-api' && it.targetProject == rootApiProject }
-
+        if (currentVersion < GradleVersion.version('4.0')) {
+            contribImplProject.projectDependencies.any { it.path == 'contrib-api' && it.targetProject == contribApiProject }
+            rootImplProject.projectDependencies.any { it.path == 'root-api' && it.targetProject == rootApiProject }
+        } else {
+            rootApiProject
+            contribApiProject
+            contribImplProject.projectDependencies.any { it.path == 'contrib-api' }
+            rootImplProject.projectDependencies.any { it.path == 'root-api' }
+        }
     }
 }
