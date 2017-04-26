@@ -26,14 +26,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
-public class DefaultClasspathContentHasher implements ContentHasher {
+/**
+ * Hashes contents of resources ({@link RegularFileSnapshot}s and {@link ZipEntry}s) in runtime classpath entries.
+ *
+ * Currently, we take the unmodified content into account but we could be smarter at some point.
+ */
+public class RuntimeClasspathContentHasher implements ContentHasher {
     @Override
-    public HashCode getHash(RegularFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshot fileSnapshot) {
         return fileSnapshot.getContent().getContentMd5();
     }
 
     @Override
-    public HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
         Hasher hasher = Hashing.md5().newHasher();
         ByteStreams.copy(zipInput, Funnels.asOutputStream(hasher));
         return hasher.hash();

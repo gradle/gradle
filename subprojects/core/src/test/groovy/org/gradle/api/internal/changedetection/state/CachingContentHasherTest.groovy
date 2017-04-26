@@ -32,9 +32,9 @@ class CachingContentHasherTest extends Specification {
     def "returns result from delegate"() {
         def expectedHash = Hashing.md5().hashInt(1)
         when:
-        def actualHash = cachingHasher.getHash(fileSnapshot)
+        def actualHash = cachingHasher.hash(fileSnapshot)
         then:
-        1 * delegate.getHash(fileSnapshot) >> expectedHash
+        1 * delegate.hash(fileSnapshot) >> expectedHash
         actualHash == expectedHash
         0 * _
     }
@@ -42,14 +42,14 @@ class CachingContentHasherTest extends Specification {
     def "caches the result"() {
         def expectedHash = Hashing.md5().hashInt(1)
         when:
-        def actualHash = cachingHasher.getHash(fileSnapshot)
+        def actualHash = cachingHasher.hash(fileSnapshot)
         then:
-        1 * delegate.getHash(fileSnapshot) >> expectedHash
+        1 * delegate.hash(fileSnapshot) >> expectedHash
         actualHash == expectedHash
         0 * _
 
         when:
-        actualHash = cachingHasher.getHash(fileSnapshot)
+        actualHash = cachingHasher.hash(fileSnapshot)
         then:
         actualHash == expectedHash
         0 * _
@@ -58,14 +58,14 @@ class CachingContentHasherTest extends Specification {
     def "caches 'no signature' results too"() {
         def noSignature = null
         when:
-        def actualHash = cachingHasher.getHash(fileSnapshot)
+        def actualHash = cachingHasher.hash(fileSnapshot)
         then:
-        1 * delegate.getHash(fileSnapshot) >> noSignature
+        1 * delegate.hash(fileSnapshot) >> noSignature
         actualHash == noSignature
         0 * _
 
         when:
-        actualHash = cachingHasher.getHash(fileSnapshot)
+        actualHash = cachingHasher.hash(fileSnapshot)
         then:
         actualHash == noSignature
         0 * _
@@ -77,19 +77,19 @@ class CachingContentHasherTest extends Specification {
         def zipEntry = Mock(ZipEntry)
 
         when:
-        def actualHash = cachingHasher.getHash(zipEntry, inputStream)
+        def actualHash = cachingHasher.hash(zipEntry, inputStream)
 
         then:
-        1 * delegate.getHash(zipEntry, inputStream) >> expectedHash
+        1 * delegate.hash(zipEntry, inputStream) >> expectedHash
         0 * _
 
         actualHash == expectedHash
 
         when:
-        actualHash = cachingHasher.getHash(zipEntry, inputStream)
+        actualHash = cachingHasher.hash(zipEntry, inputStream)
 
         then:
-        1 * delegate.getHash(zipEntry, inputStream) >> expectedHash
+        1 * delegate.hash(zipEntry, inputStream) >> expectedHash
         0 * _
 
         actualHash == expectedHash

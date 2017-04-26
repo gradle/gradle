@@ -37,11 +37,11 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
 
     @Override
     public void visitFileTreeSnapshot(List<FileSnapshot> descendants) {
-        ClasspathEntryHasher entryResourceCollectionBuilder = new ClasspathEntryHasher(stringInterner);
+        ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = new ClasspathEntrySnapshotBuilder(stringInterner);
         for (FileSnapshot descendant : descendants) {
             if (descendant.getType() == FileType.RegularFile) {
                 RegularFileSnapshot fileSnapshot = (RegularFileSnapshot) descendant;
-                entryResourceCollectionBuilder.visitFile(fileSnapshot, classpathContentHasher.getHash(fileSnapshot));
+                entryResourceCollectionBuilder.visitFile(fileSnapshot, classpathContentHasher.hash(fileSnapshot));
             }
         }
         entryResourceCollectionBuilder.collectNormalizedSnapshots(this);
@@ -59,7 +59,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     protected abstract void visitNonJar(RegularFileSnapshot file);
 
     private void visitJar(RegularFileSnapshot file) {
-        HashCode hash = zipContentHasher.getHash(file);
+        HashCode hash = zipContentHasher.hash(file);
         if (hash != null) {
             collectFileSnapshot(file.withContentHash(hash));
         }

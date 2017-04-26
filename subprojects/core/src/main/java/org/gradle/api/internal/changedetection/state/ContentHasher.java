@@ -23,9 +23,9 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * Hashes contents of resources (e.g., the .class file in a jar or a .class file in a directory)
+ * Hashes contents of resources (e.g., a class file in a jar or a class file in a directory)
  */
 public interface ContentHasher {
-    HashCode getHash(RegularFileSnapshot fileSnapshot);
-    HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
+    HashCode hash(RegularFileSnapshot fileSnapshot);
+    HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
 }

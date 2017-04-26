@@ -34,7 +34,6 @@ import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.DefaultClasspathContentHasher;
 import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
@@ -43,8 +42,9 @@ import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.JarContentHasher;
+import org.gradle.api.internal.changedetection.state.RuntimeClasspathContentHasher;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
-import org.gradle.api.internal.changedetection.state.ZipContentHasher;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -206,13 +206,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
         PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        DefaultClasspathContentHasher classpathContentHasher = new DefaultClasspathContentHasher();
+        RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher();
         return new DefaultClasspathSnapshotter(
-            stringInterner,
-            directoryFileTreeFactory,
-            fileSystemSnapshotter,
-            classpathContentHasher,
-            new CachingContentHasher(new ZipContentHasher(classpathContentHasher, stringInterner), signatureCache)
+            classpathContentHasher, directoryFileTreeFactory, fileSystemSnapshotter, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), stringInterner
         );
     }
 
@@ -221,11 +217,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmCompileJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
         AbiExtractingClasspathContentHasher classpathContentHasher = new AbiExtractingClasspathContentHasher();
         return new DefaultCompileClasspathSnapshotter(
-            stringInterner,
-            directoryFileTreeFactory,
-            fileSystemSnapshotter,
-            new CachingContentHasher(classpathContentHasher, classCache),
-            new CachingContentHasher(new ZipContentHasher(classpathContentHasher, stringInterner), jarCache));
+            new CachingContentHasher(classpathContentHasher, classCache), new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), jarCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner
+        );
     }
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {

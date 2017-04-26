@@ -31,20 +31,23 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
-public class ZipContentHasher implements ContentHasher {
-    private final ContentHasher classpathContentHasher;
+/**
+ * Hashes the contents of a jar file with the given {@link ContentHasher}.
+ */
+public class JarContentHasher implements ContentHasher {
+    private final ContentHasher contentHasher;
     private final StringInterner stringInterner;
 
-    public ZipContentHasher(ContentHasher classpathContentHasher, StringInterner stringInterner) {
-        this.classpathContentHasher = classpathContentHasher;
+    public JarContentHasher(ContentHasher contentHasher, StringInterner stringInterner) {
+        this.contentHasher = contentHasher;
         this.stringInterner = stringInterner;
     }
 
-    public HashCode getHash(RegularFileSnapshot zipFile) {
-        String jarFilePath = zipFile.getPath();
+    public HashCode hash(RegularFileSnapshot jarFile) {
+        String jarFilePath = jarFile.getPath();
         ZipInputStream zipInput = null;
         try {
-            ClasspathEntryHasher entryResourceCollectionBuilder = new ClasspathEntryHasher(stringInterner);
+            ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = new ClasspathEntrySnapshotBuilder(stringInterner);
             zipInput = new ZipInputStream(Files.newInputStream(Paths.get(jarFilePath)));
             ZipEntry zipEntry;
 
@@ -52,19 +55,19 @@ public class ZipContentHasher implements ContentHasher {
                 if (zipEntry.isDirectory()) {
                     continue;
                 }
-                HashCode hash = classpathContentHasher.getHash(zipEntry, new CloseShieldInputStream(zipInput));
+                HashCode hash = contentHasher.hash(zipEntry, new CloseShieldInputStream(zipInput));
                 entryResourceCollectionBuilder.visitZipFileEntry(zipEntry, hash);
             }
             return entryResourceCollectionBuilder.getHash();
         } catch (ZipException e) {
             // ZipExceptions point to a problem with the Zip, we try to be lenient for now.
-            return hashMalformedZip(zipFile);
+            return hashMalformedZip(jarFile);
         } catch (IOException e) {
             // IOExceptions other than ZipException are failures.
-            throw new UncheckedIOException("Error snapshotting jar [" + zipFile.getName() + "]", e);
+            throw new UncheckedIOException("Error snapshotting jar [" + jarFile.getName() + "]", e);
         } catch (Exception e) {
             // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
-            return hashMalformedZip(zipFile);
+            return hashMalformedZip(jarFile);
         } finally {
             IOUtils.closeQuietly(zipInput);
         }
@@ -76,7 +79,7 @@ public class ZipContentHasher implements ContentHasher {
     }
 
     @Override
-    public HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
         throw new UnsupportedOperationException("Hashing zips in zips is not yet supported");
     }
 }

@@ -49,7 +49,7 @@ public class AbiExtractingClasspathContentHasher implements ContentHasher {
     }
 
     @Override
-    public HashCode getHash(RegularFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshot fileSnapshot) {
         String name = fileSnapshot.getName();
         if (!isClassFile(name)) {
             return null;
@@ -67,7 +67,7 @@ public class AbiExtractingClasspathContentHasher implements ContentHasher {
     }
 
     @Override
-    public HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
         if (!isClassFile(zipEntry.getName())) {
             return null;
         }
@@ -75,9 +75,6 @@ public class AbiExtractingClasspathContentHasher implements ContentHasher {
     }
 
     private boolean isClassFile(String name) {
-        if (name.endsWith(".class")) {
-            return true;
-        }
-        return false;
+        return name.endsWith(".class");
     }
 }

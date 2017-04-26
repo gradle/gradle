@@ -18,6 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.cache.StringInterner;
 
+/**
+ * Builds a {@link FileCollectionSnapshot} for a compile classpath.
+ *
+ * We only take class files in jar files and class files in directories into account.
+ */
 public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
     public CompileClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher zipContentHasher, StringInterner stringInterner) {
         super(classpathContentHasher, zipContentHasher, stringInterner);

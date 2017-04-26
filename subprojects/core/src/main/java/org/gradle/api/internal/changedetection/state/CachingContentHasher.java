@@ -25,8 +25,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
+/**
+ * Caches the result of hashing a {@link RegularFileSnapshot} with a {@link ContentHasher}.
+ * It does not cache the result of hashing {@link ZipEntry}s.
+ * It also caches the absence of a hash.
+ */
 public class CachingContentHasher implements ContentHasher {
-    private static final HashCode NO_SIGNATURE = Hashing.md5().hashString(CachingContentHasher.class.getName() + " : no signature", Charsets.UTF_8);
+    private static final HashCode NO_HASH = Hashing.md5().hashString(CachingContentHasher.class.getName() + " : no hash", Charsets.UTF_8);
     private final ContentHasher delegate;
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
@@ -36,29 +41,29 @@ public class CachingContentHasher implements ContentHasher {
     }
 
     @Override
-    public HashCode getHash(RegularFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshot fileSnapshot) {
         HashCode contentMd5 = fileSnapshot.getContent().getContentMd5();
 
-        HashCode signature = persistentCache.get(contentMd5);
-        if (signature != null) {
-            if (signature.equals(NO_SIGNATURE)) {
+        HashCode hash = persistentCache.get(contentMd5);
+        if (hash != null) {
+            if (hash.equals(NO_HASH)) {
                 return null;
             }
-            return signature;
+            return hash;
         }
 
-        signature = delegate.getHash(fileSnapshot);
+        hash = delegate.hash(fileSnapshot);
 
-        if (signature != null) {
-            persistentCache.put(contentMd5, signature);
+        if (hash != null) {
+            persistentCache.put(contentMd5, hash);
         } else {
-            persistentCache.put(contentMd5, NO_SIGNATURE);
+            persistentCache.put(contentMd5, NO_HASH);
         }
-        return signature;
+        return hash;
     }
 
     @Override
-    public HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        return delegate.getHash(zipEntry, zipInput);
+    public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+        return delegate.hash(zipEntry, zipInput);
     }
 }

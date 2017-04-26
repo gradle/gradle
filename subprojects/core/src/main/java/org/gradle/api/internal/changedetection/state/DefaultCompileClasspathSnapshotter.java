@@ -24,7 +24,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     private final ContentHasher classpathContentHasher;
     private final ContentHasher zipContentHasher;
 
-    public DefaultCompileClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, ContentHasher classpathContentHasher, ContentHasher zipContentHasher) {
+    public DefaultCompileClasspathSnapshotter(ContentHasher classpathContentHasher, ContentHasher zipContentHasher, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         this.classpathContentHasher = classpathContentHasher;
         this.zipContentHasher = zipContentHasher;

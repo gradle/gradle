@@ -22,6 +22,9 @@ import org.gradle.api.internal.cache.StringInterner;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Used to build a {@link FileCollectionSnapshot} by collecting normalized file snapshots.
+ */
 public class FileCollectionSnapshotBuilder implements FileSnapshotVisitor {
     private final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
     private final SnapshotNormalizationStrategy snapshotNormalizationStrategy;

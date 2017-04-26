@@ -31,7 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 
-public class ClasspathEntryHasher {
+/**
+ * Builds the snapshot of a classpath entry.
+ * It can be either used on {@link RegularFileSnapshot}s or {@link ZipEntry}.
+ * The {@link NormalizedFileSnapshot}s can be collected by a {@link FileCollectionSnapshotBuilder}.
+ */
+public class ClasspathEntrySnapshotBuilder {
     private static final Ordering<Map.Entry<String, NormalizedFileSnapshot>> SNAPSHOT_ENTRY_ORDERING = Ordering.natural().onResultOf(new Function<Map.Entry<String, NormalizedFileSnapshot>, Comparable<NormalizedFileSnapshot>>() {
         @Override
         public NormalizedFileSnapshot apply(Map.Entry<String, NormalizedFileSnapshot> input) {
@@ -43,26 +48,29 @@ public class ClasspathEntryHasher {
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final Multimap<String, NormalizedFileSnapshot> normalizedSnapshots;
 
-    public ClasspathEntryHasher(StringInterner stringInterner) {
+    public ClasspathEntrySnapshotBuilder(StringInterner stringInterner) {
         this.normalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.RELATIVE;
         this.compareStrategy = TaskFilePropertyCompareStrategy.UNORDERED;
         this.stringInterner = stringInterner;
         this.normalizedSnapshots = MultimapBuilder.hashKeys().arrayListValues().build();
     }
 
-    void visitFile(RegularFileSnapshot file, HashCode hash) {
+    public void visitFile(RegularFileSnapshot file, HashCode hash) {
         if (hash != null) {
             normalizedSnapshots.put(file.getPath(), normalizationStrategy.getNormalizedSnapshot(file.withContentHash(hash), stringInterner));
         }
     }
 
-    void visitZipFileEntry(ZipEntry zipEntry, HashCode hash) {
+    public void visitZipFileEntry(ZipEntry zipEntry, HashCode hash) {
         if (hash != null) {
             normalizedSnapshots.put(zipEntry.getName(), new DefaultNormalizedFileSnapshot(zipEntry.getName(), new FileHashSnapshot(hash)));
         }
     }
 
-    HashCode getHash() {
+    /**
+     * Returns the combined hash of the ClasspathEntry.
+     */
+    public HashCode getHash() {
         if (normalizedSnapshots.isEmpty()) {
             return null;
         }
@@ -72,7 +80,7 @@ public class ClasspathEntryHasher {
         return hasher.hash();
     }
 
-    void collectNormalizedSnapshots(FileCollectionSnapshotBuilder builder) {
+    public void collectNormalizedSnapshots(FileCollectionSnapshotBuilder builder) {
         if (normalizedSnapshots.isEmpty()) {
             return;
         }
