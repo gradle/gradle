@@ -29,6 +29,7 @@ import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.AbiExtractingClasspathContentHasher;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.CachingContentHasher;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
@@ -43,6 +44,7 @@ import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
+import org.gradle.api.internal.changedetection.state.ZipContentHasher;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -203,13 +205,27 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
-        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        return new DefaultClasspathSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter, new DefaultClasspathContentHasher());
+        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        DefaultClasspathContentHasher classpathContentHasher = new DefaultClasspathContentHasher();
+        return new DefaultClasspathSnapshotter(
+            stringInterner,
+            directoryFileTreeFactory,
+            fileSystemSnapshotter,
+            classpathContentHasher,
+            new CachingContentHasher(new ZipContentHasher(classpathContentHasher, stringInterner), signatureCache)
+        );
     }
 
     CompileClasspathSnapshotter createCompileClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
-        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        return new DefaultCompileClasspathSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter, new AbiExtractingClasspathContentHasher());
+        PersistentIndexedCache<HashCode, HashCode> classCache = store.createCache("jvmCompileClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmCompileJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        AbiExtractingClasspathContentHasher classpathContentHasher = new AbiExtractingClasspathContentHasher();
+        return new DefaultCompileClasspathSnapshotter(
+            stringInterner,
+            directoryFileTreeFactory,
+            fileSystemSnapshotter,
+            new CachingContentHasher(classpathContentHasher, classCache),
+            new CachingContentHasher(new ZipContentHasher(classpathContentHasher, stringInterner), jarCache));
     }
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {

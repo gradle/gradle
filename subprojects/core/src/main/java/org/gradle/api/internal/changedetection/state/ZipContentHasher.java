@@ -23,30 +23,29 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.util.DeprecationLogger;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
-public class ZipResourceTree {
-    private final FileSnapshot zipFile;
-    private final ClasspathContentHasher classpathContentHasher;
+public class ZipContentHasher implements ContentHasher {
+    private final ContentHasher classpathContentHasher;
     private final StringInterner stringInterner;
 
-    public ZipResourceTree(FileSnapshot zipFile, ClasspathContentHasher classpathContentHasher, StringInterner stringInterner) {
-        this.zipFile = zipFile;
+    public ZipContentHasher(ContentHasher classpathContentHasher, StringInterner stringInterner) {
         this.classpathContentHasher = classpathContentHasher;
         this.stringInterner = stringInterner;
     }
 
-    public HashCode getHash() {
-        File jarFilePath = new File(zipFile.getPath());
+    public HashCode getHash(RegularFileSnapshot zipFile) {
+        String jarFilePath = zipFile.getPath();
         ZipInputStream zipInput = null;
         try {
             ClasspathEntryResourceCollectionBuilder entryResourceCollectionBuilder = new ClasspathEntryResourceCollectionBuilder(stringInterner);
-            zipInput = new ZipInputStream(new FileInputStream(jarFilePath));
+            zipInput = new ZipInputStream(Files.newInputStream(Paths.get(jarFilePath)));
             ZipEntry zipEntry;
 
             while ((zipEntry = zipInput.getNextEntry()) != null) {
@@ -74,5 +73,10 @@ public class ZipResourceTree {
     private HashCode hashMalformedZip(FileSnapshot fileSnapshot) {
         DeprecationLogger.nagUserWith("Malformed jar [" + fileSnapshot.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
         return fileSnapshot.getContent().getContentMd5();
+    }
+
+    @Override
+    public HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+        throw new UnsupportedOperationException("Hashing zips in zips is not yet supported");
     }
 }

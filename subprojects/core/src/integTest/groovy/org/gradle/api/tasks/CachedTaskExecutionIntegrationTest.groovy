@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -402,7 +401,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.empty
     }
 
-    @NotYetImplemented
     def "order of resources on classpath does not affect how we calculate the cache key"() {
         buildFile << """
             apply plugin: 'base'

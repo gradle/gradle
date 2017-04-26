@@ -26,18 +26,20 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import java.util.List;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
-    private final ClasspathContentHasher classpathContentHasher;
+    private final ContentHasher classpathContentHasher;
+    private final ContentHasher zipContentHasher;
 
-    public DefaultCompileClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, ClasspathContentHasher classpathContentHasher) {
+    public DefaultCompileClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, ContentHasher classpathContentHasher, ContentHasher zipContentHasher) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         this.classpathContentHasher = classpathContentHasher;
+        this.zipContentHasher = zipContentHasher;
     }
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
         return super.snapshot(
             files,
-            new CompileClasspathResourceCollectionSnapshotBuilder(classpathContentHasher, getStringInterner()));
+            new CompileClasspathResourceCollectionSnapshotBuilder(classpathContentHasher, getStringInterner(), zipContentHasher));
     }
 
     @Override
@@ -46,11 +48,13 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     }
 
     private class CompileClasspathResourceCollectionSnapshotBuilder extends ResourceCollectionSnapshotBuilder {
-        private final ClasspathContentHasher classpathContentHasher;
+        private final ContentHasher classpathContentHasher;
+        private final ContentHasher zipContentHasher;
 
-        public CompileClasspathResourceCollectionSnapshotBuilder(ClasspathContentHasher classpathContentHasher, StringInterner stringInterner) {
+        public CompileClasspathResourceCollectionSnapshotBuilder(ContentHasher classpathContentHasher, StringInterner stringInterner, ContentHasher zipContentHasher) {
             super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
             this.classpathContentHasher = classpathContentHasher;
+            this.zipContentHasher = zipContentHasher;
         }
 
         @Override
@@ -68,7 +72,7 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
         @Override
         public void visitFile(RegularFileSnapshot file) {
             if (FileUtils.isJar(file.getName())) {
-                HashCode hash = new ZipResourceTree(file, classpathContentHasher, getStringInterner()).getHash();
+                HashCode hash = zipContentHasher.getHash(file);
                 if (hash != null) {
                     super.visitFile(file.withContentHash(hash));
                 }

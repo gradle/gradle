@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
-public class DefaultClasspathContentHasher implements ClasspathContentHasher {
+public class DefaultClasspathContentHasher implements ContentHasher {
     @Override
     public HashCode getHash(RegularFileSnapshot fileSnapshot) {
         return fileSnapshot.getContent().getContentMd5();

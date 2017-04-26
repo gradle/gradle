@@ -21,18 +21,22 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.gradle.cache.PersistentIndexedCache;
 
-public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
-    private static final HashCode NO_SIGNATURE = Hashing.md5().hashString(CachingClasspathEntryHasher.class.getName() + " : no signature", Charsets.UTF_8);
-    private final ClasspathEntryHasher delegate;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.ZipEntry;
+
+public class CachingContentHasher implements ContentHasher {
+    private static final HashCode NO_SIGNATURE = Hashing.md5().hashString(CachingContentHasher.class.getName() + " : no signature", Charsets.UTF_8);
+    private final ContentHasher delegate;
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
-    public CachingClasspathEntryHasher(ClasspathEntryHasher delegate, PersistentIndexedCache<HashCode, HashCode> persistentCache) {
+    public CachingContentHasher(ContentHasher delegate, PersistentIndexedCache<HashCode, HashCode> persistentCache) {
         this.delegate = delegate;
         this.persistentCache = persistentCache;
     }
 
     @Override
-    public HashCode hash(FileSnapshot fileSnapshot) {
+    public HashCode getHash(RegularFileSnapshot fileSnapshot) {
         HashCode contentMd5 = fileSnapshot.getContent().getContentMd5();
 
         HashCode signature = persistentCache.get(contentMd5);
@@ -43,13 +47,18 @@ public class CachingClasspathEntryHasher implements ClasspathEntryHasher {
             return signature;
         }
 
-        signature = delegate.hash(fileSnapshot);
+        signature = delegate.getHash(fileSnapshot);
 
-        if (signature!=null) {
+        if (signature != null) {
             persistentCache.put(contentMd5, signature);
         } else {
             persistentCache.put(contentMd5, NO_SIGNATURE);
         }
         return signature;
+    }
+
+    @Override
+    public HashCode getHash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+        return delegate.getHash(zipEntry, zipInput);
     }
 }

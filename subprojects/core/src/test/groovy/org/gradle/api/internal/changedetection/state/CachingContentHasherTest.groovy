@@ -22,17 +22,19 @@ import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
 
-class CachingClasspathEntryHasherTest extends Specification {
-    def delegate = Mock(ClasspathEntryHasher)
-    def fileDetails = new RegularFileSnapshot("path", RelativePath.parse(true, "path"), false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
-    def cachingHasher = new CachingClasspathEntryHasher(delegate, new InMemoryIndexedCache(new HashCodeSerializer()))
+import java.util.zip.ZipEntry
+
+class CachingContentHasherTest extends Specification {
+    def delegate = Mock(ContentHasher)
+    def fileSnapshot = new RegularFileSnapshot("path", RelativePath.parse(true, "path"), false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
+    def cachingHasher = new CachingContentHasher(delegate, new InMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {
         def expectedHash = Hashing.md5().hashInt(1)
         when:
-        def actualHash = cachingHasher.hash(fileDetails)
+        def actualHash = cachingHasher.getHash(fileSnapshot)
         then:
-        1 * delegate.hash(fileDetails) >> expectedHash
+        1 * delegate.getHash(fileSnapshot) >> expectedHash
         actualHash == expectedHash
         0 * _
     }
@@ -40,14 +42,14 @@ class CachingClasspathEntryHasherTest extends Specification {
     def "caches the result"() {
         def expectedHash = Hashing.md5().hashInt(1)
         when:
-        def actualHash = cachingHasher.hash(fileDetails)
+        def actualHash = cachingHasher.getHash(fileSnapshot)
         then:
-        1 * delegate.hash(fileDetails) >> expectedHash
+        1 * delegate.getHash(fileSnapshot) >> expectedHash
         actualHash == expectedHash
         0 * _
 
         when:
-        actualHash = cachingHasher.hash(fileDetails)
+        actualHash = cachingHasher.getHash(fileSnapshot)
         then:
         actualHash == expectedHash
         0 * _
@@ -56,16 +58,40 @@ class CachingClasspathEntryHasherTest extends Specification {
     def "caches 'no signature' results too"() {
         def noSignature = null
         when:
-        def actualHash = cachingHasher.hash(fileDetails)
+        def actualHash = cachingHasher.getHash(fileSnapshot)
         then:
-        1 * delegate.hash(fileDetails) >> noSignature
+        1 * delegate.getHash(fileSnapshot) >> noSignature
         actualHash == noSignature
         0 * _
 
         when:
-        actualHash = cachingHasher.hash(fileDetails)
+        actualHash = cachingHasher.getHash(fileSnapshot)
         then:
         actualHash == noSignature
         0 * _
+    }
+
+    def "does not cache zip entries"() {
+        def expectedHash = Hashing.md5().hashInt(1)
+        def inputStream = Mock(InputStream)
+        def zipEntry = Mock(ZipEntry)
+
+        when:
+        def actualHash = cachingHasher.getHash(zipEntry, inputStream)
+
+        then:
+        1 * delegate.getHash(zipEntry, inputStream) >> expectedHash
+        0 * _
+
+        actualHash == expectedHash
+
+        when:
+        actualHash = cachingHasher.getHash(zipEntry, inputStream)
+
+        then:
+        1 * delegate.getHash(zipEntry, inputStream) >> expectedHash
+        0 * _
+
+        actualHash == expectedHash
     }
 }
