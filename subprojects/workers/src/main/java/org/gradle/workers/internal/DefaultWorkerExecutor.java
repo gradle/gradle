@@ -160,6 +160,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     DaemonForkOptions getDaemonForkOptions(Class<?> actionClass, WorkerConfiguration configuration) {
+        validateWorkerConfiguration(configuration);
         Iterable<Class<?>> paramTypes = CollectionUtils.collect(configuration.getParams(), new Transformer<Class<?>, Object>() {
             @Override
             public Class<?> transform(Object o) {
@@ -167,6 +168,40 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             }
         });
         return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath());
+    }
+
+    private void validateWorkerConfiguration(WorkerConfiguration configuration) {
+        if (configuration.getIsolationMode() == IsolationMode.NONE) {
+            if (configuration.getClasspath().iterator().hasNext()) {
+                throw unsupportedWorkerConfigurationException("classpath", configuration.getIsolationMode());
+            }
+        }
+
+        if (configuration.getIsolationMode() == IsolationMode.NONE || configuration.getIsolationMode() == IsolationMode.CLASSLOADER) {
+            if (!configuration.getForkOptions().getBootstrapClasspath().isEmpty()) {
+                throw unsupportedWorkerConfigurationException("bootstrap classpath", configuration.getIsolationMode());
+            }
+
+            if (!configuration.getForkOptions().getJvmArgs().isEmpty()) {
+                throw unsupportedWorkerConfigurationException("jvm arguments", configuration.getIsolationMode());
+            }
+
+            if (configuration.getForkOptions().getMaxHeapSize() != null) {
+                throw unsupportedWorkerConfigurationException("maximum heap size", configuration.getIsolationMode());
+            }
+
+            if (configuration.getForkOptions().getMinHeapSize() != null) {
+                throw unsupportedWorkerConfigurationException("minimum heap size", configuration.getIsolationMode());
+            }
+
+            if (!configuration.getForkOptions().getSystemProperties().isEmpty()) {
+                throw unsupportedWorkerConfigurationException("system properties", configuration.getIsolationMode());
+            }
+        }
+    }
+
+    private RuntimeException unsupportedWorkerConfigurationException(String propertyDescription, IsolationMode isolationMode) {
+        return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
     private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath) {
