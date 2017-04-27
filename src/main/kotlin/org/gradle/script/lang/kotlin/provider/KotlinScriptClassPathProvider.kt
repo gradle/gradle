@@ -18,7 +18,6 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.codegen.generateApiExtensionsJar
 
-import org.gradle.script.lang.kotlin.support.filter
 import org.gradle.script.lang.kotlin.support.ProgressMonitor
 
 import org.gradle.api.artifacts.Dependency
@@ -26,9 +25,11 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
 
 import org.gradle.util.GFileUtils.moveFile
 
@@ -56,35 +57,35 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
+    val gradleScriptKotlinApi: ClassPath by lazy {
+        gradleApi + gradleApiExtensions + gradleScriptKotlinJars
+    }
+
     val gradleApi: ClassPath by lazy {
-        DefaultClassPath.of(gradleApiFiles())
+        DefaultClassPath.of(gradleApiJarsProvider())
     }
 
     /**
      * Generated extensions to the Gradle API.
      */
     val gradleApiExtensions: ClassPath by lazy {
-        gradleApi.filter { it.name.startsWith("gradle-script-kotlin-extensions-") }
+        DefaultClassPath(gradleScriptKotlinExtensions())
     }
 
     /**
      * gradle-script-kotlin.jar plus kotlin libraries.
      */
     val gradleScriptKotlinJars: ClassPath by lazy {
-        DefaultClassPath.of(gradleScriptKotlinJarsFrom(classPathRegistry))
+        DefaultClassPath.of(gradleScriptKotlinJars())
     }
 
-    /**
-     * Returns the generated Gradle API jar plus supporting files such as groovy-all.jar.
-     */
-    private
-    fun gradleApiFiles() =
-        gradleApiJarsProvider() + listOf(gradleScriptKotlinApiExtensions())
+    fun compilationClassPathOf(scope: ClassLoaderScope): ClassPath =
+        gradleScriptKotlinApi + exportClassPathFromHierarchyOf(scope)
 
     private
-    fun gradleScriptKotlinApiExtensions(): File =
+    fun gradleScriptKotlinExtensions(): File =
         produceFrom("script-kotlin-extensions") { outputFile, onProgress ->
-            generateApiExtensionsJar(outputFile, gradleJars(), onProgress)
+            generateApiExtensionsJar(outputFile, gradleJars, onProgress)
         }
 
     private
@@ -114,24 +115,24 @@ class KotlinScriptClassPathProvider(
         }
 
     private
-    fun gradleJars() = classPathRegistry.gradleJars()
+    fun gradleScriptKotlinJars(): List<File> =
+        gradleJars.filter {
+            it.name.let { isKotlinJar(it) || it.startsWith("gradle-script-kotlin-") }
+        }
+
+    private
+    val gradleJars by lazy {
+        classPathRegistry.getClassPath(gradleApiNotation.name).asFiles
+    }
 }
 
 
+internal
 fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactory): JarsProvider =
     { (dependencyFactory.gradleApi() as SelfResolvingDependency).resolve() }
 
 
-fun gradleScriptKotlinJarsFrom(classPathRegistry: ClassPathRegistry): List<File> =
-    classPathRegistry.gradleJars().filter {
-        it.name.let { isKotlinJar(it) || it.startsWith("gradle-script-kotlin-") }
-    }
-
-
-fun ClassPathRegistry.gradleJars(): Collection<File> =
-    getClassPath(gradleApiNotation.name).asFiles
-
-
+private
 fun DependencyFactory.gradleApi(): Dependency =
     createDependency(gradleApiNotation)
 
@@ -140,7 +141,6 @@ private
 val gradleApiNotation = DependencyFactory.ClassPathNotation.GRADLE_API
 
 
-// TODO: make the predicate more precise
 fun isKotlinJar(name: String): Boolean =
     name.startsWith("kotlin-stdlib-")
         || name.startsWith("kotlin-reflect-")

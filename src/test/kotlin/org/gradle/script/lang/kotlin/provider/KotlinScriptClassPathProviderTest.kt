@@ -38,7 +38,7 @@ class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
             progressMonitorProvider = progressMonitorProvider)
 
         assertThat(
-            subject.gradleApi.asFiles,
+            subject.gradleScriptKotlinApi.asFiles,
             equalTo(listOf(gradleApiJar, generatedKotlinExtensions)))
 
         verifyProgressMonitor(kotlinExtensionsMonitor)

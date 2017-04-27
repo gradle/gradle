@@ -23,7 +23,6 @@ import org.gradle.internal.classloader.ClasspathUtil
 
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
 import org.gradle.script.lang.kotlin.provider.KotlinScriptClassPathProvider
-import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
 import org.gradle.script.lang.kotlin.support.serviceOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -52,10 +51,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         return when {
             targetBuildscriptFile != null ->
                 projectFor(targetBuildscriptFile, project)
-                    ?.let { targetProject -> scriptCompilationClassPathOf(targetProject) }
+                    ?.let { targetProject -> buildScriptClassPathOf(targetProject) }
                     ?: scriptPluginClassPathOf(project)
             else ->
-                scriptCompilationClassPathOf(project)
+                buildScriptClassPathOf(project)
         }
     }
 
@@ -71,14 +70,15 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     fun canonicalFile(path: String): File = File(path).canonicalFile
 
     private
-    fun scriptCompilationClassPathOf(project: Project): List<File> {
-        val compilationClassPath = classPathOf(project) + gradleScriptKotlinApiOf(project)
-        return (compilationClassPath + accessorsClassPathFor(project, compilationClassPath)).asFiles
-    }
+    fun buildScriptClassPathOf(project: Project): List<File> =
+        compilationClassPathOf(project)
+            .let { it + accessorsClassPathFor(project, it) }
+            .asFiles
 
     private
-    fun classPathOf(project: Project) =
-        exportClassPathFromHierarchyOf(classLoaderScopeOf(project))
+    fun compilationClassPathOf(project: Project) =
+        kotlinScriptClassPathProviderOf(project)
+            .compilationClassPathOf(classLoaderScopeOf(project))
 
     private
     fun classLoaderScopeOf(project: Project) =
@@ -104,7 +104,7 @@ data class StandardKotlinBuildScriptModel(
 internal
 fun gradleScriptKotlinApiOf(project: Project): List<File> =
     kotlinScriptClassPathProviderOf(project).run {
-        gradleApi.asFiles + gradleScriptKotlinJars.asFiles
+        gradleScriptKotlinApi.asFiles
     }
 
 

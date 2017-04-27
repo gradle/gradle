@@ -32,7 +32,6 @@ import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
 
-import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
 import org.gradle.script.lang.kotlin.support.compilerMessageFor
 import org.gradle.script.lang.kotlin.support.userHome
 
@@ -56,20 +55,13 @@ class KotlinBuildScriptCompiler(
     val pluginRequestApplicator: PluginRequestApplicator,
     val baseScope: ClassLoaderScope,
     val targetScope: ClassLoaderScope,
-    gradleApi: ClassPath,
-    val gradleApiExtensions: ClassPath,
-    gradleScriptKotlinJars: ClassPath) {
+    val classPathProvider: KotlinScriptClassPathProvider) {
 
     val scriptResource = scriptSource.resource!!
     val scriptFile = scriptResource.file!!
     val script = convertLineSeparators(scriptResource.text!!)
 
-    /**
-     * ClassPath inherited from parent projects (including buildSrc)
-     */
-    val parentClassPath: ClassPath = exportClassPathFromHierarchyOf(targetScope.parent)
-
-    val buildscriptBlockCompilationClassPath: ClassPath = gradleApi + gradleScriptKotlinJars + parentClassPath
+    val buildscriptBlockCompilationClassPath: ClassPath = classPathProvider.compilationClassPathOf(targetScope.parent)
 
     val pluginsBlockCompilationClassPath: ClassPath = buildscriptBlockCompilationClassPath
 
@@ -151,7 +143,7 @@ class KotlinBuildScriptCompiler(
 
     private
     fun prepareTargetClassLoaderScopeOf(target: Project) {
-        targetScope.export(gradleApiExtensions)
+        targetScope.export(classPathProvider.gradleApiExtensions)
         executePluginsBlockOn(target)
     }
 

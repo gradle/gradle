@@ -67,9 +67,7 @@ class KotlinScriptPluginFactory(
             scriptHandler as ScriptHandlerInternal,
             pluginRequestApplicator,
             baseScope, targetScope,
-            classPathProvider.gradleApi,
-            classPathProvider.gradleApiExtensions,
-            classPathProvider.gradleScriptKotlinJars)
+            classPathProvider)
 
     private
     fun inClassPathMode() =
