@@ -29,11 +29,10 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements BlockingHttpServer.BlockingHandler {
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
+    private final Lock lock;
+    private final Condition condition;
     private final List<String> received = new ArrayList<String>();
     private final Set<String> released = new HashSet<String>();
     private final Map<String, ResourceHandler> expected = new HashMap<String, ResourceHandler>();
@@ -44,7 +43,9 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     private long mostRecentEvent;
     private AssertionError failure;
 
-    CyclicBarrierAnyOfRequestHandler(int testId, int timeoutMs, int maxConcurrent, Collection<? extends ResourceHandler> expectedCalls) {
+    CyclicBarrierAnyOfRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, Collection<? extends ResourceHandler> expectedCalls) {
+        this.lock = lock;
+        this.condition = lock.newCondition();
         this.testId = testId;
         this.timeoutMs = timeoutMs;
         this.waitingFor = maxConcurrent;
@@ -54,13 +55,13 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     }
 
     @Override
-    public boolean handle(int id, HttpExchange httpExchange) throws Exception {
+    public ResourceHandler handle(int id, HttpExchange httpExchange) throws Exception {
         ResourceHandler handler;
         lock.lock();
         try {
             if (expected.isEmpty()) {
                 // barrier open, let it travel on
-                return false;
+                return null;
             }
             if (failure != null) {
                 // Busted
@@ -108,8 +109,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             lock.unlock();
         }
 
-        handler.writeTo(httpExchange);
-        return true;
+        return handler;
     }
 
     public void assertComplete() {

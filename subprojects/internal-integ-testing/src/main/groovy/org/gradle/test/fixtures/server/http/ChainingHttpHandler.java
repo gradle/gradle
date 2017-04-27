@@ -25,16 +25,21 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
 class ChainingHttpHandler implements HttpHandler {
     private final AtomicInteger counter;
     private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<TrackingHttpHandler>();
     private final List<Throwable> failures = new CopyOnWriteArrayList<Throwable>();
     private boolean completed;
-    private final Object lock = new Object();
+    private final Lock lock;
+    private final Condition condition;
     private int requestCount;
 
-    public ChainingHttpHandler(AtomicInteger counter) {
+    public ChainingHttpHandler(Lock lock, AtomicInteger counter) {
+        this.lock = lock;
+        this.condition = lock.newCondition();
         this.counter = counter;
     }
 
@@ -43,18 +48,23 @@ class ChainingHttpHandler implements HttpHandler {
     }
 
     public void assertComplete() {
-        if (!completed) {
-            for (TrackingHttpHandler handler : handlers) {
-                try {
-                    handler.assertComplete();
-                } catch (Throwable t) {
-                    failures.add(t);
+        lock.lock();
+        try {
+            if (!completed) {
+                for (TrackingHttpHandler handler : handlers) {
+                    try {
+                        handler.assertComplete();
+                    } catch (Throwable t) {
+                        failures.add(t);
+                    }
                 }
+                completed = true;
             }
-            completed = true;
-        }
-        if (!failures.isEmpty()) {
-            throw new DefaultMultiCauseException("Failed to handle all HTTP requests.", failures);
+            if (!failures.isEmpty()) {
+                throw new DefaultMultiCauseException("Failed to handle all HTTP requests.", failures);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -63,46 +73,56 @@ class ChainingHttpHandler implements HttpHandler {
         int id = counter.incrementAndGet();
         System.out.println(String.format("[%d] handling %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
 
-        synchronized (lock) {
-            requestCount++;
-            lock.notifyAll();
-        }
-
+        ResourceHandler resourceHandler = null;
+        lock.lock();
         try {
+            requestCount++;
+            condition.signalAll();
             if (httpExchange.getRequestMethod().equals("GET")) {
                 for (TrackingHttpHandler handler : handlers) {
-                    if (handler.handle(id, httpExchange)) {
-                        httpExchange.close();
-                        System.out.println(String.format("[%d] handled", id));
-                        return;
+                    resourceHandler = handler.handle(id, httpExchange);
+                    if (resourceHandler != null) {
+                        break;
                     }
                 }
             }
-            failures.add(new AssertionError(String.format("Received unexpected request %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath())));
+            if (resourceHandler == null) {
+                failures.add(new AssertionError(String.format("Received unexpected request %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath())));
+            }
         } catch (Throwable t) {
             failures.add(new AssertionError(String.format("Failed to handle %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()), t));
+        } finally {
+            lock.unlock();
         }
 
-        System.out.println(String.format("[%d] sending error response", id));
-        if (httpExchange.getRequestMethod().equals("HEAD")) {
-            httpExchange.sendResponseHeaders(500, -1);
+        if (resourceHandler != null) {
+            System.out.println(String.format("[%d] sending response", id));
+            resourceHandler.writeTo(httpExchange);
         } else {
-            byte[] message = String.format("Failed %s request to %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()).getBytes();
-            httpExchange.sendResponseHeaders(500, message.length);
-            httpExchange.getResponseBody().write(message);
+            System.out.println(String.format("[%d] sending error response", id));
+            if (httpExchange.getRequestMethod().equals("HEAD")) {
+                httpExchange.sendResponseHeaders(500, -1);
+            } else {
+                byte[] message = String.format("Failed %s request to %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()).getBytes();
+                httpExchange.sendResponseHeaders(500, message.length);
+                httpExchange.getResponseBody().write(message);
+            }
         }
         httpExchange.close();
     }
 
     void waitForRequests(int requestCount) {
-        synchronized (lock) {
+        lock.lock();
+        try {
             while (this.requestCount < requestCount) {
                 try {
-                    lock.wait();
+                    condition.await();
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
+        } finally {
+            lock.unlock();
         }
     }
 }

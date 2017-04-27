@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * An HTTP server that allows a test to synchronize and make assertions about concurrent activities that happen in another process.
@@ -36,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class BlockingHttpServer extends ExternalResource {
     private static final AtomicInteger COUNTER = new AtomicInteger();
+    private final Lock lock = new ReentrantLock();
     private final HttpServer server;
     private final ChainingHttpHandler handler;
     private final int timeoutMs;
@@ -50,7 +53,7 @@ public class BlockingHttpServer extends ExternalResource {
         server = HttpServer.create(new InetSocketAddress(0), 10);
         server.setExecutor(Executors.newCachedThreadPool());
         serverId = COUNTER.incrementAndGet();
-        handler = new ChainingHttpHandler(COUNTER);
+        handler = new ChainingHttpHandler(lock, COUNTER);
         server.createContext("/", handler);
         this.timeoutMs = timeoutMs;
     }
@@ -93,7 +96,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (String call : additionalExpectedCalls) {
             resourceHandlers.add(resourceHandler(call));
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
     }
 
     /**
@@ -104,7 +107,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (String call : expectedCalls) {
             resourceHandlers.add(resourceHandler(call));
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
     }
 
     /**
@@ -115,7 +118,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (Resource call : expectedCalls) {
             resourceHandlers.add((ResourceHandler) call);
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
     }
 
     /**
@@ -152,7 +155,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (String call : expectedCalls) {
             resourceHandlers.add(resourceHandler(call));
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(serverId, timeoutMs, concurrent, resourceHandlers);
+        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(lock, serverId, timeoutMs, concurrent, resourceHandlers);
         handler.addHandler(requestHandler);
         return requestHandler;
     }
@@ -166,7 +169,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (Resource call : expectedCalls) {
             resourceHandlers.add((ResourceHandler) call);
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(serverId, timeoutMs, concurrent, resourceHandlers);
+        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(lock, serverId, timeoutMs, concurrent, resourceHandlers);
         handler.addHandler(requestHandler);
         return requestHandler;
     }
@@ -175,14 +178,14 @@ public class BlockingHttpServer extends ExternalResource {
      * Expects the given call to be made.
      */
     public void expectSerialExecution(String expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, Collections.singleton(resourceHandler(expectedCall))));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, Collections.singleton(resourceHandler(expectedCall))));
     }
 
     /**
      * Expects the given call to be made.
      */
     public void expectSerialExecution(Resource expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(timeoutMs, Collections.singleton((ResourceHandler) expectedCall)));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, Collections.singleton((ResourceHandler) expectedCall)));
     }
 
     public void start() {

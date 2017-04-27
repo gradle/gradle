@@ -28,19 +28,20 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class CyclicBarrierRequestHandler extends TrackingHttpHandler {
-    private final Lock lock = new ReentrantLock();
     private final TimeProvider timeProvider = new TrueTimeProvider();
-    private final Condition condition = lock.newCondition();
+    private final Lock lock;
+    private final Condition condition;
     private final List<String> received = new ArrayList<String>();
     private final Map<String, ResourceHandler> pending;
     private final int timeoutMs;
     private long mostRecentEvent;
     private AssertionError failure;
 
-    CyclicBarrierRequestHandler(int timeoutMs, Collection<? extends ResourceHandler> expectedCalls) {
+    CyclicBarrierRequestHandler(Lock lock, int timeoutMs, Collection<? extends ResourceHandler> expectedCalls) {
+        this.lock = lock;
+        condition = lock.newCondition();
         this.timeoutMs = timeoutMs;
         pending = new HashMap<String, ResourceHandler>();
         for (ResourceHandler call : expectedCalls) {
@@ -49,13 +50,13 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
     }
 
     @Override
-    public boolean handle(int id, HttpExchange httpExchange) throws Exception {
+    public ResourceHandler handle(int id, HttpExchange httpExchange) throws Exception {
         ResourceHandler handler;
         lock.lock();
         try {
             if (pending.isEmpty()) {
                 // barrier open, let it travel on
-                return false;
+                return null;
             }
             if (failure != null) {
                 // Busted
@@ -101,8 +102,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
         }
 
         // All requests completed, write response
-        handler.writeTo(httpExchange);
-        return true;
+        return handler;
     }
 
     public void assertComplete() {
