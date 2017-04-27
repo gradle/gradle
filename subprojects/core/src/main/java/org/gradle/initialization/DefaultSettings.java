@@ -223,7 +223,6 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Inject
     public UriTextResourceLoader getCachingUrlRequester() {
-        // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
 

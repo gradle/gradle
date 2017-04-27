@@ -72,7 +72,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
-import org.gradle.api.internal.filestore.url.UrlFileStore;
+import org.gradle.api.internal.filestore.url.DefaultUrlFileStore;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
@@ -214,15 +214,15 @@ class DependencyManagementBuildScopeServices {
         return new ExternalResourceFileStore(cacheScopeMapping.getBaseDirectory(null, "external-resources", VersionStrategy.SharedCache), new TmpDirTemporaryFileProvider());
     }
 
-    UrlFileStore createUrlFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
-        return new UrlFileStore(new UniquePathKeyFileStore(artifactCacheMetaData.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
+    DefaultUrlFileStore createUrlFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
+        return new DefaultUrlFileStore(new UniquePathKeyFileStore(artifactCacheMetaData.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
     }
 
-    DefaultExternalResourceUrlResolver createDefaultExternalResourceUrlResolver(UrlFileStore urlFileStore, RepositoryTransportFactory repositoryTransportFactory) {
+    DefaultExternalResourceUrlResolver createDefaultExternalResourceUrlResolver(DefaultUrlFileStore defaultUrlFileStore, RepositoryTransportFactory repositoryTransportFactory) {
         HashSet<String> schemas = Sets.newHashSet("https", "http");
         RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "http auth", Collections.<Authentication>emptyList());
-        LocallyAvailableResourceFinderSearchableFileStoreAdapter<URL> locallyAvailableResourceFinder = new LocallyAvailableResourceFinderSearchableFileStoreAdapter<URL>(urlFileStore);
-        return new DefaultExternalResourceUrlResolver(urlFileStore, transport.getResourceAccessor(), locallyAvailableResourceFinder);
+        LocallyAvailableResourceFinderSearchableFileStoreAdapter<URL> locallyAvailableResourceFinder = new LocallyAvailableResourceFinderSearchableFileStoreAdapter<URL>(defaultUrlFileStore);
+        return new DefaultExternalResourceUrlResolver(defaultUrlFileStore, transport.getResourceAccessor(), locallyAvailableResourceFinder);
     }
 
     DefaultUriTextResourceLoader createDefaultCachingUrlRequester(ExternalResourceUrlResolver resolver) {
