@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -31,16 +30,6 @@ import static org.gradle.internal.resolve.result.BuildableModuleVersionListingRe
 class InMemoryMetaDataCache {
     private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = new HashMap<ModuleVersionSelector, Set<String>>();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
-    private final Map<ModuleComponentIdentifier, Boolean> locallyAvailableMetaData = Maps.newHashMap();
-
-    public Boolean isMetadataCached(ModuleComponentIdentifier requested) {
-        return locallyAvailableMetaData.get(requested);
-    }
-
-    public boolean cacheMetadataAvailability(ModuleComponentIdentifier requested, boolean answer) {
-        locallyAvailableMetaData.put(requested, answer);
-        return answer;
-    }
 
     public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
         Set<String> versions = moduleVersionListing.get(requested);
@@ -70,7 +59,6 @@ class InMemoryMetaDataCache {
         CachedModuleVersionResult cachedResult = new CachedModuleVersionResult(result);
         if (cachedResult.isCacheable()) {
             metaData.put(requested, cachedResult);
-            locallyAvailableMetaData.put(requested, Boolean.TRUE);
         }
     }
 }
