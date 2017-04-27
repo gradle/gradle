@@ -26,6 +26,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor;
 import org.gradle.execution.taskgraph.CalculateTaskGraphOperationResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -38,6 +39,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultGradleLauncher implements GradleLauncher {
@@ -224,17 +226,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
 
             // make requested tasks available from according build operation.
-            buildOperationContext.setResult(new CalculateTaskGraphOperationResult(CollectionUtils.collect(gradle.getTaskGraph().getRequestedTasks(), new Transformer<String, Task>() {
-                @Override
-                public String transform(Task task) {
-                    return task.getPath();
-                }
-            })));
-
+            TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+            buildOperationContext.setResult(new CalculateTaskGraphOperationResult(toTaskPaths(taskGraph.getRequestedTasks()), toTaskPaths(taskGraph.getFilteredTasks())));
         }
 
         @Override
-
         public BuildOperationDescriptor.Builder description() {
             StartParameter startParameter = gradle.getStartParameter();
             CalculateTaskGraphDescriptor calculateTaskGraphDescriptor = new CalculateTaskGraphDescriptor(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames());
@@ -252,6 +248,16 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName("Run tasks");
         }
+    }
+
+
+    private static Set<String> toTaskPaths(Set<Task> tasks) {
+        return CollectionUtils.collect(tasks, new Transformer<String, Task>() {
+            @Override
+            public String transform(Task task) {
+                return task.getPath();
+            }
+        });
     }
 
     private boolean isConfigureOnDemand() {

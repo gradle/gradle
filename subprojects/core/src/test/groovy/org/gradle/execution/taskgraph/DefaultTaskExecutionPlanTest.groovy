@@ -42,7 +42,7 @@ import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
 
-public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
+class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
@@ -793,6 +793,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(b)
+        filtered(a)
     }
 
     def "does not build graph for or execute filtered dependencies"() {
@@ -811,6 +812,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(b, c)
+        filtered(a)
     }
 
     @Unroll
@@ -830,6 +832,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(b, c)
+        filtered(a)
 
         where:
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
@@ -850,6 +853,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(c)
+        filtered(b)
     }
 
     private void addToGraphAndPopulate(List tasks) {
@@ -866,6 +870,10 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     void executes(Task... expectedTasks) {
         assert executionPlan.tasks == expectedTasks as List
         assert expectedTasks == expectedTasks as List
+    }
+
+    void filtered(Task... expectedTasks) {
+        assert executionPlan.filteredTasks == expectedTasks as Set
     }
 
     def getExecutedTasks() {

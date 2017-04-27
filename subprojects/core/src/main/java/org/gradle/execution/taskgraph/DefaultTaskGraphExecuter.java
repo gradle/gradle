@@ -42,9 +42,9 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -52,7 +52,6 @@ import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,7 +261,11 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public Set<Task> getRequestedTasks() {
-        return CollectionUtils.filter(requestedTasks, filter);
+        return requestedTasks;
+    }
+
+    public Set<Task> getFilteredTasks() {
+        return taskExecutionPlan.getFilteredTasks();
     }
 
 }

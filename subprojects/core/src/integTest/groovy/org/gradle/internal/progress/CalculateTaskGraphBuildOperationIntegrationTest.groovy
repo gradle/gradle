@@ -18,12 +18,15 @@ package org.gradle.internal.progress
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOperationServiceIntegrationTest {
 
-    def "requested tasks are exposed"() {
+    def "requested and filtered tasks are exposed"() {
         given:
         operationListenerFinishedAction = """ { op, result -> 
                 if(op.operationDescriptor != null && org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor.class.isAssignableFrom(op.operationDescriptor.getClass())){
                     result.result.requestedTaskPaths.each { tskPath ->
                         println "requested task: \$tskPath"
+                    }
+                    result.result.filteredTaskPaths.each { tskPath ->
+                        println "filtered task: \$tskPath"
                     }
                 }
             }
@@ -36,7 +39,9 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
 
         buildFile << """
             allprojects {
+                task otherTask
                 task someTask
+                someTask.dependsOn otherTask
             }
         """
         when:
@@ -44,6 +49,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
 
         then:
         result.output.contains 'requested task: :help'
+        !result.output.contains('excluded task:')
 
         when:
         succeeds('someTask')
@@ -53,6 +59,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
         result.output.contains 'requested task: :a:someTask'
         result.output.contains 'requested task: :b:someTask'
         result.output.contains 'requested task: :a:c:someTask'
+        !result.output.contains('filtered task:')
 
         when:
         succeeds('someTask', '-x', ':b:someTask')
@@ -61,7 +68,21 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
         result.output.contains 'requested task: :someTask'
         result.output.contains 'requested task: :a:someTask'
         result.output.contains 'requested task: :a:c:someTask'
-        !result.output.contains('requested task: :b:someTask')
+        result.output.contains('requested task: :b:someTask')
+        result.output.contains('filtered task: :b:someTask')
+
+        when:
+        succeeds('someTask', '-x', 'otherTask')
+
+        then:
+        result.output.contains 'requested task: :someTask'
+        result.output.contains 'requested task: :a:someTask'
+        result.output.contains 'requested task: :a:c:someTask'
+        result.output.contains('requested task: :b:someTask')
+        result.output.contains('filtered task: :otherTask')
+        result.output.contains('filtered task: :a:otherTask')
+        result.output.contains('filtered task: :b:otherTask')
+        result.output.contains('filtered task: :a:c:otherTask')
 
         when:
         succeeds(':a:someTask')
@@ -71,6 +92,8 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
         !result.output.contains('requested task: :someTask')
         !result.output.contains('requested task: :a:c:someTask')
         !result.output.contains('requested task: :b:someTask')
+        !result.output.contains('filtered task:')
+
     }
 
     def "errors in calculating task graph are exposed"() {
