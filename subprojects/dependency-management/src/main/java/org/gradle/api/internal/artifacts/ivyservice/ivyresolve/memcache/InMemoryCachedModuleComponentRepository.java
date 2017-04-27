@@ -115,19 +115,23 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
 
         @Override
         public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            Boolean cached = isMetadataCached(moduleComponentIdentifier);
+            if (metaDataCache.isMetadataCached(moduleComponentIdentifier)) {
+                // check the global cache first: if any repo has it cached, we don't need to check locally
+                return true;
+            }
+            Boolean cached =  locallyAvailableMetaData.get(moduleComponentIdentifier);
             if (cached != null) {
+                // then check if for this specific repository, we already tried this component
                 return cached;
             }
             return cacheMetadataAvailability(moduleComponentIdentifier, super.isMetadataAvailableLocally(moduleComponentIdentifier));
         }
 
-        public Boolean isMetadataCached(ModuleComponentIdentifier requested) {
-            return locallyAvailableMetaData.get(requested);
-        }
-
-        public boolean cacheMetadataAvailability(ModuleComponentIdentifier requested, boolean answer) {
+        private boolean cacheMetadataAvailability(ModuleComponentIdentifier requested, boolean answer) {
             locallyAvailableMetaData.put(requested, answer);
+            if (answer) {
+                metaDataCache.cacheMetadataAvailability(requested);
+            }
             return answer;
         }
     }
