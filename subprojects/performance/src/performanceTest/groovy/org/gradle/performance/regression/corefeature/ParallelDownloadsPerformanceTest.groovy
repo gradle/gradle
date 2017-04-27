@@ -46,11 +46,12 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def setup() {
+        runner.warmUpRuns = 5
+        runner.runs = 15
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 cleanupCache(invocationInfo.gradleUserHome)
-                println invocationInfo.buildLog
             }
 
             private void cleanupCache(File userHomeDir) {
