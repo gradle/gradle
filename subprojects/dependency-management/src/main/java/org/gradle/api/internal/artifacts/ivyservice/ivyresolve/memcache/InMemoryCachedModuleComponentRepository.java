@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepositoryAccess;
@@ -32,6 +33,8 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+
+import java.util.Map;
 
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleComponentRepositoryAccess localAccess;
@@ -56,6 +59,7 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
     private class CachedAccess extends BaseModuleComponentRepositoryAccess {
         private final InMemoryMetaDataCache metaDataCache;
         private final InMemoryArtifactsCache artifactsCache;
+        private final Map<ModuleComponentIdentifier, Boolean> locallyAvailableMetaData = Maps.newHashMap();
 
         CachedAccess(ModuleComponentRepositoryAccess access, InMemoryArtifactsCache artifactsCache, InMemoryMetaDataCache metaDataCache) {
             super(access);
@@ -81,6 +85,7 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             if (!metaDataCache.supplyMetaData(moduleComponentIdentifier, result)) {
                 super.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
                 metaDataCache.newDependencyResult(moduleComponentIdentifier, result);
+                locallyAvailableMetaData.put(moduleComponentIdentifier, Boolean.TRUE);
             }
         }
 
@@ -110,11 +115,20 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
 
         @Override
         public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            Boolean cached = metaDataCache.isMetadataCached(moduleComponentIdentifier);
+            Boolean cached = isMetadataCached(moduleComponentIdentifier);
             if (cached != null) {
                 return cached;
             }
-            return metaDataCache.cacheMetadataAvailability(moduleComponentIdentifier, super.isMetadataAvailableLocally(moduleComponentIdentifier));
+            return cacheMetadataAvailability(moduleComponentIdentifier, super.isMetadataAvailableLocally(moduleComponentIdentifier));
+        }
+
+        public Boolean isMetadataCached(ModuleComponentIdentifier requested) {
+            return locallyAvailableMetaData.get(requested);
+        }
+
+        public boolean cacheMetadataAvailability(ModuleComponentIdentifier requested, boolean answer) {
+            locallyAvailableMetaData.put(requested, answer);
+            return answer;
         }
     }
 }
