@@ -118,6 +118,31 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
         renameForModule("com.example", "file.jar") == "com.example-file.jar"
     }
 
+    def "ignores duplicate artifacts"() {
+        String moduleFileName = 'module.jar'
+        File moduleFile = new File(moduleFileName)
+        String newModuleName = "com.example-" + moduleFileName
+        ResolvedArtifactResult moduleArtifact = resolvedArtifact(moduleFile, moduleId("com.example"))
+
+        ResolvedArtifactResult duplicateArtifact = resolvedArtifact(moduleFile, moduleId("com.example"))
+
+        def renamer = new PlayDistributionPlugin.PrefixArtifactFileNames(null) {
+            Set<ResolvedArtifactResult> getResolvedArtifacts() {
+                return [moduleArtifact, duplicateArtifact] as Set
+            }
+        }
+
+        FileCopyDetails moduleFcd = Mock(FileCopyDetails)
+        moduleFcd.getFile() >> moduleFile
+
+        when:
+        renamer.execute(moduleFcd)
+        then:
+        1 * moduleFcd.setName(newModuleName)
+        and:
+        renamer.apply(moduleFile) == newModuleName
+    }
+
     private String renameForProject(String projectPath, String fileName) {
         return PlayDistributionPlugin.PrefixArtifactFileNames.renameForProject(newProjectId(projectPath), new File(fileName))
     }
