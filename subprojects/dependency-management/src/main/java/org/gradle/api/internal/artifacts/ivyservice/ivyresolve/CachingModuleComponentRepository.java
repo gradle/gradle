@@ -17,11 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -243,7 +243,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
             if (cachedModuleArtifacts != null) {
                 if (!cachePolicy.mustRefreshModuleArtifacts(component.getId(), null, cachedModuleArtifacts.getAgeMillis(),
-                        cachedModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash()))) {
+                    cachedModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash()))) {
                     result.resolved(cachedModuleArtifacts.getArtifacts());
                     return;
                 }
@@ -267,9 +267,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            ModuleComponentRepositoryAccess localAccess = delegate.getLocalAccess();
-            return localAccess.isMetadataAvailableLocally(moduleComponentIdentifier) // in-memory check first
-                || isMetadataAvailableInCacheAndUpToDate(moduleComponentIdentifier);
+            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier) // cheap
+                || isMetadataAvailableInCacheAndUpToDate(moduleComponentIdentifier) // quite cheap, but requires reading binary descriptor
+                || delegate.getRemoteAccess().isMetadataAvailableLocally(moduleComponentIdentifier); // very expensive
         }
 
         private boolean isMetadataAvailableInCacheAndUpToDate(ModuleComponentIdentifier moduleComponentIdentifier) {

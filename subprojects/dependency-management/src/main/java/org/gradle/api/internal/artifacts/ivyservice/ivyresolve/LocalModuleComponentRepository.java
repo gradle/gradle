@@ -100,7 +100,8 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
 
         @Override
         public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier);
+            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier)
+                || delegate.getRemoteAccess().isMetadataAvailableLocally(moduleComponentIdentifier);
         }
     }
 
