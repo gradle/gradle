@@ -83,7 +83,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
             while (!pending.isEmpty() && failure == null) {
                 long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
                 if (waitMs < 0) {
-                    failure = new AssertionError(String.format("Timeout waiting for other requests to be received. Still waiting for %s, received %s.", pending.keySet(), received));
+                    failure = new AssertionError(String.format("Timeout waiting for expected requests to be received. Still waiting for %s, received %s.", pending.keySet(), received));
                     condition.signalAll();
                     throw failure;
                 }
@@ -93,6 +93,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
 
             if (failure != null) {
                 // Failed in another thread
+                System.out.println(String.format("[%d] failure in another thread", id));
                 throw failure;
             }
         } finally {
@@ -105,8 +106,16 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
     }
 
     public void assertComplete() {
-        if (!pending.isEmpty()) {
-            throw new AssertionError(String.format("Did not receive expected requests. Waiting for %s, received %s", pending.keySet(), received));
+        lock.lock();
+        try {
+            if (failure != null) {
+                throw failure;
+            }
+            if (!pending.isEmpty()) {
+                throw new AssertionError(String.format("Did not receive expected requests. Waiting for %s, received %s", pending.keySet(), received));
+            }
+        } finally {
+            lock.unlock();
         }
     }
 }

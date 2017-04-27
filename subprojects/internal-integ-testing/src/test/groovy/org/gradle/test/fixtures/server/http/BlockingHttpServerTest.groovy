@@ -133,8 +133,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Did not receive expected requests. Waiting for [a], received []',
-            'Failed to handle GET /b'
+            'Failed to handle GET /b',
+            "Unexpected request to 'b' received. Waiting for [a], already received []."
         ]
     }
 
@@ -181,8 +181,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Did not receive expected requests. Waiting for [b], received [a]',
-            'Failed to handle GET /a'
+            'Failed to handle GET /a',
+            'Timeout waiting for expected requests to be received. Still waiting for [b], received [a].'
         ]
     }
 
@@ -204,8 +204,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Did not receive expected requests. Waiting for [a, b], received []',
-            'Failed to handle GET /c'
+            'Failed to handle GET /c',
+            "Unexpected request to 'c' received. Waiting for [a, b], already received []."
         ]
     }
 
@@ -248,9 +248,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Did not receive expected requests. Waiting for [a], received [b]',
             'Failed to handle GET /b',
-            'Received unexpected request HEAD /a'
+            'Received unexpected request HEAD /a',
+            "Timeout waiting for expected requests to be received. Still waiting for [a], received [b]."
         ]
     }
 
@@ -311,8 +311,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Did not handle all expected requests. Waiting for 1 further requests, received [a], released [], not yet received [b, c].',
-            'Failed to handle GET /a'
+            'Failed to handle GET /a',
+            "Timeout waiting for expected requests. Waiting for 1 further requests, received [a], released [], not yet received [b, c]."
         ]
     }
 
@@ -358,9 +358,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Did not handle all expected requests. Waiting for 1 further requests, received [a], released [], not yet received [b, c].',
             'Failed to handle GET /a',
-            'Failed to handle GET /d'
+            'Failed to handle GET /d',
+            "Unexpected request to 'd' received. Waiting for 1 further requests, already received [a], released [], still expecting [b, c]."
         ]
     }
 
@@ -417,10 +417,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Did not handle all expected requests. Waiting for 0 further requests, received [a, b], released [], not yet received [c].',
             'Failed to handle GET /a',
             'Failed to handle GET /b',
-            'Failed to handle GET /c'
+            'Failed to handle GET /c',
+            "Unexpected request to 'c' received. Waiting for 0 further requests, already received [a, b], released [], still expecting [c]."
         ]
     }
 
@@ -463,9 +463,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Did not handle all expected requests. Waiting for 0 further requests, received [a, b], released [], not yet received [c].',
             'Failed to handle GET /a',
-            'Failed to handle GET /b']
+            'Failed to handle GET /b',
+            'Timeout waiting to be released. Waiting for 0 further requests, received [a, b], released [], not yet received [c].'
+        ]
     }
 
 }

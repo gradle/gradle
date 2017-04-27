@@ -90,6 +90,9 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
                 long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
                 if (waitMs < 0) {
                     System.out.println(String.format("[%d] timeout", id));
+                    if (waitingFor > 0) {
+                        throw timeoutWaitingForRequests();
+                    }
                     failure = new AssertionError(String.format("Timeout waiting to be released. Waiting for %s further requests, received %s, released %s, not yet received %s.", waitingFor, received, released, expected.keySet()));
                     condition.signalAll();
                     throw failure;
@@ -112,6 +115,9 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     public void assertComplete() {
         lock.lock();
         try {
+            if (failure != null) {
+                throw failure;
+            }
             if (!expected.isEmpty()) {
                 throw new AssertionError(String.format("Did not handle all expected requests. Waiting for %d further requests, received %s, released %s, not yet received %s.", waitingFor, received, released, expected.keySet()));
             }
@@ -156,7 +162,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             while (waitingFor > 0 && failure == null) {
                 long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
                 if (waitMs < 0) {
-                    throw new AssertionError(String.format("Timeout waiting for expected requests. Waiting for %d further requests, received %s, released %s, not yet received %s.", waitingFor, received, released, expected.keySet()));
+                    throw timeoutWaitingForRequests();
                 }
                 System.out.println(String.format("[%d] waiting for %d further requests, received %s, released %s, not yet received %s", testId, waitingFor, received, released, expected.keySet()));
                 try {
@@ -172,5 +178,11 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
         }  finally {
             lock.unlock();
         }
+    }
+
+    private AssertionError timeoutWaitingForRequests() {
+        failure = new AssertionError(String.format("Timeout waiting for expected requests. Waiting for %d further requests, received %s, released %s, not yet received %s.", waitingFor, received, released, expected.keySet()));
+        condition.signalAll();
+        throw failure;
     }
 }
