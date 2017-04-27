@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -64,7 +63,7 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         try {
             return doResolve();
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not determine the dependencies of %s.", task), e);
+            throw new TaskDependencyResolveException(String.format("Could not determine the dependencies of %s.", task), e);
         } finally {
             queue.clear();
             this.task = null;
