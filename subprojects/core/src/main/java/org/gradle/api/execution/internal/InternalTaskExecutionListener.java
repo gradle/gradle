@@ -17,7 +17,7 @@
 package org.gradle.api.execution.internal;
 
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 
 /**
@@ -25,5 +25,5 @@ import org.gradle.internal.progress.OperationStartEvent;
  */
 public interface InternalTaskExecutionListener {
     void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent);
-    void afterExecute(TaskOperationInternal taskOperation, OperationResult result);
+    void afterExecute(TaskOperationInternal taskOperation, OperationFinishEvent result);
 }

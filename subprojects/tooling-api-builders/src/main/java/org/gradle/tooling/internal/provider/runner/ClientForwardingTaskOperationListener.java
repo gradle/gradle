@@ -20,9 +20,9 @@ import org.gradle.api.execution.internal.TaskOperationDescriptor;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
@@ -56,7 +56,7 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     }
 
     @Override
-    public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         if (skipEvents.contains(buildOperation.getParentId())) {
             skipEvents.add(buildOperation.getId());
             return;
@@ -76,7 +76,7 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     }
 
     @Override
-    public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         if (skipEvents.remove(buildOperation.getId())) {
             return;
         }
@@ -89,7 +89,7 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
         }
     }
 
-    private DefaultTaskDescriptor toTaskDescriptor(BuildOperationInternal buildOperation, TaskInternal task) {
+    private DefaultTaskDescriptor toTaskDescriptor(BuildOperationDescriptor buildOperation, TaskInternal task) {
         Object id = buildOperation.getId();
         String taskIdentityPath = buildOperation.getName();
         String displayName = buildOperation.getDisplayName();
@@ -98,12 +98,12 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
         return new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parentId);
     }
 
-    private Object getParentId(BuildOperationInternal buildOperation) {
+    private Object getParentId(BuildOperationDescriptor buildOperation) {
         // only set the BuildOperation as the parent if the Tooling API Consumer is listening to build progress events
         return clientSubscriptions.isSendBuildProgressEvents() ? buildOperation.getParentId() : null;
     }
 
-    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationResult result) {
+    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationFinishEvent result) {
         TaskStateInternal state = task.getState();
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();

@@ -28,9 +28,9 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
@@ -129,7 +129,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
     }
 
     @Override
-    public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         if (!(buildOperation.getDetails() instanceof TaskOperationDescriptor)) {
             return;
         }
@@ -138,7 +138,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
     }
 
     @Override
-    public void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         if (!(buildOperation.getDetails() instanceof TaskOperationDescriptor)) {
             return;
         }
