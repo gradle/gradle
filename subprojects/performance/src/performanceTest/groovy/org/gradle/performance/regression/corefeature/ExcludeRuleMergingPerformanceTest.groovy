@@ -16,44 +16,18 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.apache.mina.util.AvailablePortFinder
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.fixture.TestProjectLocator
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.webapp.WebAppContext
-import org.mortbay.resource.Resource
+import org.gradle.performance.fixture.WithExternalRepository
 
-class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
 
-    Server server
-    int serverPort
-
-    private void startServer() {
-        try {
-            def repoDir = new File(new TestProjectLocator().findProjectDir(TEST_PROJECT_NAME), 'repository')
-            serverPort = AvailablePortFinder.getNextAvailable(5000)
-            server = new Server(serverPort)
-            WebAppContext context = new WebAppContext()
-            context.setContextPath("/")
-            context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
-            server.addHandler(context)
-            server.start()
-        } catch (IllegalArgumentException ex) {
-            server = null // repository not found, probably running on coordinator. If not, error will be caught later
-        }
-    }
-
-    private void stopServer() {
-        server?.stop()
-    }
-
     def "merge exclude rules"() {
+        runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:
-        runner.testProject = TEST_PROJECT_NAME
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.targetVersions = ["4.0-20170419000017+0000"]
@@ -70,10 +44,10 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
     }
 
     def "merge exclude rules (parallel)"() {
+        runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:
-        runner.testProject = TEST_PROJECT_NAME
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", "--parallel"]

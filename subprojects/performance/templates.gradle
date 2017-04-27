@@ -250,6 +250,12 @@ task excludeRuleMergingBuild(type: RemoteProject) {
     subdirectory = 'exclude-merging'
 }
 
+task springBootApp(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/performance-comparisons.git'
+    branch = 'master'
+    subdirectory = 'parallel-downloads'
+}
+
 task largeNativeBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-native-large'
     branch = 'master'

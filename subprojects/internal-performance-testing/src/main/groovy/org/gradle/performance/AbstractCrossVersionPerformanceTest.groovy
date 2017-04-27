@@ -65,7 +65,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
         performanceTestIdProvider.testSpec = runner
     }
 
-    def getRunner() {
+    CrossVersionPerformanceTestRunner getRunner() {
         runner
     }
 
