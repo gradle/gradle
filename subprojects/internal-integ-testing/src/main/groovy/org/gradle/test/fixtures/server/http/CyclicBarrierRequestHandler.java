@@ -22,9 +22,9 @@ import org.gradle.internal.time.TrueTimeProvider;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -43,7 +43,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
         this.lock = lock;
         condition = lock.newCondition();
         this.timeoutMs = timeoutMs;
-        pending = new HashMap<String, ResourceHandler>();
+        pending = new TreeMap<String, ResourceHandler>();
         for (ResourceHandler call : expectedCalls) {
             pending.put(call.getPath(), call);
         }
@@ -84,6 +84,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
             while (!pending.isEmpty() && failure == null) {
                 long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
                 if (waitMs < 0) {
+                    System.out.println(String.format("[%d] timeout waiting for other requests", id));
                     failure = new AssertionError(String.format("Timeout waiting for expected requests to be received. Still waiting for %s, received %s.", pending.keySet(), received));
                     condition.signalAll();
                     throw failure;

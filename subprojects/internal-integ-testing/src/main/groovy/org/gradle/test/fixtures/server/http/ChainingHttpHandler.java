@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
@@ -37,7 +38,7 @@ class ChainingHttpHandler implements HttpHandler {
     private final Condition condition;
     private int requestCount;
 
-    public ChainingHttpHandler(Lock lock, AtomicInteger counter) {
+    ChainingHttpHandler(Lock lock, AtomicInteger counter) {
         this.lock = lock;
         this.condition = lock.newCondition();
         this.counter = counter;
@@ -73,28 +74,7 @@ class ChainingHttpHandler implements HttpHandler {
         int id = counter.incrementAndGet();
         System.out.println(String.format("[%d] handling %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
 
-        ResourceHandler resourceHandler = null;
-        lock.lock();
-        try {
-            requestCount++;
-            condition.signalAll();
-            if (httpExchange.getRequestMethod().equals("GET")) {
-                for (TrackingHttpHandler handler : handlers) {
-                    resourceHandler = handler.handle(id, httpExchange);
-                    if (resourceHandler != null) {
-                        break;
-                    }
-                }
-            }
-            if (resourceHandler == null) {
-                failures.add(new AssertionError(String.format("Received unexpected request %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath())));
-            }
-        } catch (Throwable t) {
-            failures.add(new AssertionError(String.format("Failed to handle %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()), t));
-        } finally {
-            lock.unlock();
-        }
-
+        ResourceHandler resourceHandler = selectHandler(id, httpExchange);
         if (resourceHandler != null) {
             System.out.println(String.format("[%d] sending response", id));
             resourceHandler.writeTo(httpExchange);
@@ -108,7 +88,40 @@ class ChainingHttpHandler implements HttpHandler {
                 httpExchange.getResponseBody().write(message);
             }
         }
+
         httpExchange.close();
+    }
+
+    /**
+     * Returns null on failure.
+     */
+    @Nullable
+    private ResourceHandler selectHandler(int id, HttpExchange httpExchange) {
+        lock.lock();
+        try {
+            requestCount++;
+            condition.signalAll();
+            if (completed) {
+                System.out.println(String.format("[%d] received request %s %s after HTTP server has stopped.", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI()));
+                return null;
+            }
+            if (httpExchange.getRequestMethod().equals("GET")) {
+                for (TrackingHttpHandler handler : handlers) {
+                    ResourceHandler resourceHandler = handler.handle(id, httpExchange);
+                    if (resourceHandler != null) {
+                        return resourceHandler;
+                    }
+                }
+            }
+            System.out.println(String.format("[%d] unexpected request %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI()));
+            failures.add(new AssertionError(String.format("Received unexpected request %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath())));
+        } catch (Throwable t) {
+            System.out.println(String.format("[%d] error during handling of request %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI()));
+            failures.add(new AssertionError(String.format("Failed to handle %s %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()), t));
+        } finally {
+            lock.unlock();
+        }
+        return null;
     }
 
     void waitForRequests(int requestCount) {

@@ -21,11 +21,9 @@ import org.gradle.internal.time.TrueTimeProvider;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -34,8 +32,8 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     private final Lock lock;
     private final Condition condition;
     private final List<String> received = new ArrayList<String>();
-    private final Set<String> released = new HashSet<String>();
-    private final Map<String, ResourceHandler> expected = new HashMap<String, ResourceHandler>();
+    private final List<String> released = new ArrayList<String>();
+    private final Map<String, ResourceHandler> expected = new TreeMap<String, ResourceHandler>();
     private final int testId;
     private final int timeoutMs;
     private final TrueTimeProvider timeProvider = new TrueTimeProvider();
@@ -90,10 +88,11 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             while (!released.contains(path) && failure == null) {
                 long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
                 if (waitMs < 0) {
-                    System.out.println(String.format("[%d] timeout", id));
                     if (waitingFor > 0) {
+                        System.out.println(String.format("[%d] timeout waiting for other requests", id));
                         throw timeoutWaitingForRequests();
                     }
+                    System.out.println(String.format("[%d] timeout waiting to be released", id));
                     failure = new AssertionError(String.format("Timeout waiting to be released. Waiting for %s further requests, received %s, released %s, not yet received %s.", waitingFor, received, released, expected.keySet()));
                     condition.signalAll();
                     throw failure;
@@ -103,6 +102,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             }
             if (failure != null) {
                 // Broken in another thread
+                System.out.println(String.format("[%d] failure in another thread", id));
                 throw failure;
             }
         } finally {
@@ -162,6 +162,7 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             while (waitingFor > 0 && failure == null) {
                 long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
                 if (waitMs < 0) {
+                    System.out.println(String.format("[%d] timeout waiting for expected requests.", testId));
                     throw timeoutWaitingForRequests();
                 }
                 System.out.println(String.format("[%d] waiting for %d further requests, received %s, released %s, not yet received %s", testId, waitingFor, received, released, expected.keySet()));

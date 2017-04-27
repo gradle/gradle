@@ -186,6 +186,36 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         ]
     }
 
+    def "fails when expected parallel request received after other request has failed"() {
+        given:
+        server.expectConcurrentExecution("a", "b")
+        server.start()
+
+        when:
+        server.uri("a").toURL().text
+
+        then:
+        thrown(IOException)
+
+        when:
+        server.uri("b").toURL().text
+
+        then:
+        thrown(IOException)
+
+        when:
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == 'Failed to handle all HTTP requests.'
+        e.causes.message.sort() == [
+            'Failed to handle GET /a',
+            'Failed to handle GET /b',
+            'Timeout waiting for expected requests to be received. Still waiting for [b], received [a].'
+        ]
+    }
+
     def "fails when request path does not match expected parallel request"() {
         given:
         server.expectConcurrentExecution("a", "b")
@@ -312,6 +342,50 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
             'Failed to handle GET /a',
+            "Timeout waiting for expected requests. Waiting for 1 further requests, received [a], released [], not yet received [b, c]."
+        ]
+    }
+
+    def "fails when expected parallel request received after waiting has failed"() {
+        def requestFailure = null
+
+        given:
+        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        server.start()
+
+        when:
+        async {
+            start {
+                try {
+                    server.uri("a").toURL().text
+                } catch (Throwable e) {
+                    requestFailure = e
+                }
+            }
+            handle.waitForAllPendingCalls()
+        }
+
+        then:
+        def waitError = thrown(AssertionError)
+        waitError.message == 'Timeout waiting for expected requests. Waiting for 1 further requests, received [a], released [], not yet received [b, c].'
+
+        requestFailure instanceof IOException
+
+        when:
+        server.uri("b").toURL().text
+
+        then:
+        thrown(IOException)
+
+        when:
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == 'Failed to handle all HTTP requests.'
+        e.causes.message.sort() == [
+            'Failed to handle GET /a',
+            'Failed to handle GET /b',
             "Timeout waiting for expected requests. Waiting for 1 further requests, received [a], released [], not yet received [b, c]."
         ]
     }
