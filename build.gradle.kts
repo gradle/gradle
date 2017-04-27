@@ -38,7 +38,7 @@ buildscript {
 plugins {
     `maven-publish`
     id("com.jfrog.artifactory") version "4.1.1"
-    java // so we can benefit from the `java()` accessor below
+    java // so we can benefit from the `java` accessor below
 }
 
 apply {
@@ -198,7 +198,7 @@ val check by tasks
 check.dependsOn(checkSamples)
 
 val prepareIntegrationTestFixtures by task<GradleBuild> {
-    setDir(file("fixtures"))
+    dir = file("fixtures")
 }
 test.dependsOn(prepareIntegrationTestFixtures)
 
