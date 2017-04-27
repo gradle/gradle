@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.filestore.url.UrlFileStore;
+import org.gradle.api.internal.filestore.url.DefaultUrlFileStore;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -37,12 +37,12 @@ public class DefaultExternalResourceUrlResolver implements ExternalResourceUrlRe
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceUrlResolver.class);
 
-    private final UrlFileStore urlFileStore;
+    private final DefaultUrlFileStore defaultUrlFileStore;
     private final CacheAwareExternalResourceAccessor resourceAccessor;
     private final LocallyAvailableResourceFinder<URL> locallyAvailableResourceFinder;
 
-    public DefaultExternalResourceUrlResolver(UrlFileStore urlFileStore, CacheAwareExternalResourceAccessor resourceAccessor, LocallyAvailableResourceFinder<URL> locallyAvailableResourceFinder) {
-        this.urlFileStore = urlFileStore;
+    public DefaultExternalResourceUrlResolver(DefaultUrlFileStore defaultUrlFileStore, CacheAwareExternalResourceAccessor resourceAccessor, LocallyAvailableResourceFinder<URL> locallyAvailableResourceFinder) {
+        this.defaultUrlFileStore = defaultUrlFileStore;
         this.resourceAccessor = resourceAccessor;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
     }
@@ -59,7 +59,7 @@ public class DefaultExternalResourceUrlResolver implements ExternalResourceUrlRe
         result.attempted(url.toString());
         LOGGER.debug("Loading {}", url.toString());
 
-        return !urlFileStore.search(url).isEmpty();
+        return !defaultUrlFileStore.search(url).isEmpty();
     }
 
     private LocallyAvailableExternalResource downloadStaticResource(final URL url, ResourceAwareResolveResult result) {
@@ -77,7 +77,7 @@ public class DefaultExternalResourceUrlResolver implements ExternalResourceUrlRe
         try {
             return resourceAccessor.getResource(uriLocation, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                 public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                    return urlFileStore.move(url, downloadedResource);
+                    return defaultUrlFileStore.move(url, downloadedResource);
                 }
             }, localCandidates);
         } catch (Exception e) {

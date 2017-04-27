@@ -20,12 +20,12 @@ package org.gradle.api.internal.filestore.url;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
+import org.gradle.internal.resource.local.DefaultGroupedAndNamedUniqueFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
 import java.net.URL;
 
-public class UrlFileStore extends GroupedAndNamedUniqueFileStore<URL> {
+public class DefaultUrlFileStore extends DefaultGroupedAndNamedUniqueFileStore<URL> implements UrlFileStore {
     private static final Transformer<String, URL> SERVER = new Transformer<String, URL>() {
         @Override
         public String transform(URL url) {
@@ -39,7 +39,7 @@ public class UrlFileStore extends GroupedAndNamedUniqueFileStore<URL> {
         }
     };
 
-    public UrlFileStore(PathKeyFileStore pathKeyFileStore, TemporaryFileProvider temporaryFileProvider) {
+    public DefaultUrlFileStore(PathKeyFileStore pathKeyFileStore, TemporaryFileProvider temporaryFileProvider) {
         super(pathKeyFileStore, temporaryFileProvider, SERVER, PATH);
     }
 }

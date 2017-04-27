@@ -17,6 +17,7 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
+import spock.lang.IgnoreRest
 
 class ExternalScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule
@@ -103,6 +104,34 @@ task check {
 throw new GradleException()
 }
 """, "UTF-8")
+
+        then:
+        args("--offline")
+        succeeds 'check'
+    }
+
+    @IgnoreRest
+    def "will cache settings.gradle when offline"() {
+        given:
+        String scriptName = "script-${System.currentTimeMillis()}.gradle"
+        executer.withDefaultCharacterEncoding("ISO-8859-15")
+        server.start()
+
+        and:
+        def scriptFile = file("script.gradle")
+        scriptFile.setText("""println 'from script'""", "UTF-8")
+        server.expectGet('/' + scriptName, scriptFile)
+
+        and:
+        settingsFile << "apply from: 'http://localhost:${server.port}/${scriptName}'"
+        buildFile << "task check { println 'from build.gradle' }"
+
+        expect:
+        succeeds 'check'
+
+        and:
+        when:
+        server.stop()
 
         then:
         args("--offline")
