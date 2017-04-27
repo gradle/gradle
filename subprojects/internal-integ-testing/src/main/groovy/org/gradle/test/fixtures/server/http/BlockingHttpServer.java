@@ -28,15 +28,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An HTTP server that allows a test to synchronize and make assertions about concurrent activities that happen in another process.
  * For example, can be used to that certain tasks do or do not execute in parallel.
  */
 public class BlockingHttpServer extends ExternalResource {
+    private static final AtomicInteger COUNTER = new AtomicInteger();
     private final HttpServer server;
     private final ChainingHttpHandler handler;
     private final int timeoutMs;
+    private final int serverId;
 
     public BlockingHttpServer() throws IOException {
         this(30000);
@@ -46,7 +49,8 @@ public class BlockingHttpServer extends ExternalResource {
         // Use an OS selected port
         server = HttpServer.create(new InetSocketAddress(0), 10);
         server.setExecutor(Executors.newCachedThreadPool());
-        handler = new ChainingHttpHandler();
+        serverId = COUNTER.incrementAndGet();
+        handler = new ChainingHttpHandler(COUNTER);
         server.createContext("/", handler);
         this.timeoutMs = timeoutMs;
     }
@@ -148,7 +152,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (String call : expectedCalls) {
             resourceHandlers.add(resourceHandler(call));
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(timeoutMs, concurrent, resourceHandlers);
+        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(serverId, timeoutMs, concurrent, resourceHandlers);
         handler.addHandler(requestHandler);
         return requestHandler;
     }
@@ -162,7 +166,7 @@ public class BlockingHttpServer extends ExternalResource {
         for (Resource call : expectedCalls) {
             resourceHandlers.add((ResourceHandler) call);
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(timeoutMs, concurrent, resourceHandlers);
+        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(serverId, timeoutMs, concurrent, resourceHandlers);
         handler.addHandler(requestHandler);
         return requestHandler;
     }
@@ -194,6 +198,13 @@ public class BlockingHttpServer extends ExternalResource {
                 server.stop(10);
             }
         });
+    }
+
+    /**
+     * For testing this fixture only.
+     */
+    void waitForRequests(int requestCount) {
+        handler.waitForRequests(requestCount);
     }
 
     @Override

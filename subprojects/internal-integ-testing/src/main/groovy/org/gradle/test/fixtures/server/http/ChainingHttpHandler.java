@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 import java.io.IOException;
@@ -26,10 +27,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class ChainingHttpHandler implements HttpHandler {
-    private final AtomicInteger counter = new AtomicInteger();
+    private final AtomicInteger counter;
     private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<TrackingHttpHandler>();
     private final List<Throwable> failures = new CopyOnWriteArrayList<Throwable>();
     private boolean completed;
+    private final Object lock = new Object();
+    private int requestCount;
+
+    public ChainingHttpHandler(AtomicInteger counter) {
+        this.counter = counter;
+    }
 
     public void addHandler(TrackingHttpHandler handler) {
         handlers.add(handler);
@@ -56,6 +63,11 @@ class ChainingHttpHandler implements HttpHandler {
         int id = counter.incrementAndGet();
         System.out.println(String.format("[%d] handling %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
 
+        synchronized (lock) {
+            requestCount++;
+            lock.notifyAll();
+        }
+
         try {
             if (httpExchange.getRequestMethod().equals("GET")) {
                 for (TrackingHttpHandler handler : handlers) {
@@ -72,9 +84,25 @@ class ChainingHttpHandler implements HttpHandler {
         }
 
         System.out.println(String.format("[%d] sending error response", id));
-        byte[] message = String.format("Failed %s request to %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()).getBytes();
-        httpExchange.sendResponseHeaders(500, message.length);
-        httpExchange.getResponseBody().write(message);
+        if (httpExchange.getRequestMethod().equals("HEAD")) {
+            httpExchange.sendResponseHeaders(500, -1);
+        } else {
+            byte[] message = String.format("Failed %s request to %s", httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()).getBytes();
+            httpExchange.sendResponseHeaders(500, message.length);
+            httpExchange.getResponseBody().write(message);
+        }
         httpExchange.close();
+    }
+
+    void waitForRequests(int requestCount) {
+        synchronized (lock) {
+            while (this.requestCount < requestCount) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        }
     }
 }
