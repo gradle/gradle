@@ -43,8 +43,10 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
+import org.gradle.scripts.ScriptingLanguage;
 
 import java.io.File;
+import java.util.Collections;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
@@ -83,7 +85,7 @@ public class ProjectBuilderImpl {
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
-                topLevelRegistry.get(FileResolver.class));
+                topLevelRegistry.get(FileResolver.class), Collections.<ScriptingLanguage>emptyList());
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);

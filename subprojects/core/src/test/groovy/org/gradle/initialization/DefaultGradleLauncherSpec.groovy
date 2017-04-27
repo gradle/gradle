@@ -84,7 +84,7 @@ class DefaultGradleLauncherSpec extends Specification {
         File expectedCurrentDir = new File(expectedRootDir, "currentDir");
 
         expectedRootProjectDescriptor = new DefaultProjectDescriptor(null, "someName", new File("somedir"), new DefaultProjectDescriptorRegistry(),
-            TestFiles.resolver(expectedRootDir));
+            TestFiles.resolver(expectedRootDir), []);
         expectedRootProject = TestUtil.createRootProject(expectedRootDir);
         expectedCurrentProject = TestUtil.createRootProject(expectedCurrentDir);
 

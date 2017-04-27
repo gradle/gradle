@@ -17,10 +17,12 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.scripts.ScriptingLanguage;
 import org.gradle.util.Path;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
@@ -35,7 +37,7 @@ public class DefaultProjectDescriptorRegistryTest {
 
     @Test
     public void addProjectDescriptor() {
-        DefaultProjectDescriptor rootProject = new DefaultProjectDescriptor(null, "testName", TEST_DIR, registry, FILE_RESOLVER);
+        DefaultProjectDescriptor rootProject = new DefaultProjectDescriptor(null, "testName", TEST_DIR, registry, FILE_RESOLVER, Collections.<ScriptingLanguage>emptyList());
 
         registry.addProject(rootProject);
         assertSame(rootProject, registry.getProject(rootProject.getPath()));
@@ -44,7 +46,7 @@ public class DefaultProjectDescriptorRegistryTest {
 
     @Test
     public void changeProjectDescriptorPath() {
-        DefaultProjectDescriptor project = new DefaultProjectDescriptor(null, "name", TEST_DIR, registry, FILE_RESOLVER);
+        DefaultProjectDescriptor project = new DefaultProjectDescriptor(null, "name", TEST_DIR, registry, FILE_RESOLVER, Collections.<ScriptingLanguage>emptyList());
         registry.addProject(project);
 
         registry.changeDescriptorPath(Path.path(":"), Path.path(":newPath"));

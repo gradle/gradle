@@ -97,7 +97,7 @@ class InstantiatingBuildLoaderTest extends Specification {
     }
 
     ProjectDescriptor descriptor(String name, ProjectDescriptor parent, File projectDir) {
-        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, TestFiles.resolver(rootProjectDir))
+        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, TestFiles.resolver(rootProjectDir), [])
     }
 
     ProjectInternal project(ProjectDescriptor descriptor, ProjectInternal parent) {

@@ -29,6 +29,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.scripts.ScriptingLanguages
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.JUnit4GroovyMockery
@@ -56,6 +57,7 @@ class DefaultSettingsTest {
     ProjectDescriptorRegistry projectDescriptorRegistry
     ServiceRegistryFactory serviceRegistryFactory
     FileResolver fileResolver
+    ScriptingLanguages scriptingLanguages
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
     DefaultPluginManager pluginManager
@@ -73,6 +75,7 @@ class DefaultSettingsTest {
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
         serviceRegistryFactory = context.mock(ServiceRegistryFactory.class)
+        scriptingLanguages = context.mock(ScriptingLanguages.class)
         scriptPluginFactory = context.mock(ScriptPluginFactory.class)
         scriptHandlerFactory = context.mock(ScriptHandlerFactory.class)
         fileResolver = context.mock(FileResolver.class)
@@ -82,6 +85,9 @@ class DefaultSettingsTest {
         context.checking {
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
             will(returnValue(settingsServices));
+
+            allowing(settingsServices).get((Type)ScriptingLanguages.class);
+            will(returnValue(scriptingLanguages));
             allowing(settingsServices).get((Type)FileResolver.class);
             will(returnValue(fileResolver));
             allowing(settingsServices).get((Type)ScriptPluginFactory.class);
@@ -92,6 +98,9 @@ class DefaultSettingsTest {
             will(returnValue(projectDescriptorRegistry));
             allowing(settingsServices).get((Type)DefaultPluginManager.class);
             will(returnValue(pluginManager));
+
+            allowing(scriptingLanguages).iterator();
+            will(returnValue([].iterator()));
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
