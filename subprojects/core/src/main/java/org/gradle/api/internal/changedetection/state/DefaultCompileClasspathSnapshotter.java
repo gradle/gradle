@@ -22,19 +22,19 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
     private final ContentHasher classpathContentHasher;
-    private final ContentHasher zipContentHasher;
+    private final ContentHasher jarContentHasher;
 
-    public DefaultCompileClasspathSnapshotter(ContentHasher classpathContentHasher, ContentHasher zipContentHasher, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultCompileClasspathSnapshotter(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         this.classpathContentHasher = classpathContentHasher;
-        this.zipContentHasher = zipContentHasher;
+        this.jarContentHasher = jarContentHasher;
     }
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
         return super.snapshot(
             files,
-            new CompileClasspathSnapshotBuilder(classpathContentHasher, zipContentHasher, getStringInterner()));
+            new CompileClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
     }
 
     @Override

@@ -208,7 +208,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
         RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher();
         return new DefaultClasspathSnapshotter(
-            classpathContentHasher, directoryFileTreeFactory, fileSystemSnapshotter, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), stringInterner
+            classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner
         );
     }
 

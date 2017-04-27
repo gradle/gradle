@@ -25,13 +25,13 @@ import java.util.List;
 
 public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSnapshotBuilder {
     private final ContentHasher classpathContentHasher;
-    private final ContentHasher zipContentHasher;
+    private final ContentHasher jarContentHasher;
     protected final StringInterner stringInterner;
 
-    public AbstractClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher zipContentHasher, StringInterner stringInterner) {
+    public AbstractClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, StringInterner stringInterner) {
         super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
         this.stringInterner = stringInterner;
-        this.zipContentHasher = zipContentHasher;
+        this.jarContentHasher = jarContentHasher;
         this.classpathContentHasher = classpathContentHasher;
     }
 
@@ -59,7 +59,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     protected abstract void visitNonJar(RegularFileSnapshot file);
 
     private void visitJar(RegularFileSnapshot file) {
-        HashCode hash = zipContentHasher.hash(file);
+        HashCode hash = jarContentHasher.hash(file);
         if (hash != null) {
             collectFileSnapshot(file.withContentHash(hash));
         }
