@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * A {@link ScriptPluginFactory} SPI suitable for use with Java's {@code ServiceLoader}.
+ * A {@link ScriptPluginFactory} SPI.
  *
  * The SPI implementation can get access to Gradle services via {@link javax.inject.Inject}
  * style dependency injection.
@@ -29,6 +29,7 @@ import org.gradle.api.Nullable;
  * @since 2.14
  */
 @Incubating
+// TODO:pm Remove old scripting provider SPI support
 public interface ScriptPluginFactoryProvider {
 
     /**
