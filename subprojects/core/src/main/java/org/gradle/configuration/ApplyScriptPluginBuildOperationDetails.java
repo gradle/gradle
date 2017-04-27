@@ -14,35 +14,37 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.project;
+package org.gradle.configuration;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.util.Path;
 
+import java.io.File;
 
 /**
- * Details about a project being configured.
+ * Details about a script plugin being applied.
  *
  * This class is intentionally internal and consumed by the build scan plugin.
  *
  * @since 4.0
  */
-public final class ConfigureProjectBuildOperationDetails implements BuildOperationDetails<Void> {
-    private final Path buildPath;
-    private final Path projectPath;
+public final class ApplyScriptPluginBuildOperationDetails implements BuildOperationDetails<Void> {
+    private File file;
+    private String displayName;
 
-    ConfigureProjectBuildOperationDetails(Path projectPath, Path buildPath) {
-        this.projectPath = projectPath;
-        this.buildPath = buildPath;
+    ApplyScriptPluginBuildOperationDetails(@Nullable File file, String displayName) {
+        this.file = file;
+        this.displayName = displayName;
     }
 
-    public Path getProjectPath() {
-        return projectPath;
+    @Nullable
+    public File getFile() {
+        return file;
     }
 
-    public Path getBuildPath() {
-        return buildPath;
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override

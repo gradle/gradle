@@ -17,17 +17,20 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.TaskExecutionRequest;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.OperationFinishEvent;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * Operation Descriptor for Calculating the task graph of a build.
+ * Details about the task graph of a build.
+ *
  * This class is intentionally internal and consumed by the build scan plugin.
  *
  * @since 4.0
  */
-public class CalculateTaskGraphDescriptor {
+public final class CalculateTaskGraphDescriptor implements BuildOperationDetails<CalculateTaskGraphOperationResult> {
     private final List<TaskExecutionRequest> taskRequests;
     private final Set<String> excludedTaskNames;
 
@@ -42,5 +45,10 @@ public class CalculateTaskGraphDescriptor {
 
     public Set<String> getExcludedTaskNames() {
         return excludedTaskNames;
+    }
+
+    @Override
+    public CalculateTaskGraphOperationResult getResult(OperationFinishEvent finishEvent) {
+        return (CalculateTaskGraphOperationResult) finishEvent.getResult();
     }
 }

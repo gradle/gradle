@@ -14,35 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.project;
+package org.gradle.api.internal.artifacts.ivyservice;
+
 
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.util.Path;
-
 
 /**
- * Details about a project being configured.
+ * Details about an artifact set being resolved.
  *
  * This class is intentionally internal and consumed by the build scan plugin.
  *
  * @since 4.0
  */
-public final class ConfigureProjectBuildOperationDetails implements BuildOperationDetails<Void> {
-    private final Path buildPath;
-    private final Path projectPath;
+public final class ResolveArtifactsBuildOperationDetails implements BuildOperationDetails<Void> {
+    private String configuration;
 
-    ConfigureProjectBuildOperationDetails(Path projectPath, Path buildPath) {
-        this.projectPath = projectPath;
-        this.buildPath = buildPath;
+    ResolveArtifactsBuildOperationDetails(String configuration) {
+        this.configuration = configuration;
     }
 
-    public Path getProjectPath() {
-        return projectPath;
-    }
-
-    public Path getBuildPath() {
-        return buildPath;
+    public String getConfiguration() {
+        return configuration;
     }
 
     @Override

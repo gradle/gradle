@@ -17,16 +17,29 @@
 package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.OperationFinishEvent;
 
-public final class TaskOperationDescriptor {
+
+/**
+ * Details about a task being run.
+ *
+ * This class is intentionally internal and consumed by the build scan plugin.
+ */
+public final class TaskOperationDetails implements BuildOperationDetails<Void> {
     // TODO: do not reference mutable state
     private final TaskInternal task;
 
-    public TaskOperationDescriptor(TaskInternal task) {
+    public TaskOperationDetails(TaskInternal task) {
         this.task = task;
     }
 
     public TaskInternal getTask() {
         return task;
+    }
+
+    @Override
+    public Void getResult(OperationFinishEvent finishEvent) {
+        return null;
     }
 }

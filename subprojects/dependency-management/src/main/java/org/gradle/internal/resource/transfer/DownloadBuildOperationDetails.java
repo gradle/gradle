@@ -16,14 +16,25 @@
 
 package org.gradle.internal.resource.transfer;
 
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.OperationFinishEvent;
+
 import java.net.URI;
 
-public class DownloadBuildOperationDescriptor {
+
+/**
+ * Details about some resource being downloaded.
+ *
+ * This class is intentionally internal and consumed by the build scan plugin.
+ *
+ * @since 4.0
+ */
+public final class DownloadBuildOperationDetails implements BuildOperationDetails<Void> {
     private final URI location;
     private final long contentLength;
     private final String contentType;
 
-    public DownloadBuildOperationDescriptor(URI location, long contentLength, String contentType) {
+    public DownloadBuildOperationDetails(URI location, long contentLength, String contentType) {
         this.location = location;
         this.contentLength = contentLength;
         this.contentType = contentType;
@@ -39,5 +50,10 @@ public class DownloadBuildOperationDescriptor {
 
     public String getContentType() {
         return contentType;
+    }
+
+    @Override
+    public Void getResult(OperationFinishEvent finishEvent) {
+        return null;
     }
 }
