@@ -30,6 +30,7 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,10 +45,11 @@ public class DirectoryBuildCacheService implements BuildCacheService {
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
 
-    public DirectoryBuildCacheService(CacheRepository cacheRepository, File baseDir) {
+    public DirectoryBuildCacheService(CacheRepository cacheRepository, File baseDir, long targetCacheSize) {
         this.fileStore = new PathKeyFileStore(baseDir);
         this.persistentCache = cacheRepository
             .cache(checkDirectory(baseDir))
+            .withCleanup(new BuildCacheCleanup(targetCacheSize))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -75,7 +77,7 @@ public class DirectoryBuildCacheService implements BuildCacheService {
 
     @Override
     public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
-        // We need to lock here because garbage collection can be under way in another thread
+        // We need to lock here because garbage collection can be under way in another process
         return persistentCache.withFileLock(new Factory<Boolean>() {
             @Override
             public Boolean create() {
@@ -85,6 +87,9 @@ public class DirectoryBuildCacheService implements BuildCacheService {
                 }
 
                 try {
+                    // Mark as recently used
+                    GFileUtils.touch(resource.getFile());
+
                     Closer closer = Closer.create();
                     FileInputStream stream = closer.register(new FileInputStream(resource.getFile()));
                     try {

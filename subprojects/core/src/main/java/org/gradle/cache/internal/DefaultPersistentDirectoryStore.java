@@ -35,6 +35,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final ExecutorFactory executorFactory;
     private final String displayName;
     protected final File propertiesFile;
+    protected final File gcFile;
     private CacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(File dir, String displayName, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, FileLockManager fileLockManager, ExecutorFactory executorFactory) {
@@ -44,6 +45,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
         this.propertiesFile = new File(dir, "cache.properties");
+        this.gcFile = new File(dir, "gc.properties");
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
     }
 
@@ -61,7 +63,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private CacheCoordinator createCacheAccess() {
-        return new DefaultCacheAccess(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), executorFactory);
+        return new DefaultCacheAccess(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupAction(), executorFactory);
     }
 
     private File getLockTarget() {
@@ -83,6 +85,20 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
             }
 
             public void initialize(FileLock fileLock) {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    protected CacheCleanupAction getCleanupAction() {
+        return new CacheCleanupAction() {
+            @Override
+            public boolean requiresCleanup() {
+                return false;
+            }
+
+            @Override
+            public void cleanup() {
                 throw new UnsupportedOperationException();
             }
         };

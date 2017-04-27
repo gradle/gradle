@@ -51,6 +51,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         } else {
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
-        return new DirectoryBuildCacheService(cacheRepository, target);
+
+        return new DirectoryBuildCacheService(cacheRepository, target, configuration.getTargetSizeInMB());
     }
 }
