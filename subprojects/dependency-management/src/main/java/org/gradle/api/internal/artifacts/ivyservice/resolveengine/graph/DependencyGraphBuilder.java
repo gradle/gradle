@@ -258,7 +258,7 @@ public class DependencyGraphBuilder {
     private void computePreemptiveDownloadList(List<DependencyEdge> dependencies, List<DependencyEdge> dependenciesToBeResolvedInParallel, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
         for (DependencyEdge dependency : dependencies) {
             ModuleVersionResolveState state = dependency.targetModuleRevision;
-            if (state != null && state.metaData == null && performPreemptiveDownload(state.state)) {
+            if (state != null && !state.fastResolve() && performPreemptiveDownload(state.state)) {
                 if (!metaDataResolver.isAvailableLocally(toComponentId(state.getId(), componentIdentifierCache))) {
                     dependenciesToBeResolvedInParallel.add(dependency);
                 }
@@ -741,20 +741,33 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public void resolve() {
+        /**
+         * Returns true if this module version can be resolved quickly (already resolved or local)
+         * @return true if it has been resolved in a cheap way
+         */
+        public boolean fastResolve() {
             if (metaData != null || failure != null) {
-                return;
+                return true;
             }
 
             ComponentIdResolveResult idResolveResult = firstReference.idResolveResult;
             if (idResolveResult.getFailure() != null) {
                 failure = idResolveResult.getFailure();
-                return;
+                return true;
             }
             if (idResolveResult.getMetaData() != null) {
                 metaData = idResolveResult.getMetaData();
+                return true;
+            }
+            return false;
+        }
+
+        public void resolve() {
+            if (fastResolve()) {
                 return;
             }
+
+            ComponentIdResolveResult idResolveResult = firstReference.idResolveResult;
 
             DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
             resolver.resolve(idResolveResult.getId(), DefaultComponentOverrideMetadata.forDependency(firstReference.dependencyMetadata), result);
