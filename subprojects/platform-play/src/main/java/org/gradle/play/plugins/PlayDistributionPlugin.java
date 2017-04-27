@@ -18,7 +18,6 @@ package org.gradle.play.plugins;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
@@ -52,6 +51,7 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -256,7 +256,7 @@ public class PlayDistributionPlugin extends RuleSource {
 
     static class PrefixArtifactFileNames implements Action<FileCopyDetails>, Function<File, String> {
         private final PlayPluginConfigurations.PlayConfiguration configuration;
-        ImmutableMap<File, String> renames;
+        Map<File, String> renames;
 
         PrefixArtifactFileNames(PlayPluginConfigurations.PlayConfiguration configuration) {
             this.configuration = configuration;
@@ -283,8 +283,8 @@ public class PlayDistributionPlugin extends RuleSource {
             }
         }
 
-        private ImmutableMap<File, String> calculate() {
-            ImmutableMap.Builder<File, String> files = ImmutableMap.builder();
+        private Map<File, String> calculate() {
+            Map<File, String> files = new HashMap<File, String>();
             for (ResolvedArtifact artifact : getResolvedArtifacts()) {
                 boolean isProject = artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier;
                 if (isProject) {
@@ -302,7 +302,7 @@ public class PlayDistributionPlugin extends RuleSource {
                     }
                 }
             }
-            return files.build();
+            return files;
         }
 
         Set<ResolvedArtifact> getResolvedArtifacts() {
