@@ -26,7 +26,6 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.groovy.scripts.internal.ScriptSourceProvider;
 import org.gradle.util.GUtil;
 
