@@ -61,7 +61,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         })
     }
 
-    def "resolves dependencies"() {
+    def "resolves dependencies from external repository"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
 
@@ -81,7 +81,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         stopServer()
     }
 
-    def "resolves dependencies (parallel)"() {
+    def "resolves dependencies from external repository (parallel)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
 
