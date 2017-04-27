@@ -22,14 +22,14 @@ internal
 object SourcePathProvider {
 
     fun sourcePathFor(
-        request: KotlinBuildScriptModelRequest,
-        response: KotlinBuildScriptModel): Collection<File> {
+        classPath: Iterable<File>,
+        projectDir: File,
+        gradleHome: File?): List<File> {
 
-        val gradleScriptKotlinJar = response.classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
-        val projectBuildSrcRoots = buildSrcRootsOf(request.projectDir)
-        val gradleInstallation = request.gradleInstallation
-        val gradleSourceRoots =
-            (gradleInstallation as? GradleInstallation.Local)?.run { sourceRootsOf(dir) } ?: emptyList()
+        val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
+        val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
+        val gradleSourceRoots = gradleHome?.let { sourceRootsOf(it) } ?: emptyList()
+
         return gradleScriptKotlinJar + projectBuildSrcRoots + gradleSourceRoots
     }
 

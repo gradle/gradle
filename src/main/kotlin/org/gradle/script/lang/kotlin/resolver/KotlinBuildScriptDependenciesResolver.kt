@@ -139,12 +139,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         KotlinBuildScriptDependencies(
             response.classPath,
             ImplicitImports.list,
-            sourcePathFor(request, response),
+            response.sourcePath,
             hash)
-
-    private
-    fun sourcePathFor(request: KotlinBuildScriptModelRequest, response: KotlinBuildScriptModel) =
-        SourcePathProvider.sourcePathFor(request, response)
 
     private
     fun log(event: ResolverEvent) =

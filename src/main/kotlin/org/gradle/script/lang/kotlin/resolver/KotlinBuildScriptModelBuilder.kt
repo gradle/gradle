@@ -33,6 +33,7 @@ import java.io.Serializable
 
 interface KotlinBuildScriptModel {
     val classPath: List<File>
+    val  sourcePath: List<File>
 }
 
 
@@ -42,8 +43,11 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel"
 
-    override fun buildAll(modelName: String, project: Project): Any =
-        StandardKotlinBuildScriptModel(classPathFrom(project))
+    override fun buildAll(modelName: String, project: Project): Any {
+        val classPath = classPathFrom(project)
+        val sourcePath = sourcePathFor(classPath, project)
+        return StandardKotlinBuildScriptModel(classPath, sourcePath)
+    }
 
     private
     fun classPathFrom(project: Project): List<File> {
@@ -57,6 +61,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
                 buildScriptClassPathOf(project)
         }
     }
+
+    private
+    fun sourcePathFor(classPath: List<File>, project: Project) =
+        SourcePathProvider.sourcePathFor(classPath, project.rootProject.projectDir, project.gradle.gradleHomeDir)
 
     private
     fun targetBuildscriptFile(project: Project) =
@@ -98,7 +106,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
 
 data class StandardKotlinBuildScriptModel(
-    override val classPath: List<File>) : KotlinBuildScriptModel, Serializable
+    override val classPath: List<File>,
+    override val sourcePath: List<File>) : KotlinBuildScriptModel, Serializable
 
 
 internal
