@@ -20,7 +20,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.WithExternalRepository
+import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.measure.MeasuredOperation
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.servlet.Context
@@ -38,11 +38,11 @@ import java.util.concurrent.atomic.AtomicInteger
 class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
     private final static String TEST_PROJECT_NAME = 'springBootApp'
 
-    File _repoDir = temporaryFolder.createDir('repository')
+    File tmpRepoDir = temporaryFolder.createDir('repository')
 
     @Override
     File getRepoDir() {
-        _repoDir
+        tmpRepoDir
     }
 
     def setup() {

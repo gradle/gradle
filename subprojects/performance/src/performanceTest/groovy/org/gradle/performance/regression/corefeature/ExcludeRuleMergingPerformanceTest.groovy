@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.fixture.WithExternalRepository
+import org.gradle.performance.WithExternalRepository
 
 class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
