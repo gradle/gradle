@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.performance
 
 import groovy.transform.CompileStatic
 import groovy.transform.SelfType
 import org.apache.mina.util.AvailablePortFinder
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.fixture.TestProjectLocator
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.resource.Resource
-
 
 @CompileStatic
 @SelfType(AbstractCrossVersionPerformanceTest)
