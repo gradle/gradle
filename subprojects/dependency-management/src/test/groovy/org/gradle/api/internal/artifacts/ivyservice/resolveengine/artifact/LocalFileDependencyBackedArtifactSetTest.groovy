@@ -39,15 +39,18 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)
         def files = Stub(FileCollection)
+        def visitor = Mock(BuildDependenciesVisitor)
 
         given:
         dep.files >> files
         files.buildDependencies >> fileBuildDependencies
 
-        expect:
-        def deps = []
-        set.collectBuildDependencies(deps)
-        deps == [fileBuildDependencies]
+        when:
+        set.collectBuildDependencies(visitor)
+
+        then:
+        1 * visitor.visitDependency(fileBuildDependencies)
+        0 * visitor._
     }
 
     def "does not visit files when visitor does not require them"() {

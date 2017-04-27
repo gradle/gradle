@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.util.Collection;
 
 public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
     private final Throwable failure;
@@ -30,7 +27,7 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
     }
 
     @Override

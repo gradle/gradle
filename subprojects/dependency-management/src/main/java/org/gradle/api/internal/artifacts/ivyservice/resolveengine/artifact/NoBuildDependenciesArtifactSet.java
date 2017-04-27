@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.util.Collection;
 
 public class NoBuildDependenciesArtifactSet implements ResolvedArtifactSet {
     private final ResolvedArtifactSet set;
@@ -42,6 +39,6 @@ public class NoBuildDependenciesArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
     }
 }

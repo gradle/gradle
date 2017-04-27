@@ -34,13 +34,18 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
 
     def "creates wrapper for non-empty set"() {
         def set = Stub(ResolvedArtifactSet)
+        def visitor = Mock(BuildDependenciesVisitor)
 
-        expect:
+        when:
         def wrapper = NoBuildDependenciesArtifactSet.of(set)
+
+        then:
         wrapper instanceof NoBuildDependenciesArtifactSet
 
-        def buildDeps = []
-        wrapper.collectBuildDependencies(buildDeps)
-        buildDeps.empty
+        when:
+        wrapper.collectBuildDependencies(visitor)
+
+        then:
+        0 * visitor._
     }
 }

@@ -32,6 +32,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -129,27 +130,32 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
         return new SelectedArtifactSet() {
             @Override
-            public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-                artifactResults.getArtifacts().collectBuildDependencies(dest);
-                fileDependencyResults.getArtifacts().collectBuildDependencies(dest);
-                return dest;
+            public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+                if (hasError()) {
+                    visitor.visitFailure(getFailure());
+                }
+
+                artifactResults.getArtifacts().collectBuildDependencies(visitor);
+                fileDependencyResults.getArtifacts().collectBuildDependencies(visitor);
             }
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor) {
                 if (hasError()) {
-                    List<Throwable> failures = new ArrayList<Throwable>();
-                    for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                        failures.add(unresolvedDependency.getProblem());
-                    }
-                    ResolveException resolveException = new ResolveException(configuration.toString(), failures);
-                    visitor.visitFailure(resolveException);
+                    visitor.visitFailure(getFailure());
                 }
 
                 DefaultLenientConfiguration.this.visitArtifactsWithBuildOperation(dependencySpec, artifactResults, fileDependencyResults, visitor, requestedAttributes);
             }
-
         };
+    }
+
+    private ResolveException getFailure() {
+        List<Throwable> failures = new ArrayList<Throwable>();
+        for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+            failures.add(unresolvedDependency.getProblem());
+        }
+        return new ResolveException(configuration.toString(), failures);
     }
 
     public boolean hasError() {
@@ -162,11 +168,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     public void rethrowFailure() throws ResolveException {
         if (hasError()) {
-            List<Throwable> failures = new ArrayList<Throwable>();
-            for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                failures.add(unresolvedDependency.getProblem());
-            }
-            throw new ResolveException(configuration.toString(), failures);
+            throw getFailure();
         }
     }
 

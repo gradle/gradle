@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
@@ -41,7 +42,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -99,8 +99,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
-        public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-            return dest;
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-/**
- * A container of artifacts that match some criteria. Not every query method is available, depending on which details are available.
- */
-public interface SelectedArtifactSet {
-    /**
-     * Collects the build dependencies required to build the artifacts in this result.
-     */
-    void collectBuildDependencies(BuildDependenciesVisitor visitor);
+public interface BuildDependenciesVisitor {
+    void visitDependency(Object dep);
 
-    /**
-     * Visits the files and artifacts of this set.
-     */
-    void visitArtifacts(ArtifactVisitor visitor);
-
+    void visitFailure(Throwable failure);
 }

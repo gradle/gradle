@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
@@ -34,7 +33,6 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -91,8 +89,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-        dest.add(dependencyMetadata.getFiles().getBuildDependencies());
+    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
     private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
@@ -143,8 +141,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-            dest.add(dependencyMetadata.getFiles().getBuildDependencies());
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+            visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
         }
 
         @Override

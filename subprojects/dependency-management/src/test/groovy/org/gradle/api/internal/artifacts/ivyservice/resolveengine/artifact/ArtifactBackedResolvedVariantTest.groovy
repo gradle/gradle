@@ -118,6 +118,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     def "collects build dependencies"() {
+        def visitor = Mock(BuildDependenciesVisitor)
         def deps1 = Stub(TaskDependency)
         def deps2 = Stub(TaskDependency)
         def set1 = of([artifact1, artifact2])
@@ -128,18 +129,19 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         artifact2.buildDependencies >> deps2
 
         when:
-        def buildDeps = []
-        set1.artifacts.collectBuildDependencies(buildDeps)
+        set1.artifacts.collectBuildDependencies(visitor)
 
         then:
-        buildDeps == [deps1, deps2]
+        1 * visitor.visitDependency(deps1)
+        1 * visitor.visitDependency(deps2)
+        0 * visitor._
 
         when:
-        buildDeps = []
-        set2.artifacts.collectBuildDependencies(buildDeps)
+        set2.artifacts.collectBuildDependencies(visitor)
 
         then:
-        buildDeps == [deps1]
+        1 * visitor.visitDependency(deps1)
+        0 * visitor._
     }
 
     ResolvedVariant of(artifacts) {

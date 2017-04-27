@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
@@ -129,8 +130,18 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     public TaskDependency getBuildDependencies() {
         ensureResolved(false);
 
-        List<TaskDependency> taskDependencies = new ArrayList<TaskDependency>();
-        resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(taskDependencies);
+        final List<Object> taskDependencies = new ArrayList<Object>();
+        resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new BuildDependenciesVisitor() {
+            @Override
+            public void visitDependency(Object dep) {
+                taskDependencies.add(dep);
+            }
+
+            @Override
+            public void visitFailure(Throwable failure) {
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
+        });
         return TaskDependencies.of(taskDependencies);
     }
 

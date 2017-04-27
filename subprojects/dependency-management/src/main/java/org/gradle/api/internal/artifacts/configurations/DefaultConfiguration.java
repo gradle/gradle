@@ -60,6 +60,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -1210,7 +1211,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
+        public void visitDependencies(final TaskDependencyResolveContext context) {
             synchronized (resolutionLock) {
                 if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
                     // Force graph resolution as this is required to calculate build dependencies
@@ -1225,11 +1226,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     // Otherwise, already have a result, so reuse it
                     results = cachedResolverResults;
                 }
-                List<Object> buildDependencies = new ArrayList<Object>();
-                results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants).collectBuildDependencies(buildDependencies);
-                for (Object buildDependency : buildDependencies) {
-                    context.add(buildDependency);
-                }
+                final List<Throwable> failures = new ArrayList<Throwable>();
+                results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants).collectBuildDependencies(new BuildDependenciesVisitor() {
+                    @Override
+                    public void visitDependency(Object dep) {
+                        context.add(dep);
+                    }
+
+                    @Override
+                    public void visitFailure(Throwable failure) {
+                        failures.add(failure);
+                    }
+                });
+                rethrowFailure("task dependencies", failures);
             }
         }
     }
