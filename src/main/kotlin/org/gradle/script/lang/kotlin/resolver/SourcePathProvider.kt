@@ -16,15 +16,20 @@
 
 package org.gradle.script.lang.kotlin.resolver
 
+import org.gradle.internal.classpath.ClassPath
+
+import org.gradle.script.lang.kotlin.support.filter
+
 import java.io.File
+
 
 internal
 object SourcePathProvider {
 
     fun sourcePathFor(
-        classPath: Iterable<File>,
+        classPath: ClassPath,
         projectDir: File,
-        gradleHome: File?): List<File> {
+        gradleHome: File?): ClassPath {
 
         val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
         val projectBuildSrcRoots = buildSrcRootsOf(projectDir)

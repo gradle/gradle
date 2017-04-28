@@ -35,21 +35,19 @@ import java.io.File
 
 
 internal
-fun accessorsClassPathFor(project: Project, classPath: ClassPath): ClassPath =
+fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
     project.getOrCreateSingletonProperty {
-        AccessorsClassPath(
-            accessorsJarFor(project, classPath)
-                ?.let { DefaultClassPath(it) }
-                ?: ClassPath.EMPTY)
-    }.value
+        buildAccessorsClassPathFor(project, classPath)
+            ?: AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
+    }
+
+
+internal
+data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath)
 
 
 private
-data class AccessorsClassPath(val value: ClassPath)
-
-
-private
-fun accessorsJarFor(project: Project, classPath: ClassPath) =
+fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
         try {
             val cacheDir =
@@ -57,7 +55,9 @@ fun accessorsJarFor(project: Project, classPath: ClassPath) =
                     .cacheDirFor(cacheKeyFor(projectSchema), scope = project) {
                         buildAccessorsJarFor(projectSchema, classPath, outputDir = baseDir)
                     }
-            accessorsJar(cacheDir)
+            AccessorsClassPath(
+                DefaultClassPath(accessorsJar(cacheDir)),
+                DefaultClassPath(accessorsSourceDir(cacheDir)))
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -95,14 +95,17 @@ fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 private
 fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
-    val sourceFile = File(outputDir, "src/org/gradle/script/lang/kotlin/accessors.kt")
+    val sourceFile = File(accessorsSourceDir(outputDir), "org/gradle/script/lang/kotlin/accessors.kt")
     writeAccessorsTo(sourceFile, projectSchema)
     compileToJar(accessorsJar(outputDir), listOf(sourceFile), logger, classPath.asFiles)
 }
 
-
 private
 val logger by lazy { loggerFor<AccessorsClassPath>() }
+
+
+private
+fun accessorsSourceDir(baseDir: File) = File(baseDir, "src")
 
 
 private

@@ -210,7 +210,7 @@ fun classPathFor(projectDir: File, scriptFile: File?) =
     kotlinBuildScriptModelFor(projectDir, scriptFile).classPath
 
 
-private
+internal
 fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
     withDaemonRegistry(customDaemonRegistry()) {
         future {

@@ -1,12 +1,13 @@
 package org.gradle.script.lang.kotlin.accessors
 
+import org.gradle.script.lang.kotlin.fileByName
 import org.gradle.script.lang.kotlin.integration.AbstractIntegrationTest
-import org.gradle.script.lang.kotlin.integration.canonicalClassPathFor
+import org.gradle.script.lang.kotlin.integration.kotlinBuildScriptModelFor
+import org.gradle.script.lang.kotlin.matching
 
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Assert.assertFalse
 import org.junit.Test
 
 import java.io.File
@@ -106,19 +107,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `classpath model includes generated accessors`() {
-
-        val buildFile = withBuildScript("""
-            plugins { java }
-        """)
-
-        println(
-            build("gskGenerateAccessors").output)
-
-        assertAccessorsInClassPathOf(buildFile)
-    }
-
-    @Test
     fun `can access extensions registered by declared plugins via automatic accessor`() {
 
         withBuildScript("""
@@ -135,6 +123,19 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             build("mainClassName").output,
             containsString("*App*"))
+    }
+
+    @Test
+    fun `classpath model includes generated accessors`() {
+
+        val buildFile = withBuildScript("""
+            plugins { java }
+        """)
+
+        println(
+            build("gskGenerateAccessors").output)
+
+        assertAccessorsInClassPathOf(buildFile)
     }
 
     @Test
@@ -155,7 +156,9 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             plugins { java }
         """)
 
-        assertFalse(hasAccessorsInClassPathOf(buildFile))
+        assertThat(
+            classPathFor(buildFile),
+            not(hasAccessorsJar()))
     }
 
     @Test
@@ -206,15 +209,32 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun assertAccessorsInClassPathOf(buildFile: File) {
-        assert(hasAccessorsInClassPathOf(buildFile))
+        val model = kotlinBuildScriptModelFor(buildFile)
+        assertThat(model.classPath, hasAccessorsJar())
+        assertThat(model.sourcePath, hasAccessorsSource())
     }
 
     private
-    fun hasAccessorsInClassPathOf(buildFile: File) =
-        accessorsJarFor(buildFile) != null
+    fun hasAccessorsSource() =
+        hasItem(
+            matching<File>({ appendText("accessors source") }) {
+                File(this, "org/gradle/script/lang/kotlin/accessors.kt").isFile
+            })
+
+    private
+    fun hasAccessorsJar() =
+        hasItem(fileByName("gradle-script-kotlin-accessors.jar"))
 
     private
     fun accessorsJarFor(buildFile: File) =
-        canonicalClassPathFor(projectRoot, buildFile)
+        classPathFor(buildFile)
             .find { it.isFile && it.name == "gradle-script-kotlin-accessors.jar" }
+
+    private
+    fun classPathFor(buildFile: File) =
+        kotlinBuildScriptModelFor(buildFile).classPath
+
+    private
+    fun kotlinBuildScriptModelFor(buildFile: File) =
+        kotlinBuildScriptModelFor(projectRoot, buildFile)
 }

@@ -20,6 +20,8 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
 import org.gradle.script.lang.kotlin.provider.KotlinScriptClassPathProvider
@@ -44,13 +46,16 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         modelName == "org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel"
 
     override fun buildAll(modelName: String, project: Project): Any {
-        val classPath = classPathFrom(project)
-        val sourcePath = sourcePathFor(classPath, project)
-        return StandardKotlinBuildScriptModel(classPath, sourcePath)
+        val classPath = scriptClassPathOf(project)
+        val sourcePath = sourcePathFor(classPath.bin, project)
+        return StandardKotlinBuildScriptModel(classPath.bin.asFiles, (classPath.src + sourcePath).asFiles)
     }
 
     private
-    fun classPathFrom(project: Project): List<File> {
+    data class ScriptClassPath(val bin: ClassPath, val src: ClassPath)
+
+    private
+    fun scriptClassPathOf(project: Project): ScriptClassPath {
         val targetBuildscriptFile = targetBuildscriptFile(project)
         return when {
             targetBuildscriptFile != null ->
@@ -63,7 +68,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     }
 
     private
-    fun sourcePathFor(classPath: List<File>, project: Project) =
+    fun sourcePathFor(classPath: ClassPath, project: Project) =
         SourcePathProvider.sourcePathFor(classPath, project.rootProject.projectDir, project.gradle.gradleHomeDir)
 
     private
@@ -78,10 +83,13 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     fun canonicalFile(path: String): File = File(path).canonicalFile
 
     private
-    fun buildScriptClassPathOf(project: Project): List<File> =
-        compilationClassPathOf(project)
-            .let { it + accessorsClassPathFor(project, it) }
-            .asFiles
+    fun buildScriptClassPathOf(project: Project): ScriptClassPath {
+        val compilationClassPath = compilationClassPathOf(project)
+        val accessorsClassPath = accessorsClassPathFor(project, compilationClassPath)
+        return ScriptClassPath(
+            compilationClassPath + accessorsClassPath.bin,
+            accessorsClassPath.src)
+    }
 
     private
     fun compilationClassPathOf(project: Project) =
@@ -94,7 +102,9 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
     private
     fun scriptPluginClassPathOf(project: Project) =
-        buildSrcClassPathOf(project) + gradleScriptKotlinApiOf(project)
+        ScriptClassPath(
+            DefaultClassPath.of(buildSrcClassPathOf(project) + gradleScriptKotlinApiOf(project)),
+            ClassPath.EMPTY)
 
     private
     fun buildSrcClassPathOf(project: Project) =

@@ -116,7 +116,7 @@ class KotlinBuildScriptCompiler(
 
     private
     fun accessorsClassPathFor(project: Project) =
-        if (topLevelScript) accessorsClassPathFor(project, compilationClassPath)
+        if (topLevelScript) accessorsClassPathFor(project, compilationClassPath).bin
         else ClassPath.EMPTY
 
     private

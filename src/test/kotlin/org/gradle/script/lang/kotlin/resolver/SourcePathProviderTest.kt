@@ -1,5 +1,7 @@
 package org.gradle.script.lang.kotlin.resolver
 
+import org.gradle.internal.classpath.ClassPath
+
 import org.gradle.script.lang.kotlin.FolderBasedTest
 import org.gradle.script.lang.kotlin.resolver.SourcePathProvider.sourcePathFor
 
@@ -29,9 +31,9 @@ class SourcePathProviderTest : FolderBasedTest() {
 
         assertThat(
             sourcePathFor(
-                classPath = emptyList(),
+                classPath = ClassPath.EMPTY,
                 projectDir = folder("project"),
-                gradleHome = folder("gradle")),
+                gradleHome = folder("gradle")).asFiles,
             hasItems(
                 folder("project/buildSrc/src/main/foo"),
                 folder("project/buildSrc/src/main/bar"),
