@@ -19,12 +19,9 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
 
 abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
     private boolean optional;
@@ -61,13 +58,9 @@ abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDepreca
         return this;
     }
 
-    public TaskFilePropertyCompareStrategy getCompareStrategy() {
-        return OUTPUT;
-    }
-
     @Override
     public String toString() {
-        return getPropertyName() + " (" + getCompareStrategy() + " " + snapshotNormalizationStrategy + ")";
+        return getPropertyName() + " (" + snapshotNormalizationStrategy + ")";
     }
 
     public Class<? extends FileCollectionSnapshotter> getSnapshotter() {

@@ -88,7 +88,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
             FileCollectionSnapshot result;
             try {
                 FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getSnapshotNormalizationStrategy(), normalizationHandler);
+                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getSnapshotNormalizationStrategy(), normalizationHandler);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
             }

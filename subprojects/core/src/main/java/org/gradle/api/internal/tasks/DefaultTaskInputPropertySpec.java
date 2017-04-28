@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.PathSensitivity;
@@ -82,11 +81,6 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     @Override
     public TaskInputFilePropertyBuilderInternal optional() {
         return optional(true);
-    }
-
-    @Override
-    public TaskFilePropertyCompareStrategy getCompareStrategy() {
-        return TaskFilePropertyCompareStrategy.UNORDERED;
     }
 
     @Override

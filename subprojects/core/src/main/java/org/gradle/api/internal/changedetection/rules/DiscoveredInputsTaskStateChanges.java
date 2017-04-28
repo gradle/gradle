@@ -26,7 +26,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
@@ -90,7 +89,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
 
     private FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE, normalizationHandler);
+            return snapshotter.snapshot(fileCollection, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE, normalizationHandler);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for task '%s' during up-to-date check.", taskName), e);
         }

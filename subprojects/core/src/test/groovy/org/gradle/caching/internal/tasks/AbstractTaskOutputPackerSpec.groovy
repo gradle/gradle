@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
@@ -79,11 +78,6 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
         @Override
         CacheableTaskOutputFilePropertySpec.OutputType getOutputType() {
             return outputType ?: outputFile.directory ? DIRECTORY : FILE
-        }
-
-        @Override
-        TaskFilePropertyCompareStrategy getCompareStrategy() {
-            TaskFilePropertyCompareStrategy.OUTPUT
         }
 
         @Override
