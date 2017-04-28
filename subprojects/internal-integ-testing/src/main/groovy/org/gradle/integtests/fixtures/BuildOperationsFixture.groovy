@@ -60,7 +60,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                     ]
                 }
 
-                void finished(BuildOperationDescriptor buildOperation, OperationResult finishEvent) {
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
                     if (!operations[buildOperation.id]) {
                         operations[buildOperation.id] = [
                             id: "\${buildOperation.id}",
