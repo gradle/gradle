@@ -16,7 +16,7 @@
 
 package org.gradle.configuration.project;
 
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
 import org.gradle.util.Path;
 
 
@@ -27,7 +27,7 @@ import org.gradle.util.Path;
  *
  * @since 4.0
  */
-public final class ConfigureProjectBuildOperationDetails implements BuildOperationDetails<Void> {
+public final class ConfigureProjectBuildOperationDetails implements NoResultBuildOperationDetails {
     private final Path buildPath;
     private final Path projectPath;
 

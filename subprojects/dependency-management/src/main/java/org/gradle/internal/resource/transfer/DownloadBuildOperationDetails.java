@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
 
 import java.net.URI;
 
@@ -28,7 +28,7 @@ import java.net.URI;
  *
  * @since 4.0
  */
-public final class DownloadBuildOperationDetails implements BuildOperationDetails<Void> {
+public final class DownloadBuildOperationDetails implements NoResultBuildOperationDetails {
     private final URI location;
     private final long contentLength;
     private final String contentType;

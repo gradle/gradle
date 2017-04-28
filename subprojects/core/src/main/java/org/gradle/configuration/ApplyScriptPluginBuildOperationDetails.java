@@ -17,7 +17,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
 
 import java.io.File;
 
@@ -28,7 +28,7 @@ import java.io.File;
  *
  * @since 4.0
  */
-public final class ApplyScriptPluginBuildOperationDetails implements BuildOperationDetails<Void> {
+public final class ApplyScriptPluginBuildOperationDetails implements NoResultBuildOperationDetails {
     private File file;
     private String displayName;
 

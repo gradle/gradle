@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
 
 
 /**
@@ -26,7 +26,7 @@ import org.gradle.internal.progress.BuildOperationDetails;
  *
  * @since 4.0
  */
-public final class DownloadArtifactBuildOperationDetails implements BuildOperationDetails<Void> {
+public final class DownloadArtifactBuildOperationDetails implements NoResultBuildOperationDetails {
     private String artifactIdentifier;
 
     DownloadArtifactBuildOperationDetails(String artifactIdentifier) {

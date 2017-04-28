@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
 import org.gradle.plugin.use.PluginId;
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.plugin.use.PluginId;
  *
  * @since 4.0
  */
-public final class ApplyPluginBuildOperationDetails implements BuildOperationDetails<Void> {
+public final class ApplyPluginBuildOperationDetails implements NoResultBuildOperationDetails {
     private PluginId pluginId;
     private String className;
 

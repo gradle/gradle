@@ -14,27 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.internal.progress;
 
-
-import org.gradle.internal.progress.NoResultBuildOperationDetails;
-
-/**
- * Details about an artifact set being resolved.
- *
- * This class is intentionally internal and consumed by the build scan plugin.
- *
- * @since 4.0
- */
-public final class ResolveArtifactsBuildOperationDetails implements NoResultBuildOperationDetails {
-    private String configuration;
-
-    ResolveArtifactsBuildOperationDetails(String configuration) {
-        this.configuration = configuration;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
+public interface NoResultBuildOperationDetails extends BuildOperationDetails<Void> {
 
 }
