@@ -59,7 +59,7 @@ import java.lang.reflect.Proxy;
  */
 public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static boolean useNativeIntegrations = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
+    private static boolean useNativeIntegrations;
     private static final NativeServices INSTANCE = new NativeServices();
     private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
     private static boolean initialized;
@@ -78,6 +78,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      */
     public static synchronized void initialize(File userHomeDir, boolean initializeJansi) {
         if (!initialized) {
+            useNativeIntegrations = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
             if (useNativeIntegrations) {
                 File nativeBaseDir = getNativeServicesDir(userHomeDir);
                 try {
