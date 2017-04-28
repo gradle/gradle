@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -41,8 +42,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildTreeScopeServices {
-        public IncludedBuildRegistry createIncludedBuildRegistry(CompositeBuildContext context, DefaultProjectPathRegistry projectRegistry, Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, startParameter, workerLeaseService);
+        public IncludedBuildRegistry createIncludedBuildRegistry(CompositeBuildContext context, DefaultProjectPathRegistry projectRegistry, Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ScriptFileResolver scriptFileResolver) {
+            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, startParameter, workerLeaseService, scriptFileResolver);
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory);
             return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, context);
         }

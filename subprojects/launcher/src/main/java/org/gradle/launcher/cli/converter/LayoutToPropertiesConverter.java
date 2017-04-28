@@ -27,6 +27,7 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.util.CollectionUtils;
 
@@ -42,8 +43,10 @@ import java.util.Properties;
 public class LayoutToPropertiesConverter {
 
     private final List<BuildOption<?>> allBuildOptions = new ArrayList<BuildOption<?>>();
+    private final ScriptFileResolver scriptFileResolver;
 
-    public LayoutToPropertiesConverter() {
+    public LayoutToPropertiesConverter(ScriptFileResolver scriptFileResolver) {
+        this.scriptFileResolver = scriptFileResolver;
         allBuildOptions.addAll(BuildLayoutParametersBuildOptions.get());
         allBuildOptions.addAll(StartParameterBuildOptions.get());
         allBuildOptions.addAll(LoggingConfigurationBuildOptions.get());
@@ -73,7 +76,7 @@ public class LayoutToPropertiesConverter {
     }
 
     private void configureFromBuildDir(File currentDir, boolean searchUpwards, Map<String, String> result) {
-        BuildLayoutFactory factory = new BuildLayoutFactory();
+        BuildLayoutFactory factory = new BuildLayoutFactory(scriptFileResolver);
         BuildLayout layout = factory.getLayoutFor(currentDir, searchUpwards);
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }

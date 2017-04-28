@@ -19,6 +19,7 @@ package org.gradle.launcher.cli;
 import org.gradle.cli.*;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
@@ -57,10 +58,10 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         this.propertiesToDaemonParametersConverter = propertiesToDaemonParametersConverter;
     }
 
-    public ParametersConverter() {
+    public ParametersConverter(ScriptFileResolver scriptFileResolver) {
         this(new LayoutCommandLineConverter(),
             new SystemPropertiesCommandLineConverter(),
-            new LayoutToPropertiesConverter(),
+            new LayoutToPropertiesConverter(scriptFileResolver),
             new PropertiesToStartParameterConverter(),
             new DefaultCommandLineConverter(),
             new DaemonCommandLineConverter(),

@@ -31,6 +31,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
@@ -69,14 +70,16 @@ public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
     private final LoggingServiceRegistry loggingServices;
+    private final ScriptFileResolver scriptFileResolver;
     private final DaemonClientFactory daemonClientFactory;
     private final BuildActionExecuter<BuildActionParameters> embeddedExecutor;
     private final ServiceRegistry sharedServices;
     private final JvmVersionDetector jvmVersionDetector;
 
-    public ProviderConnection(ServiceRegistry sharedServices, LoggingServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory,
+    public ProviderConnection(ServiceRegistry sharedServices, LoggingServiceRegistry loggingServices, ScriptFileResolver scriptFileResolver, DaemonClientFactory daemonClientFactory,
                               BuildActionExecuter<BuildActionParameters> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector) {
         this.loggingServices = loggingServices;
+        this.scriptFileResolver = scriptFileResolver;
         this.daemonClientFactory = daemonClientFactory;
         this.embeddedExecutor = embeddedExecutor;
         this.payloadSerializer = payloadSerializer;
@@ -176,7 +179,7 @@ public class ProviderConnection {
         layout.setProjectDir(operationParameters.getProjectDir());
 
         Map<String, String> properties = new HashMap<String, String>();
-        new LayoutToPropertiesConverter().convert(layout, properties);
+        new LayoutToPropertiesConverter(scriptFileResolver).convert(layout, properties);
 
         DaemonParameters daemonParams = new DaemonParameters(layout);
         new PropertiesToDaemonParametersConverter().convert(properties, daemonParams);

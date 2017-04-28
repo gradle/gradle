@@ -43,6 +43,9 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.scripts.DefaultScriptingLanguages;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
@@ -65,6 +68,8 @@ public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
+    private final ScriptFileResolver scriptFileResolver = DefaultScriptFileResolver.forScriptingLanguages(new DefaultScriptingLanguages());
+
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
      * command-line args.
@@ -78,6 +83,7 @@ public class CommandLineActionFactory {
         LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
 
         return new WithLogging(loggingServices,
+            scriptFileResolver,
             args,
             loggingConfiguration,
             new ExceptionReportingAction(
@@ -87,7 +93,7 @@ public class CommandLineActionFactory {
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
-        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
+        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(scriptFileResolver), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -181,12 +187,14 @@ public class CommandLineActionFactory {
 
     private static class WithLogging implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
+        private final ScriptFileResolver scriptFileResolver;
         private final List<String> args;
         private final LoggingConfiguration loggingConfiguration;
         private final Action<ExecutionListener> action;
 
-        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
+        WithLogging(ServiceRegistry loggingServices, ScriptFileResolver scriptFileResolver, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
             this.loggingServices = loggingServices;
+            this.scriptFileResolver = scriptFileResolver;
             this.args = args;
             this.loggingConfiguration = loggingConfiguration;
             this.action = action;
@@ -197,7 +205,7 @@ public class CommandLineActionFactory {
             CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
             CommandLineConverter<ParallelismConfiguration> parallelConverter = new ParallelismConfigurationCommandLineConverter();
             CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter();
+            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(scriptFileResolver);
 
             BuildLayoutParameters buildLayout = new BuildLayoutParameters();
             ParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();

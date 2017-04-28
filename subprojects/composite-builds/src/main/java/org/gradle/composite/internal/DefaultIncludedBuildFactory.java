@@ -25,6 +25,7 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
@@ -33,11 +34,13 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
     private final WorkerLeaseService workerLeaseService;
+    private final ScriptFileResolver scriptFileResolver;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, ScriptFileResolver scriptFileResolver) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
         this.workerLeaseService = workerLeaseService;
+        this.scriptFileResolver = scriptFileResolver;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -50,8 +53,9 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
-        if (!new File(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE).exists()) {
-            throw new InvalidUserDataException(String.format("Included build '%s' must have a '%s' file.", includedBuild.getName(), Settings.DEFAULT_SETTINGS_FILE));
+        File defaultSettingsFile = new File(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE);
+        if (!defaultSettingsFile.exists() && scriptFileResolver.resolveScriptFile(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE_BASENAME) == null) {
+            throw new InvalidUserDataException(String.format("Included build '%s' must have a '%s.*' file.", includedBuild.getName(), Settings.DEFAULT_SETTINGS_FILE_BASENAME));
         }
     }
 
