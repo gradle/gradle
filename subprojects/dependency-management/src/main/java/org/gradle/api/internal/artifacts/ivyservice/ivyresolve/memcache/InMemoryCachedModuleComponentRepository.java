@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepositoryAccess;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -34,8 +34,6 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
-
-import java.util.Map;
 
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleComponentRepositoryAccess localAccess;
@@ -60,7 +58,6 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
     private class CachedAccess extends BaseModuleComponentRepositoryAccess {
         private final InMemoryMetaDataCache metaDataCache;
         private final InMemoryArtifactsCache artifactsCache;
-        private final Map<ModuleComponentIdentifier, MetadataFetchingCost> metadataFetchingCosts = Maps.newHashMap();
 
         CachedAccess(ModuleComponentRepositoryAccess access, InMemoryArtifactsCache artifactsCache, InMemoryMetaDataCache metaDataCache) {
             super(access);
@@ -87,9 +84,9 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
                 super.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
                 metaDataCache.newDependencyResult(moduleComponentIdentifier, result);
                 if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-                    metadataFetchingCosts.put(moduleComponentIdentifier, MetadataFetchingCost.FAST);
+                    metaDataCache.cacheFetchingCost(moduleComponentIdentifier, MetadataFetchingCost.FAST);
                 } else {
-                    metadataFetchingCosts.put(moduleComponentIdentifier, MetadataFetchingCost.CHEAP);
+                    metaDataCache.cacheFetchingCost(moduleComponentIdentifier, MetadataFetchingCost.CHEAP);
                 }
             }
         }
@@ -119,15 +116,13 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
         }
 
         @Override
-        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            MetadataFetchingCost cost = metadataFetchingCosts.get(moduleComponentIdentifier);
-            if (cost != null) {
-                // then check if for this specific repository, we already tried this component
-                return cost;
-            }
-            cost = super.estimateMetadataFetchingCost(moduleComponentIdentifier);
-            metadataFetchingCosts.put(moduleComponentIdentifier, cost);
-            return cost;
+        public MetadataFetchingCost estimateMetadataFetchingCost(final ModuleComponentIdentifier moduleComponentIdentifier) {
+            return metaDataCache.getOrCacheFetchingCost(moduleComponentIdentifier, new Factory<MetadataFetchingCost>() {
+                @Override
+                public MetadataFetchingCost create() {
+                    return CachedAccess.super.estimateMetadataFetchingCost(moduleComponentIdentifier);
+                }
+            });
         }
     }
 }

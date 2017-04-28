@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
+import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
@@ -32,7 +33,7 @@ import static org.gradle.internal.resolve.result.BuildableModuleVersionListingRe
 class InMemoryMetaDataCache {
     private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = new HashMap<ModuleVersionSelector, Set<String>>();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
-    private final Map<ModuleComponentIdentifier, MetadataFetchingCost> locallyAvailableMetaData = Maps.newHashMap();
+    private final Map<ModuleComponentIdentifier, MetadataFetchingCost> fetchingCosts = Maps.newHashMap();
 
     public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
         Set<String> versions = moduleVersionListing.get(requested);
@@ -63,5 +64,18 @@ class InMemoryMetaDataCache {
         if (cachedResult.isCacheable()) {
             metaData.put(requested, cachedResult);
         }
+    }
+
+    MetadataFetchingCost getOrCacheFetchingCost(ModuleComponentIdentifier id, Factory<MetadataFetchingCost> costFactory) {
+        MetadataFetchingCost cost = fetchingCosts.get(id);
+        if (cost == null) {
+            cost = costFactory.create();
+            fetchingCosts.put(id, cost);
+        }
+        return cost;
+    }
+
+    void cacheFetchingCost(ModuleComponentIdentifier id, MetadataFetchingCost cost) {
+        fetchingCosts.put(id, cost);
     }
 }
