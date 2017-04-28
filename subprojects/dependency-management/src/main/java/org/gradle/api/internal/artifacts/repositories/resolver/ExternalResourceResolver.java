@@ -508,10 +508,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
             if (ExternalResourceResolver.this.local) {
-                ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
-                if (createArtifactResolver().artifactExists(artifact, NoOpResourceAwareResolveResult.INSTANCE)) {
-                    return MetadataFetchingCost.FAST;
-                }
                 return MetadataFetchingCost.CHEAP;
             }
             return MetadataFetchingCost.EXPENSIVE;
