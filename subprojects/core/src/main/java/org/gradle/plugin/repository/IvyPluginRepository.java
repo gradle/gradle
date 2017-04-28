@@ -66,6 +66,7 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
      *
      * @param pattern The artifact pattern.
+     * @since 4.0
      */
     void artifactPattern(String pattern);
 
@@ -78,6 +79,7 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
      *
      * @param pattern The ivy pattern.
+     * @since 4.0
      */
     void ivyPattern(String pattern);
 
@@ -86,6 +88,7 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * See {@link #layout(String, Action)}.
      *
      * @param layoutName The name of the layout to use.
+     * @since 4.0
      */
     void layout(String layoutName);
 
@@ -123,11 +126,10 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      *     <li>Ivy: <code>$baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
      * </ul>
      * </p>
-     * <p><b>Note:</b> this pattern is currently {@link org.gradle.api.Incubating incubating}.</p>
      * <h4>'pattern'</h4>
      * <p>
      * A repository layout that allows custom patterns to be defined. eg:
-     * <pre autoTested="">
+     * <pre>
      * repositories {
      *     ivy {
      *         layout 'pattern' , {
@@ -142,7 +144,7 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      *
      * @param layoutName The name of the layout to use.
      * @param config The action used to configure the layout.
-     * @since 2.3 (feature was already present in Groovy DSL, this particular method introduced in 2.3)
+     * @since 4.0
      */
     void layout(String layoutName, Action<? extends RepositoryLayout> config);
 }
