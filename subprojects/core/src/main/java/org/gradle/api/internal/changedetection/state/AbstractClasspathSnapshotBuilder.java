@@ -17,22 +17,27 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.util.List;
+import java.util.Set;
 
 public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSnapshotBuilder {
     private final ContentHasher classpathContentHasher;
+    private final Set<Spec<RelativePath>> ignoreSpecs;
     private final ContentHasher jarContentHasher;
     protected final StringInterner stringInterner;
 
-    public AbstractClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, StringInterner stringInterner) {
+    public AbstractClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, StringInterner stringInterner, Set<Spec<RelativePath>> ignoreSpecs) {
         super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
         this.stringInterner = stringInterner;
         this.jarContentHasher = jarContentHasher;
         this.classpathContentHasher = classpathContentHasher;
+        this.ignoreSpecs = ignoreSpecs;
     }
 
     @Override
@@ -41,6 +46,9 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
         for (FileSnapshot descendant : descendants) {
             if (descendant.getType() == FileType.RegularFile) {
                 RegularFileSnapshot fileSnapshot = (RegularFileSnapshot) descendant;
+                if (shouldIgnore(fileSnapshot)) {
+                    continue;
+                }
                 entryResourceCollectionBuilder.visitFile(fileSnapshot, classpathContentHasher.hash(fileSnapshot));
             }
         }
@@ -71,5 +79,17 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
         if (hash != null) {
             collectFileSnapshot(file.withContentHash(hash));
         }
+    }
+
+    private boolean shouldIgnore(FileSnapshot fileSnapshot) {
+        if (ignoreSpecs.isEmpty()) {
+            return false;
+        }
+        for (Spec<RelativePath> ignoreSpec : ignoreSpecs) {
+            if (ignoreSpec.isSatisfiedBy(fileSnapshot.getRelativePath())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

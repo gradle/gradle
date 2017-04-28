@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.specs.Spec;
+
+import java.util.Set;
 
 /**
  * Builds a {@link FileCollectionSnapshot} for a runtime classpath.
@@ -24,8 +28,8 @@ import org.gradle.api.internal.cache.StringInterner;
  * We take the contents of jar files, non jar files and directories into account.
  */
 public class RuntimeClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
-    public RuntimeClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher zipContentHasher, StringInterner stringInterner) {
-        super(classpathContentHasher, zipContentHasher, stringInterner);
+    public RuntimeClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher zipContentHasher, StringInterner stringInterner, Set<Spec<RelativePath>> ignoreSpecs) {
+        super(classpathContentHasher, zipContentHasher, stringInterner, ignoreSpecs);
     }
 
     @Override

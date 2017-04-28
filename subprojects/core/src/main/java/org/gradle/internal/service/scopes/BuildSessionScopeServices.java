@@ -204,14 +204,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
     }
 
-    ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
-        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher();
-        return new DefaultClasspathSnapshotter(
-            classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner
-        );
-    }
-
     CompileClasspathSnapshotter createCompileClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
         PersistentIndexedCache<HashCode, HashCode> classCache = store.createCache("jvmCompileClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
         PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmCompileJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
@@ -219,6 +211,13 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultCompileClasspathSnapshotter(
             new CachingContentHasher(classpathContentHasher, classCache), new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), jarCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner
         );
+    }
+
+    protected ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
+        PersistentIndexedCache<HashCode, HashCode> signatureCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher();
+        return new DefaultClasspathSnapshotter(
+            classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), signatureCache), directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
     }
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {
