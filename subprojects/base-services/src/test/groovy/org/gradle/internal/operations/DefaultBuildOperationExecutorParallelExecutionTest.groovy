@@ -33,6 +33,8 @@ import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
+import java.util.concurrent.atomic.AtomicReference
+
 class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec {
 
     WorkerLeaseRegistry workerRegistry
@@ -292,12 +294,12 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def "unmanaged thread operation is started and stopped when created by run"() {
         given:
         setupBuildOperationExecutor(2)
-        BuildOperationState operationState
-        BuildOperationState unmanaged
+        AtomicReference<BuildOperationState> operationState = new AtomicReference<>()
+        AtomicReference<BuildOperationState> unmanaged = new AtomicReference<>()
         operationListener.started(_, _) >> { args ->
             BuildOperationDescriptor descriptor = args[0]
             if (descriptor.id.id < 0) {
-                unmanaged = buildOperationExecutor.getCurrentOperation()
+                unmanaged.set(buildOperationExecutor.getCurrentOperation())
             }
         }
 
@@ -305,31 +307,31 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         async {
             buildOperationExecutor.run(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                 void run(BuildOperationContext context) {
-                    operationState = buildOperationExecutor.getCurrentOperation()
-                    assert operationState.running
-                    assert unmanaged.running
-                    assert operationState.description.parentId.id < 0
+                    operationState.set(buildOperationExecutor.getCurrentOperation())
+                    assert operationState.get().running
+                    assert unmanaged.get().running
+                    assert operationState.get().description.parentId.id < 0
                 }
             })
         }
 
         then:
-        unmanaged.class.simpleName == 'UnmanagedThreadOperation'
-        unmanaged.parentId == null
-        operationState != null
-        !operationState.running
-        !unmanaged.running
+        unmanaged.get().class.simpleName == 'UnmanagedThreadOperation'
+        unmanaged.get().parentId == null
+        operationState.get() != null
+        !operationState.get().running
+        !unmanaged.get().running
     }
 
     def "unmanaged thread operation is started and stopped when created by call"() {
         given:
         setupBuildOperationExecutor(2)
-        BuildOperationState operationState
-        BuildOperationState unmanaged
+        AtomicReference<BuildOperationState> operationState = new AtomicReference<>()
+        AtomicReference<BuildOperationState> unmanaged = new AtomicReference<>()
         operationListener.started(_, _) >> { args ->
             BuildOperationDescriptor descriptor = args[0]
             if (descriptor.id.id < 0) {
-                unmanaged = buildOperationExecutor.getCurrentOperation()
+                unmanaged.set(buildOperationExecutor.getCurrentOperation())
             }
         }
 
@@ -338,10 +340,10 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         async {
             buildOperationExecutor.call(new CallableBuildOperation() {
                 Object call(BuildOperationContext context) {
-                    operationState = buildOperationExecutor.getCurrentOperation()
-                    assert operationState.running
-                    assert unmanaged.running
-                    assert operationState.description.parentId.id < 0
+                    operationState.set(buildOperationExecutor.getCurrentOperation())
+                    assert operationState.get().running
+                    assert unmanaged.get().running
+                    assert operationState.get().description.parentId.id < 0
                     return null
                 }
 
@@ -352,18 +354,18 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
 
         then:
-        unmanaged.class.simpleName == 'UnmanagedThreadOperation'
-        unmanaged.parentId == null
-        operationState != null
-        !operationState.running
-        !unmanaged.running
+        unmanaged.get().class.simpleName == 'UnmanagedThreadOperation'
+        unmanaged.get().parentId == null
+        operationState.get() != null
+        !operationState.get().running
+        !unmanaged.get().running
     }
 
     def "a single unmanaged thread operation is started and stopped when created by runAll"() {
         given:
         setupBuildOperationExecutor(2)
-        BuildOperationState operationState
-        OperationIdentifier parentOperationId
+        AtomicReference<BuildOperationState> operationState = new AtomicReference<>()
+        AtomicReference<OperationIdentifier> parentOperationId = new AtomicReference<>()
 
         when:
         async {
@@ -371,11 +373,11 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
                 5.times {
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         void run(BuildOperationContext context) {
-                            operationState = buildOperationExecutor.getCurrentOperation()
-                            assert parentOperationId == null || parentOperationId == operationState.description.parentId
-                            parentOperationId = operationState.description.parentId
-                            assert parentOperationId.id < 0
-                            assert operationState.running
+                            operationState.set(buildOperationExecutor.getCurrentOperation())
+                            assert parentOperationId.get() == null || parentOperationId.get() == operationState.get().description.parentId
+                            parentOperationId.set(operationState.get().description.parentId)
+                            assert parentOperationId.get().id < 0
+                            assert operationState.get().running
                         }
                     })
                 }
@@ -383,7 +385,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
 
         then:
-        operationState != null
-        !operationState.running
+        operationState.get() != null
+        !operationState.get().running
     }
 }
