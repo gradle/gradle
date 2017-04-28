@@ -28,18 +28,18 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
-    def ProjectComponentIdentifier projectId = newProjectId("anything")
+    def ProjectComponentIdentifier projectId = newProjectId(":nested:project-name")
     def localComponentRegistry = Mock(LocalComponentRegistry)
     def ideProjectResolver = new CompositeBuildIdeProjectResolver(localComponentRegistry, Stub(IncludedBuildExecuter), new DefaultBuildIdentity(projectId.build))
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder(ideProjectResolver)
-    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId, "test")
+    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId)
 
-    def "should create dependency using project name"() {
+    def "should create dependency using project name for project without eclipse plugin applied"() {
         when:
         def dependency = builder.build(ideProjectDependency)
 
         then:
-        dependency.path == "/test"
+        dependency.path == "/project-name"
 
         and:
         localComponentRegistry.getAdditionalArtifacts(_) >> []

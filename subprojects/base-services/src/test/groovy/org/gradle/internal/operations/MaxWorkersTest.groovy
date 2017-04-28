@@ -17,20 +17,25 @@
 package org.gradle.internal.operations
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class MaxWorkersTest extends ConcurrentSpec {
 
-    def "BuildOperationProcessor operation start blocks when there are no leases available, taken by BuildOperationWorkerRegistry"() {
+    def "BuildOperationExecutor operation start blocks when there are no leases available, taken by BuildOperationWorkerRegistry"() {
         given:
         def maxWorkers = 1
         def registry = buildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
-        def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
+        def processor = new DefaultBuildOperationExecutor(
+            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+        def processorWorker = new SimpleWorker()
 
         when:
         async {
@@ -46,10 +51,10 @@ class MaxWorkersTest extends ConcurrentSpec {
                 thread.blockUntil.worker1
                 instant.worker2Ready
                 def child2 = registry.getWorkerLease().start()
-                processor.run(processorWorker, { queue ->
+                processor.runAll(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
-                        void run() {
+                        void run(BuildOperationContext buildOperationContext) {
                             instant.worker2
                         }
                     })
@@ -65,21 +70,23 @@ class MaxWorkersTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "BuildOperationWorkerRegistry operation start blocks when there are no leases available, taken by BuildOperationProcessor"() {
+    def "BuildOperationWorkerRegistry operation start blocks when there are no leases available, taken by BuildOperationExecutor"() {
         given:
         def maxWorkers = 1
         def registry = buildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
-        def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
+        def processor = new DefaultBuildOperationExecutor(
+            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+        def processorWorker = new SimpleWorker()
 
         when:
         async {
             start {
                 def cl = registry.getWorkerLease().start()
-                processor.run(processorWorker, { queue ->
+                processor.runAll(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
-                        void run() {
+                        void run(BuildOperationContext buildOperationContext) {
                             instant.worker1
                             thread.blockUntil.worker2Ready
                             thread.block()
@@ -105,19 +112,21 @@ class MaxWorkersTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "BuildOperationWorkerRegistry operations nested in BuildOperationProcessor operations borrow parent lease"() {
+    def "BuildOperationWorkerRegistry operations nested in BuildOperationExecutor operations borrow parent lease"() {
         given:
         def maxWorkers = 1
         def registry = buildOperationWorkerRegistry(maxWorkers)
-        def processor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
-        def processorWorker = new DefaultBuildOperationQueueTest.SimpleWorker()
+        def processor = new DefaultBuildOperationExecutor(
+            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
+        def processorWorker = new SimpleWorker()
 
         when:
         def outer = registry.getWorkerLease().start()
-        processor.run(processorWorker, { queue ->
+        processor.runAll(processorWorker, { queue ->
             queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                 @Override
-                void run() {
+                void run(BuildOperationContext buildOperationContext) {
                     instant.child1Started
                     thread.block()
                     instant.child1Finished
@@ -125,7 +134,7 @@ class MaxWorkersTest extends ConcurrentSpec {
             })
             queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                 @Override
-                void run() {
+                void run(BuildOperationContext buildOperationContext) {
                     instant.child2Started
                     thread.block()
                     instant.child2Finished
@@ -143,5 +152,10 @@ class MaxWorkersTest extends ConcurrentSpec {
 
     WorkerLeaseRegistry buildOperationWorkerRegistry(int maxWorkers) {
         return new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, maxWorkers)
+    }
+
+    static class SimpleWorker implements BuildOperationWorker<DefaultBuildOperationQueueTest.TestBuildOperation> {
+        void execute(DefaultBuildOperationQueueTest.TestBuildOperation run, BuildOperationContext context) { run.run(context) }
+        String getDisplayName() { return getClass().simpleName }
     }
 }

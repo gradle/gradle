@@ -15,11 +15,11 @@
  */
 package org.gradle.internal.logging.progress
 
-import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
@@ -86,14 +86,14 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         then:
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "parent"
-            assert event.parentId == null
-            assert event.operationId != null
-            parentId = event.operationId
+            assert event.parentProgressOperationId == null
+            assert event.progressOperationId != null
+            parentId = event.progressOperationId
         }
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "child"
-            assert event.operationId != parentId
-            assert event.parentId == parentId
+            assert event.progressOperationId != parentId
+            assert event.parentProgressOperationId == parentId
         }
     }
 
@@ -112,15 +112,15 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         then:
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "parent"
-            parentId = event.operationId
+            parentId = event.progressOperationId
         }
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "sibling"
-            assert event.parentId == parentId
+            assert event.parentProgressOperationId == parentId
         }
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.description == "child"
-            assert event.parentId == parentId
+            assert event.parentProgressOperationId == parentId
         }
     }
 
@@ -152,16 +152,16 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         1 * progressListener.started({it.description == "op-1"}) >> { ProgressStartEvent event ->
-            parentId = event.operationId
-            assert event.parentId == null
+            parentId = event.progressOperationId
+            assert event.parentProgressOperationId == null
         }
         1 * progressListener.started({it.description == "child"}) >> { ProgressStartEvent event ->
-            childId = event.operationId
-            assert event.parentId == parentId
+            childId = event.progressOperationId
+            assert event.parentProgressOperationId == parentId
         }
         1 * progressListener.started({it.description == "op-2"}) >> { ProgressStartEvent event ->
-            id2 = event.operationId
-            assert event.parentId == null
+            id2 = event.progressOperationId
+            assert event.parentProgressOperationId == null
         }
 
         and:
@@ -191,11 +191,11 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         1 * progressListener.started({it.description == "op-1"}) >> { ProgressStartEvent event ->
-            parentId = event.operationId
+            parentId = event.progressOperationId
         }
         1 * progressListener.started({it.description == "child"}) >> { ProgressStartEvent event ->
-            assert event.parentId == parentId
-            assert event.operationId != parentId
+            assert event.parentProgressOperationId == parentId
+            assert event.progressOperationId != parentId
         }
     }
 

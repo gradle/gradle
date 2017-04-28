@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.progress.BuildOperationExecutor.Operation;
+import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.util.CollectionUtils;
 
@@ -32,8 +32,8 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
-    private final ListMultimap<Operation, AsyncWorkCompletion> items = ArrayListMultimap.create();
-    private final Set<Operation> waiting = Sets.newHashSet();
+    private final ListMultimap<BuildOperationState, AsyncWorkCompletion> items = ArrayListMultimap.create();
+    private final Set<BuildOperationState> waiting = Sets.newHashSet();
     private final ReentrantLock lock = new ReentrantLock();
     private final ProjectLeaseRegistry projectLeaseRegistry;
 
@@ -42,7 +42,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     @Override
-    public void registerWork(Operation operation, AsyncWorkCompletion workCompletion) {
+    public void registerWork(BuildOperationState operation, AsyncWorkCompletion workCompletion) {
         lock.lock();
         try {
             if (waiting.contains(operation)) {
@@ -55,7 +55,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     @Override
-    public void waitForCompletion(Operation operation) {
+    public void waitForCompletion(BuildOperationState operation) {
         final List<Throwable> failures = Lists.newArrayList();
         final List<AsyncWorkCompletion> workItems;
         lock.lock();
@@ -99,7 +99,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
-    private void startWaiting(Operation operation) {
+    private void startWaiting(BuildOperationState operation) {
         lock.lock();
         try {
             waiting.add(operation);
@@ -108,7 +108,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
-    private void stopWaiting(Operation operation) {
+    private void stopWaiting(BuildOperationState operation) {
         lock.lock();
         try {
             waiting.remove(operation);

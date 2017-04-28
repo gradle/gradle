@@ -65,7 +65,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.metaobject.BeanDynamicObject
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
@@ -140,7 +140,7 @@ class DefaultProjectTest {
     AntLoggingAdapter antLoggingAdapter = context.mock(AntLoggingAdapter.class)
     AttributesSchema attributesSchema = context.mock(AttributesSchema)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
-    ProjectConfigurator projectConfigurator = new BuildOperationProjectConfigurator(buildOperationExecutor)
+    CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -198,7 +198,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
             allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
             allowing(serviceRegistryMock).get(BuildOperationExecutor) ; will(returnValue(buildOperationExecutor))
-            allowing(serviceRegistryMock).get((Type) ProjectConfigurator) ; will(returnValue(projectConfigurator))
+            allowing(serviceRegistryMock).get((Type) CrossProjectConfigurator) ; will(returnValue(crossProjectConfigurator))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))

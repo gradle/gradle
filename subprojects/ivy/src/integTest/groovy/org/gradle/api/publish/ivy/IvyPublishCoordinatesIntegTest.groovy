@@ -97,13 +97,13 @@ public class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest 
                         module "custom-api"
                         revision "2"
                         configurations {
-                            runtime {}
+                            compile {}
                             "default" {
-                                extend "runtime"
+                                extend "compile"
                             }
                         }
                         artifact(apiJar) {
-                            conf "runtime"
+                            conf "compile"
                         }
                     }
                 }

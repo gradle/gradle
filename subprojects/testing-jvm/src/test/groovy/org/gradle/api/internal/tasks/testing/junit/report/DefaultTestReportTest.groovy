@@ -19,10 +19,12 @@ import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -36,7 +38,7 @@ import java.util.concurrent.Executor
 class DefaultTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    BuildOperationProcessor buildOperationProcessor
+    BuildOperationExecutor buildOperationExecutor
     DefaultTestReport report
     final TestFile reportDir = tmpDir.file('report')
     final TestFile indexFile = reportDir.file('index.html')
@@ -44,8 +46,10 @@ class DefaultTestReportTest extends Specification {
     final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
 
     def reportWithMaxThreads(int numThreads) {
-        buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
-        return new DefaultTestReport(buildOperationProcessor)
+        buildOperationExecutor = new DefaultBuildOperationExecutor(
+            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
+        return new DefaultTestReport(buildOperationExecutor)
     }
 
     def setup() {

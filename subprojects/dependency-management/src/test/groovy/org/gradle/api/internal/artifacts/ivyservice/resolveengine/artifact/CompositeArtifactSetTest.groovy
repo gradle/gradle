@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
+import org.gradle.internal.operations.BuildOperationQueue
 import spock.lang.Specification
 
 class CompositeArtifactSetTest extends Specification {
@@ -36,16 +37,29 @@ class CompositeArtifactSetTest extends Specification {
     def "visits each set in turn"() {
         def set1 = Mock(ResolvedArtifactSet)
         def set2 = Mock(ResolvedArtifactSet)
+
+        def asyncListener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
+        def queue = Stub(BuildOperationQueue)
         def visitor = Mock(ArtifactVisitor)
+        def result1 = Mock(ResolvedArtifactSet.Completion)
+        def result2 = Mock(ResolvedArtifactSet.Completion)
 
         when:
-        CompositeArtifactSet.of([set1, set2]).visit(visitor)
+        def result = CompositeArtifactSet.of([set1, set2]).startVisit(queue, asyncListener)
 
         then:
-        1 * set1.visit(visitor)
+        1 * set1.startVisit(queue, asyncListener) >> result1
+        1 * set2.startVisit(queue, asyncListener) >> result2
+        0 * _
+
+        when:
+        result.visit(visitor)
 
         then:
-        1 * set2.visit(visitor)
+        1 * result1.visit(visitor)
+
+        then:
+        1 * result2.visit(visitor)
         0 * _
     }
 }

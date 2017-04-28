@@ -19,6 +19,8 @@ package org.gradle.launcher.exec;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
@@ -35,9 +37,15 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
         try {
-            GradleBuildController buildController = new GradleBuildController(gradleLauncher);
-            buildActionRunner.run(action, buildController);
-            return buildController.getResult();
+            RootBuildLifecycleListener buildLifecycleListener = contextServices.get(ListenerManager.class).getBroadcaster(RootBuildLifecycleListener.class);
+            buildLifecycleListener.afterStart();
+            try {
+                GradleBuildController buildController = new GradleBuildController(gradleLauncher);
+                buildActionRunner.run(action, buildController);
+                return buildController.getResult();
+            } finally {
+                buildLifecycleListener.beforeComplete();
+            }
         } finally {
             gradleLauncher.stop();
         }

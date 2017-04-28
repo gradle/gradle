@@ -29,8 +29,8 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 
 class ModuleDependencyBuilderTest extends Specification {
 
-    def projectId = newProjectId("project-path")
-    def ideDependency = new IdeProjectDependency(projectId, "test")
+    def projectId = newProjectId(":nested:project-name")
+    def ideDependency = new IdeProjectDependency(projectId)
     def localComponentRegistry = Mock(LocalComponentRegistry)
     def ideProjectResolver = new CompositeBuildIdeProjectResolver(localComponentRegistry, Stub(IncludedBuildExecuter), new DefaultBuildIdentity(projectId.build))
     def builder = new ModuleDependencyBuilder(ideProjectResolver)
@@ -41,7 +41,19 @@ class ModuleDependencyBuilderTest extends Specification {
 
         then:
         dependency.scope == 'compile'
-        dependency.name == "test"
+        dependency.name == "project-name"
+
+        and:
+        localComponentRegistry.getAdditionalArtifacts(_) >> []
+    }
+
+    def "builds dependency for nonIdea root project"() {
+        when:
+        def dependency = builder.create(new IdeProjectDependency(newProjectId("build-1",":")), 'compile')
+
+        then:
+        dependency.scope == 'compile'
+        dependency.name == "build-1"
 
         and:
         localComponentRegistry.getAdditionalArtifacts(_) >> []

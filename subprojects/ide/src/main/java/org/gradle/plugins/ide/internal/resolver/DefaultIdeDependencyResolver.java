@@ -69,13 +69,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
             if (thisProjectId.equals(projectId)) {
                 continue;
             }
-            if (!projectId.getBuild().isCurrentBuild()) {
-                // Don't have access to the ProjectInstance: we can't use it to determine the name.
-                ideProjectDependencies.add(new IdeProjectDependency(projectId));
-            } else {
-                Project resolvedProject = project.project(projectId.getProjectPath());
-                ideProjectDependencies.add(new IdeProjectDependency(projectId, resolvedProject.getName()));
-            }
+            ideProjectDependencies.add(new IdeProjectDependency(projectId));
         }
         return ideProjectDependencies;
     }

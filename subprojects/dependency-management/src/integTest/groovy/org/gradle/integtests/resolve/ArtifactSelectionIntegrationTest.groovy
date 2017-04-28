@@ -770,8 +770,9 @@ task show {
 
         expect:
         fails "resolveView"
-        failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
-        failure.assertHasCause("""More than one variant matches the consumer attributes:
+        failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
+        failure.assertHasCause("""More than one variant of project :lib matches the consumer attributes:
   - Variant:
       - Required artifactType 'jar' and found compatible value 'jar'.
       - Required usage 'api' and found compatible value 'api'.
@@ -876,7 +877,7 @@ task show {
 
         expect:
         fails "resolveView"
-        failure.assertHasCause("""No variants match the consumer attributes:
+        failure.assertHasCause("""No variants of project :lib match the consumer attributes:
   - Variant:
       - Required artifactType 'dll' and found incompatible value 'jar'.
       - Required usage 'api' and found compatible value 'api'.

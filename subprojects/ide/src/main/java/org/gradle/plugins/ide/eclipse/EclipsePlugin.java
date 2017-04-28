@@ -50,7 +50,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
-import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper;
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
@@ -58,6 +57,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Link;
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
@@ -79,10 +79,12 @@ public class EclipsePlugin extends IdePlugin {
     public static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt";
 
     private final Instantiator instantiator;
+    private final UniqueProjectNameProvider uniqueProjectNameProvider;
 
     @Inject
-    public EclipsePlugin(Instantiator instantiator) {
+    public EclipsePlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider) {
         this.instantiator = instantiator;
+        this.uniqueProjectNameProvider = uniqueProjectNameProvider;
     }
 
     @Override
@@ -101,46 +103,22 @@ public class EclipsePlugin extends IdePlugin {
         configureEclipseJdt(project, model);
         configureEclipseClasspath(project, model);
 
-        postProcess("eclipse", new Action<Gradle>() {
-            @Override
-            public void execute(Gradle gradle) {
-                performPostEvaluationActions();
-            }
-        });
+        registerEclipseArtifacts(project);
 
         applyEclipseWtpPluginOnWebProjects(project);
-    }
-
-    public void performPostEvaluationActions() {
-        makeSureProjectNamesAreUnique();
-        // This needs to happen after de-duplication
-        registerEclipseArtifacts();
-    }
-
-    private void makeSureProjectNamesAreUnique() {
-        new EclipseNameDeduper().configureRoot(project.getRootProject());
-    }
-
-    private void registerEclipseArtifacts() {
-        Set<Project> projectsWithEclipse = Sets.filter(project.getRootProject().getAllprojects(), HAS_ECLIPSE_PLUGIN);
-        for (Project project : projectsWithEclipse) {
-            registerEclipseArtifacts(project);
-        }
     }
 
     private static void registerEclipseArtifacts(Project project) {
         ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
         ProjectComponentIdentifier projectId = newProjectId(project);
-        String projectName = project.getExtensions().getByType(EclipseModel.class).getProject().getName();
-        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("project", projectId, projectName, project));
-        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("classpath", projectId, projectName, project));
+        EclipseProject eclipseProject = project.getExtensions().getByType(EclipseModel.class).getProject();
+        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact(eclipseProject, "project", projectId, project));
+        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact(eclipseProject, "classpath", projectId, project));
     }
 
-    private static LocalComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
-        File projectFile = new File(project.getProjectDir(), "." + extension);
+    private static LocalComponentArtifactMetadata createArtifact(EclipseProject eclipseProject, String extension, ProjectComponentIdentifier projectId, Project project) {
         Task byName = project.getTasks().getByName("eclipseProject");
-        String type = "eclipse." + extension;
-        PublishArtifact publishArtifact = new DefaultPublishArtifact(projectName, extension, type, null, null, projectFile, byName);
+        PublishArtifact publishArtifact = new EclipseArtifact(eclipseProject, project.getProjectDir(), extension, byName);
         return new PublishArtifactLocalArtifactMetadata(projectId, publishArtifact);
     }
 
@@ -157,7 +135,9 @@ public class EclipsePlugin extends IdePlugin {
 
                 //model:
                 model.setProject(projectModel);
-                projectModel.setName(project.getName());
+
+                final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);
+                projectModel.setName(defaultModuleName);
 
                 final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
                 convention.map("comment", new Callable<String>() {
@@ -414,4 +394,26 @@ public class EclipsePlugin extends IdePlugin {
             return project.getPlugins().hasPlugin(EclipsePlugin.class);
         }
     };
+
+    private static class EclipseArtifact extends DefaultPublishArtifact {
+        private final EclipseProject eclipseProject;
+        private final File projectDir;
+
+        public EclipseArtifact(EclipseProject eclipseProject, File projectDir, String extension, Object... tasks) {
+            super(null, extension, "eclipse." + extension, null, null, null, tasks);
+            this.eclipseProject = eclipseProject;
+            this.projectDir = projectDir;
+        }
+
+        @Override
+        public String getName() {
+            return eclipseProject.getName();
+        }
+
+        @Override
+        public File getFile() {
+            return new File(projectDir, "." + getExtension());
+        }
+    }
+
 }

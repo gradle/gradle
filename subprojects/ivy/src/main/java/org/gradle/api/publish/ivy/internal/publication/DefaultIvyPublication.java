@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -48,9 +50,19 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
+
+    private static final Comparator<? super UsageContext> COMPILE_BEFORE_RUNTIME = new Comparator<UsageContext>() {
+        private final Comparator<? super Usage> compileBeforeRuntime = Ordering.explicit(Usage.FOR_COMPILE, Usage.FOR_RUNTIME);
+        @Override
+        public int compare(UsageContext left, UsageContext right) {
+            return compileBeforeRuntime.compare(left.getUsage(), right.getUsage());
+        }
+    };
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -100,7 +112,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         configurations.maybeCreate("default");
 
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
-        for (UsageContext usageContext : this.component.getUsages()) {
+        Set<ModuleDependency> seenDependencies = Sets.newHashSet();
+        for (UsageContext usageContext : getSortedUsageContexts()) {
             Usage usage = usageContext.getUsage();
             String conf = mapUsage(usage);
             configurations.maybeCreate(conf);
@@ -114,15 +127,23 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             }
 
             for (ModuleDependency dependency : usageContext.getDependencies()) {
+                if (seenDependencies.add(dependency)) {
                 // TODO: When we support multiple components or configurable dependencies, we'll need to merge the confs of multiple dependencies with same id.
-                String confMapping = String.format("%s->%s", conf, dependency.getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : dependency.getTargetConfiguration());
-                if (dependency instanceof ProjectDependency) {
-                    addProjectDependency((ProjectDependency) dependency, confMapping);
-                } else {
-                    addModuleDependency(dependency, confMapping);
+                    String confMapping = String.format("%s->%s", conf, dependency.getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : dependency.getTargetConfiguration());
+                    if (dependency instanceof ProjectDependency) {
+                        addProjectDependency((ProjectDependency) dependency, confMapping);
+                    } else {
+                        addModuleDependency(dependency, confMapping);
+                    }
                 }
             }
         }
+    }
+
+    private List<UsageContext> getSortedUsageContexts() {
+        List<UsageContext> usageContexts = Lists.newArrayList(this.component.getUsages());
+        Collections.sort(usageContexts, COMPILE_BEFORE_RUNTIME);
+        return usageContexts;
     }
 
     private String mapUsage(Usage usage) {

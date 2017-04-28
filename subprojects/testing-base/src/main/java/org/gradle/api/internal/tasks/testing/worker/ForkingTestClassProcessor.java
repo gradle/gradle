@@ -73,6 +73,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
         builder.applicationClasspath(classPath);
         options.copyTo(builder.getJavaCommand());
+        builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
 
         workerProcess = builder.build();
@@ -99,7 +100,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-jvm").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("guava-jdk5").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),

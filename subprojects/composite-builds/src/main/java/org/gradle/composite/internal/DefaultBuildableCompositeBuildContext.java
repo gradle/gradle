@@ -25,7 +25,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.initialization.IncludedBuilds;
@@ -64,21 +63,8 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         return registeredProject == null ? null : registeredProject.metaData;
     }
 
-    @Override
-    public File getProjectDirectory(ProjectComponentIdentifier project) {
-        RegisteredProject registeredProject = getRegisteredProject(project);
-        return registeredProject.projectDirectory;
-    }
-
-    @Override
-    public Set<ProjectComponentIdentifier> getAllProjects() {
-        for (IncludedBuild build : includedBuilds.getBuilds()) {
-            ensureRegistered((IncludedBuildInternal) build);
-        }
-        return projectMetadata.keySet();
-    }
-
     public Collection<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
+        ensureRegistered(project);
         RegisteredProject registeredProject = projectMetadata.get(project);
         return registeredProject == null ? null : registeredProject.artifacts;
      }
@@ -94,12 +80,12 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         substitutionRules.add(substitutions);
     }
 
-    public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
+    public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata) {
         if (projectMetadata.containsKey(project)) {
             String failureMessage = StringUtils.capitalize(project.getDisplayName()) +" is not unique in composite.";
             throw new GradleException(failureMessage);
         }
-        projectMetadata.put(project, new RegisteredProject(localComponentMetadata, projectDirectory));
+        projectMetadata.put(project, new RegisteredProject(localComponentMetadata));
     }
 
     public void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact) {
@@ -117,12 +103,10 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     private static class RegisteredProject {
         LocalComponentMetadata metaData;
-        File projectDirectory;
         Collection<LocalComponentArtifactMetadata> artifacts = Lists.newArrayList();
 
-        public RegisteredProject(LocalComponentMetadata metaData, File projectDirectory) {
+        public RegisteredProject(LocalComponentMetadata metaData) {
             this.metaData = metaData;
-            this.projectDirectory = projectDirectory;
         }
     }
 

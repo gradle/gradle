@@ -30,7 +30,7 @@ import java.net.URI;
  * <p>
  * When used to upload metadata and artifact files, only a single, primary pattern will be used:
  * <ol>
- * <li>If a URL is specified via {@link #setUrl} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
+ * <li>If a URL is specified via {@link #setUrl(Object)} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
  * <li>If no URL has been specified but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then the first defined pattern will be used.</li>
  * </ol>
  * <p>
@@ -78,7 +78,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
      * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
-     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
      *
      * @param pattern The artifact pattern.
      */
@@ -90,7 +90,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
      * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
-     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
      *
      * @param pattern The ivy pattern.
      */

@@ -26,13 +26,19 @@ import java.util.Set;
  */
 public class CalculateTaskGraphOperationResult {
     private final Set<String> requestedTaskPaths;
+    private final Set<String> filteredTaskPaths;
 
-    public CalculateTaskGraphOperationResult(Set<String> requestedTaskPaths) {
+    public CalculateTaskGraphOperationResult(Set<String> requestedTaskPaths, Set<String> excludedTaskPaths) {
         this.requestedTaskPaths = requestedTaskPaths;
+        this.filteredTaskPaths = excludedTaskPaths;
     }
 
     public Set<String> getRequestedTaskPaths() {
         return requestedTaskPaths;
+    }
+
+    public Set<String> getFilteredTaskPaths() {
+        return filteredTaskPaths;
     }
 
 }

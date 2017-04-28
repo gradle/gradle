@@ -85,12 +85,18 @@ public class GradleUserHomeScopeServices {
         }
     }
 
+    ListenerManager createListenerManager(ListenerManager parent) {
+        return parent.createChild();
+    }
+
     CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping) {
-        return new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
+    GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
+        GlobalScopeFileTimeStampInspector timeStampInspector = new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
+        listenerManager.addListener(timeStampInspector);
+        return timeStampInspector;
     }
 
     FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {

@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a graph of dependent tasks, returned in execution order.
@@ -41,6 +42,11 @@ public interface TaskExecutionPlan {
      * @return The list of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
     List<Task> getTasks();
+
+    /**
+     * @return The set of all filtered tasks that don't get executed.
+     */
+    Set<Task> getFilteredTasks();
 
     /**
      * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one

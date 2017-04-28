@@ -76,6 +76,16 @@ public class ReportingExtension {
 
     /**
      * Sets the base directory to use for all reports
+     *
+     * @param baseDir The base directory to use for all reports
+     * @since 4.0
+     */
+    public void setBaseDir(File baseDir) {
+        setBaseDir((Object) baseDir);
+    }
+
+    /**
+     * Sets the base directory to use for all reports
      * <p>
      * The value will be converted to a {@code File} on demand via {@link Project#file(Object)}.
      *

@@ -202,7 +202,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
             while (iFieldAnnotation.hasNext()) {
                 Annotation fieldAnnotation = iFieldAnnotation.next();
                 if (methodAnnotation.annotationType().equals(fieldAnnotation.annotationType())) {
-                    propertyContext.validationMessage("both getter and field declare annotation @" + methodAnnotation.annotationType().getSimpleName());
+                    propertyContext.validationMessage("has both a getter and field declared with annotation @" + methodAnnotation.annotationType().getSimpleName());
                     iFieldAnnotation.remove();
                 }
             }
@@ -251,7 +251,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         if (declaredPropertyTypes.size() > 1) {
-            propertyContext.validationMessage("conflicting property types are declared: "
+            propertyContext.validationMessage("has conflicting property types declared: "
                     + Joiner.on(", ").join(Iterables.transform(declaredPropertyTypes, new Function<Class<? extends Annotation>, String>() {
                     @Override
                     public String apply(Class<? extends Annotation> annotationType) {

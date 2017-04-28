@@ -44,7 +44,7 @@ public class FileDependencyArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public DynamicResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, attributesFactory);
     }
 

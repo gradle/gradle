@@ -16,7 +16,11 @@
 package org.gradle.internal.logging
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.logging.events.*
+import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.events.ProgressCompleteEvent
+import org.gradle.internal.logging.events.ProgressEvent
+import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -24,6 +28,7 @@ import java.text.SimpleDateFormat
 
 abstract class OutputSpecification extends Specification {
 
+    public static final String CATEGORY = 'category'
     private Long counter = 1
 
     protected String toNative(String value) {
@@ -68,18 +73,19 @@ abstract class OutputSpecification extends Specification {
 
     ProgressStartEvent start(Map args) {
         OperationIdentifier parentId = args.containsKey("parentId") ? args.parentId : new OperationIdentifier(counter)
+        OperationIdentifier buildOperationId = args.containsKey("buildOperationId") ? args.buildOperationId : new OperationIdentifier(counter)
         long id = ++counter
-        String category = args.containsKey("category") ? args.category : 'category'
-        return new ProgressStartEvent(new OperationIdentifier(id), parentId, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status)
+        String category = args.containsKey("category") ? args.category : CATEGORY
+        return new ProgressStartEvent(new OperationIdentifier(id), parentId, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId)
     }
 
     ProgressEvent progress(String status) {
         long id = counter
-        return new ProgressEvent(new OperationIdentifier(id), tenAm, 'category', status)
+        return new ProgressEvent(new OperationIdentifier(id), tenAm, CATEGORY, status)
     }
 
     ProgressCompleteEvent complete(String status) {
         long id = counter--
-        return new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, 'category', 'description', status)
+        return new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, CATEGORY, 'description', status)
     }
 }

@@ -61,7 +61,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
         LocalComponentMetadata compositeComponent = createCompositeCopy(build, componentIdentifier, originalComponent);
 
-        context.register(componentIdentifier, compositeComponent, project.getProjectDir());
+        context.register(componentIdentifier, compositeComponent);
         for (LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
             context.registerAdditionalArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData));
         }

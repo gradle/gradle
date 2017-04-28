@@ -32,8 +32,8 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class StyledTextOutputBackedRenderer extends BatchOutputEventListener {
     private final OutputEventTextOutputImpl textOutput;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
     private boolean debugOutput;
+    private SimpleDateFormat dateFormat;
     private RenderableOutputEvent lastEvent;
 
     public StyledTextOutputBackedRenderer(StyledTextOutput textOutput) {
@@ -44,6 +44,9 @@ public class StyledTextOutputBackedRenderer extends BatchOutputEventListener {
         if (event instanceof LogLevelChangeEvent) {
             LogLevelChangeEvent changeEvent = (LogLevelChangeEvent) event;
             debugOutput = changeEvent.getNewLogLevel() == LogLevel.DEBUG;
+            if (debugOutput && dateFormat == null) {
+                dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+            }
         }
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent outputEvent = (RenderableOutputEvent) event;

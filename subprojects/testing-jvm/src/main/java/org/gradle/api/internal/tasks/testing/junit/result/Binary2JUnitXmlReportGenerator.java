@@ -22,9 +22,11 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 
@@ -36,20 +38,20 @@ public class Binary2JUnitXmlReportGenerator {
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
     private JUnitXmlResultWriter xmlWriter;
-    private final BuildOperationProcessor buildOperationProcessor;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
-    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation, BuildOperationProcessor buildOperationProcessor, String hostName) {
+    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation, BuildOperationExecutor buildOperationExecutor, String hostName) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
         this.xmlWriter = new JUnitXmlResultWriter(hostName, testResultsProvider, outputAssociation);
-        this.buildOperationProcessor = buildOperationProcessor;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public void generate() {
         Timer clock = Timers.startTimer();
 
-        buildOperationProcessor.run(new Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>() {
+        buildOperationExecutor.runAll(new Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>() {
             @Override
             public void execute(final BuildOperationQueue<JUnitXmlReportFileGenerator> queue) {
                 testResultsProvider.visitClasses(new Action<TestClassResult>() {
@@ -80,12 +82,12 @@ public class Binary2JUnitXmlReportGenerator {
         }
 
         @Override
-        public String getDescription() {
-            return "generating junit xml test report for ".concat(result.getClassName());
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("generating junit xml test report for ".concat(result.getClassName()));
         }
 
         @Override
-        public void run() {
+        public void run(BuildOperationContext context) {
             FileOutputStream output = null;
             try {
                 output = new FileOutputStream(reportFile);

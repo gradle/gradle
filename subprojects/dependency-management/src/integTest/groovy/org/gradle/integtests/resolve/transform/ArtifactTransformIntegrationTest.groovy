@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.transform
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -941,7 +940,7 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes:
+        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib for consumer attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
@@ -1027,7 +1026,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes:
+        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib for consumer attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
@@ -1047,8 +1046,6 @@ Found the following transforms:
       - usage 'api'"""
     }
 
-    //TODO JJ: we currently ignore all configuration attributes for view creation - need to use incoming.getFiles(attributes) / incoming.getArtifacts(attributes) to create a view
-    @NotYetImplemented
     def "result is applied for all query methods"() {
         given:
         buildFile << """
@@ -1059,8 +1056,8 @@ Found the following transforms:
                 def jar = file('lib.jar')
                 jar.text = 'some text'
 
-                artifacts {
-                    compile txt, jar
+                dependencies {
+                    compile files(txt, jar)
                 }
             }
 
@@ -1070,10 +1067,9 @@ Found the following transforms:
                 }
                 configurations {
                     compile {
-                        attributes artifactType: 'size'
+                        attributes.attribute(artifactType, 'size')
                     }
                 }
-                def artifactType = Attribute.of('artifactType', String)
                 dependencies {
                     registerTransform {
                         from.attribute(artifactType, "jar")
@@ -1082,7 +1078,7 @@ Found the following transforms:
                     }
                 }
                 ext.checkArtifacts = { artifacts ->
-                    assert artifacts.collect { it.id.displayName } == ['lib.size (project :lib)', 'lib.jar.txt (project :lib)']
+                    assert artifacts.collect { it.id.displayName } == ['lib.size', 'lib.jar.txt (lib.jar)']
                     assert artifacts.collect { it.file.name } == ['lib.size', 'lib.jar.txt']
                 }
                 ext.checkFiles = { config ->
@@ -1103,20 +1099,13 @@ Found the following transforms:
                         checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }
 
                         checkArtifacts configurations.compile.incoming.artifacts
-                        checkArtifacts configurations.compile.resolvedConfiguration.resolvedArtifacts
-                        checkArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts
-                        checkArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { true }
                     }
                 }
             }
         """
 
-        when:
+        expect:
         succeeds "resolve"
-
-        then:
-        file("app/build/transformed").assertHasDescendants("lib.jar.txt")
-        file("app/build/transformed/lib.jar.txt").text == "9"
     }
 
     def "transforms are applied lazily in file collections"() {

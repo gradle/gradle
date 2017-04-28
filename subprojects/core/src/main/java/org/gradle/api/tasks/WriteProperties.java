@@ -198,6 +198,15 @@ public class WriteProperties extends DefaultTask {
 
     /**
      * Sets the output file to write the properties to.
+     *
+     * @since 4.0
+     */
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
+    }
+
+    /**
+     * Sets the output file to write the properties to.
      */
     public void setOutputFile(Object outputFile) {
         this.outputFile = outputFile;

@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
@@ -25,8 +25,8 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 class CppCompiler extends GccCompatibleNativeCompiler<CppCompileSpec>  {
 
-    CppCompiler(BuildOperationProcessor buildOperationProcessor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationProcessor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new CppCompileArgsTransformer(), Transformers.<CppCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
+    CppCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new CppCompileArgsTransformer(), Transformers.<CppCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
     }
 
     private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {

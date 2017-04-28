@@ -32,6 +32,7 @@ import org.gradle.cache.internal.DefaultProducerGuard;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
@@ -52,7 +53,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORM
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable {
+public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
     private final FileStore<String> fileStore;
@@ -83,8 +84,17 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     @Override
-    public List<File> getResult(final File inputFile, HashCode inputsHash, final BiFunction<List<File>, File, File> transformer) {
+    public void afterStart() {
+    }
 
+    @Override
+    public void beforeComplete() {
+        // Discard cached results between builds
+        resultHashToResult.clear();
+    }
+
+    @Override
+    public List<File> getResult(final File inputFile, HashCode inputsHash, final BiFunction<List<File>, File, File> transformer) {
         // Collect up hash of the input files and of the transform's configuration params and implementation to calculate the key
         Snapshot inputFileSnapshot = fileSystemSnapshotter.snapshotAll(inputFile);
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();

@@ -38,10 +38,9 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ResolverResults
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
@@ -78,10 +77,9 @@ class DefaultConfigurationSpec extends Specification {
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def projectAccessListener = Mock(ProjectAccessListener)
     def projectFinder = Mock(ProjectFinder)
-    def metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
-    def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
+    def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
@@ -1607,8 +1605,8 @@ All Artifacts:
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(Path.path(path), Path.path(path), confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
-            Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), componentIdentifierFactory,
-            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, moduleIdentifierFactory)
+            Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
+            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
     }
 
     private DefaultPublishArtifact artifact(String name) {

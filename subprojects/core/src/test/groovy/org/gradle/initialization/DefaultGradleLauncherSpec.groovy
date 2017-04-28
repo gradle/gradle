@@ -105,6 +105,7 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.getDefaultProject() >> expectedCurrentProject
         _ * gradleMock.getTaskGraph() >> taskExecuterMock
         _ * taskExecuterMock.getRequestedTasks() >> [Mock(Task)]
+        _ * taskExecuterMock.getFilteredTasks() >> [Mock(Task)]
         _ * gradleMock.getStartParameter() >> expectedStartParams
         _ * gradleMock.getServices() >> buildScopeServices
         0 * gradleMock._
@@ -137,7 +138,7 @@ class DefaultGradleLauncherSpec extends Specification {
         then:
         buildResult.getGradle() is gradleMock
         buildResult.failure == null
-        buildOperationsFired()
+        expectedBuildOperationsFired()
 
     }
 
@@ -247,7 +248,7 @@ class DefaultGradleLauncherSpec extends Specification {
         1 * buildCompletionListener.completed()
     }
 
-    private void buildOperationsFired() {
+    private void expectedBuildOperationsFired() {
         assert buildOperationExecutor.operations.size() == 3
         assert buildOperationExecutor.operations[0].displayName == "Configure build"
         assert buildOperationExecutor.operations[1].displayName == "Calculate task graph"

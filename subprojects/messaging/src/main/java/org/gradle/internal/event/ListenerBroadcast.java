@@ -21,6 +21,8 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 
+import java.util.Collection;
+
 /**
  * <p>Manages a set of listeners of type T. Provides an implementation of T which can be used to broadcast to all
  * registered listeners.</p>
@@ -86,7 +88,7 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      *
      * @param listeners The listeners
      */
-    public void addAll(Iterable<? extends T> listeners) {
+    public void addAll(Collection<? extends T> listeners) {
         broadcast = broadcast.addAll(listeners);
     }
 
@@ -118,7 +120,7 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      *
      * @param listeners The listeners
      */
-    public void removeAll(Iterable<?> listeners) {
+    public void removeAll(Collection<?> listeners) {
         broadcast = broadcast.removeAll(listeners);
     }
 

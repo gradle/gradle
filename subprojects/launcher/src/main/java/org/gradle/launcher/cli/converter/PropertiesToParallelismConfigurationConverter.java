@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.util.Map;
 
-import static org.gradle.util.GUtil.isTrue;
+import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 public class PropertiesToParallelismConfigurationConverter {
     public ParallelismConfiguration convert(Map<String, String> properties, ParallelismConfiguration parallelismConfiguration) {

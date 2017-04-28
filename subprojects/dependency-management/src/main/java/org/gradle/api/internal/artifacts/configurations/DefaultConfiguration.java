@@ -33,7 +33,6 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
@@ -54,19 +53,16 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -86,12 +82,13 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -133,9 +130,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ProjectFinder projectFinder;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
-    private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
     private final FileCollectionFactory fileCollectionFactory;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = new MutationValidator() {
@@ -144,7 +139,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             DefaultConfiguration.this.validateParentMutation(type);
         }
     };
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
+    private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
     // These fields are not covered by mutation lock
@@ -156,7 +152,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
-    private ConfigurationsProvider configurationsProvider;
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
     private final Object observationLock = new Object();
@@ -173,7 +168,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
 
-    String displayName;
+    private String displayName;
 
     public DefaultConfiguration(Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -183,14 +178,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
                                 ProjectAccessListener projectAccessListener,
                                 ProjectFinder projectFinder,
-                                ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
                                 FileCollectionFactory fileCollectionFactory,
-                                ComponentIdentifierFactory componentIdentifierFactory,
                                 BuildOperationExecutor buildOperationExecutor,
                                 Instantiator instantiator,
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
-                                ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                RootComponentMetadataBuilder rootComponentMetadataBuilder) {
         this.identityPath = identityPath;
         this.path = path;
         this.name = name;
@@ -201,15 +194,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.projectAccessListener = projectAccessListener;
         this.projectFinder = projectFinder;
-        this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.componentIdentifierFactory = componentIdentifierFactory;
-
-        dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        this.dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         this.buildOperationExecutor = buildOperationExecutor;
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = new DefaultMutableAttributeContainer(attributesFactory);
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
@@ -219,14 +208,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
-        dependencies = new DefaultDependencySet(new Factory<String>() {
+        this.dependencies = new DefaultDependencySet(new Factory<String>() {
             @Override
             public String create() {
                 return getDisplayName() + " dependencies";
             }
         }, this, ownDependencies);
-        inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        allDependencies = new DefaultDependencySet(new Factory<String>() {
+        this.inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
+        this.allDependencies = new DefaultDependencySet(new Factory<String>() {
             @Override
             public String create() {
                 return getDisplayName() + " all dependencies";
@@ -236,21 +225,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
 
-        artifacts = new DefaultPublishArtifactSet(new Factory<String>() {
+        this.artifacts = new DefaultPublishArtifactSet(new Factory<String>() {
             @Override
             public String create() {
                 return getDisplayName() + " artifacts";
             }
         }, ownArtifacts, fileCollectionFactory);
-        inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
-        allArtifacts = new DefaultPublishArtifactSet(new Factory<String>() {
+        this.inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
+        this.allArtifacts = new DefaultPublishArtifactSet(new Factory<String>() {
             @Override
             public String create() {
                 return getDisplayName() + " all artifacts";
             }
         }, inheritedArtifacts, fileCollectionFactory);
 
-        outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
+        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
+        this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -482,9 +472,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (resolvedState != UNRESOLVED) {
             throw new IllegalStateException("Graph resolution already performed");
         }
-        buildOperationExecutor.run("Resolve dependencies of " + identityPath, new Action<BuildOperationContext>() {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
-            public void execute(BuildOperationContext buildOperationContext) {
+            public void run(BuildOperationContext context) {
                 lockAttributes();
 
                 ResolvableDependencies incoming = getIncoming();
@@ -501,6 +491,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 dependencyResolutionListeners.getSource().afterResolve(incoming);
                 // Discard listeners
                 dependencyResolutionListeners.removeAll();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Resolve dependencies of " + identityPath);
             }
         });
     }
@@ -642,12 +637,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
+        RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
         String newName = name + "Copy";
         Path newIdentityPath = identityPath.getParent().child(newName);
         Path newPath = path.getParent().child(newName);
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, newIdentityPath, newPath, newName,
-            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory, moduleIdentifierFactory);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
+            rootComponentMetadataBuilder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -711,14 +708,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ComponentResolveMetadata toRootComponentMetaData() {
-        Module module = getModule();
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        ProjectInternal project = projectFinder.findProject(module.getProjectPath());
-        AttributesSchemaInternal schema = project == null ? null : (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
-        configurationComponentMetaDataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
-        return metaData;
+        return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 
     public String getPath() {

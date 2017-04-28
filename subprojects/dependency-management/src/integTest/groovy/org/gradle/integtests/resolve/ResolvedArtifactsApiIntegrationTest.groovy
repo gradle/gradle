@@ -469,7 +469,7 @@ task show {
         fails 'show'
 
         then:
-        failure.assertHasCause("""More than one variant matches the consumer attributes:
+        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
   - Variant:
       - Found artifactType 'jar' but wasn't required.
       - Found buildType 'debug' but wasn't required.
@@ -721,6 +721,7 @@ ${showFailuresTask(expression)}
     }
 
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
+        settingsFile << "include 'a'"
         buildFile << """
 allprojects {
     repositories { maven { url '$mavenHttpRepo.uri' } }
@@ -730,6 +731,14 @@ dependencies {
     compile 'org:test2:2.0'
     compile files { throw new RuntimeException('broken 1') }
     compile files { throw new RuntimeException('broken 2') }
+    compile project(':a')
+}
+
+project(':a') {
+    configurations.default.outgoing.variants {
+        v1 { }
+        v2 { }
+    }
 }
 
 ${showFailuresTask(expression)}
@@ -752,6 +761,7 @@ ${showFailuresTask(expression)}
         failure.assertHasCause("Could not download test2.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
+        failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
 
         where:
         expression                                                    | lenient
@@ -762,9 +772,14 @@ ${showFailuresTask(expression)}
     }
 
     def "lenient artifact view includes only artifacts that are successfully resolved"() {
-        def failureMessage = TextUtil.normaliseLineSeparators("""Could not find missing-artifact.jar (org:missing-artifact:1.0).
+        def failureMessage1 = TextUtil.normaliseLineSeparators("""Could not find missing-artifact.jar (org:missing-artifact:1.0).
 Searched in the following locations:
     ${mavenHttpRepo.uri}/org/missing-artifact/1.0/missing-artifact-1.0.jar""")
+        def failureMessage2 = TextUtil.normaliseLineSeparators("""More than one variant of project :a matches the consumer attributes:
+  - Variant
+  - Variant""")
+
+        settingsFile << "include 'a', 'b'"
 
         buildFile << """
 allprojects {
@@ -776,11 +791,26 @@ dependencies {
     compile 'org:found:2.0'
     compile files('lib.jar')
     compile files { throw new RuntimeException('broken') }
+    compile project(':a')
+    compile project(':b')
+}
+
+project(':a') {
+    configurations.default.outgoing.variants {
+        v1 { }
+        v2 { }
+    }
+}
+
+project(':b') {
+    artifacts {
+        compile file('b.jar')
+    }
 }
 
 task resolveLenient {
     doLast {
-        def resolvedFiles = ['lib.jar', 'found-2.0.jar']
+        def resolvedFiles = ['lib.jar', 'found-2.0.jar', 'b.jar']
         def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
         assert lenientView.files.collect { it.name } == resolvedFiles
         assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
@@ -788,7 +818,8 @@ task resolveLenient {
         assert lenientView.artifacts.failures.collect { it.message.replaceAll('\\r\\n', '\\n') } == [
             "Could not resolve all dependencies for configuration ':compile'.",
             "broken",
-            '''$failureMessage'''
+            '''$failureMessage1''',
+            '''$failureMessage2'''
         ]
     }
 }

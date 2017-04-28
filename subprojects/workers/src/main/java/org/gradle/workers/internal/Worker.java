@@ -16,13 +16,13 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
-import org.gradle.internal.progress.BuildOperationExecutor;
 
 /**
  * A service that executes work in a (potentially) long-lived process or in-process.
  */
 public interface Worker<T extends WorkSpec> {
     DefaultWorkResult execute(T spec);
-    DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, BuildOperationExecutor.Operation parentBuildOperation);
+    DefaultWorkResult execute(T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation);
 }

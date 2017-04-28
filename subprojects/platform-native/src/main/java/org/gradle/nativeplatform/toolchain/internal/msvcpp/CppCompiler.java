@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
@@ -25,8 +25,8 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 class CppCompiler extends VisualCppNativeCompiler<CppCompileSpec> {
 
-    CppCompiler(BuildOperationProcessor buildOperationProcessor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationProcessor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new CppCompilerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
+    CppCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineToolInvocationWorker, invocationContext, new CppCompilerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
     }
 
     private static class CppCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {

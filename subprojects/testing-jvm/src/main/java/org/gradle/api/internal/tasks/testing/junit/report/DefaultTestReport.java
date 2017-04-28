@@ -23,9 +23,11 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.reporting.HtmlReportBuilder;
@@ -39,11 +41,11 @@ import java.util.List;
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 
 public class DefaultTestReport implements TestReporter {
-    private final BuildOperationProcessor buildOperationProcessor;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
 
-    public DefaultTestReport(BuildOperationProcessor buildOperationProcessor) {
-        this.buildOperationProcessor = buildOperationProcessor;
+    public DefaultTestReport(BuildOperationExecutor buildOperationExecutor) {
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -84,7 +86,7 @@ public class DefaultTestReport implements TestReporter {
             htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
                 @Override
                 public void render(final AllTestResults model, final HtmlReportBuilder output) throws IOException {
-                    buildOperationProcessor.run(new Action<BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>>>() {
+                    buildOperationExecutor.runAll(new Action<BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>>>() {
                         @Override
                         public void execute(BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>> queue) {
                             queue.add(generator("index.html", model, new OverviewPageRenderer(), output));
@@ -121,12 +123,12 @@ public class DefaultTestReport implements TestReporter {
         }
 
         @Override
-        public String getDescription() {
-            return "generating html test report for ".concat(results.getTitle());
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("generating html test report for ".concat(results.getTitle()));
         }
 
         @Override
-        public void run() {
+        public void run(BuildOperationContext context) {
             output.renderHtmlPage(fileUrl, results, renderer);
         }
     }

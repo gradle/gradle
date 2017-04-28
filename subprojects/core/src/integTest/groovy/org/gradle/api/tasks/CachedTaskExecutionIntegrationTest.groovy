@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -399,5 +400,55 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
+    }
+
+    @Ignore
+    def "order of resources on classpath does not affect how we calculate the cache key"() {
+        buildFile << """
+            apply plugin: 'base'
+            
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile File outputFile = new File(temporaryDir, "output.txt")
+                @Classpath FileCollection classpath = project.fileTree("resources")
+                
+                @TaskAction void generate() {
+                    outputFile.text = "done"
+                } 
+            }
+            
+            task cacheable(type: CustomTask)
+        """
+
+        def resources = file("resources")
+        resources.mkdirs()
+
+        def make = { String resource ->
+            resources.file(resource).text = "content"
+        }
+        def gradleUserHome = file("gradle-user-home")
+        executer.withGradleUserHomeDir(gradleUserHome)
+
+        // Make A then B and populate cache
+        expect:
+        make("A")
+        succeeds("cacheable")
+        make("B")
+        // populate the cache
+        withBuildCache().succeeds("cacheable")
+
+        when:
+        gradleUserHome.deleteDir() // nuke the cache
+        resources.deleteDir().mkdirs()
+        succeeds("clean")
+        and:
+        // Building with the resources seen in the opposite order
+        // shouldn't make a difference
+        make("B")
+        succeeds("cacheable")
+        make("A")
+        withBuildCache().succeeds("cacheable")
+        then:
+        result.assertTaskSkipped(":cacheable")
     }
 }

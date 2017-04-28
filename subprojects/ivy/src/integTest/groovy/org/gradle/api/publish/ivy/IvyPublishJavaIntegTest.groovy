@@ -45,9 +45,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             configurations["default"].extend == ["runtime", "compile"] as Set
             configurations["runtime"].extend == null
 
-            expectArtifact("publishTest").hasAttributes("jar", "jar", ["runtime"])
+            expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile"])
         }
-        ivyModule.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime", "commons-io:commons-io:1.4@runtime")
+        ivyModule.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@compile", "commons-io:commons-io:1.4@compile")
 
         and:
         resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
@@ -157,10 +157,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         dependency.exclusions[0].org == 'commons-logging'
         dependency.exclusions[0].module == 'commons-logging'
 
-        ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("runtime->default")
+        ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("compile->default")
         ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
         !ivyModule.parsedIvy.dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
-        ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("runtime->default")
+        ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("compile->default")
         ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].exclusions[0].module == 'camel-core'
 
         and:

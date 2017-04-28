@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -39,7 +39,7 @@ class VisualCppToolChainTest extends Specification {
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
     final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = Mock(CompilerOutputFileNamingSchemeFactory)
-    final BuildOperationProcessor buildOperationProcessor = Stub(BuildOperationProcessor)
+    final BuildOperationExecutor buildOperationExecutor = Stub(BuildOperationExecutor)
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
 	final UcrtLocator.SearchResult ucrtLookup = Stub(UcrtLocator.SearchResult)
@@ -60,7 +60,7 @@ class VisualCppToolChainTest extends Specification {
     }
 
     def setup() {
-        toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
+        toolChain = new VisualCppToolChain("visualCpp", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
     }
 
     def "installs an unavailable tool chain when not windows"() {
@@ -68,7 +68,7 @@ class VisualCppToolChainTest extends Specification {
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
 		ucrtLookup.available >> false
-        def toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
+        def toolChain = new VisualCppToolChain("visualCpp", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
 
         when:
         def availability = new ToolChainAvailability()

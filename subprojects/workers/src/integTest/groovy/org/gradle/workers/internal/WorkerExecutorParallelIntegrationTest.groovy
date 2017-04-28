@@ -371,19 +371,19 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         def gradle = executer.start()
 
         then:
-        handler.waitForAllPendingCalls(30)
+        handler.waitForAllPendingCalls()
 
         when:
         handler.release(1)
 
         then:
-        handler.waitForAllPendingCalls(10)
+        handler.waitForAllPendingCalls()
 
         when:
         handler.release(2)
 
         then:
-        handler.waitForAllPendingCalls(10)
+        handler.waitForAllPendingCalls()
 
         when:
         handler.release(3)

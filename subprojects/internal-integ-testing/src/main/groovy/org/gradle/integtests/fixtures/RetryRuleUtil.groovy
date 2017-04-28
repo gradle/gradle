@@ -29,76 +29,82 @@ class RetryRuleUtil {
 
     static RetryRule retryCrossVersionTestOnIssueWithReleasedGradleVersion(Specification specification) {
         RetryRule.retryIf(specification) { t ->
+            def daemonFixture = specification.hasProperty("daemonsFixture") ? specification.daemonsFixture : null
             Throwable failure = t
 
-            String releasedGradleVersion = specification.hasProperty("releasedGradleVersion") ? specification.releasedGradleVersion : null
-            def caughtGradleConnectionException = specification.hasProperty("caughtGradleConnectionException") ? specification.caughtGradleConnectionException : null
-            def daemonFixture = specification.hasProperty("daemonsFixture") ? specification.daemonsFixture : null
-
-            println "Cross version test failure with target version " + releasedGradleVersion
-            println "Failure: " + failure
-            println "Cause  : " + failure?.cause
-
-            daemonFixture?.daemons?.each {
-                print tailDaemonLog(it.logFile, it.context?.toString())
-            }
-
-            if (caughtGradleConnectionException != null) {
-                failure = caughtGradleConnectionException
-                println "Failure (caught during test): " + failure
-                println "Cause   (caught during test): " + failure?.cause
-            }
-
-            if (releasedGradleVersion == null) {
-                println "Can not retry cross version test because 'gradleVersion' is unknown"
-                return false
-            }
-
-            def targetDistVersion = GradleVersion.version(releasedGradleVersion)
-
-            // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
-            if (targetDistVersion < GradleVersion.version("1.3") &&
-                (failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon.*/
-                    || failure.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
-                    || failure.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
-                println "Retrying cross version test because of <1.3 daemon connection issue"
-                return retryWithCleanProjectDir(specification)
-            }
-
-            // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
-            if (targetDistVersion < GradleVersion.version("1.8") &&
-                failure.getClass().getSimpleName() == 'GradleConnectionException' && failure.cause.getClass().getSimpleName() == 'NullPointerException') {
-                return retryWithCleanProjectDir(specification)
-            }
-
-            if (targetDistVersion < GradleVersion.version('2.10')) {
-                if (getRootCauseMessage(failure) ==~ /Unable to calculate percentage: .* of .*\. All inputs must be >= 0/) {
-                    println "Retrying cross version test because of timing issue in Gradle versions <2.10"
-                    return retryWithCleanProjectDir(specification)
+            def retry = shouldRetry(specification, failure, daemonFixture)
+            if (retry) {
+                daemonFixture?.daemons?.each {
+                    print tailDaemonLog(it.logFile, it.context?.toString())
                 }
             }
-
-            if (targetDistVersion == GradleVersion.version('1.9') || targetDistVersion == GradleVersion.version('1.10') ) {
-                if (failure.class.simpleName == 'ServiceCreationException'
-                    && failure.cause?.class?.simpleName == 'UncheckedIOException'
-                    && failure.cause?.message == "Unable to create directory 'metadata-2.1'") {
-
-                    println "Retrying cross version test for " + targetDistVersion.version + " because failure was caused by directory creation race condition"
-                    return retryWithCleanProjectDir()
-                }
-            }
-
-            // daemon connection issue that does not appear anymore with 3.x versions of Gradle
-            if (targetDistVersion < GradleVersion.version("3.0") &&
-                failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon\..*/) {
-
-                println "Retrying cross version test because daemon connection is broken."
-                return retryWithCleanProjectDir(specification)
-            }
-
-            // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
-            didSocketDisappearOnWindows(failure, specification, daemonFixture)
+            return retry
         }
+    }
+
+    private static boolean shouldRetry(Specification specification, Throwable failure, daemonFixture) {
+        String releasedGradleVersion = specification.hasProperty("releasedGradleVersion") ? specification.releasedGradleVersion : null
+        def caughtGradleConnectionException = specification.hasProperty("caughtGradleConnectionException") ? specification.caughtGradleConnectionException : null
+
+        println "Cross version test failure with target version " + releasedGradleVersion
+        println "Failure: " + failure
+        println "Cause  : " + failure?.cause
+
+        if (caughtGradleConnectionException != null) {
+            failure = caughtGradleConnectionException
+            println "Failure (caught during test): " + failure
+            println "Cause   (caught during test): " + failure?.cause
+        }
+
+        if (releasedGradleVersion == null) {
+            println "Can not retry cross version test because 'gradleVersion' is unknown"
+            return false
+        }
+
+        def targetDistVersion = GradleVersion.version(releasedGradleVersion)
+
+        // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
+        if (targetDistVersion < GradleVersion.version("1.3") &&
+            (failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon.*/
+                || failure.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
+                || failure.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
+            println "Retrying cross version test because of <1.3 daemon connection issue"
+            return retryWithCleanProjectDir(specification)
+        }
+
+        // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
+        if (targetDistVersion < GradleVersion.version("1.8") &&
+            failure.getClass().getSimpleName() == 'GradleConnectionException' && failure.cause.getClass().getSimpleName() == 'NullPointerException') {
+            return retryWithCleanProjectDir(specification)
+        }
+
+        if (targetDistVersion < GradleVersion.version('2.10')) {
+            if (getRootCauseMessage(failure) ==~ /Unable to calculate percentage: .* of .*\. All inputs must be >= 0/) {
+                println "Retrying cross version test because of timing issue in Gradle versions <2.10"
+                return retryWithCleanProjectDir(specification)
+            }
+        }
+
+        if (targetDistVersion == GradleVersion.version('1.9') || targetDistVersion == GradleVersion.version('1.10')) {
+            if (failure.class.simpleName == 'ServiceCreationException'
+                && failure.cause?.class?.simpleName == 'UncheckedIOException'
+                && failure.cause?.message == "Unable to create directory 'metadata-2.1'") {
+
+                println "Retrying cross version test for " + targetDistVersion.version + " because failure was caused by directory creation race condition"
+                return retryWithCleanProjectDir()
+            }
+        }
+
+        // daemon connection issue that does not appear anymore with 3.x versions of Gradle
+        if (targetDistVersion < GradleVersion.version("3.0") &&
+            failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon\..*/) {
+
+            println "Retrying cross version test because daemon connection is broken."
+            return retryWithCleanProjectDir(specification)
+        }
+
+        // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
+        didSocketDisappearOnWindows(failure, specification, daemonFixture)
     }
 
     static RetryRule retryToolingAPIOnWindowsSocketDisappearance(Specification specification) {

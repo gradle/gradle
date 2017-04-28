@@ -59,7 +59,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         ":test" in nonSkippedTasks
     }
 
-    def "configurest test task when debug property is set"() {
+    def "configures test task when debug property is set"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -79,7 +79,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
     }
 
-    def "configurest test task when test.single property is set"() {
+    def "configures test task when test.single property is set"() {
         given:
         buildFile << """
             apply plugin: 'java'

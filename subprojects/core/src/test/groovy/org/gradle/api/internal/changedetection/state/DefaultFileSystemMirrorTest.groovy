@@ -95,7 +95,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
         mirror.getContent(file.path) == snapshot
 
-        mirror.buildFinished(buildResult)
+        mirror.beforeComplete()
 
         mirror.getFile(file.path) == null
         mirror.getDirectoryTree(file.path) == null
@@ -135,7 +135,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getDirectoryTree(file.path) == fileTreeSnapshot
         mirror.getContent(file.path) == snapshot
 
-        mirror.buildFinished(buildResult)
+        mirror.beforeComplete()
 
         mirror.getFile(file.path) == null
         mirror.getDirectoryTree(file.path) == null

@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class EclipsePluginTest extends AbstractProjectBuilderSpec {
@@ -29,7 +30,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
     private EclipsePlugin eclipsePlugin
 
     def setup() {
-        eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator))
+        eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator), project.services.get(UniqueProjectNameProvider))
     }
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {

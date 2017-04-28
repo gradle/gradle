@@ -20,11 +20,14 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.concurrent.GradleThread
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.logging.BuildOperationLogger
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -52,7 +55,10 @@ abstract class NativeCompilerTest extends Specification {
 
     WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
 
-    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new TestBuildOperationExecutor(), new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), 1)
+    private BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
+    private TimeProvider timeProvider = Mock(TimeProvider)
+    protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, Mock(ProgressLoggerFactory),
+        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), 1)
 
     def setup() {
         _ * workerLeaseService.withLocks(_) >> { args ->
@@ -129,6 +135,8 @@ abstract class NativeCompilerTest extends Specification {
     @Unroll("Compiles source files (options.txt=#withOptionsFile) with #description")
     def "compiles all source files in separate executions"() {
         given:
+        GradleThread.setManaged()
+
         def invocationContext = new DefaultMutableCommandLineToolContext()
         def compiler = getCompiler(invocationContext, O_EXT, withOptionsFile)
         def testDir = tmpDirProvider.testDirectory
@@ -154,9 +162,15 @@ abstract class NativeCompilerTest extends Specification {
         then:
 
         sourceFiles.each{ sourceFile ->
-            1 * commandLineTool.execute(_)
+            1 * commandLineTool.execute(_, _)
         }
+        4 * timeProvider.getCurrentTime()
+        2 * buildOperationListener.started(_, _)
+        2 * buildOperationListener.finished(_, _)
         0 * _
+
+        cleanup:
+        GradleThread.setUnmanaged()
 
         where:
         withOptionsFile | description
@@ -190,7 +204,7 @@ abstract class NativeCompilerTest extends Specification {
 
         then:
         1 * action.execute(_)
-        2 * commandLineTool.execute(_)
+        2 * commandLineTool.execute(_, _)
     }
 
     def "options file is written"() {

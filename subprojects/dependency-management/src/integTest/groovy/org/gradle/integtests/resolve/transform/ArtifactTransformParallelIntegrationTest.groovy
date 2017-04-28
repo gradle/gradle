@@ -16,10 +16,17 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 
-class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
+class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
     def setup() {
+        server.start()
+
         settingsFile << """
             rootProject.name = 'root'
         """
@@ -39,22 +46,15 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class SynchronizedTransform extends ArtifactTransform {
-                static cyclicBarrier = new java.util.concurrent.CyclicBarrier(3, {
-                    println "BARRIER HIT"
-                })
-
                 List<File> transform(File input) {
-                    try {
-                        if (input.name.startsWith("bad")) {
-                            throw new RuntimeException("Transform Failure: " + input.name)
-                        }
-                        def output = new File(outputDirectory, input.name + ".txt")
-                        println "Transforming \${input.name} to \${output.name}"
-                        output.text = String.valueOf(input.length())
-                        return [output]
-                    } finally {
-                        cyclicBarrier.await()
+                    new URL('${server.uri}' + input.name).text
+                    if (input.name.startsWith("bad")) {
+                        throw new RuntimeException("Transform Failure: " + input.name)
                     }
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
                 }
             }
 """
@@ -89,12 +89,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        server.expectConcurrentExecution("test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
+
         when:
         succeeds ":resolve"
 
         then:
-        outputContains("BARRIER HIT")
-
         outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
         outputContains("Transforming test2-2.3.jar to test2-2.3.jar.txt")
         outputContains("Transforming test3-3.3.jar to test3-3.3.jar.txt")
@@ -124,19 +124,17 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        server.expectConcurrentExecution("a.jar", "b.jar", "c.jar")
+
         when:
         succeeds ":resolve"
 
         then:
-        outputContains("BARRIER HIT")
-
         outputContains("Transforming a.jar to a.jar.txt")
         outputContains("Transforming b.jar to b.jar.txt")
         outputContains("Transforming c.jar to c.jar.txt")
     }
 
-    // Documents current behaviour, not necessarily optimal behaviour
-    // Currently external and file artifacts are visited separately, so first all artifacts are transformed in parallel, then all files
     def "transformations are applied in parallel for a mix of external and file dependency artifacts"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -174,15 +172,82 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        server.expectConcurrentExecution("a.jar", "b.jar", "c.jar", "test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
+
         when:
+        executer.withArguments("--max-workers=6")
         succeeds ":resolve"
 
         then:
-        output.count("BARRIER HIT") == 2
-
         outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
         outputContains("Transforming a.jar to a.jar.txt")
         outputContains("Transforming b.jar to b.jar.txt")
+    }
+
+    def "files are transformed as soon as they are downloaded"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        m2.artifactFile.text = "12"
+
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+            def b = file('b.jar')
+            b.text = '12'
+            def c = file('c.jar')
+            c.text = '123'
+
+            repositories {
+                maven { url "${server.uri}" }
+            }
+            dependencies {
+                compile files([a, b])
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
+            }
+            task resolve {
+                doLast {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'test-1.3.jar.txt', 'test2-2.3.jar.txt']
+                }
+            }
+        """
+
+        server.expectSerialExecution(server.file(m1.pom.path, m1.pom.file))
+        server.expectSerialExecution(server.file(m2.pom.path, m2.pom.file))
+
+        def handle = server.blockOnConcurrentExecutionAnyOfToResources(3, [
+            server.resource("a.jar"),
+            server.resource("b.jar"),
+            server.file(m1.artifact.path, m1.artifact.file),
+            server.file(m2.artifact.path, m2.artifact.file),
+            server.resource("test-1.3.jar"),
+            server.resource("test2-2.3.jar")
+        ])
+
+        when:
+        def build = executer.withArguments("--max-workers=3").withTasks(':resolve').start()
+
+        // 3 concurrent operations -> at least one artifact is being downloaded and at least one file is being transformed
+        handle.waitForAllPendingCalls()
+        handle.release(2)
+
+        handle.waitForAllPendingCalls()
+        handle.release(2)
+
+        handle.waitForAllPendingCalls()
+        handle.release(2)
+
+        def result = build.waitForFinish()
+
+        then:
+        result.assertOutputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
+        result.assertOutputContains("Transforming a.jar to a.jar.txt")
+        result.assertOutputContains("Transforming b.jar to b.jar.txt")
     }
 
     def "failures are collected from transformations applied parallel"() {
@@ -209,12 +274,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        server.expectConcurrentExecution("a.jar", "bad-b.jar", "bad-c.jar")
+
         when:
         fails ":resolve"
 
         then:
-        outputContains("BARRIER HIT")
-
         failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
         failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
     }

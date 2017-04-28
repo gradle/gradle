@@ -52,6 +52,7 @@ class ResolveTestFixture {
      * Injects the appropriate stuff into the build script.
      */
     void prepare() {
+        def inputs = buildArtifacts ? "it.inputs.files configurations." + config : ""
         buildFile << """
 buildscript {
     dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
@@ -62,6 +63,7 @@ allprojects {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
         it.configuration = configurations.$config
         it.buildArtifacts = ${buildArtifacts}
+        ${inputs}
     }
 }
 """

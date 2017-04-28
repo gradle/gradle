@@ -43,8 +43,6 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.project.BuildOperationProjectConfigurator;
-import org.gradle.api.internal.project.ProjectConfigurator;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -90,10 +88,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationService;
-import org.gradle.internal.progress.DefaultBuildOperationExecutor;
 import org.gradle.internal.progress.DefaultBuildOperationService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
@@ -164,14 +159,6 @@ public class GlobalScopeServices {
 
     GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry) {
         return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
-    }
-
-    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
-        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory);
-    }
-
-    ProjectConfigurator createProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperationProjectConfigurator(buildOperationExecutor);
     }
 
     BuildOperationService createBuildOperationService(ListenerManager listenerManager) {

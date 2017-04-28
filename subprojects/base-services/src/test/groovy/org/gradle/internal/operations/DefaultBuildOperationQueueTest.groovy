@@ -16,9 +16,8 @@
 
 package org.gradle.internal.operations
 
-import com.google.common.util.concurrent.ListeningExecutorService
-import com.google.common.util.concurrent.MoreExecutors
 import org.gradle.api.GradleException
+import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
@@ -31,26 +30,26 @@ import java.util.concurrent.Executors
 class DefaultBuildOperationQueueTest extends Specification {
 
     public static final String LOG_LOCATION = "<log location>"
-    abstract static class TestBuildOperation implements BuildOperation, Runnable {
-        public String getDescription() { return toString() }
-        public String toString() { return getClass().simpleName }
+    abstract static class TestBuildOperation implements RunnableBuildOperation {
+        BuildOperationDescriptor.Builder description() { BuildOperationDescriptor.displayName(toString()) }
+        String toString() { getClass().simpleName }
     }
 
     static class Success extends TestBuildOperation {
-        void run() {
+        void run(BuildOperationContext buildOperationContext) {
             // do nothing
         }
     }
 
     static class Failure extends TestBuildOperation {
-        void run() {
+        void run(BuildOperationContext buildOperationContext) {
             throw new BuildOperationFailure(this, "always fails")
         }
     }
 
-    static class SimpleWorker implements BuildOperationWorker<TestBuildOperation> {
-        public void execute(TestBuildOperation run) {
-            run.run();
+    static class SimpleWorker implements BuildOperationQueue.QueueWorker<TestBuildOperation> {
+        void execute(TestBuildOperation run) {
+            run.run(null)
         }
 
         String getDisplayName() {
@@ -63,8 +62,7 @@ class DefaultBuildOperationQueueTest extends Specification {
 
     void setupQueue(int threads) {
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, threads) {};
-        ListeningExecutorService sameThreadExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threads))
-        operationQueue = new DefaultBuildOperationQueue(workerRegistry, sameThreadExecutor, new SimpleWorker())
+        operationQueue = new DefaultBuildOperationQueue(workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }
 
     def "cleanup"() {
@@ -84,7 +82,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         operationQueue.waitForCompletion()
 
         then:
-        runs * success.run()
+        runs * success.run(_)
 
         where:
         runs | threads
@@ -145,13 +143,13 @@ class DefaultBuildOperationQueueTest extends Specification {
         given:
         setupQueue(1)
         operationQueue.add(Stub(TestBuildOperation) {
-            run() >> { throw new RuntimeException("first") }
+            run(_) >> { throw new RuntimeException("first") }
         })
         operationQueue.add(Stub(TestBuildOperation) {
-            run() >> { throw new RuntimeException("second") }
+            run(_) >> { throw new RuntimeException("second") }
         })
         operationQueue.add(Stub(TestBuildOperation) {
-            run() >> { throw new RuntimeException("third") }
+            run(_) >> { throw new RuntimeException("third") }
         })
 
         when:
@@ -168,7 +166,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         setupQueue(1)
         operationQueue.setLogLocation(LOG_LOCATION)
         operationQueue.add(Stub(TestBuildOperation) {
-            run() >> { throw new RuntimeException("first") }
+            run(_) >> { throw new RuntimeException("first") }
         })
 
         when:
@@ -230,7 +228,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         }
 
         @Override
-        void run() {
+        void run(BuildOperationContext context) {
             operationAction.run()
             startedLatch.countDown()
             releaseLatch.await()

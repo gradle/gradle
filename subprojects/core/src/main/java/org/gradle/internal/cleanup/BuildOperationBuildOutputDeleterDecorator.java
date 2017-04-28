@@ -16,11 +16,11 @@
 
 package org.gradle.internal.cleanup;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.io.File;
 
@@ -35,16 +35,17 @@ public class BuildOperationBuildOutputDeleterDecorator implements BuildOutputDel
         this.delegate = delegate;
     }
 
-    private BuildOperationDetails getDisplayName() {
-        return BuildOperationDetails.displayName("Clean stale outputs for " + gradle.getIdentityPath().getName()).build();
-    }
-
     @Override
     public void delete(final Iterable<File> outputs) {
-        buildOperationExecutor.run(getDisplayName(), new Action<BuildOperationContext>() {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
-            public void execute(BuildOperationContext buildOperationContext) {
+            public void run(BuildOperationContext context) {
                 delegate.delete(outputs);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Clean stale outputs for " + gradle.getIdentityPath().getName());
             }
         });
     }

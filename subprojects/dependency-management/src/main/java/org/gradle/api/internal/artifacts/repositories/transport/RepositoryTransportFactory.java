@@ -28,7 +28,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;

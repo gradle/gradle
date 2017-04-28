@@ -364,7 +364,7 @@ task show {
 """
         expect:
         fails("show")
-        failure.assertHasCause("""More than one variant matches the consumer attributes:
+        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
   - Variant:
       - Found artifactType 'jar' but wasn't required.
       - Found flavor 'free' but wasn't required.
@@ -447,7 +447,7 @@ task show {
 
         expect:
         fails("show")
-        failure.assertHasCause("""No variants match the consumer attributes:
+        failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Variant:
       - Found artifactType 'jar' but wasn't required.
       - Required flavor 'preview' and found incompatible value 'free'.
@@ -601,6 +601,7 @@ task show {
 
     @Unroll
     def "reports multiple failures to resolve artifacts when files are queried using #expression"() {
+        settingsFile << "include 'a'"
         buildFile << """
 allprojects {
     repositories { maven { url '$mavenHttpRepo.uri' } }
@@ -610,6 +611,14 @@ dependencies {
     compile 'org:test2:2.0'
     compile files { throw new RuntimeException('broken 1') }
     compile files { throw new RuntimeException('broken 2') }
+    compile project(':a')
+}
+
+project(':a') {
+    configurations.compile.outgoing.variants {
+        v1 { }
+        v2 { }
+    }
 }
 
 task show {
@@ -636,6 +645,7 @@ task show {
         failure.assertHasCause("Could not download test2.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
+        failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
 
         where:
         expression                                                                                         | _

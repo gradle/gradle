@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.operations.BuildOperationProcessor;
 
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +33,6 @@ import java.util.Set;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
-// TODO:DAZ Extract the `buildProjectDependencies` logic into a separate DependencyArtifactsVisitor
 /**
  * Collects all artifacts and their build dependencies.
  */
@@ -44,17 +42,12 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     private final Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
     private final Set<Long> buildableArtifactSets = new HashSet<Long>();
     private final ResolutionStrategy.SortOrder sortOrder;
-    private final BuildOperationProcessor buildOperationProcessor;
 
-    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder, BuildOperationProcessor buildOperationProcessor) {
+    public DefaultResolvedArtifactsBuilder(boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
         this.buildProjectDependencies = buildProjectDependencies;
         this.sortOrder = sortOrder;
-        this.buildOperationProcessor = buildOperationProcessor;
     }
 
-    // TODO:DAZ Split the 'consumer-first' implementation out
-    // TODO:DAZ Try using an 'access-order' LinkedHashMap
-    // TODO:DAZ Sort component nodes, not configuration nodes
     @Override
     public void startArtifacts(DependencyGraphNode root) {
         if (sortOrder == ResolutionStrategy.SortOrder.DEFAULT) {
@@ -73,6 +66,10 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         return sortOrder == ResolutionStrategy.SortOrder.CONSUMER_FIRST ? Lists.reverse(marked) : marked;
     }
 
+    /*
+     * Recursively sort the configuration nodes of the resolution graph.
+     * Note that this should really be sorting _component nodes_, not configuration nodes.
+     */
     private void topologicalSort(DependencyGraphNode node, Set<DependencyGraphNode> tempMarked, List<DependencyGraphNode> marked) {
         if (tempMarked.contains(node)) {
             return;
@@ -146,6 +143,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
             }
         }
 
-        return new DefaultVisitedArtifactResults(artifactsById, buildableArtifactSets, buildOperationProcessor);
+        return new DefaultVisitedArtifactResults(artifactsById, buildableArtifactSets);
     }
 }

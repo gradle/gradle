@@ -15,10 +15,8 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
@@ -65,6 +63,10 @@ public class Project extends XmlPersistableConfigurationObject {
 
     public void setModulePaths(Set<Path> modulePaths) {
         this.modulePaths = modulePaths;
+    }
+
+    public void addModulePath(File moduleFile) {
+        modulePaths.add(pathFactory.relativePath("PROJECT_DIR", moduleFile));
     }
 
     /**
@@ -127,14 +129,11 @@ public class Project extends XmlPersistableConfigurationObject {
             jdk = new Jdk(jdkName, languageLevel);
         }
         this.bytecodeVersion = bytecodeVersion;
-        this.modulePaths.addAll(Lists.transform(modules, new Function<IdeaModule, Path>() {
-            @Override
-            public Path apply(IdeaModule module) {
-                return pathFactory.relativePath("PROJECT_DIR", module.getOutputFile());
-            }
-        }));
-        this.wildcards.addAll(wildcards);
         this.modules = modules;
+        for (IdeaModule module : modules) {
+            addModulePath(module.getOutputFile());
+        }
+        this.wildcards.addAll(wildcards);
         // overwrite rather than append libraries
         this.projectLibraries = Sets.newLinkedHashSet(projectLibraries);
         this.vcs = vcs;

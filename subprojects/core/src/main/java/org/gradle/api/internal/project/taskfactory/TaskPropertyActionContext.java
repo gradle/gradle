@@ -65,7 +65,7 @@ public interface TaskPropertyActionContext {
     boolean isOptional();
 
     /**
-     * Returns whether the task type this proprety belongs to is cacheable.
+     * Returns whether the task type this property belongs to is cacheable.
      */
     boolean isCacheable();
 

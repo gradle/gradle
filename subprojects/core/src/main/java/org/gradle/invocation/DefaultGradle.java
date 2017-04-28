@@ -35,7 +35,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
-import org.gradle.api.internal.project.ProjectConfigurator;
+import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -82,7 +82,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             @Override
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
-                    services.get(ProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                    services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                     rootProjectActions = null;
                 }
             }

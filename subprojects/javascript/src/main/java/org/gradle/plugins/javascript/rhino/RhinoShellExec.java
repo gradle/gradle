@@ -44,6 +44,15 @@ public class RhinoShellExec extends JavaExec {
         return CollectionUtils.stringize(rhinoOptions);
     }
 
+    /**
+     * Sets Rhino options.
+     *
+     * @since 4.0
+     */
+    public void setRhinoOptions(List<String> rhinoOptions) {
+        this.rhinoOptions = new LinkedList<Object>(rhinoOptions);
+    }
+
     public void setRhinoOptions(Object... rhinoOptions) {
         this.rhinoOptions = new LinkedList<Object>(Arrays.asList(rhinoOptions));
     }
@@ -55,6 +64,15 @@ public class RhinoShellExec extends JavaExec {
     @Internal("Represented as part of args")
     public List<String> getScriptArgs() {
         return CollectionUtils.stringize(scriptArgs);
+    }
+
+    /**
+     * Sets script arguments.
+     *
+     * @since 4.0
+     */
+    public void setScriptArgs(List<String> scriptArgs) {
+        this.scriptArgs = new LinkedList<Object>(scriptArgs);
     }
 
     public void setScriptArgs(Object... scriptArgs) {
@@ -71,6 +89,15 @@ public class RhinoShellExec extends JavaExec {
         return script == null ? null : getProject().file(script);
     }
 
+    /**
+     * Sets script file.
+     *
+     * @since 4.0
+     */
+    public void setScript(File script) {
+        this.script = script;
+    }
+
     public void setScript(Object script) {
         this.script = script;
     }
@@ -85,6 +112,11 @@ public class RhinoShellExec extends JavaExec {
         }
         args.addAll(getScriptArgs());
         return args;
+    }
+
+    @Override
+    public JavaExec setArgs(List<String> applicationArgs) {
+        throw argsUnsupportOperationException();
     }
 
     @Override

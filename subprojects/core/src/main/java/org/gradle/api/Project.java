@@ -260,6 +260,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
+     * generated into.</p>
+     *
+     * @param path The build directory
+     * @since 4.0
+     */
+    void setBuildDir(File path);
+
+    /**
+     * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
      * generated into. The path parameter is evaluated as described for {@link #file(Object)}. This mean you can use,
      * amongst other things, a relative or absolute path or File object to specify the build directory.</p>
      *

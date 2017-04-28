@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import spock.lang.Specification
 
 class DefaultLenientConfigurationTest extends Specification {

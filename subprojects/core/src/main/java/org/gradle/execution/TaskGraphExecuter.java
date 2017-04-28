@@ -48,4 +48,10 @@ public interface TaskGraphExecuter extends TaskExecutionGraph {
      * Set of requested tasks.
      */
     Set<Task> getRequestedTasks();
+
+
+    /**
+     * Set of requested tasks.
+     */
+    Set<Task> getFilteredTasks();
 }

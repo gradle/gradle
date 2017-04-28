@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
 import org.gradle.process.internal.worker.request.RequestProtocol;
@@ -145,7 +146,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                         requestProtocol = null;
                     }
                 }
-                requestProtocol.run(method.getName(), method.getParameterTypes(), args);
+                requestProtocol.run(method.getName(), method.getParameterTypes(), args, BuildOperationIdentifierRegistry.getCurrentOperationIdentifier());
                 boolean hasResult = receiver.awaitNextResult();
                 if (!hasResult) {
                     try {

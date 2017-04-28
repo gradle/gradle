@@ -21,7 +21,7 @@ import org.gradle.TaskExecutionRequest;
 import java.util.List;
 import java.util.Set;
 
-/*
+/**
  * Operation Descriptor for Calculating the task graph of a build.
  * This class is intentionally internal and consumed by the build scan plugin.
  *

@@ -278,8 +278,8 @@ public class DefaultJavaForkOptionsTest {
 
         JavaForkOptions target = context.mock(JavaForkOptions.class)
         context.checking {
-            one(target).setExecutable('executable')
-            one(target).setJvmArgs(['arg'])
+            one(target).setExecutable('executable' as Object)
+            one(target).setJvmArgs(['arg'] as Iterable<?>)
             one(target).setSystemProperties(key: 12)
             one(target).setMinHeapSize('64m')
             one(target).setMaxHeapSize('1g')

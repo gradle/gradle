@@ -17,15 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 
 public class ObjectiveCppPCHCompiler extends GccCompatibleNativeCompiler<ObjectiveCppPCHCompileSpec> {
-    public ObjectiveCppPCHCompiler(BuildOperationProcessor buildOperationProcessor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationProcessor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new ObjectiveCppPCHCompileArgsTransformer(), Transformers.<ObjectiveCppPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
+    public ObjectiveCppPCHCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new ObjectiveCppPCHCompileArgsTransformer(), Transformers.<ObjectiveCppPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
     }
 
     private static class ObjectiveCppPCHCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCppPCHCompileSpec> {

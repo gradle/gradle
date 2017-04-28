@@ -28,7 +28,7 @@ public class TaskClassValidationMessage {
     }
 
     public static TaskClassValidationMessage property(String name, String message) {
-        return new TaskClassValidationMessage(String.format("property '%s': %s", name, message));
+        return new TaskClassValidationMessage(String.format("property '%s' %s", name, message));
     }
 
     @Override

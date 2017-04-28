@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.Transformer;
@@ -26,8 +24,10 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EmptyResolvedVariant;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.tasks.TaskDependency;
@@ -38,14 +38,17 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final VariantAttributeMatchingCache matchingCache;
@@ -57,14 +60,18 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     }
 
     public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants) {
-        return new AttributeMatchingVariantSelector(consumerAttributes.asImmutable(), allowNoMatchingVariants);
+        return new AttributeMatchingVariantSelector(matchingCache, schema, consumerAttributes.asImmutable(), allowNoMatchingVariants);
     }
 
-    private class AttributeMatchingVariantSelector implements VariantSelector {
+    private static class AttributeMatchingVariantSelector implements VariantSelector {
+        private final VariantAttributeMatchingCache matchingCache;
+        private final AttributesSchemaInternal schema;
         private final AttributeContainerInternal requested;
         private final boolean ignoreWhenNoMatches;
 
-        private AttributeMatchingVariantSelector(AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
+        private AttributeMatchingVariantSelector(VariantAttributeMatchingCache matchingCache, AttributesSchemaInternal schema, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
+            this.matchingCache = matchingCache;
+            this.schema = schema;
             this.requested = requested;
             this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         }
@@ -75,18 +82,26 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public ResolvedVariant select(Collection<? extends ResolvedVariant> variants, AttributesSchemaInternal producerSchema) {
-            AttributeMatcher matcher = schema.withProducer(producerSchema);
-            List<? extends ResolvedVariant> matches = matcher.matches(variants, requested);
+        public ResolvedArtifactSet select(ResolvedVariantSet producer) {
+            try {
+                return doSelect(producer);
+            } catch (Throwable t) {
+                return new BrokenResolvedArtifactSet(t);
+            }
+        }
+
+        private ResolvedArtifactSet doSelect(ResolvedVariantSet producer) {
+            AttributeMatcher matcher = schema.withProducer(producer.getSchema());
+            List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), requested);
             if (matches.size() == 1) {
-                return matches.get(0);
+                return matches.get(0).getArtifacts();
             }
             if (matches.size() > 1) {
-                throw new AmbiguousVariantSelectionException(requested, matches, matcher);
+                throw new AmbiguousVariantSelectionException(producer.getDisplayName(), requested, matches, matcher);
             }
 
             List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
-            for (ResolvedVariant variant : variants) {
+            for (ResolvedVariant variant : producer.getVariants()) {
                 AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
                 ConsumerVariantMatchResult matchResult = new ConsumerVariantMatchResult();
                 matchingCache.collectConsumerVariants(variantAttributes, requested, matchResult);
@@ -96,83 +111,37 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
             if (candidates.size() == 1) {
                 Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-                return new ConsumerProvidedResolvedVariant(result.getLeft(), result.getRight().attributes, result.getRight().transformer);
+                return new ConsumerProvidedResolvedVariant(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
             }
 
             if (!candidates.isEmpty()) {
-                throw new AmbiguousTransformException(requested, candidates);
+                throw new AmbiguousTransformException(producer.getDisplayName(), requested, candidates);
             }
 
             if (ignoreWhenNoMatches) {
-                return new EmptyResolvedVariant(requested);
+                return ResolvedArtifactSet.EMPTY;
             }
-            throw new NoMatchingVariantSelectionException(requested, variants, matcher);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof AttributeMatchingVariantSelector)) {
-                return false;
-            }
-            AttributeMatchingVariantSelector that = (AttributeMatchingVariantSelector) o;
-            return Objects.equal(requested, that.requested);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(requested);
+            throw new NoMatchingVariantSelectionException(producer.getDisplayName(), requested, producer.getVariants(), matcher);
         }
     }
 
-    private class ConsumerProvidedResolvedVariant implements ResolvedVariant {
-        private final ResolvedVariant delegate;
+    private static class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
+        private final ResolvedArtifactSet delegate;
         private final AttributeContainerInternal attributes;
         private final Transformer<List<File>, File> transform;
-        private final Map<ResolvedArtifact, Throwable> artifactFailures = Maps.newConcurrentMap();
-        private final Map<File, Throwable> fileFailures = Maps.newConcurrentMap();
 
-        ConsumerProvidedResolvedVariant(ResolvedVariant delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
+        ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformer<List<File>, File> transform) {
             this.delegate = delegate;
             this.attributes = target;
             this.transform = transform;
         }
 
         @Override
-        public void addPrepareActions(final BuildOperationQueue<RunnableBuildOperation> actions, final ArtifactVisitor visitor) {
-            delegate.visit(new ArtifactVisitor() {
-                @Override
-                public void visitArtifact(AttributeContainer variant, final ResolvedArtifact artifact) {
-                    actions.add(new TransformArtifactOperation(artifact));
-                }
-
-                @Override
-                public boolean shouldPerformPreemptiveDownload() {
-                    return visitor.shouldPerformPreemptiveDownload();
-                }
-
-                @Override
-                public boolean includeFiles() {
-                    return visitor.includeFiles();
-                }
-
-                @Override
-                public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, final File file) {
-                    actions.add(new TransformFileOperation(file));
-                }
-
-                @Override
-                public void visitFailure(Throwable failure) {
-                    visitor.visitFailure(failure);
-                }
-            });
-        }
-
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-            delegate.visit(new ArtifactTransformingVisitor(visitor, attributes, transform, artifactFailures, fileFailures));
+        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+            Map<ResolvedArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvedArtifact, TransformArtifactOperation>();
+            Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
+            Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(artifactResults, actions, transform, listener, fileResults));
+            return new TransformingResult(result, artifactResults, fileResults);
         }
 
         @Override
@@ -180,85 +149,138 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             delegate.collectBuildDependencies(dest);
         }
 
+        private static class TransformingAsyncArtifactListener implements AsyncArtifactListener {
+            private final Map<ResolvedArtifact, TransformArtifactOperation> artifactResults;
+            private final BuildOperationQueue<RunnableBuildOperation> actions;
+            private final AsyncArtifactListener listener;
+            private final Map<File, TransformFileOperation> fileResults;
+            private final Transformer<List<File>, File> transform;
+
+            TransformingAsyncArtifactListener(Map<ResolvedArtifact, TransformArtifactOperation> artifactResults, BuildOperationQueue<RunnableBuildOperation> actions, Transformer<List<File>, File> transform, AsyncArtifactListener listener, Map<File, TransformFileOperation> fileResults) {
+                this.artifactResults = artifactResults;
+                this.actions = actions;
+                this.transform = transform;
+                this.listener = listener;
+                this.fileResults = fileResults;
+            }
+
+            @Override
+            public void artifactAvailable(ResolvedArtifact artifact) {
+                TransformArtifactOperation operation = new TransformArtifactOperation(artifact, transform);
+                artifactResults.put(artifact, operation);
+                actions.add(operation);
+            }
+
+            @Override
+            public boolean requireArtifactFiles() {
+                // Always need the files, as we need to run the transform in order to calculate the output artifacts.
+                return true;
+            }
+
+            @Override
+            public boolean includeFileDependencies() {
+                return listener.includeFileDependencies();
+            }
+
+            @Override
+            public void fileAvailable(File file) {
+                TransformFileOperation operation = new TransformFileOperation(file, transform);
+                fileResults.put(file, operation);
+                actions.add(operation);
+            }
+        }
+
+        private class TransformingResult implements Completion {
+            private final Completion result;
+            private final Map<ResolvedArtifact, TransformArtifactOperation> artifactResults;
+            private final Map<File, TransformFileOperation> fileResults;
+
+            public TransformingResult(Completion result, Map<ResolvedArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+                this.result = result;
+                this.artifactResults = artifactResults;
+                this.fileResults = fileResults;
+            }
+
+            @Override
+            public void visit(ArtifactVisitor visitor) {
+                result.visit(new ArtifactTransformingVisitor(visitor, attributes, artifactResults, fileResults));
+            }
+        }
+    }
+
+    private static class TransformArtifactOperation implements RunnableBuildOperation {
+        private final ResolvedArtifact artifact;
+        private final Transformer<List<File>, File> transform;
+        private Throwable failure;
+        private List<File> result;
+
+        TransformArtifactOperation(ResolvedArtifact artifact, Transformer<List<File>, File> transform) {
+            this.artifact = artifact;
+            this.transform = transform;
+        }
+
         @Override
-        public AttributeContainerInternal getAttributes() {
-            return attributes;
-        }
-
-        private class TransformArtifactOperation implements RunnableBuildOperation {
-            private final ResolvedArtifact artifact;
-
-            TransformArtifactOperation(ResolvedArtifact artifact) {
-                this.artifact = artifact;
-            }
-
-            @Override
-            public void run() {
-                try {
-                    transform.transform(artifact.getFile());
-                } catch (Throwable t) {
-                    artifactFailures.put(artifact, t);
-                }
-            }
-
-            @Override
-            public String getDescription() {
-                return "Apply " + transform + " to " + artifact;
+        public void run(BuildOperationContext context) {
+            try {
+                result = transform.transform(artifact.getFile());
+            } catch (Throwable t) {
+                failure = t;
             }
         }
 
-        private class TransformFileOperation implements RunnableBuildOperation {
-            private final File file;
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+           return BuildOperationDescriptor.displayName("Apply " + transform + " to " + artifact);
+        }
+    }
 
-            TransformFileOperation(File file) {
-                this.file = file;
-            }
+    private static class TransformFileOperation implements RunnableBuildOperation {
+        private final File file;
+        private final Transformer<List<File>, File> transform;
+        private Throwable failure;
+        private List<File> result;
 
-            @Override
-            public void run() {
-                try {
-                    transform.transform(file);
-                } catch (Throwable t) {
-                    fileFailures.put(file, t);
-                }
-            }
+        TransformFileOperation(File file, Transformer<List<File>, File> transform) {
+            this.file = file;
+            this.transform = transform;
+        }
 
-            @Override
-            public String getDescription() {
-                return "Apply " + transform + " to " + file;
+        @Override
+        public void run(BuildOperationContext context) {
+            try {
+                result = transform.transform(file);
+            } catch (Throwable t) {
+                failure = t;
             }
+        }
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Apply " + transform + " to " + file);
         }
     }
 
     private static class ArtifactTransformingVisitor implements ArtifactVisitor {
         private final ArtifactVisitor visitor;
         private final AttributeContainerInternal target;
-        private final Transformer<List<File>, File> transform;
-        private final Map<ResolvedArtifact, Throwable> artifactFailures;
-        private final Map<File, Throwable> fileFailures;
+        private final Map<ResolvedArtifact, TransformArtifactOperation> artifactResults;
+        private final Map<File, TransformFileOperation> fileResults;
 
-        private ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Transformer<List<File>, File> transform, Map<ResolvedArtifact, Throwable> artifactFailures, Map<File, Throwable> fileFailures) {
+        private ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ResolvedArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
             this.visitor = visitor;
             this.target = target;
-            this.transform = transform;
-            this.artifactFailures = artifactFailures;
-            this.fileFailures = fileFailures;
+            this.artifactResults = artifactResults;
+            this.fileResults = fileResults;
         }
 
         @Override
         public void visitArtifact(AttributeContainer variant, ResolvedArtifact artifact) {
-            if (artifactFailures.containsKey(artifact)) {
-                visitor.visitFailure(artifactFailures.get(artifact));
+            TransformArtifactOperation operation = artifactResults.get(artifact);
+            if (operation.failure != null) {
+                visitor.visitFailure(operation.failure);
                 return;
             }
 
-            List<File> transformedFiles;
-            try {
-                transformedFiles = transform.transform(artifact.getFile());
-            } catch (Throwable t) {
-                visitor.visitFailure(t);
-                return;
-            }
+            List<File> transformedFiles = operation.result;
 
             TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
             for (File output : transformedFiles) {
@@ -281,31 +303,22 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public boolean shouldPerformPreemptiveDownload() {
-            return visitor.shouldPerformPreemptiveDownload();
+        public boolean requireArtifactFiles() {
+            return visitor.requireArtifactFiles();
         }
 
         @Override
         public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
-            if (fileFailures.containsKey(file)) {
-                visitor.visitFailure(fileFailures.get(file));
+            TransformFileOperation operation = fileResults.get(file);
+            if (operation.failure != null) {
+                visitor.visitFailure(operation.failure);
                 return;
             }
 
-            List<File> result;
-            try {
-                result = transform.transform(file);
-            } catch (Throwable t) {
-                visitor.visitFailure(t);
-                return;
-            }
-            if (!result.isEmpty()) {
-                for (File outputFile : result) {
-                    visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), target, outputFile);
-                }
+            List<File> result = operation.result;
+            for (File outputFile : result) {
+                visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), target, outputFile);
             }
         }
     }
-
-
 }

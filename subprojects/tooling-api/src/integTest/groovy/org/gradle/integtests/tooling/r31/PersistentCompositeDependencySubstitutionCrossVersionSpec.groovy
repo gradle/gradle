@@ -30,6 +30,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification {
     TestFile buildA
     TestFile buildB
+    TestFile buildC
 
     def setup() {
 
@@ -42,6 +43,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
             """
             settingsFile << """
                 includeBuild 'buildB'
+                includeBuild 'buildC'
             """
         }
 
@@ -50,6 +52,17 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
                 allprojects {
                     apply plugin: 'java'
                 }
+                project(':b1') {
+                    dependencies {
+                        testCompile "org.test:buildC:1.0"
+                    }
+                }
+            """
+        }
+
+        buildC = singleProjectBuildInSubfolder("buildC") {
+            buildFile << """
+                apply plugin: 'java'
             """
         }
     }
@@ -60,11 +73,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
         then:
         assert eclipseProject.classpath.empty
-        assert eclipseProject.projectDependencies.size() == 1
-        with(eclipseProject.projectDependencies.first()) {
-            it.path == 'b1'
-            it.targetProject == null
-        }
+        eclipseProject.projectDependencies.collect {it.path}  == ['b1']
     }
 
     def "EclipseProject model honours custom project name"() {
@@ -86,11 +95,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         def eclipseProject = loadToolingModel(EclipseProject)
 
         then:
-        eclipseProject.projectDependencies.size() == 2
-        eclipseProject.projectDependencies.find { it.path == 'b1-renamed' }
-
-        and:
-        eclipseProject.projectDependencies.find { it.path == 'b2-renamed' }
+        eclipseProject.projectDependencies.collect {it.path}  == ['b1-renamed', 'b2-renamed']
     }
 
     @ToolingApiVersion(">=3.2")
@@ -131,6 +136,87 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         ideaModule.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == "b1-renamed" }
         ideaModule.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == "b2-renamed" }
 
+    }
+
+    @ToolingApiVersion(">=3.3")
+    @TargetGradleVersion(">=3.3")
+    def "Idea models for included builds have dependencies substituted"() {
+        when:
+        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+
+        then:
+        allProjects.rootIdeaProject.modules.size() == 1
+
+        def moduleA = allProjects.rootIdeaProject.modules[0]
+        moduleA.dependencies.each {
+            assert it instanceof  IdeaModuleDependency
+        }
+        moduleA.dependencies.collect { it.targetModuleName } == ['b1']
+
+        and:
+        assert allProjects.includedBuildIdeaProjects.size() == 2
+        def gradleBuildB = allProjects.includedBuildIdeaProjects.keySet().find { it.rootProject.name == 'buildB' }
+
+        gradleBuildB.buildIdentifier.rootDir == buildB
+
+        def projectB = allProjects.includedBuildIdeaProjects.get(gradleBuildB)
+        projectB.modules*.name == ['buildB', 'b1', 'b2']
+
+        def moduleB1 = projectB.modules.find {it.name == 'b1'}
+        moduleB1.dependencies.collect { it.targetModuleName } == ['buildC']
+
+        and:
+        def gradleBuildC = allProjects.includedBuildIdeaProjects.keySet().find { it.buildIdentifier.rootDir == buildC }
+
+        gradleBuildC.rootProject.name == 'buildC'
+
+        def projectC = allProjects.includedBuildIdeaProjects.get(gradleBuildC)
+        projectC.modules.size() == 1
+        projectC.modules[0].name == 'buildC'
+    }
+
+    @ToolingApiVersion(">=3.3")
+    @TargetGradleVersion(">=4.0")
+    def "ensures unique name for all Idea modules in composite"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                testCompile "org.test:buildC:1.0"
+                testCompile "org.buildD:b1:1.0"
+            }
+"""
+        def buildD = multiProjectBuildInSubFolder("buildD", ["b1", "buildC"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    
+                    group = 'org.buildD'
+                }
+"""
+        }
+        settingsFile << """
+            includeBuild 'buildD'
+"""
+
+        when:
+        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+
+        then:
+        allProjects.allIdeaProjects.collect { it.name } == ['buildA', 'buildB', 'buildC', 'buildD']
+
+        // TODO:DAZ This is wrong: the IdeaProject for including build should contain all IDEA modules
+        allProjects.rootIdeaProject.name == 'buildA'
+        allProjects.rootIdeaProject.modules.collect { it.name } == ['buildA']
+
+        def moduleA = allProjects.rootIdeaProject.modules[0]
+        moduleA.dependencies.each {
+            assert it instanceof  IdeaModuleDependency
+        }
+        moduleA.dependencies.collect { it.targetModuleName } == ['buildB-b1', 'buildA-buildC', 'buildD-b1']
+
+        allProjects.getIdeaProject('buildB').modules.collect { it.name } == ['buildB', 'buildB-b1', 'b2']
+        allProjects.getIdeaProject('buildC').modules.collect { it.name } == ['buildA-buildC']
+        allProjects.getIdeaProject('buildD').modules.collect { it.name } == ['buildD', 'buildD-b1', 'buildD-buildC']
     }
 
     @TargetGradleVersion(">=3.3")

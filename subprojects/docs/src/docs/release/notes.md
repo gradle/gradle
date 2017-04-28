@@ -114,15 +114,15 @@ You can diagnose overlapping task output issues by running Gradle at the `--info
 
 #### Stricter validation of task properties
 
-When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin go through validation. In Gradle 4.0 some additional problems are now detected. A warning is shown when:
+When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin will go through validation. In Gradle 4.0, additional problems are now detected. 
 
-* a task has a property without an input or output annotation (this might indicate forgotten inputs or outputs),
+A warning is shown when:
+* a task has a property without an input or output annotation (this might indicate a forgotten input or output),
 * a task has `@Input` on a `File` property (instead of using `@InputFile` of `@InputDirectory`),
 * a task declares conflicting types for a property (say, both `@InputFile` and `@InputDirectory`),
-* a cacheable task declares a property without specifying `@PathSensitive`; in such a case we default to `ABSOLUTE` sensitivity, which for most cases means the task's results cannot be shared among different users via a shared cache.
+* a cacheable task declares a property without specifying `@PathSensitive`. In such a case, we default to `ABSOLUTE` path sensitivity, which will prevent the task's outputs from being shared across different users via a shared cache.
 
-For more info on using task property annotations see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
-
+For more info on using task property annotations, see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
 
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
@@ -158,6 +158,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### maven-publish and ivy-publish mirror multi-project behavior
+
+When using the `java` plugin, all `compile` and `runtime` dependencies will now be mapped to the `compile` scope, i.e. "leaked" into the consumer's compile classpath. This is in line with how
+ these legacy configurations work in multi-project builds. We strongly encourage you to use the `api`(java-library plugin only), `implementation` and `runtimeOnly` configurations instead. These
+ are mapped as expected, with `api` being exposed to the consumer's compile classpath and `implementation` and `runtimeOnly` only available on the consumer's runtime classpath.
 <!--
 ### Example breaking change
 -->
@@ -237,7 +242,11 @@ We would like to thank the following community members for making contributions 
 - [Lari Hotari](https://github.com/lhtorai) - Issue: #1730 Memory leak in Gradle daemon
  ([gradle/gradle#1736](https://github.com/gradle/gradle/pull/1736))
 - [Andy Bell](https://github.com/andyrbell) - Prevent NullPointerException for JUnit Categories for test description with null test class([gradle/gradle#1511](https://github.com/gradle/gradle/pull/1511))
-
+- [Piotr Kubowicz](https://github.com/pkubowicz) - Default to compileClasspath configuration in DependencyInsightReportTask ([gradle/gradle#1376](https://github.com/gradle/gradle/pull/1395))
+- [Chris Gavin](https://github.com/chrisgavin) - Clean up Sign task API ([gradle/gradle#1679](https://github.com/gradle/gradle/pull/1679))
+- [Szczepan Faber](https://github.com/szczepiq) - Issue: #1857 Could not copy MANIFEST.MF / Multiple entries with same key
+- [Bo Zhang](https://github.com/blindpirate) - Use Enum.getDeclaringClass() to avoid NPE in comparing enums ([gradle/gradle#1862](https://github.com/gradle/gradle/pull/1862))
+- [Danny Thomas](https://github.com/DanielThomas) - Improve performance of version parsing ([gradle/gradle#1659](https://github.com/gradle/gradle/pull/1659))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

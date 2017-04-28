@@ -46,7 +46,6 @@ public class OperationResult {
         return failure;
     }
 
-
     @Nullable
     public Object getResult() {
         return result;

@@ -32,6 +32,10 @@ class S3Resource implements RemoteResource {
         this.file = file
     }
 
+    String getPath() {
+        return repositoryPath
+    }
+
     @Override
     URI getUri() {
         return new URI("s3:/${relativeFilePath()}")

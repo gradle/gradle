@@ -76,6 +76,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
+    private final Set<Task> filteredTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
@@ -121,6 +122,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 queue.remove(0);
                 node.dependenciesProcessed();
                 node.doNotRequire();
+                filteredTasks.add(task);
                 continue;
             }
 
@@ -456,6 +458,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     public List<Task> getTasks() {
         return new ArrayList<Task>(executionPlan.keySet());
+    }
+
+    @Override
+    public Set<Task> getFilteredTasks() {
+        return filteredTasks;
     }
 
     public void useFilter(Spec<? super Task> filter) {

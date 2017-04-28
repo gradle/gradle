@@ -65,7 +65,7 @@ public final class UncheckedException extends RuntimeException {
     }
 
     /**
-     * Uwraps passed InvocationTargetException hence making the stack of exceptions cleaner without losing information.
+     * Unwraps passed InvocationTargetException hence making the stack of exceptions cleaner without losing information.
      *
      * Note: always throws the failure in some form. The return value is to keep the compiler happy.
      *

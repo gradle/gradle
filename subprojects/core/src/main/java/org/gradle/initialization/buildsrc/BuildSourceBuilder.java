@@ -17,7 +17,6 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.CacheBuilder;
@@ -30,8 +29,9 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
@@ -77,10 +77,15 @@ public class BuildSourceBuilder {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return new DefaultClassPath();
         }
-        return buildOperationExecutor.run(BuildOperationDetails.displayName("Build buildSrc").progressDisplayName("buildSrc").build(), new Transformer<ClassPath, BuildOperationContext>() {
+        return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {
             @Override
-            public ClassPath transform(BuildOperationContext buildOperationContext) {
+            public ClassPath call(BuildOperationContext context) {
                 return buildBuildSrc(startParameter);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Build buildSrc").progressDisplayName("buildSrc");
             }
         });
     }

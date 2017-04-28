@@ -151,10 +151,10 @@ subprojects {
 
         then:
         def mainPom = mavenRepo.module('my.org', 'main', '1.0').parsedPom
-        mainPom.scopes.runtime.expectDependency('my.org:util:1.0')
+        mainPom.scopes.compile.expectDependency('my.org:util:1.0')
 
         def utilPom = mavenRepo.module('my.org', 'util', '1.0').parsedPom
-        utilPom.scopes.runtime.expectDependency('org.gradle:dep:1.1')
+        utilPom.scopes.compile.expectDependency('org.gradle:dep:1.1')
     }
 
     @Issue("GRADLE-2945")
@@ -199,7 +199,7 @@ subprojects {
 
         then:
         def mainPom = mavenRepo.module('org.gradle', 'root', '1.0').parsedPom
-        def dependency = mainPom.scopes.runtime.expectDependency('org.gradle:pom-excludes:0.1')
+        def dependency = mainPom.scopes.compile.expectDependency('org.gradle:pom-excludes:0.1')
         dependency.exclusions.size() == 3
         def sorted = dependency.exclusions.sort { it.groupId }
         sorted[0].groupId == "*"

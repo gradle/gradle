@@ -331,6 +331,7 @@ your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via api:org.gradle.caching.configuration.BuildCacheConfiguration#registerBuildCacheService(java.lang.Class,java.lang.Class)[].
 For an example of what this could look like see the https://github.com/gradle/gradle-hazelcast-plugin[Gradle Hazelcast plugin].
 
+https://gradle.com/build-cache[Gradle Enterprise] will include a high-performance, easy to install and operate, shared build cache.
 
 [[sec:build_cache_known_issues]]
 === Known issues with built-in Build Caches
@@ -369,13 +370,3 @@ For automatic cleanup tools like http://manpages.ubuntu.com/manpages/precise/man
 | When Gradle fails to store something into the build cache or fails to retrieve something from the build cache, the build may fail.
 | None.
 |===
-
-
-
-
-
-
-
-
-
-

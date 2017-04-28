@@ -127,7 +127,8 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         Runtime.runtime.availableProcessors() + 1 | _
     }
 
-    def "re-runs tests when resources are renamed"() {
+    @Requires(TestPrecondition.ONLINE)
+    def "re-runs tests when resources are renamed in a jar"() {
         buildFile << """
             allprojects {
                 apply plugin: 'java'
@@ -164,6 +165,43 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         resourceFile.renameTo(file("dependency/src/main/resources/dependency/bar.properties"))
+        then:
+        fails 'test'
+    }
+
+    @Requires(TestPrecondition.ONLINE)
+    def "re-runs tests when resources are renamed"() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { jcenter() }
+
+            dependencies { 
+                testCompile 'junit:junit:4.12' 
+            }
+        """
+        file("src/test/java/MyTest.java") << """
+            import org.junit.*;
+
+            public class MyTest {
+               @Test
+               public void test() {
+                  Assert.assertNotNull(getClass().getResource("dependency/foo.properties"));
+               }
+            }
+        """.stripIndent()
+
+        def resourceFile = file("src/main/resources/dependency/foo.properties")
+        resourceFile << """
+            someProperty = true
+        """
+
+        when:
+        succeeds 'test'
+        then:
+        noExceptionThrown()
+
+        when:
+        resourceFile.renameTo(file("src/main/resources/dependency/bar.properties"))
         then:
         fails 'test'
     }

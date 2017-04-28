@@ -261,7 +261,7 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         then:
         validator.validationMessages*.toString() == [
-                "property 'inputFiles': is not annotated with an input or output annotation"
+                "property 'inputFiles' is not annotated with an input or output annotation"
         ]
     }
 
@@ -282,7 +282,7 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         then:
         validator.validationMessages*.toString() == [
-                "property 'inputFiles': both getter and field declare annotation @InputFiles"
+                "property 'inputFiles' has both a getter and field declared with annotation @InputFiles"
         ]
     }
 
@@ -323,8 +323,8 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         then:
         validator.validationMessages*.toString() == [
-            "property 'confusedFile': conflicting property types are declared: @InputFile, @OutputFile",
-            "property 'inputThing': conflicting property types are declared: @InputFile, @InputDirectory"
+            "property 'confusedFile' has conflicting property types declared: @InputFile, @OutputFile",
+            "property 'inputThing' has conflicting property types declared: @InputFile, @InputDirectory"
         ]
     }
 
@@ -363,9 +363,9 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         then:
         validator.validationMessages*.toString() == [
-            "property 'file': @Input annotation used on property of type $File.name",
-            "property 'fileCollection': @Input annotation used on property of type $FileCollection.name",
-            "property 'fileTree': @Input annotation used on property of type $FileTree.name"
+            "property 'file' has @Input annotation used on property of type $File.name",
+            "property 'fileCollection' has @Input annotation used on property of type $FileCollection.name",
+            "property 'fileTree' has @Input annotation used on property of type $FileTree.name"
         ]
     }
 
@@ -389,8 +389,8 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         then:
         validator.validationMessages*.toString() == [
-            "property 'inputFile': missing @PathSensitive annotation on cacheable task input property",
-            "property 'inputFiles': missing @PathSensitive annotation on cacheable task input property"
+            "property 'inputFile' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE",
+            "property 'inputFiles' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE"
         ]
     }
 }
