@@ -485,6 +485,13 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped ':compileJava'
+
+        when: "we remove a non relevant file on compile classpath"
+        assert file('foo.txt').delete()
+        run 'compileJava'
+
+        then:
+        skipped ':compileJava'
     }
 
     @Issue("gradle/gradle#1358")

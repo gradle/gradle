@@ -48,6 +48,14 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     }
 
     @Override
+    public void visitDirectorySnapshot(DirectoryFileSnapshot directory) {
+    }
+
+    @Override
+    public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
+    }
+
+    @Override
     public void visitFileSnapshot(RegularFileSnapshot file) {
         if (FileUtils.isJar(file.getName())) {
             visitJar(file);

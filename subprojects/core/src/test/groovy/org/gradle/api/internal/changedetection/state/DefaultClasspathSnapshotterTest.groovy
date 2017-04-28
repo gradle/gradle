@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 @CleanupTestDirectory(fieldName = "tmpDir")
 @UsesNativeServices
-class RuntimeClasspathSnapshotBuilderTest extends Specification {
+class DefaultClasspathSnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -51,7 +51,7 @@ class RuntimeClasspathSnapshotBuilderTest extends Specification {
         fileSystemSnapshotter,
         stringInterner)
 
-    def "missing files and empty directories are handled"() {
+    def "directories and missing files are ignored"() {
         def emptyDir = file('root/emptyDir').createDir()
         def missingFile = file('some').createDir().file('does-not-exist')
         def missingRootFile = file('missing-root')
@@ -60,9 +60,7 @@ class RuntimeClasspathSnapshotBuilderTest extends Specification {
         def fileCollectionSnapshot = snapshot(emptyDir.parentFile, missingFile.parentFile, missingRootFile)
 
         then:
-        fileCollectionSnapshot == [
-            ['missing-root', '', 'MISSING']
-        ]
+        fileCollectionSnapshot.empty
     }
 
     def "root elements are unsorted, non-root elements are sorted amongst themselves"() {
