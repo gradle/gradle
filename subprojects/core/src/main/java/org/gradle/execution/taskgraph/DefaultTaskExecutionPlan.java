@@ -558,6 +558,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
                         selected.set(taskInfo);
                         iterator.remove();
+                        taskInfo.setProjectLock(projectLock);
                         if (taskInfo.allDependenciesSuccessful()) {
                             taskInfo.startExecution();
                             recordTaskStarted(taskInfo);
@@ -585,7 +586,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 taskExecution.execute(selectedTask);
             }
         } finally {
-            coordinationService.withStateLock(unlock(workerLease, getProjectLock(selectedTask)));
+            coordinationService.withStateLock(unlock(workerLease, selectedTask.getProjectLock()));
         }
     }
 

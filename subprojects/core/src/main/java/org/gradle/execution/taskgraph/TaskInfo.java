@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.resources.ResourceLock;
 
 import java.util.TreeSet;
 
@@ -31,6 +32,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private TaskExecutionState state;
     private Throwable executionFailure;
     private boolean dependenciesProcessed;
+    private ResourceLock projectLock;
     private final TreeSet<TaskInfo> dependencyPredecessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> dependencySuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
@@ -194,6 +196,14 @@ public class TaskInfo implements Comparable<TaskInfo> {
 
     public void removeShouldRunAfterSuccessor(TaskInfo toNode) {
         shouldSuccessors.remove(toNode);
+    }
+
+    public ResourceLock getProjectLock() {
+        return projectLock;
+    }
+
+    public void setProjectLock(ResourceLock projectLock) {
+        this.projectLock = projectLock;
     }
 
     public int compareTo(TaskInfo otherInfo) {
