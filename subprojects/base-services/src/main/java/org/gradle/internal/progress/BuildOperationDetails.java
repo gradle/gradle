@@ -22,15 +22,14 @@ package org.gradle.internal.progress;
  *
  * This interface is intentionally internal and consumed by the build scan plugin.
  *
+ * The return type token is currently not used/enforced.
+ * We will iterate on the producer side API to compile time enforce it.
+ *
+ * @param <R> the type of result
  * @see BuildOperationDescriptor
- * @param <R> the type of result that is associated with this kind of build operation
  * @since 4.0
  */
+@SuppressWarnings("unused") // R type token is not enforced right now
 public interface BuildOperationDetails<R> {
 
-    /**
-     * A convenience method that automatically casts the result of an
-     * operation to the type expected for this kind of operation.
-     */
-    R getResult(OperationFinishEvent finishEvent);
 }

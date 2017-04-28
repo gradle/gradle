@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 
 import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.OperationFinishEvent;
 
 /**
  * Details about an artifact set being resolved.
@@ -38,8 +37,4 @@ public final class ResolveArtifactsBuildOperationDetails implements BuildOperati
         return configuration;
     }
 
-    @Override
-    public Void getResult(OperationFinishEvent finishEvent) {
-        return null;
-    }
 }

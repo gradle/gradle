@@ -18,7 +18,6 @@ package org.gradle.configuration;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.OperationFinishEvent;
 
 import java.io.File;
 
@@ -47,8 +46,4 @@ public final class ApplyScriptPluginBuildOperationDetails implements BuildOperat
         return displayName;
     }
 
-    @Override
-    public Void getResult(OperationFinishEvent finishEvent) {
-        return null;
-    }
 }

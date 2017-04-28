@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.plugin.use.PluginId;
 
 /**
@@ -46,8 +45,4 @@ public final class ApplyPluginBuildOperationDetails implements BuildOperationDet
         return className;
     }
 
-    @Override
-    public Void getResult(OperationFinishEvent finishEvent) {
-        return null;
-    }
 }

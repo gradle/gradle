@@ -28,6 +28,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
+@SuppressWarnings("UnusedImport")
 class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
     private Map operations

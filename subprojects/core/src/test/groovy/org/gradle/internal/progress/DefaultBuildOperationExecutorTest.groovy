@@ -43,8 +43,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         and:
         def buildOperation = Mock(CallableBuildOperation)
         def progressLogger = Mock(ProgressLogger)
-        def descriptor = "some-thing"
-        def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").details(descriptor)
+        def details = Mock(BuildOperationDetails)
+        def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").details(details)
         def id
 
         when:
@@ -62,7 +62,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.parentId == null
             assert operation.name == "<op>"
             assert operation.displayName == "<some-operation>"
-            assert operation.details == descriptor
+            assert operation.details == details
             assert start.startTime == 123L
         }
 
@@ -85,7 +85,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.id == id
             assert operation.name == "<op>"
             assert operation.displayName == "<some-operation>"
-            assert operation.details == descriptor
+            assert operation.details == details
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
             assert opResult.failure == null

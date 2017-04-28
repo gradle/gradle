@@ -164,7 +164,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         this.currentOperation.set(currentOperation);
         BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(this.currentOperation.get().getId());
         try {
-            listener.started((BuildOperationDescriptor) descriptor, new OperationStartEvent(currentOperation.getStartTime()));
+            listener.started(descriptor, new OperationStartEvent(currentOperation.getStartTime()));
 
             Throwable failure = null;
             DefaultBuildOperationContext context = new DefaultBuildOperationContext();

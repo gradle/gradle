@@ -18,7 +18,6 @@ package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.OperationFinishEvent;
 
 
 /**
@@ -38,8 +37,4 @@ public final class TaskOperationDetails implements BuildOperationDetails<Void> {
         return task;
     }
 
-    @Override
-    public Void getResult(OperationFinishEvent finishEvent) {
-        return null;
-    }
 }

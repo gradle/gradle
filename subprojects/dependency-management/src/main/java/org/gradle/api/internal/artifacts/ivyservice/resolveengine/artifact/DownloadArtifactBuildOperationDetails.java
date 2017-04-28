@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.OperationFinishEvent;
 
 
 /**
@@ -32,11 +31,6 @@ public final class DownloadArtifactBuildOperationDetails implements BuildOperati
 
     DownloadArtifactBuildOperationDetails(String artifactIdentifier) {
         this.artifactIdentifier = artifactIdentifier;
-    }
-
-    @Override
-    public Void getResult(OperationFinishEvent finishEvent) {
-        return null;
     }
 
     public String getArtifactIdentifier() {

@@ -93,7 +93,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
         def buildOperation = new BuildOperationDescriptor(1, 2, "<task>", "<task>",  "<task>", new TaskOperationDetails(testTask))
 
         when:
-        evaluator.started(buildOperation, Mock(OperationStartEvent))
+        evaluator.started(buildOperation, new OperationStartEvent(0))
         evaluator.completed(testDescriptorInternal, testResult, Mock(TestCompleteEvent))
         evaluator.evaluate()
 

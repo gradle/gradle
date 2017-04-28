@@ -18,7 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.OperationFinishEvent;
 
 import java.util.List;
 import java.util.Set;
@@ -47,8 +46,4 @@ public final class CalculateTaskGraphDescriptor implements BuildOperationDetails
         return excludedTaskNames;
     }
 
-    @Override
-    public CalculateTaskGraphOperationResult getResult(OperationFinishEvent finishEvent) {
-        return (CalculateTaskGraphOperationResult) finishEvent.getResult();
-    }
 }

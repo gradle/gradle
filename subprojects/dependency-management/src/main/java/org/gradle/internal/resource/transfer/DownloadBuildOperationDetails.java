@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.OperationFinishEvent;
 
 import java.net.URI;
 
@@ -52,8 +51,4 @@ public final class DownloadBuildOperationDetails implements BuildOperationDetail
         return contentType;
     }
 
-    @Override
-    public Void getResult(OperationFinishEvent finishEvent) {
-        return null;
-    }
 }

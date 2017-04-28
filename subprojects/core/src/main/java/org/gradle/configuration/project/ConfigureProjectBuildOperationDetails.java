@@ -17,7 +17,6 @@
 package org.gradle.configuration.project;
 
 import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.util.Path;
 
 
@@ -45,8 +44,4 @@ public final class ConfigureProjectBuildOperationDetails implements BuildOperati
         return buildPath;
     }
 
-    @Override
-    public Void getResult(OperationFinishEvent finishEvent) {
-        return null;
-    }
 }
