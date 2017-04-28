@@ -16,10 +16,7 @@
 
 package org.gradle.script.lang.kotlin.resolver
 
-import org.gradle.internal.os.OperatingSystem
-
 import org.gradle.script.lang.kotlin.concurrent.future
-import org.gradle.script.lang.kotlin.support.userHome
 
 import org.gradle.tooling.ProgressListener
 
@@ -27,22 +24,13 @@ import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 import org.jetbrains.kotlin.script.ScriptContents
 import org.jetbrains.kotlin.script.ScriptDependenciesResolver
 
-import java.io.BufferedWriter
 import java.io.File
-import java.io.FileWriter
 
 import java.net.URI
 
 import java.security.MessageDigest
 
-import java.text.SimpleDateFormat
-
-import java.util.*
 import java.util.Arrays.equals
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.TimeUnit
-
-import kotlin.concurrent.thread
 
 
 internal
@@ -223,10 +211,7 @@ class KotlinBuildScriptDependencies(
     override val classpath: Iterable<File>,
     override val sources: Iterable<File>,
     override val imports: Iterable<String>,
-    val buildscriptBlockHash: ByteArray?) : KotlinScriptExternalDependencies {
-
-    override fun toString(): String = "${super.toString()}(classpath=$classpath, sources=$sources)"
-}
+    val buildscriptBlockHash: ByteArray?) : KotlinScriptExternalDependencies
 
 
 internal
@@ -249,94 +234,3 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
 
     return test(scriptFile.parentFile)
 }
-
-
-private
-object ResolverEventLogger {
-
-    fun log(event: ResolverEvent) {
-        require(consumer.isAlive)
-        q.offer(now() to event, 50, TimeUnit.MILLISECONDS)
-    }
-
-    private
-    val q = ArrayBlockingQueue<Pair<Date, ResolverEvent>>(64)
-
-    private
-    val consumer = thread { // TODO: Don't leak this thread
-
-        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-
-        bufferedWriter().use { writer ->
-
-            fun write(timestamp: Date, e: ResolverEvent) {
-                writer.write("${format.format(timestamp)} - $e\n\n")
-                writer.flush()
-            }
-
-            while (true) {
-                val (timestamp, event) = q.take()
-                write(timestamp, event)
-            }
-        }
-    }
-
-    private
-    fun bufferedWriter() =
-        BufferedWriter(FileWriter(outputFile()))
-
-    private
-    fun outputFile() =
-        createTempFile(prefix = "resolver-", suffix = ".log", directory = outputDir())
-
-    private
-    fun outputDir() =
-        File(userHome(), logDirForOperatingSystem()).apply { mkdirs() }
-
-    private
-    fun logDirForOperatingSystem() =
-        OperatingSystem.current().run {
-            when {
-                isMacOsX  -> "Library/Logs/gradle-script-kotlin"
-                isWindows -> "Application Data/gradle-script-kotlin/log"
-                else      -> ".gradle-script-kotlin/log"
-            }
-        }
-
-    private
-    fun now() = GregorianCalendar.getInstance().time
-}
-
-internal
-sealed class ResolverEvent
-
-private
-data class ResolutionFailure(
-    val scriptFile: File?,
-    val failure: Exception) : ResolverEvent()
-
-private
-data class ResolutionProgress(
-    val scriptFile: File?,
-    val description: String) : ResolverEvent()
-
-private
-data class ResolvedToPrevious(
-    val scriptFile: File?,
-    val environment: Environment?,
-    val previousDependencies: KotlinScriptExternalDependencies?) : ResolverEvent()
-
-private
-data class SubmittedModelRequest(
-    val scriptFile: File?,
-    val request: KotlinBuildScriptModelRequest) : ResolverEvent()
-
-private
-data class ReceivedModelResponse(
-    val scriptFile: File?,
-    val response: KotlinBuildScriptModel) : ResolverEvent()
-
-private
-data class ResolvedDependencies(
-    val scriptFile: File?,
-    val dependencies: KotlinBuildScriptDependencies) : ResolverEvent()

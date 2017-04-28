@@ -16,6 +16,8 @@
 
 package org.gradle.script.lang.kotlin.provider
 
+import kotlin.coroutines.experimental.buildSequence
+
 
 internal
 fun CharSequence.linePreservingSubstring(range: IntRange): String =
@@ -39,4 +41,19 @@ fun CharSequence.lineAndColumnFromRange(range: IntRange): Pair<Int, Int> {
     val lineCountBefore = prefix.count { it == '\n' }
     val lastNewLineIndex = prefix.lastIndexOf('\n')
     return (lineCountBefore + 1) to (range.start - lastNewLineIndex)
+}
+
+
+internal
+fun CharSequence.splitIncluding(delimiter: Char) = buildSequence {
+    var startIndex = 0
+    while (true) {
+        val endIndex = indexOf(delimiter, startIndex) + 1
+        if (endIndex == 0) break
+        yield(substring(startIndex, endIndex))
+        startIndex = endIndex
+    }
+    if (startIndex <= lastIndex) {
+        yield(substring(startIndex))
+    }
 }
