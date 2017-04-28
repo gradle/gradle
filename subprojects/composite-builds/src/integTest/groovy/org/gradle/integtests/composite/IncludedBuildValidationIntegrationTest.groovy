@@ -68,7 +68,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
 
         and:
         failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
-        failure.assertHasCause("Included build 'b1' must have a 'settings.gradle' file.")
+        failure.assertHasCause("Included build 'b1' must have a 'settings.*' file.")
     }
 
     def "reports failure when included build is itself a composite"() {

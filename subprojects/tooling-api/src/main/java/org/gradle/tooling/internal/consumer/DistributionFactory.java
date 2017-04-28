@@ -23,6 +23,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
@@ -42,7 +43,12 @@ import java.util.concurrent.CancellationException;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DistributionFactory {
+    private final ScriptFileResolver scriptFileResolver;
     private File distributionBaseDir;
+
+    public DistributionFactory(ScriptFileResolver scriptFileResolver) {
+        this.scriptFileResolver = scriptFileResolver;
+    }
 
     public void setDistributionBaseDir(File distributionBaseDir) {
         this.distributionBaseDir = distributionBaseDir;
@@ -52,7 +58,7 @@ public class DistributionFactory {
      * Returns the default distribution to use for the specified project.
      */
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
-        BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
+        BuildLayout layout = new BuildLayoutFactory(scriptFileResolver).getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), distributionBaseDir);

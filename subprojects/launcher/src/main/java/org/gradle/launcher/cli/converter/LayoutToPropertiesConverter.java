@@ -23,6 +23,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.io.File;
@@ -34,6 +35,13 @@ import java.util.Map;
 import java.util.Properties;
 
 public class LayoutToPropertiesConverter {
+
+    private final ScriptFileResolver scriptFileResolver;
+
+    public LayoutToPropertiesConverter(ScriptFileResolver scriptFileResolver) {
+        this.scriptFileResolver = scriptFileResolver;
+    }
+
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
@@ -57,7 +65,7 @@ public class LayoutToPropertiesConverter {
     }
 
     private void configureFromBuildDir(File currentDir, boolean searchUpwards, Map<String, String> result) {
-        BuildLayoutFactory factory = new BuildLayoutFactory();
+        BuildLayoutFactory factory = new BuildLayoutFactory(scriptFileResolver);
         BuildLayout layout = factory.getLayoutFor(currentDir, searchUpwards);
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
