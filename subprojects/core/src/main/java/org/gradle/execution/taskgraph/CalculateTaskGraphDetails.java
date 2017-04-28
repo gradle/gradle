@@ -29,11 +29,11 @@ import java.util.Set;
  *
  * @since 4.0
  */
-public final class CalculateTaskGraphDescriptor implements BuildOperationDetails<CalculateTaskGraphOperationResult> {
+public final class CalculateTaskGraphDetails implements BuildOperationDetails<CalculateTaskGraphDetails.Result> {
     private final List<TaskExecutionRequest> taskRequests;
     private final Set<String> excludedTaskNames;
 
-    public CalculateTaskGraphDescriptor(List<TaskExecutionRequest> taskRequests, Set<String> excludedTaskNames) {
+    public CalculateTaskGraphDetails(List<TaskExecutionRequest> taskRequests, Set<String> excludedTaskNames) {
         this.taskRequests = taskRequests;
         this.excludedTaskNames = excludedTaskNames;
     }
@@ -44,6 +44,25 @@ public final class CalculateTaskGraphDescriptor implements BuildOperationDetails
 
     public Set<String> getExcludedTaskNames() {
         return excludedTaskNames;
+    }
+
+    public static class Result {
+        private final Set<String> requestedTaskPaths;
+        private final Set<String> filteredTaskPaths;
+
+        public Result(Set<String> requestedTaskPaths, Set<String> excludedTaskPaths) {
+            this.requestedTaskPaths = requestedTaskPaths;
+            this.filteredTaskPaths = excludedTaskPaths;
+        }
+
+        public Set<String> getRequestedTaskPaths() {
+            return requestedTaskPaths;
+        }
+
+        public Set<String> getFilteredTaskPaths() {
+            return filteredTaskPaths;
+        }
+
     }
 
 }
