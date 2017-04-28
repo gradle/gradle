@@ -2,8 +2,9 @@ package org.gradle.script.lang.kotlin.resolver
 
 import org.gradle.internal.classpath.ClassPath
 
-import org.gradle.script.lang.kotlin.FolderBasedTest
 import org.gradle.script.lang.kotlin.resolver.SourcePathProvider.sourcePathFor
+
+import org.gradle.script.lang.kotlin.fixtures.FolderBasedTest
 
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat

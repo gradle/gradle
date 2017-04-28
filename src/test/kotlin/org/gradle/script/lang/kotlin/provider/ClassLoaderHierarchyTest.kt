@@ -8,9 +8,9 @@ import org.gradle.api.internal.initialization.AbstractClassLoaderScope
 
 import org.gradle.internal.classpath.DefaultClassPath
 
-import org.gradle.script.lang.kotlin.TestWithTempFiles
-import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
-import org.gradle.script.lang.kotlin.support.classEntriesFor
+import org.gradle.script.lang.kotlin.fixtures.TestWithTempFiles
+import org.gradle.script.lang.kotlin.fixtures.DeepThought
+import org.gradle.script.lang.kotlin.fixtures.classEntriesFor
 import org.gradle.script.lang.kotlin.support.zipTo
 
 import org.hamcrest.CoreMatchers.equalTo

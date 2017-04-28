@@ -1,7 +1,7 @@
 package org.gradle.script.lang.kotlin.resolver
 
-import org.gradle.script.lang.kotlin.assertInstanceOf
-import org.gradle.script.lang.kotlin.withInstanceOf
+import org.gradle.script.lang.kotlin.fixtures.assertInstanceOf
+import org.gradle.script.lang.kotlin.fixtures.withInstanceOf
 
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 import org.jetbrains.kotlin.script.ScriptContents

@@ -4,6 +4,8 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
 import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.script.lang.kotlin.fixtures.assertFailsWith
+import org.gradle.script.lang.kotlin.fixtures.matches
 
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance

@@ -1,6 +1,6 @@
 package org.gradle.script.lang.kotlin.resolver
 
-import org.gradle.script.lang.kotlin.FolderBasedTest
+import org.gradle.script.lang.kotlin.fixtures.FolderBasedTest
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat

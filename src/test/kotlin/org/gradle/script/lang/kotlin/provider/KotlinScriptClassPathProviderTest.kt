@@ -10,7 +10,7 @@ import com.nhaarman.mockito_kotlin.verify
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API
 import org.gradle.internal.classpath.ClassPath
 
-import org.gradle.script.lang.kotlin.TestWithTempFiles
+import org.gradle.script.lang.kotlin.fixtures.TestWithTempFiles
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat

@@ -1,15 +1,15 @@
-package org.gradle.script.lang.kotlin.integration
+package org.gradle.script.lang.kotlin.fixtures
 
-import org.gradle.script.lang.kotlin.support.classEntriesFor
 import org.gradle.script.lang.kotlin.support.zipTo
-
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-
 import java.io.File
+
+internal
+val isCI by lazy { !System.getenv("CI").isNullOrEmpty() }
 
 open class AbstractIntegrationTest {
 
@@ -127,13 +127,13 @@ open class AbstractIntegrationTest {
 }
 
 
-fun gradleRunnerFor(projectDir: File): GradleRunner =
-    GradleRunner
-        .create()
-        .withDebug(false)
-        .withGradleInstallation(customInstallation())
-        .withProjectDir(projectDir)
-
+fun gradleRunnerFor(projectDir: File): GradleRunner = GradleRunner.create().run {
+    withGradleInstallation(customInstallation())
+    withProjectDir(projectDir)
+    withDebug(false)
+    if (isCI) withArguments("-Dkotlin-daemon.verbose=true")
+    return this
+}
 
 fun customInstallation() =
     File("build/custom").listFiles()?.let {

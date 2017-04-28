@@ -1,13 +1,13 @@
 package org.gradle.script.lang.kotlin.integration
 
 import org.gradle.script.lang.kotlin.embeddedKotlinVersion
-import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
+import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
+import org.gradle.script.lang.kotlin.fixtures.DeepThought
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.assertNotEquals
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File

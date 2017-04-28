@@ -1,11 +1,14 @@
 package org.gradle.script.lang.kotlin.integration
 
 import org.gradle.script.lang.kotlin.concurrent.future
-import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 
-import org.gradle.script.lang.kotlin.matching
+import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
+import org.gradle.script.lang.kotlin.fixtures.DeepThought
+import org.gradle.script.lang.kotlin.fixtures.customInstallation
+import org.gradle.script.lang.kotlin.fixtures.withDaemonRegistry
+import org.gradle.script.lang.kotlin.fixtures.matching
+
 import org.gradle.script.lang.kotlin.resolver.GradleInstallation
-
 import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel
 import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModelRequest
 import org.gradle.script.lang.kotlin.resolver.fetchKotlinBuildScriptModelFor

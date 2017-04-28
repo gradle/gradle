@@ -1,6 +1,7 @@
 package org.gradle.script.lang.kotlin.accessors
 
-import org.gradle.script.lang.kotlin.integration.AbstractIntegrationTest
+import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test

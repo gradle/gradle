@@ -1,5 +1,6 @@
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin.fixtures
 
+import org.gradle.script.lang.kotlin.support.zipTo
 import java.io.ByteArrayOutputStream
 
 fun zipOf(entries: Sequence<Pair<String, ByteArray>>): ByteArray =

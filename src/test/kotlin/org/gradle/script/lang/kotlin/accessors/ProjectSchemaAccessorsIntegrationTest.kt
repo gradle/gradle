@@ -1,9 +1,10 @@
 package org.gradle.script.lang.kotlin.accessors
 
-import org.gradle.script.lang.kotlin.fileByName
-import org.gradle.script.lang.kotlin.integration.AbstractIntegrationTest
 import org.gradle.script.lang.kotlin.integration.kotlinBuildScriptModelFor
-import org.gradle.script.lang.kotlin.matching
+
+import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
+import org.gradle.script.lang.kotlin.fixtures.fileByName
+import org.gradle.script.lang.kotlin.fixtures.matching
 
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat

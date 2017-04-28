@@ -1,4 +1,4 @@
-package org.gradle.script.lang.kotlin
+package org.gradle.script.lang.kotlin.fixtures
 
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
