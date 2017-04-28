@@ -172,8 +172,8 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public boolean isAvailableLocally(ComponentIdentifier identifier) {
-            return delegate.getComponentResolver().isAvailableLocally(identifier);
+        public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+            return delegate.getComponentResolver().isFetchingMetadataCheap(identifier);
         }
 
         @Override

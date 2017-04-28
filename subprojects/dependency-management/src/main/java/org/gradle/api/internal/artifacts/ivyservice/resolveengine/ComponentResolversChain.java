@@ -87,13 +87,13 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public boolean isAvailableLocally(ComponentIdentifier identifier) {
+        public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
             for (ComponentMetaDataResolver resolver : resolvers) {
-                if (resolver.isAvailableLocally(identifier)) {
-                    return true;
+                if (!resolver.isFetchingMetadataCheap(identifier)) {
+                    return false;
                 }
             }
-            return false;
+            return true;
         }
     }
 

@@ -59,8 +59,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
     }
 
     @Override
-    public boolean isAvailableLocally(ComponentIdentifier identifier) {
-        return resolver.isAvailableLocally(identifier);
+    public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+        return resolver.isFetchingMetadataCheap(identifier);
     }
 
     private void addClientModuleDependencies(ClientModule clientModule, MutableModuleComponentResolveMetadata clientModuleMetaData) {
