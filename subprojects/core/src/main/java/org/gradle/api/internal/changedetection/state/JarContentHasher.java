@@ -45,10 +45,11 @@ public class JarContentHasher implements ContentHasher {
 
     public HashCode hash(RegularFileSnapshot jarFile) {
         String jarFilePath = jarFile.getPath();
-        ZipInputStream zipInput = null;
+        InputStream fileInputStream = null;
         try {
             ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = new ClasspathEntrySnapshotBuilder(stringInterner);
-            zipInput = new ZipInputStream(Files.newInputStream(Paths.get(jarFilePath)));
+            fileInputStream = Files.newInputStream(Paths.get(jarFilePath));
+            ZipInputStream zipInput = new ZipInputStream(fileInputStream);
             ZipEntry zipEntry;
 
             while ((zipEntry = zipInput.getNextEntry()) != null) {
@@ -69,7 +70,7 @@ public class JarContentHasher implements ContentHasher {
             // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
             return hashMalformedZip(jarFile);
         } finally {
-            IOUtils.closeQuietly(zipInput);
+            IOUtils.closeQuietly(fileInputStream);
         }
     }
 
