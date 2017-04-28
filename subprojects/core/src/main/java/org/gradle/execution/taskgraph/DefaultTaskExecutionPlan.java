@@ -96,7 +96,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
-    private final Set<ResourceLock> projectLocks = Sets.newHashSet();
+    private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
@@ -319,7 +319,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 visitingNodes.remove(taskNode, currentSegment);
                 path.pop();
                 executionPlan.put(taskNode.getTask(), taskNode);
-                projectLocks.add(getProjectLock(taskNode));
+                Project project = taskNode.getTask().getProject();
+                projectLocks.put(project, getOrCreateProjectLock(project));
                 // Add any finalizers to the queue
                 ArrayList<TaskInfo> finalizerTasks = new ArrayList<TaskInfo>();
                 addAllReversed(finalizerTasks, taskNode.getFinalizers());
@@ -558,7 +559,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
                         selected.set(taskInfo);
                         iterator.remove();
-                        taskInfo.setProjectLock(projectLock);
                         if (taskInfo.allDependenciesSuccessful()) {
                             taskInfo.startExecution();
                             recordTaskStarted(taskInfo);
@@ -586,12 +586,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 taskExecution.execute(selectedTask);
             }
         } finally {
-            coordinationService.withStateLock(unlock(workerLease, selectedTask.getProjectLock()));
+            coordinationService.withStateLock(unlock(workerLease, getProjectLock(selectedTask)));
         }
     }
 
     private boolean allProjectsLocked() {
-        for (ResourceLock lock : projectLocks) {
+        for (ResourceLock lock : projectLocks.values()) {
             if (!lock.isLocked()) {
                 return false;
             }
@@ -600,11 +600,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private ResourceLock getProjectLock(TaskInfo taskInfo) {
-        Project project = taskInfo.getTask().getProject();
+        return projectLocks.get(taskInfo.getTask().getProject());
+    }
+
+    private ResourceLock getOrCreateProjectLock(Project project) {
         String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
         String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
         return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
+
 
     private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
