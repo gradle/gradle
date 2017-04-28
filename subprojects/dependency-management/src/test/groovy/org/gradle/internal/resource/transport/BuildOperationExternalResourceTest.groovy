@@ -21,7 +21,8 @@ import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceReadResult
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
@@ -41,9 +42,9 @@ class BuildOperationExternalResourceTest extends Specification {
     def "delegates method call #methodName"() {
         given:
         def delegate = Mock(ExternalResource)
-        def buildOperationExecuter = Mock(BuildOperationExecutor)
+        def buildOperationExecutor = Mock(BuildOperationExecutor)
 
-        def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
+        def resource = new BuildOperationExternalResource(buildOperationExecutor, delegate)
 
         when:
         resource."$methodName"()
@@ -129,15 +130,16 @@ class BuildOperationExternalResourceTest extends Specification {
         def delegate = new TestExternalResource(delegateMock)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
         def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
-        1 * buildOperationExecuter.run(_, _) >> { details, action ->
+        1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
                 1 * setResult(_) >> { DownloadBuildOperationDescriptor.Result result ->
                     assert result.readContentLength == TestExternalResource.READ_CONTENT_LENGTH
                 }
             }
 
-            invokeAction(action, operationContextMock)
+            op.call(operationContextMock)
 
+            def details = op.description().build()
             assert details.name == "Download http://some/uri"
             assert details.displayName == "Download http://some/uri"
 
@@ -168,13 +170,11 @@ class BuildOperationExternalResourceTest extends Specification {
         def delegate = Mock(ExternalResource)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
         def uri = new URI("http://some/uri")
-        def metaData = new DefaultExternalResourceMetaData(uri, 0, 1024)
         def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
         def buildOperationContext = Mock(BuildOperationContext)
 
-        1 * delegate.getMetaData() >> metaData
-        1 * buildOperationExecuter.run(_, _) >> { details, action ->
-            invokeAction(action, buildOperationContext)
+        1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
+            op.call(buildOperationContext)
         }
 
         when:
@@ -194,12 +194,8 @@ class BuildOperationExternalResourceTest extends Specification {
         'withContent' | Mock(Transformer)                    | "withContent(Transformer<T, ? extends InputStream)"
     }
 
-    def invokeAction(Action action, BuildOperationContext buildOperationContext) {
-        action.execute(buildOperationContext)
-    }
-
-    def invokeAction(def transformer, BuildOperationContext buildOperationContext) {
-        transformer.transform(buildOperationContext)
+    def <T> T invokeAction(CallableBuildOperation<T> op, BuildOperationContext buildOperationContext) {
+        op.call(buildOperationContext)
     }
 
 }

@@ -20,10 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -154,6 +153,6 @@ public class BuildOperationExternalResource implements ExternalResource {
         DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
         return BuildOperationDescriptor
             .displayName("Download " + metaData.getLocation().toString())
-            .details(downloadBuildOperationDescriptor)
+            .details(downloadBuildOperationDescriptor);
     }
 }
