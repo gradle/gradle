@@ -32,15 +32,10 @@ import spock.lang.Specification
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
 
-class AbstractFileCollectionSnapshotterTest extends Specification {
+class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror([])
-    def snapshotter = new AbstractFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)) {
-        @Override
-        Class<? extends FileCollectionSnapshotter> getRegisteredType() {
-            FileCollectionSnapshotter
-        }
-    }
+    def snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -313,13 +308,13 @@ class AbstractFileCollectionSnapshotterTest extends Specification {
             switch (change.type) {
                 case ChangeType.ADDED:
                     listener.added(change.path)
-                    break;
+                    break
                 case ChangeType.MODIFIED:
                     listener.changed(change.path)
-                    break;
+                    break
                 case ChangeType.REMOVED:
                     listener.removed(change.path)
-                    break;
+                    break
             }
         }
     }

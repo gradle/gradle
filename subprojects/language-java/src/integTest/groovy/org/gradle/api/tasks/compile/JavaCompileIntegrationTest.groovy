@@ -485,6 +485,13 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped ':compileJava'
+
+        when: "we remove a non relevant file on compile classpath"
+        assert file('foo.txt').delete()
+        run 'compileJava'
+
+        then:
+        skipped ':compileJava'
     }
 
     @Issue("gradle/gradle#1358")
@@ -565,7 +572,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains 'Malformed class file [foo.class]'
+        outputContains 'Malformed jar [foo.jar] found on classpath.'
     }
 
     @Issue("gradle/gradle#1358")

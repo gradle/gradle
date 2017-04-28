@@ -16,13 +16,19 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.Hasher;
-
-import java.io.InputStream;
+import org.gradle.api.internal.cache.StringInterner;
 
 /**
- * Hashes an element in a classpath entry (e.g., the .class file in a jar or a .class file in a directory)
+ * Builds a {@link FileCollectionSnapshot} for a compile classpath.
+ *
+ * We only take class files in jar files and class files in directories into account.
  */
-public interface ClasspathContentHasher {
-    void appendContent(String name, InputStream inputStream, Hasher hasher);
+public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
+    public CompileClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, StringInterner stringInterner) {
+        super(classpathContentHasher, jarContentHasher, stringInterner);
+    }
+
+    @Override
+    protected void visitNonJar(RegularFileSnapshot file) {
+    }
 }

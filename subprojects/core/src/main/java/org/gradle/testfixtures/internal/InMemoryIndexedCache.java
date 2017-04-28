@@ -28,6 +28,7 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -87,5 +88,10 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
     @Override
     public void remove(K key) {
         entries.remove(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Set<K> keySet() {
+        return (Set<K>) entries.keySet();
     }
 }

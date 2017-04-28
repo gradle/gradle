@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
+import org.gradle.api.internal.cache.StringInterner;
 
 /**
- * Calculates a hash for a classpath entry (a jar or class file)
+ * Builds a {@link FileCollectionSnapshot} for a runtime classpath.
+ *
+ * We take the contents of jar files, non jar files and directories into account.
  */
-public interface ClasspathEntryHasher {
-    /**
-     * Returns a hash based on the contents of the given fileSnapshot.
-     *
-     * May return <code>null</code>, if the file contributes nothing to the classpath.
-     *
-     * e.g., an empty jar file or a class file with no public API (for compile classpaths).
-     */
-    @Nullable
-    HashCode hash(FileSnapshot fileSnapshot);
+public class RuntimeClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
+    public RuntimeClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher zipContentHasher, StringInterner stringInterner) {
+        super(classpathContentHasher, zipContentHasher, stringInterner);
+    }
+
+    @Override
+    protected void visitNonJar(RegularFileSnapshot file) {
+        collectFileSnapshot(file);
+    }
 }
