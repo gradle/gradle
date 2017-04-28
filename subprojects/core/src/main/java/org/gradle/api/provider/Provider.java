@@ -21,6 +21,10 @@ import org.gradle.api.tasks.Internal;
 
 /**
  * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()} or {@code getOrNull()}.
+ * <p>
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created
+ * through the factory methods {@link org.gradle.api.Project#provider(java.util.concurrent.Callable)} or
+ * {@link org.gradle.api.provider.ProviderFactory#provider(java.util.concurrent.Callable)}.
  *
  * @param <T> Type of value represented by provider
  * @since 4.0
