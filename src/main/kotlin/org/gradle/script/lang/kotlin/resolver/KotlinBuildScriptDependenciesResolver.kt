@@ -86,7 +86,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val response = submit(request, progressLogger(scriptFile))
         log(ReceivedModelResponse(scriptFile, response))
 
-        val scriptDependencies = dependenciesFrom(request, response, buildscriptBlockHash)
+        val scriptDependencies = dependenciesFrom(response, buildscriptBlockHash)
         log(ResolvedDependencies(scriptFile, scriptDependencies))
 
         return scriptDependencies
@@ -132,7 +132,6 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
 
     private
     fun dependenciesFrom(
-        request: KotlinBuildScriptModelRequest,
         response: KotlinBuildScriptModel,
         hash: ByteArray?) =
 

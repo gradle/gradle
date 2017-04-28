@@ -33,7 +33,7 @@ import java.io.Serializable
 
 interface KotlinBuildScriptModel {
     val classPath: List<File>
-    val  sourcePath: List<File>
+    val sourcePath: List<File>
 }
 
 
