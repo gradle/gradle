@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.transfer;
 
+import org.gradle.internal.resource.ExternalResourceReadResult;
+
 import java.net.URI;
 
 public class DownloadBuildOperationDescriptor {
@@ -33,11 +35,54 @@ public class DownloadBuildOperationDescriptor {
         return location;
     }
 
+    /**
+     * The advertised length of the resource, prior to transfer.
+     *
+     * -1 if this is not known.
+     */
     public long getContentLength() {
         return contentLength;
     }
 
     public String getContentType() {
         return contentType;
+    }
+
+    @Override
+    public String toString() {
+        return "DownloadBuildOperationDescriptor{"
+            + "location=" + location + ", "
+            + "contentLength=" + contentLength + ", "
+            + "contentType='" + contentType + '\''
+            + '}';
+    }
+
+    /**
+     * @since 4.0
+     */
+    public static class Result {
+
+        private final long readContentLength;
+
+        public Result(long readContentLength) {
+            this.readContentLength = readContentLength;
+        }
+
+        /**
+         * The actual length of the received content.
+         *
+         * Should be equal to {@link DownloadBuildOperationDescriptor#getContentLength()} if it was not -1.
+         * See {@link ExternalResourceReadResult#getReadContentLength()} for the semantics of this value.
+         */
+        public long getReadContentLength() {
+            return readContentLength;
+        }
+
+        @Override
+        public String toString() {
+            return "DownloadBuildOperationDescriptor.Result{"
+                + "readContentLength=" + readContentLength
+                + '}';
+        }
     }
 }

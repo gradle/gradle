@@ -47,6 +47,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     List<ServerExpectation> expectations = []
 
+    boolean chunkedTransfer = true
+
     org.gradle.api.Action<HttpServletRequest> beforeHandle
     org.gradle.api.Action<HttpServletRequest> afterHandle
 
@@ -390,7 +392,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
         }
         def content = file.bytes
-        response.setContentLength((contentLength ?: content.length) as int)
+
+        if (chunkedTransfer) {
+            response.setHeader("Transfer-Encoding", "chunked")
+        } else {
+            response.setContentLength((contentLength ?: content.length) as int)
+        }
+
         response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
         if (sendSha1Header) {
             response.addHeader("X-Checksum-Sha1", HashUtil.sha1(content).asHexString())

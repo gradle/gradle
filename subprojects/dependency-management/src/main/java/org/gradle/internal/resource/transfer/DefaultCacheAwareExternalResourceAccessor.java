@@ -170,7 +170,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                             throw new UncheckedIOException(e);
                         }
                     }
-                });
+                }).getResult();
             } finally {
                 resource.close();
             }
