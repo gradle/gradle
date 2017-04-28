@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleCompone
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -59,7 +60,7 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
     private class CachedAccess extends BaseModuleComponentRepositoryAccess {
         private final InMemoryMetaDataCache metaDataCache;
         private final InMemoryArtifactsCache artifactsCache;
-        private final Map<ModuleComponentIdentifier, Boolean> locallyAvailableMetaData = Maps.newHashMap();
+        private final Map<ModuleComponentIdentifier, MetadataFetchingCost> metadataFetchingCosts = Maps.newHashMap();
 
         CachedAccess(ModuleComponentRepositoryAccess access, InMemoryArtifactsCache artifactsCache, InMemoryMetaDataCache metaDataCache) {
             super(access);
@@ -85,7 +86,11 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             if (!metaDataCache.supplyMetaData(moduleComponentIdentifier, result)) {
                 super.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
                 metaDataCache.newDependencyResult(moduleComponentIdentifier, result);
-                locallyAvailableMetaData.put(moduleComponentIdentifier, Boolean.TRUE);
+                if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
+                    metadataFetchingCosts.put(moduleComponentIdentifier, MetadataFetchingCost.FAST);
+                } else {
+                    metadataFetchingCosts.put(moduleComponentIdentifier, MetadataFetchingCost.CHEAP);
+                }
             }
         }
 
@@ -114,25 +119,15 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
         }
 
         @Override
-        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            if (metaDataCache.isMetadataCached(moduleComponentIdentifier)) {
-                // check the global cache first: if any repo has it cached, we don't need to check locally
-                return true;
-            }
-            Boolean cached =  locallyAvailableMetaData.get(moduleComponentIdentifier);
-            if (cached != null) {
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            MetadataFetchingCost cost = metadataFetchingCosts.get(moduleComponentIdentifier);
+            if (cost != null) {
                 // then check if for this specific repository, we already tried this component
-                return cached;
+                return cost;
             }
-            return cacheMetadataAvailability(moduleComponentIdentifier, super.isMetadataAvailableLocally(moduleComponentIdentifier));
-        }
-
-        private boolean cacheMetadataAvailability(ModuleComponentIdentifier requested, boolean answer) {
-            locallyAvailableMetaData.put(requested, answer);
-            if (answer) {
-                metaDataCache.cacheMetadataAvailability(requested);
-            }
-            return answer;
+            cost = super.estimateMetadataFetchingCost(moduleComponentIdentifier);
+            metadataFetchingCosts.put(moduleComponentIdentifier, cost);
+            return cost;
         }
     }
 }

@@ -26,5 +26,5 @@ public interface ComponentMetaDataResolver {
      */
     void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result);
 
-    boolean isAvailableLocally(ComponentIdentifier identifier);
+    boolean isFetchingMetadataCheap(ComponentIdentifier identifier);
 }

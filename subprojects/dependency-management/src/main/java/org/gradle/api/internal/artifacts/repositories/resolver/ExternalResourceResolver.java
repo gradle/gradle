@@ -454,8 +454,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
 
         @Override
-        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return false;
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return MetadataFetchingCost.CHEAP;
         }
     }
 
@@ -506,9 +506,15 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
 
         @Override
-        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
-            return createArtifactResolver().artifactExists(artifact, NoOpResourceAwareResolveResult.INSTANCE);
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            if (ExternalResourceResolver.this.local) {
+                ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
+                if (createArtifactResolver().artifactExists(artifact, NoOpResourceAwareResolveResult.INSTANCE)) {
+                    return MetadataFetchingCost.FAST;
+                }
+                return MetadataFetchingCost.CHEAP;
+            }
+            return MetadataFetchingCost.EXPENSIVE;
         }
 
     }

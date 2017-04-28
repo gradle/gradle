@@ -81,11 +81,8 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
-    public boolean isAvailableLocally(ComponentIdentifier identifier) {
-        if (isProjectModule(identifier)) {
-            return true;
-        }
-        return false;
+    public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+        return true;
     }
 
     @Override

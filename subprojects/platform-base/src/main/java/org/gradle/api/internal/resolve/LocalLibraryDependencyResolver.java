@@ -153,7 +153,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
     }
 
     @Override
-    public boolean isAvailableLocally(ComponentIdentifier identifier) {
+    public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
         return true;
     }
 

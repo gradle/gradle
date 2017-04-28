@@ -117,6 +117,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         1 * localMetaDataCache.supplyMetaData(lib, metaDataResult) >> false
         1 * localDelegate.resolveComponentMetaData(lib, componentRequestMetaData, metaDataResult)
         1 * localMetaDataCache.newDependencyResult(lib, metaDataResult)
+        1 * metaDataResult.getState()
         0 * _
     }
 
@@ -137,6 +138,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         1 * remoteMetaDataCache.supplyMetaData(lib, metaDataResult) >> false
         1 * remoteDelegate.resolveComponentMetaData(lib, componentRequestMetaData, metaDataResult)
         1 * remoteMetaDataCache.newDependencyResult(lib, metaDataResult)
+        1 * metaDataResult.getState()
         0 * _
     }
 

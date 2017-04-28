@@ -259,7 +259,7 @@ public class DependencyGraphBuilder {
         for (DependencyEdge dependency : dependencies) {
             ModuleVersionResolveState state = dependency.targetModuleRevision;
             if (state != null && !state.fastResolve() && performPreemptiveDownload(state.state)) {
-                if (!metaDataResolver.isAvailableLocally(toComponentId(state.getId(), componentIdentifierCache))) {
+                if (!metaDataResolver.isFetchingMetadataCheap(toComponentId(state.getId(), componentIdentifierCache))) {
                     dependenciesToBeResolvedInParallel.add(dependency);
                 }
             }

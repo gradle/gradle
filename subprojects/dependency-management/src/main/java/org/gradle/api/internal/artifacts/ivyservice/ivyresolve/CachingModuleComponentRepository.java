@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -266,10 +267,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier) // cheap
-                || isMetadataAvailableInCacheAndUpToDate(moduleComponentIdentifier) // quite cheap, but requires reading binary descriptor
-                || delegate.getRemoteAccess().isMetadataAvailableLocally(moduleComponentIdentifier); // very expensive
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            if (isMetadataAvailableInCacheAndUpToDate(moduleComponentIdentifier)) {
+                return MetadataFetchingCost.FAST;
+            }
+            return delegate.getRemoteAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
 
         private boolean isMetadataAvailableInCacheAndUpToDate(ModuleComponentIdentifier moduleComponentIdentifier) {
@@ -408,8 +410,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public boolean isMetadataAvailableLocally(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return delegate.getLocalAccess().isMetadataAvailableLocally(moduleComponentIdentifier);
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.getLocalAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
     }
 

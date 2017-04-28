@@ -63,8 +63,8 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
     }
 
     @Override
-    public boolean isAvailableLocally(ComponentIdentifier identifier) {
-        return false;
+    public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+        return true;
     }
 
     @Override
