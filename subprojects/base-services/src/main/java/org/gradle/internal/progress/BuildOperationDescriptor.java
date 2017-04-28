@@ -17,20 +17,21 @@
 package org.gradle.internal.progress;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.operations.BuildOperationExecutor;
 
 /**
  * Meta-data about a build operation.
+ *
+ * This interface is intentionally internal and consumed by the build scan plugin.
  */
-public class BuildOperationDescriptor {
+public final class BuildOperationDescriptor {
     private final Object id;
     private final Object parentId;
     private final String displayName;
     private final String name;
     private final String progressDisplayName;
-    private final Object details;
+    private final BuildOperationDetails<?> details;
 
-    protected BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details) {
+    private BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, BuildOperationDetails<?> details) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -91,11 +92,11 @@ public class BuildOperationDescriptor {
         return new Builder(displayName);
     }
 
-    public static class Builder {
+    public static final class Builder {
         private final String displayName;
         private String name;
         private String progressDisplayName;
-        private Object details;
+        private BuildOperationDetails<?> details;
         private BuildOperationState parent;
 
         private Builder(String displayName) {
@@ -113,14 +114,14 @@ public class BuildOperationDescriptor {
             return this;
         }
 
-        public Builder details(Object details) {
+        public Builder details(BuildOperationDetails<?> details) {
             this.details = details;
             return this;
         }
 
         /**
          * Define the parent of the operation. Needs to be the state of an operations that is running at the same time
-         * the described operation will run (see: {@link BuildOperationExecutor#getCurrentOperation()}).
+         * the described operation will run (see: {@link org.gradle.internal.operations.BuildOperationExecutor#getCurrentOperation()}).
          * If parent ID is not set, The last started operation of the executing thread will be used as parent.
          */
         public Builder parent(BuildOperationState parent) {
@@ -128,7 +129,7 @@ public class BuildOperationDescriptor {
             return this;
         }
 
-        public BuildOperationInternal build() {
+        public BuildOperationDescriptor build() {
             return build(null, null);
         }
 
@@ -136,8 +137,8 @@ public class BuildOperationDescriptor {
             return parent;
         }
 
-        BuildOperationInternal build(@Nullable Object id, @Nullable Object defaultParentId) {
-            return new BuildOperationInternal(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details);
+        BuildOperationDescriptor build(@Nullable Object id, @Nullable Object defaultParentId) {
+            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details);
         }
     }
 }

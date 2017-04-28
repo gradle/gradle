@@ -129,7 +129,8 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Resolve artifact " + artifact).details(artifact.getId());
+            return BuildOperationDescriptor.displayName("Resolve artifact " + artifact)
+                .details(new DownloadArtifactBuildOperationDetails(artifact.getId().getDisplayName()));
         }
     }
 

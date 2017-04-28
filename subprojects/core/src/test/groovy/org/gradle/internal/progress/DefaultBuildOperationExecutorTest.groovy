@@ -43,8 +43,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         and:
         def buildOperation = Mock(CallableBuildOperation)
         def progressLogger = Mock(ProgressLogger)
-        def descriptor = "some-thing"
-        def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").details(descriptor)
+        def details = Mock(BuildOperationDetails)
+        def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").details(details)
         def id
 
         when:
@@ -56,13 +56,13 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         then:
         1 * buildOperation.description() >> operationDetailsBuilder
         1 * timeProvider.currentTime >> 123L
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             id = operation.id
             assert operation.id != null
             assert operation.parentId == null
             assert operation.name == "<op>"
             assert operation.displayName == "<some-operation>"
-            assert operation.details == descriptor
+            assert operation.details == details
             assert start.startTime == 123L
         }
 
@@ -80,12 +80,12 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         1 * timeProvider.currentTime >> 124L
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.parentId == null
             assert operation.id == id
             assert operation.name == "<op>"
             assert operation.displayName == "<some-operation>"
-            assert operation.details == descriptor
+            assert operation.details == details
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
             assert opResult.failure == null
@@ -116,7 +116,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         then:
         1 * buildOperation.description() >> operationDescriptionBuilder
         1 * timeProvider.currentTime >> 123L
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             assert operation.id != null
             id = operation.id
             assert operation.parentId == null
@@ -138,7 +138,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         1 * timeProvider.currentTime >> 124L
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
@@ -164,7 +164,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.run(_) >> { BuildOperationContext context -> context.failed(failure) }
 
         then:
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert opResult.failure == failure
         }
 
@@ -187,7 +187,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.run(_) >> { BuildOperationContext context -> context.result = result }
 
         then:
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert opResult.result == result
         }
 
@@ -228,24 +228,24 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         then:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             id1 = operation.id
             assert operation.id != null
             assert operation.parentId == null
             assert operation.displayName == "<thread-1>"
         }
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             id2 = operation.id
             assert operation.id != null
             assert operation.parentId == null
             assert operation.displayName == "<thread-2>"
         }
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id1
             assert opResult.failure == null
             instant.action1Finished
         }
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id2
             assert opResult.failure == null
         }
@@ -291,33 +291,33 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         })
 
         then:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             assert operation.id != null
             assert operation.parentId == null
             assert operation.displayName == "<main>"
         }
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             id1 = operation.id
             assert operation.id != null
             assert operation.parentId == parent.id
             assert operation.displayName == "<thread-1>"
         }
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             id2 = operation.id
             assert operation.id != null
             assert operation.parentId == parent.id
             assert operation.displayName == "<thread-2>"
         }
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id1
             assert opResult.failure == null
             instant.action1Finished
         }
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id2
             assert opResult.failure == null
         }
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == parent.id
             assert opResult.failure == null
         }
@@ -481,7 +481,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         operationExecutor.run(operation1)
 
         then:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             assert operation.id != null
             parentId = operation.id
             assert operation.parentId == null
@@ -491,7 +491,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         and:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             child1Id = operation.id
             assert operation.parentId == parentId
         }
@@ -500,24 +500,24 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         and:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             child2Id = operation.id
             assert operation.parentId == child1Id
         }
         1 * operation3.run(_) >> {}
 
         and:
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == child2Id
         }
 
         and:
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == child1Id
         }
 
         and:
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == parentId
         }
 
@@ -554,22 +554,22 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         then:
-        1 * listener.started({ it.displayName == "<parent-1>" }, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started({ it.displayName == "<parent-1>" }, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             assert operation.id != null
             parent1Id = operation.id
             assert operation.parentId == null
         }
-        1 * listener.started({ it.displayName == "<parent-2>" }, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started({ it.displayName == "<parent-2>" }, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             assert operation.id != null
             parent2Id = operation.id
             assert operation.parentId == null
         }
-        1 * listener.started({ it.displayName == "<child-1>" }, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started({ it.displayName == "<child-1>" }, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             assert operation.id != null
             child1Id = operation.id
             assert operation.parentId == parent1Id
         }
-        1 * listener.started({ it.displayName == "<child-2>" }, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started({ it.displayName == "<child-2>" }, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             assert operation.id != null
             child2Id = operation.id
             assert operation.parentId == parent2Id
@@ -598,7 +598,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         operationExecutor.run(operation1)
 
         then:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             parentId = operation.id
             assert operation.parentId == null
         }
@@ -612,27 +612,27 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         and:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             child1Id = operation.id
             assert operation.parentId == parentId
         }
         1 * operation2.run(_) >> { throw new RuntimeException() }
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == child1Id
         }
 
         and:
-        1 * listener.started(_, _) >> { BuildOperationInternal operation, OperationStartEvent start ->
+        1 * listener.started(_, _) >> { BuildOperationDescriptor operation, OperationStartEvent start ->
             child2Id = operation.id
             assert operation.parentId == parentId
         }
         1 * operation3.run(_) >> {}
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == child2Id
         }
 
         and:
-        1 * listener.finished(_, _) >> { BuildOperationInternal operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == parentId
         }
 

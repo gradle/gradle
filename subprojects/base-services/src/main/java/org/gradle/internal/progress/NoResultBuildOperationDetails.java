@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,6 @@
 
 package org.gradle.internal.progress;
 
-/**
- * This class is consumed by the build scan plugin.
- * */
-public final class OperationStartEvent {
-    private final long startTime;
+public interface NoResultBuildOperationDetails extends BuildOperationDetails<Void> {
 
-    public OperationStartEvent(long startTime) {
-        this.startTime = startTime;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
 }

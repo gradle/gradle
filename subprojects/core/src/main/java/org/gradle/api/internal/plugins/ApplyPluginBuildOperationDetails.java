@@ -14,34 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.project;
+package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.progress.NoResultBuildOperationDetails;
-import org.gradle.util.Path;
-
+import org.gradle.plugin.use.PluginId;
 
 /**
- * Details about a project being configured.
+ * Details about a plugin being applied.
  *
  * This class is intentionally internal and consumed by the build scan plugin.
  *
  * @since 4.0
  */
-public final class ConfigureProjectBuildOperationDetails implements NoResultBuildOperationDetails {
-    private final Path buildPath;
-    private final Path projectPath;
+public final class ApplyPluginBuildOperationDetails implements NoResultBuildOperationDetails {
+    private PluginId pluginId;
+    private String className;
 
-    ConfigureProjectBuildOperationDetails(Path projectPath, Path buildPath) {
-        this.projectPath = projectPath;
-        this.buildPath = buildPath;
+    ApplyPluginBuildOperationDetails(@Nullable PluginId pluginId, String className) {
+        this.pluginId = pluginId;
+        this.className = className;
     }
 
-    public Path getProjectPath() {
-        return projectPath;
+    @Nullable
+    public PluginId getPluginId() {
+        return pluginId;
     }
 
-    public Path getBuildPath() {
-        return buildPath;
+    public String getClassName() {
+        return className;
     }
 
 }

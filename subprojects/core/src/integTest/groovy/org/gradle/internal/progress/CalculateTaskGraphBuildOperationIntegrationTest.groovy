@@ -21,7 +21,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
     def "requested and filtered tasks are exposed"() {
         given:
         operationListenerFinishedAction = """ { op, result -> 
-                if(op.operationDescriptor != null && org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor.class.isAssignableFrom(op.operationDescriptor.getClass())){
+                if(op.details != null && org.gradle.execution.taskgraph.CalculateTaskGraphDetails.class.isAssignableFrom(op.details.getClass())){
                     result.result.requestedTaskPaths.each { tskPath ->
                         println "requested task: \$tskPath"
                     }
@@ -99,7 +99,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
     def "errors in calculating task graph are exposed"() {
         given:
         operationListenerFinishedAction = """ { op, result -> 
-                if(op.operationDescriptor != null && org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor.class.isAssignableFrom(op.operationDescriptor.getClass())){
+                if(op.details != null && org.gradle.execution.taskgraph.CalculateTaskGraphDetails.class.isAssignableFrom(op.details.getClass())){
                     println "Calculate task graph failure: " + result.failure.getMessage()
                 }
             }

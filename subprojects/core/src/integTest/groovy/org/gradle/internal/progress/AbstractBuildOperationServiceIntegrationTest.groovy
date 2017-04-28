@@ -36,12 +36,12 @@ class AbstractBuildOperationServiceIntegrationTest extends AbstractIntegrationSp
                 project.ext.operFinishedAction = {p, r -> }
                 def listener = new BuildOperationListener() {
                     @Override
-                    void started(BuildOperationInternal operation, OperationStartEvent startEvent) {
+                    void started(BuildOperationDescriptor operation, OperationStartEvent startEvent) {
                         project.operStartAction(operation, startEvent)
                     }
         
                     @Override
-                    void finished(BuildOperationInternal operation, OperationResult result) {
+                    void finished(BuildOperationDescriptor operation, OperationFinishEvent result) {
                         project.operFinishedAction(operation, result)
                     }
                 }

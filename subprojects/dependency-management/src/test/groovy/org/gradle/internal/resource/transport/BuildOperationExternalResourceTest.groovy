@@ -23,7 +23,7 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
-import org.gradle.internal.resource.transfer.DownloadBuildOperationDescriptor
+import org.gradle.internal.resource.transfer.DownloadBuildOperationDetails
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
 import spock.lang.Specification
@@ -64,16 +64,16 @@ class BuildOperationExternalResourceTest extends Specification {
 
         1 * delegate.getMetaData() >> metaData
         1 * buildOperationExecuter."$opType"(_) >> { args ->
-            def details = args[0].description().build()
+            def descriptor = args[0].description().build()
             args[0]."$opType"(buildOperationContext)
 
-            assert details.name == "Download http://some/uri"
-            assert details.displayName == "Download http://some/uri"
+            assert descriptor.name == "Download http://some/uri"
+            assert descriptor.displayName == "Download http://some/uri"
 
-            assert details.operationDescriptor instanceof DownloadBuildOperationDescriptor
-            assert details.operationDescriptor.location == uri
-            assert details.operationDescriptor.contentLength == 1024
-            assert details.operationDescriptor.contentType == null
+            assert descriptor.details instanceof DownloadBuildOperationDetails
+            assert descriptor.details.location == uri
+            assert descriptor.details.contentLength == 1024
+            assert descriptor.details.contentType == null
         }
 
         when:

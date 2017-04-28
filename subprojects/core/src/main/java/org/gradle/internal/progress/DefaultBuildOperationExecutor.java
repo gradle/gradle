@@ -164,7 +164,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         this.currentOperation.set(currentOperation);
         BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(this.currentOperation.get().getId());
         try {
-            listener.started((BuildOperationInternal) descriptor, new OperationStartEvent(currentOperation.getStartTime()));
+            listener.started(descriptor, new OperationStartEvent(currentOperation.getStartTime()));
 
             Throwable failure = null;
             DefaultBuildOperationContext context = new DefaultBuildOperationContext();
@@ -186,7 +186,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             }
 
             long endTime = timeProvider.getCurrentTime();
-            listener.finished((BuildOperationInternal) descriptor, new OperationResult(currentOperation.getStartTime(), endTime, context.failure, context.result));
+            listener.finished((BuildOperationDescriptor) descriptor, new OperationFinishEvent(currentOperation.getStartTime(), endTime, context.failure, context.result));
 
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure, true);
@@ -239,7 +239,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             parentState = UnmanagedThreadOperation.create(timeProvider);
             parentState.setRunning(true);
             currentOperation.set(parentState);
-            listener.started((BuildOperationInternal) parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
+            listener.started((BuildOperationDescriptor) parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
         }
         return parentState;
     }
@@ -248,7 +248,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         DefaultBuildOperationState current = currentOperation.get();
         if (current instanceof UnmanagedThreadOperation) {
             try {
-                listener.finished((BuildOperationInternal) current.getDescription(), new OperationResult(current.getStartTime(), timeProvider.getCurrentTime(), null, null));
+                listener.finished((BuildOperationDescriptor) current.getDescription(), new OperationFinishEvent(current.getStartTime(), timeProvider.getCurrentTime(), null, null));
             } finally {
                 currentOperation.set(null);
                 current.setRunning(false);

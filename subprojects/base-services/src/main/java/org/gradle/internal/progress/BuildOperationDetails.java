@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,19 @@
 package org.gradle.internal.progress;
 
 /**
- * This class is consumed by the build scan plugin.
- * */
-public final class OperationStartEvent {
-    private final long startTime;
+ * Strongly typed details of a build operation, for listeners that want to do deeper analysis
+ * instead of just showing display names.
+ *
+ * This interface is intentionally internal and consumed by the build scan plugin.
+ *
+ * The return type token is currently not used/enforced.
+ * We will iterate on the producer side API to compile time enforce it.
+ *
+ * @param <R> the type of result
+ * @see BuildOperationDescriptor
+ * @since 4.0
+ */
+@SuppressWarnings("unused") // R type token is not enforced right now
+public interface BuildOperationDetails<R> {
 
-    public OperationStartEvent(long startTime) {
-        this.startTime = startTime;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
 }

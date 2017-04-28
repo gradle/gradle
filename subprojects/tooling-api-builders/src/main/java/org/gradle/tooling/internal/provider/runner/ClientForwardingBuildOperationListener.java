@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.progress.BuildOperationInternal;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.events.*;
 
@@ -39,16 +39,16 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     }
 
     @Override
-    public void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         eventConsumer.dispatch(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), toBuildOperationDescriptor(buildOperation)));
     }
 
     @Override
-    public void finished(BuildOperationInternal buildOperation, OperationResult result) {
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
         eventConsumer.dispatch(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), adaptResult(result)));
     }
 
-    private DefaultOperationDescriptor toBuildOperationDescriptor(BuildOperationInternal buildOperation) {
+    private DefaultOperationDescriptor toBuildOperationDescriptor(BuildOperationDescriptor buildOperation) {
         Object id = buildOperation.getId();
         String name = buildOperation.getName();
         String displayName = buildOperation.getDisplayName();
@@ -56,7 +56,7 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         return new DefaultOperationDescriptor(id, name, displayName, parentId);
     }
 
-    private AbstractOperationResult adaptResult(OperationResult result) {
+    private AbstractOperationResult adaptResult(OperationFinishEvent result) {
         Throwable failure = result.getFailure();
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();

@@ -19,15 +19,16 @@ package org.gradle.integtests.fixtures
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
-import org.gradle.internal.progress.BuildOperationInternal
+import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationService
-import org.gradle.internal.progress.OperationResult
+import org.gradle.internal.progress.OperationFinishEvent
 import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
+@SuppressWarnings("UnusedImport")
 class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
     private Map operations
@@ -42,14 +43,14 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
         return """
             import ${BuildOperationService.name}
             import ${BuildOperationListener.name}
-            import ${BuildOperationInternal.name}
+            import ${BuildOperationDescriptor.name}
             import ${OperationStartEvent.name}
-            import ${OperationResult.name}
+            import ${OperationFinishEvent.name}
 
             def operations = [:]
             def operationListener = new BuildOperationListener() {
                 
-                void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
                     operations[buildOperation.id] = [
                         id: "\${buildOperation.id}",
                         displayName: "\${buildOperation.displayName}",
@@ -59,7 +60,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                     ]
                 }
 
-                void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
                     if (!operations[buildOperation.id]) {
                         operations[buildOperation.id] = [
                             id: "\${buildOperation.id}",
