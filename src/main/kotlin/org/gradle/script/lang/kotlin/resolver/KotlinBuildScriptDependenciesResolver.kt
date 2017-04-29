@@ -19,7 +19,6 @@ package org.gradle.script.lang.kotlin.resolver
 import org.gradle.internal.os.OperatingSystem
 
 import org.gradle.script.lang.kotlin.concurrent.future
-import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.userHome
 
 import org.gradle.tooling.ProgressListener
@@ -138,8 +137,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
 
         KotlinBuildScriptDependencies(
             response.classPath,
-            ImplicitImports.list,
             response.sourcePath,
+            response.implicitImports,
             hash)
 
     private
@@ -222,8 +221,8 @@ typealias ScriptSectionTokensProvider = (CharSequence, String) -> Sequence<CharS
 internal
 class KotlinBuildScriptDependencies(
     override val classpath: Iterable<File>,
-    override val imports: Iterable<String>,
     override val sources: Iterable<File>,
+    override val imports: Iterable<String>,
     val buildscriptBlockHash: ByteArray?) : KotlinScriptExternalDependencies {
 
     override fun toString(): String = "${super.toString()}(classpath=$classpath, sources=$sources)"

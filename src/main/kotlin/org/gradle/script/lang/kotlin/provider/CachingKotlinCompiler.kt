@@ -45,6 +45,7 @@ import kotlin.reflect.KClass
 internal
 class CachingKotlinCompiler(
     val scriptCache: ScriptCache,
+    val implicitImports: ImplicitImports,
     val progressLoggerFactory: ProgressLoggerFactory) {
 
     private
@@ -190,7 +191,7 @@ class CachingKotlinCompiler(
 
                 object : KotlinScriptExternalDependencies {
                     override val imports: Iterable<String>
-                        get() = ImplicitImports.list
+                        get() = implicitImports.list
                 }
         }
 

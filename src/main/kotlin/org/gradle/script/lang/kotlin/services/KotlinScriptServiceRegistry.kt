@@ -29,10 +29,12 @@ class KotlinScriptServiceRegistry : PluginServiceRegistry {
 
     override fun registerProjectServices(registration: ServiceRegistration) = Unit
 
-    override fun registerGlobalServices(registration: ServiceRegistration?) = Unit
+    override fun registerGlobalServices(registration: ServiceRegistration) {
+        registration.addProvider(org.gradle.script.lang.kotlin.support.GlobalServices)
+    }
 
-    override fun registerBuildSessionServices(registration: ServiceRegistration?) = Unit
+    override fun registerBuildSessionServices(registration: ServiceRegistration) = Unit
 
-    override fun registerGradleServices(registration: ServiceRegistration?) = Unit
+    override fun registerGradleServices(registration: ServiceRegistration) = Unit
 }
 

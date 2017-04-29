@@ -25,6 +25,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
 import org.gradle.script.lang.kotlin.provider.KotlinScriptClassPathProvider
+import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.serviceOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -36,6 +37,7 @@ import java.io.Serializable
 interface KotlinBuildScriptModel {
     val classPath: List<File>
     val sourcePath: List<File>
+    val implicitImports: List<String>
 }
 
 
@@ -48,7 +50,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     override fun buildAll(modelName: String, project: Project): Any {
         val classPath = scriptClassPathOf(project)
         val sourcePath = sourcePathFor(classPath.bin, project)
-        return StandardKotlinBuildScriptModel(classPath.bin.asFiles, (classPath.src + sourcePath).asFiles)
+        val implicitImports = implicitImportsOf(project)
+        return StandardKotlinBuildScriptModel(classPath.bin.asFiles, (classPath.src + sourcePath).asFiles, implicitImports)
     }
 
     private
@@ -66,6 +69,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
                 buildScriptClassPathOf(project)
         }
     }
+
+    private
+    fun implicitImportsOf(project: Project) =
+        project.serviceOf<ImplicitImports>().list
 
     private
     fun sourcePathFor(classPath: ClassPath, project: Project) =
@@ -118,7 +125,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 internal
 data class StandardKotlinBuildScriptModel(
     override val classPath: List<File>,
-    override val sourcePath: List<File>) : KotlinBuildScriptModel, Serializable
+    override val sourcePath: List<File>,
+    override val implicitImports: List<String>) : KotlinBuildScriptModel, Serializable
 
 
 internal

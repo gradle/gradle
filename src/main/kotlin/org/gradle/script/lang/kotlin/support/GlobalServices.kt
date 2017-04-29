@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.script.lang.kotlin.support
 
 import org.gradle.configuration.ImportsReader
 
 
-/**
- * Holds the list of imports implicitly added to every Kotlin build script.
- */
-class ImplicitImports(private val importsReader: ImportsReader) {
+internal
+object GlobalServices {
 
-    val list by lazy {
-        gradleImports() + gradleScriptKotlinImports()
-    }
-
-    private
-    fun gradleImports() = importsReader.importPackages.map { "$it.*" }
-
-    private
-    fun gradleScriptKotlinImports() = listOf("org.gradle.script.lang.kotlin.*", "java.io.File")
+    @Suppress("unused")
+    fun createImplicitImports(importsReader: ImportsReader) =
+        ImplicitImports(importsReader)
 }

@@ -22,6 +22,7 @@ import org.gradle.api.internal.cache.GeneratedGradleJarCache
 
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.script.lang.kotlin.cache.ScriptCache
+import org.gradle.script.lang.kotlin.support.ImplicitImports
 
 
 internal
@@ -30,9 +31,10 @@ object BuildServices {
     @Suppress("unused")
     fun createCachingKotlinCompiler(
         scriptCache: ScriptCache,
+        implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory) =
 
-        CachingKotlinCompiler(scriptCache, progressLoggerFactory)
+        CachingKotlinCompiler(scriptCache, implicitImports, progressLoggerFactory)
 
     @Suppress("unused")
     fun createKotlinScriptClassPathProvider(
