@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
@@ -50,7 +50,7 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
         }
 
         @Override
-        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        public void finished(BuildOperationDescriptor buildOperation, OperationResult finishEvent) {
         }
     };
 }

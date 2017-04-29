@@ -41,7 +41,7 @@ class AbstractBuildOperationServiceIntegrationTest extends AbstractIntegrationSp
                     }
         
                     @Override
-                    void finished(BuildOperationDescriptor operation, OperationFinishEvent result) {
+                    void finished(BuildOperationDescriptor operation, OperationResult result) {
                         project.operFinishedAction(operation, result)
                     }
                 }
