@@ -80,7 +80,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:myJar", ":buildB:jar"
+        executed ":buildB:compileJava", ":buildB:jar", ":buildB:myJar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
@@ -93,7 +93,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:b1:jar", ":buildB:b2:jar"
+        executed ":buildB:b1:compileJava", ":buildB:b1:jar", ":buildB:b2:compileJava", ":buildB:b2:jar"
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
@@ -140,6 +140,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         executedInOrder ":buildC:jar", ":buildB:jar"
+        // TODO:DAZ This should be true but isn't, because `:buildC:compileJava` is triggered when resolving inputs for `:buildB:compileJava`
+//        executedInOrder ":buildC:compileJava", ":buildB:compileJava"
+//        executedInOrder ":buildC", ":buildB", ":resolve"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
@@ -165,6 +168,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         executedInOrder ":buildC:jar", ":buildB:jar"
+        // TODO:DAZ This should be true but isn't, because `:buildC:compileJava` is triggered when resolving inputs for `:buildB:compileJava`
+//        executedInOrder ":buildC:compileJava", ":buildB:compileJava"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
@@ -182,7 +187,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildB:b1:jar", ":buildB:jar"
+        executedInOrder ":buildB:b1:compileJava", ":buildB:b1:jar", ":buildB:compileJava", ":buildB:jar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar')
     }
 
@@ -351,7 +356,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildB:b2:jar", ":buildB:b1:jar"
+        executedInOrder ":buildB:b2:compileJava", ":buildB:b2:jar", ":buildB:b1:compileJava", ":buildB:b1:jar"
         result.executedTasks.count {it == ":buildB:b2:jar"} == 1
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
@@ -387,6 +392,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         // Need to assert order separately to cater for parallel execution
         executedInOrder ":buildC:jar", ":b1:classes", ":b1:jar"
         executedInOrder ":buildC:jar", ":b2:classes", ":b2:jar"
+
+        // TODO:DAZ This should be true but isn't, because `:buildC:compileJava` is triggered when resolving inputs for `:b1:compileJava`
+//        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b1:compileJava", ":b1:jar"
+//        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b2:compileJava", ":b2:jar"
     }
 
     def "builds multiple configurations for the same project via separate dependency paths"() {
@@ -426,6 +435,96 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         then:
         executed ":buildB:jar", ":buildB:myJar", ":buildC:jar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar'), buildC.file("build/libs/buildC-1.0.jar")
+    }
+
+    def "builds artifacts for different subprojects from the same build included via separate dependency paths"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:buildC:1.0'
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compile 'org.test:b2:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:jar"
+        // TODO:DAZ ':buildB:b1:compileJava' is executed twice (bug)
+//        executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
+    }
+
+    def "substitutes and builds compileOnly dependency"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile 'org.test:buildB:1.0'
+            }
+"""
+        when:
+        execute(buildA, ":jar", arguments)
+
+        then:
+        executedInOrder ":buildB:compileJava", ":buildB:classes", ":jar"
+        // TODO:DAZ Not yet true due to build-inputs-on-demand
+//        executedInOrder ":buildB:compileJava", ":compileJava"
+    }
+
+    def "substitutes and builds transitive compileOnly dependency"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+
+        buildB.buildFile << """
+            dependencies {
+                compileOnly 'org.test:buildC:1.0'
+            }
+"""
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+        includedBuilds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executedInOrder ":buildC:jar", ":buildB:jar"
+    }
+
+    def "only builds dependency once when included as transitive compile and compileOnly dependency"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+        dependency 'org.test:buildC:1.0'
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compileOnly 'org.test:buildB:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executedInOrder ":buildB:jar", ":buildC:jar"
+
+        // TODO:DAZ ':buildB:compileJava' is executed twice
+//        executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
     def "reports failure to build dependent artifact"() {
