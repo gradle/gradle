@@ -116,11 +116,11 @@ fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -
     createTask(name, type, configuration)
 
 
-fun Project.task(name: String, configuration: Task.() -> Unit) =
+fun Project.task(name: String, configuration: Task.() -> Unit): DefaultTask =
     createTask(name, DefaultTask::class, configuration)
 
 
-fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit) =
+fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit): T =
     tasks.create(name, type.java, configuration)!!
 
 
