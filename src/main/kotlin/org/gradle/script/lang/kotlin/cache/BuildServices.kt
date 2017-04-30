@@ -22,10 +22,10 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheKeyBuilder
 
 
+internal
 object BuildServices {
 
     @Suppress("unused")
-    private
     fun createScriptCache(
         cacheKeyBuilder: CacheKeyBuilder,
         cacheRepository: CacheRepository,

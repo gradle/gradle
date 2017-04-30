@@ -25,6 +25,7 @@ import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import java.io.File
 
 
+internal
 class ScriptCache(
 
     private

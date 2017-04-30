@@ -56,7 +56,7 @@ class ResolverCoordinatorTest {
     @Test
     fun `given an environment lacking a 'getScriptSectionTokens' entry, it will always try to retrieve the model`() {
 
-        val environment: Environment = emptyMap()
+        val environment = emptyMap<String, Any?>()
         val action1 = resolverActionFor(environment, null)
         withInstanceOf<ResolverAction.RequestNew>(action1) {
             val action2 = resolverActionFor(environment, scriptDependencies())
@@ -65,7 +65,7 @@ class ResolverCoordinatorTest {
     }
 
     private
-    fun resolverActionFor(environment: Environment, previousDependencies: KotlinScriptExternalDependencies?) =
+    fun resolverActionFor(environment: Map<String, Any?>, previousDependencies: KotlinScriptExternalDependencies?) =
         ResolverCoordinator.selectNextActionFor(EmptyScriptContents, environment, previousDependencies)
 
     private
@@ -73,12 +73,12 @@ class ResolverCoordinatorTest {
         KotlinBuildScriptDependencies(emptyList(), emptyList(), emptyList(), buildscriptBlockHash)
 
     private
-    fun environmentWithGetScriptSectionTokensReturning(vararg sections: Pair<String, Sequence<String>>): Environment =
+    fun environmentWithGetScriptSectionTokensReturning(vararg sections: Pair<String, Sequence<String>>) =
         environmentWithGetScriptSectionTokens { _, section -> sections.find { it.first == section }?.second ?: emptySequence() }
 
     private
-    fun environmentWithGetScriptSectionTokens(function: (CharSequence, String) -> Sequence<String>): Environment =
-        mapOf("getScriptSectionTokens" to function)
+    fun environmentWithGetScriptSectionTokens(function: (CharSequence, String) -> Sequence<String>) =
+        mapOf<String, Any?>("getScriptSectionTokens" to function)
 }
 
 private

@@ -20,6 +20,7 @@ package org.gradle.script.lang.kotlin.concurrent
 /**
  * Represents values with two possibilities.
  */
+internal
 sealed class Either<out L, out R> {
 
     abstract fun <T> fold(left: (L) -> T, right: (R) -> T): T
@@ -37,12 +38,14 @@ sealed class Either<out L, out R> {
 /**
  * Constructs a [Either.Left] value.
  */
+internal
 fun <L, R> left(value: L): Either<L, R> = Either.Left<L, R>(value)
 
 
 /**
  * Constructs a [Either.Right] value.
  */
+internal
 fun <L, R> right(value: R): Either<L, R> = Either.Right<L, R>(value)
 
 

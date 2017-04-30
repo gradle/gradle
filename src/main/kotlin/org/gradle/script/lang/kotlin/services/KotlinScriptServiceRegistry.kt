@@ -19,6 +19,7 @@ package org.gradle.script.lang.kotlin.services
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.PluginServiceRegistry
 
+internal
 class KotlinScriptServiceRegistry : PluginServiceRegistry {
 
     override fun registerBuildServices(registration: ServiceRegistration) {

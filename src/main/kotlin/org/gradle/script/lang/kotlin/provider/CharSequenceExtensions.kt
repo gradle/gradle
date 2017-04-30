@@ -17,10 +17,12 @@
 package org.gradle.script.lang.kotlin.provider
 
 
+internal
 fun CharSequence.linePreservingSubstring(range: IntRange): String =
     linePreservingSubstring_(range).second
 
 
+internal
 fun CharSequence.linePreservingSubstring_(range: IntRange): Pair<Int, String> {
     val lineCount = take(range.start).count { it == '\n' }
     return lineCount to "\n".repeat(lineCount) + substring(range)
@@ -30,6 +32,7 @@ fun CharSequence.linePreservingSubstring_(range: IntRange): Pair<Int, String> {
 /**
  * Computes the 1-based line and column numbers from the given [range].
  */
+internal
 fun CharSequence.lineAndColumnFromRange(range: IntRange): Pair<Int, Int> {
     require(range.endInclusive <= lastIndex)
     val prefix = take(range.start)

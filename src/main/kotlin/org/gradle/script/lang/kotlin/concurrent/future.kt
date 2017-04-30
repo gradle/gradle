@@ -32,6 +32,7 @@ import kotlin.coroutines.experimental.startCoroutine
  *
  * The [computation] executes synchronously until its first suspension point.
  */
+internal
 fun <T> future(context: CoroutineContext = EmptyCoroutineContext, computation: suspend () -> T): Future<T> =
     FutureContinuation<T>(context).also { k ->
         computation.startCoroutine(completion = k)

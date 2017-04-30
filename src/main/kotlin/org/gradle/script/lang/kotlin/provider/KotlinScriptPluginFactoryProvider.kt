@@ -22,7 +22,7 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import javax.inject.Inject
 
-class KotlinScriptPluginFactoryProvider @Inject constructor(
+class KotlinScriptPluginFactoryProvider @Inject internal constructor (
     val classPathProvider: KotlinScriptClassPathProvider,
     val kotlinCompiler: CachingKotlinCompiler,
     val pluginRequestApplicator: PluginRequestApplicator) : ScriptPluginFactoryProvider {

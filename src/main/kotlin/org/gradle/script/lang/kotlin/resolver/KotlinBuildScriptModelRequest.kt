@@ -53,6 +53,7 @@ data class KotlinBuildScriptModelRequest(
     val jvmOptions: List<String> = emptyList())
 
 
+internal
 typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() -> Unit
 
 

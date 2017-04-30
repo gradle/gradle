@@ -36,18 +36,23 @@ import org.gradle.util.GFileUtils.moveFile
 import java.io.File
 
 
+internal
 typealias JarCache = (String, JarGenerator) -> File
 
 
+internal
 typealias JarGenerator = (File) -> Unit
 
 
+private
 typealias JarGeneratorWithProgress = (File, () -> Unit) -> Unit
 
 
+internal
 typealias JarsProvider = () -> Collection<File>
 
 
+internal
 class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
     val gradleApiJarsProvider: JarsProvider,
@@ -141,6 +146,7 @@ private
 val gradleApiNotation = DependencyFactory.ClassPathNotation.GRADLE_API
 
 
+private
 fun isKotlinJar(name: String): Boolean =
     name.startsWith("kotlin-stdlib-")
         || name.startsWith("kotlin-reflect-")

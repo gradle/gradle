@@ -33,6 +33,7 @@ import java.util.*
 /**
  * A formatter for strings that might contain file system paths.
  */
+internal
 typealias PathStringFormatter = (String) -> String
 
 

@@ -42,6 +42,7 @@ import java.io.File
 import kotlin.reflect.KClass
 
 
+internal
 class CachingKotlinCompiler(
     val scriptCache: ScriptCache,
     val progressLoggerFactory: ProgressLoggerFactory) {

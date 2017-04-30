@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 
+internal
 typealias Environment = Map<String, Any?>
 
 
@@ -53,7 +54,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
 
     override fun resolve(
         script: ScriptContents,
-        environment: Environment?,
+        environment: Map<String, Any?>?,
         report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
         previousDependencies: KotlinScriptExternalDependencies?) = future {
 
@@ -214,6 +215,7 @@ object ResolverCoordinator {
 }
 
 
+internal
 typealias ScriptSectionTokensProvider = (CharSequence, String) -> Sequence<CharSequence>
 
 

@@ -20,10 +20,12 @@ import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens.*
 
 
+internal
 class UnexpectedBlock(val identifier: String, val location: IntRange)
     : RuntimeException("Unexpected block found.")
 
 
+internal
 fun extractBuildscriptBlockFrom(script: String) =
     extractTopLevelSectionFrom(script, "buildscript")
 
@@ -36,6 +38,7 @@ fun extractBuildscriptBlockFrom(script: String) =
  * @return range of found section or null if no top-level section with the given [identifier] could be found
  * @throws UnexpectedBlock if more than one top-level section with the given [identifier] is found
  */
+internal
 fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? {
     require('\r' !in script) {
         "CR characters are not supported by the Kotlin lexer. Convert the line separators before attempting this operation."
