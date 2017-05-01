@@ -96,7 +96,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.option(INFO, INFO_LONG).hasDescription("Set log level to info.");
         parser.option(LIFECYCLE, LIFECYCLE_LONG).hasDescription("Set log level to lifecycle.");
         parser.option(WARN, WARN_LONG).hasDescription("Set log level to warn.");
-        parser.allowOneOf(DEBUG, QUIET, LIFECYCLE, INFO, WARN);
+        parser.allowOneOf(DEBUG, QUIET, INFO, LIFECYCLE, WARN);
 
         parser.option(CONSOLE).hasArgument().hasDescription("Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'.");
 
