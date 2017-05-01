@@ -16,12 +16,17 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
-    TestFile ignoredResource
-    TestFile notIgnoredResource
+    TestFile ignoredResourceInDirectory
+    TestFile notIgnoredResourceInDirectory
+    TestFile ignoredResourceInJar
+    TestFile notIgnoredResourceInJar
+    TestFile libraryJarContents
+    TestFile libraryJar
 
     def setup() {
         buildFile << """
@@ -29,7 +34,7 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
             
             class CustomTask extends DefaultTask {
                 @OutputFile File outputFile = new File(temporaryDir, "output.txt")
-                @Classpath FileCollection classpath = project.fileTree("classpath")
+                @Classpath FileCollection classpath = project.files("classpath/dirEntry", "library.jar")
                 
                 @TaskAction void generate() {
                     outputFile.text = "done"
@@ -46,12 +51,19 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         """.stripIndent()
 
         file('classpath/dirEntry').create {
-            ignoredResource = file("ignored.properties") << "This should be ignored"
-            notIgnoredResource = file("not-ignored.txt") << "This should not be ignored"
+            ignoredResourceInDirectory = file("ignored.properties") << "This should be ignored"
+            notIgnoredResourceInDirectory = file("not-ignored.txt") << "This should not be ignored"
         }
+
+        libraryJarContents = file('libraryContents').create {
+            ignoredResourceInJar = file('some/package/ignored.properties') << "This should be ignored"
+            notIgnoredResourceInJar = file('some/package/not-ignored.properties') << "This should not be ignored"
+        }
+        libraryJar = file('library.jar')
+        createJar()
     }
 
-    def "can ignore files on runtime classpath"() {
+    def "can ignore files on runtime classpath in directories"() {
         when:
         succeeds 'customTask'
         then:
@@ -63,15 +75,50 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         skippedTasks.contains(':customTask')
 
         when:
-        ignoredResource << "This change should be ignored"
+        ignoredResourceInDirectory << "This change should be ignored"
         succeeds 'customTask'
         then:
         skippedTasks.contains(':customTask')
 
         when:
-        notIgnoredResource << "This change should not be ignored"
+        notIgnoredResourceInDirectory << "This change should not be ignored"
         succeeds 'customTask'
         then:
         nonSkippedTasks.contains(':customTask')
+    }
+
+    @NotYetImplemented
+    def "can ignore files on runtime classpath in jars"() {
+        when:
+        succeeds 'customTask'
+        then:
+        nonSkippedTasks.contains(':customTask')
+
+        when:
+        createJar()
+        succeeds 'customTask'
+        then:
+        skippedTasks.contains(':customTask')
+
+        when:
+        ignoredResourceInJar << "This change should be ignored"
+        createJar()
+        succeeds 'customTask'
+        then:
+        skippedTasks.contains(':customTask')
+
+        when:
+        notIgnoredResourceInJar << "This change should not be ignored"
+        createJar()
+        succeeds 'customTask'
+        then:
+        nonSkippedTasks.contains(':customTask')
+    }
+
+    private TestFile createJar() {
+        if (libraryJar.exists()) {
+            libraryJar.delete()
+        }
+        libraryJarContents.zipTo(libraryJar)
     }
 }
