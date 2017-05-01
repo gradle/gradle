@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-apply plugin: 'distribution'
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
