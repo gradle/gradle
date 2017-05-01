@@ -30,7 +30,7 @@ processSmokeTestResources {
 tasks.create('smokeTest', SmokeTest) { SmokeTest task ->
     group = "Verification"
     description = "Runs Smoke tests"
-    testClassesDir = sourceSets.smokeTest.output.classesDir
+    testClassesDirs = sourceSets.smokeTest.output.classesDirs
     classpath = sourceSets.smokeTest.runtimeClasspath
 }
 
