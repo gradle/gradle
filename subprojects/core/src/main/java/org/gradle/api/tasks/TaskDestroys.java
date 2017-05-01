@@ -26,17 +26,15 @@ public interface TaskDestroys {
      * Registers some files that this task destroys.
      *
      * @param paths The files that will be destroyed. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return this
      */
-    TaskDestroys files(Object... paths);
+    void files(Object... paths);
 
     /**
      * Registers a file that this task destroys.
      *
      * @param path A file that will be destroyed. The given path is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return this
      */
-    TaskDestroys file(Object path);
+    void file(Object path);
 
     /**
      * Returns all of the files this task destroys.

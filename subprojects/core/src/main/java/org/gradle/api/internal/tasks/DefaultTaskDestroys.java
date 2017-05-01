@@ -24,35 +24,31 @@ import org.gradle.api.tasks.TaskDestroys;
 
 public class DefaultTaskDestroys implements TaskDestroys {
     private final DefaultConfigurableFileCollection destroyFiles;
-    private final FileResolver resolver;
     private final TaskMutator taskMutator;
 
     public DefaultTaskDestroys(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
-        this.resolver = resolver;
         this.taskMutator = taskMutator;
         this.destroyFiles = new DefaultConfigurableFileCollection(task + " destroy files", resolver, null);
     }
 
     @Override
-    public TaskDestroys files(final Object... paths) {
+    public void files(final Object... paths) {
         taskMutator.mutate("TaskDestroys.files(Object...)", new Runnable() {
             @Override
             public void run() {
                 destroyFiles.from(paths);
             }
         });
-        return this;
     }
 
     @Override
-    public TaskDestroys file(final Object path) {
+    public void file(final Object path) {
         taskMutator.mutate("TaskDestroys.file(Object...)", new Runnable() {
             @Override
             public void run() {
                 destroyFiles.from(path);
             }
         });
-        return this;
     }
 
     @Override
