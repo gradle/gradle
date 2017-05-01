@@ -280,11 +280,6 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         this.classes = classes;
     }
 
-    // For backwards compatibility
-    public void setClassesDir(File classesDir) {
-        setClasses(getProject().fileTree(classesDir));
-    }
-
     /**
      * The classpath used to load the classes under validation.
      */
