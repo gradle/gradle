@@ -97,7 +97,6 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
 
                     assert logger.isLoggable(Level.SEVERE)
                     assert logger.isLoggable(Level.WARNING)
-                    assert logger.isLoggable(Level.LIFECYCLE)
                     assert !logger.isLoggable(Level.INFO)
                     assert !logger.isLoggable(Level.CONFIG)
                     assert !logger.isLoggable(Level.FINE)
