@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 
 import java.io.File;
@@ -56,6 +57,11 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     @Override
     public OutputType getOutputType() {
         return parentProperty.getOutputType();
+    }
+
+    @Override
+    public TaskFilePropertyCompareStrategy getCompareStrategy() {
+        return parentProperty.getCompareStrategy();
     }
 
     @Override
