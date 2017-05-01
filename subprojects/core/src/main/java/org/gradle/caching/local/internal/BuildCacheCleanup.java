@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.local.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;

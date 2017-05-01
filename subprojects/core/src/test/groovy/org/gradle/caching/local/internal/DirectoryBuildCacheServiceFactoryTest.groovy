@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.caching.local.internal
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.cache.CacheBuilder

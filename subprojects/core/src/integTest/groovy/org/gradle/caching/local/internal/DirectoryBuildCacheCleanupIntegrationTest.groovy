@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.caching.local.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
