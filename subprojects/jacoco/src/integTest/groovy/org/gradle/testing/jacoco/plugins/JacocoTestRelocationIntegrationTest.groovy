@@ -47,9 +47,9 @@ class JacocoTestRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     @Override
     protected void moveFilesAround() {
         buildFile << """
-            sourceSets.test.output.classesDir = file("build/test-classes")
+            sourceSets.test.java.outputDir = file("build/test-classes")
         """
-        file("build/classes/test").assertIsDir().deleteDir()
+        file("build/classes/java/test").assertIsDir().deleteDir()
     }
 
     @Override

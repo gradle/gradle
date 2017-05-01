@@ -97,7 +97,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     def "restored cached results match original timestamp with millisecond precision"() {
         settingsFile << "rootProject.name = 'test'"
         withBuildCache().succeeds "jar"
-        def classFile = file("build/classes/main/Hello.class")
+        def classFile = javaClassFile("Hello.class")
         def originalModificationTime = classFile.assertIsFile().lastModified()
 
         when:
@@ -233,7 +233,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
-        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+        remoteProjectDir.file("build/classes/java/main/Hello.class").exists()
 
         // Remove the project completely
         remoteProjectDir.deleteDir()
@@ -242,7 +242,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
-        file("build/classes/main/Hello.class").exists()
+        javaClassFile("Hello.class").exists()
     }
 
     def "compile task gets loaded from cache when source is moved to another directory"() {
@@ -261,7 +261,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
-        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+        remoteProjectDir.file("build/classes/java/main/Hello.class").exists()
 
         remoteProjectDir.deleteDir()
 
@@ -269,7 +269,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
-        file("build/classes/main/Hello.class").exists()
+        javaClassFile("Hello.class").exists()
     }
 
     def "error message contains spec which failed to evaluate"() {

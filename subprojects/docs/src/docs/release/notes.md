@@ -124,6 +124,12 @@ A warning is shown when:
 
 For more info on using task property annotations, see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
 
+#### Cache-safe mixed JVM language compilation
+
+In Gradle 3.5, projects that used both Java and another JVM language (like Groovy or Scala) would encounter problems when using the build cache. The class files created by multiple compilation tasks were all placed into the same output directory, which made determining the set of outputs to cache for each task difficult.
+
+Gradle now uses separate output directories for each JVM language. TODO: We should expand this since this is not specifically a build cache improvement.
+
 ### Parallel download of dependencies
 
 Gradle will now download dependencies from remote repositories in parallel. It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
@@ -165,6 +171,35 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ## Potential breaking changes
+
+### Multiple class directories
+
+In projects that use multiple JVM languages (Java and Scala, Groovy and other languages), Gradle now uses separate output directories for each language. 
+
+To return to the old behavior, explicitly set the classes directory:
+
+   // Change the output directory for the main source set back to the old path
+   sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
+
+Please be aware that this will interfere with the effectiveness of the build cache when using multiple JVM languages in the same source set.
+
+### Location of classes in the build directory
+
+The default location of classes when using the `java`, `groovy` or `scala` plugin has changed from:
+
+   Java: build/classes/main
+   Groovy: build/classes/main
+   Scala: build/classes/main
+   Generically: build/classes/${sourceSet.name}
+
+to
+
+   Java: build/classes/java/main
+   Groovy: build/classes/groovy/main
+   Scala: build/classes/scala/main
+   Generically: build/classes/${sourceDirectorySet.name}/${sourceSet.name}
+
+Plugins, tasks or builds that hardcoded these paths may fail.  You can access the specific output directory for a particular language via [`SourceDirectorySet#outputDir`](dsl/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir). 
 
 ### maven-publish and ivy-publish mirror multi-project behavior
 

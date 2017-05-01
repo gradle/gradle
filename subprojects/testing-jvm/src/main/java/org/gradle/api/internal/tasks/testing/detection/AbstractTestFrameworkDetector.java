@@ -49,7 +49,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private TestClassProcessor testClassProcessor;
     private final List<String> knownTestCaseClassNames;
 
-    private File testClassesDirectory;
+    private Set<File> testClassesDirectories;
     private Set<File> testClasspath;
 
     protected AbstractTestFrameworkDetector(ClassFileExtractionManager classFileExtractionManager) {
@@ -97,8 +97,8 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
         testClassDirectories = new ArrayList<File>();
 
-        if (testClassesDirectory != null) {
-            testClassDirectories.add(testClassesDirectory);
+        if (testClassesDirectories != null) {
+            testClassDirectories.addAll(testClassesDirectories);
         }
         if (testClasspath != null) {
             for (File file : testClasspath) {
@@ -112,8 +112,8 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     }
 
     @Override
-    public void setTestClassesDirectory(File testClassesDirectory) {
-        this.testClassesDirectory = testClassesDirectory;
+    public void setTestClasses(Set<File> testClassesDirectories) {
+        this.testClassesDirectories = testClassesDirectories;
     }
 
     @Override

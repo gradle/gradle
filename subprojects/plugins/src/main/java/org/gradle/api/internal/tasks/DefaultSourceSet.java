@@ -52,7 +52,7 @@ public class DefaultSourceSet implements SourceSet {
 
         String javaSrcDisplayName = displayName + " Java source";
 
-        javaSource = sourceDirectorySetFactory.create(javaSrcDisplayName);
+        javaSource = sourceDirectorySetFactory.create("java", javaSrcDisplayName);
         javaSource.getFilter().include("**/*.java");
 
         allJavaSource = sourceDirectorySetFactory.create(javaSrcDisplayName);

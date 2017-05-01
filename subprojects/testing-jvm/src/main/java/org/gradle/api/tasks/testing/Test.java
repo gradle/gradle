@@ -96,7 +96,9 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -164,7 +166,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final DefaultTestFilter filter;
 
     private TestExecuter testExecuter;
-    private File testClassesDir;
+    private FileCollection testClassesDirs;
     private File binResultsDir;
     private PatternFilterable patternSet;
     private boolean ignoreFailures;
@@ -897,7 +899,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Internal
     public File getTestClassesDir() {
-        return testClassesDir;
+        SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
+        if (testClassesDirs==null || testClassesDirs.isEmpty()) {
+            return null;
+        }
+        return getProject().file(CollectionUtils.first(testClassesDirs));
     }
 
     /**
@@ -906,7 +912,27 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testClassesDir The root folder
      */
     public void setTestClassesDir(File testClassesDir) {
-        this.testClassesDir = testClassesDir;
+        SingleMessageLogger.nagUserOfReplacedMethod("setTestClassesDir(File)", "setTestClassesDirs(FileCollection)");
+        setTestClassesDirs(getProject().files(testClassesDir));
+    }
+
+    /**
+     * Returns the directories for the compiled test sources.
+     *
+     * @return All test class directories to be used.
+     */
+    @Internal
+    public FileCollection getTestClassesDirs() {
+        return testClassesDirs;
+    }
+
+    /**
+     * Sets the directories to scan for compiled test sources.
+     *
+     * @param testClassesDirs All test class directories to be used.
+     */
+    public void setTestClassesDirs(FileCollection testClassesDirs) {
+        this.testClassesDirs = testClassesDirs;
     }
 
     /**
@@ -1190,7 +1216,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileTree getCandidateClassFiles() {
-        return getProject().fileTree(getTestClassesDir()).matching(patternSet);
+        return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
 
     /**

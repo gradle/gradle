@@ -267,7 +267,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
                 task othertestsTest(type:Test){
 	                useJUnit()
 	                classpath = sourceSets.othertests.runtimeClasspath
-	                testClassesDir = sourceSets.othertests.output.classesDir
+	                testClassesDirs = sourceSets.othertests.output.classesDirs
 	            }
             """
 

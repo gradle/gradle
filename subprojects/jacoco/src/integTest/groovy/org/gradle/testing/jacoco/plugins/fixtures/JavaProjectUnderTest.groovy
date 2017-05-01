@@ -67,7 +67,7 @@ class JavaProjectUnderTest {
             }
             
             task integrationTest(type: Test) {
-                testClassesDir = sourceSets.integrationTest.output.classesDir
+                testClassesDirs = sourceSets.integrationTest.output.classesDirs
                 classpath = sourceSets.integrationTest.runtimeClasspath
             }
             

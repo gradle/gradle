@@ -61,7 +61,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         when:
         run("compileJava")
         then:
-        file("build/classes/main/Foo.class").exists()
+        javaClassFile("Foo.class").exists()
     }
 
     def "don't implicitly compile source files from classpath"() {
@@ -93,8 +93,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "project(':b').compileJava { options.sourcepath = classpath }"
         run("compileJava")
         then:
-        file("b/build/classes/main/Bar.class").exists()
-        file("b/build/classes/main/Foo.class").exists()
+        file("b/build/classes/java/main/Bar.class").exists()
+        file("b/build/classes/java/main/Foo.class").exists()
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
@@ -196,7 +196,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
         then:
         nonSkippedTasks.contains ":test"
-        file("build/classes/main/com/example/Foo.class").file
+        javaClassFile("com/example/Foo.class").assertIsFile()
 
         when:
         // Move source file to case-renamed package
@@ -222,7 +222,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
         then:
         nonSkippedTasks.contains ":test"
-        file("build/classes/main/com/Example/Foo.class").file
+        javaClassFile("com/example/Foo.class").assertIsFile()
     }
 
     def "implementation dependencies should not leak into compile classpath of consuner"() {
@@ -437,7 +437,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
-                    assert lazyInputs.files.parentFile*.name == ['${expectedDirName}']
+                    assert CollectionUtils.single(lazyInputs.files).toPath().endsWith("${expectedDirName}")
                 }
             }
         """
@@ -455,9 +455,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":b:$notExec"
 
         where:
-        scenario              | token                 | expectedDirName | executed           | notExec
-        'class directory'     | 'CLASS_DIRECTORY'     | 'classes'       | 'compileJava'      | 'processResources'
-        'resources directory' | 'RESOURCES_DIRECTORY' | 'resources'     | 'processResources' | 'compileJava'
+        scenario              | token                 | expectedDirName     | executed           | notExec
+        'class directory'     | 'CLASS_DIRECTORY'     | 'classes/java/main' | 'compileJava'      | 'processResources'
+        'resources directory' | 'RESOURCES_DIRECTORY' | 'resources/main'    | 'processResources' | 'compileJava'
     }
 
     @Issue("gradle/gradle#1347")

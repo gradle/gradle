@@ -60,7 +60,7 @@ class StaleOutputJavaProject {
     }
 
     private TestFile determineClassFile(File sourceFile) {
-        String classFilePath = "$buildDirName/classes/main/${Files.getNameWithoutExtension(sourceFile.name)}.class"
+        String classFilePath = "${defaultOutputDir()}/${Files.getNameWithoutExtension(sourceFile.name)}.class"
         classFilePath = prependRootDirName(classFilePath)
         testDir.file(classFilePath)
     }
@@ -108,7 +108,7 @@ class StaleOutputJavaProject {
     }
 
     String defaultOutputDir() {
-        "$buildDirName/classes/main"
+        "$buildDirName/classes/java/main"
     }
 
     String getClassesDirCleanupMessage(String path) {

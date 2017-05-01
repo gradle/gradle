@@ -21,48 +21,50 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.junit.Before
+import org.gradle.util.CollectionUtils
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Specification
 
-import static org.gradle.util.Matchers.isEmpty
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
+class DefaultGroovySourceSetTest extends Specification {
 
-class DefaultGroovySourceSetTest {
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def sourceSet = new DefaultGroovySourceSet("<name>", "<display-name>", TestFiles.sourceDirectorySetFactory(tmpDir.testDirectory))
 
-    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final DefaultGroovySourceSet sourceSet = new DefaultGroovySourceSet("<set-display-name>", TestFiles.sourceDirectorySetFactory(tmpDir.testDirectory))
-
-    @Before
-    void before() {
+    def setup() {
         NativeServicesTestFixture.initialize()
     }
 
-    @Test
-    public void defaultValues() {
-        assertThat(sourceSet.groovy, instanceOf(DefaultSourceDirectorySet))
-        assertThat(sourceSet.groovy, isEmpty())
-        assertThat(sourceSet.groovy.displayName, equalTo('<set-display-name> Groovy source'))
-        assertThat(sourceSet.groovy.filter.includes, equalTo(['**/*.groovy', '**/*.java'] as Set))
-        assertThat(sourceSet.groovy.filter.excludes, isEmpty())
+    void defaultValues() {
+        expect:
+        sourceSet.groovy instanceof DefaultSourceDirectorySet
+        sourceSet.groovy.isEmpty()
+        sourceSet.groovy.name == '<name>'
+        sourceSet.groovy.displayName == '<display-name> Groovy source'
+        def includes = sourceSet.groovy.filter.includes
+        includes.size() == 2 && includes.containsAll(['**/*.groovy', '**/*.java'])
+        sourceSet.groovy.filter.excludes.isEmpty()
 
-        assertThat(sourceSet.allGroovy, isEmpty())
-        assertThat(sourceSet.allGroovy.displayName, equalTo('<set-display-name> Groovy source'))
-        assertThat(sourceSet.allGroovy.source, hasItem(sourceSet.groovy))
-        assertThat(sourceSet.allGroovy.filter.includes, equalTo(['**/*.groovy'] as Set))
-        assertThat(sourceSet.allGroovy.filter.excludes, isEmpty())
+        sourceSet.allGroovy.isEmpty()
+        sourceSet.allGroovy.displayName =='<display-name> Groovy source'
+        sourceSet.allGroovy.source.contains(sourceSet.groovy)
+        sourceSet.allGroovy.filter.includes.containsAll(['**/*.groovy'])
+        sourceSet.allGroovy.filter.excludes.isEmpty()
     }
 
-    @Test
-    public void canConfigureGroovySource() {
-        sourceSet.groovy { srcDir 'src/groovy' }
-        assertThat(sourceSet.groovy.srcDirs, equalTo([tmpDir.file("src/groovy")] as Set))
+    void canConfigureGroovySource() {
+        sourceSet.groovy {
+            srcDir 'src/groovy'
+        }
+        expect:
+        CollectionUtils.single(sourceSet.groovy.srcDirs) == tmpDir.file("src/groovy")
     }
 
-    @Test
-    public void canConfigureGroovySourceUsingAnAction() {
-        sourceSet.groovy({ set -> set.srcDir 'src/groovy' } as Action<SourceDirectorySet>)
-        assertThat(sourceSet.groovy.srcDirs, equalTo([tmpDir.file("src/groovy")] as Set))
+    void canConfigureGroovySourceUsingAnAction() {
+        sourceSet.groovy({ set ->
+            set.srcDir 'src/groovy'
+        } as Action<SourceDirectorySet>)
+
+        expect:
+        CollectionUtils.single(sourceSet.groovy.srcDirs) == tmpDir.file("src/groovy")
     }
 }

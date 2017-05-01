@@ -100,10 +100,10 @@ class ThingTest {
 
         expect:
         succeeds 'test'
-        new ClassFile(file("build/classes/main/Thing.class")).javaVersion == javaVersion
+        new ClassFile(scalaClassFile("Thing.class")).javaVersion == javaVersion
 
         // The Scala 2.11 compiler only produces Java 6 bytecode
-        new ClassFile(file("build/classes/main/ScalaThing.class")).javaVersion == JavaVersion.VERSION_1_6
-        new ClassFile(file("build/classes/test/ThingTest.class")).javaVersion == JavaVersion.VERSION_1_6
+        new ClassFile(scalaClassFile("ScalaThing.class")).javaVersion == JavaVersion.VERSION_1_6
+        new ClassFile(classFile("scala", "test", "ThingTest.class")).javaVersion == JavaVersion.VERSION_1_6
     }
 }

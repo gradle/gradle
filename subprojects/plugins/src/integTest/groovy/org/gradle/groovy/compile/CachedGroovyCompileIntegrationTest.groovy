@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
     String compilationTask = ':compileGroovy'
-    String compiledFile = "build/classes/main/Hello.class"
+    String compiledFile = "build/classes/groovy/main/Hello.class"
 
     @Override
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {

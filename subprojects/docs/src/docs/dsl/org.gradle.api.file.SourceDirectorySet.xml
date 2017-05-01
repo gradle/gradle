@@ -22,20 +22,20 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>java-base</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
-                <td>classesDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td>srcDirs</td>
+                <td><literal>src/<replaceable>${sourceSet.name}</replaceable>/<replaceable>${sourceDirectorySet.name}</replaceable></literal></td>
             </tr>
             <tr>
-                <td>classesDirs</td>
-                <td>a file collection of each <literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td>filter</td>
+                <td></td>
             </tr>
             <tr>
-                <td>resourcesDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td>outputDir</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
         </table>
     </section>
@@ -48,10 +48,13 @@
                 </tr>
             </thead>
             <tr>
-                <td>dir</td>
+                <td>srcDir</td>
             </tr>
             <tr>
-                <td>getDirs</td>
+                <td>srcDirs</td>
+            </tr>
+            <tr>
+                <td>source</td>
             </tr>
         </table>
     </section>
