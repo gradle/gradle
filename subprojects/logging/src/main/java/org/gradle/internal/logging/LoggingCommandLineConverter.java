@@ -41,6 +41,8 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String WARN_LONG = "warn";
     public static final String INFO = "i";
     public static final String INFO_LONG = "info";
+    public static final String LIFECYCLE = "l";
+    public static final String LIFECYCLE_LONG = "lifecycle";
     public static final String QUIET = "q";
     public static final String QUIET_LONG = "quiet";
     public static final String CONSOLE = "console";
@@ -53,6 +55,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
 
     public LoggingCommandLineConverter() {
         logLevelMap.put(QUIET, LogLevel.QUIET);
+        logLevelMap.put(LIFECYCLE, LogLevel.LIFECYCLE);
         logLevelMap.put(WARN, LogLevel.WARN);
         logLevelMap.put(INFO, LogLevel.INFO);
         logLevelMap.put(DEBUG, LogLevel.DEBUG);
@@ -91,8 +94,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.option(DEBUG, DEBUG_LONG).hasDescription("Log in debug mode (includes normal stacktrace).");
         parser.option(QUIET, QUIET_LONG).hasDescription("Log errors only.");
         parser.option(INFO, INFO_LONG).hasDescription("Set log level to info.");
+        parser.option(LIFECYCLE, LIFECYCLE_LONG).hasDescription("Set log level to lifecycle.");
         parser.option(WARN, WARN_LONG).hasDescription("Set log level to warn.");
-        parser.allowOneOf(DEBUG, QUIET, INFO, WARN);
+        parser.allowOneOf(DEBUG, QUIET, LIFECYCLE, INFO, WARN);
 
         parser.option(CONSOLE).hasArgument().hasDescription("Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'.");
 
