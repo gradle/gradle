@@ -19,6 +19,8 @@ package org.gradle.caching.internal;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -27,13 +29,11 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.SingleMessageLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
 public class BuildCacheServiceProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheServiceProvider.class);
+    private static final Logger LOGGER = Logging.getLogger(BuildCacheServiceProvider.class);
     private static final int MAX_ERROR_COUNT_FOR_BUILD_CACHE = 3;
 
     private final BuildCacheConfigurationInternal buildCacheConfiguration;
@@ -64,7 +64,7 @@ public class BuildCacheServiceProvider {
         boolean canUseRemoteBuildCache = remote != null && remote.isEnabled();
 
         if (canUseRemoteBuildCache && startParameter.isOffline()) {
-            LOGGER.warn("Remote build cache is disabled when running with --offline.");
+            LOGGER.lifecycle("Remote build cache is disabled when running with --offline.");
         }
 
         RoleAwareBuildCacheService buildCacheService;
@@ -77,7 +77,7 @@ public class BuildCacheServiceProvider {
         } else if (canUseRemoteBuildCache && !startParameter.isOffline()) {
             buildCacheService = createStandaloneRemoteBuildService(remote);
         } else {
-            LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
+            LOGGER.lifecycle("Task output caching is enabled, but no build caches are configured or enabled.");
             return new NoOpBuildCacheService();
         }
 
@@ -109,7 +109,7 @@ public class BuildCacheServiceProvider {
     @VisibleForTesting
     RoleAwareBuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
         RoleAwareBuildCacheService buildCacheService = new BuildCacheServiceWithRole(role, createRawBuildCacheService(buildCache));
-        LOGGER.warn("Using {} as {} build cache, push is {}.", buildCacheService.getDescription(), role, buildCache.isPush() ? "enabled" : "disabled");
+        LOGGER.lifecycle("Using {} as {} build cache, push is {}.", buildCacheService.getDescription(), role, buildCache.isPush() ? "enabled" : "disabled");
         buildCacheService = new BuildOperationFiringBuildCacheServiceDecorator(buildOperationExecutor, buildCacheService);
         buildCacheService = new LoggingBuildCacheServiceDecorator(buildCacheService);
         buildCacheService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(MAX_ERROR_COUNT_FOR_BUILD_CACHE, buildCacheService);
