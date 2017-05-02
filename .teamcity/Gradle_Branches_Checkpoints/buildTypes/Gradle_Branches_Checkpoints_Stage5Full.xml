@@ -61,6 +61,7 @@ fi]]></param>
         <parameters>
           <param name="branchFilter"><![CDATA[+:refs/pull/*/head
 -:<default>]]></param>
+          <param name="enableQueueOptimization" value="true" />
           <param name="quietPeriodMode" value="DO_NOT_USE" />
           <param name="triggerRules"><![CDATA[+:user=adammurdoch;root=Gradle_Branches_GradleInternalPRs:**
 +:user=big-guy;root=Gradle_Branches_GradleInternalPRs:**
@@ -84,7 +85,7 @@ fi]]></param>
           <param name="github_authentication_type" value="token" />
           <param name="github_host" value="https://api.github.com" />
           <param name="publisherId" value="githubStatusPublisher" />
-          <param name="secure:github_access_token" value="zxx8553c43c0f4ea6fa28da143549a708d6fe3e5fd4c9fa954e1c4753095f7ba6d4ce0371f79ddbc405775d03cbe80d301b" />
+          <param name="secure:github_access_token" value="credentialsJSON:6d9f6f34-4746-439a-a72a-9c179f02d027" />
           <param name="vcsRootId" value="Gradle_Branches_GradleInternalPRs" />
         </parameters>
       </extension>
@@ -93,7 +94,7 @@ fi]]></param>
           <param name="github_authentication_type" value="token" />
           <param name="github_host" value="https://api.github.com" />
           <param name="publisherId" value="githubStatusPublisher" />
-          <param name="secure:github_access_token" value="zxx8553c43c0f4ea6fa28da143549a708d6fe3e5fd4c9fa954e1c4753095f7ba6d4ce0371f79ddbc405775d03cbe80d301b" />
+          <param name="secure:github_access_token" value="credentialsJSON:6d9f6f34-4746-439a-a72a-9c179f02d027" />
           <param name="vcsRootId" value="Gradle_Branches_GradlePersonalBranches" />
         </parameters>
       </extension>

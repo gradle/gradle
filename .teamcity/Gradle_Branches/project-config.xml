@@ -7,6 +7,7 @@
     <extension id="PROJECT_EXT_62" type="versionedSettings">
       <parameters>
         <param name="buildSettings" value="PREFER_VCS" />
+        <param name="credentialsStorageType" value="credentialsJSON" />
         <param name="enabled" value="true" />
         <param name="rootId" value="Gradle_Branches_VersionedSettings" />
         <param name="showChanges" value="false" />
