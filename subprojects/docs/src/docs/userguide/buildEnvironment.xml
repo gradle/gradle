@@ -79,6 +79,12 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
+                <term><literal>org.gradle.log.level</literal></term>
+                    <listitem><para>When set to quiet, warn, lifecycle, info, or debug, Gradle will use this logging level.  This property is case insensitive.
+                        See <xref linkend="sec:choosing_a_log_level"/>.</para>
+                    </listitem>
+            </varlistentry>
+            <varlistentry>
                 <term><literal>org.gradle.debug</literal></term>
                 <listitem><para>When set to true, Gradle will run the build with remote debugging enabled, listening on port 5005.
                     Note that this is the equivalent of adding <literal>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</literal> to

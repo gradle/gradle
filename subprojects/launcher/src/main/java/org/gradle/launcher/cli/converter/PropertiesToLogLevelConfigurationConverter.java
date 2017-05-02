@@ -36,7 +36,11 @@ public class PropertiesToLogLevelConfigurationConverter {
 
     private LogLevel parseLogLevel(String value) {
         try {
-            return LogLevel.valueOf(value.toUpperCase());
+            LogLevel logLevel = LogLevel.valueOf(value.toUpperCase());
+            if (logLevel == LogLevel.ERROR) {
+                throw new IllegalArgumentException("Log level cannot be set to ERROR.");
+            }
+            return logLevel;
         } catch (IllegalArgumentException e) {
             String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of %s)", value, GradleProperties.LOG_LEVEL_PROPERTY, Arrays.toString(LogLevel.values()));
             throw new IllegalArgumentException(message, e);

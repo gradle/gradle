@@ -263,6 +263,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         'lifecycle'      | ['-Dorg.gradle.log.level=LifeCycle']
         'info'           | ['-Dorg.gradle.log.level=Info']
         'debug'          | ['-Dorg.gradle.log.level=DEBUG']
-        'info'           | ['-Dorg.gradle.log.level=error', '--warn', '-i']
+        'info'           | ['-Dorg.gradle.log.level=quiet', '--warn', '-i']
     }
 }
