@@ -10,8 +10,9 @@ import org.gradle.api.publish.maven.*
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.GradleBuild
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
+import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
@@ -214,6 +215,13 @@ val benchmark by tasks.creating(integration.Benchmark::class) {
     latestInstallation = customInstallationDir
 }
 
+
+tasks.withType<Test> {
+    testLogging {
+        events("failed")
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+}
 
 // --- classpath.properties --------------------------------------------
 val generatedResourcesDir = file("$buildDir/generate-resources/main")
