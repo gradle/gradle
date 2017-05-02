@@ -23,7 +23,7 @@ import org.gradle.groovy.scripts.UriScriptSource;
 import java.net.URI;
 
 public class ScriptSourceProvider {
-    private static final String[] SUPPORTED_SCHEMAS = {"http", "https", "s3", "sftp"};
+    private static final String[] SUPPORTED_SCHEMAS = {"http", "https"};
 
     private final UriTextResourceLoader uriTextResourceLoader;
 
