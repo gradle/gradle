@@ -146,7 +146,7 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
-     * Expect a GET request to the given path, and return the given content.
+     * Expect a GET request to the given path, and return the given content (UTF-8 encoded)
      */
     public Resource resource(String path, String content) {
         return new SimpleResourceHandler(path, content);
