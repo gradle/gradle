@@ -16,15 +16,23 @@
 
 package org.gradle.test.fixtures.server.http;
 
+import com.google.common.base.Charsets;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
 class SimpleResourceHandler implements ResourceHandler, BlockingHttpServer.Resource {
     private final String path;
+    private final String content;
 
     public SimpleResourceHandler(String path) {
         this.path = removeLeadingSlash(path);
+        this.content = "";
+    }
+
+    public SimpleResourceHandler(String path, String content) {
+        this.path = removeLeadingSlash(path);
+        this.content = content;
     }
 
     static String removeLeadingSlash(String path) {
@@ -41,7 +49,8 @@ class SimpleResourceHandler implements ResourceHandler, BlockingHttpServer.Resou
 
     @Override
     public void writeTo(HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(200, 0);
-        exchange.getResponseHeaders().add("RESPONSE", "done");
+        byte[] bytes = content.getBytes(Charsets.UTF_8);
+        exchange.sendResponseHeaders(200, bytes.length);
+        exchange.getResponseBody().write(bytes);
     }
 }

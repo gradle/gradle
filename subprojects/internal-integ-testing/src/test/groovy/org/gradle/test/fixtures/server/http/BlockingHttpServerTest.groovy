@@ -17,8 +17,13 @@
 package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 
 class BlockingHttpServerTest extends ConcurrentSpec {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
     def server = new BlockingHttpServer(1000)
 
     def "succeeds when expected serial requests are made"() {
@@ -32,6 +37,26 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.uri("a").toURL().text
         server.uri("b").toURL().text
         server.uri("c").toURL().text
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can specify the content to return in response to a GET request"() {
+        def file = tmpDir.createFile("thing.txt")
+        file.text = "123"
+
+        given:
+        server.expectSerialExecution(server.resource("a"))
+        server.expectSerialExecution(server.file("b", file))
+        server.expectSerialExecution(server.resource("c", "this is the content"))
+        server.start()
+
+        when:
+        server.uri("a").toURL().text == ""
+        server.uri("b").toURL().text == "123"
+        server.uri("c").toURL().text == "this is the content"
         server.stop()
 
         then:
