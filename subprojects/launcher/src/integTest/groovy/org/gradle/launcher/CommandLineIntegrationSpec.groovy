@@ -239,4 +239,30 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
         4                      | ['-Dorg.gradle.parallel=true', '--max-workers=4']
     }
+
+    @Unroll
+    def "Set log level using org.gradle.log.level"() {
+        def message = 'Expected message in the output'
+        buildFile << """
+            task assertLogging {
+                doLast {
+                    logger.${logLevel} '${message}'
+                    assert logger.${logLevel}Enabled
+                }
+            }
+        """
+        expect:
+        executer.withArguments(flags)
+        succeeds("assertLogging")
+        outputContains(message)
+
+        where:
+        logLevel | flags
+        'quiet'          | ['-Dorg.gradle.log.level=quiet']
+        'warn'           | ['-Dorg.gradle.log.level=warn']
+        'lifecycle'      | ['-Dorg.gradle.log.level=LifeCycle']
+        'info'           | ['-Dorg.gradle.log.level=Info']
+        'debug'          | ['-Dorg.gradle.log.level=DEBUG']
+        'info'           | ['-Dorg.gradle.log.level=error', '--warn', '-i']
+    }
 }

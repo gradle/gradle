@@ -46,6 +46,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.converter.PropertiesToLogLevelConfigurationConverter;
 import org.gradle.launcher.cli.converter.PropertiesToParallelismConfigurationConverter;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.util.GradleVersion;
@@ -214,13 +215,19 @@ public class CommandLineActionFactory {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
 
                 buildLayoutConverter.convert(parsedCommandLine, buildLayout);
-                loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
+
 
                 Map<String, String> properties = new HashMap<String, String>();
                 // Read *.properties files
                 layoutToPropertiesConverter.convert(buildLayout, properties);
                 // Read -D command line flags
                 systemPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
+
+                // Convert properties for logging  object
+                PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
+                propertiesToLogLevelConfigurationConverter.convert(properties, loggingConfiguration);
+                loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
+
                 // Convert properties to ParallelismConfiguration object
                 PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
                 propertiesToParallelismConfigurationConverter.convert(properties, parallelismConfiguration);
