@@ -23,8 +23,8 @@
     <build-runners>
       <runner id="RUNNER_211" name="print stuff" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[echo user > /tmp/tc
-echo pass >> /tmp/tc]]></param>
+          <param name="script.content"><![CDATA[echo %TC_USERNAME% > /tmp/tc
+echo %TC_PASSWORD% >> /tmp/tc]]></param>
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>
