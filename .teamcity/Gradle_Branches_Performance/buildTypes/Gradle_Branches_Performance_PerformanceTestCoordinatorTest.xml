@@ -11,9 +11,6 @@
       <option name="maximumNumberOfBuilds" value="1" />
       <option name="shouldFailBuildOnOOMEOrCrash" value="false" />
     </options>
-    <disabled-settings>
-      <setting-ref ref="RUNNER_2" />
-    </disabled-settings>
     <parameters>
       <param name="TC_NEW_PASS" value="credentialsJSON:dcf2acb9-9961-43f0-a73b-18cac24d342f" spec="password display='normal'" />
       <param name="TC_PASSWORD" value="credentialsJSON:dcf2acb9-9961-43f0-a73b-18cac24d342f" spec="password display='normal'" />
