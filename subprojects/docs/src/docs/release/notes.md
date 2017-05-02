@@ -221,6 +221,11 @@ Plugins, tasks or builds that hardcoded these paths may fail.  You can access th
 When using the `java` plugin, all `compile` and `runtime` dependencies will now be mapped to the `compile` scope, i.e. "leaked" into the consumer's compile classpath. This is in line with how
  these legacy configurations work in multi-project builds. We strongly encourage you to use the `api`(java-library plugin only), `implementation` and `runtimeOnly` configurations instead. These
  are mapped as expected, with `api` being exposed to the consumer's compile classpath and `implementation` and `runtimeOnly` only available on the consumer's runtime classpath.
+
+### Memory settings and forking not tracked as inputs for JVM compilation
+
+Previously Gradle would treat JVM compilation tasks as out-of-date whenever their memory settings changed compared to the previous execution. The same would happen if a forking compilation task was changed to non-forking, or vice versa. Since Gradle 4.0, these parameters are not treated as inputs anymore, and thus the compilation tasks will stay up-to-date when they are changed.
+
 <!--
 ### Example breaking change
 -->
