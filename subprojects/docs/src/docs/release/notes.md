@@ -230,9 +230,9 @@ When using the `java` plugin, all `compile` and `runtime` dependencies will now 
 
 Previously Gradle would treat JVM compilation tasks as out-of-date whenever their memory settings changed compared to the previous execution. The same would happen if a forking compilation task was changed to non-forking, or vice versa. Since Gradle 4.0, these parameters are not treated as inputs anymore, and thus the compilation tasks will stay up-to-date when they are changed.
 
-<!--
-### Example breaking change
--->
+### Groovy upgraded to 2.4.11
+
+The version of Groovy bundled with Gradle was changed from Groovy 2.4.10 to [Groovy 2.4.11](http://www.groovy-lang.org/changelogs/changelog-2.4.11.html).
 
 ### Changes to previously deprecated APIs
 
