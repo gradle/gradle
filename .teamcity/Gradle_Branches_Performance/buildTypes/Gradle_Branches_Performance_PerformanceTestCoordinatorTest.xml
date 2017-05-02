@@ -21,6 +21,14 @@
       <param name="performance.db.username" value="tcagent" />
     </parameters>
     <build-runners>
+      <runner id="RUNNER_211" name="print stuff" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[echo user > /tmp/tc
+echo pass >> /tmp/tc]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
         <parameters>
           <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
@@ -45,14 +53,6 @@ else
 echo "$REPO does not exist"
 fi]]></param>
           <param name="teamcity.step.mode" value="execute_always" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
-      <runner id="RUNNER_211" name="print stuff" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[echo user > /tmp/tc
-echo pass >> /tmp/tc]]></param>
-          <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>
       </runner>
