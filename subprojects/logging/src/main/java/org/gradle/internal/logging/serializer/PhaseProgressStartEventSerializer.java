@@ -17,14 +17,14 @@
 package org.gradle.internal.logging.serializer;
 
 import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.PhaseProgressStartEvent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-public class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
+public class PhaseProgressStartEventSerializer implements Serializer<PhaseProgressStartEvent> {
     @Override
-    public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
+    public void write(Encoder encoder, PhaseProgressStartEvent event) throws Exception {
         encoder.writeSmallLong(event.getProgressOperationId().getId());
         if (event.getParentProgressOperationId() == null) {
             encoder.writeBoolean(false);
@@ -50,10 +50,11 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             encoder.writeBoolean(true);
             encoder.writeSmallLong(((OperationIdentifier) event.getParentBuildOperationId()).getId());
         }
+        encoder.writeSmallLong(event.getChildren());
     }
 
     @Override
-    public ProgressStartEvent read(Decoder decoder) throws Exception {
+    public PhaseProgressStartEvent read(Decoder decoder) throws Exception {
         OperationIdentifier progressOperationId = new OperationIdentifier(decoder.readSmallLong());
         OperationIdentifier parentProgressOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
         long timestamp = decoder.readLong();
@@ -64,6 +65,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         String status = decoder.readString();
         Object buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
         Object parentBuildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, timestamp, category, description, shortDescription, loggingHeader, status, buildOperationId, parentBuildOperationId);
+        long children = decoder.readSmallLong();
+        return new PhaseProgressStartEvent(progressOperationId, parentProgressOperationId, timestamp, category, description, shortDescription, loggingHeader, status, buildOperationId, parentBuildOperationId, children);
     }
 }

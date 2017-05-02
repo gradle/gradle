@@ -232,7 +232,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.tasks.size() == 3
 
-        def runTasks = events.operation("Run tasks")
+        def runTasks = events.operation("EXECUTING")
 
         def t1 = events.operation("Task :para1")
         def t2 = events.operation("Task :para2")
@@ -279,7 +279,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         then:
         events.tasks.size() == 3
 
-        def runTasks = events.operation("Run tasks")
+        def runTasks = events.operation("EXECUTING")
 
         def t1 = events.operation("Task :para1")
         def t2 = events.operation("Task :para2")
@@ -304,7 +304,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then: 'the parent of the task events is the root build operation'
-        def runTasks = events.operation("Run tasks")
+        def runTasks = events.operation("EXECUTING")
         events.tasks.every { it.descriptor.parent == runTasks.descriptor }
 
         when: 'listening to task progress events when no build operation listener is attached'

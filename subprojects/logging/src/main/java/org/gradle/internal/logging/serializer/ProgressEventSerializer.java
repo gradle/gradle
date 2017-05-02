@@ -25,7 +25,7 @@ import org.gradle.internal.serialize.Serializer;
 public class ProgressEventSerializer implements Serializer<ProgressEvent> {
     @Override
     public void write(Encoder encoder, ProgressEvent event) throws Exception {
-        encoder.writeSmallLong(event.getOperationId().getId());
+        encoder.writeSmallLong(event.getProgressOperationId().getId());
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         encoder.writeString(event.getStatus());

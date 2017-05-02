@@ -64,6 +64,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
 
     @Override
     public void render(StyledTextOutput output) {
+//        output.text(getBuildOperationId() == null ? "null " : getBuildOperationId() + " ");
         for (Span span : spans) {
             output.style(span.style);
             output.text(span.text);

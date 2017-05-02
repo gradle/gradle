@@ -26,6 +26,7 @@ import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationState
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.progress.TestProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -44,7 +45,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def setupBuildOperationExecutor(int maxThreads) {
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, maxThreads)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
-            operationListener, Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            operationListener, Mock(TimeProvider), new TestProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerRegistry), new DefaultExecutorFactory(), maxThreads)
         outerOperationCompletion = workerRegistry.getWorkerLease().start()
         outerOperation = workerRegistry.getCurrentWorkerLease()

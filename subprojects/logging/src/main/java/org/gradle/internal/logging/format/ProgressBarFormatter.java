@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.progress;
+package org.gradle.internal.logging.format;
 
-public class ProgressBar implements ProgressFormatter {
+public class ProgressBarFormatter {
     private final String progressBarPrefix;
     private int progressBarWidth;
     private final String progressBarSuffix;
     private char fillerChar;
     private int current;
     private final char incompleteChar;
-    private int total;
+    private long total;
     private String suffix;
 
-    public ProgressBar(String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int total) {
+    public ProgressBarFormatter(String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, long total) {
         this.progressBarPrefix = progressBarPrefix;
         this.progressBarWidth = progressBarWidth;
         this.progressBarSuffix = progressBarSuffix;
@@ -43,6 +43,8 @@ public class ProgressBar implements ProgressFormatter {
 
     public void increment() {
         if (current == total) {
+            // 17:04:18.926 [DEBUG] [org.gradle.internal.progress.DefaultBuildOperationExecutor] Completing Build operation 'Apply plugin org.gradle.help-tasks to root project 'gradle-js-plugin''
+            // FIXME(ew): Sometimes getting "Cannot increment beyond the total of: 1"
             throw new IllegalStateException("Cannot increment beyond the total of: " + total);
         }
         current++;
