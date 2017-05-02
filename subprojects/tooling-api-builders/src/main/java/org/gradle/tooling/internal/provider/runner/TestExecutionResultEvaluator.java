@@ -30,7 +30,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
@@ -138,7 +138,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
     }
 
     @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationResult finishEvent) {
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         if (!(buildOperation.getDetails() instanceof TaskOperationDetails)) {
             return;
         }

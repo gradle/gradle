@@ -28,7 +28,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
@@ -159,7 +159,7 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
     }
 
     @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationResult finishEvent) {
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         if (!(buildOperation.getDetails() instanceof TaskOperationDetails)) {
             return;
         }

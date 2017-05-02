@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
@@ -76,7 +76,7 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     }
 
     @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationResult finishEvent) {
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         if (skipEvents.remove(buildOperation.getId())) {
             return;
         }
@@ -103,7 +103,7 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
         return clientSubscriptions.isSendBuildProgressEvents() ? buildOperation.getParentId() : null;
     }
 
-    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationResult result) {
+    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationFinishEvent result) {
         TaskStateInternal state = task.getState();
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();

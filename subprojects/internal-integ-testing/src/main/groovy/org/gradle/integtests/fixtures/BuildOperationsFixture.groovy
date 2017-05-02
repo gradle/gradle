@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationService
-import org.gradle.internal.progress.OperationResult
+import org.gradle.internal.progress.OperationFinishEvent
 import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -45,7 +45,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
             import ${BuildOperationListener.name}
             import ${BuildOperationDescriptor.name}
             import ${OperationStartEvent.name}
-            import ${OperationResult.name}
+            import ${OperationFinishEvent.name}
 
             def operations = [:]
             def operationListener = new BuildOperationListener() {
@@ -60,7 +60,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                     ]
                 }
 
-                void finished(BuildOperationDescriptor buildOperation, OperationResult finishEvent) {
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
                     if (!operations[buildOperation.id]) {
                         operations[buildOperation.id] = [
                             id: "\${buildOperation.id}",
