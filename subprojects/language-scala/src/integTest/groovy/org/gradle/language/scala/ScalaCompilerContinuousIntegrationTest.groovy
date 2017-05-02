@@ -18,7 +18,6 @@ package org.gradle.language.scala
 
 import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
 
-
 class ScalaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousIntegrationTest {
     def setup() {
         // Initial scala compilation is very slow: we need to give additional time to wait for build to complete.

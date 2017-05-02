@@ -31,9 +31,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             apply plugin: 'java'
 
-            task javaexecTask(type: JavaExec, dependsOn: classes) {
+            task javaexecTask(type: JavaExec) {
                 ext.testFile = file("$buildDir/$name")
-                classpath(sourceSets.main.output.classesDir)
+                classpath(sourceSets.main.output.classesDirs)
                 main = 'org.gradle.TestMain'
                 args projectDir, testFile
                 doLast {
@@ -42,12 +42,12 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 assert delegate instanceof ExtensionAware
             }
 
-            task javaexecByMethod(dependsOn: classes) {
+            task javaexecByMethod() {
                 ext.testFile = file("$buildDir/$name")
                 doFirst {
                     javaexec {
                         assert !(delegate instanceof ExtensionAware)
-                        classpath(sourceSets.main.output.classesDir)
+                        classpath(sourceSets.main.output.classesDirs)
                         main 'org.gradle.TestMain'
                         args projectDir, testFile
                     }

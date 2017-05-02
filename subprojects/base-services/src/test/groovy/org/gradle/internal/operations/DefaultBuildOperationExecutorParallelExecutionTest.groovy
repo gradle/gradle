@@ -371,11 +371,12 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
                 5.times {
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         void run(BuildOperationContext context) {
-                            operationState = buildOperationExecutor.getCurrentOperation()
-                            assert parentOperationId == null || parentOperationId == operationState.description.parentId
-                            parentOperationId = operationState.description.parentId
+                            def myOperationState = buildOperationExecutor.getCurrentOperation()
+                            assert parentOperationId == null || parentOperationId == myOperationState.description.parentId
+                            parentOperationId = myOperationState.description.parentId
                             assert parentOperationId.id < 0
-                            assert operationState.running
+                            assert myOperationState.running
+                            operationState = myOperationState
                         }
                     })
                 }

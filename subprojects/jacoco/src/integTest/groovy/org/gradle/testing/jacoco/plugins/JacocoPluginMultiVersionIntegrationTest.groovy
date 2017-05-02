@@ -167,7 +167,7 @@ public class ThingTest {
 
             task otherTests(type: Test) {
                 binResultsDir file("bin")
-                testClassesDir = sourceSets.otherTest.output.classesDir
+                testClassesDirs = sourceSets.otherTest.output.classesDirs
                 classpath = sourceSets.otherTest.runtimeClasspath
             }
 
@@ -179,7 +179,7 @@ public class ThingTest {
                 executionData jacocoMerge.destinationFile
                 dependsOn jacocoMerge
                 sourceDirectories = files(sourceSets.main.java.srcDirs, sourceSets.otherMain.java.srcDirs)
-                classDirectories = files(sourceSets.main.output.classesDir, sourceSets.otherMain.output.classesDir)
+                classDirectories = files(sourceSets.main.output.classesDirs, sourceSets.otherMain.output.classesDirs)
             }
         """
         when:

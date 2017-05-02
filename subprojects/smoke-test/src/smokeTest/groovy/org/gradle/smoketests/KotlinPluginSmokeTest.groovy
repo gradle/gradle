@@ -30,7 +30,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         replaceVariablesInBuildFile(kotlinVersion: this.kotlinVersion)
 
         when:
-        def result = runner('build').build()
+        def result = runner('run').forwardOutput().build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS

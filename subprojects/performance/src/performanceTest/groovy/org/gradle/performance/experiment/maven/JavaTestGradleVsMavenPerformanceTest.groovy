@@ -26,6 +26,7 @@ import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.MavenInvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT
@@ -35,6 +36,7 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC
  * Performance tests aimed at comparing the performance of Gradle for compiling and executing test suites, making
  * sure we are always faster than Maven.
  */
+@Ignore
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 
     @Unroll

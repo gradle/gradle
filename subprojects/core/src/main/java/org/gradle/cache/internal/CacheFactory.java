@@ -30,5 +30,5 @@ public interface CacheFactory {
     /**
      * Opens a cache with the given options. The caller must close the cache when finished with it.
      */
-    PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException;
+    PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable Action<? super PersistentCache> cleanup) throws CacheOpenException;
 }

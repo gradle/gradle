@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
@@ -184,6 +185,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming b.jar to b.jar.txt")
     }
 
+    @Ignore
     def "files are transformed as soon as they are downloaded"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"

@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.caching.internal
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
+import spock.lang.Specification
 
-/**
- * Calculates a hash for a classpath entry (a jar or class file)
- */
-public interface ClasspathEntryHasher {
-    /**
-     * Returns a hash based on the contents of the given fileSnapshot.
-     *
-     * May return <code>null</code>, if the file contributes nothing to the classpath.
-     *
-     * e.g., an empty jar file or a class file with no public API (for compile classpaths).
-     */
-    @Nullable
-    HashCode hash(FileSnapshot fileSnapshot);
+class BuildCacheCleanupTest extends Specification {
 }

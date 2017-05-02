@@ -58,7 +58,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
         super.getBinDistribution()
     }
 
-    def TestFile getGradleHomeDir() {
+    TestFile getGradleHomeDir() {
         download()
         super.getGradleHomeDir()
     }
@@ -72,7 +72,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 super.binDistribution.usingNativeTools().unzipTo(versionDir)
             }
             //noinspection GrDeprecatedAPIUsage
-            cache = CACHE_FACTORY.open(versionDir, version.version, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared).useCrossVersionImplementation(), downloadAction as Action)
+            cache = CACHE_FACTORY.open(versionDir, version.version, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared).useCrossVersionImplementation(), downloadAction as Action, null)
         }
 
         super.binDistribution.assertIsFile()

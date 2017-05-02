@@ -21,12 +21,14 @@ import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.DownloadBuildOperationDescriptor;
+import org.gradle.internal.resource.ExternalResourceReadResult;
+import org.gradle.internal.resource.transfer.DownloadBuildOperationDetails;
 
 import java.io.File;
 import java.io.InputStream;
@@ -144,15 +146,15 @@ public class BuildOperationExternalResource implements ExternalResource {
     }
 
     private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
-        buildOperationContext.setResult(new DownloadBuildOperationDescriptor.Result(result.getReadContentLength()));
+        buildOperationContext.setResult(new DownloadBuildOperationDetails.Result(result.getReadContentLength()));
         return result;
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails() {
         ExternalResourceMetaData metaData = getMetaData();
-        DownloadBuildOperationDescriptor downloadBuildOperationDescriptor = new DownloadBuildOperationDescriptor(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
+        DownloadBuildOperationDetails downloadBuildOperationDetails = new DownloadBuildOperationDetails(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
         return BuildOperationDescriptor
             .displayName("Download " + metaData.getLocation().toString())
-            .details(downloadBuildOperationDescriptor);
+            .details(downloadBuildOperationDetails);
     }
 }

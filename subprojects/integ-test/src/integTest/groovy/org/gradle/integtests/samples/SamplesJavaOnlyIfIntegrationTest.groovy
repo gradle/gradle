@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-public class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
+class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/onlyif')
 
@@ -40,7 +40,7 @@ public class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
      * execute dists
      * check that it re-ran tests
      */
-    @Test public void testOptimizedBuild() {
+    @Test void testOptimizedBuild() {
         TestFile javaprojectDir = sample.dir
 
         // Build and test projects
@@ -65,7 +65,7 @@ public class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
         assertDoesNotExist(javaprojectDir, 'build/reports/tests/test/index.html')
 
         // remove a compiled class file
-        removeFile(javaprojectDir, 'build/classes/main/org/gradle/Person.class')
+        removeFile(javaprojectDir, 'build/classes/java/main/org/gradle/Person.class')
 
         executer.inDirectory(javaprojectDir).withTasks('test').run()
 

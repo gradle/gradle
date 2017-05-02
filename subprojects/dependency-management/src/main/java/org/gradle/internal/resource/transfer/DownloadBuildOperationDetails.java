@@ -16,16 +16,26 @@
 
 package org.gradle.internal.resource.transfer;
 
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
+
 import org.gradle.internal.resource.ExternalResourceReadResult;
 
 import java.net.URI;
 
-public class DownloadBuildOperationDescriptor {
+
+/**
+ * Details about some resource being downloaded.
+ *
+ * This class is intentionally internal and consumed by the build scan plugin.
+ *
+ * @since 4.0
+ */
+public final class DownloadBuildOperationDetails implements NoResultBuildOperationDetails {
     private final URI location;
     private final long contentLength;
     private final String contentType;
 
-    public DownloadBuildOperationDescriptor(URI location, long contentLength, String contentType) {
+    public DownloadBuildOperationDetails(URI location, long contentLength, String contentType) {
         this.location = location;
         this.contentLength = contentLength;
         this.contentType = contentType;
@@ -50,7 +60,7 @@ public class DownloadBuildOperationDescriptor {
 
     @Override
     public String toString() {
-        return "DownloadBuildOperationDescriptor{"
+        return "DownloadBuildOperationDetails{"
             + "location=" + location + ", "
             + "contentLength=" + contentLength + ", "
             + "contentType='" + contentType + '\''
@@ -71,7 +81,7 @@ public class DownloadBuildOperationDescriptor {
         /**
          * The actual length of the received content.
          *
-         * Should be equal to {@link DownloadBuildOperationDescriptor#getContentLength()} if it was not -1.
+         * Should be equal to {@link DownloadBuildOperationDetails#getContentLength()} if it was not -1.
          * See {@link ExternalResourceReadResult#getReadContentLength()} for the semantics of this value.
          */
         public long getReadContentLength() {
@@ -80,7 +90,7 @@ public class DownloadBuildOperationDescriptor {
 
         @Override
         public String toString() {
-            return "DownloadBuildOperationDescriptor.Result{"
+            return "DownloadBuildOperationDetails.Result{"
                 + "readContentLength=" + readContentLength
                 + '}';
         }

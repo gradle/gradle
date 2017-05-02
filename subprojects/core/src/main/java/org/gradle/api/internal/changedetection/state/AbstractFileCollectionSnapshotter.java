@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -28,8 +26,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
@@ -49,65 +45,38 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
     }
 
-    @Override
-    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
-        List<FileSnapshot> fileTreeElements = Lists.newLinkedList();
+    public FileCollectionSnapshot snapshot(FileCollection input, FileCollectionSnapshotBuilder fileCollectionSnapshotBuilder) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements);
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileCollectionSnapshotBuilder);
         fileCollection.visitRootElements(visitor);
-
-        if (fileTreeElements.isEmpty()) {
-            return FileCollectionSnapshot.EMPTY;
-        }
-
-        Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
-        for (FileSnapshot fileSnapshot : fileTreeElements) {
-            String absolutePath = fileSnapshot.getPath();
-            if (!snapshots.containsKey(absolutePath)) {
-                NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
-                if (normalizedSnapshot != null) {
-                    snapshots.put(absolutePath, normalizedSnapshot);
-                }
-            }
-        }
-        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
+        return fileCollectionSnapshotBuilder.build();
     }
 
-    /**
-     * Normalises the elements of a directory tree. Does not include the root directory.
-     */
-    protected List<FileSnapshot> normaliseTreeElements(List<FileSnapshot> treeNonRootElements) {
-        return treeNonRootElements;
-    }
-
-    /**
-     * Normalises a root file. Invoked only for top level elements that are regular files.
-     */
-    protected FileSnapshot normaliseFileElement(FileSnapshot details) {
-        return details;
+    protected StringInterner getStringInterner() {
+        return stringInterner;
     }
 
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final List<FileSnapshot> fileTreeElements;
+        private final FileSnapshotVisitor fileSnapshotVisitor;
 
-        FileCollectionVisitorImpl(List<FileSnapshot> fileTreeElements) {
-            this.fileTreeElements = fileTreeElements;
+        FileCollectionVisitorImpl(FileSnapshotVisitor fileSnapshotVisitor) {
+            this.fileSnapshotVisitor = fileSnapshotVisitor;
         }
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
-                FileSnapshot details = fileSystemSnapshotter.snapshotSelf(file);
-                switch (details.getType()) {
+                FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
+                switch (fileSnapshot.getType()) {
                     case Missing:
-                        fileTreeElements.add(details);
+                        fileSnapshotVisitor.visitMissingFileSnapshot((MissingFileSnapshot) fileSnapshot);
                         break;
                     case RegularFile:
-                        fileTreeElements.add(normaliseFileElement(details));
+                        fileSnapshotVisitor.visitFileSnapshot((RegularFileSnapshot) fileSnapshot);
                         break;
                     case Directory:
                         // Visit the directory itself, then its contents
-                        fileTreeElements.add(details);
+                        fileSnapshotVisitor.visitDirectorySnapshot((DirectoryFileSnapshot) fileSnapshot);
                         visitDirectoryTree(directoryFileTreeFactory.create(file));
                         break;
                     default:
@@ -118,17 +87,13 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            List<FileSnapshot> elements = fileSystemSnapshotter.snapshotTree(fileTree);
-            elements = normaliseTreeElements(elements);
-            fileTreeElements.addAll(elements);
+            fileSnapshotVisitor.visitFileTreeSnapshot(fileSystemSnapshotter.snapshotTree(fileTree));
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
             FileTreeSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            List<FileSnapshot> elements = treeSnapshot.getDescendants();
-            elements = normaliseTreeElements(elements);
-            fileTreeElements.addAll(elements);
+            fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot.getDescendants());
         }
     }
 }

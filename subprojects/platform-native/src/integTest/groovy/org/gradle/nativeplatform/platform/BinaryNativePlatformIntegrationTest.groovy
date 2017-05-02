@@ -391,7 +391,8 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
+        failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
     }
 
     @Issue("GRADLE-3499")

@@ -31,7 +31,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Lo
         buildFile << """
             jacocoTestReport.dependsOn test
             
-            sourceSets.test.output.classesDir = file("build/classes/test")
+            sourceSets.test.java.outputDir = file("build/classes/test")
             
             test {
                 jacoco {

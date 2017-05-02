@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import java.util.Collection;
-
 /**
  * A container of artifacts that match some criteria. Not every query method is available, depending on which details are available.
  */
@@ -25,10 +23,11 @@ public interface SelectedArtifactSet {
     /**
      * Collects the build dependencies required to build the artifacts in this result.
      */
-    <T extends Collection<Object>> T collectBuildDependencies(T dest);
+    void collectBuildDependencies(BuildDependenciesVisitor visitor);
 
     /**
      * Visits the files and artifacts of this set.
      */
     void visitArtifacts(ArtifactVisitor visitor);
+
 }

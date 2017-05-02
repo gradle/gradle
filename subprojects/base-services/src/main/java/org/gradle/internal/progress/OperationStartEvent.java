@@ -19,7 +19,7 @@ package org.gradle.internal.progress;
 /**
  * This class is consumed by the build scan plugin.
  * */
-public class OperationStartEvent {
+public final class OperationStartEvent {
     private final long startTime;
 
     public OperationStartEvent(long startTime) {

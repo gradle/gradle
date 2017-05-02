@@ -16,13 +16,22 @@
 
 package org.gradle.configuration.project;
 
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
 import org.gradle.util.Path;
 
-public class ConfigureProjectBuildOperationDetails {
+
+/**
+ * Details about a project being configured.
+ *
+ * This class is intentionally internal and consumed by the build scan plugin.
+ *
+ * @since 4.0
+ */
+public final class ConfigureProjectBuildOperationDetails implements NoResultBuildOperationDetails {
     private final Path buildPath;
     private final Path projectPath;
 
-    protected ConfigureProjectBuildOperationDetails(Path projectPath, Path buildPath) {
+    ConfigureProjectBuildOperationDetails(Path projectPath, Path buildPath) {
         this.projectPath = projectPath;
         this.buildPath = buildPath;
     }
@@ -34,4 +43,5 @@ public class ConfigureProjectBuildOperationDetails {
     public Path getBuildPath() {
         return buildPath;
     }
+
 }

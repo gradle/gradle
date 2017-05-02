@@ -45,8 +45,8 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         when:
         executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileGroovy").run().output
         then:
-        file("build/classes/main/org/test/JavaClazz.class").exists()
-        file("build/classes/main/org/test/GroovyClazz.class").exists()
+        groovyClassFile("org/test/JavaClazz.class").exists()
+        groovyClassFile("org/test/GroovyClazz.class").exists()
 
         where:
         forkMode << [true, false]
@@ -73,8 +73,8 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         executer.withEnvironmentVars(envVars).withTasks("compileGroovy").run()
 
         then:
-        file("build/classes/main/org/test/JavaClazz.class").exists()
-        file("build/classes/main/org/test/GroovyClazz.class").exists()
+        groovyClassFile("org/test/JavaClazz.class").exists()
+        groovyClassFile("org/test/GroovyClazz.class").exists()
 
         where:
         forkMode << [true, false]

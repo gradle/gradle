@@ -19,7 +19,14 @@ package org.gradle.test.fixtures.server.http;
 import com.sun.net.httpserver.HttpExchange;
 
 abstract class TrackingHttpHandler {
-    public abstract boolean handle(int id, HttpExchange exchange) throws Exception;
+    /**
+     * Selects a resource handler to handle the given request. Returns null when this handler does not want to handle the request.
+     *
+     * This method is called under the state lock. The handler is _not_ called under the state lock. That is, the lock is held only while selecting how to handle the request.
+     *
+     * The method may block until the request is ready to be handled.
+     */
+    public abstract ResourceHandler handle(int id, HttpExchange exchange) throws Exception;
 
     public abstract void assertComplete();
 }

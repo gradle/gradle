@@ -95,13 +95,13 @@ public class NotATest {}"""
 
         //then
         testFile("build/resources/main/prod.resource").assertExists();
-        testFile("build/classes/main/prod.resource").assertDoesNotExist();
+        testFile("build/classes/java/main/prod.resource").assertDoesNotExist();
 
         testFile("build/resources/test/test.resource").assertExists();
-        testFile("build/classes/test/test.resource").assertDoesNotExist();
+        testFile("build/classes/java/test/test.resource").assertDoesNotExist();
 
-        testFile("build/classes/main/Main.class").assertExists();
-        testFile("build/classes/test/TestFoo.class").assertExists();
+        testFile("build/classes/java/main/Main.class").assertExists();
+        testFile("build/classes/java/test/TestFoo.class").assertExists();
     }
 
     @Test

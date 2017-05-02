@@ -124,9 +124,23 @@ A warning is shown when:
 
 For more info on using task property annotations, see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
 
+#### Cache-safe mixed JVM language compilation
+
+In Gradle 3.5, projects that used both Java and another JVM language (like Groovy or Scala) would encounter problems when using the build cache. The class files created by multiple compilation tasks were all placed into the same output directory, which made determining the set of outputs to cache for each task difficult.
+
+Gradle now uses separate output directories for each JVM language. TODO: We should expand this since this is not specifically a build cache improvement.
+
+### Parallel download of dependencies
+
+Gradle will now download dependencies from remote repositories in parallel. It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
+
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
 This will take advantage of performance optimizations in the latest [Zinc](https://github.com/typesafehub/zinc) releases.
+
+### Ivy plugin repositories support patterns and layouts
+
+Ivy plugin repositories now support the same API for patterns and layouts that Ivy artifact repositories support.
 
 <!--
 ### Example new and noteworthy
@@ -157,6 +171,35 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ## Potential breaking changes
+
+### Multiple class directories
+
+In projects that use multiple JVM languages (Java and Scala, Groovy and other languages), Gradle now uses separate output directories for each language. 
+
+To return to the old behavior, explicitly set the classes directory:
+
+   // Change the output directory for the main source set back to the old path
+   sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
+
+Please be aware that this will interfere with the effectiveness of the build cache when using multiple JVM languages in the same source set.
+
+### Location of classes in the build directory
+
+The default location of classes when using the `java`, `groovy` or `scala` plugin has changed from:
+
+   Java: build/classes/main
+   Groovy: build/classes/main
+   Scala: build/classes/main
+   Generically: build/classes/${sourceSet.name}
+
+to
+
+   Java: build/classes/java/main
+   Groovy: build/classes/groovy/main
+   Scala: build/classes/scala/main
+   Generically: build/classes/${sourceDirectorySet.name}/${sourceSet.name}
+
+Plugins, tasks or builds that hardcoded these paths may fail.  You can access the specific output directory for a particular language via [`SourceDirectorySet#outputDir`](dsl/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir). 
 
 ### maven-publish and ivy-publish mirror multi-project behavior
 
@@ -247,6 +290,7 @@ We would like to thank the following community members for making contributions 
 - [Szczepan Faber](https://github.com/szczepiq) - Issue: #1857 Could not copy MANIFEST.MF / Multiple entries with same key
 - [Bo Zhang](https://github.com/blindpirate) - Use Enum.getDeclaringClass() to avoid NPE in comparing enums ([gradle/gradle#1862](https://github.com/gradle/gradle/pull/1862))
 - [Danny Thomas](https://github.com/DanielThomas) - Improve performance of version parsing ([gradle/gradle#1659](https://github.com/gradle/gradle/pull/1659))
+- [Ethan Hall](https://github.com/ethankhall) - Pattern and layout support for Ivy plugin repositories ([gradle/gradle#1813](https://github.com/gradle/gradle/pull/1813))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

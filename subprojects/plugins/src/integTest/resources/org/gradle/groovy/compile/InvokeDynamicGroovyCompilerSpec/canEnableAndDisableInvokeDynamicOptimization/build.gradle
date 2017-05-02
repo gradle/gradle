@@ -7,14 +7,14 @@ repositories {
 task compileWithOptimization(type: GroovyCompile) {
     source = sourceSets.main.groovy
     classpath = configurations.compile
-    destinationDir = file("$sourceSets.main.output.classesDir/optimized")
+    destinationDir = file("$buildDir/classes/optimized")
     groovyOptions.optimizationOptions.indy = true
 }
 
 task compileWithoutOptimization(type: GroovyCompile) {
     source = sourceSets.main.groovy
     classpath = configurations.compile
-    destinationDir = file("$sourceSets.main.output.classesDir/unoptimized")
+    destinationDir = file("$buildDir/classes/unoptimized")
     groovyOptions.optimizationOptions.indy = false
 }
 

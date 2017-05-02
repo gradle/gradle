@@ -22,7 +22,7 @@ import org.junit.Test
 class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationTest {
 
     @Test
-    public void doesNotRebuildGroovydocIfSourceHasNotChanged() {
+    void doesNotRebuildGroovydocIfSourceHasNotChanged() {
         file("src/main/groovy/BuildClass.java") << 'public class BuildClass { }'
         file("build.gradle") << '''
             apply plugin: 'groovy'

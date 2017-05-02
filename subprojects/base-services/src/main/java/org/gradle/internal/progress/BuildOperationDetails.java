@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
-
-import com.google.common.hash.Hasher;
-
-import java.io.InputStream;
+package org.gradle.internal.progress;
 
 /**
- * Hashes an element in a classpath entry (e.g., the .class file in a jar or a .class file in a directory)
+ * Strongly typed details of a build operation, for listeners that want to do deeper analysis
+ * instead of just showing display names.
+ *
+ * This interface is intentionally internal and consumed by the build scan plugin.
+ *
+ * The return type token is currently not used/enforced.
+ * We will iterate on the producer side API to compile time enforce it.
+ *
+ * @param <R> the type of result
+ * @see BuildOperationDescriptor
+ * @since 4.0
  */
-public interface ClasspathContentHasher {
-    void appendContent(String name, InputStream inputStream, Hasher hasher);
+@SuppressWarnings("unused") // R type token is not enforced right now
+public interface BuildOperationDetails<R> {
+
 }

@@ -27,7 +27,7 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceReadResult
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
-import org.gradle.internal.resource.transfer.DownloadBuildOperationDescriptor
+import org.gradle.internal.resource.transfer.DownloadBuildOperationDetails
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
 import spock.lang.Specification
@@ -132,7 +132,7 @@ class BuildOperationExternalResourceTest extends Specification {
         def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
-                1 * setResult(_) >> { DownloadBuildOperationDescriptor.Result result ->
+                1 * setResult(_) >> { DownloadBuildOperationDetails.Result result ->
                     assert result.readContentLength == TestExternalResource.READ_CONTENT_LENGTH
                 }
             }
@@ -143,10 +143,10 @@ class BuildOperationExternalResourceTest extends Specification {
             assert details.name == "Download http://some/uri"
             assert details.displayName == "Download http://some/uri"
 
-            assert details.operationDescriptor instanceof DownloadBuildOperationDescriptor
-            assert details.operationDescriptor.location == TestExternalResource.METADATA.location
-            assert details.operationDescriptor.contentLength == TestExternalResource.METADATA.contentLength
-            assert details.operationDescriptor.contentType == TestExternalResource.METADATA.contentType
+            assert details instanceof DownloadBuildOperationDetails
+            assert details.location == TestExternalResource.METADATA.location
+            assert details.contentLength == TestExternalResource.METADATA.contentLength
+            assert details.contentType == TestExternalResource.METADATA.contentType
         }
 
         when:

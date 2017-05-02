@@ -26,6 +26,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
@@ -39,9 +40,9 @@ public class InMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, PersistentIndexedCache<?, ?>> caches = Maps.newLinkedHashMap();
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, Action<? super PersistentCache> cleanup) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
-        InMemoryCache cache = new InMemoryCache(cacheDir);
+        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cleanup);
         if (initializer != null) {
             initializer.execute(cache);
         }
@@ -49,19 +50,28 @@ public class InMemoryCacheFactory implements CacheFactory {
     }
 
     public PersistentCache open(File cacheDir, String displayName) {
-        return new InMemoryCache(cacheDir);
+        return new InMemoryCache(cacheDir, displayName, Actions.<PersistentCache>doNothing());
     }
 
     private class InMemoryCache implements PersistentCache {
         private final File cacheDir;
+        private final String displayName;
         private boolean closed;
+        private final Action<? super PersistentCache> cleanup;
 
-        public InMemoryCache(File cacheDir) {
+        public InMemoryCache(File cacheDir, String displayName, Action<? super PersistentCache> cleanup) {
             this.cacheDir = cacheDir;
+            this.displayName = displayName;
+            this.cleanup = cleanup;
         }
 
         @Override
         public void close() {
+            if (cleanup!=null) {
+                synchronized (this) {
+                    cleanup.execute(this);
+                }
+            }
             closed = true;
         }
 
@@ -122,5 +132,9 @@ public class InMemoryCacheFactory implements CacheFactory {
             action.run();
         }
 
+        @Override
+        public String toString() {
+            return "InMemoryCache '" + displayName + "' " + cacheDir;
+        }
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * A collection of all output directories (compiled classes, processed resources, etc.) - notice that {@link SourceSetOutput} extends {@link FileCollection}.
@@ -32,8 +33,9 @@ import java.util.Map;
  * sourceSets {
  *   main {
  *     //if you truly want to override the defaults:
- *     output.resourcesDir = 'out/res'
- *     output.classesDir   = 'out/bin'
+ *     output.resourcesDir = file('out/bin')
+ *     // Compiled Java classes should use this directory
+ *     java.outputDir = file('out/bin')
  *   }
  * }
  * </pre>
@@ -85,8 +87,10 @@ public interface SourceSetOutput extends FileCollection {
      * <p>
      * See example at {@link SourceSetOutput}
      *
-     * @return The classes dir. Never returns null.
+     * @return The classes dir.
+     * @deprecated Use {@link #getClassesDirs()}
      */
+    @Deprecated
     File getClassesDir();
 
     /**
@@ -95,8 +99,10 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @param classesDir the classes dir. Should not be null.
+     * @deprecated Set the output directory for the particular {@link org.gradle.api.file.SourceDirectorySet}
      * @since 4.0
      */
+    @Deprecated
     void setClassesDir(File classesDir);
 
     /**
@@ -105,8 +111,30 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @param classesDir the classes dir. Should not be null.
+     * @deprecated Set the output directory for the particular {@link org.gradle.api.file.SourceDirectorySet}
      */
+    @Deprecated
     void setClassesDir(Object classesDir);
+
+    /**
+     * Returns the directories containing compiled classes.
+     *
+     * @return The classes directories. Never returns null.
+     */
+    FileCollection getClassesDirs();
+
+    /**
+     * Adds a new classes directory that compiled classes are assembled into.
+     *
+     * @param classesDir the classes dir. Should not be null.
+     */
+    void addClassesDir(Callable<File> classesDir);
+
+    /**
+     * Source set uses the legacy layout (single classes directory for the entire source set).
+     * @return true if the source set has a single classes directory
+     */
+    boolean isLegacyLayout();
 
     /**
      * Returns the output directory for resources

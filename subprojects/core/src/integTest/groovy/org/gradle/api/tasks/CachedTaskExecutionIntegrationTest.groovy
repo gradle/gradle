@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -98,7 +97,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     def "restored cached results match original timestamp with millisecond precision"() {
         settingsFile << "rootProject.name = 'test'"
         withBuildCache().succeeds "jar"
-        def classFile = file("build/classes/main/Hello.class")
+        def classFile = javaClassFile("Hello.class")
         def originalModificationTime = classFile.assertIsFile().lastModified()
 
         when:
@@ -234,7 +233,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
-        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+        remoteProjectDir.file("build/classes/java/main/Hello.class").exists()
 
         // Remove the project completely
         remoteProjectDir.deleteDir()
@@ -243,7 +242,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
-        file("build/classes/main/Hello.class").exists()
+        javaClassFile("Hello.class").exists()
     }
 
     def "compile task gets loaded from cache when source is moved to another directory"() {
@@ -262,7 +261,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
-        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+        remoteProjectDir.file("build/classes/java/main/Hello.class").exists()
 
         remoteProjectDir.deleteDir()
 
@@ -270,7 +269,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
-        file("build/classes/main/Hello.class").exists()
+        javaClassFile("Hello.class").exists()
     }
 
     def "error message contains spec which failed to evaluate"() {
@@ -402,7 +401,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.empty
     }
 
-    @Ignore
     def "order of resources on classpath does not affect how we calculate the cache key"() {
         buildFile << """
             apply plugin: 'base'
@@ -438,7 +436,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds("cacheable")
 
         when:
-        gradleUserHome.deleteDir() // nuke the cache
+        gradleUserHome.deleteDir() // nuke the file snapshot cache
         resources.deleteDir().mkdirs()
         succeeds("clean")
         and:

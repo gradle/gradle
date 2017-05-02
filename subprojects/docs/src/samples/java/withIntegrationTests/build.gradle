@@ -23,7 +23,7 @@ dependencies {
 task integrationTest(type: Test, dependsOn: jar) {
     group 'Verification'
     description 'Runs the integration tests.'
-    testClassesDir = sourceSets.integrationTest.output.classesDir
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     systemProperties['jar.path'] = jar.archivePath
 }

@@ -17,20 +17,32 @@
 package org.gradle.plugin.repository
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.ivy.IvyRepository
+import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @LeaksFileHandles
 class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest {
 
     private publishTestPlugin() {
+        publishTestPlugin(mavenRepo)
+    }
+
+    private publishTestPlugin(Repository repository) {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
 
         def message = "from plugin"
         def taskName = "pluginTask"
 
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, "org.example.plugin")
-        pluginBuilder.publishAs("org.example.plugin:plugin:1.0", mavenRepo, executer)
+        if(repository instanceof  MavenRepository) {
+            pluginBuilder.publishAs("org.example.plugin:plugin:1.0", repository, executer)
+        } else if (repository instanceof IvyRepository) {
+            pluginBuilder.publishAs("org.example.plugin:plugin:1.0", repository, executer)
+        }
     }
 
     private void useCustomRepository(String resolutionStrategy = "") {
@@ -323,5 +335,38 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         then:
         errorOutput.contains("Plugin [id: 'org.gradle.hello-world', version: '0.2', artifact: 'foo:bar:1.0']")
         errorOutput.contains("explicit artifact coordinates are not supported")
+    }
+
+    def "Able to specify ivy resolution patterns"() {
+        given:
+        def repo = new IvyFileRepository(file("ivy-repo"), true, '[organisation]/[module]/[revision]', '[module]-[revision].ivy', '[artifact]-[revision](-[classifier]).[ext]')
+        publishTestPlugin(repo)
+        buildScript """
+            plugins {
+              id "org.example.plugin" version '1.0'
+          }
+        """
+
+        and:
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    ivy {
+                        url "${repo.uri}"
+                        layout("pattern") {
+                            ivy '[organisation]/[module]/[revision]/[module]-[revision].ivy'
+                            artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+                            m2compatible true
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('pluginTask')
+
+        then:
+        output.contains("from plugin")
     }
 }

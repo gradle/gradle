@@ -57,6 +57,7 @@ public class DefaultCacheRepository implements CacheRepository {
         Map<String, ?> properties = Collections.emptyMap();
         CacheValidator validator;
         Action<? super PersistentCache> initializer;
+        Action<? super PersistentCache> cleanup;
         LockOptions lockOptions = mode(LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
@@ -106,6 +107,12 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
+        @Override
+        public CacheBuilder withCleanup(Action<? super PersistentCache> cleanup) {
+            this.cleanup = cleanup;
+            return this;
+        }
+
         public PersistentCache open() {
             File cacheBaseDir;
             if (baseDir != null) {
@@ -113,7 +120,7 @@ public class DefaultCacheRepository implements CacheRepository {
             } else {
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(scope, key, versionStrategy);
             }
-            return factory.open(cacheBaseDir, displayName, validator, properties, lockTarget, lockOptions, initializer);
+            return factory.open(cacheBaseDir, displayName, validator, properties, lockTarget, lockOptions, initializer, cleanup);
         }
     }
 }

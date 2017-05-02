@@ -18,8 +18,6 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.component.BuildableJavaComponent
-import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -32,28 +30,12 @@ import org.gradle.util.TestUtil
 import org.junit.Assert
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
-import static org.gradle.api.tasks.TaskDependencyMatchers.builtBy
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 
 class JavaPluginTest extends AbstractProjectBuilderSpec {
     private final def javaPlugin = new JavaPlugin()
-
-    def appliesBasePluginsAndAddsConventionObject() {
-        given:
-        javaPlugin.apply(project)
-
-        when:
-        def component = project.services.get(ComponentRegistry).mainComponent
-
-        then:
-        component instanceof BuildableJavaComponent
-        component.rebuildTasks == [BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]
-        component.buildTasks == [JavaBasePlugin.BUILD_TASK_NAME]
-        component.runtimeClasspath != null
-        component.compileDependencies == project.configurations.compileClasspath
-    }
 
     def addsConfigurationsToTheProject() {
         given:
@@ -242,17 +224,17 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         javaPlugin.apply(project)
 
         when:
-        def set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+        SourceSet set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
 
         then:
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
         set.compileClasspath.is(project.configurations.compileClasspath)
-        set.output.classesDir == new File(project.buildDir, 'classes/main')
+        set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
-        set.getOutput() builtBy(JavaPlugin.CLASSES_TASK_NAME)
+        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME ]
         set.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
 
         when:
         set = project.sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
@@ -261,13 +243,13 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.srcDirs == toLinkedSet(project.file('src/test/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
         set.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
-        set.compileClasspath.contains(new File(project.buildDir, 'classes/main'))
-        set.output.classesDir == new File(project.buildDir, 'classes/test')
+        set.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        set.java.outputDir == new File(project.buildDir, 'classes/java/test')
         set.output.resourcesDir == new File(project.buildDir, 'resources/test')
-        set.getOutput() builtBy(JavaPlugin.TEST_CLASSES_TASK_NAME)
+        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME ]
         set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/test'))
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
     }
 
     def createsMappingsForCustomSourceSets() {
@@ -281,8 +263,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.compileClasspath.is(project.configurations.customCompileClasspath)
-        set.output.classesDir == new File(project.buildDir, 'classes/custom')
-        set.getOutput() builtBy('customClasses')
+        set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
+        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ 'customClasses' ]
         Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
 
@@ -310,7 +292,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
-        task.destinationDir == project.sourceSets.main.output.classesDir
+        task.destinationDir == project.sourceSets.main.java.outputDir
         task.source.files == project.sourceSets.main.java.files
 
         when:
@@ -336,7 +318,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
-        task.destinationDir == project.sourceSets.test.output.classesDir
+        task.destinationDir == project.sourceSets.test.java.outputDir
         task.source.files == project.sourceSets.test.java.files
 
         when:
@@ -423,20 +405,20 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof org.gradle.api.tasks.testing.Test
         task dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)
         task.classpath == project.sourceSets.test.runtimeClasspath
-        task.testClassesDir == project.sourceSets.test.output.classesDir
+        task.testClassesDirs.contains(project.sourceSets.test.java.outputDir)
         task.workingDir == project.projectDir
     }
 
     def appliesMappingsToTasksAddedByTheBuildScript() {
         given:
-        javaPlugin.apply(project);
+        javaPlugin.apply(project)
 
         when:
         def task = project.task('customTest', type: org.gradle.api.tasks.testing.Test.class)
 
         then:
         task.classpath == project.sourceSets.test.runtimeClasspath
-        task.testClassesDir == project.sourceSets.test.output.classesDir
+        task.testClassesDirs.contains(project.sourceSets.test.java.outputDir)
         task.workingDir == project.projectDir
         task.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
         task.reports.html.destination == new File(project.testReportDir, 'customTest')
@@ -444,15 +426,15 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def buildOtherProjects() {
         given:
-        def commonProject = TestUtil.createChildProject(project, "common");
-        def middleProject = TestUtil.createChildProject(project, "middle");
-        def appProject = TestUtil.createChildProject(project, "app");
+        def commonProject = TestUtil.createChildProject(project, "common")
+        def middleProject = TestUtil.createChildProject(project, "middle")
+        def appProject = TestUtil.createChildProject(project, "app")
 
         when:
-        javaPlugin.apply(project);
-        javaPlugin.apply(commonProject);
-        javaPlugin.apply(middleProject);
-        javaPlugin.apply(appProject);
+        javaPlugin.apply(project)
+        javaPlugin.apply(commonProject)
+        javaPlugin.apply(middleProject)
+        javaPlugin.apply(appProject)
 
         appProject.dependencies {
             compile middleProject
@@ -462,13 +444,13 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         }
 
         and:
-        def task = middleProject.tasks['buildNeeded'];
+        def task = middleProject.tasks['buildNeeded']
 
         then:
         task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':common:buildNeeded'] as Set
 
         when:
-        task = middleProject.tasks['buildDependents'];
+        task = middleProject.tasks['buildDependents']
 
         then:
         task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':app:buildDependents'] as Set

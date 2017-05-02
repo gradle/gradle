@@ -88,7 +88,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     private void configureSourceSetDefaults(final JavaBasePlugin javaBasePlugin) {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
-                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
+                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
                 new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
                 groovySourceSet.getGroovy().srcDir("src/" + sourceSet.getName() + "/groovy");
@@ -102,7 +102,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
                 String compileTaskName = sourceSet.getCompileTaskName("groovy");
                 GroovyCompile compile = project.getTasks().create(compileTaskName, GroovyCompile.class);
-                javaBasePlugin.configureForSourceSet(sourceSet, compile);
+                javaBasePlugin.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, project);
                 compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySourceSet.getGroovy());

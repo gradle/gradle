@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
@@ -173,6 +172,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         expect:
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause('broken')
+
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
@@ -196,6 +200,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         expect:
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause('broken')
+
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
@@ -204,7 +213,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @NotYetImplemented
     def "reports failure to find build dependencies of file dependency when using fluid dependencies"() {
         def module = mavenHttpRepo.module("test", "test", "1.0").publish()
         makeFluid(true)
@@ -226,6 +234,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         expect:
+        module.pom.expectGetBroken()
+
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not get resource '${module.pom.uri}'")
+
         module.pom.expectGetBroken()
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")

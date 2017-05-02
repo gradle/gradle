@@ -91,8 +91,8 @@ public class ThingTest {
 
         expect:
         succeeds 'test'
-        new ClassFile(file("build/classes/main/Thing.class")).javaVersion == javaVersion
-        new ClassFile(file("build/classes/test/ThingTest.class")).javaVersion == javaVersion
+        new ClassFile(javaClassFile("Thing.class")).javaVersion == javaVersion
+        new ClassFile(classFile("java", "test", "ThingTest.class")).javaVersion == javaVersion
     }
 
     def "can compile source and run TestNG tests using target Java version"() {

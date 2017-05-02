@@ -64,6 +64,7 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
+import org.gradle.util.SingleMessageLogger;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -159,21 +160,18 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         return new BridgedBinaries(binaries);
     }
 
-    private void createCompileJavaTaskForBinary(final SourceSet sourceSet, SourceDirectorySet javaSourceSet, Project target) {
+    private void createCompileJavaTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
         JavaCompile compileTask = target.getTasks().create(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
-        compileTask.setDescription("Compiles " + javaSourceSet + ".");
-        compileTask.setSource(javaSourceSet);
+        compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
+        compileTask.setSource(sourceDirectorySet);
         ConventionMapping conventionMapping = compileTask.getConventionMapping();
         conventionMapping.map("classpath", new Callable<Object>() {
             public Object call() throws Exception {
                 return sourceSet.getCompileClasspath();
             }
         });
-        conventionMapping.map("destinationDir", new Callable<Object>() {
-            public Object call() throws Exception {
-                return sourceSet.getOutput().getClassesDir();
-            }
-        });
+
+        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, conventionMapping);
     }
 
     private void createProcessResourcesTaskForBinary(final SourceSet sourceSet, SourceDirectorySet resourceSet, final Project target) {
@@ -187,15 +185,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         resourcesTask.from(resourceSet);
     }
 
-    private void createBinaryLifecycleTask(SourceSet sourceSet, Project target) {
+    private void createBinaryLifecycleTask(final SourceSet sourceSet, Project target) {
         sourceSet.compiledBy(sourceSet.getClassesTaskName());
 
-        Task binaryLifecycleTask = target.task(sourceSet.getClassesTaskName());
-        binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-        binaryLifecycleTask.setDescription("Assembles " + sourceSet.getOutput() + ".");
-        binaryLifecycleTask.dependsOn(sourceSet.getOutput().getDirs());
-        binaryLifecycleTask.dependsOn(sourceSet.getCompileJavaTaskName());
-        binaryLifecycleTask.dependsOn(sourceSet.getProcessResourcesTaskName());
+        Task classesTask = target.task(sourceSet.getClassesTaskName());
+        classesTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+        classesTask.setDescription("Assembles " + sourceSet.getOutput() + ".");
+        classesTask.dependsOn(sourceSet.getOutput().getDirs());
+        classesTask.dependsOn(sourceSet.getCompileJavaTaskName());
+        classesTask.dependsOn(sourceSet.getProcessResourcesTaskName());
     }
 
     private void attachTasksToBinary(ClassDirectoryBinarySpecInternal binary, SourceSet sourceSet, Project target) {
@@ -209,12 +207,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
-        outputConventionMapping.map("classesDir", new Callable<Object>() {
-            public Object call() throws Exception {
-                String classesDirName = "classes/" + sourceSet.getName();
-                return new File(project.getBuildDir(), classesDirName);
-            }
-        });
         outputConventionMapping.map("resourcesDir", new Callable<Object>() {
             public Object call() throws Exception {
                 String classesDirName = "resources/" + sourceSet.getName();
@@ -282,19 +274,62 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     }
 
-    public void configureForSourceSet(final SourceSet sourceSet, AbstractCompile compile) {
+    @Deprecated
+    public void configureForSourceSet(final SourceSet sourceSet, final AbstractCompile compile) {
+        SingleMessageLogger.nagUserOfReplacedMethod("configureForSourceSet(SourceSet, AbstractCompile)", "configureForSourceSet(SourceSet, SourceDirectorySet, AbstractCompile, Project)");
         ConventionMapping conventionMapping;
         compile.setDescription("Compiles the " + sourceSet.getJava() + ".");
         conventionMapping = compile.getConventionMapping();
         compile.setSource(sourceSet.getJava());
         conventionMapping.map("classpath", new Callable<Object>() {
             public Object call() throws Exception {
-                return sourceSet.getCompileClasspath();
+                return sourceSet.getCompileClasspath().plus(compile.getProject().files(sourceSet.getJava().getOutputDir()));
             }
         });
+        // TODO: This doesn't really work any more, but configureForSourceSet is a public API.
+        // This should allow builds to continue to work, but it will kill build caching for JavaCompile
         conventionMapping.map("destinationDir", new Callable<Object>() {
             public Object call() throws Exception {
                 return sourceSet.getOutput().getClassesDir();
+            }
+        });
+    }
+
+    public void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
+        ConventionMapping conventionMapping;
+        compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
+        conventionMapping = compile.getConventionMapping();
+        compile.setSource(sourceSet.getJava());
+        conventionMapping.map("classpath", new Callable<Object>() {
+            public Object call() throws Exception {
+                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
+            }
+        });
+
+        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, conventionMapping);
+    }
+
+    private void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, ConventionMapping conventionMapping) {
+        sourceDirectorySet.setOutputDir(target.provider(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                if (sourceSet.getOutput().isLegacyLayout()) {
+                    return sourceSet.getOutput().getClassesDir();
+                }
+                return new File(target.getBuildDir(), "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName());
+            }
+        }));
+
+        sourceSet.getOutput().addClassesDir(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return sourceDirectorySet.getOutputDir();
+            }
+        });
+
+        conventionMapping.map("destinationDir", new Callable<File>() {
+            public File call() throws Exception {
+                return sourceDirectorySet.getOutputDir();
             }
         });
     }

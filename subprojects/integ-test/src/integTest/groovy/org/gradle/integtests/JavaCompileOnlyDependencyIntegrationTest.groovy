@@ -49,7 +49,7 @@ dependencies {
         run('compileJava')
 
         then:
-        file('build/classes/main/Test.class').exists()
+        javaClassFile('Test.class').exists()
     }
 
     def "production compile only dependencies not visible to tests"() {
@@ -270,7 +270,7 @@ project(':projectB') {
         run('compileAdditionalJava')
 
         then:
-        file('build/classes/additional/Test.class').exists()
+        classFile('java', 'additional', 'Test.class').exists()
     }
 
 }

@@ -14,31 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.configuration;
 
-import java.util.Set;
+import org.gradle.api.Nullable;
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
 
-/*
- * Representing the result of he CalculateTaskGraph build operation.
+import java.io.File;
+
+/**
+ * Details about a script plugin being applied.
+ *
  * This class is intentionally internal and consumed by the build scan plugin.
  *
  * @since 4.0
  */
-public class CalculateTaskGraphOperationResult {
-    private final Set<String> requestedTaskPaths;
-    private final Set<String> filteredTaskPaths;
+public final class ApplyScriptPluginBuildOperationDetails implements NoResultBuildOperationDetails {
+    private File file;
+    private String displayName;
 
-    public CalculateTaskGraphOperationResult(Set<String> requestedTaskPaths, Set<String> excludedTaskPaths) {
-        this.requestedTaskPaths = requestedTaskPaths;
-        this.filteredTaskPaths = excludedTaskPaths;
+    ApplyScriptPluginBuildOperationDetails(@Nullable File file, String displayName) {
+        this.file = file;
+        this.displayName = displayName;
     }
 
-    public Set<String> getRequestedTaskPaths() {
-        return requestedTaskPaths;
+    @Nullable
+    public File getFile() {
+        return file;
     }
 
-    public Set<String> getFilteredTaskPaths() {
-        return filteredTaskPaths;
+    public String getDisplayName() {
+        return displayName;
     }
 
 }

@@ -934,7 +934,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
         failure.assertHasCause("Class FlavorCompatibilityRule has no constructor that is annotated with @Inject.")
@@ -992,7 +993,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("broken!")
     }
@@ -1062,7 +1064,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
         failure.assertHasCause("Class FlavorSelectionRule has no constructor that is annotated with @Inject.")
@@ -1132,7 +1135,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")
     }

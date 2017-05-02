@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks
 
-import spock.lang.Specification
-import org.gradle.api.Task
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.Buildable
 import org.gradle.api.GradleException
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskDependency
+import spock.lang.Specification
 
 class CachingTaskDependencyResolveContextTest extends Specification {
     private final CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext()
@@ -31,7 +31,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
     def setup() {
         _ * task.getTaskDependencies() >> dependency
     }
-    
+
     def determinesTaskDependenciesByResolvingDependencyObjectForTask() {
         when:
         def tasks = context.getDependencies(task)
@@ -205,7 +205,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
 
         then:
         1 * dependency.visitDependencies(_) >> { throw failure }
-        def e = thrown(GradleException)
+        def e = thrown(TaskDependencyResolveException)
         e.message == "Could not determine the dependencies of $task."
         e.cause == failure
     }

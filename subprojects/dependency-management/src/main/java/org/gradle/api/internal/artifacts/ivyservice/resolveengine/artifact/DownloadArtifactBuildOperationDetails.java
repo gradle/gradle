@@ -14,33 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.TaskExecutionRequest;
+import org.gradle.internal.progress.NoResultBuildOperationDetails;
 
-import java.util.List;
-import java.util.Set;
 
 /**
- * Operation Descriptor for Calculating the task graph of a build.
+ * Details about an artifact being downloaded.
+ *
  * This class is intentionally internal and consumed by the build scan plugin.
  *
  * @since 4.0
  */
-public class CalculateTaskGraphDescriptor {
-    private final List<TaskExecutionRequest> taskRequests;
-    private final Set<String> excludedTaskNames;
+public final class DownloadArtifactBuildOperationDetails implements NoResultBuildOperationDetails {
+    private String artifactIdentifier;
 
-    public CalculateTaskGraphDescriptor(List<TaskExecutionRequest> taskRequests, Set<String> excludedTaskNames) {
-        this.taskRequests = taskRequests;
-        this.excludedTaskNames = excludedTaskNames;
+    DownloadArtifactBuildOperationDetails(String artifactIdentifier) {
+        this.artifactIdentifier = artifactIdentifier;
     }
 
-    public List<TaskExecutionRequest> getTaskRequests() {
-        return taskRequests;
-    }
-
-    public Set<String> getExcludedTaskNames() {
-        return excludedTaskNames;
+    public String getArtifactIdentifier() {
+        return artifactIdentifier;
     }
 }

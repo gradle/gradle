@@ -491,8 +491,9 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         fails('customTask')
 
         then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':customTask'.")
+        failure.assertHasCause('Exception thrown while executing model rule: Rules#addTasks(ModelMap<Task>) > create(climbTask)')
         failure.assertHasCause('Bang')
-        failure.assertHasDescription('Exception thrown while executing model rule: Rules#addTasks(ModelMap<Task>) > create(climbTask)')
     }
 
     def "can not depend on a general Task"() {

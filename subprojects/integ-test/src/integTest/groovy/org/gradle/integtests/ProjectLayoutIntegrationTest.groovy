@@ -55,13 +55,13 @@ sourceSets.each {
         resources.include "org/gradle/$name/**"
         java.srcDir 'src'
         java.srcDir 'src/java'
-        java.include "org/gradle/$name/**"
+        java.include "org/gradle/$name/**/*.java"
         groovy.srcDir 'src'
         groovy.srcDir 'src/groovy'
-        groovy.include "org/gradle/$name/**"
+        groovy.include "org/gradle/$name/**/*.groovy"
         scala.srcDir 'src'
         scala.srcDir 'src/scala'
-        scala.include "org/gradle/$name/**"
+        scala.include "org/gradle/$name/**/*.scala"
     }
 }
 '''
@@ -86,13 +86,17 @@ sourceSets.each {
 
         File buildDir = file('build')
 
-        buildDir.file('classes/main').assertHasDescendants(
-                'org/gradle/JavaClass.class',
-                'org/gradle/JavaClass2.class',
-                'org/gradle/GroovyClass.class',
-                'org/gradle/GroovyClass2.class',
-                'org/gradle/ScalaClass.class',
-                'org/gradle/ScalaClass2.class'
+        buildDir.file('classes/java/main').assertHasDescendants(
+            'org/gradle/JavaClass.class',
+            'org/gradle/JavaClass2.class'
+        )
+        buildDir.file('classes/groovy/main').assertHasDescendants(
+            'org/gradle/GroovyClass.class',
+            'org/gradle/GroovyClass2.class',
+        )
+        buildDir.file('classes/scala/main').assertHasDescendants(
+            'org/gradle/ScalaClass.class',
+            'org/gradle/ScalaClass2.class'
         )
 
         buildDir.file('resources/main').assertHasDescendants(
@@ -100,13 +104,17 @@ sourceSets.each {
                 'org/gradle/main/resource2.txt'
         )
 
-        buildDir.file('classes/test').assertHasDescendants(
+        buildDir.file('classes/java/test').assertHasDescendants(
                 'org/gradle/JavaClassTest.class',
                 'org/gradle/JavaClassTest2.class',
-                'org/gradle/GroovyClassTest.class',
-                'org/gradle/GroovyClassTest2.class',
-                'org/gradle/ScalaClassTest.class',
-                'org/gradle/ScalaClassTest2.class'
+        )
+        buildDir.file('classes/groovy/test').assertHasDescendants(
+            'org/gradle/GroovyClassTest.class',
+            'org/gradle/GroovyClassTest2.class',
+        )
+        buildDir.file('classes/scala/test').assertHasDescendants(
+            'org/gradle/ScalaClassTest.class',
+            'org/gradle/ScalaClassTest2.class'
         )
 
         buildDir.file('resources/test').assertHasDescendants(
@@ -168,10 +176,10 @@ sourceSets.main.java {
 
         executer.withTasks('clean', 'assemble').run()
 
-        file('a/build/classes/main').assertHasDescendants(
+        file('a/build/classes/java/main').assertHasDescendants(
                 'org/gradle/a/ClassA.class'
         )
-        file('b/build/classes/main').assertHasDescendants(
+        file('b/build/classes/java/main').assertHasDescendants(
                 'org/gradle/b/ClassB.class'
         )
     }

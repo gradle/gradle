@@ -25,6 +25,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
@@ -45,7 +46,6 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -145,8 +145,8 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
         }
 
         @Override
-        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-            delegate.collectBuildDependencies(dest);
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+            delegate.collectBuildDependencies(visitor);
         }
 
         private static class TransformingAsyncArtifactListener implements AsyncArtifactListener {
