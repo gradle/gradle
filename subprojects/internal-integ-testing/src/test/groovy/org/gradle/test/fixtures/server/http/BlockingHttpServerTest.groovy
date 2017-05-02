@@ -55,7 +55,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
-    def "can wait for and release concurrent requests"() {
+    def "can wait for and release n concurrent requests"() {
         given:
         def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
         server.start()
@@ -70,6 +70,57 @@ class BlockingHttpServerTest extends ConcurrentSpec {
             handle.waitForAllPendingCalls()
             handle.release(1)
             handle.release(1)
+            handle.waitForAllPendingCalls()
+        }
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can wait for and release a specific concurrent request"() {
+        given:
+        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        server.start()
+
+        when:
+        async {
+            start {
+                server.uri("a").toURL().text
+                server.uri("b").toURL().text
+            }
+            start { server.uri("c").toURL().text }
+            handle.waitForAllPendingCalls()
+            handle.release("a")
+            handle.waitForAllPendingCalls()
+            handle.release("b")
+            handle.waitForAllPendingCalls()
+            handle.release("c")
+        }
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can wait for and release all concurrent request"() {
+        given:
+        def handle = server.blockOnConcurrentExecutionAnyOf(2, "a", "b", "c")
+        server.start()
+
+        when:
+        async {
+            start {
+                server.uri("a").toURL().text
+                server.uri("b").toURL().text
+            }
+            start { server.uri("c").toURL().text }
+            handle.waitForAllPendingCalls()
+            handle.release("a")
+            handle.waitForAllPendingCalls()
+            handle.releaseAll()
+            handle.waitForAllPendingCalls()
+            handle.releaseAll()
             handle.waitForAllPendingCalls()
         }
         server.stop()

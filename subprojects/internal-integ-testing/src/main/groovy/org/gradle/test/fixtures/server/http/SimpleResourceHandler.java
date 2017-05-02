@@ -24,7 +24,14 @@ class SimpleResourceHandler implements ResourceHandler, BlockingHttpServer.Resou
     private final String path;
 
     public SimpleResourceHandler(String path) {
-        this.path = path;
+        this.path = removeLeadingSlash(path);
+    }
+
+    static String removeLeadingSlash(String path) {
+        if (path.startsWith("/")) {
+            return path.substring(1);
+        }
+        return path;
     }
 
     @Override

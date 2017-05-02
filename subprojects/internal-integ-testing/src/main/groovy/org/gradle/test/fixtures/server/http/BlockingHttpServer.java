@@ -125,7 +125,7 @@ public class BlockingHttpServer extends ExternalResource {
      * Expect a GET request to the given path, and return the contents of the given file.
      */
     public Resource file(String path, File file) {
-        return new FileResourceHandler(removeLeadingSlash(path), file);
+        return new FileResourceHandler(path, file);
     }
 
     /**
@@ -136,14 +136,7 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     private SimpleResourceHandler resourceHandler(String path) {
-        return new SimpleResourceHandler(removeLeadingSlash(path));
-    }
-
-    private String removeLeadingSlash(String path) {
-        if (path.startsWith("/")) {
-            return path.substring(1);
-        }
-        return path;
+        return new SimpleResourceHandler(path);
     }
 
     /**
@@ -229,8 +222,24 @@ public class BlockingHttpServer extends ExternalResource {
      * Allows the test to synchronise with and unblock requests.
      */
     public interface BlockingHandler {
+        /**
+         * Releases the given number of blocked requests. Fails when fewer than the given number of requests are waiting to be released.
+         */
         void release(int count);
 
+        /**
+         * Releases the given request. Fails when the given request is not waiting to be released.
+         */
+        void release(String path);
+
+        /**
+         * Releases all requests. Fails when there are requests yet to be received.
+         */
+        void releaseAll();
+
+        /**
+         * Waits for the expected number of concurrent requests to be received.
+         */
         void waitForAllPendingCalls();
     }
 
