@@ -69,6 +69,9 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
 
         if (taskOutputCachingEnabled) {
+            if (task.isHasCustomActions()) {
+                LOGGER.info("Custom actions are attached to {}.", task);
+            }
             if (cacheKey.isValid()) {
                 TaskArtifactState taskState = context.getTaskArtifactState();
                 if (taskState.isAllowedToUseCachedResults()) {

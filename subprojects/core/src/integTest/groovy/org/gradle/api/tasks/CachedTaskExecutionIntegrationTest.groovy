@@ -401,6 +401,26 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.empty
     }
 
+    def "task with custom actions gets logged"() {
+        when:
+        withBuildCache().succeeds "compileJava", "--info"
+        then:
+        skippedTasks.empty
+        !output.contains("Custom actions are attached to task ':compileJava'.")
+
+        expect:
+        withBuildCache().succeeds "clean"
+
+        when:
+        buildFile << """
+            compileJava.doFirst { println "Custom action" }
+        """
+        withBuildCache().succeeds "compileJava", "--info"
+        then:
+        skippedTasks.empty
+        output.contains("Custom actions are attached to task ':compileJava'.")
+    }
+
     def "order of resources on classpath does not affect how we calculate the cache key"() {
         buildFile << """
             apply plugin: 'base'
