@@ -265,6 +265,14 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public Set<Task> getFilteredTasks() {
+        /*
+            Note: we currently extract this information from the execution plan because it's
+            buried under functions in #filter. This could be detangled/simplified by introducing
+            excludeTasks(Iterable<Task>) as an analog to addTasks(Iterable<Task>).
+
+            This is too drastic a change for the stage in the release cycle were exposing this information
+            was necessary, therefore the minimal change solution was implemented.
+         */
         return taskExecutionPlan.getFilteredTasks();
     }
 
