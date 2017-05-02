@@ -4,6 +4,7 @@ matrix:
   include:
     - os: linux
       sudo: false
+      jdk: oraclejdk8
       addons:
         apt:
           packages:
