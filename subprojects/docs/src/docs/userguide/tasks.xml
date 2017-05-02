@@ -419,14 +419,15 @@
                     make it work with incremental build:
                 </para>
                 <orderedlist>
-                    <listitem>Create typed fields or properties (via getter methods) for each of your
+                    <listitem>Create typed properties (via getter methods) for each of your
                         task inputs and outputs</listitem>
-                    <listitem>Add the appropriate annotation to each of those fields or getter methods
+                    <listitem>Add the appropriate annotation to each of those properties
                     </listitem>
                 </orderedlist>
                 <note>
-                    <para>Annotations must be placed on getters or on Groovy properties. Annotations on a
-                        Java field without a corresponding annotated getter are ignored.
+                    <para>Annotations must be placed on getters or on Groovy properties. Annotations
+                        placed on setters, or on a Java field without a corresponding annotated
+                        getter are ignored.
                     </para>
                 </note>
                 <para>Gradle supports three main categories of inputs and outputs:</para>
