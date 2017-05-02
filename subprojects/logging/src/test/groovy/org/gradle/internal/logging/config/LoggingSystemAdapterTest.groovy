@@ -28,7 +28,7 @@ class LoggingSystemAdapterTest extends Specification {
         loggingSystem.startCapture()
 
         then:
-        1 * loggingConfigurer.configure(LogLevel.LIFECYCLE)
+        1 * loggingConfigurer.configure(LogLevel.WARN)
         0 * loggingConfigurer._
     }
 
@@ -72,7 +72,7 @@ class LoggingSystemAdapterTest extends Specification {
         loggingSystem.restore(snapshot)
 
         then:
-        1 * loggingConfigurer.configure(LogLevel.LIFECYCLE)
+        1 * loggingConfigurer.configure(LogLevel.WARN)
         0 * loggingConfigurer._
     }
 
@@ -93,7 +93,7 @@ class LoggingSystemAdapterTest extends Specification {
         loggingSystem.restore(snapshot1)
 
         then:
-        1 * loggingConfigurer.configure(LogLevel.LIFECYCLE)
+        1 * loggingConfigurer.configure(LogLevel.WARN)
         0 * loggingConfigurer._
 
         when:

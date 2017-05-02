@@ -106,7 +106,7 @@ class StartParameterTest extends Specification {
         parameter.buildFile == null
         parameter.settingsFile == null
 
-        parameter.logLevel == LogLevel.LIFECYCLE
+        parameter.logLevel == LogLevel.WARN
         parameter.consoleOutput == ConsoleOutput.Auto
         parameter.taskNames.empty
         parameter.taskRequests.empty

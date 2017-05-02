@@ -19,7 +19,8 @@
         by this. On the other hand you need relevant information for figuring out if things have gone wrong. Gradle
         defines 6 log levels, as shown in <xref linkend="logLevels"/>. There are two Gradle-specific log levels, in
         addition to the ones you might normally see. Those levels are <emphasis>QUIET</emphasis> and
-        <emphasis>LIFECYCLE</emphasis>. The latter is the default, and is used to report build progress.
+        <emphasis>LIFECYCLE</emphasis>. The latter is used to report build progress. The default log level is set
+        to <emphasis>WARN</emphasis> to minimize th amount of console output.
     </para>
     <table id="logLevels">
         <title>Log levels</title>

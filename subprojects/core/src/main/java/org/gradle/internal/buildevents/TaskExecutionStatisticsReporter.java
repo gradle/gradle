@@ -33,7 +33,7 @@ public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsL
         if (total > 0) {
             final long avoidedPercentage = Math.round(statistics.getAvoidedTasksCount() * 100.0 / total);
             final String pluralizedTasks = total > 1 ? "tasks" : "task";
-            StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
+            StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.WARN);
             textOutput.formatln("%d actionable %s: %d executed, %d avoided (%d%%)", total, pluralizedTasks, statistics.getExecutedTasksCount(), statistics.getAvoidedTasksCount(), avoidedPercentage);
         }
     }

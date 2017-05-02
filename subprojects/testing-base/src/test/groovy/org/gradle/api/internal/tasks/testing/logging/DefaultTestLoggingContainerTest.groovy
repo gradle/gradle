@@ -48,11 +48,17 @@ class DefaultTestLoggingContainerTest extends Specification {
         def logging = container.get(LogLevel.WARN)
 
         expect:
-        hasUnchangedDefaults(logging)
+        logging.events == [TestLogEvent.FAILED] as Set
+        logging.minGranularity == -1
+        logging.maxGranularity == -1
+        logging.exceptionFormat == TestExceptionFormat.SHORT
+        logging.showExceptions
+        logging.showCauses
+        logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
     }
 
     def "sets defaults for level LIFECYCLE"() {
-        def logging = container.get(LogLevel.LIFECYCLE)
+        def logging = container.get(LogLevel.WARN)
 
         expect:
         logging.events == [TestLogEvent.FAILED] as Set
@@ -91,7 +97,7 @@ class DefaultTestLoggingContainerTest extends Specification {
     }
 
     def "implicitly configures level LIFECYCLE"() {
-        def logging = container.get(LogLevel.LIFECYCLE)
+        def logging = container.get(LogLevel.WARN)
         assert logging.showExceptions
 
         when:

@@ -58,7 +58,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final Set<File> applicationClasspath = new LinkedHashSet<File>();
     private final MemoryManager memoryManager;
     private Action<? super WorkerProcessContext> action;
-    private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private LogLevel logLevel = LogLevel.WARN;
     private String baseName = "Gradle Worker";
     private File gradleUserHomeDir;
     private int connectTimeoutSeconds;

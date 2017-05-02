@@ -58,7 +58,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *     <li>Replaces System.out and System.err with implementations that route output through the logging system as per {@link LoggingManagerInternal#captureSystemSources()}.</li>
      *     <li>Configures slf4j, log4j and java util logging to route log messages through the logging system.</li>
      *     <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
-     *     <li>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</li>
+     *     <li>Sets log level to {@link org.gradle.api.logging.LogLevel#WARN}.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
@@ -78,7 +78,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <ul>
      *     <li>Configures slf4j and log4j to route log messages through the logging system.</li>
-     *     <li>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</li>
+     *     <li>Sets log level to {@link org.gradle.api.logging.LogLevel#WARN}.</li>
      * </ul>
      *
      * <p>Does not:</p>
@@ -99,7 +99,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      * Creates a set of logging services to set up a new logging scope that does nothing by default. The methods on {@link LoggingManagerInternal} can be used to configure the
      * logging services do useful things.
      *
-     * <p>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</p>
+     * <p>Sets log level to {@link org.gradle.api.logging.LogLevel#WARN}.</p>
      */
     public static LoggingServiceRegistry newNestedLogging() {
         return new NestedLogging();
