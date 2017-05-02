@@ -1,10 +1,11 @@
+sudo: false
+
 language: java
 
-matrix:
-  fast_finish: true
-  include:
-    - os: linux
-      jdk: oraclejdk8
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 
 script: ./gradlew build --no-daemon --stacktrace --console=plain
 
