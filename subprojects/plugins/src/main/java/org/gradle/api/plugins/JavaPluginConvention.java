@@ -41,8 +41,6 @@ import static org.gradle.util.ConfigureUtil.configure;
 public class JavaPluginConvention {
     private ProjectInternal project;
 
-    private String dependencyCacheDirName;
-
     private String docsDirName;
 
     private String testResultsDirName;
@@ -58,7 +56,6 @@ public class JavaPluginConvention {
         this.project = project;
         sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.getFileResolver(), project.getTasks(), instantiator,
             project.getServices().get(SourceDirectorySetFactory.class));
-        dependencyCacheDirName = "dependency-cache";
         docsDirName = "docs";
         testResultsDirName = "test-results";
         testReportDirName = "tests";
