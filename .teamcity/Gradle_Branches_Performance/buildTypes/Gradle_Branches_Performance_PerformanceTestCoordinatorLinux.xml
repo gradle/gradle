@@ -18,6 +18,7 @@
       <param name="performance.baselines" value="nightly" />
       <param name="performance.db.url" value="jdbc:h2:ssl://dev61.gradle.org:9092" />
       <param name="performance.db.username" value="tcagent" />
+      <param name="teamcity.password.restbot" value="credentialsJSON:f630d43e-dc47-4762-9fe8-658d353cf315" />
     </parameters>
     <build-runners>
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
