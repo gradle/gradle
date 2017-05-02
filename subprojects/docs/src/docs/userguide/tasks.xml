@@ -424,6 +424,11 @@
                     <listitem>Add the appropriate annotation to each of those fields or getter methods
                     </listitem>
                 </orderedlist>
+                <note>
+                    <para>Annotations must be placed on getters or on Groovy properties. Annotations on a
+                        Java field without a corresponding annotated getter are ignored.
+                    </para>
+                </note>
                 <para>Gradle supports three main categories of inputs and outputs:</para>
                 <itemizedlist>
                     <listitem><para>Simple values</para>
