@@ -20,6 +20,7 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.internal.Java9ClassReader;
@@ -76,5 +77,10 @@ public class AbiExtractingClasspathContentHasher implements ContentHasher {
 
     private boolean isClassFile(String name) {
         return name.endsWith(".class");
+    }
+
+    @Override
+    public void appendImplementationToHasher(BuildCacheHasher hasher) {
+        hasher.putString(getClass().getName());
     }
 }

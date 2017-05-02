@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.IOException;
@@ -82,5 +83,11 @@ public class JarContentHasher implements ContentHasher {
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
         throw new UnsupportedOperationException("Hashing zips in zips is not yet supported");
+    }
+
+    @Override
+    public void appendImplementationToHasher(BuildCacheHasher hasher) {
+        hasher.putString(getClass().getName());
+        contentHasher.appendImplementationToHasher(hasher);
     }
 }

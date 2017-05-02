@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Funnels;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,9 +39,16 @@ import java.util.zip.ZipEntry;
  */
 public class RuntimeClasspathContentHasher implements ContentHasher {
     private final Set<Spec<RelativePath>> ignoreSpecs;
+    private final Set<String> ignores;
 
-    public RuntimeClasspathContentHasher(Set<Spec<RelativePath>> ignoreSpecs) {
-        this.ignoreSpecs = ignoreSpecs;
+    public RuntimeClasspathContentHasher(Set<String> ignores) {
+        this.ignores = ignores;
+        ImmutableSet.Builder<Spec<RelativePath>> builder = ImmutableSet.builder();
+        for (String ignore : ignores) {
+            Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(false, true, ignore);
+            builder.add(matcher);
+        }
+        this.ignoreSpecs = builder.build();
     }
 
     @Override
@@ -57,6 +67,14 @@ public class RuntimeClasspathContentHasher implements ContentHasher {
         Hasher hasher = Hashing.md5().newHasher();
         ByteStreams.copy(zipInput, Funnels.asOutputStream(hasher));
         return hasher.hash();
+    }
+
+    @Override
+    public void appendImplementationToHasher(BuildCacheHasher hasher) {
+        hasher.putString(getClass().getName());
+        for (String ignore : ignores) {
+            hasher.putString(ignore);
+        }
     }
 
     private boolean shouldIgnore(RelativePath relativePath) {

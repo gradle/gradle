@@ -18,9 +18,6 @@ package org.gradle.api.resources.normalization.internal;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
-import org.gradle.api.specs.Spec;
 
 import java.util.Set;
 
@@ -33,12 +30,7 @@ public class DefaultRuntimeClasspathNormalizationStrategy implements RuntimeClas
     }
 
     @Override
-    public Set<Spec<RelativePath>> buildIgnores() {
-        ImmutableSet.Builder<Spec<RelativePath>> builder = ImmutableSet.builder();
-        for (String ignore : ignores) {
-            Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(false, true, ignore);
-            builder.add(matcher);
-        }
-        return builder.build();
+    public Set<String> buildIgnores() {
+        return ImmutableSet.copyOf(ignores);
     }
 }

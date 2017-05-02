@@ -16,12 +16,10 @@
 
 package org.gradle.api.resources.normalization.internal;
 
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.resources.normalization.RuntimeClasspathNormalizationStrategy;
-import org.gradle.api.specs.Spec;
 
 import java.util.Set;
 
 public interface RuntimeClasspathNormalizationStrategyInternal extends RuntimeClasspathNormalizationStrategy {
-    Set<Spec<RelativePath>> buildIgnores();
+    Set<String> buildIgnores();
 }

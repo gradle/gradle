@@ -20,6 +20,8 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,17 +36,21 @@ public class CachingContentHasher implements ContentHasher {
     private static final HashCode NO_HASH = Hashing.md5().hashString(CachingContentHasher.class.getName() + " : no hash", Charsets.UTF_8);
     private final ContentHasher delegate;
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
+    private final byte[] delegateImplementationHash;
 
     public CachingContentHasher(ContentHasher delegate, PersistentIndexedCache<HashCode, HashCode> persistentCache) {
         this.delegate = delegate;
         this.persistentCache = persistentCache;
+        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        delegate.appendImplementationToHasher(hasher);
+        this.delegateImplementationHash = hasher.hash().asBytes();
     }
 
     @Override
     public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        HashCode contentMd5 = fileSnapshot.getContent().getContentMd5();
+        HashCode cacheKey = cacheKey(fileSnapshot);
 
-        HashCode hash = persistentCache.get(contentMd5);
+        HashCode hash = persistentCache.get(cacheKey);
         if (hash != null) {
             if (hash.equals(NO_HASH)) {
                 return null;
@@ -55,15 +61,27 @@ public class CachingContentHasher implements ContentHasher {
         hash = delegate.hash(fileSnapshot);
 
         if (hash != null) {
-            persistentCache.put(contentMd5, hash);
+            persistentCache.put(cacheKey, hash);
         } else {
-            persistentCache.put(contentMd5, NO_HASH);
+            persistentCache.put(cacheKey, NO_HASH);
         }
         return hash;
+    }
+
+    private HashCode cacheKey(RegularFileSnapshot fileSnapshot) {
+        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        hasher.putBytes(delegateImplementationHash);
+        hasher.putBytes(fileSnapshot.getContent().getContentMd5().asBytes());
+        return hasher.hash();
     }
 
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
         return delegate.hash(zipEntry, zipInput);
+    }
+
+    @Override
+    public void appendImplementationToHasher(BuildCacheHasher hasher) {
+        delegate.appendImplementationToHasher(hasher);
     }
 }

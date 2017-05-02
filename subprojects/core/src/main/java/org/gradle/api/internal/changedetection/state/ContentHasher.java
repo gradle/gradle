@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,4 +29,11 @@ import java.util.zip.ZipEntry;
 public interface ContentHasher {
     HashCode hash(RegularFileSnapshot fileSnapshot);
     HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
+
+    /**
+     * Appends to a hasher which identifies the implementation of the content hasher.
+     * The contract is that, when two implementation hashes agree then {@link #hash(RegularFileSnapshot)} and
+     * {@link #hash(ZipEntry, InputStream)} return the same result whenever the arguments are the same.
+     */
+    void appendImplementationToHasher(BuildCacheHasher hasher);
 }

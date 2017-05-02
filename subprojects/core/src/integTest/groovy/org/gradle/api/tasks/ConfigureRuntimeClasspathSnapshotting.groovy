@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -78,12 +77,11 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         nonSkippedTasks.contains(project.customTask)
     }
 
-    @NotYetImplemented
     def "can configure ignore rules per project"() {
         def projectWithIgnores = new TestProject('a')
         projectWithIgnores.ignoreFiles()
         def projectWithoutIgnores = new TestProject('b')
-        def allProjects = [projectWithIgnores, projectWithoutIgnores]
+        def allProjects = [projectWithoutIgnores, projectWithIgnores]
         settingsFile << "include 'a', 'b'"
 
         when:
@@ -94,6 +92,7 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         when:
         projectWithIgnores.ignoredResourceInJar << "Should be ignored"
         projectWithoutIgnores.ignoredResourceInJar << "Should not be ignored"
+        allProjects*.createJar()
         succeeds(*allProjects*.customTask)
         then:
         skippedTasks.contains(projectWithIgnores.customTask)
