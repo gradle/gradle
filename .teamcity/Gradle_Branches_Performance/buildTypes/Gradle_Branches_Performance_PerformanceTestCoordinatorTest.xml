@@ -12,7 +12,6 @@
       <option name="shouldFailBuildOnOOMEOrCrash" value="false" />
     </options>
     <disabled-settings>
-      <setting-ref ref="RUNNER_1" />
       <setting-ref ref="RUNNER_2" />
     </disabled-settings>
     <parameters>
