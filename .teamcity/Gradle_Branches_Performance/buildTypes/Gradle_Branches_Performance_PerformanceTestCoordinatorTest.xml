@@ -48,6 +48,14 @@ fi]]></param>
           <param name="use.custom.script" value="true" />
         </parameters>
       </runner>
+      <runner id="RUNNER_211" name="print stuff" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[echo user > /tmp/tc
+echo pass >> /tmp/tc]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
     </build-runners>
     <vcs-settings>
       <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
