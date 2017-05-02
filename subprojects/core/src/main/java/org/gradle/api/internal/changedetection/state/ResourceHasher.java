@@ -27,7 +27,7 @@ import java.util.zip.ZipEntry;
 /**
  * Hashes resources (e.g., a class file in a jar or a class file in a directory)
  */
-public interface ResourceHasher {
+public interface ResourceHasher extends Snapshot {
     /**
      * Returns {@code null} if the file should be ignored.
      */
@@ -41,9 +41,9 @@ public interface ResourceHasher {
     HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
 
     /**
-     * Appends the identification of the implementation of the content hasher to a hasher.
+     * Appends the identification of the implementation of this resource hasher to a hasher.
      * The contract is that, if two implementation hashes agree then {@link #hash(RegularFileSnapshot)} and
      * {@link #hash(ZipEntry, InputStream)} return the same result whenever the arguments are the same.
      */
-    void appendImplementationToHasher(BuildCacheHasher hasher);
+    void appendToHasher(BuildCacheHasher hasher);
 }

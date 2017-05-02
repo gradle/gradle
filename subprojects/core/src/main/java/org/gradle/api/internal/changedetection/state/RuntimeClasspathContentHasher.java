@@ -46,7 +46,7 @@ public class RuntimeClasspathContentHasher implements ResourceHasher {
     }
 
     @Override
-    public void appendImplementationToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putString(getClass().getName());
     }
 }

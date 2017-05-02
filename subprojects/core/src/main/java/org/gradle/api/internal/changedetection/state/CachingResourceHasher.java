@@ -42,7 +42,7 @@ public class CachingResourceHasher implements ResourceHasher {
         this.delegate = delegate;
         this.persistentCache = persistentCache;
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        delegate.appendImplementationToHasher(hasher);
+        delegate.appendToHasher(hasher);
         this.delegateImplementationHash = hasher.hash().asBytes();
     }
 
@@ -81,7 +81,7 @@ public class CachingResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public void appendImplementationToHasher(BuildCacheHasher hasher) {
-        delegate.appendImplementationToHasher(hasher);
+    public void appendToHasher(BuildCacheHasher hasher) {
+        delegate.appendToHasher(hasher);
     }
 }

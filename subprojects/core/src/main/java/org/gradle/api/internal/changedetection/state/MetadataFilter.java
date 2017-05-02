@@ -19,13 +19,13 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.RelativePath;
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public interface MetadataFilter {
+public interface MetadataFilter extends Snapshot {
     boolean shouldBeIgnored(RelativePath path);
 
     /**
-     * Appends the identification of the implementation of the content hasher to a hasher.
+     * Appends the identification of the implementation of this filter to a hasher.
      * The contract is that, if two implementation hashes agree then {@link #shouldBeIgnored(RelativePath)}
      * return the same result whenever the arguments are the same.
      */
-    void appendImplementationToHasher(BuildCacheHasher relativePath);
+    void appendToHasher(BuildCacheHasher relativePath);
 }
