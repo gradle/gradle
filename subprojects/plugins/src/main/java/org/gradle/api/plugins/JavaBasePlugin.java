@@ -172,7 +172,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, conventionMapping);
+        SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, compileTask, target);
     }
 
     private void createProcessResourcesTaskForBinary(final SourceSet sourceSet, SourceDirectorySet resourceSet, final Project target) {

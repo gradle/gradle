@@ -16,6 +16,8 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
@@ -27,10 +29,15 @@ import java.io.File;
  * The base class for all JVM-based language compilation tasks.
  */
 public abstract class AbstractCompile extends SourceTask {
-    private File destinationDir;
+    private final PropertyState<File> destinationDir;
+    private final PropertyState<FileCollection> classpath;
     private String sourceCompatibility;
     private String targetCompatibility;
-    private FileCollection classpath;
+
+    public AbstractCompile() {
+        this.destinationDir = getProject().property(File.class);
+        this.classpath = getProject().property(FileCollection.class);
+    }
 
     protected abstract void compile();
 
@@ -41,7 +48,7 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Classpath
     public FileCollection getClasspath() {
-        return classpath;
+        return classpath.getOrNull();
     }
 
     /**
@@ -50,7 +57,18 @@ public abstract class AbstractCompile extends SourceTask {
      * @param configuration The classpath. Must not be null, but may be empty.
      */
     public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
+        this.classpath.set(configuration);
+    }
+
+    /**
+     * Sets the classpath to use to compile the source files.
+     *
+     * @param configuration The classpath. Must not be null, but may be empty.
+     *
+     * @since 4.0
+     */
+    public void setClasspath(Provider<? extends FileCollection> configuration) {
+        this.classpath.set(configuration);
     }
 
     /**
@@ -60,7 +78,7 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @OutputDirectory
     public File getDestinationDir() {
-        return destinationDir;
+        return destinationDir.getOrNull();
     }
 
     /**
@@ -69,7 +87,18 @@ public abstract class AbstractCompile extends SourceTask {
      * @param destinationDir The destination directory. Must not be null.
      */
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        this.destinationDir.set(destinationDir);
+    }
+
+    /**
+     * Sets the directory to generate the {@code .class} files into.
+     *
+     * @param destinationDir The destination directory. Must not be null.
+     *
+     * @since 4.0
+     */
+    public void setDestinationDir(Provider<File> destinationDir) {
+        this.destinationDir.set(destinationDir);
     }
 
     /**

@@ -17,8 +17,8 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -31,21 +31,20 @@ public class SourceSetUtil {
     private SourceSetUtil() {}
 
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
-        ConventionMapping conventionMapping;
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
-        conventionMapping = compile.getConventionMapping();
         compile.setSource(sourceSet.getJava());
 
-        conventionMapping.map("classpath", new Callable<Object>() {
-            public Object call() throws Exception {
+        compile.setClasspath(target.provider(new Callable<FileCollection>() {
+            @Override
+            public FileCollection call() {
                 return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
             }
-        });
+        }));
 
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, conventionMapping);
+        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, compile, target);
     }
 
-    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, ConventionMapping conventionMapping) {
+    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
         sourceDirectorySet.setOutputDir(target.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
@@ -64,10 +63,11 @@ public class SourceSetUtil {
             }
         });
 
-        conventionMapping.map("destinationDir", new Callable<File>() {
+        compile.setDestinationDir(target.provider(new Callable<File>() {
+            @Override
             public File call() throws Exception {
                 return sourceDirectorySet.getOutputDir();
             }
-        });
+        }));
     }
 }
