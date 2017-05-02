@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.progress
+package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -33,7 +33,6 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         """
 
         buildFile << """
-            println "projectdir " + project.projectDir
             allprojects {
                 task otherTask
                 task someTask
