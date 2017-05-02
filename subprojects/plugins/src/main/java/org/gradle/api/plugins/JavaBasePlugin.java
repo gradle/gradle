@@ -38,6 +38,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
+import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.PathSensitivity;
@@ -171,7 +172,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, conventionMapping);
+        SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, conventionMapping);
     }
 
     private void createProcessResourcesTaskForBinary(final SourceSet sourceSet, SourceDirectorySet resourceSet, final Project target) {
@@ -291,45 +292,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         conventionMapping.map("destinationDir", new Callable<Object>() {
             public Object call() throws Exception {
                 return sourceSet.getOutput().getClassesDir();
-            }
-        });
-    }
-
-    public void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
-        ConventionMapping conventionMapping;
-        compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
-        conventionMapping = compile.getConventionMapping();
-        compile.setSource(sourceSet.getJava());
-        conventionMapping.map("classpath", new Callable<Object>() {
-            public Object call() throws Exception {
-                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
-            }
-        });
-
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, conventionMapping);
-    }
-
-    private void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, ConventionMapping conventionMapping) {
-        sourceDirectorySet.setOutputDir(target.provider(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                if (sourceSet.getOutput().isLegacyLayout()) {
-                    return sourceSet.getOutput().getClassesDir();
-                }
-                return new File(target.getBuildDir(), "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName());
-            }
-        }));
-
-        sourceSet.getOutput().addClassesDir(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return sourceDirectorySet.getOutputDir();
-            }
-        });
-
-        conventionMapping.map("destinationDir", new Callable<File>() {
-            public File call() throws Exception {
-                return sourceDirectorySet.getOutputDir();
             }
         });
     }
