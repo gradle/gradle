@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFa
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Internal;
@@ -54,6 +56,15 @@ public class GroovyCompile extends AbstractCompile {
     private FileCollection groovyClasspath;
     private final CompileOptions compileOptions = new CompileOptions();
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
+
+    public GroovyCompile() {
+        getOutputs().doNotCacheIf("Compiler executable is set", new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return compileOptions.getForkOptions().getExecutable() != null;
+            }
+        });
+    }
 
     @Override
     @TaskAction
