@@ -226,8 +226,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "implementation dependencies should not leak into compile classpath of consuner"() {
-        def shared10 = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
-        def other10 = mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'other', '1.0').publish()
 
         given:
         settingsFile << "include 'a', 'b'"
@@ -462,17 +462,30 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("gradle/gradle#1347")
     def "compile classpath snapshotting ignores non-relevant elements"() {
-        buildFile << '''
-            apply plugin: 'java'
-            
-            dependencies {
-               compile files('foo.txt')
-            }
-        '''
-        file('foo.txt') << 'should not throw an error during compile classpath snapshotting'
+        def buildFileWithDependencies = { String... dependencies ->
+            buildFile.text = """
+                apply plugin: 'java'
+                                  
+                repositories {
+                    mavenCentral()
+                }
+
+                dependencies {
+                    ${dependencies.collect { "compile ${it}"}.join('\n') }
+                }
+            """
+        }
+
+        def ignoredFile = file('foo.txt') << 'should not throw an error during compile classpath snapshotting'
+        file('bar.txt') << 'should be ignored, too'
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
+        def nonIgnoredDependency = '"org.apache.commons:commons-lang3:3.4"'
+        def ignoredDependency = 'files("foo.txt")'
+        def anotherIgnoredDependency = 'files("bar.txt")'
+
         when:
+        buildFileWithDependencies(ignoredDependency, nonIgnoredDependency)
         run 'compileJava'
 
         then:
@@ -480,14 +493,44 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':compileJava'
 
         when: "we update a non relevant file on compile classpath"
-        file('foo.txt') << 'should not trigger recompilation'
+        buildFileWithDependencies(ignoredDependency, nonIgnoredDependency)
+        ignoredFile << 'should not trigger recompilation'
         run 'compileJava'
 
         then:
         skipped ':compileJava'
 
-        when: "we remove a non relevant file on compile classpath"
-        assert file('foo.txt').delete()
+        when: "we remove a non relevant file from compile classpath"
+        buildFileWithDependencies(nonIgnoredDependency)
+        run 'compileJava'
+
+        then:
+        skipped ':compileJava'
+
+        when: "we add a non-relevant element to the classpath"
+        buildFileWithDependencies(ignoredDependency, anotherIgnoredDependency, nonIgnoredDependency)
+        succeeds 'compileJava'
+
+        then:
+        skipped ':compileJava'
+
+        when: "we reorder ignored elements on the classpath"
+        buildFileWithDependencies(anotherIgnoredDependency, nonIgnoredDependency, ignoredDependency)
+        succeeds('compileJava')
+
+        then:
+        skipped ':compileJava'
+
+        when: "we duplicate ignored elements on the classpath"
+        buildFileWithDependencies(anotherIgnoredDependency, anotherIgnoredDependency, nonIgnoredDependency, ignoredDependency)
+        succeeds('compileJava')
+
+        then:
+        skipped ':compileJava'
+
+        when: "we remove a non relevant file from disk"
+        buildFileWithDependencies(ignoredDependency, nonIgnoredDependency)
+        assert ignoredFile.delete()
         run 'compileJava'
 
         then:
