@@ -30,8 +30,8 @@ public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSn
     public DefaultCompileClasspathSnapshotter(PersistentIndexedCache<HashCode, HashCode> classCache, PersistentIndexedCache<HashCode, HashCode> jarCache, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
         AbiExtractingClasspathContentHasher abiExtractingClasspathContentHasher = new AbiExtractingClasspathContentHasher();
-        this.classpathContentHasher = new CachingContentHasher(abiExtractingClasspathContentHasher, classCache);
-        this.jarContentHasher = new CachingContentHasher(new JarContentHasher(abiExtractingClasspathContentHasher, stringInterner), jarCache);
+        this.classpathContentHasher = new CachingResourceHasher(abiExtractingClasspathContentHasher, classCache);
+        this.jarContentHasher = new CachingResourceHasher(new JarContentHasher(abiExtractingClasspathContentHasher, stringInterner), jarCache);
     }
 
     @Override

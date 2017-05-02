@@ -24,10 +24,10 @@ import spock.lang.Specification
 
 import java.util.zip.ZipEntry
 
-class CachingContentHasherTest extends Specification {
+class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def fileSnapshot = new RegularFileSnapshot("path", RelativePath.parse(true, "path"), false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
-    def cachingHasher = new CachingContentHasher(delegate, new InMemoryIndexedCache(new HashCodeSerializer()))
+    def cachingHasher = new CachingResourceHasher(delegate, new InMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {
         def expectedHash = Hashing.md5().hashInt(1)
