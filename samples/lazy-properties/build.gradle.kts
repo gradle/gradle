@@ -40,7 +40,7 @@ open class GreetingPluginExtension(val project: Project) {
         get() = messageState.get()
         set(value) = messageState.set(value)
 
-    val messageProvider
+    val messageProvider: Provider<String>
         get() = messageState
 
     var outputFiles
