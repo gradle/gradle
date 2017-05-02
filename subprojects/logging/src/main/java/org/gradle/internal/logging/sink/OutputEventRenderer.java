@@ -24,6 +24,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
+import org.gradle.internal.logging.console.BuildLogLevelFilterRenderer;
 import org.gradle.internal.logging.console.BuildStatusRenderer;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
@@ -219,9 +220,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
              new BuildStatusRenderer(
                 new WorkInProgressRenderer(
-                    new ProgressLogEventGenerator(
-                        new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), true),
-                    console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
+                    new BuildLogLevelFilterRenderer(
+                        new ProgressLogEventGenerator(
+                            new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), true)),
+                        console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
                 console.getStatusBar(), console, consoleMetaData, timeProvider),
             timeProvider);
         synchronized (lock) {
@@ -307,9 +309,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     @Override
     public void onOutput(OutputEvent event) {
-        if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel.get()) < 0) {
-            return;
-        }
         if (event instanceof LogLevelChangeEvent) {
             LogLevelChangeEvent changeEvent = (LogLevelChangeEvent) event;
             LogLevel newLogLevel = changeEvent.getNewLogLevel();
