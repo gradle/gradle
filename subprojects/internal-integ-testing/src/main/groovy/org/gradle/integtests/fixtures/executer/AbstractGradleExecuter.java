@@ -832,6 +832,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionResult run() {
+        configureLifecycleLogLevel();
         fireBeforeExecute();
         assertCanExecute();
         collectStateBeforeExecution();
@@ -851,6 +852,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionFailure runWithFailure() {
+        configureLifecycleLogLevel();
         fireBeforeExecute();
         assertCanExecute();
         collectStateBeforeExecution();
@@ -859,6 +861,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         } finally {
             finished();
         }
+    }
+
+    /**
+     * Execute builds with LIFECYCLE log level by default with the goal of being able to capture most output for testing.
+     * <p>
+     * <b>Note:</b> Build executions can override the log level by providing their own argument for this executor.
+     * The Log level command line options is evaluated with "last one wins" strategy.
+     */
+    private void configureLifecycleLogLevel() {
+        args.add(0, "-l");
     }
 
     private void collectStateBeforeExecution() {
