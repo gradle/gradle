@@ -220,6 +220,7 @@ tasks.withType<Test> {
     testLogging {
         events("failed")
         exceptionFormat = TestExceptionFormat.FULL
+        maxParallelForks = gradle.startParameter.maxWorkerCount / 2 + 1
     }
 }
 
