@@ -50,22 +50,22 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('someTask')
 
         then:
-        operation().result.requestedTaskPaths == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"]
+        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":b:someTask", ":a:someTask"] as Set
         operation().result.filteredTaskPaths == []
 
         when:
         succeeds('someTask', '-x', ':b:someTask')
 
         then:
-        operation().result.requestedTaskPaths == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask",]
-        operation().result.filteredTaskPaths == [":b:someTask"]
+        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
+        operation().result.filteredTaskPaths as Set == [":b:someTask"] as Set
 
         when:
         succeeds('someTask', '-x', 'otherTask')
 
         then:
-        operation().result.requestedTaskPaths == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"]
-        operation().result.filteredTaskPaths == [":b:otherTask", ":a:c:otherTask", ":otherTask", ":a:otherTask"]
+        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
+        operation().result.filteredTaskPaths as Set == [":b:otherTask", ":a:c:otherTask", ":otherTask", ":a:otherTask"] as Set
 
         when:
         succeeds(':a:someTask')
