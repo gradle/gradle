@@ -16,9 +16,18 @@
 
 package org.gradle.testing.fixture
 
-class GroovydocCoverage {
-    // TODO:UPGRADE-GROOVY <- search for this to find all the places to upgrade
-    final static String NEWEST = '2.4.11'
-    final static String[] ALL_COVERAGE = ['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.2.2', '2.3.10', NEWEST]
-    final static String[] STAMPS_COVERAGE = [NEWEST]
+import org.gradle.util.VersionNumber
+
+class GroovyCoverage {
+    final static String NEWEST = GroovySystem.version
+
+    final static String[] ALL = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', NEWEST]
+
+    private final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
+
+    final static String[] SUPPORTS_TIMESTAMP = ALL_VERSIONS.findAll {
+        it >= VersionNumber.parse("2.4.6")
+    }.collect {
+        it.toString()
+    }
 }

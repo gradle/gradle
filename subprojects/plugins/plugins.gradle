@@ -63,6 +63,7 @@ useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ":languageJava")
+useTestFixtures(project: ":languageGroovy")
 useTestFixtures(project: ':diagnostics')
 
 
