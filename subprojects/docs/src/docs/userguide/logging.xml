@@ -20,7 +20,7 @@
         defines 6 log levels, as shown in <xref linkend="logLevels"/>. There are two Gradle-specific log levels, in
         addition to the ones you might normally see. Those levels are <emphasis>QUIET</emphasis> and
         <emphasis>LIFECYCLE</emphasis>. The latter is used to report build progress. The default log level is set
-        to <emphasis>WARN</emphasis> to minimize th amount of console output.
+        to <emphasis>WARN</emphasis> to emphasize important log output.
     </para>
     <table id="logLevels">
         <title>Log levels</title>
