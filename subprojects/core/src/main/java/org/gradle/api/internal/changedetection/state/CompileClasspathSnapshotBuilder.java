@@ -24,7 +24,7 @@ import org.gradle.api.internal.cache.StringInterner;
  * We only take class files in jar files and class files in directories into account.
  */
 public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
-    public CompileClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, StringInterner stringInterner) {
+    public CompileClasspathSnapshotBuilder(ResourceHasher classpathContentHasher, ResourceHasher jarContentHasher, StringInterner stringInterner) {
         super(classpathContentHasher, jarContentHasher, stringInterner);
     }
 

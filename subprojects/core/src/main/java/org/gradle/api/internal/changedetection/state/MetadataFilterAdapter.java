@@ -24,11 +24,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
-public class MetadataFilterAdapter implements ContentHasher {
+public class MetadataFilterAdapter implements ResourceHasher {
     private final MetadataFilter filter;
-    private final ContentHasher delegate;
+    private final ResourceHasher delegate;
 
-    public MetadataFilterAdapter(MetadataFilter filter, ContentHasher delegate) {
+    public MetadataFilterAdapter(MetadataFilter filter, ResourceHasher delegate) {
         this.filter = filter;
         this.delegate = delegate;
     }

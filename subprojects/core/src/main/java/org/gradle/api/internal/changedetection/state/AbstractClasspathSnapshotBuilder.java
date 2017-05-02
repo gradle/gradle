@@ -24,11 +24,11 @@ import org.gradle.internal.nativeintegration.filesystem.FileType;
 import java.util.List;
 
 public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSnapshotBuilder {
-    private final ContentHasher classpathContentHasher;
-    private final ContentHasher jarContentHasher;
+    private final ResourceHasher classpathContentHasher;
+    private final ResourceHasher jarContentHasher;
     protected final StringInterner stringInterner;
 
-    public AbstractClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, StringInterner stringInterner) {
+    public AbstractClasspathSnapshotBuilder(ResourceHasher classpathContentHasher, ResourceHasher jarContentHasher, StringInterner stringInterner) {
         super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
         this.stringInterner = stringInterner;
         this.jarContentHasher = jarContentHasher;

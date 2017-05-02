@@ -32,7 +32,7 @@ import java.util.zip.ZipEntry;
  *
  * Currently, we take the unmodified content into account but we could be smarter at some point.
  */
-public class RuntimeClasspathContentHasher implements ContentHasher {
+public class RuntimeClasspathContentHasher implements ResourceHasher {
     @Override
     public HashCode hash(RegularFileSnapshot fileSnapshot) {
         return fileSnapshot.getContent().getContentMd5();

@@ -33,14 +33,14 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 /**
- * Hashes the contents of a jar file with the given {@link ContentHasher}.
+ * Hashes the contents of a jar file with the given {@link ResourceHasher}.
  */
-public class JarContentHasher implements ContentHasher {
-    private final ContentHasher contentHasher;
+public class JarContentHasher implements ResourceHasher {
+    private final ResourceHasher resourceHasher;
     private final StringInterner stringInterner;
 
-    public JarContentHasher(ContentHasher contentHasher, StringInterner stringInterner) {
-        this.contentHasher = contentHasher;
+    public JarContentHasher(ResourceHasher resourceHasher, StringInterner stringInterner) {
+        this.resourceHasher = resourceHasher;
         this.stringInterner = stringInterner;
     }
 
@@ -57,7 +57,7 @@ public class JarContentHasher implements ContentHasher {
                 if (zipEntry.isDirectory()) {
                     continue;
                 }
-                HashCode hash = contentHasher.hash(zipEntry, new CloseShieldInputStream(zipInput));
+                HashCode hash = resourceHasher.hash(zipEntry, new CloseShieldInputStream(zipInput));
                 entryResourceCollectionBuilder.visitZipFileEntry(zipEntry, hash);
             }
             return entryResourceCollectionBuilder.getHash();
@@ -88,6 +88,6 @@ public class JarContentHasher implements ContentHasher {
     @Override
     public void appendImplementationToHasher(BuildCacheHasher hasher) {
         hasher.putString(getClass().getName());
-        contentHasher.appendImplementationToHasher(hasher);
+        resourceHasher.appendImplementationToHasher(hasher);
     }
 }

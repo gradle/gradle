@@ -32,7 +32,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
 
-public class AbiExtractingClasspathContentHasher implements ContentHasher {
+public class AbiExtractingClasspathContentHasher implements ResourceHasher {
     private HashCode hashClassBytes(InputStream inputStream) throws IOException {
         // Use the ABI as the hash
         byte[] classBytes = ByteStreams.toByteArray(inputStream);

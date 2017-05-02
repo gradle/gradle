@@ -42,7 +42,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
         Set<String> ignoreSpecs = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).buildIgnores();
-        ContentHasher classpathContentHasher = new MetadataFilterAdapter(new IgnoreResourceFilter(ignoreSpecs), new RuntimeClasspathContentHasher());
+        ResourceHasher classpathContentHasher = new MetadataFilterAdapter(new IgnoreResourceFilter(ignoreSpecs), new RuntimeClasspathContentHasher());
         CachingContentHasher jarContentHasher = new CachingContentHasher(new JarContentHasher(classpathContentHasher, getStringInterner()), jarCache);
         return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
     }

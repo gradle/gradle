@@ -24,8 +24,8 @@ import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.cache.PersistentIndexedCache;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
-    private final ContentHasher classpathContentHasher;
-    private final ContentHasher jarContentHasher;
+    private final ResourceHasher classpathContentHasher;
+    private final ResourceHasher jarContentHasher;
 
     public DefaultCompileClasspathSnapshotter(PersistentIndexedCache<HashCode, HashCode> classCache, PersistentIndexedCache<HashCode, HashCode> jarCache, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);

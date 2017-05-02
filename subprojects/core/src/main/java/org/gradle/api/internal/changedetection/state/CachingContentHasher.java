@@ -28,17 +28,17 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * Caches the result of hashing a {@link RegularFileSnapshot} with a {@link ContentHasher}.
+ * Caches the result of hashing a {@link RegularFileSnapshot} with a {@link ResourceHasher}.
  * It does not cache the result of hashing {@link ZipEntry}s.
  * It also caches the absence of a hash.
  */
-public class CachingContentHasher implements ContentHasher {
+public class CachingContentHasher implements ResourceHasher {
     private static final HashCode NO_HASH = Hashing.md5().hashString(CachingContentHasher.class.getName() + " : no hash", Charsets.UTF_8);
-    private final ContentHasher delegate;
+    private final ResourceHasher delegate;
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
     private final byte[] delegateImplementationHash;
 
-    public CachingContentHasher(ContentHasher delegate, PersistentIndexedCache<HashCode, HashCode> persistentCache) {
+    public CachingContentHasher(ResourceHasher delegate, PersistentIndexedCache<HashCode, HashCode> persistentCache) {
         this.delegate = delegate;
         this.persistentCache = persistentCache;
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
