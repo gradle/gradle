@@ -1,9 +1,14 @@
-sudo: false
+language: java
 
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
+matrix:
+  include:
+    - os: linux
+      sudo: false
+      addons:
+        apt:
+          packages:
+            - oracle-java8-installer
+            - oracle-java8-set-default
 
 script: ./gradlew build --no-daemon --stacktrace --console=plain
 
