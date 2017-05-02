@@ -20,7 +20,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UriTextResourceLoader;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -50,11 +49,11 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.management.internal.PluginRequestsSerializer;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.management.internal.PluginRequestsSerializer;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();
@@ -73,7 +72,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final PluginRepositoryFactory pluginRepositoryFactory;
     private final ProviderFactory providerFactory;
-    private final UriTextResourceLoader uriTextResourceLoader;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -87,8 +85,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ModelRuleSourceDetector modelRuleSourceDetector,
                                       PluginRepositoryRegistry pluginRepositoryRegistry,
                                       PluginRepositoryFactory pluginRepositoryFactory,
-                                      ProviderFactory providerFactory,
-                                      UriTextResourceLoader uriTextResourceLoader) {
+                                      ProviderFactory providerFactory) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -101,7 +98,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.pluginRepositoryFactory = pluginRepositoryFactory;
         this.providerFactory = providerFactory;
-        this.uriTextResourceLoader = uriTextResourceLoader;
         this.scriptPluginFactory = this;
     }
 
@@ -150,7 +146,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(PluginRepositoryRegistry.class, pluginRepositoryRegistry);
             services.add(PluginRepositoryFactory.class, pluginRepositoryFactory);
             services.add(ProviderFactory.class, providerFactory);
-            services.add(UriTextResourceLoader.class, uriTextResourceLoader);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

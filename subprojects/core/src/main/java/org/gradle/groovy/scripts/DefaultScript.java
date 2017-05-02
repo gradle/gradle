@@ -27,7 +27,6 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ProcessOperations;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UriTextResourceLoader;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
@@ -45,7 +44,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.groovy.scripts.internal.ScriptSourceProvider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -104,7 +102,6 @@ public abstract class DefaultScript extends BasicScript {
             __scriptServices.get(ScriptPluginFactory.class),
             __scriptServices.get(ScriptHandlerFactory.class),
             classLoaderScope,
-            new ScriptSourceProvider(__scriptServices.get(UriTextResourceLoader.class)),
             getScriptTarget()
         );
     }

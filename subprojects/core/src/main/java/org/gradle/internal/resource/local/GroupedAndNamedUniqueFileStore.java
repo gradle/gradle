@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * A file store that stores items grouped by some provided function over the key and an SHA1 hash of the value. This means that files are only ever added and never modified once added, so a resource from this store can be used without locking. Locking is required to add entries.
  */
-public class DefaultGroupedAndNamedUniqueFileStore<K> implements GroupedAndNamedUniqueFileStore<K> {
+public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
 
     private PathKeyFileStore delegate;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -34,7 +34,7 @@ public class DefaultGroupedAndNamedUniqueFileStore<K> implements GroupedAndNamed
     private final Transformer<String, K> namer;
 
 
-    public DefaultGroupedAndNamedUniqueFileStore(PathKeyFileStore delegate, TemporaryFileProvider temporaryFileProvider, Transformer<String, K> grouper, Transformer<String, K> namer) {
+    public GroupedAndNamedUniqueFileStore(PathKeyFileStore delegate, TemporaryFileProvider temporaryFileProvider, Transformer<String, K> grouper, Transformer<String, K> namer) {
         this.delegate = delegate;
         this.temporaryFileProvider = temporaryFileProvider;
         this.grouper = grouper;

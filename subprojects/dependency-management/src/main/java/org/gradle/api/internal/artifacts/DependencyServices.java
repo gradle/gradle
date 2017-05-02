@@ -28,9 +28,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GradleUserHomeScopePluginServices;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.internal.service.scopes.SettingScopePluginServiceRegistry;
 
-public class DependencyServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices, SettingScopePluginServiceRegistry {
+public class DependencyServices implements PluginServiceRegistry, GradleUserHomeScopePluginServices {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementGlobalScopeServices());
     }
@@ -62,10 +61,5 @@ public class DependencyServices implements PluginServiceRegistry, GradleUserHome
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerSettingsServices(ServiceRegistration registration) {
-        registration.addProvider(new DependencyManagementSettingsScopeServices());
     }
 }
