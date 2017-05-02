@@ -1,7 +1,5 @@
 sudo: false
 
-language: java
-
 addons:
   apt:
     packages:
