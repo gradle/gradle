@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
@@ -185,7 +184,6 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming b.jar to b.jar.txt")
     }
 
-    @Ignore
     def "files are transformed as soon as they are downloaded"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -222,27 +220,30 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         server.expectSerialExecution(server.file(m1.pom.path, m1.pom.file))
         server.expectSerialExecution(server.file(m2.pom.path, m2.pom.file))
 
-        def handle = server.blockOnConcurrentExecutionAnyOfToResources(3, [
+        def handle = server.blockOnConcurrentExecutionAnyOfToResources(4, [
             server.resource("a.jar"),
             server.resource("b.jar"),
             server.file(m1.artifact.path, m1.artifact.file),
             server.file(m2.artifact.path, m2.artifact.file),
-            server.resource("test-1.3.jar"),
-            server.resource("test2-2.3.jar")
         ])
+        def transform1 = server.blockOnConcurrentExecutionAnyOfToResources(1, [server.resource("test-1.3.jar")])
+        server.expectSerialExecution(server.resource("test2-2.3.jar"))
 
         when:
-        def build = executer.withArguments("--max-workers=3").withTasks(':resolve').start()
+        def build = executer.withArguments("--max-workers=4").withTasks(':resolve').start()
 
-        // 3 concurrent operations -> at least one artifact is being downloaded and at least one file is being transformed
+        // 4 concurrent operations -> both artifacts are being downloaded and both local files are being transformed
         handle.waitForAllPendingCalls()
-        handle.release(2)
 
-        handle.waitForAllPendingCalls()
-        handle.release(2)
+        // Complete one of the downloads and one of the local files
+        handle.release("a.jar")
+        handle.release(m1.artifact.path)
 
-        handle.waitForAllPendingCalls()
-        handle.release(2)
+        // Download has completed, transforming the result. Other artifact is still downloading
+        transform1.waitForAllPendingCalls()
+        transform1.releaseAll()
+
+        handle.releaseAll()
 
         def result = build.waitForFinish()
 
