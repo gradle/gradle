@@ -162,6 +162,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             default:
                 LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
         }
+        LoggingDeprecatedFeatureHandler.setDeprecation(startParameter.isDeprecation());
         DeprecationLogger.useLocationReporter(usageLocationReporter);
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);

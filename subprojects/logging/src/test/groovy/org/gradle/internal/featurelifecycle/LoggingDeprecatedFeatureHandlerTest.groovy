@@ -47,8 +47,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events.size() == 2
 
         and:
-        events[0].message == 'feature1'
-        events[1].message == 'feature2'
+        events[0].message.startsWith TextUtil.toPlatformLineSeparators('feature1\n')
+        events[1].message.startsWith TextUtil.toPlatformLineSeparators('feature2\n')
     }
 
     def 'deprecations are logged at WARN level'() {
@@ -60,7 +60,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         and:
         def event = outputEventListener.events[0]
-        event.message == 'feature'
+        event.message.startsWith TextUtil.toPlatformLineSeparators('feature\n')
         event.logLevel == LogLevel.WARN
     }
 
@@ -103,7 +103,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
-    def 'fake call with Gradle script element first and #deprecationTracePropertyName=false logs only Gradle script element'() {
+    def 'fake call with Gradle script element first and #deprecationTracePropertyName=false logs only Gradle script element and first non-system element before script element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
 
@@ -119,6 +119,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
         message.contains('some.GradleScript.foo')
+        message.contains('some.Class.withSource')
 
         !message.contains('SimulatedJavaCallLocation.create')
         !message.contains('java.lang.reflect.Method.invoke')
@@ -130,6 +131,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         fakeStackTrace = [
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+            new StackTraceElement('some.Class', 'withSource', 'Class.groovy', 123),
             new StackTraceElement('some.Class', 'withoutSource', null, -1),
             new StackTraceElement('some.Class', 'withNativeMethod', null, -2),
             new StackTraceElement('some.GradleScript', 'foo', 'GradleScript.gradle', 1337),
@@ -141,7 +143,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
-    def 'fake call with Gradle Kotlin script element first and #deprecationTracePropertyName=false logs only Gradle Kotlin script element'() {
+    def 'fake call with Gradle Kotlin script element first and #deprecationTracePropertyName=false logs only Gradle Kotlin script element and first non-system element before script element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
 
@@ -157,6 +159,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
         message.contains('some.KotlinGradleScript')
+        message.contains('some.Class.withSource')
 
         !message.contains('SimulatedJavaCallLocation.create')
         !message.contains('java.lang.reflect.Method.invoke')
@@ -168,6 +171,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         fakeStackTrace = [
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+            new StackTraceElement('some.Class', 'withSource', 'Class.groovy', 123),
             new StackTraceElement('some.Class', 'withoutSource', null, -1),
             new StackTraceElement('some.Class', 'withNativeMethod', null, -2),
             new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 31337),
@@ -179,7 +183,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
-    def 'fake call without Gradle script elements and #deprecationTracePropertyName=false does not log a stack trace element.'() {
+    def 'fake call without Gradle script elements and #deprecationTracePropertyName=false logs only first non-system element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
 
@@ -193,7 +197,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message == 'fake'
+        message == TextUtil.toPlatformLineSeparators("fake\n\tat some.ArbitraryClass.withSource(ArbitraryClass.java:42)$LoggingDeprecatedFeatureHandler.STACKTRACE_HINT$LoggingDeprecatedFeatureHandler.DEPRECATION_HINT\n")
 
         where:
         fakeStackTrace = [
@@ -209,7 +213,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
-    def 'fake call with only a single stack trace element and #deprecationTracePropertyName=false does not log that element'() {
+    def 'fake call with only a single system stack trace element and #deprecationTracePropertyName=false does not log that element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
 
@@ -223,11 +227,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def message = events[0].message
 
-        message == 'fake'
+        message == TextUtil.toPlatformLineSeparators("fake$LoggingDeprecatedFeatureHandler.STACKTRACE_HINT$LoggingDeprecatedFeatureHandler.DEPRECATION_HINT\n")
 
         where:
         fakeStackTrace = [
-            new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
+            new StackTraceElement('java.some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
         ]
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
@@ -258,7 +262,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
-    def 'fake call without stack trace elements and #deprecationTracePropertyName=#deprecationTraceProperty logs only message'() {
+    def 'fake call without stack trace elements and #deprecationTracePropertyName=#deprecationTraceProperty logs only message and hints'() {
         given:
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
@@ -270,7 +274,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events.size() == 1
 
         and:
-        events[0].message == 'fake'
+        events[0].message == TextUtil.toPlatformLineSeparators("fake${deprecationTraceProperty?'':LoggingDeprecatedFeatureHandler.STACKTRACE_HINT}$LoggingDeprecatedFeatureHandler.DEPRECATION_HINT\n")
 
         where:
         deprecationTraceProperty << [true, false]
@@ -289,7 +293,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature')
+        events[0].message.startsWith TextUtil.toPlatformLineSeparators('location\nfeature\n')
     }
 
     @Unroll

@@ -126,6 +126,16 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         loggingConfiguration.setShowStacktrace(showStacktrace);
     }
 
+    @Override
+    public boolean isDeprecation() {
+        return loggingConfiguration.isDeprecation();
+    }
+
+    @Override
+    public void setDeprecation(boolean deprecation) {
+        loggingConfiguration.setDeprecation(deprecation);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -221,6 +231,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
+        p.setDeprecation(isDeprecation());
         p.profile = profile;
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
@@ -732,6 +743,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", gradleHome=" + gradleHomeDir
             + ", logLevel=" + getLogLevel()
             + ", showStacktrace=" + getShowStacktrace()
+            + ", deprecation=" + isDeprecation()
             + ", buildFile=" + buildFile
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun

@@ -29,6 +29,7 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
+    private boolean deprecation;
 
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);
@@ -68,5 +69,15 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     @Override
     public void setShowStacktrace(ShowStacktrace showStacktrace) {
         this.showStacktrace = showStacktrace;
+    }
+
+    @Override
+    public boolean isDeprecation() {
+        return deprecation;
+    }
+
+    @Override
+    public void setDeprecation(boolean deprecation) {
+        this.deprecation = deprecation;
     }
 }

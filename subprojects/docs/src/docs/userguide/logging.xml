@@ -58,7 +58,8 @@
         <title>Choosing a log level</title>
         <para>You can use the command line switches shown in <xref linkend='logLevelCommandLineOptions'/> to choose
             different log levels. In <xref linkend='stacktraces'/> you find the command line switches which affect
-            stacktrace logging.
+            stacktrace logging. In <xref linkend='deprecation'/> you find the command line switches which affect
+            deprecation logging.
         </para>
         <table id='logLevelCommandLineOptions'>
             <title>Log level command-line options</title>
@@ -131,6 +132,25 @@
                 </td>
             </tr>
 
+        </table>
+        <table id='deprecation'>
+            <title>Deprecation command-line options</title>
+            <thead>
+                <tr>
+                    <td>Option</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>No deprecation option</td>
+                <td>Only the first occurrence of each concrete deprecation finding is displayed.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>--deprecation</literal>
+                </td>
+                <td>All occurrences of each concrete deprecation finding are displayed.</td>
+            </tr>
         </table>
     </section>
     <section id="sec:sending_your_own_log_messages">
