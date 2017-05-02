@@ -12,7 +12,7 @@
       <option name="shouldFailBuildOnOOMEOrCrash" value="false" />
     </options>
     <parameters>
-      <param name="TC_PASSWORD" value="credentialsJSON:f630d43e-dc47-4762-9fe8-658d353cf315" spec="password display='normal'" />
+      <param name="TC_PASSWORD" value="credentialsJSON:dcf2acb9-9961-43f0-a73b-18cac24d342f" spec="password display='normal'" />
       <param name="TC_USERNAME" value="TeamcityRestBot" />
       <param name="env.GRADLE_OPTS" value="-Xmx1536m -XX:MaxPermSize=384m" />
       <param name="env.JAVA_HOME" value="/opt/jdk/oracle-jdk-8-latest" />
