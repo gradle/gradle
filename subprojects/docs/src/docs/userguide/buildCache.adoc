@@ -338,18 +338,6 @@ https://gradle.com/build-cache[Gradle Enterprise] will include a high-performanc
 
 The built-in build caches have some known issues which will be addressed in future releases.
 
-.api:org.gradle.caching.local.DirectoryBuildCache[]
-|===
-| Description | Impact | Workaround
-
-| No limit on the size of the directory build cache.
-| Currently, the directory the build cache uses can grow unbounded.
-|
-Periodically delete the directory of the build cache if it grows too large.
-The default directory for storing build outputs is `caches/build-cache-1` in the Gradle user home.
-For automatic cleanup tools like http://manpages.ubuntu.com/manpages/precise/man8/tmpreaper.8.html[tmpreaper] can be used.
-|===
-
 .api:org.gradle.caching.http.HttpBuildCache[]
 |===
 | Description | Impact | Workaround
