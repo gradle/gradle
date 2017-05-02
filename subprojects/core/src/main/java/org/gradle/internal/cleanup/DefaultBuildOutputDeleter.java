@@ -44,10 +44,10 @@ public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
         try {
             if (output.isDirectory()) {
                 deleter.delete(output);
-                logger.quiet("Cleaned up directory '{}'", output);
+                logger.lifecycle("Cleaned up directory '{}'", output);
             } else if (output.isFile()) {
                 deleter.delete(output);
-                logger.quiet("Cleaned up file '{}'", output);
+                logger.lifecycle("Cleaned up file '{}'", output);
             }
         } catch (UncheckedIOException e) {
             logger.warn("Unable to clean up '{}'", output);
