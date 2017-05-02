@@ -86,6 +86,12 @@
             </tr>
             <tr>
                 <td>
+                    <literal>-l</literal> or <literal>--lifecycle</literal>
+                </td>
+                <td>LIFECYCLE and higher</td>
+            </tr>
+            <tr>
+                <td>
                     <literal>-i</literal> or <literal>--info</literal>
                 </td>
                 <td>INFO and higher</td>
