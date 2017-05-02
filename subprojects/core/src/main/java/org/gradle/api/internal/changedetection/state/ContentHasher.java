@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.Nullable;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.io.IOException;
@@ -24,15 +25,24 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
 /**
- * Hashes contents of resources (e.g., a class file in a jar or a class file in a directory)
+ * Hashes resources (e.g., a class file in a jar or a class file in a directory)
  */
 public interface ContentHasher {
+    /**
+     * Returns {@code null} if the file should be ignored.
+     */
+    @Nullable
     HashCode hash(RegularFileSnapshot fileSnapshot);
+
+    /**
+     * Returns {@code null} if the zip entry should be ignored.
+     */
+    @Nullable
     HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
 
     /**
-     * Appends to a hasher which identifies the implementation of the content hasher.
-     * The contract is that, when two implementation hashes agree then {@link #hash(RegularFileSnapshot)} and
+     * Appends the identification of the implementation of the content hasher to a hasher.
+     * The contract is that, if two implementation hashes agree then {@link #hash(RegularFileSnapshot)} and
      * {@link #hash(ZipEntry, InputStream)} return the same result whenever the arguments are the same.
      */
     void appendImplementationToHasher(BuildCacheHasher hasher);
