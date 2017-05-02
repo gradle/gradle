@@ -126,9 +126,9 @@ For more info on using task property annotations, see the [user guide chapter](u
 
 #### Cache-safe mixed JVM language compilation
 
-In Gradle 3.5, projects that used both Java and another JVM language (like Groovy or Scala) would encounter problems when using the build cache. The class files created by multiple compilation tasks were all placed into the same output directory, which made determining the set of outputs to cache for each task difficult.
+In Gradle 3.5, projects that used both Java and another JVM language (like Groovy or Scala) would encounter problems when using the build cache. The class files created by multiple compilation tasks were all placed into the same output directory, which made determining the set of outputs to cache for each task difficult and would cause Gradle to cache the wrong outputs for each compilation task.
 
-Gradle now uses separate output directories for each JVM language. TODO: We should expand this since this is not specifically a build cache improvement.
+Gradle now uses separate output directories for each JVM language. 
 
 #### Automatic clean-up of local build cache
 
@@ -191,16 +191,16 @@ In Gradle 3.5 `ForkOptions.executable` has been deprecated. In Gradle 4.0 it is 
 
 ## Potential breaking changes
 
-### Multiple class directories
+### Multiple class directories for a single source set
 
-In projects that use multiple JVM languages (Java and Scala, Groovy and other languages), Gradle now uses separate output directories for each language. 
+In projects that use multiple JVM languages (Java and Scala, Groovy and other languages) in separate source directories (e.g., `src/main/groovy` and `src/main/java`), Gradle now uses separate output directories for each language. 
 
 To return to the old behavior, explicitly set the classes directory:
 
    // Change the output directory for the main source set back to the old path
    sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
 
-Please be aware that this will interfere with the effectiveness of the build cache when using multiple JVM languages in the same source set.
+Please be aware that this will interfere with the effectiveness of the build cache when using multiple JVM languages in the same source set. Gradle will disable caching for tasks when it detects that multiple tasks create outputs in the same location.
 
 ### Location of classes in the build directory
 
@@ -218,7 +218,7 @@ to
    Scala: build/classes/scala/main
    Generically: build/classes/${sourceDirectorySet.name}/${sourceSet.name}
 
-Plugins, tasks or builds that hardcoded these paths may fail.  You can access the specific output directory for a particular language via [`SourceDirectorySet#outputDir`](dsl/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir). 
+Plugins, tasks or builds that used hardcoded paths may fail. You can access the specific output directory for a particular language via [`SourceDirectorySet#outputDir`](dsl/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir) or the collection of all of the output directories with [`SourceSetOutput#getClassesDirs()`](dsl/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs).
 
 ### maven-publish and ivy-publish mirror multi-project behavior
 
