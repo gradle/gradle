@@ -19,7 +19,6 @@ package org.gradle.plugin.repository;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 
 import java.net.URI;
@@ -103,16 +102,16 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value IvyArtifactRepository#GRADLE_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value IvyArtifactRepository#GRADLE_IVY_PATTERN}</code></li>
+     *     <li>Artifacts: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#GRADLE_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#GRADLE_IVY_PATTERN}</code></li>
      * </ul>
      * </p>
      * <h4>'maven'</h4>
      * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value IvyArtifactRepository#MAVEN_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value IvyArtifactRepository#MAVEN_IVY_PATTERN}</code></li>
+     *     <li>Artifacts: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#MAVEN_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#MAVEN_IVY_PATTERN}</code></li>
      * </ul>
      * </p>
      * <p>
@@ -122,8 +121,8 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      * <p>
      * A Repository Layout that applies the following patterns:
      * <ul>
-     *     <li>Artifacts: <code>$baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
-     *     <li>Ivy: <code>$baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
+     *     <li>Artifacts: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value org.gradle.api.artifacts.repositories.IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</code></li>
      * </ul>
      * </p>
      * <h4>'pattern'</h4>
