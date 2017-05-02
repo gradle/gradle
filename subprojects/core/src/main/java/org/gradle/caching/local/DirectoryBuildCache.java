@@ -27,7 +27,10 @@ import org.gradle.caching.configuration.AbstractBuildCache;
  */
 @Incubating
 public class DirectoryBuildCache extends AbstractBuildCache {
+    public final static long DEFAULT_MAXIMUM_CACHE_SIZE = 5*1024; // 5 GB
+
     private Object directory;
+    private long targetSizeInMB = DEFAULT_MAXIMUM_CACHE_SIZE; // 5GB
 
     /**
      * Returns the directory to use to store the build cache.
@@ -44,5 +47,33 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      */
     public void setDirectory(Object directory) {
         this.directory = directory;
+    }
+
+    /**
+     * Returns the target maximum size of the build cache.
+     *
+     * @return The target maximum size of the build cache in megabytes.
+     *
+     * @since 4.0
+     */
+    public long getTargetSizeInMB() {
+        return targetSizeInMB;
+    }
+
+    /**
+     * Defaults to {@value DEFAULT_MAXIMUM_CACHE_SIZE} MB.
+     *
+     * <p>
+     * Must be at least 1 MB in size.
+     *
+     * @param targetSizeInMB the new target maximum size of the build cache.
+     *
+     * @since 4.0
+     */
+    public void setTargetSizeInMB(long targetSizeInMB) {
+        if (targetSizeInMB < 1) {
+            throw new IllegalArgumentException("Must have at least 1 MB of space allowed for the directory cache.");
+        }
+        this.targetSizeInMB = targetSizeInMB;
     }
 }

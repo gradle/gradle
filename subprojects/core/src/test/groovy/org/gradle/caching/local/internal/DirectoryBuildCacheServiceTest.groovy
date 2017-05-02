@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.caching.local.internal
 
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
@@ -41,7 +41,7 @@ class DirectoryBuildCacheServiceTest extends Specification {
     def cacheRepository = Mock(CacheRepository) {
         cache(cacheDir) >> cacheBuilder
     }
-    def service = new DirectoryBuildCacheService(cacheRepository, cacheDir)
+    def service = new DirectoryBuildCacheService(cacheRepository, cacheDir, Long.MAX_VALUE)
     def key = Mock(BuildCacheKey)
 
     def "does not store partial result"() {

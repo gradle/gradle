@@ -130,6 +130,21 @@ In Gradle 3.5, projects that used both Java and another JVM language (like Groov
 
 Gradle now uses separate output directories for each JVM language. TODO: We should expand this since this is not specifically a build cache improvement.
 
+#### Automatic clean-up of local build cache
+
+By default, Gradle limits the size of the local build cache to 5GB. In Gradle 3.5, the local build cache was allowed to grow indefinitely.
+
+You can increase or decrease the size of the local build cache by configuring your local cache:
+
+    buildCache {
+        local {
+            // Set target size to 10GB
+            targetSizeInMB = 10240
+        }
+    }
+
+This is a _target_ size for the build cache. Gradle will periodically check if the local build cache has grown too large and trim it to below the target size. The oldest build cache entries will be deleted first.
+
 ### Parallel download of dependencies
 
 Gradle will now download dependencies from remote repositories in parallel. It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
@@ -206,6 +221,11 @@ Plugins, tasks or builds that hardcoded these paths may fail.  You can access th
 When using the `java` plugin, all `compile` and `runtime` dependencies will now be mapped to the `compile` scope, i.e. "leaked" into the consumer's compile classpath. This is in line with how
  these legacy configurations work in multi-project builds. We strongly encourage you to use the `api`(java-library plugin only), `implementation` and `runtimeOnly` configurations instead. These
  are mapped as expected, with `api` being exposed to the consumer's compile classpath and `implementation` and `runtimeOnly` only available on the consumer's runtime classpath.
+
+### Memory settings and forking not tracked as inputs for JVM compilation
+
+Previously Gradle would treat JVM compilation tasks as out-of-date whenever their memory settings changed compared to the previous execution. The same would happen if a forking compilation task was changed to non-forking, or vice versa. Since Gradle 4.0, these parameters are not treated as inputs anymore, and thus the compilation tasks will stay up-to-date when they are changed.
+
 <!--
 ### Example breaking change
 -->

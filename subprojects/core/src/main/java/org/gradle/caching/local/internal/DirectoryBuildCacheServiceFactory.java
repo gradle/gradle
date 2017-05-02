@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.local.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
@@ -51,6 +51,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         } else {
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
-        return new DirectoryBuildCacheService(cacheRepository, target);
+
+        return new DirectoryBuildCacheService(cacheRepository, target, configuration.getTargetSizeInMB());
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.caching.local.internal
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.cache.CacheBuilder
@@ -48,6 +48,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> null
+        1 * config.getTargetSizeInMB() >> 1000
         1 * cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         0 * _
@@ -61,6 +62,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> cacheDir
+        1 * config.getTargetSizeInMB() >> 1000
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         0 * _

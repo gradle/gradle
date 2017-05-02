@@ -26,6 +26,9 @@
             <tr>
                 <td>directory</td>
             </tr>
+            <tr>
+                <td>targetSizeInMB</td>
+            </tr>
         </table>
     </section>
     <section>

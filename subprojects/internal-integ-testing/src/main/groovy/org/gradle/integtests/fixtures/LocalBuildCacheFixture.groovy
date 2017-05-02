@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Before
 
+import java.util.concurrent.TimeUnit
+
 @SelfType(AbstractIntegrationSpec)
 trait LocalBuildCacheFixture {
     private TestFile cacheDir
@@ -53,6 +55,15 @@ trait LocalBuildCacheFixture {
     AbstractIntegrationSpec withBuildCache() {
         executer.withBuildCacheEnabled()
         this
+    }
+
+    TestFile gcFile() {
+        cacheDir.file("gc.properties")
+    }
+
+    void cleanupBuildCacheNow() {
+        gcFile().assertIsFile()
+        gcFile().lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(60)
     }
 
     List<TestFile> listCacheFiles() {

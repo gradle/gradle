@@ -51,9 +51,9 @@ class DefaultCacheFactoryTest extends Specification {
         _ * metaDataProvider.processDisplayName >> 'process'
     }
 
-    public void "creates directory backed cache instance"() {
+    void "creates directory backed cache instance"() {
         when:
-        def cache = factory.open(tmpDir.testDirectory, "<display>", null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null)
+        def cache = factory.open(tmpDir.testDirectory, "<display>", null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
 
         then:
         cache.reference.cache instanceof DefaultPersistentDirectoryCache
@@ -64,10 +64,10 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    public void "reuses directory backed cache instances"() {
+    void "reuses directory backed cache instances"() {
         when:
-        def ref1 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
-        def ref2 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
+        def ref1 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
+        def ref2 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
         ref1.reference.cache.is(ref2.reference.cache)
@@ -80,11 +80,11 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    public void "closes cache instance when factory is closed"() {
+    void "closes cache instance when factory is closed"() {
         def implementation
 
         when:
-        factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
+        factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
         1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
@@ -98,12 +98,12 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    public void "closes cache instance when reference is closed"() {
+    void "closes cache instance when reference is closed"() {
         def implementation
 
         when:
-        def cache1 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
-        def cache2 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
+        def cache1 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
+        def cache2 = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
         1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
@@ -123,11 +123,11 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    public void "can close cache multiple times"() {
+    void "can close cache multiple times"() {
         def implementation
 
         when:
-        def cache = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
+        def cache = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
         1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
@@ -142,11 +142,11 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    public void "can close factory after closing cache"() {
+    void "can close factory after closing cache"() {
         def implementation
 
         when:
-        def cache = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
+        def cache = factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
         1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
@@ -161,12 +161,12 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    public void "fails when directory cache is already open with different properties"() {
+    void "fails when directory cache is already open with different properties"() {
         given:
-        factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
+        factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         when:
-        factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
+        factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
         IllegalStateException e = thrown()
@@ -176,12 +176,12 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    public void "fails when directory cache when cache is already open with different lock mode"() {
+    void "fails when directory cache when cache is already open with different lock mode"() {
         given:
-        factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null)
+        factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
 
         when:
-        factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null)
+        factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
         IllegalStateException e = thrown()
@@ -191,12 +191,12 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    public void "fails when directory cache when cache is already open with different lock target"() {
+    void "fails when directory cache when cache is already open with different lock target"() {
         given:
-        factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.CachePropertiesFile, mode(Shared), null)
+        factory.open(tmpDir.testDirectory, null, null, [prop: 'value'], CacheBuilder.LockTarget.CachePropertiesFile, mode(Shared), null, null)
 
         when:
-        factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null)
+        factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
 
         then:
         IllegalStateException e = thrown()
@@ -206,12 +206,12 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    public void "can pass CacheValidator to Cache"() {
+    void "can pass CacheValidator to Cache"() {
         given:
         CacheValidator validator = Mock()
 
         when:
-        def cache = factory.open(tmpDir.testDirectory, null, validator, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null)
+        def cache = factory.open(tmpDir.testDirectory, null, validator, [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
 
         then:
         validator.isValid() >>> [false, true]

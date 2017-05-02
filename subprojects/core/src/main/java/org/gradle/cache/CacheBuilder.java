@@ -80,6 +80,11 @@ public interface CacheBuilder {
     CacheBuilder withInitializer(Action<? super PersistentCache> initializer);
 
     /**
+     * Specifies an action to execute when the cache needs to be cleaned up. An exclusive lock is held while the cleanup is executing, to prevent cross-process access.
+     */
+    CacheBuilder withCleanup(Action<? super PersistentCache> cleanup);
+
+    /**
      * Opens the cache. It is the caller's responsibility to close the cache when finished with it.
      *
      * <p>

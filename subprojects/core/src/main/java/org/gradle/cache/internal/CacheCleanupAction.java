@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.fixture
+package org.gradle.cache.internal;
 
-class GroovydocCoverage {
-    // TODO:UPGRADE-GROOVY <- search for this to find all the places to upgrade
-    final static String NEWEST = '2.4.11'
-    final static String[] ALL_COVERAGE = ['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.2.2', '2.3.10', NEWEST]
-    final static String[] STAMPS_COVERAGE = [NEWEST]
+public interface CacheCleanupAction {
+    /**
+     * Determines if this action should run. Called when the cache is closed, holding an exclusive lock.
+     */
+    boolean requiresCleanup();
+
+    /**
+     * Executes the action to cleanup the cache. Called only if {@link #requiresCleanup()} returns true, holding an exclusive lock.
+     * The lock is not released between calling {@link #requiresCleanup()} and this method.
+     */
+    void cleanup();
 }

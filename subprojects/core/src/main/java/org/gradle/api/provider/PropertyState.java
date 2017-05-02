@@ -21,7 +21,9 @@ import org.gradle.api.Incubating;
 /**
  * A {@code Provider} representation for capturing property state. The value can be provided by using the method {@code set()}.
  * <p>
- * You can create a {@code PropertyState} instance using the method {@link org.gradle.api.Project#property(java.lang.Class)}.
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created
+ * through the factory methods {@link org.gradle.api.Project#property(java.lang.Class)} or
+ * {@link org.gradle.api.provider.ProviderFactory#property(java.lang.Class)}.
  *
  * @param <T> Type of value represented by property state
  * @since 4.0
