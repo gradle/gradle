@@ -16,21 +16,16 @@
 
 package org.gradle.internal.progress
 
-class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOperationServiceIntegrationTest {
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.junit.Rule
+
+class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule
+    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
-        given:
-        operationListenerFinishedAction = """ { op, result -> 
-                if(op.details != null && org.gradle.execution.taskgraph.CalculateTaskGraphDetails.class.isAssignableFrom(op.details.getClass())){
-                    result.result.requestedTaskPaths.each { tskPath ->
-                        println "requested task: \$tskPath"
-                    }
-                    result.result.filteredTaskPaths.each { tskPath ->
-                        println "filtered task: \$tskPath"
-                    }
-                }
-            }
-        """
         settingsFile << """
         include "a"
         include "b"
@@ -38,6 +33,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
         """
 
         buildFile << """
+            println "projectdir " + project.projectDir
             allprojects {
                 task otherTask
                 task someTask
@@ -48,68 +44,48 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractBuildOpera
         succeeds('help')
 
         then:
-        result.output.contains 'requested task: :help'
-        !result.output.contains('excluded task:')
+        operation().result.requestedTaskPaths == [":help"]
+        operation().result.filteredTaskPaths == []
 
         when:
         succeeds('someTask')
 
         then:
-        result.output.contains 'requested task: :someTask'
-        result.output.contains 'requested task: :a:someTask'
-        result.output.contains 'requested task: :b:someTask'
-        result.output.contains 'requested task: :a:c:someTask'
-        !result.output.contains('filtered task:')
+        operation().result.requestedTaskPaths == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"]
+        operation().result.filteredTaskPaths == []
 
         when:
         succeeds('someTask', '-x', ':b:someTask')
 
         then:
-        result.output.contains 'requested task: :someTask'
-        result.output.contains 'requested task: :a:someTask'
-        result.output.contains 'requested task: :a:c:someTask'
-        result.output.contains('requested task: :b:someTask')
-        result.output.contains('filtered task: :b:someTask')
+        operation().result.requestedTaskPaths == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask",]
+        operation().result.filteredTaskPaths == [":b:someTask"]
 
         when:
         succeeds('someTask', '-x', 'otherTask')
 
         then:
-        result.output.contains 'requested task: :someTask'
-        result.output.contains 'requested task: :a:someTask'
-        result.output.contains 'requested task: :a:c:someTask'
-        result.output.contains('requested task: :b:someTask')
-        result.output.contains('filtered task: :otherTask')
-        result.output.contains('filtered task: :a:otherTask')
-        result.output.contains('filtered task: :b:otherTask')
-        result.output.contains('filtered task: :a:c:otherTask')
+        operation().result.requestedTaskPaths == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"]
+        operation().result.filteredTaskPaths == [":b:otherTask", ":a:c:otherTask", ":otherTask", ":a:otherTask"]
 
         when:
         succeeds(':a:someTask')
 
         then:
-        result.output.contains('requested task: :a:someTask')
-        !result.output.contains('requested task: :someTask')
-        !result.output.contains('requested task: :a:c:someTask')
-        !result.output.contains('requested task: :b:someTask')
-        !result.output.contains('filtered task:')
-
+        operation().result.requestedTaskPaths == [":a:someTask"]
+        operation().result.filteredTaskPaths == []
     }
 
     def "errors in calculating task graph are exposed"() {
-        given:
-        operationListenerFinishedAction = """ { op, result -> 
-                if(op.details != null && org.gradle.execution.taskgraph.CalculateTaskGraphDetails.class.isAssignableFrom(op.details.getClass())){
-                    println "Calculate task graph failure: " + result.failure.getMessage()
-                }
-            }
-        """
-
         when:
         fails('someNonExisting')
 
         then:
-        result.output.contains 'Calculate task graph failure: Task \'someNonExisting\' not found in root project'
+        operation().failure.contains("Task 'someNonExisting' not found in root project")
+    }
+
+    private Object operation() {
+        buildOperations.operation("Calculate task graph")
     }
 
 }

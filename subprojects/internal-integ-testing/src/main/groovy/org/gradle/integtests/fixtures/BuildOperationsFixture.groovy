@@ -72,6 +72,8 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                     operations[buildOperation.id].endTime = finishEvent.endTime
                     if (finishEvent.failure != null) {
                         operations[buildOperation.id].failure = finishEvent.failure.message
+                    } else if (finishEvent.result != null) {
+                        operations[buildOperation.id].result = finishEvent.result
                     }
                 }
             }
