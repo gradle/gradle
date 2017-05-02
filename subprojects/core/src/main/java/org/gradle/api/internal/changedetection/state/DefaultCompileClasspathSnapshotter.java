@@ -16,19 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
+import org.gradle.cache.PersistentIndexedCache;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
     private final ContentHasher classpathContentHasher;
     private final ContentHasher jarContentHasher;
 
-    public DefaultCompileClasspathSnapshotter(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultCompileClasspathSnapshotter(PersistentIndexedCache<HashCode, HashCode> classCache, PersistentIndexedCache<HashCode, HashCode> jarCache, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
-        this.classpathContentHasher = classpathContentHasher;
-        this.jarContentHasher = jarContentHasher;
+        AbiExtractingClasspathContentHasher abiExtractingClasspathContentHasher = new AbiExtractingClasspathContentHasher();
+        this.classpathContentHasher = new CachingContentHasher(abiExtractingClasspathContentHasher, classCache);
+        this.jarContentHasher = new CachingContentHasher(new JarContentHasher(abiExtractingClasspathContentHasher, stringInterner), jarCache);
     }
 
     @Override

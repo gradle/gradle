@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
@@ -23,17 +24,16 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationStrategyInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.cache.PersistentIndexedCache;
 
 import java.util.Set;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private final ContentHasher classpathContentHasher;
-    private final ContentHasher jarContentHasher;
+    private final PersistentIndexedCache<HashCode, HashCode> jarCache;
 
-    public DefaultClasspathSnapshotter(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultClasspathSnapshotter(PersistentIndexedCache<HashCode, HashCode> jarCache, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
-        this.classpathContentHasher = classpathContentHasher;
-        this.jarContentHasher = jarContentHasher;
+        this.jarCache = jarCache;
     }
 
     @Override
@@ -44,6 +44,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
         Set<Spec<RelativePath>> ignoreSpecs = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).buildIgnores();
-        return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner(), ignoreSpecs));
+        RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher(ignoreSpecs);
+        CachingContentHasher jarContentHasher = new CachingContentHasher(new JarContentHasher(classpathContentHasher, getStringInterner()), jarCache);
+        return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
     }
 }

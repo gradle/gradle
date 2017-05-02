@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.specs.Spec;
-
-import java.util.Collections;
 
 /**
  * Builds a {@link FileCollectionSnapshot} for a compile classpath.
@@ -29,7 +25,7 @@ import java.util.Collections;
  */
 public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
     public CompileClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, StringInterner stringInterner) {
-        super(classpathContentHasher, jarContentHasher, stringInterner, Collections.<Spec<RelativePath>>emptySet());
+        super(classpathContentHasher, jarContentHasher, stringInterner);
     }
 
     @Override

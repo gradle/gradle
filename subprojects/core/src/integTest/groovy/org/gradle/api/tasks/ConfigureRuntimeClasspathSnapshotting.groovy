@@ -21,104 +21,146 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
-    TestFile ignoredResourceInDirectory
-    TestFile notIgnoredResourceInDirectory
-    TestFile ignoredResourceInJar
-    TestFile notIgnoredResourceInJar
-    TestFile libraryJarContents
-    TestFile libraryJar
+    def "can ignore files on runtime classpath in directories"() {
+        def project = new TestProject()
+        project.ignoreFiles()
 
-    def setup() {
-        buildFile << """
-            apply plugin: 'base'
-            
-            class CustomTask extends DefaultTask {
-                @OutputFile File outputFile = new File(temporaryDir, "output.txt")
-                @Classpath FileCollection classpath = project.files("classpath/dirEntry", "library.jar")
-                
-                @TaskAction void generate() {
-                    outputFile.text = "done"
-                } 
-            }
-            
-            task customTask(type: CustomTask)
-            
-            normalization {
-                runtimeClasspath {
-                    ignore "**/ignored.properties"
-                }
-            }
-        """.stripIndent()
+        when:
+        succeeds project.customTask
+        then:
+        nonSkippedTasks.contains(project.customTask)
 
-        file('classpath/dirEntry').create {
-            ignoredResourceInDirectory = file("ignored.properties") << "This should be ignored"
-            notIgnoredResourceInDirectory = file("not-ignored.txt") << "This should not be ignored"
-        }
+        when:
+        succeeds project.customTask
+        then:
+        skippedTasks.contains(project.customTask)
 
-        libraryJarContents = file('libraryContents').create {
-            ignoredResourceInJar = file('some/package/ignored.properties') << "This should be ignored"
-            notIgnoredResourceInJar = file('some/package/not-ignored.properties') << "This should not be ignored"
-        }
-        libraryJar = file('library.jar')
-        createJar()
+        when:
+        project.ignoredResourceInDirectory << "This change should be ignored"
+        succeeds project.customTask
+        then:
+        skippedTasks.contains(project.customTask)
+
+        when:
+        project.notIgnoredResourceInDirectory << "This change should not be ignored"
+        succeeds project.customTask
+        then:
+        nonSkippedTasks.contains(project.customTask)
     }
 
-    def "can ignore files on runtime classpath in directories"() {
-        when:
-        succeeds 'customTask'
-        then:
-        nonSkippedTasks.contains(':customTask')
+    def "can ignore files on runtime classpath in jars"() {
+        def project = new TestProject()
+        project.ignoreFiles()
 
         when:
-        succeeds 'customTask'
+        succeeds project.customTask
         then:
-        skippedTasks.contains(':customTask')
+        nonSkippedTasks.contains(project.customTask)
 
         when:
-        ignoredResourceInDirectory << "This change should be ignored"
-        succeeds 'customTask'
+        project.createJar()
+        succeeds project.customTask
         then:
-        skippedTasks.contains(':customTask')
+        skippedTasks.contains(project.customTask)
 
         when:
-        notIgnoredResourceInDirectory << "This change should not be ignored"
-        succeeds 'customTask'
+        project.ignoredResourceInJar << "This change should be ignored"
+        project.createJar()
+        succeeds project.customTask
         then:
-        nonSkippedTasks.contains(':customTask')
+        skippedTasks.contains(project.customTask)
+
+        when:
+        project.notIgnoredResourceInJar << "This change should not be ignored"
+        project.createJar()
+        succeeds project.customTask
+        then:
+        nonSkippedTasks.contains(project.customTask)
     }
 
     @NotYetImplemented
-    def "can ignore files on runtime classpath in jars"() {
-        when:
-        succeeds 'customTask'
-        then:
-        nonSkippedTasks.contains(':customTask')
+    def "can configure ignore rules per project"() {
+        def projectWithIgnores = new TestProject('a')
+        projectWithIgnores.ignoreFiles()
+        def projectWithoutIgnores = new TestProject('b')
+        def allProjects = [projectWithIgnores, projectWithoutIgnores]
+        settingsFile << "include 'a', 'b'"
 
         when:
-        createJar()
-        succeeds 'customTask'
+        succeeds(*allProjects*.customTask)
         then:
-        skippedTasks.contains(':customTask')
+        nonSkippedTasks.containsAll(allProjects*.customTask)
 
         when:
-        ignoredResourceInJar << "This change should be ignored"
-        createJar()
-        succeeds 'customTask'
+        projectWithIgnores.ignoredResourceInJar << "Should be ignored"
+        projectWithoutIgnores.ignoredResourceInJar << "Should not be ignored"
+        succeeds(*allProjects*.customTask)
         then:
-        skippedTasks.contains(':customTask')
-
-        when:
-        notIgnoredResourceInJar << "This change should not be ignored"
-        createJar()
-        succeeds 'customTask'
-        then:
-        nonSkippedTasks.contains(':customTask')
+        skippedTasks.contains(projectWithIgnores.customTask)
+        nonSkippedTasks.contains(projectWithoutIgnores.customTask)
     }
 
-    private TestFile createJar() {
-        if (libraryJar.exists()) {
-            libraryJar.delete()
+    class TestProject {
+        final TestFile root
+        TestFile ignoredResourceInDirectory
+        TestFile notIgnoredResourceInDirectory
+        TestFile ignoredResourceInJar
+        TestFile notIgnoredResourceInJar
+        TestFile libraryJar
+        private TestFile libraryJarContents
+        private final String projectName
+
+        TestProject(String projectName = null) {
+            this.projectName = projectName
+            this.root = projectName ? file(projectName) : temporaryFolder.testDirectory
+
+            root.file('build.gradle') << """
+                apply plugin: 'base'
+                
+                class CustomTask extends DefaultTask {
+                    @OutputFile File outputFile = new File(temporaryDir, "output.txt")
+                    @Classpath FileCollection classpath = project.files("classpath/dirEntry", "library.jar")
+                    
+                    @TaskAction void generate() {
+                        outputFile.text = "done"
+                    } 
+                }
+                
+                task customTask(type: CustomTask)
+            """.stripIndent()
+
+            root.file('classpath/dirEntry').create {
+                ignoredResourceInDirectory = file("ignored.properties") << "This should be ignored"
+                notIgnoredResourceInDirectory = file("not-ignored.txt") << "This should not be ignored"
+            }
+
+            libraryJarContents = root.file('libraryContents').create {
+                ignoredResourceInJar = file('some/package/ignored.properties') << "This should be ignored"
+                notIgnoredResourceInJar = file('some/package/not-ignored.properties') << "This should not be ignored"
+            }
+            libraryJar = root.file('library.jar')
+            createJar()
         }
-        libraryJarContents.zipTo(libraryJar)
+
+        void createJar() {
+            if (libraryJar.exists()) {
+                libraryJar.delete()
+            }
+            libraryJarContents.zipTo(libraryJar)
+        }
+
+        void ignoreFiles(String ignores = 'ignore "**/ignored.properties"') {
+            root.file('build.gradle') << """
+                normalization {
+                    runtimeClasspath {
+                        ${ignores}
+                    }
+                }
+            """.stripIndent()
+        }
+
+        String getCustomTask() {
+            return "${projectName ? ":${projectName}" : ''}:customTask"
+        }
     }
 }

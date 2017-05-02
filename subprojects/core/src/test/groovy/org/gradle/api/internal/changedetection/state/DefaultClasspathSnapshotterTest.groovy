@@ -46,9 +46,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def fileSystemMirror = new DefaultFileSystemMirror([])
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
     InMemoryIndexedCache<HashCode, HashCode> jarCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
-    RuntimeClasspathContentHasher classpathContentHasher = new RuntimeClasspathContentHasher()
-    def snapshotter = new DefaultClasspathSnapshotter(
-        classpathContentHasher, new CachingContentHasher(new JarContentHasher(classpathContentHasher, stringInterner), jarCache),
+    def snapshotter = new DefaultClasspathSnapshotter(jarCache,
         directoryFileTreeFactory,
         fileSystemSnapshotter,
         stringInterner)

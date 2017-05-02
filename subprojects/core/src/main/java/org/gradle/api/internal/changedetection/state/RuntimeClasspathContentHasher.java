@@ -21,9 +21,12 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.specs.Spec;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 
 /**
@@ -32,15 +35,39 @@ import java.util.zip.ZipEntry;
  * Currently, we take the unmodified content into account but we could be smarter at some point.
  */
 public class RuntimeClasspathContentHasher implements ContentHasher {
+    private final Set<Spec<RelativePath>> ignoreSpecs;
+
+    public RuntimeClasspathContentHasher(Set<Spec<RelativePath>> ignoreSpecs) {
+        this.ignoreSpecs = ignoreSpecs;
+    }
+
     @Override
     public HashCode hash(RegularFileSnapshot fileSnapshot) {
+        if (shouldIgnore(fileSnapshot.getRelativePath())) {
+            return null;
+        }
         return fileSnapshot.getContent().getContentMd5();
     }
 
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+        if (shouldIgnore(RelativePath.parse(true, zipEntry.getName()))) {
+            return null;
+        }
         Hasher hasher = Hashing.md5().newHasher();
         ByteStreams.copy(zipInput, Funnels.asOutputStream(hasher));
         return hasher.hash();
+    }
+
+    private boolean shouldIgnore(RelativePath relativePath) {
+        if (ignoreSpecs.isEmpty()) {
+            return false;
+        }
+        for (Spec<RelativePath> ignoreSpec : ignoreSpecs) {
+            if (ignoreSpec.isSatisfiedBy(relativePath)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
