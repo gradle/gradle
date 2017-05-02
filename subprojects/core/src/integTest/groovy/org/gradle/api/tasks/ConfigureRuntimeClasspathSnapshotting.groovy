@@ -45,6 +45,20 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         succeeds project.customTask
         then:
         nonSkippedTasks.contains(project.customTask)
+
+        when:
+        assert project.ignoredResourceInDirectory.delete()
+        succeeds project.customTask
+
+        then:
+        skippedTasks.contains(project.customTask)
+
+        when:
+        project.ignoredResourceInDirectory.text = "Adding an ignored resource is ignored"
+        succeeds project.customTask
+
+        then:
+        skippedTasks.contains(project.customTask)
     }
 
     def "can ignore files on runtime classpath in jars"() {
@@ -75,6 +89,22 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         succeeds project.customTask
         then:
         nonSkippedTasks.contains(project.customTask)
+
+        when:
+        assert project.ignoredResourceInJar.delete()
+        project.createJar()
+        succeeds project.customTask
+
+        then:
+        skippedTasks.contains(project.customTask)
+
+        when:
+        project.ignoredResourceInJar.text = "Adding an ignored resource is ignored"
+        project.createJar()
+        succeeds project.customTask
+
+        then:
+        skippedTasks.contains(project.customTask)
     }
 
     def "can configure ignore rules per project"() {
