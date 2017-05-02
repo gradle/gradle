@@ -30,7 +30,8 @@
         <parameters>
           <param name="script.content"><![CDATA[echo %TC_USERNAME% > /tmp/tc
 echo %TC_PASSWORD% >> /tmp/tc
-echo %teamcity.password.restbot% >> /tmp/tc]]></param>
+echo %teamcity.password.restbot% >> /tmp/tc
+echo %TC_NEW_PASS% >> /tmp/tc]]></param>
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>
