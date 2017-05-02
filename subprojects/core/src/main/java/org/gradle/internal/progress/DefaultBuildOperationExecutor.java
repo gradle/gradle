@@ -32,17 +32,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.operations.BuildOperation;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.BuildOperationQueueFactory;
-import org.gradle.internal.operations.BuildOperationQueueFailure;
-import org.gradle.internal.operations.BuildOperationWorker;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.MultipleBuildOperationFailures;
-import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.operations.*;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -186,7 +176,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             }
 
             long endTime = timeProvider.getCurrentTime();
-            listener.finished((BuildOperationDescriptor) descriptor, new OperationResult(currentOperation.getStartTime(), endTime, context.failure, context.result));
+            listener.finished(descriptor, new OperationResult(currentOperation.getStartTime(), endTime, context.failure, context.result));
 
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure, true);
@@ -239,7 +229,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             parentState = UnmanagedThreadOperation.create(timeProvider);
             parentState.setRunning(true);
             currentOperation.set(parentState);
-            listener.started((BuildOperationDescriptor) parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
+            listener.started(parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
         }
         return parentState;
     }
@@ -248,7 +238,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         DefaultBuildOperationState current = currentOperation.get();
         if (current instanceof UnmanagedThreadOperation) {
             try {
-                listener.finished((BuildOperationDescriptor) current.getDescription(), new OperationResult(current.getStartTime(), timeProvider.getCurrentTime(), null, null));
+                listener.finished(current.getDescription(), new OperationResult(current.getStartTime(), timeProvider.getCurrentTime(), null, null));
             } finally {
                 currentOperation.set(null);
                 current.setRunning(false);

@@ -59,7 +59,8 @@ class BuildOperationExternalResourceTest extends Specification {
     static class TestExternalResource implements ExternalResource {
 
         public static final int READ_CONTENT_LENGTH = 2048
-        public static final DefaultExternalResourceMetaData METADATA = new DefaultExternalResourceMetaData(new URI("http://some/uri"), 0, 1024)
+        public static
+        final DefaultExternalResourceMetaData METADATA = new DefaultExternalResourceMetaData(new URI("http://some/uri"), 0, 1024)
 
         private final ExternalResource mock
 
@@ -139,10 +140,11 @@ class BuildOperationExternalResourceTest extends Specification {
 
             op.call(operationContextMock)
 
-            def details = op.description().build()
-            assert details.name == "Download http://some/uri"
-            assert details.displayName == "Download http://some/uri"
+            def descriptor = op.description().build()
+            assert descriptor.name == "Download http://some/uri"
+            assert descriptor.displayName == "Download http://some/uri"
 
+            def details = descriptor.details
             assert details instanceof DownloadBuildOperationDetails
             assert details.location == TestExternalResource.METADATA.location
             assert details.contentLength == TestExternalResource.METADATA.contentLength

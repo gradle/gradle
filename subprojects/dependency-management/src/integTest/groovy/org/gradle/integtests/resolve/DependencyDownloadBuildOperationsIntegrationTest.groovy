@@ -42,12 +42,12 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
     
             def listener = new BuildOperationListener() {
                 @Override
-                void started(BuildOperationInternal operation, OperationStartEvent startEvent) {
-                    println "BUILD OPERATION - STARTED :\$operation.displayName-\$operation.operationDescriptor"      
+                void started(BuildOperationDescriptor operation, OperationStartEvent startEvent) {
+                    println "BUILD OPERATION - STARTED :\$operation.displayName-\$operation.details"      
                 }
     
                 @Override
-                void finished(BuildOperationInternal operation, OperationResult result) {
+                void finished(BuildOperationDescriptor operation, OperationResult result) {
                     println "BUILD OPERATION - FINISHED :\$operation.displayName-\$result.result"
                 }
             }
@@ -75,8 +75,8 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def expectedAdvertisedLength = chunked ? -1 : 258
-        output.contains "BUILD OPERATION - STARTED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDescriptor{location=${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom, contentLength=${expectedAdvertisedLength}, contentType='null'}"
-        output.contains "BUILD OPERATION - FINISHED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDescriptor.Result{readContentLength=258}"
+        output.contains "BUILD OPERATION - STARTED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails{location=${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom, contentLength=${expectedAdvertisedLength}, contentType='null'}"
+        output.contains "BUILD OPERATION - FINISHED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails.Result{readContentLength=258}"
 
         where:
         chunked << [true, false]

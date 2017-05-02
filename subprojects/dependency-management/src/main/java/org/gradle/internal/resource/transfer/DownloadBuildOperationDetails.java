@@ -16,8 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.progress.NoResultBuildOperationDetails;
-
+import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 
 import java.net.URI;
@@ -25,12 +24,12 @@ import java.net.URI;
 
 /**
  * Details about some resource being downloaded.
- *
+ * <p>
  * This class is intentionally internal and consumed by the build scan plugin.
  *
  * @since 4.0
  */
-public final class DownloadBuildOperationDetails implements NoResultBuildOperationDetails {
+public final class DownloadBuildOperationDetails implements BuildOperationDetails<DownloadBuildOperationDetails.Result> {
     private final URI location;
     private final long contentLength;
     private final String contentType;
@@ -47,7 +46,7 @@ public final class DownloadBuildOperationDetails implements NoResultBuildOperati
 
     /**
      * The advertised length of the resource, prior to transfer.
-     *
+     * <p>
      * -1 if this is not known.
      */
     public long getContentLength() {
@@ -80,7 +79,7 @@ public final class DownloadBuildOperationDetails implements NoResultBuildOperati
 
         /**
          * The actual length of the received content.
-         *
+         * <p>
          * Should be equal to {@link DownloadBuildOperationDetails#getContentLength()} if it was not -1.
          * See {@link ExternalResourceReadResult#getReadContentLength()} for the semantics of this value.
          */
