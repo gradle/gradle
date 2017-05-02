@@ -13,6 +13,7 @@
     </options>
     <disabled-settings>
       <setting-ref ref="RUNNER_1" />
+      <setting-ref ref="RUNNER_2" />
     </disabled-settings>
     <parameters>
       <param name="TC_PASSWORD" value="credentialsJSON:dcf2acb9-9961-43f0-a73b-18cac24d342f" spec="password display='normal'" />
