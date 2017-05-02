@@ -56,12 +56,6 @@ fi]]></param>
       <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
     <build-triggers />
-    <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_1" sourceBuildTypeId="Gradle_Branches_CommitPhase_BuildDistributions" cleanDestination="true">
-        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
-        <artifact sourcePath="distributions/*-all.zip =&gt; incoming-distributions&#xA;        build-receipt.properties =&gt; incoming-distributions" />
-      </dependency>
-    </artifact-dependencies>
     <cleanup />
   </settings>
 </build-type>
