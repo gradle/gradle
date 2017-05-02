@@ -425,8 +425,9 @@
                     </listitem>
                 </orderedlist>
                 <note>
-                    <para>This annotation should be attached to the getter method in Java or the property
-                        in Groovy. Annotations on setters or just the field in Java are ignored.
+                    <para>Annotations must be placed on getters or on Groovy properties. Annotations
+                        placed on setters, or on a Java field without a corresponding annotated
+                        getter are ignored.
                     </para>
                 </note>
                 <para>Gradle supports three main categories of inputs and outputs:</para>
