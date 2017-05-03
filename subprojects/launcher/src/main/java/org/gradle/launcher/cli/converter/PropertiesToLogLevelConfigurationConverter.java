@@ -20,7 +20,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
-import java.util.Arrays;
 import java.util.Map;
 
 public class PropertiesToLogLevelConfigurationConverter {
@@ -38,11 +37,11 @@ public class PropertiesToLogLevelConfigurationConverter {
         try {
             LogLevel logLevel = LogLevel.valueOf(value.toUpperCase());
             if (logLevel == LogLevel.ERROR) {
-                throw new IllegalArgumentException("Log level cannot be set to ERROR.");
+                throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
             }
             return logLevel;
         } catch (IllegalArgumentException e) {
-            String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of %s)", value, GradleProperties.LOG_LEVEL_PROPERTY, Arrays.toString(LogLevel.values()));
+            String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of quiet, warn, lifecycle, info, or debug)", value, GradleProperties.LOG_LEVEL_PROPERTY);
             throw new IllegalArgumentException(message, e);
         }
     }

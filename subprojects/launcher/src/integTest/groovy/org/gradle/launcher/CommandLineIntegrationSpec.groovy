@@ -258,11 +258,11 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         logLevel | flags
-        'quiet'          | ['-Dorg.gradle.log.level=quiet']
-        'warn'           | ['-Dorg.gradle.log.level=warn']
-        'lifecycle'      | ['-Dorg.gradle.log.level=LifeCycle']
-        'info'           | ['-Dorg.gradle.log.level=Info']
-        'debug'          | ['-Dorg.gradle.log.level=DEBUG']
-        'info'           | ['-Dorg.gradle.log.level=quiet', '--warn', '-i']
+        'quiet'          | ['-Dorg.gradle.logging.level=quiet']
+        'warn'           | ['-Dorg.gradle.logging.level=warn']
+        'lifecycle'      | ['-Dorg.gradle.logging.level=LifeCycle']
+        'info'           | ['-Dorg.gradle.logging.level=Info']
+        'debug'          | ['-Dorg.gradle.logging.level=DEBUG']
+        'info'           | ['-Dorg.gradle.logging.level=quiet', '--warn', '-i']
     }
 }

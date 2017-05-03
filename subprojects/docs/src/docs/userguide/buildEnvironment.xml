@@ -79,7 +79,7 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term><literal>org.gradle.log.level</literal></term>
+                <term><literal>org.gradle.logging.level</literal></term>
                     <listitem><para>When set to quiet, warn, lifecycle, info, or debug, Gradle will use this logging level.  This property is case insensitive.
                         See <xref linkend="sec:choosing_a_log_level"/>.</para>
                     </listitem>

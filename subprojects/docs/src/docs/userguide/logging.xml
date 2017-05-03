@@ -57,7 +57,7 @@
     <section id="sec:choosing_a_log_level">
         <title>Choosing a log level</title>
         <para>You can use the command line switches shown in <xref linkend='logLevelCommandLineOptions'/> to choose
-            different log levels. You can also set the log level using <xref linkend="sec:gradle_configuration_properties"/>. <xref linkend='stacktraces'/> you find the command line switches which affect
+            different log levels. You can also set the log level using <xref linkend="sec:gradle_configuration_properties"/>. In <xref linkend='stacktraces'/> you find the command line switches which affect
             stacktrace logging.
         </para>
         <table id='logLevelCommandLineOptions'>
