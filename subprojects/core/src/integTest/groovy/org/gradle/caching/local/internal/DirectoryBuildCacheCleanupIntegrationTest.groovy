@@ -293,6 +293,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         gcFile().lastModified() != lastCleanupCheck
     }
 
+    @Ignore
     def "composite builds do not try to clean build cache"() {
         file("included/build.gradle") << """
             apply plugin: 'java'
@@ -338,6 +339,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         gcFile().lastModified() != lastCleanupCheck
     }
 
+    @Ignore
     def "GradleBuild tasks do not try to clean build cache"() {
         // Copy cache configuration
         file("included/build.gradle") << """
