@@ -59,7 +59,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
             
             task assertBuildCacheOverTarget {
                 doLast {
-                    def cacheSize = file("${cacheDir}").listFiles().collect { it.length() }.sum()
+                    def cacheSize = file("${cacheDir.toURI()}").listFiles().collect { it.length() }.sum()
                     long cacheSizeInMB = cacheSize / 1024 / 1024
                     assert cacheSizeInMB >= ${MAX_CACHE_SIZE}
                 }
