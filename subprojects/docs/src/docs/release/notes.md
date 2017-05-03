@@ -187,7 +187,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Setting the compiler executable is no longer deprecated
 
-In Gradle 3.5 `ForkOptions.executable` has been deprecated. In Gradle 4.0 it is not deprecated anymore, but using it will disable task output caching for the compiler task.
+In Gradle 3.5 `ForkOptions.executable` has been deprecated. In Gradle 4.0 it is not deprecated anymore, but using it to fork a compiler will disable task output caching for the compile task.
 
 ## Potential breaking changes
 

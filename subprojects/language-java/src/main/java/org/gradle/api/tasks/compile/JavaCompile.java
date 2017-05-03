@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
 import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -41,7 +41,6 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCac
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
@@ -86,12 +85,7 @@ public class JavaCompile extends AbstractCompile {
     private JavaToolChain toolChain;
 
     public JavaCompile() {
-        getOutputs().doNotCacheIf("Compiler executable is set", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return compileOptions.getForkOptions().getExecutable() != null;
-            }
-        });
+        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
     /**

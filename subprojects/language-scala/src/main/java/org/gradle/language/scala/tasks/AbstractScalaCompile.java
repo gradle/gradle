@@ -22,7 +22,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -53,12 +52,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
 
     protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
         this.scalaCompileOptions = scalaCompileOptions;
-        getOutputs().doNotCacheIf("Compiler executable is set", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return compileOptions.getForkOptions().getExecutable() != null;
-            }
-        });
+        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
     /**

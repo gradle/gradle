@@ -425,6 +425,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "compileJava is not cached if forked executable is used"() {
         buildFile << """
+            compileJava.options.fork = true
             compileJava.options.forkOptions.executable = "${TextUtil.escapeString(Jvm.current().getExecutable("javac"))}"
         """
 
@@ -432,7 +433,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava", "--info"
         then:
         skippedTasks.empty
-        output.contains "Caching disabled for task ':compileJava': 'Compiler executable is set' satisfied"
+        output.contains "Caching disabled for task ':compileJava': 'Forking compiler via ForkOptions.executable' satisfied"
 
         expect:
         succeeds "clean"
