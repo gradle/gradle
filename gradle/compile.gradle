@@ -25,6 +25,8 @@ if (java7Home) {
     tasks.withType(Javadoc) {
         executable = jvmForCompilation.javadocExecutable
     }
+} else if (gradle.startParameter.buildCacheEnabled) {
+    SingleMessageLogger.nagUserWith("In order to have cache hits from the remote build cache you need to set 'java7Home' in your gradle.properties!")
 }
 
 tasks.withType(JavaCompile) {
