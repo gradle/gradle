@@ -23,7 +23,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 
 public class BuildLogLevelFilterRenderer implements OutputEventListener {
     private final OutputEventListener listener;
-    private LogLevel logLevel = LogLevel.WARN;
+    private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     public BuildLogLevelFilterRenderer(OutputEventListener listener) {
         this.listener = listener;
