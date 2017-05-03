@@ -1,4 +1,3 @@
-import org.gradle.api.tasks.*
 import org.apache.tools.ant.filters.*
 
 //for including in the copy task
