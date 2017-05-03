@@ -25,6 +25,12 @@ class GroovyCoverage {
 
     private final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
 
+    final static String[] SUPPORTS_GROOVYDOC = ALL_VERSIONS.findAll {
+        it >= VersionNumber.parse("1.6.9")
+    }.collect {
+        it.toString()
+    }
+
     final static String[] SUPPORTS_TIMESTAMP = ALL_VERSIONS.findAll {
         it >= VersionNumber.parse("2.4.6")
     }.collect {

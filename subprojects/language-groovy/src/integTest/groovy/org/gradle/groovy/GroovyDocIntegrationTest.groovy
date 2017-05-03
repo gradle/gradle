@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
-@TargetCoverage({GroovyCoverage.ALL})
+@TargetCoverage({GroovyCoverage.SUPPORTS_GROOVYDOC})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3116")
