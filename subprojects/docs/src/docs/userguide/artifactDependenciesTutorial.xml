@@ -71,44 +71,68 @@
 
     <section id="configurations">
         <title>Dependency configurations</title>
-        <para>In Gradle dependencies are grouped into <firstterm>configurations</firstterm>. A configuration is simply a named set of dependencies.
-            We will refer to them as <firstterm>dependency configurations</firstterm>. You can use them to declare the external dependencies of your project.
-            As we will see later, they are also used to declare the publications of your project.</para>
+        <para>In Gradle dependencies are grouped into <firstterm>configurations</firstterm>. A configuration is a named set of dependencies.
+            We will sometimes refer to them as <firstterm>dependency configurations</firstterm>. You can use them to declare the external dependencies of your project.
+            As we will see later, they are also used to declare what your project publishes.
+        </para>
         <para>
-            The Java plugin defines a number of standard configurations. These configurations represent the classpaths that the
-            Java plugin uses. Some are listed below, and you can find more details in <xref linkend="tab:configurations"/>.
+            Configurations should be thought of as a type of data structure or container for describing sets of dependencies or artifacts for your projects and subprojects.
+            They are a core data structure in Gradle which exist independently from the business logic of your build. That business logic is typically captured in the form of
+            a Gradle plugin. Gradle plugins use configurations for three main purposes:
+            <variablelist>
+                <varlistentry>
+                    <term>Declaring Dependencies</term>
+                    <listitem>
+                        <para>The plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes
+                            during the execution of tasks defined by the plugin.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Resolving Dependencies</term>
+                    <listitem>
+                        <para>The plugin uses configurations to find (and possibly download) the files it needs from outside the project to perform the work of its tasks,
+                            and the tasks of plugins which coordinate with the plugin by using the configurations it defines to reason about the project.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Exposing Artifacts for Consumption</term>
+                    <listitem>
+                        <para>The plugin uses configurations to define what <firstterm>artifacts</firstterm> it generates for other projects or subprojects to consume.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+        <para>
+            With those three purposes in mind, let's take a look at a few of the standard configurations defined by the Java Library Plugin. You can find more details
+            in <xref linkend="sec:java_library_configurations_graph"/>.
         </para>
         <variablelist>
             <varlistentry>
-                <term>compile</term>
-                <listitem>
-                    <para>The dependencies required to compile the production source of the project.</para>
-                </listitem>
-            </varlistentry>
-            <varlistentry>
-                <term>runtime</term>
+                <term>implementation</term>
                 <listitem>
                     <para>
-                        The dependencies required by the production classes at runtime. By default, also includes the
-                        compile time dependencies.
+                        The dependencies required to compile the production source of the project, but which are not part of the api exposed by the project.
+                        This configuration is an example of a configuration used for Declaring Dependencies.
                     </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>testCompile</term>
+                <term>runtimeClasspath</term>
                 <listitem>
                     <para>
-                        The dependencies required to compile the test source of the project. By default, also includes
-                        the compiled production classes and the compile time dependencies.
+                        The dependencies required by the production classes at runtime. By default, this includes the
+                        dependencies declared in the <code>api</code>, <code>implementation</code>, and <code>runtimeOnly</code> configurations.
+                        This configuration is an example of a configuration used for Resolving Dependencies, and as such, it should be unusual for
+                        users to declare dependencies directly in the <code>runtimeClasspath</code> configuration.
                     </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>testRuntime</term>
+                <term>apiElements</term>
                 <listitem>
                     <para>
-                        The dependencies required to run the tests. By default, also includes the compile, runtime and test compile
-                        dependencies.
+                        The external dependencies which are part of this project's externally consumable API as well as the classes which are defined in this project which should be
+                        consumable by other projects. This configuration is an example of Exposing Artifacts for Consumption.
                     </para>
                 </listitem>
             </varlistentry>
