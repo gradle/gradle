@@ -821,6 +821,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public final GradleHandle start() {
         assert afterExecute.isEmpty() : "afterExecute actions are not implemented for async execution";
+        configureLifecycleLogLevel();
         fireBeforeExecute();
         assertCanExecute();
         collectStateBeforeExecution();
