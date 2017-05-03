@@ -28,7 +28,6 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import spock.lang.Unroll
 
 class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
     def "should unregister both listeners on build finished"() {
