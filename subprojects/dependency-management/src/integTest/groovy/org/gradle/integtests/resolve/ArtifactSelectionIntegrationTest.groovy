@@ -550,6 +550,7 @@ dependencies {
     compile project(':ui')
     compile 'org:test:1.0'
     registerTransform {
+        from.attribute(usage, "api")
         to.attribute(usage, "transformed")
         artifactTransform(VariantArtifactTransform)
     }
@@ -579,7 +580,9 @@ project(':ui') {
 
 task show {
     def artifacts = configurations.compile.incoming.artifactView {
-        attributes {it.attribute(usage, 'transformed')}
+        attributes {
+            attribute(usage, 'transformed')
+        }
     }.artifacts
     inputs.files artifacts.artifactFiles
     doLast {

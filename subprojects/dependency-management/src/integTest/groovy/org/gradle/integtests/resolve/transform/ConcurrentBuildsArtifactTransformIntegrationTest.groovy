@@ -26,9 +26,8 @@ class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependenc
 
     def setup() {
         buildFile << """
-
 enum Color { Red, Green, Blue }
-def color = Attribute.of("color", Color)
+def type = Attribute.of("artifactType", String)
 
 class ToColor extends ArtifactTransform {
     Color color
@@ -45,13 +44,14 @@ class ToColor extends ArtifactTransform {
 }
 
 dependencies {
-    attributesSchema.attribute(color)
     registerTransform {
-        to.attribute(color, Color.Red)
+        from.attribute(type, "jar")
+        to.attribute(type, "red")
         artifactTransform(ToColor) { params(Color.Red) }
     }
     registerTransform {
-        to.attribute(color, Color.Blue)
+        from.attribute(type, "jar")
+        to.attribute(type, "blue")
         artifactTransform(ToColor) { params(Color.Blue) }
     }
 }
@@ -68,7 +68,9 @@ dependencies {
 task redThings {
     doLast {
         configurations.compile.incoming.artifactView {
-            attributes { it.attribute(color, Color.Red) }
+            attributes { 
+                attribute(type, "red") 
+            }
         }.files.files
     }
 }
@@ -76,7 +78,9 @@ task redThings {
 task blueThings {
     doLast {
         configurations.compile.incoming.artifactView {
-            attributes { it.attribute(color, Color.Blue) }
+            attributes { 
+                attribute(type, "blue") 
+            }
         }.files.files
     }
 }

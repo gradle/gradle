@@ -673,6 +673,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -773,6 +779,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -861,6 +873,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -969,6 +987,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -1065,6 +1089,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer) { params(value) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer) { params(value) }
                     }
@@ -1164,6 +1194,7 @@ allprojects {
                 }
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
