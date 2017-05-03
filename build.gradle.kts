@@ -4,20 +4,13 @@ import codegen.GenerateKotlinDependencyExtensions
 
 import groovy.lang.GroovyObject
 
-import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.HasConvention
-import org.gradle.api.publish.maven.*
-import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.GradleBuild
-import org.gradle.api.tasks.SourceSet
-import org.gradle.jvm.tasks.Jar
-import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
