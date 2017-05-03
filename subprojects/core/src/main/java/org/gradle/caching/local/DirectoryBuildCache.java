@@ -72,7 +72,7 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      */
     public void setTargetSizeInMB(long targetSizeInMB) {
         if (targetSizeInMB < 1) {
-            throw new IllegalArgumentException("Must have at least 1 MB of space allowed for the directory cache.");
+            throw new IllegalArgumentException("Directory build cache needs to have at least 1 MB of space but more space is useful.");
         }
         this.targetSizeInMB = targetSizeInMB;
     }
