@@ -58,7 +58,7 @@ class DefaultTestLoggingContainerTest extends Specification {
     }
 
     def "sets defaults for level LIFECYCLE"() {
-        def logging = container.get(LogLevel.WARN)
+        def logging = container.get(LogLevel.LIFECYCLE)
 
         expect:
         logging.events == [TestLogEvent.FAILED] as Set
@@ -96,7 +96,7 @@ class DefaultTestLoggingContainerTest extends Specification {
         logging.stackTraceFilters == [] as Set
     }
 
-    def "implicitly configures level LIFECYCLE"() {
+    def "implicitly configures level WARN"() {
         def logging = container.get(LogLevel.WARN)
         assert logging.showExceptions
 
