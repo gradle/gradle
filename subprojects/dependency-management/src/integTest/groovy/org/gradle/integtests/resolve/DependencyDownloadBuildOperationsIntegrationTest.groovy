@@ -29,7 +29,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
     @Unroll
     void "emits events for dependency resolution downloads - chunked: #chunked"() {
         given:
-        mavenHttpRepo.module("org.utils", "impl", '1.3')
+        def m = mavenHttpRepo.module("org.utils", "impl", '1.3')
             .allowAll()
             .publish()
 
@@ -74,7 +74,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         run "help"
 
         then:
-        def expectedAdvertisedLength = chunked ? -1 : 258
+        def expectedAdvertisedLength = chunked ? -1 : m.pom.file.bytes.length
         output.contains "BUILD OPERATION - STARTED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails{location=${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom, contentLength=${expectedAdvertisedLength}, contentType='null'}"
         output.contains "BUILD OPERATION - FINISHED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails.Result{readContentLength=258}"
 
