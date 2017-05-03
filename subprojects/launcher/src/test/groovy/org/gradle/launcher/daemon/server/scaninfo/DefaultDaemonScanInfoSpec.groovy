@@ -19,16 +19,18 @@ package org.gradle.launcher.daemon.server.scaninfo
 import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.Action
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.time.Clock
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
-class DefaultDaemonScanInfoSpec extends Specification {
+class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
     @Unroll
     def "should unregister both listeners #scenario"() {
         given:
@@ -65,6 +67,30 @@ class DefaultDaemonScanInfoSpec extends Specification {
 
         where:
         scenario << [Scenario.ON_EXPIRATION, Scenario.ON_BUILD_FINISHED]
+    }
+
+    def "should not deadlock with deamon scan info"() {
+        def manager = new DefaultListenerManager()
+        def daemonScanInfo = new DefaultDaemonScanInfo(new DaemonRunningStats(new Clock()), 1000, Mock(DaemonRegistry), manager)
+        daemonScanInfo.notifyOnUnhealthy {
+            println "Hello"
+            sleep 500
+        }
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(DaemonExpirationListener).onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, "test"))
+            }
+            start {
+                sleep 100
+                manager.getBroadcaster(BuildListener).buildFinished(null)
+            }
+        }
+
+
+        then:
+        0 * _
     }
 
     private enum Scenario {
