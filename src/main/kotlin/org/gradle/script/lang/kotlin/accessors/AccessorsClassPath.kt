@@ -49,19 +49,14 @@ data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath)
 private
 fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
-        try {
-            val cacheDir =
-                scriptCacheOf(project)
-                    .cacheDirFor(cacheKeyFor(projectSchema), scope = project) {
-                        buildAccessorsJarFor(projectSchema, classPath, outputDir = baseDir)
-                    }
-            AccessorsClassPath(
-                DefaultClassPath(accessorsJar(cacheDir)),
-                DefaultClassPath(accessorsSourceDir(cacheDir)))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
+        val cacheDir =
+            scriptCacheOf(project)
+                .cacheDirFor(cacheKeyFor(projectSchema)) {
+                    buildAccessorsJarFor(projectSchema, classPath, outputDir = baseDir)
+                }
+        AccessorsClassPath(
+            DefaultClassPath(accessorsJar(cacheDir)),
+            DefaultClassPath(accessorsSourceDir(cacheDir)))
     }
 
 
@@ -139,7 +134,7 @@ fun classLoaderScopeOf(project: Project) =
 
 private
 fun cacheKeyFor(projectSchema: ProjectSchema<String>): CacheKeySpec =
-    CacheKeySpec.withPrefix("gsk-accessors") + projectSchema.toCacheKeyString()
+    CacheKeySpec.withPrefix("gradle-script-kotlin-accessors") + projectSchema.toCacheKeyString()
 
 
 private
