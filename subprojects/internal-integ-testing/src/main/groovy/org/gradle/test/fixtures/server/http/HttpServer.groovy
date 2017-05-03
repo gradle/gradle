@@ -47,7 +47,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     List<ServerExpectation> expectations = []
 
-    boolean chunkedTransfer = true
+    boolean chunkedTransfer = false
 
     org.gradle.api.Action<HttpServletRequest> beforeHandle
     org.gradle.api.Action<HttpServletRequest> afterHandle
