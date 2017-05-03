@@ -24,16 +24,15 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.Listed;
 
 class InMemoryMetaDataCache {
-    private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = new HashMap<ModuleVersionSelector, Set<String>>();
-    private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
-    private final Map<ModuleComponentIdentifier, MetadataFetchingCost> fetchingCosts = Maps.newHashMap();
+    private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = Maps.newConcurrentMap();
+    private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = Maps.newConcurrentMap();
+    private final Map<ModuleComponentIdentifier, MetadataFetchingCost> fetchingCosts = Maps.newConcurrentMap();
 
     public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
         Set<String> versions = moduleVersionListing.get(requested);
