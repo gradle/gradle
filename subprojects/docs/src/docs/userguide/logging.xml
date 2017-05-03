@@ -54,6 +54,12 @@
             <td>Debug messages</td>
         </tr>
     </table>
+    <note>
+        <para>The rich components of the console (build status and work in progress area) are displayed regardless of
+            the log level used. Before Gradle 4.0 those rich components were only displayed at log level
+            <literal>LIFECYCLE</literal> or below.
+        </para>
+    </note>
     <section id="sec:choosing_a_log_level">
         <title>Choosing a log level</title>
         <para>You can use the command line switches shown in <xref linkend='logLevelCommandLineOptions'/> to choose
