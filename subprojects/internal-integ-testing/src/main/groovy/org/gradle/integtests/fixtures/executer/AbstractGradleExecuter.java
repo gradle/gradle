@@ -870,7 +870,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * The Log level command line options is evaluated with "last one wins" strategy.
      */
     private void configureLifecycleLogLevel() {
-        args.add(0, "-l");
+        if (gradleVersion.getBaseVersion().getVersion().startsWith("4")) {
+            args.add(0, "-l");
+        }
     }
 
     private void collectStateBeforeExecution() {
