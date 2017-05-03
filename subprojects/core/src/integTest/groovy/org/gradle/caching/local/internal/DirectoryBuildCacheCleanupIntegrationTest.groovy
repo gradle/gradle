@@ -201,30 +201,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
     }
 
-    def "build cache cleanup handles broken links in cache directory"() {
-        when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        and:
-        def target = cacheDir.file("target")
-        def link = cacheDir.file("0"*32)
-        link.createLink(target)
-        link.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(60)
-        target.delete() // break the link
-
-        then:
-        def originalList = listCacheFiles()
-        // build cache hasn't been cleaned yet and has an extra "link" entry
-        originalList.size() == MAX_CACHE_SIZE*2 + 1
-        calculateCacheSize(originalList) >= MAX_CACHE_SIZE
-
-        when:
-        cleanupBuildCacheNow()
-        and:
-        withBuildCache().succeeds("cacheable")
-        then:
-        calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
-    }
-
     @Unroll
     def "produces reasonable message when cache is too small (#size)"() {
         settingsFile << """

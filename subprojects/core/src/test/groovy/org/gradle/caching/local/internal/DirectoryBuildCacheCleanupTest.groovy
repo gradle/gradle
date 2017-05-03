@@ -56,10 +56,10 @@ class DirectoryBuildCacheCleanupTest extends Specification {
 
     def "finds files to delete when cache is larger than limit"() {
         def cacheEntries = [
-            createCacheEntry(1024), // 1KB
-            createCacheEntry(1024*1024), // 1MB
-            createCacheEntry(1024*1024*5), // 5MB
-            createCacheEntry(1024*1024*10), // 10MB
+            createCacheEntry(1024, 1000), // 1KB, newest file
+            createCacheEntry(1024*1024, 500), // 1MB
+            createCacheEntry(1024*1024*5, 250), // 5MB
+            createCacheEntry(1024*1024*10, 0), // 10MB, oldest file
         ]
         expect:
         def filesToDelete = cleanupAction.findFilesToDelete(cacheEntries as File[])
@@ -93,11 +93,12 @@ class DirectoryBuildCacheCleanupTest extends Specification {
         }
     }
 
-    def createCacheEntry(int size) {
+    def createCacheEntry(int size, int timestamp=0) {
         def cacheEntry = cacheDir.file(String.format("%032x", size))
         def data = new byte[size]
         new Random().nextBytes(data)
         cacheEntry.bytes = data
+        cacheEntry.lastModified = timestamp
         return cacheEntry
     }
 }
