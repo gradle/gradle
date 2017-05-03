@@ -434,14 +434,14 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run "test"
+        runWithWarnLogLevel "test"
         then:
         nonSkippedTasks.contains ":test"
         output.contains("FirstTest > test PASSED")
         output.contains("SecondTest > test PASSED")
 
         when:
-        run "test"
+        runWithWarnLogLevel "test"
         then:
         skippedTasks.contains ":test"
 
@@ -454,10 +454,15 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         }
         """
         then:
-        run "test"
+        runWithWarnLogLevel "test"
         then:
         nonSkippedTasks.contains ":test"
         output.contains("FirstTest > test PASSED")
         !output.contains("SecondTest > test PASSED")
+    }
+
+    private void runWithWarnLogLevel(String... tasks) {
+        executer.withArguments('-w')
+        run tasks
     }
 }
