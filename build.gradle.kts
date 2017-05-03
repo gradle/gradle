@@ -199,6 +199,7 @@ test.dependsOn(customInstallation)
 val samplesTestSourceSet = sourceSets.create("samplesTest").apply { configureForTesting() }
 val samplesTest = createTestTaskFor(samplesTestSourceSet)
 samplesTest.dependsOn(customInstallation)
+samplesTest.mustRunAfter(test)
 check.dependsOn(samplesTest)
 
 
