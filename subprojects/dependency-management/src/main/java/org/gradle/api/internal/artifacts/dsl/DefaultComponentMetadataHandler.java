@@ -148,13 +148,14 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
     }
 
-    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
+    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, ModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details) {
         if (!specRuleAction.getSpec().isSatisfiedBy(details)) {
             return;
         }
 
-        List<Object> inputs = Lists.newArrayList();
-        for (Class<?> inputType : specRuleAction.getAction().getInputTypes()) {
+        final List<Object> inputs = Lists.newArrayList();
+        final RuleAction<? super ComponentMetadataDetails> action = specRuleAction.getAction();
+        for (Class<?> inputType : action.getInputTypes()) {
             if (inputType == IvyModuleDescriptor.class) {
                 // Ignore the rule if it expects Ivy metadata and this isn't an Ivy module
                 if (!(metadata instanceof IvyModuleResolveMetadata)) {
@@ -171,7 +172,9 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
 
         try {
-            specRuleAction.getAction().execute(details, inputs);
+            synchronized (this) {
+                action.execute(details, inputs);
+            }
         } catch (Exception e) {
             throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", details.getId()), e);
         }

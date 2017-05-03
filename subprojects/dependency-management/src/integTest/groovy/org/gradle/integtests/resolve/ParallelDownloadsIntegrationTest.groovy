@@ -181,4 +181,67 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         build.waitForFinish()
     }
 
+    def "component metadata rules are executed synchronously"() {
+        def m1 = ivyRepo.module('test', 'test1', '1.0').publish()
+        def m2 = ivyRepo.module('test', 'test2', '1.0').publish()
+        def m3 = ivyRepo.module('test', 'test3', '1.0').publish()
+        def m4 = ivyRepo.module('test', 'test4', '1.0').publish()
+
+        buildFile << """
+            repositories {
+                ivy { url = uri('$server.uri') }
+            }
+            
+            configurations { compile }
+            def lock = new java.util.concurrent.locks.ReentrantLock()
+            
+            dependencies {
+                compile 'test:test1:1.0'
+                compile 'test:test2:1.0'
+                compile 'test:test3:1.0'
+                compile 'test:test4:1.0'
+                
+                components {
+                    all { ComponentMetadataDetails details ->
+                        if (!lock.tryLock()) {
+                            throw new AssertionError("Rule called concurrently")
+                        }
+                        lock.unlock()
+                    }
+                    withModule("test:test1") { ComponentMetadataDetails details ->
+                        // need to make sure that rules are not executed concurrently
+                        // because they can share state (typically... this lock!)
+                        if (!lock.tryLock()) {
+                            throw new AssertionError("Rule called concurrently")
+                        }
+                        lock.unlock()
+                    }
+                }
+            }
+            task resolve {
+                inputs.files configurations.compile
+                doLast {
+                    println configurations.compile.files
+                }
+            }
+"""
+
+        given:
+        server.expectConcurrentExecutionTo([
+            server.file(m1.ivy.path, m1.ivy.file),
+            server.file(m2.ivy.path, m2.ivy.file),
+            server.file(m3.ivy.path, m3.ivy.file),
+            server.file(m4.ivy.path, m4.ivy.file)])
+        server.expectConcurrentExecutionTo([
+            server.file(m1.jar.path, m1.jar.file),
+            server.file(m2.jar.path, m2.jar.file),
+            server.file(m3.jar.path, m3.jar.file),
+            server.file(m4.jar.path, m4.jar.file),
+        ])
+
+        expect:
+        executer.withArguments('--max-workers', '4')
+        succeeds("resolve")
+    }
+
 }
