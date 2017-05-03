@@ -1,6 +1,7 @@
 package org.gradle.script.lang.kotlin.samples
 
 import org.gradle.script.lang.kotlin.fixtures.toPlatformLineSeparators
+import org.gradle.script.lang.kotlin.fixtures.trimTestIndent
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -15,6 +16,7 @@ class DomainObjectsSampleTest : AbstractSampleTest("domain-objects") {
             containsString("""
                 developerGuide -> src/docs/developerGuide
                 quickStart -> src/docs/quick-start
-                userGuide -> src/docs/userGuide""".trimIndent().trim()))
+                userGuide -> src/docs/userGuide
+            """.trimTestIndent()))
     }
 }
