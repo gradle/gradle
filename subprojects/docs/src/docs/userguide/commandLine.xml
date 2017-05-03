@@ -137,6 +137,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term>
+                <option>-l</option>, <option>--lifecycle</option>
+            </term>
+            <listitem>
+                <para>Set log level to lifecycle. See <xref linkend="logging"/></para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-m</option>, <option>--dry-run</option>
             </term>
             <listitem>

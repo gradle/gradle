@@ -25,6 +25,6 @@ public interface BuildOperationListener {
 
     void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
 
-    void finished(BuildOperationDescriptor buildOperation, OperationResult finishEvent);
+    void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
 
 }

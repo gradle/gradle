@@ -79,8 +79,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         }
         1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
         1 * taskOutputOriginFactory.createReader(task) >> originReader
-        // TODO Use ImmutableSortedSet.of() once GROOVY-8123 is fixed
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.naturalOrder().build()
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskOutputPacker.unpack(_, inputStream, originReader)
 
         then:

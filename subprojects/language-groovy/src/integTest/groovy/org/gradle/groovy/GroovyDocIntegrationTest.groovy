@@ -19,10 +19,10 @@ package org.gradle.groovy
 import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.GroovydocCoverage
+import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
-@TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
+@TargetCoverage({GroovyCoverage.ALL})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3116")

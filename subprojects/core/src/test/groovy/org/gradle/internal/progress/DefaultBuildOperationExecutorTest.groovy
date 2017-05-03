@@ -80,7 +80,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         1 * timeProvider.currentTime >> 124L
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.parentId == null
             assert operation.id == id
             assert operation.name == "<op>"
@@ -138,7 +138,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         1 * timeProvider.currentTime >> 124L
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id
             assert opResult.startTime == 123L
             assert opResult.endTime == 124L
@@ -164,7 +164,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.run(_) >> { BuildOperationContext context -> context.failed(failure) }
 
         then:
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert opResult.failure == failure
         }
 
@@ -187,7 +187,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.run(_) >> { BuildOperationContext context -> context.result = result }
 
         then:
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert opResult.result == result
         }
 
@@ -240,12 +240,12 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.parentId == null
             assert operation.displayName == "<thread-2>"
         }
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id1
             assert opResult.failure == null
             instant.action1Finished
         }
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id2
             assert opResult.failure == null
         }
@@ -308,16 +308,16 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.parentId == parent.id
             assert operation.displayName == "<thread-2>"
         }
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id1
             assert opResult.failure == null
             instant.action1Finished
         }
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == id2
             assert opResult.failure == null
         }
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == parent.id
             assert opResult.failure == null
         }
@@ -507,17 +507,17 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * operation3.run(_) >> {}
 
         and:
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == child2Id
         }
 
         and:
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == child1Id
         }
 
         and:
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == parentId
         }
 
@@ -617,7 +617,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.parentId == parentId
         }
         1 * operation2.run(_) >> { throw new RuntimeException() }
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == child1Id
         }
 
@@ -627,12 +627,12 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.parentId == parentId
         }
         1 * operation3.run(_) >> {}
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == child2Id
         }
 
         and:
-        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationResult opResult ->
+        1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == parentId
         }
 

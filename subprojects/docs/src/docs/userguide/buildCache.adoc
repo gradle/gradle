@@ -221,11 +221,6 @@ Gradle disables caching for a task when it detects stale outputs.
 | If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
 | Use separate output directories for each task.
 
-| Mixed source projects with Java and another JVM language.
-| If a project has both a Java source set and another source set for a different JVM language, the compilation tasks share an output directory.
-This causes Gradle to disable caching for these tasks when it detects overlapping outputs.
-| Only use one compilation task. For example, if you use Java and Groovy, put all Java sources in `src/main/groovy`.
-
 | Line endings in build scripts files.
 | Gradle calculates the build cache key based on the MD5 hash of the build script contents. If the line endings are different between developers and the CI servers, Gradle will calculate different build cache keys even when all other inputs to a task are the same.
 | Check if your VCS will change source file line endings and configure it to have a consistent line ending across all platforms.
@@ -337,18 +332,6 @@ https://gradle.com/build-cache[Gradle Enterprise] will include a high-performanc
 === Known issues with built-in Build Caches
 
 The built-in build caches have some known issues which will be addressed in future releases.
-
-.api:org.gradle.caching.local.DirectoryBuildCache[]
-|===
-| Description | Impact | Workaround
-
-| No limit on the size of the directory build cache.
-| Currently, the directory the build cache uses can grow unbounded.
-|
-Periodically delete the directory of the build cache if it grows too large.
-The default directory for storing build outputs is `caches/build-cache-1` in the Gradle user home.
-For automatic cleanup tools like http://manpages.ubuntu.com/manpages/precise/man8/tmpreaper.8.html[tmpreaper] can be used.
-|===
 
 .api:org.gradle.caching.http.HttpBuildCache[]
 |===

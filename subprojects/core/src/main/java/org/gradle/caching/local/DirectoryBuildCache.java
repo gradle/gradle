@@ -27,7 +27,7 @@ import org.gradle.caching.configuration.AbstractBuildCache;
  */
 @Incubating
 public class DirectoryBuildCache extends AbstractBuildCache {
-    private final static long DEFAULT_MAXIMUM_CACHE_SIZE = 5*1024; // 5 GB
+    public final static long DEFAULT_MAXIMUM_CACHE_SIZE = 5*1024; // 5 GB
 
     private Object directory;
     private long targetSizeInMB = DEFAULT_MAXIMUM_CACHE_SIZE; // 5GB

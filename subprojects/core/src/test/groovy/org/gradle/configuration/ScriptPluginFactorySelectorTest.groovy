@@ -23,14 +23,18 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.resource.StringTextResource
+import org.gradle.internal.scripts.ScriptingLanguages
+import org.gradle.scripts.ScriptingLanguage
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ScriptPluginFactorySelectorTest extends Specification {
 
+    def scriptingLanguages = Mock(ScriptingLanguages)
+    def providerInstantiator = Mock(ScriptPluginFactorySelector.ProviderInstantiator)
     def defaultScriptPluginFactory = Mock(ScriptPluginFactory)
-    def serviceLoader = Mock(DependencyInjectingServiceLoader)
-    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, serviceLoader, new TestBuildOperationExecutor())
+    def serviceLoader = Mock(DependencyInjectingServiceLoader) // TODO:pm Remove old scripting provider SPI support
+    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, providerInstantiator, serviceLoader, new TestBuildOperationExecutor())
 
     def scriptHandler = Mock(ScriptHandler)
     def targetScope = Mock(ClassLoaderScope)
@@ -45,7 +49,8 @@ class ScriptPluginFactorySelectorTest extends Specification {
     @Unroll
     def "selects default scripting support short circuiting provider lookup for #fileName"() {
         given:
-        0 * serviceLoader._
+        0 * scriptingLanguages._
+        0 * serviceLoader._ // TODO:pm Remove old scripting provider SPI support
         def scriptSource = scriptSourceFor(fileName)
         def target = new Object()
 
@@ -65,7 +70,8 @@ class ScriptPluginFactorySelectorTest extends Specification {
 
     def "given no scripting provider then falls back to default scripting support for any extension"() {
         given:
-        1 * serviceLoader.load(*_) >> []
+        1 * scriptingLanguages.iterator() >> [].iterator()
+        1 * serviceLoader.load(*_) >> [] // TODO:pm Remove old scripting provider SPI support
         def scriptSource = scriptSourceFor('build.any')
         def target = new Object()
 
@@ -82,9 +88,37 @@ class ScriptPluginFactorySelectorTest extends Specification {
 
     def "given matching scripting provider then selects it"() {
         given:
+        def fooLanguage = Mock(ScriptingLanguage) {
+            getExtension() >> '.foo'
+            getProvider() >> 'foo.Provider'
+        }
         def fooScriptPlugin = Mock(ScriptPlugin)
-        def fooScriptPluginFactoryProvider = scriptPluginFactoryProviderFor('foo', fooScriptPlugin)
+        def fooScriptPluginFactory = scriptPluginFactoryFor(fooScriptPlugin)
+        1 * scriptingLanguages.iterator() >> [fooLanguage].iterator()
+        1 * providerInstantiator.instantiate(fooLanguage.getProvider()) >> fooScriptPluginFactory
+        0 * serviceLoader._ // TODO:pm Remove old scripting provider SPI support
+        def scriptSource = scriptSourceFor('build.foo')
+        def target = new Object()
+
+        when:
+        def scriptPlugin = selector.create(scriptSource, scriptHandler, targetScope, baseScope, false)
+
+        and:
+        scriptPlugin.apply(target)
+
+        then:
+        1 * fooScriptPlugin.source >> scriptSource
+        1 * fooScriptPlugin.apply(target)
+    }
+
+    // TODO:pm Remove old scripting provider SPI support
+    def "given matching old scripting provider then selects it"() {
+        given:
+        def fooScriptPlugin = Mock(ScriptPlugin)
+        def fooScriptPluginFactoryProvider = scriptPluginFactoryProviderFor('.foo', fooScriptPlugin)
+        1 * scriptingLanguages.iterator() >> [].iterator()
         1 * serviceLoader.load(*_) >> [fooScriptPluginFactoryProvider]
+        0 * providerInstantiator._
         def scriptSource = scriptSourceFor('build.foo')
         def target = new Object()
 
@@ -107,6 +141,13 @@ class ScriptPluginFactorySelectorTest extends Specification {
         }
     }
 
+    private ScriptPluginFactory scriptPluginFactoryFor(ScriptPlugin scriptPluginMock) {
+        return Mock(ScriptPluginFactory) {
+            create(*_) >> scriptPluginMock
+        }
+    }
+
+    // TODO:pm Remove old scripting provider SPI support
     private ScriptPluginFactoryProvider scriptPluginFactoryProviderFor(String extension, ScriptPlugin scriptPluginMock) {
         def scriptPluginFactory = Mock(ScriptPluginFactory) {
             create(*_) >> scriptPluginMock

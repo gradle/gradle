@@ -109,8 +109,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
                 public class SomeTest_$idx {
                     @Test
                     void test_$idx() {
-                        URL url = new URL("${blockingServer.uri("test_$idx")}")
-                        println url.openConnection().getHeaderField('RESPONSE')                        
+                        ${blockingServer.callFromBuildScript("test_$idx")}
                     }
                 }
             """.stripIndent()

@@ -347,7 +347,7 @@ class DefaultTaskOutputsTest extends Specification {
         taskHistory.getOverlappingOutputDetection() >> new TaskExecutionHistory.OverlappingOutputs("someProperty", "path/to/outputFile")
         then:
         !outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == "Outputs created by something else (e.g. 'path/to/outputFile') were found in output property 'someProperty' before executing this task."
+        outputs.cachingState.disabledReason == "Gradle does not know how file 'path/to/outputFile' was created (output property 'someProperty'). Task output caching requires exclusive access to output paths to guarantee correctness."
         outputs.cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
 
         when:

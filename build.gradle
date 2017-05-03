@@ -222,8 +222,6 @@ allprojects {
     repositories {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
-        // TODO Remove if no Groovy snapshot is being used
-        maven { url "https://repo.gradle.org/gradle/libs-snapshots" }
     }
 }
 

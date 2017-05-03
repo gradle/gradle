@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -29,7 +28,6 @@ import java.io.File;
  */
 public class ForkOptions extends BaseForkOptions {
     private static final long serialVersionUID = 0;
-    private static final String EXECUTABLE_DEPRECATION_MESSAGE = "The executable property on ForkOptions has been deprecated and is scheduled to be removed in Gradle 5.0. Please use javaHome instead.";
 
     private String executable;
 
@@ -42,13 +40,11 @@ public class ForkOptions extends BaseForkOptions {
      * a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
      *
-     * @deprecated Use {@link #getJavaHome()} instead
+     * <p>Setting the executable disables task output caching.</p>
      */
     @Input
     @Optional
-    @Deprecated
     public String getExecutable() {
-        DeprecationLogger.nagUserWith(EXECUTABLE_DEPRECATION_MESSAGE);
         return executable;
     }
 
@@ -57,11 +53,9 @@ public class ForkOptions extends BaseForkOptions {
      * a new compiler process will be forked for every compile task.
      * Defaults to {@code null}.
      *
-     * @deprecated Use {@link #setJavaHome(File)} instead
+     * <p>Setting the executable disables task output caching.</p>
      */
-    @Deprecated
     public void setExecutable(String executable) {
-        DeprecationLogger.nagUserWith(EXECUTABLE_DEPRECATION_MESSAGE);
         this.executable = executable;
     }
 

@@ -19,7 +19,9 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.LocalBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
@@ -397,6 +399,46 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         withBuildCache().succeeds "jar"
+        then:
+        skippedTasks.empty
+    }
+
+    def "task with custom actions gets logged"() {
+        when:
+        withBuildCache().succeeds "compileJava", "--info"
+        then:
+        skippedTasks.empty
+        !output.contains("Custom actions are attached to task ':compileJava'.")
+
+        expect:
+        withBuildCache().succeeds "clean"
+
+        when:
+        buildFile << """
+            compileJava.doFirst { println "Custom action" }
+        """
+        withBuildCache().succeeds "compileJava", "--info"
+        then:
+        skippedTasks.empty
+        output.contains("Custom actions are attached to task ':compileJava'.")
+    }
+
+    def "compileJava is not cached if forked executable is used"() {
+        buildFile << """
+            compileJava.options.forkOptions.executable = "${TextUtil.escapeString(Jvm.current().getExecutable("javac"))}"
+        """
+
+        when:
+        withBuildCache().succeeds "compileJava", "--info"
+        then:
+        skippedTasks.empty
+        output.contains "Caching disabled for task ':compileJava': 'Compiler executable is set' satisfied"
+
+        expect:
+        succeeds "clean"
+
+        when:
+        withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
     }

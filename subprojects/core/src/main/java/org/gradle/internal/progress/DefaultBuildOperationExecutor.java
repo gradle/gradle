@@ -176,7 +176,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             }
 
             long endTime = timeProvider.getCurrentTime();
-            listener.finished(descriptor, new OperationResult(currentOperation.getStartTime(), endTime, context.failure, context.result));
+            listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), endTime, context.failure, context.result));
 
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure, true);
@@ -238,7 +238,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         DefaultBuildOperationState current = currentOperation.get();
         if (current instanceof UnmanagedThreadOperation) {
             try {
-                listener.finished(current.getDescription(), new OperationResult(current.getStartTime(), timeProvider.getCurrentTime(), null, null));
+                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), timeProvider.getCurrentTime(), null, null));
             } finally {
                 currentOperation.set(null);
                 current.setRunning(false);
