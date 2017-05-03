@@ -28,7 +28,10 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
-class KotlinScriptPluginFactory internal constructor (
+import javax.inject.Inject
+
+
+class KotlinScriptPluginFactory @Inject internal constructor(
     val classPathProvider: KotlinScriptClassPathProvider,
     val kotlinCompiler: CachingKotlinCompiler,
     val pluginRequestApplicator: PluginRequestApplicator) : ScriptPluginFactory {
