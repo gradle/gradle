@@ -24,7 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface RuntimeClasspathNormalizationStrategy extends NormalizationStrategy {
+public interface RuntimeClasspathNormalizationStrategy extends ResourceNormalizationStrategy {
     /**
      * Ignore resources in classpath entries matching the pattern.
      */

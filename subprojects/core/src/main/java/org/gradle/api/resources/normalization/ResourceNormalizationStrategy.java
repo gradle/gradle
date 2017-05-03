@@ -22,4 +22,4 @@ package org.gradle.api.resources.normalization;
  * Normalization strategies are used when Gradle tries to determine if two resources are different.
  * Gradle then normalizes both resources and the resources are different iff the normalizations are different.
  */
-public interface NormalizationStrategy {}
+public interface ResourceNormalizationStrategy {}
