@@ -86,7 +86,8 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
         buildScript helloWorldTask()
 
         when:
-        runner('helloWorld').buildAndFail()
+        def runner = runner('helloWorld')
+        runner.buildAndFail()
 
         then:
         def t = thrown UnexpectedBuildSuccess
@@ -94,11 +95,13 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 Hello world!
 
 BUILD SUCCESSFUL"""
-        def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments [helloWorld]
+        def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
 Output:
 $expectedOutput"""
 
+        println "1: " + normalize(t.message)
+        println "2: " + expectedMessage
         normalize(t.message).startsWith(expectedMessage)
         normalize(t.buildResult.output).startsWith(expectedOutput)
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
@@ -135,7 +138,8 @@ $expectedOutput"""
         """
 
         when:
-        runner('helloWorld').build()
+        def runner = runner('helloWorld')
+        runner.build()
 
         then:
         UnexpectedBuildFailure t = thrown(UnexpectedBuildFailure)
@@ -154,7 +158,7 @@ Execution failed for task ':helloWorld'.
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
 
 BUILD FAILED"""
-        String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments [helloWorld]
+        String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments ${runner.arguments}
 
 Output:
 $expectedOutput"""
