@@ -29,6 +29,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
@@ -39,7 +40,6 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
-import org.gradle.internal.MutableActionSet;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -95,6 +95,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected final IntegrationTestBuildContext buildContext;
 
     private final Set<File> isolatedDaemonBaseDirs = new HashSet<File>();
+    private final Set<GradleHandle> running = new HashSet<GradleHandle>();
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private boolean allowExtraLogging = true;
@@ -659,10 +660,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Performs cleanup at completion of the test.
      */
     public void cleanup() {
+        stopRunningBuilds();
         cleanupIsolatedDaemons();
     }
 
-    protected void cleanupIsolatedDaemons() {
+    private void stopRunningBuilds() {
+        for (GradleHandle handle : running) {
+            try {
+                handle.abort().waitForExit();
+            } catch (Exception e) {
+                getLogger().warn("Problem stopping running build", e);
+            }
+        }
+    }
+
+    private void cleanupIsolatedDaemons() {
         for (File baseDir : isolatedDaemonBaseDirs) {
             try {
                 new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
@@ -825,7 +837,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         assertCanExecute();
         collectStateBeforeExecution();
         try {
-            return doStart();
+            GradleHandle handle = doStart();
+            running.add(handle);
+            return handle;
         } finally {
             reset();
         }
