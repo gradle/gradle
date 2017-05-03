@@ -96,8 +96,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating();
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
 
-        parser.option(BUILDSCAN).hasDescription("Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/scans)").incubating();
-        parser.option(NO_BUILDSCAN).hasDescription("Disables the creation of a build scan. (https://gradle.com/scans)").incubating();
+        parser.option(BUILDSCAN).hasDescription("Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating();
+        parser.option(NO_BUILDSCAN).hasDescription("Disables the creation of a build scan. (https://gradle.com/build-scans)").incubating();
 
         parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
