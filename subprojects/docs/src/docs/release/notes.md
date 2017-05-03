@@ -191,6 +191,10 @@ In Gradle 3.5 `ForkOptions.executable` has been deprecated. In Gradle 4.0 it is 
 
 ## Potential breaking changes
 
+### Build Scan 1.7.1 or newer is required when used with Gradle 4.0
+
+To support additional features, you must use [Build Scan 1.7.1](https://plugins.gradle.org/plugin/com.gradle.build-scan) or newer with Gradle 4.0.
+
 ### Multiple class directories for a single source set
 
 In projects that use multiple JVM languages (Java and Scala, Groovy and other languages) in separate source directories (e.g., `src/main/groovy` and `src/main/java`), Gradle now uses separate output directories for each language. 
