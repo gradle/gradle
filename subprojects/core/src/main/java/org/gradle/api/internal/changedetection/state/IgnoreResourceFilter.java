@@ -29,7 +29,7 @@ public class IgnoreResourceFilter implements MetadataFilter {
     private final ImmutableSet<Spec<RelativePath>> ignoreSpecs;
 
     public IgnoreResourceFilter(Set<String> ignores) {
-        this.ignores = ignores;
+        this.ignores = ImmutableSet.copyOf(ignores);
         ImmutableSet.Builder<Spec<RelativePath>> builder = ImmutableSet.builder();
         for (String ignore : ignores) {
             Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(false, true, ignore);

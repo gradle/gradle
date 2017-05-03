@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
     def "can ignore files on runtime classpath in directories"() {
-        def project = new TestProject()
+        def project = new ProjectWithRuntimeClasspathNormalization()
         project.ignoreFiles()
 
         when:
@@ -62,7 +62,7 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
     }
 
     def "can ignore files on runtime classpath in jars"() {
-        def project = new TestProject()
+        def project = new ProjectWithRuntimeClasspathNormalization()
         project.ignoreFiles()
 
         when:
@@ -108,9 +108,9 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
     }
 
     def "can configure ignore rules per project"() {
-        def projectWithIgnores = new TestProject('a')
+        def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a')
         projectWithIgnores.ignoreFiles()
-        def projectWithoutIgnores = new TestProject('b')
+        def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b')
         def allProjects = [projectWithoutIgnores, projectWithIgnores]
         settingsFile << "include 'a', 'b'"
 
@@ -129,7 +129,29 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         nonSkippedTasks.contains(projectWithoutIgnores.customTask)
     }
 
-    class TestProject {
+    def "runtime classpath normalization cannot be changed after first usage"() {
+        def project = new ProjectWithRuntimeClasspathNormalization()
+        project.buildFile << """
+            task configureNormalization() {
+                dependsOn '${project.customTask}'
+                doLast {
+                    project.normalization {
+                        runtimeClasspath {
+                            ignore '**/some-other-file.properties'
+                        }
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        fails 'configureNormalization'
+
+        then:
+        failureHasCause 'Cannot configure runtimeClasspath normalization after execution started.'
+    }
+
+    class ProjectWithRuntimeClasspathNormalization {
         final TestFile root
         TestFile ignoredResourceInDirectory
         TestFile notIgnoredResourceInDirectory
@@ -138,12 +160,13 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         TestFile libraryJar
         private TestFile libraryJarContents
         private final String projectName
+        final TestFile buildFile
 
-        TestProject(String projectName = null) {
+        ProjectWithRuntimeClasspathNormalization(String projectName = null) {
             this.projectName = projectName
             this.root = projectName ? file(projectName) : temporaryFolder.testDirectory
 
-            root.file('build.gradle') << """
+            buildFile = root.file('build.gradle') << """
                 apply plugin: 'base'
                 
                 class CustomTask extends DefaultTask {
@@ -178,11 +201,11 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
             libraryJarContents.zipTo(libraryJar)
         }
 
-        void ignoreFiles(String ignores = 'ignore "**/ignored.properties"') {
+        void ignoreFiles() {
             root.file('build.gradle') << """
                 normalization {
                     runtimeClasspath {
-                        ${ignores}
+                        ignore "**/ignored.properties"
                     }
                 }
             """.stripIndent()

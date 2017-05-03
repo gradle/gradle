@@ -24,8 +24,6 @@ import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationStrategyInternal;
 import org.gradle.cache.PersistentIndexedCache;
 
-import java.util.Set;
-
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private final PersistentIndexedCache<HashCode, HashCode> jarCache;
 
@@ -41,8 +39,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
-        Set<String> ignoreSpecs = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).buildIgnores();
-        ResourceHasher classpathContentHasher = new MetadataFilterAdapter(new IgnoreResourceFilter(ignoreSpecs), new RuntimeClasspathContentHasher());
+        MetadataFilter metadataFilter = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).getMetadataFilter();
+        ResourceHasher classpathContentHasher = new MetadataFilterAdapter(metadataFilter, new RuntimeClasspathContentHasher());
         CachingResourceHasher jarContentHasher = new CachingResourceHasher(new JarContentHasher(classpathContentHasher, getStringInterner()), jarCache);
         return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
     }

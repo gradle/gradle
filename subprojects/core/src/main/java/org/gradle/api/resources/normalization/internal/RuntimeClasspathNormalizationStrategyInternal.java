@@ -16,10 +16,9 @@
 
 package org.gradle.api.resources.normalization.internal;
 
+import org.gradle.api.internal.changedetection.state.MetadataFilter;
 import org.gradle.api.resources.normalization.RuntimeClasspathNormalizationStrategy;
 
-import java.util.Set;
-
 public interface RuntimeClasspathNormalizationStrategyInternal extends RuntimeClasspathNormalizationStrategy {
-    Set<String> buildIgnores();
+    MetadataFilter getMetadataFilter();
 }

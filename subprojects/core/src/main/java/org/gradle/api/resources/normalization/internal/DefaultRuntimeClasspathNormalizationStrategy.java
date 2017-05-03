@@ -16,21 +16,34 @@
 
 package org.gradle.api.resources.normalization.internal;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
+import org.gradle.api.internal.changedetection.state.IgnoreResourceFilter;
+import org.gradle.api.internal.changedetection.state.MetadataFilter;
 
 import java.util.Set;
 
 public class DefaultRuntimeClasspathNormalizationStrategy implements RuntimeClasspathNormalizationStrategyInternal {
     private final Set<String> ignores = Sets.newHashSet();
+    private MetadataFilter metadataFilter;
 
     @Override
-    public void ignore(String pattern) {
+    public synchronized void ignore(String pattern) {
+        if (metadataFilter != null) {
+            throw new GradleException("Cannot configure runtimeClasspath normalization after execution started.");
+        }
         ignores.add(pattern);
     }
 
+    private synchronized void finalizeConfiguration() {
+        if (metadataFilter == null) {
+            metadataFilter = new IgnoreResourceFilter(ignores);
+        }
+    }
+
     @Override
-    public Set<String> buildIgnores() {
-        return ImmutableSet.copyOf(ignores);
+    public MetadataFilter getMetadataFilter() {
+        finalizeConfiguration();
+        return metadataFilter;
     }
 }
