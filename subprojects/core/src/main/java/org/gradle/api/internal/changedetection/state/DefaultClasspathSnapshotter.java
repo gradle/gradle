@@ -25,11 +25,11 @@ import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormaliza
 import org.gradle.cache.PersistentIndexedCache;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private final PersistentIndexedCache<HashCode, HashCode> jarCache;
+    private final PersistentIndexedCache<HashCode, HashCode> resourceHashesCache;
 
-    public DefaultClasspathSnapshotter(PersistentIndexedCache<HashCode, HashCode> jarCache, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultClasspathSnapshotter(PersistentIndexedCache<HashCode, HashCode> resourceHashesCache, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
-        this.jarCache = jarCache;
+        this.resourceHashesCache = resourceHashesCache;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
         MetadataFilter metadataFilter = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).getMetadataFilter();
         ResourceHasher classpathContentHasher = new MetadataFilterAdapter(metadataFilter, new RuntimeClasspathContentHasher());
-        CachingResourceHasher jarContentHasher = new CachingResourceHasher(new JarContentHasher(classpathContentHasher, getStringInterner()), jarCache);
+        CachingResourceHasher jarContentHasher = new CachingResourceHasher(new JarContentHasher(classpathContentHasher, getStringInterner()), resourceHashesCache);
         return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
     }
 }

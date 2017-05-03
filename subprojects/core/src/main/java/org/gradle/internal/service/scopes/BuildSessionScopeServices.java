@@ -201,14 +201,17 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     CompileClasspathSnapshotter createCompileClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
-        PersistentIndexedCache<HashCode, HashCode> classCache = store.createCache("jvmCompileClassSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmCompileJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        return new DefaultCompileClasspathSnapshotter(classCache, jarCache, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
+        PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = createResourceHashesCache(store);
+        return new DefaultCompileClasspathSnapshotter(resourceHashesCache, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
     }
 
     protected ClasspathSnapshotter createClasspathSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
-        PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
-        return new DefaultClasspathSnapshotter(jarCache, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
+        PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = createResourceHashesCache(store);
+        return new DefaultClasspathSnapshotter(resourceHashesCache, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
+    }
+
+    private PersistentIndexedCache<HashCode, HashCode> createResourceHashesCache(TaskHistoryStore store) {
+        return store.createCache("resourceHashesCache", HashCode.class, new HashCodeSerializer(), 800000, true);
     }
 
     ImmutableAttributesFactory createImmutableAttributesFactory() {

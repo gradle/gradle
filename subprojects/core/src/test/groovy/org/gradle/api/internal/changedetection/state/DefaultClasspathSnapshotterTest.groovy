@@ -45,8 +45,9 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     def fileSystemMirror = new DefaultFileSystemMirror([])
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
-    InMemoryIndexedCache<HashCode, HashCode> jarCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
-    def snapshotter = new DefaultClasspathSnapshotter(jarCache,
+    InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
+    def snapshotter = new DefaultClasspathSnapshotter(
+        resourceHashesCache,
         directoryFileTreeFactory,
         fileSystemSnapshotter,
         stringInterner)
@@ -120,9 +121,9 @@ class DefaultClasspathSnapshotterTest extends Specification {
             ['thirdFile.txt', 'thirdFile.txt', '728271a3405e112740bfd3198cfa70de'],
         ]
 
-        jarCache.keySet().size() == 1
-        def key = jarCache.keySet().iterator().next()
-        jarCache.get(key).toString() == 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
+        resourceHashesCache.keySet().size() == 1
+        def key = resourceHashesCache.keySet().iterator().next()
+        resourceHashesCache.get(key).toString() == 'f31495fd1bb4b8c3b8fb1f46a68adf9e'
     }
 
     def "detects moving of files in jars and directories"() {
@@ -185,20 +186,20 @@ class DefaultClasspathSnapshotterTest extends Specification {
             ['library.jar', '', 'f31495fd1bb4b8c3b8fb1f46a68adf9e'],
             ['another-library.jar', '', '4c54ecab47d005e6862ced54627c6208']
         ]
-        jarCache.keySet().size() == 2
-        def values = jarCache.keySet().collect { jarCache.get(it).toString() } as Set
+        resourceHashesCache.keySet().size() == 2
+        def values = resourceHashesCache.keySet().collect { resourceHashesCache.get(it).toString() } as Set
         values == ['f31495fd1bb4b8c3b8fb1f46a68adf9e', '4c54ecab47d005e6862ced54627c6208'] as Set
 
         when:
         fileCollectionSnapshot = snapshot(zipFile, zipFile2)
-        values = jarCache.keySet().collect { jarCache.get(it).toString() } as Set
+        values = resourceHashesCache.keySet().collect { resourceHashesCache.get(it).toString() } as Set
 
         then:
         fileCollectionSnapshot == [
             ['library.jar', '', 'f31495fd1bb4b8c3b8fb1f46a68adf9e'],
             ['another-library.jar', '', '4c54ecab47d005e6862ced54627c6208']
         ]
-        jarCache.keySet().size() == 2
+        resourceHashesCache.keySet().size() == 2
         values == ['f31495fd1bb4b8c3b8fb1f46a68adf9e', '4c54ecab47d005e6862ced54627c6208'] as Set
     }
 

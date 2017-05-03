@@ -128,7 +128,7 @@ public class GradleUserHomeScopeServices {
     }
 
     ClasspathHasher createClasspathHasher(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, TaskHistoryStore store, FileSystemSnapshotter fileSystemSnapshotter) {
-        PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("jvmRuntimeJarSignatures", HashCode.class, new HashCodeSerializer(), 400000, true);
+        PersistentIndexedCache<HashCode, HashCode> jarCache = store.createCache("resourceHashesCache", HashCode.class, new HashCodeSerializer(), 400000, true);
         ClasspathSnapshotter snapshotter = new DefaultClasspathSnapshotter(jarCache, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
         return new DefaultClasspathHasher(snapshotter);
     }
