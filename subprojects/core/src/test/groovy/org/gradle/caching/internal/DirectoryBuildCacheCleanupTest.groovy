@@ -18,5 +18,5 @@ package org.gradle.caching.internal
 
 import spock.lang.Specification
 
-class BuildCacheCleanupTest extends Specification {
+class DirectoryBuildCacheCleanupTest extends Specification {
 }

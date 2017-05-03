@@ -31,8 +31,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-final class BuildCacheCleanup implements Action<PersistentCache> {
-    private static final Logger LOGGER = Logging.getLogger(BuildCacheCleanup.class);
+final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
+    private static final Logger LOGGER = Logging.getLogger(DirectoryBuildCacheCleanup.class);
     private static final Comparator<File> NEWEST_FIRST = new Comparator<File>() {
         @Override
         public int compare(File o1, File o2) {
@@ -44,7 +44,7 @@ final class BuildCacheCleanup implements Action<PersistentCache> {
     private final Pattern cacheEntryPattern = Pattern.compile("\\p{XDigit}{32}(.part)?");
     private final long targetSizeInMB;
 
-    BuildCacheCleanup(long targetSizeInMB) {
+    DirectoryBuildCacheCleanup(long targetSizeInMB) {
         this.targetSizeInMB = targetSizeInMB;
     }
 
