@@ -22,6 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -273,14 +274,14 @@ dependencies {
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
-            
+
             dependencies {
                implementation project(':utils')
             }
         '''
         file('utils/build.gradle') << '''
             apply plugin: 'java-library'
-            
+
             dependencies {
                 api project(':core')
             }
@@ -321,21 +322,21 @@ dependencies {
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
-            
+
             dependencies {
                implementation project(':utils')
             }
-            
+
             task printRunClasspath {
                 doLast {
                     println run.classpath.collect{ it.name }.join(',')
                 }
             }
-            
+
         '''
         file('utils/build.gradle') << '''
             apply plugin: 'java-library'
-            
+
             dependencies {
                api project(':core')
                runtime project(':foo')
@@ -374,21 +375,21 @@ dependencies {
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
-            
+
             dependencies {
                implementation project(':utils')
             }
-            
+
             task printTestClasspath {
                 doLast {
                     println test.classpath.collect{ it.name }.join(',')
                 }
             }
-            
+
         '''
         file('utils/build.gradle') << '''
             apply plugin: 'java-library'
-            
+
             dependencies {
                 api project(':core')
                 runtimeOnly project(':foo')
@@ -496,5 +497,21 @@ rootProject.name = 'sample'
     private File getGeneratedStartScript(String filename) {
         File scriptOutputDir = file('build/scripts')
         new File(scriptOutputDir, filename)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1923")
+    def "not up-to-date if classpath changes"() {
+        given:
+        succeeds("startScripts")
+
+        when:
+        buildFile << """
+            version = "3.0"
+        """
+        and:
+        succeeds("startScripts")
+
+        then:
+        !result.skippedTasks.contains(":startScripts")
     }
 }
