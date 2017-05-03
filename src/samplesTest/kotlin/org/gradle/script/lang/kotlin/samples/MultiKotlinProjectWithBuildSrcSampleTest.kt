@@ -5,7 +5,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 
-class MultiKotlinProjectWithBuildSrcSampleTest:AbstractSampleTest("multi-kotlin-project-with-buildSrc") {
+class MultiKotlinProjectWithBuildSrcSampleTest : AbstractSampleTest("multi-kotlin-project-with-buildSrc") {
 
     @Test
     fun `can run CLI application`() {
