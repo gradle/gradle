@@ -29,6 +29,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
@@ -39,7 +40,6 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
-import org.gradle.internal.MutableActionSet;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -763,7 +763,24 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         allArgs.addAll(args);
         allArgs.addAll(tasks);
+        prependLifecycleLogLevel(allArgs);
         return allArgs;
+    }
+
+    /**
+     * Adds LIFECYCLE log level to build execution arguments with the goal of being able to capture most output for testing.
+     * The log level is only added for Gradle versions supporting the command line option (>= 4.0). For earlier versions it is
+     * assumed to automatically log on LIFECYCLE level as it was the default.
+     * <p>
+     * <b>Note:</b> Build executions can override the log level by providing their own argument for this executor.
+     * The Log level command line options is evaluated with "last one wins" strategy.
+     *
+     * @param args Arguments
+     */
+    private void prependLifecycleLogLevel(List<String> args) {
+        if (gradleVersion.getBaseVersion().getVersion().startsWith("4")) {
+            args.add(0, "-l");
+        }
     }
 
     /**
@@ -821,7 +838,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public final GradleHandle start() {
         assert afterExecute.isEmpty() : "afterExecute actions are not implemented for async execution";
-        configureLifecycleLogLevel();
         fireBeforeExecute();
         assertCanExecute();
         collectStateBeforeExecution();
@@ -833,7 +849,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionResult run() {
-        configureLifecycleLogLevel();
         fireBeforeExecute();
         assertCanExecute();
         collectStateBeforeExecution();
@@ -853,7 +868,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final ExecutionFailure runWithFailure() {
-        configureLifecycleLogLevel();
         fireBeforeExecute();
         assertCanExecute();
         collectStateBeforeExecution();
@@ -861,18 +875,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             return doRunWithFailure();
         } finally {
             finished();
-        }
-    }
-
-    /**
-     * Execute builds with LIFECYCLE log level by default with the goal of being able to capture most output for testing.
-     * <p>
-     * <b>Note:</b> Build executions can override the log level by providing their own argument for this executor.
-     * The Log level command line options is evaluated with "last one wins" strategy.
-     */
-    private void configureLifecycleLogLevel() {
-        if (gradleVersion.getBaseVersion().getVersion().startsWith("4")) {
-            args.add(0, "-l");
         }
     }
 
