@@ -41,7 +41,7 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
         }
     };
 
-    private final Pattern cacheEntryPattern = Pattern.compile("\\p{XDigit}{32}(.part)?");
+    private static final Pattern CACHE_ENTRY_PATTERN = Pattern.compile("\\p{XDigit}{32}(.part)?");
     private final long targetSizeInMB;
 
     DirectoryBuildCacheCleanup(long targetSizeInMB) {
@@ -50,27 +50,15 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
 
     @Override
     public void execute(PersistentCache persistentCache) {
-        File[] filesEligibleForCleanup = findEligibleFilesForDeletion(persistentCache);
-        cleanupEligibleFiles(persistentCache, filesEligibleForCleanup);
+        File[] filesEligibleForCleanup = findEligibleFiles(persistentCache.getBaseDir());
+        List<File> filesForDeletion = findFilesToDelete(filesEligibleForCleanup);
+        cleanupFiles(filesForDeletion);
     }
 
-    private File[] findEligibleFilesForDeletion(PersistentCache persistentCache) {
-        final File cacheDir = persistentCache.getBaseDir();
-        return cacheDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return canBeDeleted(name);
-            }
-        });
-    }
-
-    private void cleanupEligibleFiles(PersistentCache persistentCache, File[] filesEligibleForCleanup) {
-        final File cacheDir = persistentCache.getBaseDir();
-
+    List<File> findFilesToDelete(File[] filesEligibleForCleanup) {
         Arrays.sort(filesEligibleForCleanup, NEWEST_FIRST);
 
         // All sizes are in bytes
-        long removedSize = 0;
         long totalSize = 0;
         long targetSize = targetSizeInMB * 1024 * 1024;
         final List<File> filesForDeletion = Lists.newArrayList();
@@ -80,36 +68,47 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
             totalSize += size;
 
             if (totalSize > targetSize) {
-                removedSize += size;
                 filesForDeletion.add(file);
             }
         }
 
-        LOGGER.info("Build cache ({}) consuming {} MB (target: {} MB).", cacheDir, FileUtils.byteCountToDisplaySize(totalSize), targetSizeInMB);
+        LOGGER.info("Build cache consuming {} MB (target: {} MB).", FileUtils.byteCountToDisplaySize(totalSize), targetSizeInMB);
 
+        return filesForDeletion;
+    }
+
+    File[] findEligibleFiles(File cacheDir) {
+        return cacheDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return canBeDeleted(name);
+            }
+        });
+    }
+
+    void cleanupFiles(final List<File> filesForDeletion) {
         if (!filesForDeletion.isEmpty()) {
             // Need to remove some files
-            persistentCache.useCache(new Runnable() {
-                @Override
-                public void run() {
-                    deleteFile(filesForDeletion);
-                }
-            });
-            LOGGER.info("Build cache ({}) removing {} cache entries ({} MB reclaimed).", cacheDir, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
+            long removedSize = deleteFile(filesForDeletion);
+            LOGGER.info("Build cache removing {} cache entries ({} MB reclaimed).", filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
         }
     }
 
-    private void deleteFile(List<File> files) {
+    private long deleteFile(List<File> files) {
+        long removedSize = 0;
         for (File file : files) {
             try {
-                file.delete();
+                if (file.delete()) {
+                    removedSize += file.length();
+                }
             } catch (Exception e) {
                 LOGGER.debug("Could not clean up cache entry " + file, e);
             }
         }
+        return removedSize;
     }
 
-    private boolean canBeDeleted(String name) {
-        return cacheEntryPattern.matcher(name).matches();
+    static boolean canBeDeleted(String name) {
+        return CACHE_ENTRY_PATTERN.matcher(name).matches();
     }
 }

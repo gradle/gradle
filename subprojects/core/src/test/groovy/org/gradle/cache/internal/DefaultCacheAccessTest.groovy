@@ -94,6 +94,22 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         0 * _._
     }
 
+    @Unroll
+    def "cleans up when cleanup action is required with access #accessType"() {
+        def access = newAccess(accessType)
+        when:
+        access.close()
+
+        then:
+        _ * lock.state
+        1 * cleanupAction.requiresCleanup() >> true
+        1 * cleanupAction.cleanup()
+        0 * _._
+
+        where:
+        accessType << [Exclusive, Shared, None]
+    }
+
     def "initializes cache on open when lock mode is shared by upgrading lock"() {
         def exclusiveLock = Mock(FileLock)
         def sharedLock = Mock(FileLock)

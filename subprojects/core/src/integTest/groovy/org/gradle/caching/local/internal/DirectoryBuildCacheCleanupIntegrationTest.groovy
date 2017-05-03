@@ -179,20 +179,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         lastCleanedTime == gcFile().lastModified()
     }
 
-    @Ignore
-    def "buildSrc does not try to clean build cache"() {
-        file("buildSrc/settings.gradle").text = settingsFile.text
-        file("buildSrc/build.gradle").text = buildFile.text
-        file("buildSrc/build.gradle") << """
-            build.dependsOn cacheable
-        """
-    }
-
-    @Ignore
-    def "composite builds do not try to clean build cache"() {
-
-    }
-
     def "build cache leaves files that aren't cache entries"() {
         when:
         runMultiple(MAX_CACHE_SIZE*2)
@@ -298,6 +284,21 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
             it.matches(messageRegex)
         }
         gcFile().lastModified() > lastCleanupCheck
+    }
+
+
+    @Ignore
+    def "buildSrc does not try to clean build cache"() {
+        file("buildSrc/settings.gradle").text = settingsFile.text
+        file("buildSrc/build.gradle").text = buildFile.text
+        file("buildSrc/build.gradle") << """
+            build.dependsOn cacheable
+        """
+    }
+
+    @Ignore
+    def "composite builds do not try to clean build cache"() {
+
     }
 
     private static long calculateCacheSize(List<TestFile> originalList) {
