@@ -93,6 +93,13 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
         final BuildAdapter buildListener = new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
+                // there's a possibility that this listener is called concurrently with
+                // the daemonExpirationListener. If the message happens to be a graceful expire
+                // one, then there's a large risk that we create a deadlock, because we're trying to
+                // remove the same listener from 2 different notifications. To avoid this, we just
+                // set the reference to null, which says that we're taking care of removing the listener
+                buildListenerReference.set(null);
+                
                 listenerManager.removeListener(daemonExpirationListener);
                 listenerManager.removeListener(this);
             }
