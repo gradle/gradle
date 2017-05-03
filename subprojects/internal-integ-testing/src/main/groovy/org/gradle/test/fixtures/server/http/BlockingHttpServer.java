@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -38,6 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class BlockingHttpServer extends ExternalResource {
     private static final AtomicInteger COUNTER = new AtomicInteger();
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
     private final Lock lock = new ReentrantLock();
     private final HttpServer server;
     private final ChainingHttpHandler handler;
@@ -52,7 +54,7 @@ public class BlockingHttpServer extends ExternalResource {
     public BlockingHttpServer(int timeoutMs) throws IOException {
         // Use an OS selected port
         server = HttpServer.create(new InetSocketAddress(0), 10);
-        server.setExecutor(Executors.newCachedThreadPool());
+        server.setExecutor(EXECUTOR_SERVICE);
         serverId = COUNTER.incrementAndGet();
         handler = new ChainingHttpHandler(lock, COUNTER);
         server.createContext("/", handler);
@@ -82,19 +84,19 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
-     * Returns Groovy statements that invoke the given call.
+     * Returns Java statements that invoke the given call.
      */
-    public String callFromBuildScript(String call) {
+    public String callFromBuild(String call) {
         URI uri = uri(call);
-        return "println 'calling " + uri + "'; new URL('" + uri + "').text; println 'response received'";
+        return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
     }
 
     /**
-     * Returns a Groovy statements that invokes a call, using the given expression to calculate the call to make.
+     * Returns a Java statements that invokes a call, using the given expression to calculate the call to make.
      */
-    public String callFromBuildScriptExpression(String expression) {
-        String uriExpression = "'" + getUri() + "/' + " + expression;
-        return "println 'calling ' + " + uriExpression + "; new URL(" + uriExpression + ").text; println 'response received'";
+    public String callFromBuildUsingExpression(String expression) {
+        String uriExpression = "\"" + getUri() + "/\" + " + expression;
+        return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
     }
 
     /**
@@ -203,7 +205,7 @@ public class BlockingHttpServer extends ExternalResource {
         handler.assertComplete();
         running = false;
         // Stop is very slow, clean it up later
-        Executors.newSingleThreadExecutor().execute(new Runnable() {
+        EXECUTOR_SERVICE.execute(new Runnable() {
             @Override
             public void run() {
                 server.stop(10);

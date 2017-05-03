@@ -326,7 +326,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         buildFile << """
 task someLongRunningTask {
     doLast {
-        ${server.callFromBuildScript("running")}
+        ${server.callFromBuild("running")}
     }
 }
 """

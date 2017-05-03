@@ -47,7 +47,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             
             class SynchronizedTransform extends ArtifactTransform {
                 List<File> transform(File input) {
-                    ${server.callFromBuildScriptExpression("input.name")}
+                    ${server.callFromBuildUsingExpression("input.name")}
                     if (input.name.startsWith("bad")) {
                         throw new RuntimeException("Transform Failure: " + input.name)
                     }
