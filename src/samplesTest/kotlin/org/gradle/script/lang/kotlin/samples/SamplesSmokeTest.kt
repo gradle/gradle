@@ -26,6 +26,8 @@ class SamplesSmokeTest(val sampleDir: File) : AbstractIntegrationTest() {
     @Before
     fun populateProjectRootWithSample() {
         assumeThat(sampleDir.name, not(containsString("android")))
+        // TODO:pm un-ignore build-scan sample test once the breakage is fixed upstream
+        assumeThat(sampleDir.name, not(containsString("build-scan")))
         copySampleProject(from = sampleDir, to = projectRoot)
     }
 
