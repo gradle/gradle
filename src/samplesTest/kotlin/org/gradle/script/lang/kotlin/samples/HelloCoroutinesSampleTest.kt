@@ -12,13 +12,13 @@ class HelloCoroutinesSampleTest : AbstractSampleTest("hello-coroutines") {
     @Test
     fun `fibonacci`() {
         assertThat(
-            build("run").output.toPlatformLineSeparators(),
+            build("run").output,
             containsString("""
                 1
                 1
                 2
                 3
                 5
-            """.trimTestIndent()))
+            """.trimTestIndent().toPlatformLineSeparators()))
     }
 }

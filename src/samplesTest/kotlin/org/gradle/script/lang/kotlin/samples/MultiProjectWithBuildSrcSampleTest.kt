@@ -12,7 +12,7 @@ class MultiProjectWithBuildSrcSampleTest : AbstractSampleTest("multi-project-wit
     @Test
     fun `multi-project-with-buildSrc`() {
         assertThat(
-            build("hello").output.toPlatformLineSeparators(),
+            build("hello").output,
             containsString("""
                 :hello
                 I'm multi-project-with-buildSrc
@@ -24,6 +24,6 @@ class MultiProjectWithBuildSrcSampleTest : AbstractSampleTest("multi-project-wit
                 I'm krill
                 - I depend on water
                 - The weight of my species in summer is twice as heavy as all human beings.
-            """.trimTestIndent()))
+            """.trimTestIndent().toPlatformLineSeparators()))
     }
 }

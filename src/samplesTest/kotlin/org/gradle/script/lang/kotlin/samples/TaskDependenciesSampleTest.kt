@@ -12,26 +12,26 @@ class TaskDependenciesSampleTest : AbstractSampleTest("task-dependencies") {
     @Test
     fun `default task`() {
         assertThat(
-            build().output.toPlatformLineSeparators(),
+            build().output,
             containsString("""
                 :hello
                 Hello!
                 :goodbye
                 Goodbye!
                 :chat
-            """.trimTestIndent()))
+            """.trimTestIndent().toPlatformLineSeparators()))
     }
 
     @Test
     fun `mixItUp`() {
         assertThat(
-            build("mixItUp").output.toPlatformLineSeparators(),
+            build("mixItUp").output,
             containsString("""
                 :hello
                 Hello!
                 :goodbye
                 Goodbye!
                 :mixItUp
-            """.trimTestIndent()))
+            """.trimTestIndent().toPlatformLineSeparators()))
     }
 }
