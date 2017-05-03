@@ -94,9 +94,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     GradleRunner runner(String... arguments) {
         boolean closeServices = (debug && requireIsolatedTestKitDir) || arguments.contains("-g")
         List<String> allArgs = arguments as List
-        if (gradleVersion.baseVersion.version.startsWith('4')) {
-            allArgs.add(0, '-l')
-        }
         if (closeServices) {
             // Do not keep user home dir services open when running embedded or when using a custom user home dir
             allArgs.add(("-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false") as String)

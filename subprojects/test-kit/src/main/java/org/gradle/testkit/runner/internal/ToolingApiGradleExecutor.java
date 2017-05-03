@@ -51,6 +51,7 @@ import org.gradle.wrapper.GradleUserHomeLookup;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +114,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks), OperationType.TASK);
 
-            launcher.withArguments(parameters.getBuildArgs().toArray(new String[0]));
+            launcher.withArguments(prepareArguments(targetGradleVersion, parameters.getBuildArgs()).toArray(new String[0]));
             launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[0]));
 
             if (!parameters.getInjectedClassPath().isEmpty()) {
@@ -155,6 +156,16 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
 
         return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks);
+    }
+
+    private List<String> prepareArguments(GradleVersion targetGradleVersion, List<String> userProvidedBuildArgs) {
+        if (targetGradleVersion.getBaseVersion().getVersion().startsWith("4")) {
+            List<String> modifiedBuildArgs = new ArrayList<String>(userProvidedBuildArgs);
+            modifiedBuildArgs.add(0, "-l");
+            return Collections.unmodifiableList(modifiedBuildArgs);
+        }
+
+        return userProvidedBuildArgs;
     }
 
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {
