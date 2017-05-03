@@ -281,7 +281,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         !errorOutput.contains("incorrect-pass")
     }
 
-    def "unknown host causes the build to fail"() {
+    def "unknown host causes the build cache to be disabled"() {
         settingsFile << """        
             buildCache {
                 remote {
@@ -292,10 +292,11 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled()
-        withHttpBuildCache().fails "jar"
+        withHttpBuildCache().succeeds "jar"
 
         then:
-        failure.error.contains("java.net.UnknownHostException: invalid.invalid")
+        output.contains("java.net.UnknownHostException: invalid.invalid")
+        output.contains("The remote build cache is now disabled because a fatal error was encountered")
     }
 
     def withHttpBuildCache() {

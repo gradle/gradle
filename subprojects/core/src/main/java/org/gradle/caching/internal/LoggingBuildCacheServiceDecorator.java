@@ -51,7 +51,7 @@ public class LoggingBuildCacheServiceDecorator extends AbstractRoleAwareBuildCac
         try {
             LOGGER.debug("Storing entry {} in {} build cache", key, getRole());
             super.store(key, writer);
-        } catch (BuildCacheException e) {
+        } catch (RuntimeException e) {
             LOGGER.warn("Could not store entry {} in {} build cache", key, getRole(), e);
             throw e;
         }

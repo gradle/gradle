@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.Handler
+import org.mortbay.jetty.servlet.FilterHolder
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
 
@@ -28,11 +29,11 @@ class HttpBuildCache extends ExternalResource implements HttpServerFixture {
     private final TestDirectoryProvider provider
     private final WebAppContext webapp
     private TestFile cacheDir
+    private long dropConnectionForPutBytes = -1
 
     HttpBuildCache(TestDirectoryProvider provider) {
         this.provider = provider
         this.webapp = new WebAppContext()
-        this.webapp.addFilter(RestFilter, "/*", 1)
     }
 
     TestFile getCacheDir() {
@@ -44,10 +45,22 @@ class HttpBuildCache extends ExternalResource implements HttpServerFixture {
         return webapp
     }
 
+    private void addFilters() {
+        if (dropConnectionForPutBytes > -1) {
+            this.webapp.addFilter(new FilterHolder(new DropConnectionFilter(dropConnectionForPutBytes, this)),"/*", 1)
+        }
+        this.webapp.addFilter(RestFilter, "/*", 1)
+    }
+
+    void dropConnectionForPutAfterBytes(long numBytes) {
+        this.dropConnectionForPutBytes = numBytes
+    }
+
     @Override
     void start() {
         cacheDir = provider.testDirectory.createDir('http-cache-dir')
         webapp.resourceBase = cacheDir
+        addFilters()
         HttpServerFixture.super.start()
     }
 

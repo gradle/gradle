@@ -49,19 +49,6 @@ abstract class AbstractRoleAwareBuildCacheServiceDecoratorTest extends Specifica
         exceptionType = exception.class.simpleName
     }
 
-    @Unroll
-    def "does not suppress #exceptionType exceptions from store"() {
-        given:
-        delegate.store(key, writer) >> { throw exception }
-        when:
-        decorator.store(key, writer)
-        then:
-        thrown(exception.class)
-        where:
-        exception << exceptions
-        exceptionType = exception.class.simpleName
-    }
-
     def "delegates to delegate"() {
         when:
         decorator.close()

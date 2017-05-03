@@ -41,6 +41,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
+    private String disableMessage;
 
     public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, RoleAwareBuildCacheService delegate) {
         super(delegate);
@@ -69,6 +70,8 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
             } catch (BuildCacheException e) {
                 recordFailure();
                 // Assume its OK to not push anything.
+            } catch (RuntimeException e) {
+                disableBuildCache("a fatal error was encountered");
             }
         }
     }
@@ -77,9 +80,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
     public void close() throws IOException {
         if (!closed) {
             if (!enabled.get()) {
-                LOGGER.warn("The {} build cache was disabled during the build after encountering {} errors.",
-                    getRole(), maxErrorCount
-                );
+                LOGGER.warn("The {} build cache was disabled during the build because " + disableMessage, getRole(), maxErrorCount);
             }
             super.close();
         }
@@ -88,9 +89,14 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
 
     private void recordFailure() {
         if (remainingErrorCount.decrementAndGet() <= 0) {
-            if (enabled.compareAndSet(true, false)) {
-                LOGGER.warn("The {} build cache is now disabled because {} errors were encountered", getRole(), maxErrorCount);
-            }
+            disableBuildCache("{} recoverable errors were encountered");
+        }
+    }
+
+    private void disableBuildCache(String message) {
+        if (enabled.compareAndSet(true, false)) {
+            disableMessage = message;
+            LOGGER.warn("The {} build cache is now disabled because " + message, getRole(), maxErrorCount);
         }
     }
 }

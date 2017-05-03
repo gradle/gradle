@@ -17,6 +17,7 @@
 package org.gradle.caching.internal
 
 import org.gradle.caching.BuildCacheService
+import spock.lang.Unroll
 
 class LoggingBuildCacheServiceDecoratorTest extends AbstractRoleAwareBuildCacheServiceDecoratorTest {
     def decorator = new LoggingBuildCacheServiceDecorator(delegate)
@@ -24,4 +25,18 @@ class LoggingBuildCacheServiceDecoratorTest extends AbstractRoleAwareBuildCacheS
     BuildCacheService getDecorator() {
         return decorator
     }
+
+    @Unroll
+    def "does not suppress #exceptionType exceptions from store"() {
+        given:
+        delegate.store(key, writer) >> { throw exception }
+        when:
+        decorator.store(key, writer)
+        then:
+        thrown(exception.class)
+        where:
+        exception << exceptions
+        exceptionType = exception.class.simpleName
+    }
+
 }

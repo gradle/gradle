@@ -18,6 +18,7 @@ package org.gradle.caching.internal
 
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheService
+import spock.lang.Unroll
 
 class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends AbstractRoleAwareBuildCacheServiceDecoratorTest {
     def maxFailures = 2
@@ -28,12 +29,12 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
     }
 
     List getExceptions() {
-        [ new RuntimeException() ]
+        [new RuntimeException()]
     }
 
     def "stops calling through after defined number of read errors"() {
         when:
-        (maxFailures+1).times {
+        (maxFailures + 1).times {
             decorator.load(key, reader)
         }
         decorator.store(key, writer)
@@ -46,7 +47,7 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
 
     def "stops calling through after defined number of write errors"() {
         when:
-        (maxFailures+1).times {
+        (maxFailures + 1).times {
             decorator.store(key, writer)
         }
         decorator.load(key, reader)
@@ -72,11 +73,16 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
         1 * delegate.close()
     }
 
-    def "store does not throw an exception if the delegate throws BuildCacheException"() {
-        delegate.store(key, writer) >> { throw new BuildCacheException() }
+    @Unroll
+    def "does suppress #exceptionType exceptions from store"() {
+        given:
+        delegate.store(key, writer) >> { throw exception }
         when:
         decorator.store(key, writer)
         then:
         noExceptionThrown()
+        where:
+        exception << [new RuntimeException(), new BuildCacheException()]
+        exceptionType = exception.class.simpleName
     }
 }
