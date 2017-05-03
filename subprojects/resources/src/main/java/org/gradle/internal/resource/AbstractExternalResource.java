@@ -15,11 +15,18 @@
  */
 package org.gradle.internal.resource;
 
+import com.google.common.io.CountingInputStream;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public abstract class AbstractExternalResource implements ExternalResource {
     /**
@@ -27,9 +34,19 @@ public abstract class AbstractExternalResource implements ExternalResource {
      */
     protected abstract InputStream openStream() throws IOException;
 
-    private InputStream openBuffered() {
+    private CountingInputStream openUnbuffered() {
         try {
-            return new BufferedInputStream(openStream());
+            return new CountingInputStream(openStream());
+        } catch (FileNotFoundException e) {
+            throw ResourceExceptions.getMissing(getURI(), e);
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(getURI(), e);
+        }
+    }
+
+    private CountingInputStream openBuffered() {
+        try {
+            return new CountingInputStream(new BufferedInputStream(openStream()));
         } catch (FileNotFoundException e) {
             throw ResourceExceptions.getMissing(getURI(), e);
         } catch (IOException e) {
@@ -55,11 +72,11 @@ public abstract class AbstractExternalResource implements ExternalResource {
         return getDisplayName();
     }
 
-    public void writeTo(File destination) {
+    public ExternalResourceReadResult<Void> writeTo(File destination) {
         try {
             FileOutputStream output = new FileOutputStream(destination);
             try {
-                writeTo(output);
+                return writeTo(output);
             } finally {
                 output.close();
             }
@@ -68,43 +85,48 @@ public abstract class AbstractExternalResource implements ExternalResource {
         }
     }
 
-    public void writeTo(OutputStream output) {
+    public ExternalResourceReadResult<Void> writeTo(OutputStream output) {
         try {
-            InputStream input = openStream();
+            CountingInputStream input = openUnbuffered();
             try {
                 IOUtils.copyLarge(input, output);
             } finally {
                 input.close();
             }
+            return ExternalResourceReadResult.of(input.getCount());
         } catch (Exception e) {
             throw ResourceExceptions.getFailed(getURI(), e);
         }
     }
 
-    public void withContent(Action<? super InputStream> readAction) {
-        InputStream input = openBuffered();
+    public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) {
+        CountingInputStream input = openBuffered();
         try {
             readAction.execute(input);
         } finally {
             close(input);
         }
+
+        return ExternalResourceReadResult.of(input.getCount());
     }
 
-    public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) {
-        InputStream input = openBuffered();
+    public <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) {
+        CountingInputStream input = openBuffered();
         try {
-            return readAction.transform(input);
+            T result = readAction.transform(input);
+            return ExternalResourceReadResult.of(input.getCount(), result);
         } finally {
             close(input);
         }
     }
 
     @Override
-    public <T> T withContent(ContentAction<? extends T> readAction) {
-        InputStream input = openBuffered();
+    public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) {
+        CountingInputStream input = openBuffered();
         try {
             try {
-                return readAction.execute(input, getMetaData());
+                T resourceReadResult = readAction.execute(input, getMetaData());
+                return ExternalResourceReadResult.of(input.getCount(), resourceReadResult);
             } catch (IOException e) {
                 throw ResourceExceptions.getFailed(getURI(), e);
             }
