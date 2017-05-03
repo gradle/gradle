@@ -74,9 +74,10 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         run "help"
 
         then:
-        def expectedAdvertisedLength = chunked ? -1 : m.pom.file.bytes.length
+        def actualFileLength = m.pom.file.bytes.length
+        def expectedAdvertisedLength = chunked ? -1 : actualFileLength
         output.contains "BUILD OPERATION - STARTED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails{location=${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom, contentLength=${expectedAdvertisedLength}, contentType='null'}"
-        output.contains "BUILD OPERATION - FINISHED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails.Result{readContentLength=258}"
+        output.contains "BUILD OPERATION - FINISHED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails.Result{readContentLength=$actualFileLength}"
 
         where:
         chunked << [true, false]
