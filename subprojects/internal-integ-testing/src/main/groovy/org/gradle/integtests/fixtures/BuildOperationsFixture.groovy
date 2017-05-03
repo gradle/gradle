@@ -58,6 +58,9 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                         name: "\${buildOperation.name}",
                         startTime: startEvent.startTime
                     ]
+                    if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.TaskOperationDetails) {
+                        operations[buildOperation.id].details = buildOperation.details
+                    }
                 }
 
                 void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {

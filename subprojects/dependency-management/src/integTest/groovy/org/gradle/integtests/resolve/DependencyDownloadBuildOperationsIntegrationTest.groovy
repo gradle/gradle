@@ -18,6 +18,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.junit.Rule
 import spock.lang.Unroll
 
 /**
@@ -25,6 +28,9 @@ import spock.lang.Unroll
  * Dependency resolution is the most important usage of this, so is our integration testing vector.
  */
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
+
+    @Rule
+    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Unroll
     void "emits events for dependency resolution downloads - chunked: #chunked"() {
@@ -37,25 +43,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         buildFile << """
             apply plugin: "base"
-
-            import org.gradle.internal.progress.*
-    
-            def listener = new BuildOperationListener() {
-                @Override
-                void started(BuildOperationDescriptor operation, OperationStartEvent startEvent) {
-                    println "BUILD OPERATION - STARTED :\$operation.displayName-\$operation.details"      
-                }
-    
-                @Override
-                void finished(BuildOperationDescriptor operation, OperationFinishEvent finishEvent) {
-                    println "BUILD OPERATION - FINISHED :\$operation.displayName-\$finishEvent.result"
-                }
-            }
-    
-            gradle.services.get(BuildOperationService).addListener(listener)
-            gradle.buildFinished {
-                gradle.services.get(BuildOperationService).removeListener(listener)
-            }
 
             repositories {
                 maven { url "${mavenHttpRepo.uri}" }
@@ -75,12 +62,18 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def actualFileLength = m.pom.file.bytes.length
-        def expectedAdvertisedLength = chunked ? -1 : actualFileLength
-        output.contains "BUILD OPERATION - STARTED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails{location=${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom, contentLength=${expectedAdvertisedLength}, contentType='null'}"
-        output.contains "BUILD OPERATION - FINISHED :Download ${mavenHttpRepo.uri}/org/utils/impl/1.3/impl-1.3.pom-DownloadBuildOperationDetails.Result{readContentLength=$actualFileLength}"
+        def buildOp = operation(m)
+        buildOp.details.contentType == 'null'
+        buildOp.details.contentLength == chunked ? -1 : actualFileLength
+        buildOp.details.location.path == m.pomPath
+        buildOp.result.readContentLength == actualFileLength
 
         where:
         chunked << [true, false]
+    }
+
+    private Object operation(MavenHttpModule module) {
+        buildOperations.operation("Download ${mavenHttpRepo.server.uri}${module.pomPath}")
     }
 
 }
