@@ -234,6 +234,8 @@ Previously Gradle would treat JVM compilation tasks as out-of-date whenever thei
 
 The version of Groovy bundled with Gradle was changed from Groovy 2.4.10 to [Groovy 2.4.11](http://www.groovy-lang.org/changelogs/changelog-2.4.11.html).
 
+This release fixes several issues where Groovy compilation could produce different (but functionally equivalent) bytecode given the same source files due to nondeterministic ordering in the compiler. These problems could cause build cache misses in Gradle 3.5 when compiling Groovy and Gradle script sources.
+
 ### Changes to previously deprecated APIs
 
 - The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
