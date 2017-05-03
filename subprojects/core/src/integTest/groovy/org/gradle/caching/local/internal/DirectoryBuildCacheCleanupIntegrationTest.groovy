@@ -56,6 +56,14 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
             task cacheable(type: CustomTask) {
                 description = "Generates a 1MB file"
             }
+            
+            task assertBuildCacheOverTarget {
+                doLast {
+                    def cacheSize = file("${cacheDir}").listFiles().collect { it.length() }.sum()
+                    long cacheSizeInMB = cacheSize / 1024 / 1024
+                    assert cacheSizeInMB >= ${MAX_CACHE_SIZE}
+                }
+            }
         """
     }
 
@@ -262,25 +270,110 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         gcFile().lastModified() > lastCleanupCheck
     }
 
-
-    @Ignore
+    @Ignore("until I fix buildSrc")
     def "buildSrc does not try to clean build cache"() {
+        // Copy cache configuration
         file("buildSrc/settings.gradle").text = settingsFile.text
-        file("buildSrc/build.gradle").text = buildFile.text
-        file("buildSrc/build.gradle") << """
-            build.dependsOn cacheable
-        """
+        when:
+        runMultiple(MAX_CACHE_SIZE*2)
+        and:
+        then:
+        // build cache hasn't been cleaned yet
+        calculateCacheSize(listCacheFiles()) >= MAX_CACHE_SIZE
+        def lastCleanupCheck = gcFile().lastModified()
+
+        when:
+        cleanupBuildCacheNow()
+        and:
+        // During the build, the build cache should be over the target still (buildSrc didn't clean it up)
+        withBuildCache().succeeds("assertBuildCacheOverTarget", "-i")
+        then:
+        // build cache has been cleaned up now (by outer build)
+        calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
+        gcFile().lastModified() != lastCleanupCheck
     }
 
-    @Ignore
     def "composite builds do not try to clean build cache"() {
+        file("included/build.gradle") << """
+            apply plugin: 'java'
+            group = "com.example"
+            version = "2.0"
+        """
+        // Copy cache configuration
+        file("included/settings.gradle").text = settingsFile.text
 
+        settingsFile << """
+            includeBuild file("included/")
+        """
+        buildFile << """
+            configurations {
+                test
+            }
+            dependencies {
+                test "com.example:included:1.0"
+            }
+            assertBuildCacheOverTarget {
+                dependsOn configurations.test
+                doFirst {
+                    println configurations.test.files
+                }
+            }
+        """
+        when:
+        runMultiple(MAX_CACHE_SIZE*2)
+        and:
+        then:
+        // build cache hasn't been cleaned yet
+        calculateCacheSize(listCacheFiles()) >= MAX_CACHE_SIZE
+        def lastCleanupCheck = gcFile().lastModified()
+
+        when:
+        cleanupBuildCacheNow()
+        and:
+        // During the build, the build cache should be over the target still (the composite didn't clean it up)
+        withBuildCache().succeeds("assertBuildCacheOverTarget", "-i")
+        then:
+        // build cache has been cleaned up now (by outer build)
+        calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
+        gcFile().lastModified() != lastCleanupCheck
+    }
+
+    def "GradleBuild tasks do not try to clean build cache"() {
+        // Copy cache configuration
+        file("included/build.gradle") << """
+            apply plugin: 'java'
+            group = "com.example"
+            version = "2.0"
+        """
+        file("included/settings.gradle").text = settingsFile.text
+        buildFile << """
+            task gradleBuild(type: GradleBuild) {
+                dir = file("included/")
+                tasks = [ "build" ]
+            }
+            assertBuildCacheOverTarget.dependsOn gradleBuild
+        """
+        when:
+        runMultiple(MAX_CACHE_SIZE*2)
+        and:
+        then:
+        // build cache hasn't been cleaned yet
+        calculateCacheSize(listCacheFiles()) >= MAX_CACHE_SIZE
+        def lastCleanupCheck = gcFile().lastModified()
+
+        when:
+        cleanupBuildCacheNow()
+        and:
+        // During the build, the build cache should be over the target still (the GradleBuild task didn't clean it up)
+        withBuildCache().succeeds("assertBuildCacheOverTarget", "-i")
+        then:
+        // build cache has been cleaned up now (by outer build)
+        calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
+        gcFile().lastModified() != lastCleanupCheck
     }
 
     private static long calculateCacheSize(List<TestFile> originalList) {
-        def cacheSize = originalList.inject(0L) { acc, val ->
-            val.size() + acc
-        }
+        def cacheSize = originalList.collect { it.length() }.sum()
         cacheSize / 1024 / 1024
     }
 
