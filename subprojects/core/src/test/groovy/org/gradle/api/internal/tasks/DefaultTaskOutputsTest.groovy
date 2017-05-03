@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -41,9 +42,11 @@ class DefaultTaskOutputsTest extends Specification {
             }
         }
     }
+    def project = Mock(ProjectInternal)
     def task = Mock(TaskInternal) {
         getName() >> "task"
         toString() >> "task 'task'"
+        getProject() >> project
     }
     private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
 
@@ -345,10 +348,12 @@ class DefaultTaskOutputsTest extends Specification {
         def taskHistory = Mock(TaskExecutionHistory)
         outputs.setHistory(taskHistory)
         taskHistory.getOverlappingOutputDetection() >> new TaskExecutionHistory.OverlappingOutputs("someProperty", "path/to/outputFile")
+        def cachingState = outputs.cachingState
         then:
-        !outputs.cachingState.enabled
-        outputs.cachingState.disabledReason == "Gradle does not know how file 'path/to/outputFile' was created (output property 'someProperty'). Task output caching requires exclusive access to output paths to guarantee correctness."
-        outputs.cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
+        1 * project.relativePath(_) >> 'relative/path/to/outputFile'
+        !cachingState.enabled
+        cachingState.disabledReason == "Gradle does not know how file 'relative/path/to/outputFile' was created (output property 'someProperty'). Task output caching requires exclusive access to output paths to guarantee correctness."
+        cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
 
         when:
         outputs.setHistory(null)

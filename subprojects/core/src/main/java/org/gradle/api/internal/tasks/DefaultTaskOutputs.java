@@ -104,9 +104,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         TaskExecutionHistory.OverlappingOutputs overlappingOutputs = getOverlapOutputs();
         if (overlappingOutputs!=null) {
+            String relativePath = task.getProject().relativePath(overlappingOutputs.getOverlappedFilePath());
             return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
                 String.format("Gradle does not know how file '%s' was created (output property '%s'). Task output caching requires exclusive access to output paths to guarantee correctness.",
-                    overlappingOutputs.getOverlappedFilePath(), overlappingOutputs.getPropertyName()));
+                    relativePath, overlappingOutputs.getPropertyName()));
         }
 
         for (TaskPropertySpec spec : getFileProperties()) {
