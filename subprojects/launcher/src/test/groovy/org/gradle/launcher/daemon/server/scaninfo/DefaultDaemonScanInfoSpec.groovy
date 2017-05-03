@@ -31,8 +31,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
 class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
-    @Unroll
-    def "should unregister both listeners #scenario"() {
+    def "should unregister both listeners on build finished"() {
         given:
         def listenerManager = Mock(ListenerManager)
         def notifyAction = Mock(Action)
@@ -52,21 +51,37 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
         }
 
         when:
-        switch (scenario) {
-            case Scenario.ON_EXPIRATION:
-                daemonExpirationListener.onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, "reason"))
-                break
-            case Scenario.ON_BUILD_FINISHED:
-                buildListener.buildFinished(Stub(BuildResult))
-                break
-        }
+        buildListener.buildFinished(Stub(BuildResult))
 
         then:
         1 * listenerManager.removeListener(daemonExpirationListener)
         1 * listenerManager.removeListener(buildListener)
+    }
 
-        where:
-        scenario << [Scenario.ON_EXPIRATION, Scenario.ON_BUILD_FINISHED]
+    def "should unregister daemon expiration listener on notification"() {
+        given:
+        def listenerManager = Mock(ListenerManager)
+        def notifyAction = Mock(Action)
+        def daemonScanInfo = new DefaultDaemonScanInfo(Stub(DaemonRunningStats), 0, Stub(DaemonRegistry), listenerManager)
+        DaemonExpirationListener daemonExpirationListener
+        BuildListener buildListener
+
+        when:
+        daemonScanInfo.notifyOnUnhealthy(notifyAction)
+
+        then:
+        1 * listenerManager.addListener({ it instanceof DaemonExpirationListener }) >> { DaemonExpirationListener listener ->
+            daemonExpirationListener = listener
+        }
+        1 * listenerManager.addListener({ it instanceof BuildListener }) >> { BuildListener listener ->
+            buildListener = listener
+        }
+
+        when:
+        daemonExpirationListener.onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, "reason"))
+
+        then:
+        1 * listenerManager.removeListener(daemonExpirationListener)
     }
 
     def "should not deadlock with deamon scan info"() {
@@ -91,18 +106,5 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
 
         then:
         0 * _
-    }
-
-    private enum Scenario {
-        ON_EXPIRATION("on graceful expiration"), ON_BUILD_FINISHED("on build finished")
-        String description
-
-        Scenario(String description) {
-            this.description = description
-        }
-
-        String toString() {
-            description
-        }
     }
 }
