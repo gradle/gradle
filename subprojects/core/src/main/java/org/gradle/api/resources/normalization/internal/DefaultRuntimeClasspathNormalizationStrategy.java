@@ -30,7 +30,7 @@ public class DefaultRuntimeClasspathNormalizationStrategy implements RuntimeClas
     @Override
     public synchronized void ignore(String pattern) {
         if (metadataFilter != null) {
-            throw new GradleException("Cannot configure runtimeClasspath normalization after execution started.");
+            throw new GradleException("Cannot configure runtime classpath normalization after execution started.");
         }
         ignores.add(pattern);
     }

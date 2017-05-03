@@ -18,52 +18,15 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
-class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
-    def "can ignore files on runtime classpath in directories"() {
-        def project = new ProjectWithRuntimeClasspathNormalization()
-        project.ignoreFiles()
+@Unroll
+class ConfigureRuntimeClasspathSnapshottingIntegrationTest extends AbstractIntegrationSpec {
+    def "can ignore files on runtime classpath in #tree"() {
+        def project = new ProjectWithRuntimeClasspathNormalization().withFilesIgnored()
 
-        when:
-        succeeds project.customTask
-        then:
-        nonSkippedTasks.contains(project.customTask)
-
-        when:
-        succeeds project.customTask
-        then:
-        skippedTasks.contains(project.customTask)
-
-        when:
-        project.ignoredResourceInDirectory << "This change should be ignored"
-        succeeds project.customTask
-        then:
-        skippedTasks.contains(project.customTask)
-
-        when:
-        project.notIgnoredResourceInDirectory << "This change should not be ignored"
-        succeeds project.customTask
-        then:
-        nonSkippedTasks.contains(project.customTask)
-
-        when:
-        assert project.ignoredResourceInDirectory.delete()
-        succeeds project.customTask
-
-        then:
-        skippedTasks.contains(project.customTask)
-
-        when:
-        project.ignoredResourceInDirectory.text = "Adding an ignored resource is ignored"
-        succeeds project.customTask
-
-        then:
-        skippedTasks.contains(project.customTask)
-    }
-
-    def "can ignore files on runtime classpath in jars"() {
-        def project = new ProjectWithRuntimeClasspathNormalization()
-        project.ignoreFiles()
+        def ignoredResource = project[ignoredResourceName]
+        def notIgnoredResource = project[notIgnoredResourceName]
 
         when:
         succeeds project.customTask
@@ -71,45 +34,44 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         nonSkippedTasks.contains(project.customTask)
 
         when:
-        project.createJar()
         succeeds project.customTask
         then:
         skippedTasks.contains(project.customTask)
 
         when:
-        project.ignoredResourceInJar << "This change should be ignored"
-        project.createJar()
+        ignoredResource.changeContents()
         succeeds project.customTask
         then:
         skippedTasks.contains(project.customTask)
 
         when:
-        project.notIgnoredResourceInJar << "This change should not be ignored"
-        project.createJar()
+        notIgnoredResource.changeContents()
         succeeds project.customTask
         then:
         nonSkippedTasks.contains(project.customTask)
 
         when:
-        assert project.ignoredResourceInJar.delete()
-        project.createJar()
+        ignoredResource.remove()
         succeeds project.customTask
 
         then:
         skippedTasks.contains(project.customTask)
 
         when:
-        project.ignoredResourceInJar.text = "Adding an ignored resource is ignored"
-        project.createJar()
+        ignoredResource.add()
         succeeds project.customTask
 
         then:
         skippedTasks.contains(project.customTask)
+
+        where:
+        tree          | ignoredResourceName          | notIgnoredResourceName
+        'directories' | 'ignoredResourceInDirectory' | 'notIgnoredResourceInDirectory'
+        'jars'        | 'ignoredResourceInJar'       | 'notIgnoredResourceInJar'
     }
 
     def "can configure ignore rules per project"() {
-        def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a')
-        projectWithIgnores.ignoreFiles()
+        def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a').withFilesIgnored()
         def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b')
         def allProjects = [projectWithoutIgnores, projectWithIgnores]
         settingsFile << "include 'a', 'b'"
@@ -120,9 +82,8 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         nonSkippedTasks.containsAll(allProjects*.customTask)
 
         when:
-        projectWithIgnores.ignoredResourceInJar << "Should be ignored"
-        projectWithoutIgnores.ignoredResourceInJar << "Should not be ignored"
-        allProjects*.createJar()
+        projectWithIgnores.ignoredResourceInJar.changeContents()
+        projectWithoutIgnores.ignoredResourceInJar.changeContents()
         succeeds(*allProjects*.customTask)
         then:
         skippedTasks.contains(projectWithIgnores.customTask)
@@ -137,7 +98,7 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
                 doLast {
                     project.normalization {
                         runtimeClasspath {
-                            ignore '**/some-other-file.properties'
+                            ignore '**/some-other-file.txt'
                         }
                     }
                 }
@@ -148,15 +109,15 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
         fails 'configureNormalization'
 
         then:
-        failureHasCause 'Cannot configure runtimeClasspath normalization after execution started.'
+        failureHasCause 'Cannot configure runtime classpath normalization after execution started.'
     }
 
     class ProjectWithRuntimeClasspathNormalization {
         final TestFile root
-        TestFile ignoredResourceInDirectory
-        TestFile notIgnoredResourceInDirectory
-        TestFile ignoredResourceInJar
-        TestFile notIgnoredResourceInJar
+        TestResource ignoredResourceInDirectory
+        TestResource notIgnoredResourceInDirectory
+        TestResource ignoredResourceInJar
+        TestResource notIgnoredResourceInJar
         TestFile libraryJar
         private TestFile libraryJarContents
         private final String projectName
@@ -182,13 +143,13 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
             """.stripIndent()
 
             root.file('classpath/dirEntry').create {
-                ignoredResourceInDirectory = file("ignored.properties") << "This should be ignored"
-                notIgnoredResourceInDirectory = file("not-ignored.txt") << "This should not be ignored"
+                ignoredResourceInDirectory = new TestResource(file("ignored.txt") << "This should be ignored")
+                notIgnoredResourceInDirectory = new TestResource(file("not-ignored.txt") << "This should not be ignored")
             }
 
             libraryJarContents = root.file('libraryContents').create {
-                ignoredResourceInJar = file('some/package/ignored.properties') << "This should be ignored"
-                notIgnoredResourceInJar = file('some/package/not-ignored.properties') << "This should not be ignored"
+                ignoredResourceInJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
+                notIgnoredResourceInJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
             }
             libraryJar = root.file('library.jar')
             createJar()
@@ -201,18 +162,44 @@ class ConfigureRuntimeClasspathSnapshotting extends AbstractIntegrationSpec {
             libraryJarContents.zipTo(libraryJar)
         }
 
-        void ignoreFiles() {
+        ProjectWithRuntimeClasspathNormalization withFilesIgnored() {
             root.file('build.gradle') << """
                 normalization {
                     runtimeClasspath {
-                        ignore "**/ignored.properties"
+                        ignore "**/ignored.txt"
                     }
                 }
             """.stripIndent()
+            return this
         }
 
         String getCustomTask() {
             return "${projectName ? ":${projectName}" : ''}:customTask"
+        }
+    }
+
+    class TestResource {
+        final TestFile backingFile
+        private final Closure finalizedBy
+
+        TestResource(TestFile backingFile, Closure finalizedBy = {}) {
+            this.backingFile = backingFile
+            this.finalizedBy = finalizedBy
+        }
+
+        void changeContents() {
+            backingFile << "More changes"
+            finalizedBy()
+        }
+
+        void remove() {
+            assert backingFile.delete()
+            finalizedBy()
+        }
+
+        void add() {
+            backingFile << "First creation of file"
+            finalizedBy()
         }
     }
 }
