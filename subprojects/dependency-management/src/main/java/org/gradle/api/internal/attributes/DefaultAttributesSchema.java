@@ -127,16 +127,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public AttributeMatcher ignoreAdditionalConsumerAttributes() {
-            return this;
-        }
-
-        @Override
-        public AttributeMatcher ignoreAdditionalProducerAttributes() {
-            return this;
-        }
-
-        @Override
         public boolean isMatching(AttributeContainer candidate, AttributeContainer requested) {
             return componentAttributeMatcher.isMatching(effectiveSchema, candidate, requested);
         }

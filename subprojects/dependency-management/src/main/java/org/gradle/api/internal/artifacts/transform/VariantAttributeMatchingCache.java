@@ -58,8 +58,8 @@ public class VariantAttributeMatchingCache {
         // Prefer direct transformation over indirect transformation
         List<VariantTransformRegistry.Registration> candidates = new ArrayList<VariantTransformRegistry.Registration>();
         for (VariantTransformRegistry.Registration transform : variantTransforms.getTransforms()) {
-            if (matchAttributes(transform.getTo(), requested, false)) {
-                if (matchAttributes(actual, transform.getFrom(), true)) {
+            if (matchAttributes(transform.getTo(), requested)) {
+                if (matchAttributes(actual, transform.getFrom())) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
                     result.matched(variantAttributes, transform.getArtifactTransform(), 1);
                 }
@@ -102,23 +102,9 @@ public class VariantAttributeMatchingCache {
         return cache;
     }
 
-    private boolean matchAttributes(AttributeContainer actual, AttributeContainer requested, boolean ignoreAdditionalActualAttributes) {
-        Map<AttributeContainer, Boolean> cache;
-        AttributeMatcher schemaToMatchOn;
-        if (ignoreAdditionalActualAttributes) {
-            if (requested.isEmpty()) {
-                return true;
-            }
-            schemaToMatchOn = schema.matcher().ignoreAdditionalProducerAttributes();
-            cache = getCache(requested).ignoreExtraActual;
-        } else { // ignore additional requested
-            if (actual.isEmpty()) {
-                return true;
-            }
-            schemaToMatchOn = schema.matcher().ignoreAdditionalConsumerAttributes();
-            cache = getCache(requested).ignoreExtraRequested;
-        }
-
+    private boolean matchAttributes(AttributeContainer actual, AttributeContainer requested) {
+        AttributeMatcher schemaToMatchOn = schema.matcher();
+        Map<AttributeContainer, Boolean> cache = getCache(requested).ignoreExtraActual;
         Boolean match = cache.get(actual);
         if (match == null) {
             match = schemaToMatchOn.isMatching(actual, requested);
@@ -128,7 +114,6 @@ public class VariantAttributeMatchingCache {
     }
 
     private static class AttributeSpecificCache {
-        private final Map<AttributeContainer, Boolean> ignoreExtraRequested = Maps.newConcurrentMap();
         private final Map<AttributeContainer, Boolean> ignoreExtraActual = Maps.newConcurrentMap();
         private final Map<AttributeContainer, ConsumerVariantMatchResult> transforms = Maps.newConcurrentMap();
     }
