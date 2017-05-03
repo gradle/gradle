@@ -128,12 +128,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public AttributeMatcher ignoreAdditionalConsumerAttributes() {
-            return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalConsumerAttributes(), effectiveSchema);
+            return this;
         }
 
         @Override
         public AttributeMatcher ignoreAdditionalProducerAttributes() {
-            return new DefaultAttributeMatcher(componentAttributeMatcher.ignoreAdditionalProducerAttributes(), effectiveSchema);
+            return this;
         }
 
         @Override
@@ -207,18 +207,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
                 return;
             }
 
-            // If no result, check whether values are equal
+            // If no result, the values are not compatible
             result.incompatible();
-        }
-
-        @Override
-        public boolean isCompatibleWhenMissing(Attribute<?> attribute) {
-            CompatibilityRule<Object> rules = compatibilityRules(attribute);
-            if (rules.isCompatibleWhenMissing()) {
-                return true;
-            }
-            rules = producerSchema.compatibilityRules(attribute);
-            return rules.isCompatibleWhenMissing();
         }
     }
 }

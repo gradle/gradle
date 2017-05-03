@@ -139,7 +139,6 @@ class LocalComponentDependencyMetadataTest extends Specification {
         'exact match'                                    | [key: 'something']              | false        | 'foo'
         'exact match'                                    | [key: 'something else']         | false        | 'bar'
         'no match'                                       | [key: 'other']                  | false        | 'default'
-        'partial match on key but attribute is required' | [key: 'something', extra: 'no'] | false        | 'default'
         'partial match on key but attribute is optional' | [key: 'something', extra: 'no'] | true         | 'foo'
     }
 
@@ -154,7 +153,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getName() >> 'default'
             isCanBeResolved() >> true
             isCanBeConsumed() >> true
-            getAttributes() >> attributes(will: 'fail')
+            getAttributes() >> attributes(key: 'nothing')
         }
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -187,9 +186,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
         e.message == toPlatformLineSeparators("""Configuration 'default' in <target> does not match the consumer attributes
-Configuration 'default':
-  - Required key 'other' but no value provided.
-  - Found will 'fail' but wasn't required.""")
+Configuration 'default': Required key 'other' and found incompatible value 'nothing'.""")
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
@@ -299,7 +296,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         'exact match is found'                                      | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | 'bar'
         'Java 7  is compatible with Java 8'                         | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA7]                 | [:]                                           | 'foo'
         'Java 7 is closer to Java 8'                                | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6]                 | [platform: JavaVersion.JAVA7]                 | 'bar'
-        'Java 8 is not compatible with Java 7'                      | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | [:]                                           | 'default'
         'Java 8 is not compatible but Java 6 is'                    | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6]                 | 'bar'
         'compatible platforms, but additional attributes unmatched' | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6, flavor: 'free'] | [platform: JavaVersion.JAVA6, flavor: 'paid'] | null
         'compatible platforms, but one closer'                      | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6, flavor: 'free'] | [platform: JavaVersion.JAVA7, flavor: 'paid'] | 'bar'
@@ -379,7 +375,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         'exact match is found'                                      | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | 'bar'
         'Java 7  is compatible with Java 8'                         | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA7]                 | [:]                                           | 'foo'
         'Java 7 is closer to Java 8'                                | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6]                 | [platform: JavaVersion.JAVA7]                 | 'bar'
-        'Java 8 is not compatible with Java 7'                      | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | [:]                                           | 'default'
         'Java 8 is not compatible but Java 6 is'                    | [platform: JavaVersion.JAVA7]                 | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6]                 | 'bar'
         'compatible platforms, but additional attributes unmatched' | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6, flavor: 'free'] | [platform: JavaVersion.JAVA6, flavor: 'paid'] | null
         'compatible platforms, but one closer'                      | [platform: JavaVersion.JAVA8]                 | [platform: JavaVersion.JAVA6, flavor: 'free'] | [platform: JavaVersion.JAVA7, flavor: 'paid'] | 'bar'
@@ -500,7 +495,6 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         'never compatible'           | [key: 'no match']               | 'default'
         'exact match'                | [key: 'something else']         | 'bar'
         'compatible value'           | [key: 'other']                  | 'bar'
-        'wrong number of attributes' | [key: 'something', extra: 'no'] | 'default'
     }
 
     def configuration(String name, String... parents) {

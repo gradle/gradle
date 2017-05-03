@@ -136,16 +136,22 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         """
 
         when:
-        run ':a:checkDebug'
+        fails ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':a:checkDebug')
+        failure.assertHasCause("""Cannot choose between the following configurations on project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:""")
 
         when:
-        run ':a:checkRelease'
+        fails ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':a:checkRelease')
+        failure.assertHasCause("""Cannot choose between the following configurations on project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:""")
     }
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {

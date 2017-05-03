@@ -124,7 +124,6 @@ allprojects {
                     compile project(':lib'), project(':ui')
                     
                     attributesSchema {
-                        attribute(otherAttributeRequired)
                         attribute(otherAttributeOptional) {
                             compatibilityRules.assumeCompatibleWhenMissing()
                         }
@@ -154,16 +153,6 @@ allprojects {
                         }
                         assert optionalAttributeView.files.collect { it.name } == ['lib-util.jar', 'lib.jar', 'ui.jar', 'some-jar-1.0.jar']
                         assert optionalAttributeView.artifacts.collect { it.id.displayName }  == ['lib-util.jar', 'lib.jar (project :lib)', 'ui.jar (project :ui)', 'some-jar.jar (org:test:1.0)']
-                    
-                        // Get a view with additional required attribute
-                        def requiredAttributeView =  configurations.compile.incoming.artifactView {
-                            attributes { 
-                                it.attribute(artifactType, 'jar')
-                                it.attribute(otherAttributeRequired, 'anything') 
-                            }
-                        }
-                        assert requiredAttributeView.files.collect { it.name } == []
-                        assert requiredAttributeView.artifacts.collect { it.id.displayName }  == []
                     }
                 }
             }
