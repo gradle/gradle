@@ -47,7 +47,7 @@ public class DefaultColorMap implements ColorMap {
     public DefaultColorMap() {
         addDefault(Info, "yellow");
         addDefault(Error, "default");
-        addDefault(Header, "default");
+        addDefault(Header, "bold");
         addDefault(Description, "yellow");
         addDefault(ProgressStatus, "yellow");
         addDefault(Identifier, "green");

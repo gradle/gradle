@@ -17,13 +17,13 @@
 package org.gradle.internal.operations
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class MaxWorkersTest extends ConcurrentSpec {
@@ -33,7 +33,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def maxWorkers = 1
         def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new SimpleWorker()
 
@@ -75,7 +75,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def maxWorkers = 1
         def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new SimpleWorker()
 
@@ -117,7 +117,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def maxWorkers = 1
         def registry = buildOperationWorkerRegistry(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(registry), new DefaultExecutorFactory(), maxWorkers)
         def processorWorker = new SimpleWorker()
 
