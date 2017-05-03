@@ -47,8 +47,8 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
                 }
     
                 @Override
-                void finished(BuildOperationDescriptor operation, OperationResult result) {
-                    println "BUILD OPERATION - FINISHED :\$operation.displayName-\$result.result"
+                void finished(BuildOperationDescriptor operation, OperationFinishEvent finishEvent) {
+                    println "BUILD OPERATION - FINISHED :\$operation.displayName-\$finishEvent.result"
                 }
             }
     
