@@ -51,7 +51,10 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         val classPath = scriptClassPathOf(project)
         val sourcePath = sourcePathFor(classPath.bin, project)
         val implicitImports = implicitImportsOf(project)
-        return StandardKotlinBuildScriptModel(classPath.bin.asFiles, (classPath.src + sourcePath).asFiles, implicitImports)
+        return StandardKotlinBuildScriptModel(
+            classPath.bin.asFiles,
+            (classPath.src + sourcePath).asFiles,
+            implicitImports)
     }
 
     private
