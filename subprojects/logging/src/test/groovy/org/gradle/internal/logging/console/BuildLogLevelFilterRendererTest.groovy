@@ -40,19 +40,20 @@ public class BuildLogLevelFilterRendererTest extends OutputSpecification {
         0 * _
     }
 
-    def "default to LogLevel.LIFECYCLE log level"() {
+    def "default to LogLevel.WARN log level"() {
         when:
+        renderer.onOutput(event("warn", LogLevel.WARN))
         renderer.onOutput(event("lifecycle", LogLevel.LIFECYCLE))
         renderer.onOutput(event("debug", LogLevel.DEBUG))
 
         then:
-        1 * listener.onOutput({it.message == "lifecycle"})
+        1 * listener.onOutput({it.message == "warn"})
         0 * _
     }
 
     def "forward the event unmodified to the listener"() {
         given:
-        def event = event("event", LogLevel.LIFECYCLE)
+        def event = event("event", LogLevel.WARN)
 
         when:
         renderer.onOutput(event)
