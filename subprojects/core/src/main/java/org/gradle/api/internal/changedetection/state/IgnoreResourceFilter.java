@@ -18,33 +18,33 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Set;
 
 public class IgnoreResourceFilter implements MetadataFilter {
     private final Set<String> ignores;
-    private final ImmutableSet<Spec<RelativePath>> ignoreSpecs;
+    private final ImmutableSet<PathMatcher> ignoreMatchers;
 
     public IgnoreResourceFilter(Set<String> ignores) {
         this.ignores = ImmutableSet.copyOf(ignores);
-        ImmutableSet.Builder<Spec<RelativePath>> builder = ImmutableSet.builder();
+        ImmutableSet.Builder<PathMatcher> builder = ImmutableSet.builder();
         for (String ignore : ignores) {
-            Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(false, true, ignore);
+            PathMatcher matcher = PatternMatcherFactory.compile(true, ignore);
             builder.add(matcher);
         }
-        this.ignoreSpecs = builder.build();
+        this.ignoreMatchers = builder.build();
     }
 
     @Override
     public boolean shouldBeIgnored(RelativePath relativePath) {
-        if (ignoreSpecs.isEmpty()) {
+        if (ignoreMatchers.isEmpty()) {
             return false;
         }
-        for (Spec<RelativePath> ignoreSpec : ignoreSpecs) {
-            if (ignoreSpec.isSatisfiedBy(relativePath)) {
+        for (PathMatcher ignoreSpec : ignoreMatchers) {
+            if (ignoreSpec.matches(relativePath.getSegments(), 0)) {
                 return true;
             }
         }
