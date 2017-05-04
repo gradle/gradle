@@ -16,26 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
+import org.gradle.caching.internal.BuildCacheHasher;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.ZipEntry;
-
-/**
- * Hashes resources (e.g., a class file in a jar or a class file in a directory)
- */
-public interface ResourceHasher extends ConfigurableSnapshotter {
-    /**
-     * Returns {@code null} if the file should be ignored.
-     */
-    @Nullable
-    HashCode hash(RegularFileSnapshot fileSnapshot);
+public interface ConfigurableSnapshotter {
 
     /**
-     * Returns {@code null} if the zip entry should be ignored.
+     * Appends the identification of the configuration of this object to a snapshotter.
+     * The contract is that, if two hashes agree, then the methods on this snapshotter return the same result whenever the arguments are the same.
      */
-    @Nullable
-    HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
+    void appendConfigurationToHasher(BuildCacheHasher hasher);
 }

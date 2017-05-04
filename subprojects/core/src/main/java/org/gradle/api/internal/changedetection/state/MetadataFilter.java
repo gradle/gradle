@@ -17,15 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.caching.internal.BuildCacheHasher;
 
-public interface MetadataFilter extends Snapshot {
+public interface MetadataFilter extends ConfigurableSnapshotter {
     boolean shouldBeIgnored(RelativePath path);
-
-    /**
-     * Appends the identification of the implementation of this filter to a hasher.
-     * The contract is that, if two implementation hashes agree then {@link #shouldBeIgnored(RelativePath)}
-     * return the same result whenever the arguments are the same.
-     */
-    void appendToHasher(BuildCacheHasher relativePath);
 }

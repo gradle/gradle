@@ -50,9 +50,9 @@ public class MetadataFilterAdapter implements ResourceHasher {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
         hasher.putString(getClass().getName());
-        filter.appendToHasher(hasher);
-        delegate.appendToHasher(hasher);
+        filter.appendConfigurationToHasher(hasher);
+        delegate.appendConfigurationToHasher(hasher);
     }
 }

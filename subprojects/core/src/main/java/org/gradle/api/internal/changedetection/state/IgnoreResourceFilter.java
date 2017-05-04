@@ -52,7 +52,7 @@ public class IgnoreResourceFilter implements MetadataFilter {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
         hasher.putString(getClass().getName());
         for (String ignore : ignores) {
             hasher.putString(ignore);
