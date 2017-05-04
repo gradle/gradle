@@ -107,7 +107,11 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
     @Input
     private List<String> getPaths() {
-        return CollectionUtils.collect(getPluginClasspath() == null ? Collections.EMPTY_SET : getPluginClasspath(), new Transformer<String, File>() {
+        Iterable<File> classpathFiles = Collections.emptyList();
+        if (getPluginClasspath() != null) {
+            classpathFiles = getPluginClasspath();
+        }
+        return CollectionUtils.collect(classpathFiles, new Transformer<String, File>() {
             @Override
             public String transform(File file) {
                 return file.getAbsolutePath().replaceAll("\\\\", "/");
