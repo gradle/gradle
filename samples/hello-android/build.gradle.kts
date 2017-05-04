@@ -1,4 +1,3 @@
-import com.android.build.gradle.AppExtension
 import com.android.build.gradle.AppPlugin
 import com.android.builder.core.DefaultApiVersion
 import com.android.builder.core.DefaultProductFlavor
@@ -7,9 +6,6 @@ import com.android.builder.model.ApiVersion
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 
 buildscript {
-    //Temporary hack until Android plugin has proper support
-    System.setProperty("com.android.build.gradle.overrideVersionCheck",  "true")
-
     repositories {
         jcenter()
         gradleScriptKotlin()
@@ -59,8 +55,6 @@ dependencies {
 }
 
 //Extension functions to allow comfortable references
-fun Project.android(configuration: AppExtension.() -> Unit) = configure(configuration)
-
 fun DefaultProductFlavor.setMinSdkVersion(value: Int) = setMinSdkVersion(value.asApiVersion())
 
 fun DefaultProductFlavor.setTargetSdkVersion(value: Int) = setTargetSdkVersion(value.asApiVersion())
