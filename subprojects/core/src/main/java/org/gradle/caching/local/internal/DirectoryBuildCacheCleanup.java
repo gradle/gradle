@@ -34,7 +34,6 @@ import java.io.FilenameFilter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
     private static final Logger LOGGER = Logging.getLogger(DirectoryBuildCacheCleanup.class);
@@ -46,7 +45,6 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
         }
     };
 
-    private static final Pattern CACHE_ENTRY_PATTERN = Pattern.compile("\\p{XDigit}{32}(.part)?");
     private final BuildOperationExecutor buildOperationExecutor;
     private final long targetSizeInMB;
 
@@ -87,7 +85,7 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
         final List<File> filesForDeletion = buildOperationExecutor.call(new CallableBuildOperation<List<File>>() {
             @Override
             public List<File> call(BuildOperationContext context) {
-                return findFilesToDelete(filesEligibleForCleanup);
+                return findFilesToDelete(persistentCache, filesEligibleForCleanup);
             }
 
             @Override
@@ -99,7 +97,7 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                cleanupFiles(filesForDeletion);
+                cleanupFiles(persistentCache, filesForDeletion);
             }
 
             @Override
@@ -109,7 +107,7 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
         });
     }
 
-    List<File> findFilesToDelete(File[] filesEligibleForCleanup) {
+    List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup) {
         Arrays.sort(filesEligibleForCleanup, NEWEST_FIRST);
 
         // All sizes are in bytes
@@ -126,7 +124,7 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
             }
         }
 
-        LOGGER.info("Build cache consuming {} MB (target: {} MB).", FileUtils.byteCountToDisplaySize(totalSize), targetSizeInMB);
+        LOGGER.info("{} consuming {} MB (target: {} MB).", persistentCache, FileUtils.byteCountToDisplaySize(totalSize), targetSizeInMB);
 
         return filesForDeletion;
     }
@@ -140,11 +138,11 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
         });
     }
 
-    void cleanupFiles(final List<File> filesForDeletion) {
+    void cleanupFiles(final PersistentCache persistentCache, final List<File> filesForDeletion) {
         if (!filesForDeletion.isEmpty()) {
             // Need to remove some files
             long removedSize = deleteFile(filesForDeletion);
-            LOGGER.info("Build cache removing {} cache entries ({} MB reclaimed).", filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
+            LOGGER.info("{} removing {} cache entries ({} MB reclaimed).", persistentCache, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
         }
     }
 
@@ -156,13 +154,13 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
                     removedSize += file.length();
                 }
             } catch (Exception e) {
-                LOGGER.debug("Could not clean up cache entry " + file, e);
+                LOGGER.debug("Could not clean up cache " + file, e);
             }
         }
         return removedSize;
     }
 
-    static boolean canBeDeleted(String name) {
-        return CACHE_ENTRY_PATTERN.matcher(name).matches();
+    boolean canBeDeleted(String name) {
+        return !(name.endsWith(".properties") || name.endsWith(".lock"));
     }
 }
