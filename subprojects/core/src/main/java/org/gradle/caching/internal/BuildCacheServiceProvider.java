@@ -18,13 +18,17 @@ package org.gradle.caching.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.internal.Cast;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
@@ -53,6 +57,7 @@ public class BuildCacheServiceProvider {
 
     public BuildCacheService createBuildCacheService() {
         if (!startParameter.isBuildCacheEnabled()) {
+            buildOperationExecutor.run(new FinalizeBuildCacheConfigurationBuildOperation(null, null));
             return new NoOpBuildCacheService();
         }
 
@@ -78,8 +83,11 @@ public class BuildCacheServiceProvider {
             buildCacheService = createStandaloneRemoteBuildService(remote);
         } else {
             LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
+            buildOperationExecutor.run(new FinalizeBuildCacheConfigurationBuildOperation(local, remote));
             return new NoOpBuildCacheService();
         }
+
+        buildOperationExecutor.run(new FinalizeBuildCacheConfigurationBuildOperation(local, remote));
 
         return buildCacheService;
     }
@@ -138,6 +146,34 @@ public class BuildCacheServiceProvider {
         @Override
         public String getRole() {
             return role;
+        }
+    }
+
+    private class FinalizeBuildCacheConfigurationBuildOperation implements RunnableBuildOperation {
+        private final BuildCache local;
+        private final BuildCache remote;
+
+        private FinalizeBuildCacheConfigurationBuildOperation(BuildCache local, BuildCache remote) {
+            this.local = local;
+            this.remote = remote;
+        }
+
+        @Override
+        public void run(BuildOperationContext buildOperationContext) {
+            boolean enabled = startParameter.isBuildCacheEnabled();
+            buildOperationContext.setResult(new FinalizeBuildCacheConfigurationDetails.Result(enabled, convertToWrapper(local, enabled), convertToWrapper(remote, enabled)));
+        }
+
+        @Nullable
+        private BuildCacheWrapper convertToWrapper(BuildCache buildCache, boolean enabled) {
+            return buildCache == null || !enabled
+                ? null
+                : new BuildCacheWrapper(buildCache.getClass().getName(), buildCache.isEnabled(), buildCache.isPush(), buildCache.getDisplayName(), buildCache.getConfigDescription());
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Finalize build cache configuration");
         }
     }
 }

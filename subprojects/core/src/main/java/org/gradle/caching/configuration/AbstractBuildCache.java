@@ -17,6 +17,9 @@
 package org.gradle.caching.configuration;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+
+import java.util.Map;
 
 /**
  * Base implementation for build cache service configuration.
@@ -58,5 +61,23 @@ public abstract class AbstractBuildCache implements BuildCache {
     @Override
     public void setPush(boolean push) {
         this.push = push;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    public String getDisplayName() {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    public Map<String, String> getConfigDescription() {
+        return null;
     }
 }
