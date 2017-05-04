@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -54,6 +55,8 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withDependencyList();
 
     GradleExecuter withQuietLogging();
+
+    GradleExecuter withLifecycleLoggingDisabled();
 
     /**
      * Sets the additional command-line arguments to use when executing the build. Defaults to an empty list.
