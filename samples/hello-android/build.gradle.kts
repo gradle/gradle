@@ -15,7 +15,7 @@ buildscript {
         gradleScriptKotlin()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:2.2.0")
+        classpath("com.android.tools.build:gradle:2.3.1")
         classpath(kotlinModule("gradle-plugin"))
     }
 }
@@ -32,7 +32,7 @@ apply {
 }
 
 android {
-    buildToolsVersion("23.0.3")
+    buildToolsVersion("25.0.0")
     compileSdkVersion(23)
 
     defaultConfig {
