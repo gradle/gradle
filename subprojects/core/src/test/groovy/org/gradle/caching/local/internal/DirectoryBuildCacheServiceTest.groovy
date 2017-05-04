@@ -20,6 +20,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.caching.BuildCacheKey
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -41,7 +42,7 @@ class DirectoryBuildCacheServiceTest extends Specification {
     def cacheRepository = Mock(CacheRepository) {
         cache(cacheDir) >> cacheBuilder
     }
-    def service = new DirectoryBuildCacheService(cacheRepository, cacheDir, Long.MAX_VALUE)
+    def service = new DirectoryBuildCacheService(cacheRepository, Mock(BuildOperationExecutor), cacheDir, Long.MAX_VALUE)
     def key = Mock(BuildCacheKey)
 
     def "does not store partial result"() {

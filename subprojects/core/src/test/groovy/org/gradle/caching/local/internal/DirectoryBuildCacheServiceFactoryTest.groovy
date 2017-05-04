@@ -22,6 +22,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.VersionStrategy
 import org.gradle.caching.local.DirectoryBuildCache
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -34,7 +35,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheRepository = Mock(CacheRepository)
     def cacheScopeMapping = Mock(CacheScopeMapping)
     def resolver = Mock(FileResolver)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver, new TestBuildOperationExecutor())
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
 

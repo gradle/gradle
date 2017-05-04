@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal
 
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,7 +27,7 @@ class DirectoryBuildCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
 
-    def cleanupAction = new DirectoryBuildCacheCleanup(10)
+    def cleanupAction = new DirectoryBuildCacheCleanup(new TestBuildOperationExecutor(),10)
 
     def "filters for cache entry files"() {
         expect:

@@ -23,6 +23,11 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -42,17 +47,66 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
     };
 
     private static final Pattern CACHE_ENTRY_PATTERN = Pattern.compile("\\p{XDigit}{32}(.part)?");
+    private final BuildOperationExecutor buildOperationExecutor;
     private final long targetSizeInMB;
 
-    DirectoryBuildCacheCleanup(long targetSizeInMB) {
+    DirectoryBuildCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.targetSizeInMB = targetSizeInMB;
     }
 
     @Override
-    public void execute(PersistentCache persistentCache) {
-        File[] filesEligibleForCleanup = findEligibleFiles(persistentCache.getBaseDir());
-        List<File> filesForDeletion = findFilesToDelete(filesEligibleForCleanup);
-        cleanupFiles(filesForDeletion);
+    public void execute(final PersistentCache persistentCache) {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                cleanup(persistentCache);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Cleaning up " + persistentCache);
+            }
+        });
+
+    }
+
+    private void cleanup(final PersistentCache persistentCache) {
+        final File[] filesEligibleForCleanup = buildOperationExecutor.call(new CallableBuildOperation<File[]>() {
+            @Override
+            public File[] call(BuildOperationContext context) {
+                return findEligibleFiles(persistentCache.getBaseDir());
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Scanning " + persistentCache.getBaseDir());
+            }
+        });
+
+        final List<File> filesForDeletion = buildOperationExecutor.call(new CallableBuildOperation<List<File>>() {
+            @Override
+            public List<File> call(BuildOperationContext context) {
+                return findFilesToDelete(filesEligibleForCleanup);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Choosing files to delete from " + persistentCache);
+            }
+        });
+
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                cleanupFiles(filesForDeletion);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Deleting files for " + persistentCache);
+            }
+        });
     }
 
     List<File> findFilesToDelete(File[] filesEligibleForCleanup) {
