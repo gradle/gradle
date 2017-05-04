@@ -453,14 +453,20 @@ startScripts {
     }
 
     private void createMainClass() {
-        file('src/main/java/org/gradle/test/Main.java') << """
+        generateMainClass """
+            System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
+            System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+            System.out.println("Hello World!");
+        """
+    }
+
+    private void generateMainClass(String mainMethodBody) {
+        file('src/main/java/org/gradle/test/Main.java').text = """
 package org.gradle.test;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
-        System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
-        System.out.println("Hello World!");
+        $mainMethodBody
     }
 }
 """
@@ -506,6 +512,8 @@ rootProject.name = 'sample'
 
         when:
         buildFile << """
+            // Set a version so the jar is created with a different name
+            // This should cause us to regenerated the script
             version = "3.0"
         """
         and:
@@ -513,5 +521,23 @@ rootProject.name = 'sample'
 
         then:
         !result.skippedTasks.contains(":startScripts")
+
+        and:
+        succeeds("startScripts")
+
+        then:
+        result.skippedTasks.contains(":startScripts")
+    }
+
+    def "up-to-date if only the content change"() {
+        given:
+        succeeds("startScripts")
+
+        when:
+        generateMainClass """System.out.println("Goodbye World!");"""
+        succeeds("startScripts")
+
+        then:
+        result.skippedTasks.contains(":startScripts")
     }
 }

@@ -55,7 +55,6 @@ public class PluginUnderTestMetadata extends DefaultTask {
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
      */
-    @Input
     public FileCollection getPluginClasspath() {
         return pluginClasspath;
     }
@@ -81,12 +80,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
         Properties properties = new Properties();
 
         if (!getPluginClasspath().isEmpty()) {
-            List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
-                @Override
-                public String transform(File file) {
-                    return file.getAbsolutePath().replaceAll("\\\\", "/");
-                }
-            });
+            List<String> paths = getPaths();
             StringBuilder implementationClasspath = new StringBuilder();
             Joiner.on(File.pathSeparator).appendTo(implementationClasspath, paths);
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath.toString());
@@ -106,6 +100,16 @@ public class PluginUnderTestMetadata extends DefaultTask {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @Input
+    private List<String> getPaths() {
+        return CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath().replaceAll("\\\\", "/");
+            }
+        });
     }
 
 }
