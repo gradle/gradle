@@ -26,7 +26,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskDestroys
+import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -190,7 +190,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.outputs >> Stub(TaskOutputsInternal) {
             getFiles() >> project.files()
         }
-        _ * mock.destroys >> Stub(TaskDestroys) {
+        _ * mock.destroyables >> Stub(TaskDestroyables) {
             getFiles() >> project.files()
         }
         _ * mock.path >> ":${name}"
@@ -213,7 +213,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.outputs >> Stub(TaskOutputsInternal) {
             getFiles() >> project.files()
         }
-        _ * mock.destroys >> Stub(TaskDestroys) {
+        _ * mock.destroyables >> Stub(TaskDestroyables) {
             getFiles() >> project.files()
         }
         _ * mock.path >> ":${name}"

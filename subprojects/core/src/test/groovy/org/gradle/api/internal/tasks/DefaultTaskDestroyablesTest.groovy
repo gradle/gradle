@@ -20,14 +20,14 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.tasks.TaskDestroys
+import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
 @UsesNativeServices
-class DefaultTaskDestroysTest extends Specification {
+class DefaultTaskDestroyablesTest extends Specification {
     File treeFile = new File('tree')
     def tree = [getFiles: { [treeFile] as Set}] as FileTreeInternal
     FileResolver resolver = [
@@ -43,7 +43,7 @@ class DefaultTaskDestroysTest extends Specification {
             }
         }
     }
-    TaskDestroys taskDestroys = new DefaultTaskDestroys(resolver, Mock(TaskInternal), taskMutator)
+    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, Mock(TaskInternal), taskMutator)
 
     def "empty destroys by default"() {
         expect:

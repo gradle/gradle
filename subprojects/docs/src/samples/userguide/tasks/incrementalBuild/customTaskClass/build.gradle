@@ -16,7 +16,6 @@ task processTemplatesAdHoc {
     inputs.property("templateData.name", "docs")
     inputs.property("templateData.variables", [year: 2013])
     outputs.dir("$buildDir/genOutput2")
-    destroys.file("$buildDir/tempdir")
 
     doLast {
         // Process the templates here
@@ -82,5 +81,14 @@ task packageFiles2(type: Zip) {
 }
 // END SNIPPET inferred-task-dep-via-task
 
+
+// START SNIPPET adhoc-destroyable-task
+task removeTempDir {
+    destroyables.file("$projectDir/tmpDir")
+    doLast {
+        delete("$projectDir/tmpDir")
+    }
+}
+// END SNIPPET adhoc-destroyable-task
 
 build.dependsOn processTemplates, processTemplatesAdHoc, processTemplatesRuntime, processTemplatesRuntimeConf

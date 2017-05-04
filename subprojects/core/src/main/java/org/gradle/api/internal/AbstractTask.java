@@ -34,7 +34,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.DefaultTaskDestroys;
+import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -53,7 +53,7 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskDestroys;
+import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
@@ -125,7 +125,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
-    private final TaskDestroys taskDestroys;
+    private final TaskDestroyables taskDestroyables;
     private final Class<? extends Task> publicType;
     private LoggingManagerInternal loggingManager;
 
@@ -159,7 +159,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator = new TaskMutator(this);
         taskInputs = new DefaultTaskInputs(project.getFileResolver(), this, taskMutator);
         taskOutputs = new DefaultTaskOutputs(project.getFileResolver(), this, taskMutator);
-        taskDestroys = new DefaultTaskDestroys(project.getFileResolver(), this, taskMutator);
+        taskDestroyables = new DefaultTaskDestroyables(project.getFileResolver(), this, taskMutator);
     }
 
     private void assertDynamicObject() {
@@ -535,8 +535,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public TaskDestroys getDestroys() {
-        return taskDestroys;
+    public TaskDestroyables getDestroyables() {
+        return taskDestroyables;
     }
 
     @Internal

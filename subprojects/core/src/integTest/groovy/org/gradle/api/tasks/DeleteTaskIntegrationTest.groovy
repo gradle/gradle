@@ -53,8 +53,8 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
                 delete files('baz')
                 
                 doLast {
-                    assert destroys.files.files.size() == 3 &&
-                        destroys.files.files.containsAll([
+                    assert destroyables.files.files.size() == 3 &&
+                        destroyables.files.files.containsAll([
                             file('foo'), 
                             file('bar'), 
                             file('baz')

@@ -16,12 +16,16 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 /**
  * Represents the files or directories that a {@link org.gradle.api.Task} destroys (removes).
+ *
+ * @since 4.0
  */
-public interface TaskDestroys {
+@Incubating
+public interface TaskDestroyables {
     /**
      * Registers some files that this task destroys.
      *
@@ -30,16 +34,16 @@ public interface TaskDestroys {
     void files(Object... paths);
 
     /**
-     * Registers a file that this task destroys.
+     * Registers a file or directory that this task destroys.
      *
      * @param path A file that will be destroyed. The given path is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     void file(Object path);
 
     /**
-     * Returns all of the files this task destroys.
+     * Returns the files or directories that this task destroys.
      *
-     * @return The files that will be destroyed. Returns an empty collection if this task has no input files.
+     * @return The files that will be destroyed. Returns an empty collection if this task does not destroy any files.
      */
     FileCollection getFiles();
 }

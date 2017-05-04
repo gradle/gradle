@@ -20,13 +20,13 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.tasks.TaskDestroys;
+import org.gradle.api.tasks.TaskDestroyables;
 
-public class DefaultTaskDestroys implements TaskDestroys {
+public class DefaultTaskDestroyables implements TaskDestroyables {
     private final DefaultConfigurableFileCollection destroyFiles;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskDestroys(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
+    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.taskMutator = taskMutator;
         this.destroyFiles = new DefaultConfigurableFileCollection(task + " destroy files", resolver, null);
     }

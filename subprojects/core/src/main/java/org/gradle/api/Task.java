@@ -25,7 +25,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskDestroys;
+import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
@@ -563,11 +563,12 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     TaskOutputs getOutputs();
 
     /**
-     * <p>Returns the files that this task destroys (removes).</p>
-     * @return The files that this task destroys.  Never returns null.
+     * <p>Returns the destroyables of this task.</p>
+     * @return The destroyables.  Never returns null.
      */
+    @Incubating
     @Internal
-    TaskDestroys getDestroys();
+    TaskDestroyables getDestroyables();
 
     /**
      * <p>Returns a directory which this task can use to write temporary files to. Each task instance is provided with a
