@@ -239,4 +239,35 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         6                      | ['--parallel', '--max-workers=6', '-Dorg.gradle.workers.max=4']
         4                      | ['-Dorg.gradle.parallel=true', '--max-workers=4']
     }
+
+    @Unroll
+    def "Set log level using org.gradle.log.level"() {
+        def message = 'Expected message in the output'
+        buildFile << """
+            task assertLogging {
+                doLast {
+                    logger.${logLevel} '${message}'
+                    assert logger.${logLevel}Enabled
+                    if ('${nextLevel}') {
+                        assert !logger.${nextLevel}Enabled
+                    }
+                }
+            }
+        """
+        expect:
+        executer.withArguments(flags).withCommandLineGradleOpts(gradleOpts)
+        succeeds("assertLogging")
+        outputContains(message)
+
+        where:
+        logLevel    | nextLevel     | flags                                                 | gradleOpts
+        'quiet'     | 'warn'        | []                                                    | '-Dorg.gradle.logging.level=quiet'
+        'warn'      | 'lifecycle'   | ['-Dorg.gradle.logging.level=warn']                   | ''
+        'lifecycle' | 'info'        | ['-Dorg.gradle.logging.level=LifeCycle']              | ''
+        'info'      | 'debug'       | ['-Dorg.gradle.logging.level=Info']                   | ''
+        'debug'     | ''            | ['-Dorg.gradle.logging.level=DEBUG']                  | ''
+        'info'      | 'debug'       | ['--info', '-Dorg.gradle.logging.level=quiet']        | ''
+        'info'      | 'debug'       | ['-Dorg.gradle.logging.level=quiet', '--warn', '-i']  | '-Dorg.gradle.logging.level=lifecycle'
+        'info'      | 'debug'       | ['-Dorg.gradle.logging.level=info']                   | '-Dorg.gradle.logging.level=quiet'
+    }
 }
