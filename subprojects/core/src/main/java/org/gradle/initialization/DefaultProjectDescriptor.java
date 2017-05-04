@@ -37,6 +37,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
     private File dir;
+    private File canonicalDir;
     private DefaultProjectDescriptor parent;
     private Set<ProjectDescriptor> children = new LinkedHashSet<ProjectDescriptor>();
     private ProjectDescriptorRegistry projectDescriptorRegistry;
@@ -54,7 +55,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.parent = parent;
         this.name = name;
         this.fileResolver = fileResolver;
-        this.dir = FileUtils.canonicalize(dir);
+        this.dir = dir;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
         projectDescriptorRegistry.addProject(this);
@@ -90,10 +91,14 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public File getProjectDir() {
-        return dir;
+        if (canonicalDir == null) {
+            canonicalDir = FileUtils.canonicalize(dir);
+        }
+        return canonicalDir;
     }
 
     public void setProjectDir(File dir) {
+        this.canonicalDir = null;
         this.dir = fileResolver.resolve(dir);
     }
 
