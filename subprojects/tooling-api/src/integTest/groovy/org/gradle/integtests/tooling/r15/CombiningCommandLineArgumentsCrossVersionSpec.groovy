@@ -42,7 +42,7 @@ class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificat
     //the test was added to validate the behavior that was questioned on forums
     def "supports gradle.properties and changed build file"() {
         file('gradle.properties') << "systemProp.foo=bar"
-        file('buildX.gradle') << "logger.lifecycle('sys property: ' + System.properties['foo'])"
+        file('buildX.gradle') << "logger.quiet('sys property: ' + System.properties['foo'])"
 
         when:
         def out = withBuild { it.withArguments('-b', 'buildX.gradle') }.standardOutput
