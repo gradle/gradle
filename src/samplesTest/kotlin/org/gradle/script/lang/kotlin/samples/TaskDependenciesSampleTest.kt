@@ -1,8 +1,7 @@
 package org.gradle.script.lang.kotlin.samples
 
-import org.gradle.script.lang.kotlin.fixtures.toPlatformLineSeparators
-import org.gradle.script.lang.kotlin.fixtures.trimTestIndent
-import org.hamcrest.CoreMatchers.containsString
+import org.gradle.script.lang.kotlin.fixtures.containsMultiLineString
+
 import org.junit.Assert.assertThat
 import org.junit.Test
 
@@ -13,25 +12,25 @@ class TaskDependenciesSampleTest : AbstractSampleTest("task-dependencies") {
     fun `default task`() {
         assertThat(
             build().output,
-            containsString("""
+            containsMultiLineString("""
                 :hello
                 Hello!
                 :goodbye
                 Goodbye!
                 :chat
-            """.trimTestIndent().toPlatformLineSeparators()))
+            """))
     }
 
     @Test
     fun `mixItUp`() {
         assertThat(
             build("mixItUp").output,
-            containsString("""
+            containsMultiLineString("""
                 :hello
                 Hello!
                 :goodbye
                 Goodbye!
                 :mixItUp
-            """.trimTestIndent().toPlatformLineSeparators()))
+            """))
     }
 }

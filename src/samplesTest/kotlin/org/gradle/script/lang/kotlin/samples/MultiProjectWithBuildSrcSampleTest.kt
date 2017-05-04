@@ -1,8 +1,7 @@
 package org.gradle.script.lang.kotlin.samples
 
-import org.gradle.script.lang.kotlin.fixtures.toPlatformLineSeparators
-import org.gradle.script.lang.kotlin.fixtures.trimTestIndent
-import org.hamcrest.CoreMatchers.containsString
+import org.gradle.script.lang.kotlin.fixtures.containsMultiLineString
+
 import org.junit.Assert.assertThat
 import org.junit.Test
 
@@ -13,7 +12,7 @@ class MultiProjectWithBuildSrcSampleTest : AbstractSampleTest("multi-project-wit
     fun `multi-project-with-buildSrc`() {
         assertThat(
             build("hello").output,
-            containsString("""
+            containsMultiLineString("""
                 :hello
                 I'm ${testName.methodName}
                 :bluewhale:hello
@@ -24,6 +23,6 @@ class MultiProjectWithBuildSrcSampleTest : AbstractSampleTest("multi-project-wit
                 I'm krill
                 - I depend on water
                 - The weight of my species in summer is twice as heavy as all human beings.
-            """.trimTestIndent().toPlatformLineSeparators()))
+            """))
     }
 }
