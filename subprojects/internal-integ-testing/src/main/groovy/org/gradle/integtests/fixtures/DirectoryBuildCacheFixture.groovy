@@ -17,19 +17,14 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.SelfType
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Before
 
 import java.util.concurrent.TimeUnit
 
 @SelfType(AbstractIntegrationSpec)
-trait DirectoryBuildCacheFixture {
+trait DirectoryBuildCacheFixture extends BuildCacheFixture{
     private TestFile cacheDir
-
-    abstract TestNameTestDirectoryProvider getTemporaryFolder()
-    abstract GradleExecuter getExecuter()
 
     @Before
     void setupCacheDirectory() {
@@ -50,11 +45,6 @@ trait DirectoryBuildCacheFixture {
 
     TestFile getCacheDir() {
         cacheDir
-    }
-
-    AbstractIntegrationSpec withBuildCache() {
-        executer.withBuildCacheEnabled()
-        this
     }
 
     TestFile gcFile() {

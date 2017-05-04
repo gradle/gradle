@@ -112,15 +112,15 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             // there are errors.
             assemble.dependsOn customTask, anotherCustomTask
         """
-    }
 
-    def "cache switches off after third recoverable error for the current build"() {
         // We require a distribution here so that we can capture
         // the output produced after the build has finished
         executer.requireGradleDistribution()
         executer.withBuildCacheEnabled()
         executer.withStackTraceChecksDisabled()
+    }
 
+    def "cache switches off after third recoverable error for the current build"() {
         when:
         succeeds "assemble", "-Dfail", "-Drecoverable"
         then:
@@ -129,23 +129,16 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         output.count("The remote build cache is now disabled because 3 recoverable errors were encountered.") == 1
         output.count("The remote build cache was disabled during the build because 3 recoverable errors were encountered.") == 1
 
-        expect:
-        succeeds "clean"
-
         when:
-        succeeds "assemble"
-        then:
+        succeeds "clean", "assemble"
+
+        then: "build cache is still enabled during next build"
         !output.contains("The remote build cache is now disabled")
         !output.contains("The remote build cache was disabled during the build")
+        skippedTasks.empty
     }
 
     def "cache switches off after first non-recoverable error for the current build"() {
-        // We require a distribution here so that we can capture
-        // the output produced after the build has finished
-        executer.requireGradleDistribution()
-        executer.withBuildCacheEnabled()
-        executer.withStackTraceChecksDisabled()
-
         when:
         succeeds "assemble", "-Dfail"
         then:
@@ -154,13 +147,12 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         output.count("The remote build cache is now disabled because a non-recoverable error was encountered.") == 1
         output.count("The remote build cache was disabled during the build because a non-recoverable error was encountered.") == 1
 
-        expect:
-        succeeds "clean"
-
         when:
-        succeeds "assemble"
-        then:
+        succeeds "clean", "assemble"
+
+        then: "build cache is still enabled during next build"
         !output.contains("The remote build cache is now disabled")
         !output.contains("The remote build cache was disabled during the build")
+        skippedTasks.empty
     }
 }

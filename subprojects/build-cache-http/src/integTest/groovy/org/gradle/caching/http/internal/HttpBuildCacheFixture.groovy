@@ -18,17 +18,13 @@ package org.gradle.caching.http.internal
 
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.test.fixtures.server.http.HttpBuildCache
 import org.junit.Before
 import org.junit.Rule
 
 @SelfType(AbstractIntegrationSpec)
-trait HttpBuildCacheFixture {
-    abstract TestNameTestDirectoryProvider getTemporaryFolder()
-    abstract GradleExecuter getExecuter()
-
+trait HttpBuildCacheFixture extends BuildCacheFixture {
     private HttpBuildCache httpBuildCache
 
     @Rule
@@ -39,11 +35,6 @@ trait HttpBuildCacheFixture {
     @Before
     void createBuildCache() {
         httpBuildCache = new HttpBuildCache(temporaryFolder)
-    }
-
-    AbstractIntegrationSpec withHttpBuildCache() {
-        executer.withBuildCacheEnabled()
-        this
     }
 
     String useHttpBuildCache(URI uri) {

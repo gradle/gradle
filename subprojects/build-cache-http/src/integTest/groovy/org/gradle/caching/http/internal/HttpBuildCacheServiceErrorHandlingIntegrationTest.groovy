@@ -59,7 +59,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         when:
         executer.withStackTraceChecksDisabled()
         executer.withFullDeprecationStackTraceDisabled()
-        withHttpBuildCache().succeeds "customTask"
+        withBuildCache().succeeds "customTask"
         then:
         output ==~ /(?s).*org\.gradle\.api\.GradleException: Could not pack property 'outputFile': (Broken pipe|Connection reset).*/
     }

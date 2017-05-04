@@ -53,15 +53,15 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
 
     def "no task is re-executed when inputs are unchanged"() {
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
 
         expect:
-        withHttpBuildCache().succeeds "clean"
+        withBuildCache().succeeds "clean"
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
     }
@@ -71,34 +71,34 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
             apply plugin: "application"
             mainClassName = "Hello"
         """
-        withHttpBuildCache().run "run"
-        withHttpBuildCache().run "clean"
+        withBuildCache().run "run"
+        withBuildCache().run "clean"
         expect:
-        withHttpBuildCache().succeeds "run"
+        withBuildCache().succeeds "run"
     }
 
     def "tasks get cached when source code changes back to previous state"() {
         expect:
-        withHttpBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
-        withHttpBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
         then:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         result.assertTaskSkipped ":compileJava"
     }
 
     def "clean doesn't get cached"() {
-        withHttpBuildCache().run "assemble"
-        withHttpBuildCache().run "clean"
-        withHttpBuildCache().run "assemble"
+        withBuildCache().run "assemble"
+        withBuildCache().run "clean"
+        withBuildCache().run "assemble"
         when:
-        withHttpBuildCache().succeeds "clean"
+        withBuildCache().succeeds "clean"
         then:
         nonSkippedTasks.contains ":clean"
     }
@@ -108,11 +108,11 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
             compileJava.outputs.cacheIf { false }
         """
 
-        withHttpBuildCache().run "compileJava"
-        withHttpBuildCache().run "clean"
+        withBuildCache().run "compileJava"
+        withBuildCache().run "clean"
 
         when:
-        withHttpBuildCache().succeeds "compileJava"
+        withBuildCache().succeeds "compileJava"
         then:
         // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
         nonSkippedTasks.contains ":compileJava"
@@ -139,13 +139,13 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
 
         when:
-        withHttpBuildCache().run "jar"
+        withBuildCache().run "jar"
         then:
         nonSkippedTasks.contains ":customTask"
 
         when:
-        withHttpBuildCache().run "clean"
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().run "clean"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.contains ":customTask"
     }
@@ -162,16 +162,16 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
         httpBuildCache.authenticationAttempts == ['Basic'] as Set
 
         expect:
-        withHttpBuildCache().succeeds "clean"
+        withBuildCache().succeeds "clean"
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
         httpBuildCache.authenticationAttempts == ['Basic'] as Set
@@ -182,18 +182,18 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", "pass"))
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
         httpBuildCache.authenticationAttempts == ['None', 'Basic'] as Set
 
         expect:
-        withHttpBuildCache().succeeds "clean"
+        withBuildCache().succeeds "clean"
 
         when:
         httpBuildCache.reset()
         httpBuildCache.withBasicAuth("user", "pass")
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
         httpBuildCache.authenticationAttempts == ['None', 'Basic'] as Set
@@ -212,7 +212,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
         httpBuildCache.authenticationAttempts == ['Basic'] as Set
@@ -236,7 +236,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
 
         when:
         executer.withArgument("--info")
-        withHttpBuildCache().succeeds "assemble"
+        withBuildCache().succeeds "assemble"
         then:
         !result.output.contains("correct-username")
         !result.output.contains("correct-password")
@@ -254,7 +254,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
 
         when:
-        withHttpBuildCache().fails "jar"
+        withBuildCache().fails "jar"
         then:
         failureCauseContains "response status 401: Unauthorized"
         // Make sure we don't log the password
@@ -273,7 +273,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
 
         when:
         executer.withStackTraceChecksDisabled()
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
 
         then:
         output.contains("java.net.UnknownHostException: invalid.invalid")
