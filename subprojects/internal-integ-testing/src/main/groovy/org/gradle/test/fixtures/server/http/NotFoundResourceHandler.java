@@ -18,17 +18,29 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 
-abstract class TrackingHttpHandler {
-    /**
-     * Selects a resource handler to handle the given request. Returns null when this handler does not want to handle the request.
-     *
-     * This method is called under the state lock. The handler is _not_ called under the state lock. That is, the lock is held only while selecting how to handle the request.
-     *
-     * The method may block until the request is ready to be handled.
-     */
-    public abstract ResourceHandler handle(int id, HttpExchange exchange) throws Exception;
+import java.io.IOException;
 
-    public abstract boolean acceptsMethod(String method);
+public class NotFoundResourceHandler implements ResourceHandler, BlockingHttpServer.Resource {
+    private final String path;
 
-    public abstract void assertComplete();
+    public NotFoundResourceHandler(String path) {
+        this.path = removeLeadingSlash(path);
+    }
+
+    static String removeLeadingSlash(String path) {
+        if (path.startsWith("/")) {
+            return path.substring(1);
+        }
+        return path;
+    }
+
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    @Override
+    public void writeTo(HttpExchange exchange) throws IOException {
+        exchange.sendResponseHeaders(404, 0);
+    }
 }

@@ -53,6 +53,11 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     }
 
     @Override
+    public boolean acceptsMethod(String method) {
+        return "GET".equals(method);
+    }
+
+    @Override
     public ResourceHandler handle(int id, HttpExchange httpExchange) throws Exception {
         ResourceHandler handler;
         lock.lock();
