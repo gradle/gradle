@@ -48,27 +48,27 @@ public class CachingResourceHasher implements ResourceHasher {
 
     @Override
     public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        HashCode cacheKey = cacheKey(fileSnapshot);
+        HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshot);
 
-        HashCode hash = persistentCache.get(cacheKey);
-        if (hash != null) {
-            if (hash.equals(NO_HASH)) {
+        HashCode resourceHash = persistentCache.get(resourceHashCacheKey);
+        if (resourceHash != null) {
+            if (resourceHash.equals(NO_HASH)) {
                 return null;
             }
-            return hash;
+            return resourceHash;
         }
 
-        hash = delegate.hash(fileSnapshot);
+        resourceHash = delegate.hash(fileSnapshot);
 
-        if (hash != null) {
-            persistentCache.put(cacheKey, hash);
+        if (resourceHash != null) {
+            persistentCache.put(resourceHashCacheKey, resourceHash);
         } else {
-            persistentCache.put(cacheKey, NO_HASH);
+            persistentCache.put(resourceHashCacheKey, NO_HASH);
         }
-        return hash;
+        return resourceHash;
     }
 
-    private HashCode cacheKey(RegularFileSnapshot fileSnapshot) {
+    private HashCode resourceHashCacheKey(RegularFileSnapshot fileSnapshot) {
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putBytes(delegateImplementationHash);
         hasher.putBytes(fileSnapshot.getContent().getContentMd5().asBytes());
