@@ -17,12 +17,10 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.server.http.HttpBuildCache
-import org.junit.Rule
 import spock.lang.Timeout
 
 @Timeout(120)
-class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
+class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
 
     static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
@@ -39,9 +37,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-    @Rule
-    HttpBuildCache httpBuildCache = new HttpBuildCache(testDirectoryProvider)
-
     def setup() {
         httpBuildCache.start()
         settingsFile << useHttpBuildCache(httpBuildCache.uri)
@@ -53,20 +48,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD
         file("src/main/resources/resource.properties") << """
             test=true
-        """
-    }
-
-    private static String useHttpBuildCache(URI uri) {
-        """
-            buildCache {  
-                local {
-                    enabled = false
-                }
-                remote(org.gradle.caching.http.HttpBuildCache) {
-                    url = "${uri}/"   
-                    push = true
-                }
-            }
         """
     }
 
@@ -297,10 +278,5 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains("java.net.UnknownHostException: invalid.invalid")
         output.contains("The remote build cache is now disabled because a non-recoverable error was encountered")
-    }
-
-    def withHttpBuildCache() {
-        executer.withBuildCacheEnabled()
-        this
     }
 }

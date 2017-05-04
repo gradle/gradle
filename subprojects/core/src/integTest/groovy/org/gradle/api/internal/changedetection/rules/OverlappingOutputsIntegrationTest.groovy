@@ -18,11 +18,11 @@ package org.gradle.api.internal.changedetection.rules
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
         buildFile << """
             @CacheableTask

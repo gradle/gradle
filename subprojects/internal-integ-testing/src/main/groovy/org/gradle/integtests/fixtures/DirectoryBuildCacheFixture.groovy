@@ -25,7 +25,7 @@ import org.junit.Before
 import java.util.concurrent.TimeUnit
 
 @SelfType(AbstractIntegrationSpec)
-trait LocalBuildCacheFixture {
+trait DirectoryBuildCacheFixture {
     private TestFile cacheDir
 
     abstract TestNameTestDirectoryProvider getTemporaryFolder()

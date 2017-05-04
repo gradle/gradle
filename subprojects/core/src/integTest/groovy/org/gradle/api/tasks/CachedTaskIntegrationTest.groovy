@@ -17,10 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 
-class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
         buildFile << """
             @CacheableTask

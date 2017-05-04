@@ -17,11 +17,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import spock.lang.Unroll
 
 @Unroll
-class CacheKeyInputHashesReportingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class CacheKeyInputHashesReportingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def setup() {
         file('src/main/java/Some.java') << """

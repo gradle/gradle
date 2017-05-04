@@ -17,13 +17,8 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.server.http.HttpBuildCache
-import org.junit.Rule
 
-class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    HttpBuildCache httpBuildCache = new HttpBuildCache(testDirectoryProvider)
-
+class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
     def setup() {
         buildFile << """   
             import org.gradle.api.*
@@ -72,24 +67,5 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
     private void startServer() {
         httpBuildCache.start()
         settingsFile << useHttpBuildCache(httpBuildCache.uri)
-    }
-
-    private static String useHttpBuildCache(URI uri) {
-        """
-            buildCache {  
-                local {
-                    enabled = false
-                }
-                remote(org.gradle.caching.http.HttpBuildCache) {
-                    url = "${uri}/"   
-                    push = true
-                }
-            }
-        """
-    }
-
-    def withHttpBuildCache() {
-        executer.withBuildCacheEnabled()
-        this
     }
 }

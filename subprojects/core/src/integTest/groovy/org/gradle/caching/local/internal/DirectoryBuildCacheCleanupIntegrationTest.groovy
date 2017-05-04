@@ -17,14 +17,14 @@
 package org.gradle.caching.local.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
-class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     private final static int MAX_CACHE_SIZE = 5 // MB
     def setup() {
         settingsFile << """
