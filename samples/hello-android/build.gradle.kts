@@ -1,9 +1,6 @@
-import com.android.build.gradle.AppPlugin
 import com.android.builder.core.DefaultApiVersion
 import com.android.builder.core.DefaultProductFlavor
 import com.android.builder.model.ApiVersion
-
-import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 
 buildscript {
     repositories {
@@ -21,10 +18,9 @@ repositories {
     gradleScriptKotlin()
 }
 
-
 apply {
-    plugin<AppPlugin>()
-    plugin<KotlinAndroidPluginWrapper>()
+    plugin("com.android.application")
+    plugin("kotlin-android")
 }
 
 android {
