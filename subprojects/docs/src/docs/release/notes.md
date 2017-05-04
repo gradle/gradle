@@ -201,8 +201,8 @@ In projects that use multiple JVM languages (Java and Scala, Groovy and other la
 
 To return to the old behavior, explicitly set the classes directory:
 
-   // Change the output directory for the main source set back to the old path
-   sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
+    // Change the output directory for the main source set back to the old path
+    sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
 
 Please be aware that this will interfere with the effectiveness of the build cache when using multiple JVM languages in the same source set. Gradle will disable caching for tasks when it detects that multiple tasks create outputs in the same location.
 
@@ -210,17 +210,17 @@ Please be aware that this will interfere with the effectiveness of the build cac
 
 The default location of classes when using the `java`, `groovy` or `scala` plugin has changed from:
 
-   Java: build/classes/main
-   Groovy: build/classes/main
-   Scala: build/classes/main
-   Generically: build/classes/${sourceSet.name}
+    Java: build/classes/main
+    Groovy: build/classes/main
+    Scala: build/classes/main
+    Generically: build/classes/${sourceSet.name}
 
 to
 
-   Java: build/classes/java/main
-   Groovy: build/classes/groovy/main
-   Scala: build/classes/scala/main
-   Generically: build/classes/${sourceDirectorySet.name}/${sourceSet.name}
+    Java: build/classes/java/main
+    Groovy: build/classes/groovy/main
+    Scala: build/classes/scala/main
+    Generically: build/classes/${sourceDirectorySet.name}/${sourceSet.name}
 
 Plugins, tasks or builds that used hardcoded paths may fail. You can access the specific output directory for a particular language via [`SourceDirectorySet#outputDir`](dsl/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir) or the collection of all of the output directories with [`SourceSetOutput#getClassesDirs()`](dsl/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs).
 
