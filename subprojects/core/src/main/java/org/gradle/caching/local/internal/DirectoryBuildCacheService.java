@@ -49,7 +49,7 @@ public class DirectoryBuildCacheService implements BuildCacheService {
         this.fileStore = new PathKeyFileStore(baseDir);
         this.persistentCache = cacheRepository
             .cache(checkDirectory(baseDir))
-            .withCleanup(new BuildCacheCleanup(targetCacheSize))
+            .withCleanup(new DirectoryBuildCacheCleanup(targetCacheSize))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

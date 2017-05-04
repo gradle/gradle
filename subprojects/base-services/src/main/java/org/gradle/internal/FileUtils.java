@@ -121,7 +121,7 @@ public class FileUtils {
     }
 
     /**
-     * Canonializes the given file.
+     * Canonicalizes the given file.
      */
     public static File canonicalize(File src) {
         try {

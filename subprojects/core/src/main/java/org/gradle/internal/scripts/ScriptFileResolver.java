@@ -13,10 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.scripts;
 
-package org.gradle.caching.internal
+import java.io.File;
 
-import spock.lang.Specification
+/**
+ * Resolves script files according to available {@link org.gradle.scripts.ScriptingLanguage} providers.
+ *
+ * @since 4.0
+ */
+public interface ScriptFileResolver {
 
-class BuildCacheCleanupTest extends Specification {
+    /**
+     * Resolves a script file.
+     *
+     * @param dir the directory in which to search
+     * @param basename the base name of the script file, i.e. its file name excluding the extension
+     * @return the resolved script file present on disk, or {@literal null} if none were found
+     */
+    File resolveScriptFile(File dir, String basename);
 }

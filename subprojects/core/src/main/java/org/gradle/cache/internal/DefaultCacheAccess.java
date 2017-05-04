@@ -163,7 +163,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                         cleanupAction.cleanup();
                     }
                 } catch (Exception e) {
-                    // TODO: ignore?
+                    LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
                 }
             }
             if (fileLockHeldByOwner != null) {

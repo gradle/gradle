@@ -30,6 +30,7 @@ import java.util.Set;
  * @since 4.0
  */
 public final class CalculateTaskGraphDetails implements BuildOperationDetails<CalculateTaskGraphDetails.Result> {
+
     private final List<TaskExecutionRequest> taskRequests;
     private final Set<String> excludedTaskNames;
 
@@ -47,6 +48,7 @@ public final class CalculateTaskGraphDetails implements BuildOperationDetails<Ca
     }
 
     public static class Result {
+
         private final Set<String> requestedTaskPaths;
         private final Set<String> filteredTaskPaths;
 

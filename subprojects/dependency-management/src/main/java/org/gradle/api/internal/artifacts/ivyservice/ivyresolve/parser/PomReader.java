@@ -148,7 +148,7 @@ public class PomReader implements PomParent {
                     throw new MetaDataParseException("POM", resource, e);
                 }
             }
-        });
+        }).getResult();
         projectElement = pomDomDoc.getDocumentElement();
         if (!PROJECT.equals(projectElement.getNodeName()) && !MODEL.equals(projectElement.getNodeName())) {
             throw new SAXParseException("project must be the root tag", systemId, systemId, 0, 0);

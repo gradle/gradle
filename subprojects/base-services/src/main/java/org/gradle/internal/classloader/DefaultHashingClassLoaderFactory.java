@@ -22,13 +22,14 @@ import com.google.common.hash.Hashing;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory implements HashingClassLoaderFactory {
     private final ClasspathHasher classpathHasher;
-    private final Map<ClassLoader, HashCode> hashCodes = new WeakHashMap<ClassLoader, HashCode>();
+    private final Map<ClassLoader, HashCode> hashCodes = Collections.synchronizedMap(new WeakHashMap<ClassLoader, HashCode>());
 
     public DefaultHashingClassLoaderFactory(ClasspathHasher classpathHasher) {
         this.classpathHasher = classpathHasher;

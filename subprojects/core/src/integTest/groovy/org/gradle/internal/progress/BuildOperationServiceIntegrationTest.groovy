@@ -16,7 +16,56 @@
 
 package org.gradle.internal.progress
 
-class BuildOperationServiceIntegrationTest extends AbstractBuildOperationServiceIntegrationTest {
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
+
+    String operationListenerStartAction = "{p, e -> }"
+    String operationListenerFinishedAction = "{p, r -> }"
+
+    def setup() {
+        file("buildSrc/src/main/groovy/BuildOperationLogPlugin.groovy") << """
+        import org.gradle.internal.progress.* 
+        import org.gradle.api.Project
+        import org.gradle.api.Plugin
+        
+        class BuildOperationLogPlugin implements Plugin<Project> {
+            void apply(Project project){
+                project.ext.operStartAction = {p, e -> }
+                project.ext.operFinishedAction = {p, r -> }
+                def listener = new BuildOperationListener() {
+                    @Override
+                    void started(BuildOperationDescriptor operation, OperationStartEvent startEvent) {
+                        project.operStartAction(operation, startEvent)
+                    }
+        
+                    @Override
+                    void finished(BuildOperationDescriptor operation, OperationFinishEvent result) {
+                        project.operFinishedAction(operation, result)
+                    }
+                }
+                project.gradle.services.get(BuildOperationService).addListener(listener)
+                project.gradle.buildFinished {
+                    project.gradle.services.get(BuildOperationService).removeListener(listener)
+                }
+            }
+        }     
+        """
+
+        buildFile << """
+            apply plugin:BuildOperationLogPlugin
+        """
+
+        executer.beforeExecute {
+            buildFile << """
+            project.plugins.withType(BuildOperationLogPlugin){
+                operStartAction = $operationListenerStartAction
+                operFinishedAction = $operationListenerFinishedAction
+            
+            }
+            """
+        }
+    }
 
     def "plugin can listen to build operations events"() {
         given:

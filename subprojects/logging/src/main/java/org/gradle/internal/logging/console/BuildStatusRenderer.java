@@ -88,13 +88,13 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
-            if (completeEvent.getOperationId().equals(rootOperationId)) {
+            if (completeEvent.getProgressOperationId().equals(rootOperationId)) {
                 rootOperationId = null;
                 buildFinished(completeEvent);
             }
         } else if (event instanceof ProgressEvent) {
             ProgressEvent progressEvent = (ProgressEvent) event;
-            if (progressEvent.getOperationId().equals(rootOperationId)) {
+            if (progressEvent.getProgressOperationId().equals(rootOperationId)) {
                 buildProgressed(progressEvent);
             }
         } else if (event instanceof EndOutputEvent) {
