@@ -118,7 +118,7 @@ class CachingKotlinCompiler(
         parentClassLoader: ClassLoader,
         compilationSpecFor: (File) -> ScriptCompilationSpec): CompiledScript {
 
-        val cacheDir = cacheDirFor(cacheKeySpec + parentClassLoader) {
+        val cacheDir = cacheDirFor(cacheKeySpec + parentClassLoader + classPath) {
             val scriptClass =
                 compileScriptTo(classesDirOf(baseDir), compilationSpecFor(baseDir), classPath, parentClassLoader)
             writeClassNameTo(baseDir, scriptClass.name)
