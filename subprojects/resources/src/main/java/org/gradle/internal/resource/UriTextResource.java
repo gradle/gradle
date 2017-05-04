@@ -19,6 +19,7 @@ package org.gradle.internal.resource;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
@@ -43,21 +44,13 @@ public class UriTextResource implements TextResource {
 
     public UriTextResource(String description, File sourceFile) {
         this.description = description;
-        this.sourceFile = canonicalise(sourceFile);
+        this.sourceFile = FileUtils.canonicalize(sourceFile);
         this.sourceUri = sourceFile.toURI();
-    }
-
-    private File canonicalise(File file) {
-        try {
-            return file.getCanonicalFile();
-        } catch (IOException e) {
-            return file.getAbsoluteFile();
-        }
     }
 
     public UriTextResource(String description, URI sourceUri) {
         this.description = description;
-        this.sourceFile = sourceUri.getScheme().equals("file") ? canonicalise(new File(sourceUri.getPath())) : null;
+        this.sourceFile = sourceUri.getScheme().equals("file") ? FileUtils.canonicalize(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
     }
 
