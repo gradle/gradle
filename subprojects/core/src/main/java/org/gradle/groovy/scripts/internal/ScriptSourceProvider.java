@@ -34,7 +34,7 @@ public class ScriptSourceProvider {
     public ScriptSource from(URI scriptUri) {
         for (String supportedSchema : SUPPORTED_SCHEMAS) {
             if (supportedSchema.equalsIgnoreCase(scriptUri.getScheme())) {
-                return new UriScriptSource("cached-script", uriTextResourceLoader.getResource(scriptUri).getFile());
+                return new UriScriptSource(uriTextResourceLoader.getResource(scriptUri));
             }
         }
 
