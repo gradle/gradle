@@ -18,14 +18,17 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.logging.LoggingOutputInternal;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressEvent;
+import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
-import org.gradle.internal.logging.LoggingOutputInternal;
-import org.gradle.internal.logging.events.OutputEvent;
-import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -76,9 +79,17 @@ public class LogToClient extends BuildCommandOnly {
             this.connection = conn;
             this.listener = new OutputEventListener() {
                 public void onOutput(OutputEvent event) {
-                    if (dispatcher != null && event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
+                    if (dispatcher != null && (isMatchingBuildLogLevel(event) || isProgressEvent(event))) {
                         dispatcher.submit(event);
                     }
+                }
+
+                private boolean isProgressEvent(OutputEvent event) {
+                    return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
+                }
+
+                private boolean isMatchingBuildLogLevel(OutputEvent event) {
+                    return event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0;
                 }
             };
             LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);

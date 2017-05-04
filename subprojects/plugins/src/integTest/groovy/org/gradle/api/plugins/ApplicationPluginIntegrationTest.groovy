@@ -520,13 +520,13 @@ rootProject.name = 'sample'
         succeeds("startScripts")
 
         then:
-        !result.skippedTasks.contains(":startScripts")
+        nonSkippedTasks.contains(":startScripts")
 
         and:
         succeeds("startScripts")
 
         then:
-        result.skippedTasks.contains(":startScripts")
+        skippedTasks.contains(":startScripts")
     }
 
     def "up-to-date if only the content change"() {
@@ -538,6 +538,6 @@ rootProject.name = 'sample'
         succeeds("startScripts")
 
         then:
-        result.skippedTasks.contains(":startScripts")
+        skippedTasks.contains(":startScripts")
     }
 }

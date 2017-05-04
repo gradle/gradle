@@ -26,6 +26,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
+import spock.lang.Unroll
 
 class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -170,6 +171,30 @@ class OutputEventRendererTest extends OutputSpecification {
         then:
         1 * listener.onOutput(event)
         0 * listener._
+    }
+
+    @Unroll("forward progress events to listener for #logLevel log level")
+    def forwardsProgressEventsToListenerRegardlessOfTheLogLevel() {
+        OutputEventListener listener = Mock()
+        def start = start('start')
+        def progress = progress('progress')
+        def complete = complete('complete')
+
+        when:
+        renderer.configure(logLevel)
+        renderer.addOutputEventListener(listener)
+        renderer.onOutput(start)
+        renderer.onOutput(progress)
+        renderer.onOutput(complete)
+
+        then:
+        1 * listener.onOutput(start)
+        1 * listener.onOutput(progress)
+        1 * listener.onOutput(complete)
+        0 * listener._
+
+        where:
+        logLevel << [LogLevel.ERROR, LogLevel.QUIET, LogLevel.WARN, LogLevel.LIFECYCLE, LogLevel.INFO, LogLevel.DEBUG]
     }
 
     def doesNotForwardOutputEventsToRemovedListener() {
