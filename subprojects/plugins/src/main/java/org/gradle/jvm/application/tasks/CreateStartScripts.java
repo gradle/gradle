@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.application.tasks;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
@@ -34,6 +36,8 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Creates start scripts for launching JVM applications.
@@ -275,13 +279,13 @@ public class CreateStartScripts extends ConventionTask {
     }
 
     @Input
-    private Iterable<String> getRelativeClasspath() {
-        return CollectionUtils.collect(getClasspath().getFiles(), new Transformer<String, File>() {
+    private List<String> getRelativeClasspath() {
+        return Lists.newArrayList(Iterables.transform(getClasspath().getFiles(), new Function<File, String>() {
             @Override
-            public String transform(File input) {
+            public String apply(File input) {
                 return "lib/" + input.getName();
             }
-        });
+        }));
     }
 
 }
