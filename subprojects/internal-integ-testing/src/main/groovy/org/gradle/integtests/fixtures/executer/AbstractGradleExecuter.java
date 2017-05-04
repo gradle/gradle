@@ -789,7 +789,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * @param args Arguments
      */
     private void prependLifecycleLogLevel(List<String> args) {
-        if (lifecycle && gradleVersion.getBaseVersion().getVersion().startsWith("4")) {
+        if (lifecycle && gradleVersion.isSameOrNewer("4.0")) {
             args.add(0, "-l");
         }
     }

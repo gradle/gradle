@@ -159,7 +159,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     }
 
     private List<String> prepareArguments(GradleVersion targetGradleVersion, List<String> userProvidedBuildArgs) {
-        if (targetGradleVersion.getBaseVersion().getVersion().startsWith("4")) {
+        if (targetGradleVersion.isSameOrNewer("4.0")) {
             List<String> modifiedBuildArgs = new ArrayList<String>(userProvidedBuildArgs);
             modifiedBuildArgs.add(0, "-l");
             return Collections.unmodifiableList(modifiedBuildArgs);
