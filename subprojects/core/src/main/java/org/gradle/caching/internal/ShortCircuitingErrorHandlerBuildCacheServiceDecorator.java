@@ -77,7 +77,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
                 // Assume its OK to not push anything.
             } catch (Exception e) {
                 LOGGER.warn(COULD_NOT_STORE_ENTRY_IN_BUILD_CACHE_LOG_MESSAGE, key, getRole(), e);
-                disableBuildCache("a fatal error was encountered");
+                disableBuildCache("a non-recoverable error was encountered.");
             }
         }
     }
@@ -96,7 +96,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
 
     private void recordFailure() {
         if (remainingErrorCount.decrementAndGet() <= 0) {
-            disableBuildCache("{} recoverable errors were encountered");
+            disableBuildCache("{} recoverable errors were encountered.");
         }
     }
 

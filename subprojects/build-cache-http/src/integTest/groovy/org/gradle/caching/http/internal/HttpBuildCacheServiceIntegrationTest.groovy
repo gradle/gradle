@@ -296,7 +296,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("java.net.UnknownHostException: invalid.invalid")
-        output.contains("The remote build cache is now disabled because a fatal error was encountered")
+        output.contains("The remote build cache is now disabled because a non-recoverable error was encountered")
     }
 
     def withHttpBuildCache() {
