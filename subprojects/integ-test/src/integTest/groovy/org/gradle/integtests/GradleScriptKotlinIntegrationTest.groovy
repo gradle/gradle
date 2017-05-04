@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
@@ -86,6 +87,55 @@ class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'tasks'
 
         result.output.contains("from applied")
+    }
+
+    @NotYetImplemented
+    def 'can apply gradle.kts from url'() {
+        given:
+        HttpServer server = new HttpServer()
+        server.start()
+        def scriptFile = file("script.gradle.kts")
+        scriptFile.setText("""
+tasks {
+
+    val hello by creating { // refactor friendly task definition
+        doLast { println("Hello!") }
+    }
+
+    "goodbye" {
+        dependsOn(hello)  // dependsOn task reference
+        doLast { println("Goodbye!") }
+    }
+
+    "chat" {
+        dependsOn("goodbye") // dependsOn task name
+    }
+
+    "mixItUp" {
+        dependsOn(hello, "goodbye")
+    }
+}
+
+defaultTasks("chat")""", "UTF-8")
+        server.expectGet('/script.gradle.kts', scriptFile)
+
+        buildFile << """apply { from("http://localhost:${server.port}/script.gradle.kts") }"""
+
+        when:
+        run 'hello'
+
+        then:
+        result.output.contains("Hello!")
+
+        and:
+        when:
+        server.stop()
+
+        then:
+        args("--offline")
+        succeeds 'hello'
+
+        result.output.contains("Hello!")
     }
 
     def 'can query KotlinBuildScriptModel'() {
