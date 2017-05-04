@@ -644,4 +644,38 @@ task someTask(dependsOn: [someDep, someOtherDep])
         then:
         thrown(CircularReferenceException)
     }
+
+    def "produces a sensible error when a task declares both outputs and destroys"() {
+        buildFile << """
+            task a {
+                outputs.file('foo')
+                destroyables.file('bar')
+            }
+        """
+        file('foo') << 'foo'
+        file('bar') << 'bar'
+
+        when:
+        fails 'a'
+
+        then:
+        failure.assertHasDescription('Task :a has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.')
+    }
+
+    def "produces a sensible error when a task declares both inputs and destroys"() {
+        buildFile << """
+            task a {
+                inputs.file('foo')
+                destroyables.file('bar')
+            }
+        """
+        file('foo') << 'foo'
+        file('bar') << 'bar'
+
+        when:
+        fails 'a'
+
+        then:
+        failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
+    }
 }

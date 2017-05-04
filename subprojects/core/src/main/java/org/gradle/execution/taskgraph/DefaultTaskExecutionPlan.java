@@ -105,7 +105,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final BuildCancellationToken cancellationToken;
     private final Set<TaskInfo> runningTasks = Sets.newIdentityHashSet();
     private final Set<Task> filteredTasks = Sets.newIdentityHashSet();
-    private final Map<TaskInfo, TaskFileInfo> taskFileInfos = Maps.newIdentityHashMap();
+    private final Map<TaskInfo, TaskMutationInfo> taskMutations = Maps.newIdentityHashMap();
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<TaskInfo, TaskInfo>, Boolean> reachableCache = Maps.newHashMap();
     private final ResourceLockCoordinationService coordinationService;
@@ -325,17 +325,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 Project project = taskNode.getTask().getProject();
                 projectLocks.put(project, getOrCreateProjectLock(project));
 
-                if (!taskFileInfos.containsKey(taskNode)) {
-                    taskFileInfos.put(taskNode, new TaskFileInfo(taskNode));
-                }
+                getOrCreateMutationsOf(taskNode);
 
                 for (TaskInfo dependency : taskNode.getDependencySuccessors()) {
-                    TaskFileInfo dependencyOutputs = taskFileInfos.get(dependency);
-                    if (dependencyOutputs == null) {
-                        dependencyOutputs = new TaskFileInfo(taskNode);
-                        taskFileInfos.put(dependency, dependencyOutputs);
-                    }
-                    dependencyOutputs.consumingTasks.add(taskNode);
+                    getOrCreateMutationsOf(dependency).consumingTasks.add(taskNode);
                 }
 
                 // Add any finalizers to the queue
@@ -351,6 +344,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         executionQueue.clear();
         executionQueue.addAll(executionPlan.values());
 
+    }
+
+    private TaskMutationInfo getOrCreateMutationsOf(TaskInfo taskInfo) {
+        TaskMutationInfo mutations = taskMutations.get(taskInfo);
+        if (mutations == null) {
+            mutations = new TaskMutationInfo(taskInfo);
+            taskMutations.put(taskInfo, mutations);
+        }
+        return mutations;
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
@@ -497,7 +499,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 executionQueue.clear();
                 projectLocks.clear();
                 failures.clear();
-                taskFileInfos.clear();
+                taskMutations.clear();
                 canonicalizedFileCache.clear();
                 reachableCache.clear();
                 runningTasks.clear();
@@ -545,7 +547,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     return RETRY;
                 }
 
-                selected.set(selectNextTask(workerLease));
+                try {
+                    selected.set(selectNextTask(workerLease));
+                } catch (Throwable t) {
+                    abortAndFail(t);
+                    workRemaining.set(false);
+                }
 
                 if (selected.get() == null && workRemaining.get()) {
                     return RETRY;
@@ -577,13 +584,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         }
 
                         selected.set(taskInfo);
-                        iterator.remove();
                         if (taskInfo.allDependenciesSuccessful()) {
-                            taskInfo.startExecution();
                             recordTaskStarted(taskInfo);
+                            taskInfo.startExecution();
                         } else {
                             taskInfo.skipExecution();
                         }
+                        iterator.remove();
                         return FINISHED;
                     }
                 });
@@ -631,13 +638,27 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
 
-        Pair<TaskInfo, String> overlap = firstTaskWithOverlappingOutput(taskInfo);
-        if (overlap != null) {
-            LOGGER.info("Cannot execute task {} in parallel with task {} due to overlapping output: {}", task.getPath(), overlap.left.getTask().getPath(), overlap.right);
-            return false;
+        Set<String> candidateTaskDestroyables = getDestroyablePaths(taskInfo);
+
+        if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getOutputs().getFileProperties().isEmpty()) {
+            throw new IllegalStateException("Task " + taskInfo.getTask().getPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
         }
 
-        overlap = firstTaskWithDestroyedIntermediateInput(taskInfo);
+        if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getInputs().getFileProperties().isEmpty()) {
+            throw new IllegalStateException("Task " + taskInfo.getTask().getPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
+        }
+
+        if (!runningTasks.isEmpty()) {
+            Set<String> candidateTaskOutputs = getOutputPaths(taskInfo);
+            Set<String> candidateTaskMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
+            Pair<TaskInfo, String> overlap = firstRunningTaskWithOverlappingMutations(candidateTaskMutations);
+            if (overlap != null) {
+                LOGGER.info("Cannot execute task {} in parallel with task {} due to overlapping output: {}", task.getPath(), overlap.left.getTask().getPath(), overlap.right);
+                return false;
+            }
+        }
+
+        Pair<TaskInfo, String> overlap = firstTaskWithDestroyedIntermediateInput(taskInfo, candidateTaskDestroyables);
         if (overlap != null) {
             if (runningTasks.contains(overlap.left)) {
                 LOGGER.info("Cannot execute task {} in parallel with task {} due to overlapping input/destroy: {}", task.getPath(), overlap.left.getTask().getPath(), overlap.right);
@@ -650,7 +671,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return true;
     }
 
-    private Set<String> canonicalizedPaths(final Map<File, String> cache, FileCollection files, TaskInternal task) {
+    private Set<String> canonicalizedPaths(final Map<File, String> cache, FileCollection files) {
         Function<File, String> canonicalize = new Function<File, String>() {
             @Override
             public String apply(File file) {
@@ -671,18 +692,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Nullable
-    private Pair<TaskInfo, String> firstTaskWithOverlappingOutput(TaskInfo candidateTask) {
-        if (runningTasks.isEmpty()) {
-            return null;
-        }
-
-        Set<String> candidateTaskOutputs = getOutputPaths(candidateTask);
-        for (TaskInfo runningTask : runningTasks) {
-            TaskFileInfo taskFileInfo = taskFileInfos.get(runningTask);
-            Iterable<String> runningTaskOutputs = Iterables.concat(taskFileInfo.outputPaths, taskFileInfo.destroyPaths);
-            String firstOverlap = findFirstOverlap(candidateTaskOutputs, runningTaskOutputs);
-            if (firstOverlap != null) {
-                return Pair.of(runningTask, firstOverlap);
+    private Pair<TaskInfo, String> firstRunningTaskWithOverlappingMutations(Set<String> candidateTaskMutations) {
+        if (!candidateTaskMutations.isEmpty()) {
+            for (TaskInfo runningTask : runningTasks) {
+                TaskMutationInfo taskMutationInfo = taskMutations.get(runningTask);
+                Iterable<String> runningTaskMutations = Iterables.concat(taskMutationInfo.outputPaths, taskMutationInfo.destroyablePaths);
+                String firstOverlap = findFirstOverlap(candidateTaskMutations, runningTaskMutations);
+                if (firstOverlap != null) {
+                    return Pair.of(runningTask, firstOverlap);
+                }
             }
         }
 
@@ -690,19 +708,20 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Nullable
-    private Pair<TaskInfo, String> firstTaskWithDestroyedIntermediateInput(final TaskInfo taskInfo) {
-        Set<String> destroyPaths = getDestroyPaths(taskInfo.getTask());
-        if (!destroyPaths.isEmpty()) {
-            Iterator<TaskFileInfo> iterator = taskFileInfos.values().iterator();
+    private Pair<TaskInfo, String> firstTaskWithDestroyedIntermediateInput(final TaskInfo taskInfo, Set<String> destroyablePaths) {
+        if (!destroyablePaths.isEmpty()) {
+            Iterator<TaskMutationInfo> iterator = taskMutations.values().iterator();
             while (iterator.hasNext()) {
-                TaskFileInfo taskFileInfo = iterator.next();
-                if (taskFileInfo.producerTask.isComplete()) {
-                    if (taskFileInfo.consumingTasks.isEmpty()) {
-                        iterator.remove();
+                TaskMutationInfo taskMutationInfo = iterator.next();
+                if (taskMutationInfo.producerTask.isComplete()) {
+                    if (taskMutationInfo.consumingTasks.isEmpty()) {
+                        // If the task is complete and has no more consuming tasks, then we no
+                        // longer need to consider it.
+                        continue;
                     } else {
-                        String firstOverlap = findFirstOverlap(destroyPaths, taskFileInfo.outputPaths);
+                        String firstOverlap = findFirstOverlap(destroyablePaths, taskMutationInfo.outputPaths);
                         if (firstOverlap != null) {
-                            for (TaskInfo consumingTask : taskFileInfo.consumingTasks) {
+                            for (TaskInfo consumingTask : taskMutationInfo.consumingTasks) {
                                 if (consumingTask != taskInfo && !isReachableFrom(consumingTask, taskInfo)) {
                                     return Pair.of(consumingTask, firstOverlap);
                                 }
@@ -750,13 +769,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private Set<String> getOutputPaths(TaskInfo task) {
-        Set<String> outputPaths = Sets.newHashSet(canonicalizedPaths(canonicalizedFileCache, task.getTask().getOutputs().getFiles(), task.getTask()));
-        outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, task.getTask().getDestroys().getFiles(), task.getTask()));
-        return outputPaths;
+        return canonicalizedPaths(canonicalizedFileCache, task.getTask().getOutputs().getFiles());
     }
 
-    private Set<String> getDestroyPaths(TaskInternal task) {
-        return canonicalizedPaths(canonicalizedFileCache, task.getDestroys().getFiles(), task);
+    private Set<String> getDestroyablePaths(TaskInfo task) {
+        return canonicalizedPaths(canonicalizedFileCache, task.getTask().getDestroys().getFiles());
     }
 
     private boolean pathsOverlap(String firstPath, String secondPath) {
@@ -778,15 +795,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void recordTaskStarted(TaskInfo taskInfo) {
         runningTasks.add(taskInfo);
-        TaskFileInfo taskFileInfo = taskFileInfos.get(taskInfo);
-        taskFileInfo.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, taskInfo.getTask().getOutputs().getFiles(), taskInfo.getTask()));
-        taskFileInfo.destroyPaths.addAll(canonicalizedPaths(canonicalizedFileCache, taskInfo.getTask().getDestroys().getFiles(), taskInfo.getTask()));
+        TaskMutationInfo taskMutationInfo = taskMutations.get(taskInfo);
+        taskMutationInfo.outputPaths.addAll(getOutputPaths(taskInfo));
+        taskMutationInfo.destroyablePaths.addAll(getDestroyablePaths(taskInfo));
     }
 
     private void recordTaskCompleted(TaskInfo taskInfo) {
         runningTasks.remove(taskInfo);
-        for (TaskFileInfo taskFileInfo : taskFileInfos.values()) {
-            taskFileInfo.consumingTasks.remove(taskInfo);
+        for (TaskMutationInfo taskMutationInfo : taskMutations.values()) {
+            taskMutationInfo.consumingTasks.remove(taskInfo);
         }
     }
 
@@ -830,6 +847,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
             }
         }
+    }
+
+    private void abortAndFail(Throwable t) {
+        abortExecution();
+        this.failures.add(t);
     }
 
     private void handleFailure(TaskInfo taskInfo) {
@@ -937,13 +959,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private static class TaskFileInfo {
+    private static class TaskMutationInfo {
         final TaskInfo producerTask;
         final Set<TaskInfo> consumingTasks = Sets.newHashSet();
         final Set<String> outputPaths = Sets.newHashSet();
-        final Set<String> destroyPaths = Sets.newHashSet();
+        final Set<String> destroyablePaths = Sets.newHashSet();
 
-        TaskFileInfo(TaskInfo producerTask) {
+        TaskMutationInfo(TaskInfo producerTask) {
             this.producerTask = producerTask;
         }
     }
