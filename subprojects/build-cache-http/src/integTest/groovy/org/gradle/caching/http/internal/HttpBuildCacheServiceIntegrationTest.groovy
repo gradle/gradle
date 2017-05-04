@@ -275,7 +275,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         when:
         withHttpBuildCache().fails "jar"
         then:
-        failureDescriptionContains "response status 401: Unauthorized"
+        failureCauseContains "response status 401: Unauthorized"
         // Make sure we don't log the password
         !output.contains("incorrect-pass")
         !errorOutput.contains("incorrect-pass")

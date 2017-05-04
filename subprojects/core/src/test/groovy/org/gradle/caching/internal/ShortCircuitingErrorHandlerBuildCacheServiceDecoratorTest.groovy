@@ -16,13 +16,13 @@
 
 package org.gradle.caching.internal
 
+import org.gradle.api.GradleException
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Specification {
     def key = Mock(BuildCacheKey)
@@ -36,20 +36,19 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Specific
         return decorator
     }
 
-    @Unroll
     def "does not suppress exceptions from load"() {
         given:
-        delegate.load(key, reader) >> { throw new Exception() }
+        delegate.load(key, reader) >> { throw new RuntimeException() }
         when:
         decorator.load(key, reader)
         then:
-        thrown(Exception.class)
+        def exception = thrown(GradleException.class)
+        exception.message.contains key.toString()
     }
 
-    @Unroll
     def "does suppress exceptions from store"() {
         given:
-        delegate.store(key, writer) >> { throw new Exception() }
+        delegate.store(key, writer) >> { throw new RuntimeException() }
         when:
         decorator.store(key, writer)
         then:

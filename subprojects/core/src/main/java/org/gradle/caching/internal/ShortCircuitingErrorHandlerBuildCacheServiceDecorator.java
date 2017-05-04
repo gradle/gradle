@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -60,6 +61,8 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
                 LOGGER.warn("Could not load entry {} from {} build cache", key, getRole(), e);
                 recordFailure();
                 // Assume cache didn't have it.
+            } catch (RuntimeException e) {
+                throw new GradleException("Could not load entry " + key + " from " + getRole() + " build cache", e);
             }
         }
         return false;
