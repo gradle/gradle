@@ -1,2 +1,1 @@
 rootProject.name = 'gradle-script-kotlin'
-rootProject.buildFileName = 'build.gradle.kts'
