@@ -236,6 +236,25 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Cannot execute task :bPing in parallel with task :aPing due to overlapping output: ${file("dir")}"
     }
 
+    def "tasks are not run in parallel if destroy files overlap with output files in multiproject build"() {
+        given:
+        withParallelThreads(2)
+        buildFile << """
+            project(':a') { aPing.destroyables.file rootProject.file("dir") }
+        
+            project(':b') { bPing.outputs.file rootProject.file("dir") }
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":a:aPing")
+        blockingServer.expectConcurrentExecution(":b:bPing")
+
+        run ":a:aPing", ":b:bPing"
+
+        and:
+        output.contains "Cannot execute task :b:bPing in parallel with task :a:aPing due to overlapping output: ${file("dir")}"
+    }
+
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first)"() {
         given:
         withParallelThreads(2)
@@ -287,6 +306,35 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains "Cannot execute task :aPing in parallel with task :cPing due to overlapping input/destroy: ${file("foo")}"
+    }
+
+    def "tasks are not run in parallel if destroy files overlap with input files (destroy first) in multi-project build"() {
+        given:
+        withParallelThreads(2)
+
+        buildFile << """
+            project(':a') { 
+                aPing.destroyables.file rootProject.file("foo")
+                
+                bPing.outputs.file rootProject.file("foo")
+                bPing.doLast { rootProject.file("foo") << "foo" }
+            }
+        
+            project(':b') {
+                cPing.inputs.file rootProject.file("foo")
+                cPing.dependsOn ":a:bPing"
+            }
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(":a:aPing")
+        blockingServer.expectConcurrentExecution(":a:bPing")
+        blockingServer.expectConcurrentExecution(":b:cPing")
+
+        run ":a:aPing", ":b:cPing"
+
+        and:
+        output.contains "Cannot execute task :a:bPing in parallel with task :a:aPing due to overlapping output: ${file("foo")}"
     }
 
     def "explicit task dependency relationships are honored even if it violates destroys/creates/consumes relationships"() {

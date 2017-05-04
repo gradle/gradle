@@ -18,6 +18,8 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
+
 class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
     def "delete task removes specified files"() {
         file('foo') << "foo"
@@ -65,5 +67,45 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "clean"
+    }
+
+    def "clean build and build clean work reliably"() {
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'java'
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """
+
+        file("a/src/main/java/Foo.java") << "public class Foo {}"
+        file("b/src/main/java/Bar.java") << "public class Bar extends Foo {}"
+
+        when:
+        args "--parallel"
+        succeeds 'clean', 'build'
+
+        then:
+        result.assertTaskOrder(
+            any(
+                exact(':a:clean', ':a:compileJava'),
+                exact(':b:clean', ':b:compileJava'),
+                exact(':a:compileJava', ':b:compileJava')
+            )
+        )
+
+        when:
+        args "--parallel"
+        succeeds 'build', 'clean'
+
+        then:
+        result.assertTaskOrder(
+            exact(':a:compileJava', ':b:compileJava'),
+            any(':a:clean', ':b:clean')
+        )
     }
 }
