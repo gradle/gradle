@@ -248,21 +248,26 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
                 doLast {
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
+                    if ('${nextLevel}') {
+                        assert !logger.${nextLevel}Enabled
+                    }
                 }
             }
         """
         expect:
-        executer.withArguments(flags)
+        executer.withArguments(flags).withCommandLineGradleOpts(gradleOpts)
         succeeds("assertLogging")
         outputContains(message)
 
         where:
-        logLevel | flags
-        'quiet'          | ['-Dorg.gradle.logging.level=quiet']
-        'warn'           | ['-Dorg.gradle.logging.level=warn']
-        'lifecycle'      | ['-Dorg.gradle.logging.level=LifeCycle']
-        'info'           | ['-Dorg.gradle.logging.level=Info']
-        'debug'          | ['-Dorg.gradle.logging.level=DEBUG']
-        'info'           | ['-Dorg.gradle.logging.level=quiet', '--warn', '-i']
+        logLevel    | nextLevel     | flags                                                 | gradleOpts
+        'quiet'     | 'warn'        | []                                                    | '-Dorg.gradle.logging.level=quiet'
+        'warn'      | 'lifecycle'   | ['-Dorg.gradle.logging.level=warn']                   | ''
+        'lifecycle' | 'info'        | ['-Dorg.gradle.logging.level=LifeCycle']              | ''
+        'info'      | 'debug'       | ['-Dorg.gradle.logging.level=Info']                   | ''
+        'debug'     | ''            | ['-Dorg.gradle.logging.level=DEBUG']                  | ''
+        'info'      | 'debug'       | ['--info', '-Dorg.gradle.logging.level=quiet']        | ''
+        'info'      | 'debug'       | ['-Dorg.gradle.logging.level=quiet', '--warn', '-i']  | '-Dorg.gradle.logging.level=lifecycle'
+        'info'      | 'debug'       | ['-Dorg.gradle.logging.level=info']                   | '-Dorg.gradle.logging.level=quiet'
     }
 }
