@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
 import spock.lang.Issue
 
@@ -58,6 +59,33 @@ class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.output.contains('it works!')
+    }
+
+    def 'can apply from url'() {
+        given:
+        HttpServer server = new HttpServer()
+        server.start()
+        def scriptFile = file("script.gradle")
+        scriptFile.setText("""println 'from applied'""", "UTF-8")
+        server.expectGet('/script.gradle', scriptFile)
+
+        buildFile << """apply { from("http://localhost:${server.port}/script.gradle") }"""
+
+        when:
+        run 'tasks'
+
+        then:
+        result.output.contains("from applied")
+
+        and:
+        when:
+        server.stop()
+
+        then:
+        args("--offline")
+        succeeds 'tasks'
+
+        result.output.contains("from applied")
     }
 
     def 'can query KotlinBuildScriptModel'() {
