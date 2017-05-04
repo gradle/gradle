@@ -22,6 +22,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FixedSizeOldestCacheCleanup;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -50,7 +51,7 @@ public class DirectoryBuildCacheService implements BuildCacheService {
         this.fileStore = new PathKeyFileStore(baseDir);
         this.persistentCache = cacheRepository
             .cache(checkDirectory(baseDir))
-            .withCleanup(new DirectoryBuildCacheCleanup(buildOperationExecutor, targetCacheSize))
+            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetCacheSize))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

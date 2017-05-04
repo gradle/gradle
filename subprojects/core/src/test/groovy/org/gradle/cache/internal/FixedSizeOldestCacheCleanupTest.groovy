@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.local.internal
+package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentCache
 import org.gradle.internal.progress.TestBuildOperationExecutor
@@ -23,12 +23,12 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Subject(DirectoryBuildCacheCleanup)
-class DirectoryBuildCacheCleanupTest extends Specification {
+@Subject(FixedSizeOldestCacheCleanup)
+class FixedSizeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new DirectoryBuildCacheCleanup(new TestBuildOperationExecutor(),10)
+    def cleanupAction = new FixedSizeOldestCacheCleanup(new TestBuildOperationExecutor(),10)
 
     def "filters for cache entry files"() {
         expect:

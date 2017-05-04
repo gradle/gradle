@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.local.internal;
+package org.gradle.cache.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -35,8 +35,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
-    private static final Logger LOGGER = Logging.getLogger(DirectoryBuildCacheCleanup.class);
+public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache> {
+    private static final Logger LOGGER = Logging.getLogger(FixedSizeOldestCacheCleanup.class);
     private static final Comparator<File> NEWEST_FIRST = new Comparator<File>() {
         @Override
         public int compare(File o1, File o2) {
@@ -48,7 +48,7 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
     private final BuildOperationExecutor buildOperationExecutor;
     private final long targetSizeInMB;
 
-    DirectoryBuildCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB) {
+    public FixedSizeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.targetSizeInMB = targetSizeInMB;
     }
@@ -130,6 +130,7 @@ final class DirectoryBuildCacheCleanup implements Action<PersistentCache> {
     }
 
     File[] findEligibleFiles(File cacheDir) {
+        // TODO: This doesn't descend subdirectories.
         return cacheDir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
