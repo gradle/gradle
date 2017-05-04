@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GUtil
-import spock.lang.Ignore
 
 import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.*
 
@@ -32,7 +31,6 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Ignore
     def "fails the task for null plugin classpath and output directory"() {
         given:
         buildFile << """
@@ -81,7 +79,6 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         file("build/some/other/$METADATA_FILE_NAME").exists()
     }
 
-    @Ignore
     def "hash changes when plugin classpath changes"() {
         given:
         buildFile << """
@@ -150,25 +147,6 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         succeeds TASK_NAME
-
-        then:
-        skipped(":$TASK_NAME")
-    }
-
-    def "up-to-date if only the content change"() {
-        given:
-        buildFile << """
-            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = sourceSets.main.runtimeClasspath
-                outputDirectory = file('build/$TASK_NAME')
-            }
-        """
-        file("src/main/java/Thing.java") << "class Thing { int foo; }"
-        succeeds TASK_NAME
-
-        when:
-        file("src/main/java/Thing.java").text = "class Thing { int bar; }"
-        succeeds(TASK_NAME)
 
         then:
         skipped(":$TASK_NAME")
