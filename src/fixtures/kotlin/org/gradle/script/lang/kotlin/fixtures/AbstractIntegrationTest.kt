@@ -6,6 +6,7 @@ import org.gradle.testkit.runner.GradleRunner
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.junit.rules.TestName
 import java.io.File
 
 internal
@@ -14,11 +15,14 @@ val isCI by lazy { !System.getenv("CI").isNullOrEmpty() }
 open class AbstractIntegrationTest {
 
     @JvmField
-    @Rule val projectDir = TemporaryFolder()
+    @Rule val testName = TestName()
+
+    @JvmField
+    @Rule val temporaryFolder = TemporaryFolder()
 
     protected
     val projectRoot: File
-        get() = projectDir.root
+        get() = File(temporaryFolder.root, testName.methodName).apply { mkdirs() }
 
     protected
     fun withBuildScript(script: String, produceFile: (String) -> File = this::newFile): File =
@@ -75,7 +79,7 @@ open class AbstractIntegrationTest {
     protected
     fun newFile(fileName: String): File {
         makeParentFoldersOf(fileName)
-        return projectDir.newFile(fileName).canonicalFile
+        return File(projectRoot, fileName).canonicalFile.apply { createNewFile() }
     }
 
     protected

@@ -15,7 +15,7 @@ class MultiProjectWithBuildSrcSampleTest : AbstractSampleTest("multi-project-wit
             build("hello").output,
             containsString("""
                 :hello
-                I'm multi-project-with-buildSrc
+                I'm ${testName.methodName}
                 :bluewhale:hello
                 I'm bluewhale
                 - I depend on water

@@ -3,8 +3,6 @@ def configureGradleScriptKotlinOn(ProjectDescriptor project) {
     project.children.each { configureGradleScriptKotlinOn(it) }
 }
 
-rootProject.name = "multi-project-with-buildSrc"
-
 include 'bluewhale', 'krill'
 
 configureGradleScriptKotlinOn rootProject
