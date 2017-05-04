@@ -19,7 +19,7 @@ package org.gradle.testkit.runner
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 
-import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.*
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.normalize
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -100,8 +100,6 @@ BUILD SUCCESSFUL"""
 Output:
 $expectedOutput"""
 
-        println "1: " + normalize(t.message)
-        println "2: " + expectedMessage
         normalize(t.message).startsWith(expectedMessage)
         normalize(t.buildResult.output).startsWith(expectedOutput)
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
