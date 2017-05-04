@@ -34,7 +34,6 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Creates start scripts for launching JVM applications.
