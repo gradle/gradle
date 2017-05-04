@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
+    private static final String COULD_NOT_STORE_ENTRY_IN_BUILD_CACHE_LOG_MESSAGE = "Could not store entry {} in {} build cache";
 
     private boolean closed;
     private final int maxErrorCount;
@@ -53,8 +54,10 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) {
         if (enabled.get()) {
             try {
+                LOGGER.debug("Loading entry {} from {} build cache", key, getRole());
                 return super.load(key, reader);
             } catch (BuildCacheException e) {
+                LOGGER.warn("Could not load entry {} from {} build cache", key, getRole(), e);
                 recordFailure();
                 // Assume cache didn't have it.
             }
@@ -66,11 +69,14 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) {
         if (enabled.get()) {
             try {
+                LOGGER.debug("Storing entry {} in {} build cache", key, getRole());
                 super.store(key, writer);
             } catch (BuildCacheException e) {
+                LOGGER.warn(COULD_NOT_STORE_ENTRY_IN_BUILD_CACHE_LOG_MESSAGE, key, getRole(), e);
                 recordFailure();
                 // Assume its OK to not push anything.
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
+                LOGGER.warn(COULD_NOT_STORE_ENTRY_IN_BUILD_CACHE_LOG_MESSAGE, key, getRole(), e);
                 disableBuildCache("a fatal error was encountered");
             }
         }
@@ -78,6 +84,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
 
     @Override
     public void close() throws IOException {
+        LOGGER.debug("Closing {} build cache", getRole());
         if (!closed) {
             if (!enabled.get()) {
                 LOGGER.warn("The {} build cache was disabled during the build because " + disableMessage, getRole(), maxErrorCount);

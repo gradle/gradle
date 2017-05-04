@@ -16,11 +16,19 @@
 
 package org.gradle.caching.internal
 
+import org.gradle.caching.BuildCacheEntryReader
+import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
+import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
+import spock.lang.Specification
 import spock.lang.Unroll
 
-class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends AbstractRoleAwareBuildCacheServiceDecoratorTest {
+class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Specification {
+    def key = Mock(BuildCacheKey)
+    def reader = Mock(BuildCacheEntryReader)
+    def writer = Mock(BuildCacheEntryWriter)
+    def delegate = Mock(RoleAwareBuildCacheService)
     def maxFailures = 2
     def decorator = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(maxFailures, delegate)
 
@@ -28,8 +36,47 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
         return decorator
     }
 
-    List getExceptions() {
-        [new RuntimeException()]
+    @Unroll
+    def "does not suppress exceptions from load"() {
+        given:
+        delegate.load(key, reader) >> { throw new Exception() }
+        when:
+        decorator.load(key, reader)
+        then:
+        thrown(Exception.class)
+    }
+
+    @Unroll
+    def "does suppress exceptions from store"() {
+        given:
+        delegate.store(key, writer) >> { throw new Exception() }
+        when:
+        decorator.store(key, writer)
+        then:
+        noExceptionThrown()
+    }
+
+    def "delegates to delegate"() {
+        when:
+        decorator.close()
+        then:
+        _ * delegate.getRole()
+        1 * delegate.close()
+
+        when:
+        decorator.getDescription()
+        then:
+        1 * delegate.getDescription()
+
+        when:
+        decorator.store(key, writer)
+        then:
+        1 * delegate.store(key, writer)
+
+        when:
+        decorator.load(key, reader)
+        then:
+        1 * delegate.load(key, reader)
     }
 
     def "stops calling through after defined number of read errors"() {
@@ -41,7 +88,7 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
 
         then:
         maxFailures * delegate.load(key, reader) >> { throw new BuildCacheException("Error") }
-        1 * delegate.getRole() >> "role"
+        _ * delegate.getRole() >> "role"
         0 * _
     }
 
@@ -54,7 +101,7 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
 
         then:
         maxFailures * delegate.store(key, writer) >> { throw new BuildCacheException("Error") }
-        1 * delegate.getRole() >> "role"
+        _ * delegate.getRole() >> "role"
         0 * _
     }
 
@@ -71,18 +118,5 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
         decorator.close()
         then:
         1 * delegate.close()
-    }
-
-    @Unroll
-    def "does suppress #exceptionType exceptions from store"() {
-        given:
-        delegate.store(key, writer) >> { throw exception }
-        when:
-        decorator.store(key, writer)
-        then:
-        noExceptionThrown()
-        where:
-        exception << [new RuntimeException(), new BuildCacheException()]
-        exceptionType = exception.class.simpleName
     }
 }
