@@ -19,6 +19,8 @@ package org.gradle.caching.internal;
 import org.gradle.api.Nullable;
 import org.gradle.internal.progress.BuildOperationDetails;
 
+import java.util.Map;
+
 /**
  * Details about the build cache configuration of a build.
  *
@@ -27,15 +29,30 @@ import org.gradle.internal.progress.BuildOperationDetails;
  * @since 4.0
  */
 public final class FinalizeBuildCacheConfigurationDetails implements BuildOperationDetails<FinalizeBuildCacheConfigurationDetails.Result> {
+
     public static class Result {
+
+        public interface BuildCache {
+
+            String getClassName();
+
+            String getDisplayName();
+
+            boolean isEnabled();
+
+            boolean isPush();
+
+            Map<String, String> getConfig();
+
+        }
+
         private final boolean enabled;
-        @Nullable
-        private final BuildCacheWrapper local;
-        @Nullable
-        private final BuildCacheWrapper remote;
 
+        private final BuildCache local;
 
-        public Result(boolean enabled, @Nullable BuildCacheWrapper local, @Nullable BuildCacheWrapper remote) {
+        private final BuildCache remote;
+
+        public Result(boolean enabled, @Nullable BuildCache local, @Nullable BuildCache remote) {
             this.enabled = enabled;
             this.local = local;
             this.remote = remote;
@@ -46,13 +63,14 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
         }
 
         @Nullable
-        public BuildCacheWrapper getLocal() {
+        public BuildCache getLocal() {
             return local;
         }
 
         @Nullable
-        public BuildCacheWrapper getRemote() {
+        public BuildCache getRemote() {
             return remote;
         }
     }
+
 }

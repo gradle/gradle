@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.Map;
 
 public class BuildCacheServiceProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheServiceProvider.class);
@@ -166,10 +167,28 @@ public class BuildCacheServiceProvider {
         }
 
         @Nullable
-        private BuildCacheWrapper convertToWrapper(BuildCache buildCache, boolean enabled) {
+        private OperationResultBuildCacheAdapter convertToWrapper(BuildCache buildCache, boolean enabled) {
             return buildCache == null || !enabled
                 ? null
-                : new BuildCacheWrapper(
+                : new OperationResultBuildCacheAdapter(buildCache);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Finalize build cache configuration");
+        }
+    }
+
+    private static final class OperationResultBuildCacheAdapter implements FinalizeBuildCacheConfigurationDetails.Result.BuildCache {
+
+        private final String className;
+        private final boolean enabled;
+        private final boolean push;
+        private final String displayName;
+        private final Map<String, String> config;
+
+        private OperationResultBuildCacheAdapter(BuildCache buildCache) {
+            this(
                 GeneratedSubclasses.unpack(buildCache.getClass()).getName(),
                 buildCache.isEnabled(),
                 buildCache.isPush(),
@@ -178,9 +197,32 @@ public class BuildCacheServiceProvider {
             );
         }
 
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Finalize build cache configuration");
+        private OperationResultBuildCacheAdapter(String className, boolean enabled, boolean push, String displayName, Map<String, String> config) {
+            this.className = className;
+            this.enabled = enabled;
+            this.push = push;
+            this.displayName = displayName;
+            this.config = config;
+        }
+
+        public String getClassName() {
+            return className;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public boolean isPush() {
+            return push;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public Map<String, String> getConfig() {
+            return config;
         }
     }
 }
