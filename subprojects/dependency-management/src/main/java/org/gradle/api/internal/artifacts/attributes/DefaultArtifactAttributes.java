@@ -28,10 +28,6 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORM
 public class DefaultArtifactAttributes {
     public static AttributeContainerInternal forFile(File file, ImmutableAttributesFactory attributesFactory) {
         String extension = Files.getFileExtension(file.getName());
-        return createAttributes(extension, ImmutableAttributes.EMPTY, attributesFactory);
-    }
-
-    private static AttributeContainerInternal createAttributes(String type, AttributeContainerInternal parentAttributes, ImmutableAttributesFactory attributesFactory) {
-        return attributesFactory.builder(parentAttributes.asImmutable()).addAttribute(ARTIFACT_FORMAT, type == null ? "" : type).get();
+        return attributesFactory.builder(ImmutableAttributes.EMPTY).addAttribute(ARTIFACT_FORMAT, extension).get();
     }
 }
