@@ -5,7 +5,6 @@ import com.android.builder.model.ApiVersion
 buildscript {
     repositories {
         jcenter()
-        gradleScriptKotlin()
     }
     dependencies {
         classpath("com.android.tools.build:gradle:2.3.1")
@@ -15,7 +14,6 @@ buildscript {
 
 repositories {
     jcenter()
-    gradleScriptKotlin()
 }
 
 apply {
