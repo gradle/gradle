@@ -16,10 +16,10 @@
 
 package org.gradle.caching.local.internal
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
@@ -153,7 +153,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         def newList = listCacheFiles()
-        newList.size() == 4
+        newList.size() == MAX_CACHE_SIZE-1
         newList.containsAll(recentlyUsed)
     }
 
@@ -183,7 +183,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         then:
         // the exact count depends on exactly which cache entries were cleaned above
         // which depends on file system ordering/time resolution
-        listCacheFiles().size() >= MAX_CACHE_SIZE
+        listCacheFiles().size() > MAX_CACHE_SIZE
         lastCleanedTime == gcFile().lastModified()
     }
 
@@ -205,19 +205,21 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
     }
 
     def "build cache cleanup is triggered after 7 days"() {
-        def messageRegex = /Build cache \(.+\) cleaned up in .+ secs./
+        def messageRegex = /Build cache \(.+\) cleaned up in .+ secs\./
+        def checkInterval = 7 // days
 
         when:
         withBuildCache().succeeds("cacheable")
         then:
         listCacheFiles().size() == 1
         def originalCheckTime = gcFile().lastModified()
-        // Set the time back 1 day
-        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(1))
-        def lastCleanupCheck = gcFile().lastModified()
 
         // One day isn't enough to trigger
         when:
+        // Set the time back 1 day
+        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(1))
+        def lastCleanupCheck = gcFile().lastModified()
+        and:
         withBuildCache().succeeds("cacheable", "-i")
         then:
         result.output.readLines().every {
@@ -225,9 +227,21 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         }
         gcFile().lastModified() == lastCleanupCheck
 
-        // 7 days is enough to trigger
+        // checkInterval-1 days is not enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(7))
+        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(checkInterval-1))
+        lastCleanupCheck = gcFile().lastModified()
+        and:
+        withBuildCache().succeeds("cacheable", "-i")
+        then:
+        result.output.readLines().every {
+            !it.matches(messageRegex)
+        }
+        gcFile().lastModified() == lastCleanupCheck
+
+        // checkInterval days is enough to trigger
+        when:
+        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(checkInterval))
         and:
         withBuildCache().succeeds("cacheable", "-i")
         then:
@@ -236,9 +250,9 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         }
         gcFile().lastModified() > lastCleanupCheck
 
-        // More than 7 days is enough to trigger
+        // More than checkInterval days is enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(100))
+        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(checkInterval*10))
         and:
         withBuildCache().succeeds("cacheable", "-i")
         then:
@@ -248,7 +262,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         gcFile().lastModified() > lastCleanupCheck
     }
 
-    @Ignore("buildSrc closes the build cache after building")
+    @NotYetImplemented // buildSrc closes the build cache after building
     def "buildSrc does not try to clean build cache"() {
         // Copy cache configuration
         file("buildSrc/settings.gradle").text = settingsFile.text
