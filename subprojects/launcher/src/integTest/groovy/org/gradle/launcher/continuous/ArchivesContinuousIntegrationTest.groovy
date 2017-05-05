@@ -74,7 +74,6 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
         def sourceFile = file(source)
-        def tempFile = file("temp-" + source)
 
         buildFile << """
             task unpack(type: Sync) {
@@ -93,8 +92,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         when:
         packDir.file("A").text = "original"
-        packDir."$packType"(tempFile, readonly)
-        tempFile.renameTo(sourceFile)
+        packDir."$packType"(sourceFile, readonly)
 
         then:
         succeeds("unpack")
@@ -106,8 +104,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         // zipTo won't update the zip file if Ant's zip task thinks the files
         // have not changed.
         packDir.file("B").text = "new-file"
-        packDir."$packType"(tempFile, readonly)
-        tempFile.renameTo(sourceFile)
+        packDir."$packType"(sourceFile, readonly)
 
         then:
         succeeds()
@@ -134,7 +131,6 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
         def sourceFile = file(source)
-        def tempFile = file("temp-" + source)
 
         buildFile << """
             task unpack(type: Sync) {
@@ -145,8 +141,8 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         when:
         packDir.file("A").text = "original"
-        packDir."$packType"(tempFile)
-        tempFile.renameTo(sourceFile)
+        packDir."$packType"(sourceFile)
+
         then:
         succeeds("unpack")
         executedAndNotSkipped(":unpack")
@@ -154,8 +150,8 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         when:
         packDir.file("A") << "-changed"
-        packDir."$packType"(tempFile)
-        tempFile.renameTo(sourceFile)
+        packDir."$packType"(sourceFile)
+
         then:
         succeeds()
         executedAndNotSkipped(":unpack")
