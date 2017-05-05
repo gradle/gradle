@@ -42,13 +42,6 @@ import java.util.Map;
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
 public class DefaultDependencyHandler extends GroovyObjectSupport implements DependencyHandler, MethodMixIn {
-    private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {
-        @Override
-        public void execute(AttributesSchema attributesSchema) {
-            attributesSchema.attribute(ARTIFACT_FORMAT).getCompatibilityRules().assumeCompatibleWhenMissing();
-        }
-    };
-
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
@@ -178,7 +171,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     }
 
     private void configureSchema() {
-        attributesSchema(CONFIGURE_DEFAULT_SCHEMA_ACTION);
+        attributesSchema.attribute(ARTIFACT_FORMAT);
     }
 
     @Override
