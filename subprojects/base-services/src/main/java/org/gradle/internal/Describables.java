@@ -16,40 +16,70 @@
 
 package org.gradle.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Describable;
 
 public class Describables {
-    private Describables() {}
+    private Describables() {
+    }
 
     /**
-     * Returns a describable that calls {@link Object#toString()} on the provided value each time the display name is queried.
+     * Returns a describable that converts the provided value to a string each time the display name is queried. Can pass a {@link Describable} or {@link DisplayName}.
      */
-    public static Describable of(Object displayName) {
+    public static DisplayName of(Object displayName) {
+        if (displayName instanceof DisplayName) {
+            return (DisplayName) displayName;
+        }
         return new FixedDescribable(displayName);
     }
 
     /**
-     * Returns a describable that calls {@link Object#toString()} on the provided values each time the display name is queried, separating the values with a space character.
+     * Returns a describable that converts the provided values to string each time the display name is queried, separating the values with a space character. Can pass a {@link Describable} or {@link DisplayName} for any parameter.
      */
-    public static Describable of(Object part1, Object part2) {
+    public static DisplayName of(Object part1, Object part2) {
         return new TwoPartDescribable(part1, part2);
     }
 
     /**
-     * Returns a describable that calls {@link Object#toString()} on the provided values each time the display name is queried, separating the values with a space character.
+     * Returns a describable that converts the provided values to string each time the display name is queried, separating the values with a space character. Can pass a {@link Describable} or {@link DisplayName} for any parameter.
      */
-    public static Describable of(Object part1, Object part2, Object part3) {
+    public static DisplayName of(Object part1, Object part2, Object part3) {
         return new ThreePartDescribable(part1, part2, part3);
     }
 
     /**
-     * Returns a describable that calls {@link Object#toString()} on the provided values each time the display name is queried, separating the values with a space character.
+     * Returns a describable that calculates the display name of the given describable when first requested and reuses the result.
      */
-    public static Describable of(Describable part1, String part2, String part3) {
-        return new ThreePartWithPrefixDescribable(part1, part2, part3);
+    public static DisplayName memoize(Describable describable) {
+        return new MemoizingDescribable(describable);
     }
 
-    private static abstract class AbstractDescribable implements Describable {
+    private static void appendDisplayName(Object src, StringBuilder stringBuilder) {
+        if (src instanceof Describable) {
+            Describable describable = (Describable) src;
+            stringBuilder.append(describable.getDisplayName());
+        } else {
+            stringBuilder.append(src.toString());
+        }
+    }
+
+    private static void appendCapDisplayName(Object src, StringBuilder stringBuilder) {
+        if (src instanceof DisplayName) {
+            DisplayName displayName = (DisplayName) src;
+            stringBuilder.append(displayName.getCapitalizedDisplayName());
+        } else {
+            int pos = stringBuilder.length();
+            if (src instanceof Describable) {
+                Describable describable = (Describable) src;
+                stringBuilder.append(describable.getDisplayName());
+            } else {
+                stringBuilder.append(src.toString());
+            }
+            stringBuilder.setCharAt(pos, Character.toUpperCase(stringBuilder.charAt(pos)));
+        }
+    }
+
+    private static abstract class AbstractDescribable implements DisplayName {
         @Override
         public String toString() {
             return getDisplayName();
@@ -65,7 +95,16 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            return displayName.toString();
+            StringBuilder builder = new StringBuilder();
+            appendDisplayName(displayName, builder);
+            return builder.toString();
+        }
+
+        @Override
+        public String getCapitalizedDisplayName() {
+            StringBuilder builder = new StringBuilder();
+            appendCapDisplayName(displayName, builder);
+            return builder.toString();
         }
     }
 
@@ -80,7 +119,20 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            return part1.toString() + ' ' + part2.toString();
+            StringBuilder builder = new StringBuilder();
+            appendDisplayName(part1, builder);
+            builder.append(' ');
+            appendDisplayName(part2, builder);
+            return builder.toString();
+        }
+
+        @Override
+        public String getCapitalizedDisplayName() {
+            StringBuilder builder = new StringBuilder();
+            appendCapDisplayName(part1, builder);
+            builder.append(' ');
+            appendDisplayName(part2, builder);
+            return builder.toString();
         }
     }
 
@@ -97,24 +149,60 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            return part1.toString() + ' ' + part2.toString() + ' ' + part3.toString();
+            StringBuilder builder = new StringBuilder();
+            appendDisplayName(part1, builder);
+            builder.append(' ');
+            appendDisplayName(part2, builder);
+            builder.append(' ');
+            appendDisplayName(part3, builder);
+            return builder.toString();
+        }
+
+        @Override
+        public String getCapitalizedDisplayName() {
+            StringBuilder builder = new StringBuilder();
+            appendCapDisplayName(part1, builder);
+            builder.append(' ');
+            appendDisplayName(part2, builder);
+            builder.append(' ');
+            appendDisplayName(part3, builder);
+            return builder.toString();
         }
     }
 
-    private static class ThreePartWithPrefixDescribable extends AbstractDescribable {
-        private final Describable part1;
-        private final String part2;
-        private final String part3;
+    private static class MemoizingDescribable extends AbstractDescribable {
+        private Describable describable;
+        private String displayName;
+        private String capDisplayName;
 
-        ThreePartWithPrefixDescribable(Describable part1, String part2, String part3) {
-            this.part1 = part1;
-            this.part2 = part2;
-            this.part3 = part3;
+        MemoizingDescribable(Describable describable) {
+            this.describable = describable;
+        }
+
+        @Override
+        public String getCapitalizedDisplayName() {
+            synchronized (this) {
+                if (capDisplayName == null) {
+                    capDisplayName = describable instanceof DisplayName ? ((DisplayName)describable).getCapitalizedDisplayName() : StringUtils.capitalize(getDisplayName());
+                    if (displayName != null) {
+                        describable = null;
+                    }
+                }
+                return capDisplayName;
+            }
         }
 
         @Override
         public String getDisplayName() {
-            return part1.getDisplayName() + ' ' + part2 + ' ' + part3;
+            synchronized (this) {
+                if (displayName == null) {
+                    displayName = describable.getDisplayName();
+                    if (capDisplayName != null || !(describable instanceof DisplayName)) {
+                        describable = null;
+                    }
+                }
+                return displayName;
+            }
         }
     }
 }

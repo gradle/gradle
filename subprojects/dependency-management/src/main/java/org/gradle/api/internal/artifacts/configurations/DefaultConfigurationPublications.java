@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
-import org.gradle.api.Describable;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -38,7 +38,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultConfigurationPublications implements ConfigurationPublications {
-    private final Describable displayName;
+    private final DisplayName displayName;
     private final PublishArtifactSet artifacts;
     private final PublishArtifactSet allArtifacts;
     private final AttributeContainerInternal parentAttributes;
@@ -49,7 +49,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final ImmutableAttributesFactory attributesFactory;
     private FactoryNamedDomainObjectContainer<ConfigurationVariant> variants;
 
-    public DefaultConfigurationPublications(Describable displayName, PublishArtifactSet artifacts, PublishArtifactSet allArtifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
+    public DefaultConfigurationPublications(DisplayName displayName, PublishArtifactSet artifacts, PublishArtifactSet allArtifacts, AttributeContainerInternal parentAttributes, Instantiator instantiator, NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser, FileCollectionFactory fileCollectionFactory, ImmutableAttributesFactory attributesFactory) {
         this.displayName = displayName;
         this.artifacts = artifacts;
         this.allArtifacts = allArtifacts;
@@ -64,7 +64,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     public OutgoingVariant convertToOutgoingVariant() {
         return new OutgoingVariant() {
             @Override
-            public Describable asDescribable() {
+            public DisplayName asDescribable() {
                 return displayName;
             }
 

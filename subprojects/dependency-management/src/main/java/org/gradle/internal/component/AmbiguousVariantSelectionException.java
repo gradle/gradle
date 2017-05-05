@@ -39,7 +39,7 @@ public class AmbiguousVariantSelectionException extends RuntimeException {
         formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {
-            formatter.node(variant.getDisplayName());
+            formatter.node(variant.asDescribable().getCapitalizedDisplayName());
             formatAttributeMatches(formatter, consumer, matcher, variant.getAttributes());
         }
         formatter.endChildren();

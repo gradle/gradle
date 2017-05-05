@@ -19,13 +19,13 @@ package org.gradle.jvm.internal.resolve;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.resolve.LocalLibraryMetaDataAdapter;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.Describables;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
@@ -80,7 +80,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
             metadata.addArtifacts(usage.getConfigurationName(), publishArtifacts);
             metadata.addVariant(usage.getConfigurationName(), new OutgoingVariant() {
                 @Override
-                public Describable asDescribable() {
+                public DisplayName asDescribable() {
                     return Describables.of(metadata.getComponentId());
                 }
 

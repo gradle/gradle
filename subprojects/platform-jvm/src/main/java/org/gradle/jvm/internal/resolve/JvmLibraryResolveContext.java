@@ -17,7 +17,6 @@
 package org.gradle.jvm.internal.resolve;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -28,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
@@ -85,7 +85,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
         for (UsageKind usageKind : UsageKind.values()) {
             componentMetadata.addVariant(usageKind.getConfigurationName(), new OutgoingVariant() {
                 @Override
-                public Describable asDescribable() {
+                public DisplayName asDescribable() {
                     return Describables.of(componentMetadata.getComponentId());
                 }
 

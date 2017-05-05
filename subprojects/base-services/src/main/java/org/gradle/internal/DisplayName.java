@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
+package org.gradle.internal;
 
 import org.gradle.api.Describable;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
-import java.util.Set;
-
-/**
- * Represents some provider of {@link ResolvedVariant} instances to select from.
- */
-public interface ResolvedVariantSet {
-    Describable asDescribable();
-
-    AttributesSchemaInternal getSchema();
-
-    Set<ResolvedVariant> getVariants();
+public interface DisplayName extends Describable {
+    /**
+     * Returns a display name that can be used at the start of a sentence.
+     */
+    String getCapitalizedDisplayName();
 }

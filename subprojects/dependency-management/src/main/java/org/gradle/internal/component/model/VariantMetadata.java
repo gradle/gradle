@@ -16,8 +16,8 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.DisplayName;
 
 import java.util.Set;
 
@@ -25,7 +25,7 @@ import java.util.Set;
  * Metadata for a basic variant of a component, that defines only artifacts and no dependencies.
  */
 public interface VariantMetadata {
-    Describable asDescribable();
+    DisplayName asDescribable();
 
     AttributeContainerInternal getAttributes();
 

@@ -470,12 +470,12 @@ task show {
 
         then:
         failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
-  - configuration ':a:compile' variant var1:
+  - Configuration ':a:compile' variant var1:
       - Found artifactType 'jar' but wasn't required.
       - Found buildType 'debug' but wasn't required.
       - Found flavor 'one' but wasn't required.
       - Required usage 'compile' and found compatible value 'compile'.
-  - configuration ':a:compile' variant var2:
+  - Configuration ':a:compile' variant var2:
       - Found artifactType 'jar' but wasn't required.
       - Found buildType 'debug' but wasn't required.
       - Found flavor 'two' but wasn't required.
@@ -777,8 +777,8 @@ ${showFailuresTask(expression)}
 Searched in the following locations:
     ${mavenHttpRepo.uri}/org/missing-artifact/1.0/missing-artifact-1.0.jar""")
         def failureMessage2 = TextUtil.normaliseLineSeparators("""More than one variant of project :a matches the consumer attributes:
-  - configuration ':a:default' variant v1
-  - configuration ':a:default' variant v2""")
+  - Configuration ':a:default' variant v1
+  - Configuration ':a:default' variant v2""")
 
         settingsFile << "include 'a', 'b'"
 

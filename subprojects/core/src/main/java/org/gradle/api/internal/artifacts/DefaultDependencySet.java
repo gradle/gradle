@@ -15,19 +15,19 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Factory;
 
 public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> implements DependencySet {
-    private final Factory<String> displayName;
+    private final Describable displayName;
     private final Configuration clientConfiguration;
 
-    public DefaultDependencySet(Factory<String> displayName, Configuration clientConfiguration, DomainObjectSet<Dependency> backingSet) {
+    public DefaultDependencySet(Describable displayName, Configuration clientConfiguration, DomainObjectSet<Dependency> backingSet) {
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;
@@ -35,7 +35,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
     @Override
     public String toString() {
-        return displayName.create();
+        return displayName.getDisplayName();
     }
 
     public TaskDependency getBuildDependencies() {

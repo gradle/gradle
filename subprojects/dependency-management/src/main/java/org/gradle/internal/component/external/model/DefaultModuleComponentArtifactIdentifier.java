@@ -18,11 +18,12 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.GUtil;
 
-public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier {
+public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier, DisplayName {
     private final ModuleComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
 
@@ -63,6 +64,11 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
         builder.append(componentIdentifier.toString());
         builder.append(")");
         return builder.toString();
+    }
+
+    @Override
+    public String getCapitalizedDisplayName() {
+        return getDisplayName();
     }
 
     public IvyArtifactName getName() {

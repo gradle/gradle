@@ -16,24 +16,24 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.DisplayName;
 
 import java.util.Set;
 
 public class DefaultVariantMetadata implements VariantMetadata {
-    private final Describable displayName;
+    private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final Set<? extends ComponentArtifactMetadata> artifacts;
 
-    public DefaultVariantMetadata(Describable displayName, AttributeContainerInternal attributes, Set<? extends ComponentArtifactMetadata> artifacts) {
+    public DefaultVariantMetadata(DisplayName displayName, AttributeContainerInternal attributes, Set<? extends ComponentArtifactMetadata> artifacts) {
         this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
     }
 
     @Override
-    public Describable asDescribable() {
+    public DisplayName asDescribable() {
         return displayName;
     }
 
