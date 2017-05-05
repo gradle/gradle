@@ -29,10 +29,8 @@ open class AbstractIntegrationTest {
         withBuildScriptIn(".", script, produceFile)
 
     protected
-    fun withBuildScriptIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File {
-        withFile("$baseDir/settings.gradle", "", produceFile)
-        return withFile("$baseDir/build.gradle.kts", script, produceFile)
-    }
+    fun withBuildScriptIn(baseDir: String, script: String, produceFile: (String) -> File = this::newFile): File =
+        withFile("$baseDir/build.gradle.kts", script, produceFile)
 
     protected
     fun withFile(fileName: String, text: String = "", produceFile: (String) -> File = this::newFile) =
