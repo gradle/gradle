@@ -19,17 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.ZipEntry;
-
-/**
- * Hashes resources (e.g., a class file in a jar or a class file in a directory)
- */
-public interface ResourceHasher extends ConfigurableSnapshotter, RegularFileHasher {
+public interface RegularFileHasher {
     /**
-     * Returns {@code null} if the zip entry should be ignored.
+     * Returns {@code null} if the file should be ignored.
      */
     @Nullable
-    HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
+    HashCode hash(RegularFileSnapshot fileSnapshot);
 }

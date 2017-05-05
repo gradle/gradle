@@ -16,20 +16,25 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.ZipEntry;
+import java.util.List;
 
-/**
- * Hashes resources (e.g., a class file in a jar or a class file in a directory)
- */
-public interface ResourceHasher extends ConfigurableSnapshotter, RegularFileHasher {
-    /**
-     * Returns {@code null} if the zip entry should be ignored.
-     */
-    @Nullable
-    HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException;
+public class FileTree implements ResourceTree {
+    private final List<FileSnapshot> descendants;
+
+    public FileTree(List<FileSnapshot> descendants) {
+        this.descendants = descendants;
+    }
+
+    @Override
+    public void visit(ResourceWithContentsVisitor visitor) throws IOException {
+        for (FileSnapshot descendant : descendants) {
+            if (descendant.getType() == FileType.RegularFile) {
+                RegularFileSnapshot fileSnapshot = (RegularFileSnapshot) descendant;
+                visitor.visitFileSnapshot(fileSnapshot);
+            }
+        }
+    }
 }

@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
@@ -33,46 +30,21 @@ import java.util.zip.ZipEntry;
  * It also caches the absence of a hash.
  */
 public class CachingResourceHasher implements ResourceHasher {
-    private static final HashCode NO_HASH = Hashing.md5().hashString(CachingResourceHasher.class.getName() + " : no hash", Charsets.UTF_8);
     private final ResourceHasher delegate;
-    private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
-    private final byte[] delegateImplementationHash;
+    private final ResourceSnapshotterCacheService resourceSnapshotterCacheService;
+    private final byte[] delegateConfigurationHash;
 
-    public CachingResourceHasher(ResourceHasher delegate, PersistentIndexedCache<HashCode, HashCode> persistentCache) {
+    public CachingResourceHasher(ResourceHasher delegate, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
         this.delegate = delegate;
-        this.persistentCache = persistentCache;
+        this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         delegate.appendConfigurationToHasher(hasher);
-        this.delegateImplementationHash = hasher.hash().asBytes();
+        this.delegateConfigurationHash = hasher.hash().asBytes();
     }
 
     @Override
     public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshot);
-
-        HashCode resourceHash = persistentCache.get(resourceHashCacheKey);
-        if (resourceHash != null) {
-            if (resourceHash.equals(NO_HASH)) {
-                return null;
-            }
-            return resourceHash;
-        }
-
-        resourceHash = delegate.hash(fileSnapshot);
-
-        if (resourceHash != null) {
-            persistentCache.put(resourceHashCacheKey, resourceHash);
-        } else {
-            persistentCache.put(resourceHashCacheKey, NO_HASH);
-        }
-        return resourceHash;
-    }
-
-    private HashCode resourceHashCacheKey(RegularFileSnapshot fileSnapshot) {
-        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        hasher.putBytes(delegateImplementationHash);
-        hasher.putBytes(fileSnapshot.getContent().getContentMd5().asBytes());
-        return hasher.hash();
+        return resourceSnapshotterCacheService.hashFile(fileSnapshot, delegate, delegateConfigurationHash);
     }
 
     @Override

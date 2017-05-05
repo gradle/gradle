@@ -16,29 +16,26 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
-import org.gradle.cache.PersistentIndexedCache;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
-    private final ResourceHasher classpathContentHasher;
-    private final ResourceHasher jarContentHasher;
+    private final ResourceHasher classpathResourceHasher;
+    private final ResourceSnapshotterCacheService cacheService;
 
-    public DefaultCompileClasspathSnapshotter(PersistentIndexedCache<HashCode, HashCode> resourceHashesCache, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultCompileClasspathSnapshotter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
-        AbiExtractingClasspathContentHasher abiExtractingClasspathContentHasher = new AbiExtractingClasspathContentHasher();
-        this.classpathContentHasher = new CachingResourceHasher(abiExtractingClasspathContentHasher, resourceHashesCache);
-        this.jarContentHasher = new CachingResourceHasher(new JarContentHasher(abiExtractingClasspathContentHasher, stringInterner), resourceHashesCache);
+        this.cacheService = cacheService;
+        this.classpathResourceHasher = new CachingResourceHasher(new AbiExtractingClasspathResourceHasher(), cacheService);
     }
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
         return super.snapshot(
             files,
-            new CompileClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
+            new CompileClasspathSnapshotBuilder(classpathResourceHasher, cacheService, getStringInterner()));
     }
 
     @Override

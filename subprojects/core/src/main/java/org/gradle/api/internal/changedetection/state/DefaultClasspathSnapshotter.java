@@ -16,20 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationStrategyInternal;
-import org.gradle.cache.PersistentIndexedCache;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private final PersistentIndexedCache<HashCode, HashCode> resourceHashesCache;
+    private final ResourceSnapshotterCacheService cacheService;
 
-    public DefaultClasspathSnapshotter(PersistentIndexedCache<HashCode, HashCode> resourceHashesCache, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultClasspathSnapshotter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
-        this.resourceHashesCache = resourceHashesCache;
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -40,8 +38,7 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
         MetadataFilter metadataFilter = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).getMetadataFilter();
-        ResourceHasher classpathContentHasher = new MetadataFilterAdapter(metadataFilter, new RuntimeClasspathContentHasher());
-        CachingResourceHasher jarContentHasher = new CachingResourceHasher(new JarContentHasher(classpathContentHasher, getStringInterner()), resourceHashesCache);
-        return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
+        ResourceHasher classpathResourceHasher = new MetadataFilterAdapter(metadataFilter, new RuntimeClasspathResourceHasher());
+        return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathResourceHasher, cacheService, getStringInterner()));
     }
 }
