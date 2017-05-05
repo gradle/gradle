@@ -21,13 +21,29 @@ import org.gradle.plugin.use.PluginDependencySpec
 
 
 /**
+ * Receiver for the `plugins` block.
+ *
+ * This class exists for the sole purpose of marking the `plugins` block as a [GradleDsl] thus
+ * hiding all members provided by the outer [KotlinBuildScript] scope.
+ *
  * @see PluginDependenciesSpec
  */
 @GradleDsl
-class KotlinPluginDependenciesHandler(plugins: PluginDependenciesSpec) : PluginDependenciesSpec by plugins
+class PluginDependenciesSpecScope(plugins: PluginDependenciesSpec) : PluginDependenciesSpec by plugins
 
 
+/**
+ * Specify the version of the plugin to depend on.
+ *
+ * Infix version of [PluginDependencySpec.version].
+ */
 infix fun PluginDependencySpec.version(version: String?): PluginDependencySpec = version(version)
 
 
+/**
+ * Specifies whether the plugin should be applied to the current project. Otherwise it is only put
+ * on the project's classpath.
+ *
+ * Infix version of [PluginDependencySpec.apply].
+ */
 infix fun PluginDependencySpec.apply(apply: Boolean): PluginDependencySpec  = apply(apply)

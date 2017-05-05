@@ -10,7 +10,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
-class KotlinPluginDependenciesHandlerTest {
+class PluginDependenciesSpecScopeTest {
 
     @Test
     fun `given a single id, it should create a single request with no version`() {
@@ -49,9 +49,9 @@ class KotlinPluginDependenciesHandlerTest {
             equalTo(expected.asList()))
     }
 
-    fun plugins(block: KotlinPluginDependenciesHandler.() -> Unit) =
+    fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
         PluginRequestCollector(StringScriptSource("script", "")).run {
-            KotlinPluginDependenciesHandler(createSpec(1)).block()
+            PluginDependenciesSpecScope(createSpec(1)).block()
             listPluginRequests()
         }
 

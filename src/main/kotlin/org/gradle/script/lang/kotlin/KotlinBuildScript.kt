@@ -60,7 +60,7 @@ abstract class KotlinBuildScript(project: Project) : Project by project {
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") configuration: KotlinPluginDependenciesHandler.() -> Unit) = Unit
+    fun plugins(@Suppress("unused_parameter") configuration: PluginDependenciesSpecScope.() -> Unit) = Unit
 
     inline
     fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
