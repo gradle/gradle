@@ -17,6 +17,7 @@
 package org.gradle.script.lang.kotlin
 
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
 
 import org.gradle.internal.Cast.uncheckedCast
@@ -24,6 +25,11 @@ import org.gradle.internal.Cast.uncheckedCast
 import kotlin.reflect.KProperty
 
 
+/**
+ * The extra properties extension in this object's extension container.
+ *
+ * @see ExtensionContainer.getExtraProperties
+ */
 val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 

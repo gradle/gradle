@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -102,20 +103,34 @@ fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
     getPlugin(conventionType.java)!!
 
 
+/**
+ * Creates a [Task] with the given [name] and [type], configures it with the given [configuration] action,
+ * and adds it to this project tasks container.
+ */
 inline
-fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
-    task(name, T::class, configuration)
+fun <reified type : Task> Project.task(name: String, noinline configuration: type.() -> Unit) =
+    task(name, type::class, configuration)
 
 
+/**
+ * Creates a [Task] with the given [name] and [type], and adds it to this project tasks container.
+ *
+ * @see Project.getTasks
+ * @see TaskContainer.create
+ */
 inline
-fun <reified T : Task> Project.task(name: String) =
-    tasks.create(name, T::class.java)
+fun <reified type : Task> Project.task(name: String) =
+    tasks.create(name, type::class.java)
 
 
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     createTask(name, type, configuration)
 
 
+/**
+ * Creates a [Task] with the given [name ] and [DefaultTask] type, configures it with the given [configuration] action,
+ * and adds it to this project tasks container.
+ */
 fun Project.task(name: String, configuration: Task.() -> Unit): DefaultTask =
     createTask(name, DefaultTask::class, configuration)
 
