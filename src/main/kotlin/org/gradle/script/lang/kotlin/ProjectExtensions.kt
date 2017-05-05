@@ -143,13 +143,13 @@ fun ScriptHandler.repositories(configuration: RepositoryHandler.() -> Unit) =
 /**
  * Configures the dependencies for this project.
  *
- * Executes the given configuration block against the [KotlinDependencyHandler] for this
+ * Executes the given configuration block against the [DependencyHandlerScope] for this
  * project.
  *
  * @param configuration the configuration block.
  */
-fun Project.dependencies(configuration: KotlinDependencyHandler.() -> Unit) =
-    KotlinDependencyHandler(dependencies).configuration()
+fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
+    DependencyHandlerScope(dependencies).configuration()
 
 
 /**

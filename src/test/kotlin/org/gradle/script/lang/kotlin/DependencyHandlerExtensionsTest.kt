@@ -50,7 +50,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given group and module, 'exclude' extension will build corresponding map`() {
 
-        val dependencies = KotlinDependencyHandler(mock())
+        val dependencies = DependencyHandlerScope(mock())
         val dependency: ExternalModuleDependency = mock()
         val events = mutableListOf<String>()
         whenever(dependencies.create("dependency")).then {
@@ -85,7 +85,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given path and configuration, 'project' extension will build corresponding map`() {
 
-        val dependencies = KotlinDependencyHandler(mock())
+        val dependencies = DependencyHandlerScope(mock())
         val dependency: ProjectDependency = mock()
         val events = mutableListOf<String>()
         val expectedProjectMap = mapOf("path" to ":project", "configuration" to "default")
@@ -131,7 +131,7 @@ class DependencyHandlerExtensionsTest {
             on { add(any(), any()) }.then { it.getArgument(1) }
         }
 
-        val dependencies = KotlinDependencyHandler(dependencyHandler)
+        val dependencies = DependencyHandlerScope(dependencyHandler)
         dependencies {
 
             default(group = "org.gradle", name = "foo", version = "1.0") {
@@ -158,7 +158,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given configuration name and dependency notation, it will add the dependency`() {
 
-        val dependencies = KotlinDependencyHandler(mock())
+        val dependencies = DependencyHandlerScope(mock())
         whenever(dependencies.add(any(), any())).thenReturn(mock())
 
         dependencies {
@@ -171,7 +171,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given configuration and dependency notation, it will add the dependency to the named configuration`() {
 
-        val dependencies = KotlinDependencyHandler(mock())
+        val dependencies = DependencyHandlerScope(mock())
         whenever(dependencies.add(any(), any())).thenReturn(mock())
 
         val configuration: Configuration = mock()

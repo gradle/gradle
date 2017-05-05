@@ -23,9 +23,11 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 /**
+ * Receiver for `dependencies` block providing convenient utilities for configuring dependencies.
+ *
  * @see DependencyHandler
  */
-class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyHandler by dependencies {
+class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHandler by dependencies {
 
     /**
      * Adds a dependency to the given configuration.
@@ -59,6 +61,6 @@ class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyH
     operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
 
-    inline operator fun invoke(configuration: KotlinDependencyHandler.() -> Unit) =
+    inline operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
         configuration()
 }
