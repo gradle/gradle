@@ -412,8 +412,11 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
                 testCompile 'junit:junit:4.12'
             }
             test {
+                
                 testLogging {
-                    events "passed", "skipped", "failed"
+                    lifecycle {
+                        events "passed", "skipped", "failed"
+                    }
                 }
             }
         """
@@ -434,14 +437,14 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        runWithWarnLogLevel "test"
+        run "test"
         then:
         nonSkippedTasks.contains ":test"
         output.contains("FirstTest > test PASSED")
         output.contains("SecondTest > test PASSED")
 
         when:
-        runWithWarnLogLevel "test"
+        run "test"
         then:
         skippedTasks.contains ":test"
 
@@ -454,15 +457,10 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         }
         """
         then:
-        runWithWarnLogLevel "test"
+        run "test"
         then:
         nonSkippedTasks.contains ":test"
         output.contains("FirstTest > test PASSED")
         !output.contains("SecondTest > test PASSED")
-    }
-
-    private void runWithWarnLogLevel(String... tasks) {
-        executer.withArguments('-w')
-        run tasks
     }
 }
