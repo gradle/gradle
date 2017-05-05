@@ -1,6 +1,3 @@
-import com.android.builder.core.DefaultApiVersion
-import com.android.builder.core.DefaultProductFlavor
-import com.android.builder.model.ApiVersion
 
 buildscript {
     repositories {
@@ -26,8 +23,8 @@ android {
     compileSdkVersion(23)
 
     defaultConfig {
-        setMinSdkVersion(15)
-        setTargetSdkVersion(23)
+        minSdkVersion(15)
+        targetSdkVersion(23)
 
         applicationId = "com.example.kotlingradle"
         versionCode = 1
@@ -48,9 +45,4 @@ dependencies {
     compile(kotlinModule("stdlib"))
 }
 
-//Extension functions to allow comfortable references
-fun DefaultProductFlavor.setMinSdkVersion(value: Int) = setMinSdkVersion(value.asApiVersion())
 
-fun DefaultProductFlavor.setTargetSdkVersion(value: Int) = setTargetSdkVersion(value.asApiVersion())
-
-fun Int.asApiVersion(): ApiVersion = DefaultApiVersion.create(this)
