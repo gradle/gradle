@@ -565,6 +565,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Returns the destroyables of this task.</p>
      * @return The destroyables.  Never returns null.
+     *
+     * @since 4.0
      */
     @Incubating
     @Internal
