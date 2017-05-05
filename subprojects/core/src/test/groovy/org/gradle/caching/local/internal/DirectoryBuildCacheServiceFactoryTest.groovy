@@ -21,6 +21,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.VersionStrategy
+import org.gradle.caching.BuildCacheDescriber
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -38,6 +39,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver, new TestBuildOperationExecutor())
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
+    def buildCacheDescriber = new NoopBuildCacheDescriber()
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -45,7 +47,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         def cacheDir = temporaryFolder.file("build-cache-1")
 
         when:
-        def service = factory.createBuildCacheService(config)
+        def service = factory.createBuildCacheService(config, buildCacheDescriber)
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> null
@@ -59,7 +61,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         def cacheDir = temporaryFolder.file("cache-dir")
 
         when:
-        def service = factory.createBuildCacheService(config)
+        def service = factory.createBuildCacheService(config, buildCacheDescriber)
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> cacheDir
@@ -67,5 +69,20 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         0 * _
+    }
+
+    private class NoopBuildCacheDescriber implements BuildCacheDescriber {
+
+        @Override
+        BuildCacheDescriber type(String type) { this }
+
+        @Override
+        BuildCacheDescriber configParam(String name, String value) { this }
+
+        @Override
+        String getType() { null }
+
+        @Override
+        Map<String, String> getConfigParams() { [:] }
     }
 }

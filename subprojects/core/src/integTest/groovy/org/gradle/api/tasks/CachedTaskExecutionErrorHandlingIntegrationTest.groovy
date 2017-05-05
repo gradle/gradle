@@ -28,7 +28,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             }
             
             class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory<FailingBuildCache> {
-                FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration) {
+                FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration, BuildCacheDescriber describer) {
                     return new FailingBuildCacheService(configuration.shouldFail)
                 }
             }

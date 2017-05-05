@@ -19,6 +19,7 @@ package org.gradle.caching.http.internal
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
+import org.gradle.caching.BuildCacheDescriber
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
@@ -51,6 +52,7 @@ class HttpBuildCacheServiceTest extends Specification {
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     BuildCacheService cache
+    BuildCacheDescriber buildCacheDescriber
 
     def key = new BuildCacheKey() {
         @Override
@@ -68,7 +70,8 @@ class HttpBuildCacheServiceTest extends Specification {
         server.start()
         def config = new HttpBuildCache()
         config.url = server.uri.resolve("/cache/")
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(config)
+        buildCacheDescriber = new NoopBuildCacheDescriber()
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(config, buildCacheDescriber)
     }
 
     def "can cache artifact"() {
@@ -243,7 +246,7 @@ class HttpBuildCacheServiceTest extends Specification {
         configuration.url = server.uri.resolve("/cache/")
         configuration.credentials.username = 'user'
         configuration.credentials.password = 'password'
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(configuration) as HttpBuildCacheService
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(configuration, buildCacheDescriber) as HttpBuildCacheService
 
         server.authenticationScheme = AuthScheme.BASIC
 
@@ -277,5 +280,20 @@ class HttpBuildCacheServiceTest extends Specification {
                 response.sendError(httpCode, "broken")
             }
         })
+    }
+
+    private class NoopBuildCacheDescriber implements BuildCacheDescriber {
+
+        @Override
+        BuildCacheDescriber type(String type) { this }
+
+        @Override
+        BuildCacheDescriber configParam(String name, String value) { this }
+
+        @Override
+        String getType() { null }
+
+        @Override
+        Map<String, String> getConfigParams() { [:] }
     }
 }
