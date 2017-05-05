@@ -1,16 +1,12 @@
 
 buildscript {
-    repositories {
-        jcenter()
-    }
     dependencies {
         classpath("com.android.tools.build:gradle:2.3.1")
         classpath(kotlinModule("gradle-plugin"))
     }
-}
-
-repositories {
-    jcenter()
+    repositories {
+        jcenter()
+    }
 }
 
 apply {
@@ -45,4 +41,7 @@ dependencies {
     compile(kotlinModule("stdlib"))
 }
 
+repositories {
+    jcenter()
+}
 
