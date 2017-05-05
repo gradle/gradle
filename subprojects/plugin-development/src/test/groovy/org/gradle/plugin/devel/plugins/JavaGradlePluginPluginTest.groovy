@@ -200,6 +200,24 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         1 * mockJarTask.appendParallelSafeAction({ it instanceof JavaGradlePluginPlugin.PluginValidationAction })
     }
 
+    def "creates tasks with group and description"() {
+        when:
+        project.pluginManager.apply(JavaGradlePluginPlugin)
+
+        then:
+        def pluginUnderTestMetadata = project.tasks.getByName(JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME)
+        pluginUnderTestMetadata.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
+        pluginUnderTestMetadata.description == JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION
+
+        def pluginDescriptors = project.tasks.getByName(JavaGradlePluginPlugin.GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME)
+        pluginDescriptors.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
+        pluginDescriptors.description == JavaGradlePluginPlugin.GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION
+
+        def validateTaskProperties = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_NAME)
+        validateTaskProperties.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
+        validateTaskProperties.description == JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION
+    }
+
     def Jar mockJar(project) {
         def Jar mockJar = Mock(Jar) {
             _ * getName() >> { JavaGradlePluginPlugin.JAR_TASK }
