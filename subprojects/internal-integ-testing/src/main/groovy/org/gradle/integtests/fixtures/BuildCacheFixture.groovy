@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.integtests.fixtures
 
-import org.gradle.caching.BuildCacheService
+import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
-class LoggingBuildCacheServiceDecoratorTest extends AbstractRoleAwareBuildCacheServiceDecoratorTest {
-    def decorator = new LoggingBuildCacheServiceDecorator(delegate)
+@SelfType(AbstractIntegrationSpec)
+trait BuildCacheFixture {
+    abstract TestNameTestDirectoryProvider getTemporaryFolder()
+    abstract GradleExecuter getExecuter()
 
-    BuildCacheService getDecorator() {
-        return decorator
+    AbstractIntegrationSpec withBuildCache() {
+        executer.withBuildCacheEnabled()
+        this
     }
+
 }
