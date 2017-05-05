@@ -16,6 +16,8 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
@@ -68,13 +70,14 @@ import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -207,7 +210,15 @@ public class TaskExecutionServices {
         return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
     }
 
-    BuildCacheService createBuildCacheService(BuildCacheServiceProvider provider) {
-        return provider.createBuildCacheService();
+    BuildCacheService createBuildCacheService(BuildCacheServiceProvider provider, ListenerManager listenerManager) {
+        final BuildCacheService buildCacheService = provider.createBuildCacheService();
+        // Stop the build cache at the end of the build vs waiting for the service registry to shut it down.
+        listenerManager.addListener(new BuildAdapter() {
+            @Override
+            public void buildFinished(BuildResult result) {
+                CompositeStoppable.stoppable(buildCacheService).stop();
+            }
+        });
+        return buildCacheService;
     }
 }
