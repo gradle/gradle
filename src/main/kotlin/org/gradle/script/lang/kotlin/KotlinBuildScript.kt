@@ -52,7 +52,7 @@ abstract class KotlinBuildScript(project: Project) : Project by project {
      * @see [Project.buildscript]
      */
     @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") configuration: ScriptHandlerScope.() -> Unit) = Unit
+    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
 
     /**
      * Configures the plugin dependencies for this project.
@@ -60,10 +60,17 @@ abstract class KotlinBuildScript(project: Project) : Project by project {
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") configuration: PluginDependenciesSpecScope.() -> Unit) = Unit
+    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit) = Unit
 
+    /**
+     * Applies zero or more plugins or scripts.
+     *
+     * @param block code to configure an [ObjectConfigurationAction] before executing it
+     *
+     * @see Project.apply
+     */
     inline
-    fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
-        project.apply({ it.configuration() })
+    fun apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
+        project.apply({ it.block() })
 }
 

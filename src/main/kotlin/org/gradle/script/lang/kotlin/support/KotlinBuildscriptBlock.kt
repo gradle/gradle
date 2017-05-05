@@ -21,6 +21,10 @@ import org.gradle.script.lang.kotlin.ScriptHandlerScope
 
 import org.gradle.api.Project
 
+
+/**
+ * Base class for `buildscript` block evaluation.
+ */
 abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(project) {
 
     /**
@@ -28,7 +32,7 @@ abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(proj
      *
      * @see [Project.buildscript]
      */
-    override fun buildscript(configuration: ScriptHandlerScope.() -> Unit) {
-        ScriptHandlerScope(project.buildscript).configuration()
+    override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+        ScriptHandlerScope(project.buildscript).block()
     }
 }
