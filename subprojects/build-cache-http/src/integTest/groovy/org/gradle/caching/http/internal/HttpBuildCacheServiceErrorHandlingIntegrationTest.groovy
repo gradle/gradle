@@ -51,7 +51,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         """ .stripIndent()
     }
 
-
     def "build does not fail if connection drops during store"() {
         httpBuildCache.dropConnectionForPutAfterBytes(1024)
         startServer()
@@ -61,7 +60,8 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         executer.withFullDeprecationStackTraceDisabled()
         withBuildCache().succeeds "customTask"
         then:
-        output ==~ /(?s).*org\.gradle\.api\.GradleException: Could not pack property 'outputFile': (Broken pipe|Connection reset).*/
+        output ==~ /(?s).*org\.gradle\.api\.GradleException: Could not pack property 'outputFile': (Broken pipe|Connection reset).*/ ||
+            output ==~ /(?s).*org\.gradle\.caching\.BuildCacheException: Unable to store entry at .*: (Broken pipe|Connection reset).*/
     }
 
     private void startServer() {
