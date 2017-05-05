@@ -326,7 +326,6 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
         existing("settings.gradle").appendText("""
             include 'sub-project'
-            project(':sub-project').buildFileName = 'build.gradle.kts'
         """)
 
         withFile("sub-project/build.gradle.kts", """

@@ -184,7 +184,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
         withFile("settings.gradle", """
             include 'a'
-            project(':a').buildFileName = 'build.gradle.kts'
         """)
         withFile("a/build.gradle.kts")
 

@@ -85,9 +85,6 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         withFile("settings.gradle", """
             include 'foo', 'bar'
-            rootProject.children.each {
-                it.buildFileName = 'build.gradle.kts'
-            }
         """)
 
         fun withFixture(fixture: String) =
