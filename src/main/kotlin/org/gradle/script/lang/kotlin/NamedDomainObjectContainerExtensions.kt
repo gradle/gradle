@@ -37,6 +37,9 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
     }
 
 
+/**
+ * Receiver for [NamedDomainObjectContainer] configuration blocks.
+ */
 class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>) : NamedDomainObjectContainer<T> by container {
 
@@ -96,13 +99,21 @@ val <T : Any> NamedDomainObjectContainer<T>.creating
 
 /**
  * Provides a property delegate that creates elements of the default collection type with the given [configuration].
+ *
+ * `val myElement by myContainer.creating { myProperty = 42 }`
  */
 fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit) =
     NamedDomainObjectContainerDelegateProvider(this, configuration)
 
 
+/**
+ * A property delegate that creates elements in the given [NamedDomainObjectContainer].
+ *
+ * See [creating]
+ */
 class NamedDomainObjectContainerDelegateProvider<T : Any>(
-    val container: NamedDomainObjectContainer<T>, val configuration: T.() -> Unit) {
+    val container: NamedDomainObjectContainer<T>,
+    val configuration: T.() -> Unit) {
 
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
         container.apply {
@@ -133,8 +144,13 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: Class<U>
     PolymorphicDomainObjectContainerDelegateProvider(this, type, configuration)
 
 
+/**
+ * A property delegate that creates elements of the given [type] with the given [configuration] in the given [container].
+ */
 class PolymorphicDomainObjectContainerDelegateProvider<T : Any, U : T>(
-    val container: PolymorphicDomainObjectContainer<T>, val type: Class<U>, val configuration: U.() -> Unit) {
+    val container: PolymorphicDomainObjectContainer<T>,
+    val type: Class<U>,
+    val configuration: U.() -> Unit) {
 
     @Suppress("unchecked_cast")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
