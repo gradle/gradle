@@ -26,7 +26,7 @@ import spock.lang.Subject
 @Subject(BuildLogLevelFilterRenderer)
 public class BuildLogLevelFilterRendererTest extends OutputSpecification {
     def listener = Mock(OutputEventListener)
-    def renderer = new BuildLogLevelFilterRenderer(listener)
+    def renderer = new BuildLogLevelFilterRenderer(listener, LogLevel.LIFECYCLE)
 
     def "consume correctly LogLevelChangeEvent"() {
         when:
