@@ -41,15 +41,14 @@ open class AbstractIntegrationTest {
         file.apply { writeText(text) }
 
     protected
-    fun withBuildSrc() {
+    fun withBuildSrc() =
         withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
             package build
             class Foo {}
         """)
-    }
 
     protected
-    fun withKotlinBuildSrc() {
+    fun withKotlinBuildSrc() =
         withBuildScriptIn("buildSrc", """
             buildscript {
                 configure(listOf(repositories, project.repositories)) {
@@ -66,7 +65,6 @@ open class AbstractIntegrationTest {
                 compile(gradleScriptKotlinApi())
             }
         """)
-    }
 
     protected
     fun withClassJar(fileName: String, vararg classes: Class<*>) =
@@ -96,9 +94,8 @@ open class AbstractIntegrationTest {
         }
 
     protected
-    fun makeParentFoldersOf(fileName: String) {
+    fun makeParentFoldersOf(fileName: String) =
         parentFileOf(fileName).mkdirs()
-    }
 
     protected
     fun parentFileOf(fileName: String): File =
@@ -162,9 +159,8 @@ fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
 }
 
 
-fun setOrClearProperty(key: String, value: String?) {
+fun setOrClearProperty(key: String, value: String?) =
     when (value) {
         null -> System.clearProperty(key)
         else -> System.setProperty(key, value)
     }
-}
