@@ -64,7 +64,7 @@ public class BuildCacheServiceProvider {
         boolean canUseRemoteBuildCache = remote != null && remote.isEnabled();
 
         if (canUseRemoteBuildCache && startParameter.isOffline()) {
-            LOGGER.lifecycle("Remote build cache is disabled when running with --offline.");
+            LOGGER.warn("Remote build cache is disabled when running with --offline.");
         }
 
         RoleAwareBuildCacheService buildCacheService;
@@ -77,7 +77,7 @@ public class BuildCacheServiceProvider {
         } else if (canUseRemoteBuildCache && !startParameter.isOffline()) {
             buildCacheService = createStandaloneRemoteBuildService(remote);
         } else {
-            LOGGER.lifecycle("Task output caching is enabled, but no build caches are configured or enabled.");
+            LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
             return new NoOpBuildCacheService();
         }
 
