@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -72,14 +73,15 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
             @Override
             public Set<? extends OutgoingVariant> getChildren() {
+                if (variants == null || variants.isEmpty()) {
+                    return Collections.singleton(new LeafOutgoingVariant(attributes, allArtifacts));
+                }
                 Set<OutgoingVariant> result = new LinkedHashSet<OutgoingVariant>();
-                if (allArtifacts.size() > 0 || variants == null) {
+                if (!allArtifacts.isEmpty()) {
                     result.add(new LeafOutgoingVariant(attributes, allArtifacts));
                 }
-                if (variants != null) {
-                    for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
-                        result.add(variant.convertToOutgoingVariant());
-                    }
+                for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
+                    result.add(variant.convertToOutgoingVariant());
                 }
                 return result;
             }

@@ -19,11 +19,10 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -43,6 +42,7 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,7 +53,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newLinkedHashMap();
     private final Multimap<String, LocalComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
     private final Multimap<String, LocalFileDependencyMetadata> allFiles = ArrayListMultimap.create();
-    private final SetMultimap<String, DefaultVariantMetadata> allVariants = LinkedHashMultimap.create();
     private final List<LocalOriginDependencyMetadata> allDependencies = Lists.newArrayList();
     private final List<Exclude> allExcludes = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
@@ -92,14 +91,15 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             copy.allArtifacts.put(entry.getKey(), newArtifact);
         }
 
-        // Variants
-        for (Map.Entry<String, DefaultVariantMetadata> entry : allVariants.entries()) {
-            DefaultVariantMetadata oldVariant = entry.getValue();
-            Set<LocalComponentArtifactMetadata> newArtifacts = new LinkedHashSet<LocalComponentArtifactMetadata>(oldVariant.getArtifacts().size());
-            for (ComponentArtifactMetadata oldArtifact : oldVariant.getArtifacts()) {
-                newArtifacts.add(copyArtifact((LocalComponentArtifactMetadata) oldArtifact, artifacts, transformedArtifacts));
+        //Variants
+        for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
+            for (VariantMetadata oldVariant : configuration.getVariants()) {
+                Set<LocalComponentArtifactMetadata> newArtifacts = new LinkedHashSet<LocalComponentArtifactMetadata>(oldVariant.getArtifacts().size());
+                for (ComponentArtifactMetadata oldArtifact : oldVariant.getArtifacts()) {
+                    newArtifacts.add(copyArtifact((LocalComponentArtifactMetadata) oldArtifact, artifacts, transformedArtifacts));
+                }
+                copy.allConfigurations.get(configuration.getName()).addVariant(new DefaultVariantMetadata(oldVariant.getAttributes(), newArtifacts));
             }
-            copy.allVariants.put(entry.getKey(), new DefaultVariantMetadata(oldVariant.getAttributes(), newArtifacts));
         }
 
         // Don't include file dependencies
@@ -127,7 +127,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            LocalComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact);
+            LocalComponentArtifactMetadata artifactMetadata = toArtifactMetadata(artifact);
             addArtifact(configuration, artifactMetadata);
         }
     }
@@ -138,17 +138,28 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     @Override
     public void addVariant(String configuration, OutgoingVariant variant) {
-        Set<LocalComponentArtifactMetadata> artifacts;
-        if (variant.getArtifacts().isEmpty()) {
-            artifacts = ImmutableSet.of();
+        allConfigurations.get(configuration).addVariant(variant);
+    }
+
+    private Set<LocalComponentArtifactMetadata> toArtifactMetadata(OutgoingVariant variant) {
+        Set<? extends PublishArtifact> artifacts = variant.getArtifacts();
+        if (artifacts.isEmpty()) {
+            return ImmutableSet.of();
+        } else if (artifacts.size() == 1) {
+            PublishArtifact artifact = artifacts.iterator().next();
+            LocalComponentArtifactMetadata artifactMetadata = toArtifactMetadata(artifact);
+            return ImmutableSet.of(artifactMetadata);
         } else {
             ImmutableSet.Builder<LocalComponentArtifactMetadata> builder = ImmutableSet.builder();
-            for (PublishArtifact artifact : variant.getArtifacts()) {
-                builder.add(new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact));
+            for (PublishArtifact artifact : artifacts) {
+                builder.add(toArtifactMetadata(artifact));
             }
-            artifacts = builder.build();
+            return builder.build();
         }
-        allVariants.put(configuration, new DefaultVariantMetadata(variant.getAttributes().asImmutable(), artifacts));
+    }
+
+    private PublishArtifactLocalArtifactMetadata toArtifactMetadata(PublishArtifact artifact) {
+        return new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact);
     }
 
     @Override
@@ -260,6 +271,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final AttributeContainerInternal attributes;
         private final boolean canBeConsumed;
         private final boolean canBeResolved;
+        private Set<VariantMetadata> variants;
 
         private List<LocalOriginDependencyMetadata> configurationDependencies;
         private Set<LocalComponentArtifactMetadata> configurationArtifacts;
@@ -332,7 +344,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         @Override
         public Set<? extends VariantMetadata> getVariants() {
-            return allVariants.get(name);
+            return variants == null ? Collections.<VariantMetadata>emptySet() : variants;
         }
 
         @Override
@@ -431,6 +443,23 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             }
 
             return new MissingLocalArtifactMetadata(componentIdentifier, ivyArtifactName);
+        }
+
+        private void addVariant(OutgoingVariant variant) {
+            Set<LocalComponentArtifactMetadata> artifacts = toArtifactMetadata(variant);
+            VariantMetadata variantMetadata = new DefaultVariantMetadata(variant.getAttributes().asImmutable(), artifacts);
+            addVariant(variantMetadata);
+        }
+
+        private void addVariant(VariantMetadata variantMetadata) {
+            if (variants == null) {
+                variants = Collections.singleton(variantMetadata);
+            } else {
+                if (variants.size() == 1) {
+                    variants = Sets.newLinkedHashSet(variants);
+                }
+                variants.add(variantMetadata);
+            }
         }
     }
 }
