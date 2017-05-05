@@ -69,7 +69,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         operation().result.enabled == true
 
-        operation().result.local.className == 'org.gradle.caching.local.DirectoryBuildCache_Decorated'
+        operation().result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         operation().result.local.config.directory == directory
         operation().result.local.displayName == 'Directory'
         operation().result.local.enabled == enabled
@@ -109,7 +109,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         operation().result.enabled == true
 
-        operation().result.remote.className == 'org.gradle.caching.http.HttpBuildCache_Decorated'
+        operation().result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
         operation().result.remote.config.url == url
         operation().result.remote.config.authenticated == authenticated
         operation().result.remote.displayName == 'HTTP'
@@ -159,7 +159,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         operation().result.enabled == true
 
         operation().result.local.enabled == true
-        operation().result.local.className == 'CustomBuildCache_Decorated'
+        operation().result.local.className == 'CustomBuildCache'
         operation().result.local.config.directory == directory
         operation().result.local.displayName == displayName
 

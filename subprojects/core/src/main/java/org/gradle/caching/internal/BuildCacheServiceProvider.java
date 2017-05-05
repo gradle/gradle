@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.tasks.GeneratedSubclasses;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -168,7 +169,13 @@ public class BuildCacheServiceProvider {
         private BuildCacheWrapper convertToWrapper(BuildCache buildCache, boolean enabled) {
             return buildCache == null || !enabled
                 ? null
-                : new BuildCacheWrapper(buildCache.getClass().getName(), buildCache.isEnabled(), buildCache.isPush(), buildCache.getDisplayName(), buildCache.getConfigDescription());
+                : new BuildCacheWrapper(
+                GeneratedSubclasses.unpack(buildCache.getClass()).getName(),
+                buildCache.isEnabled(),
+                buildCache.isPush(),
+                buildCache.getDisplayName(),
+                buildCache.getConfigDescription()
+            );
         }
 
         @Override
