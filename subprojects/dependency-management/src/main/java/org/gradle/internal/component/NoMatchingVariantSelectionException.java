@@ -35,7 +35,7 @@ public class NoMatchingVariantSelectionException extends RuntimeException {
         formatter.node("No variants of " + producerDisplayName + " match the consumer attributes");
         formatter.startChildren();
         for (ResolvedVariant variant : candidates) {
-            formatter.node("Variant");
+            formatter.node(variant.getDisplayName());
             formatAttributeMatches(formatter, consumer, matcher, variant.getAttributes());
         }
         formatter.endChildren();

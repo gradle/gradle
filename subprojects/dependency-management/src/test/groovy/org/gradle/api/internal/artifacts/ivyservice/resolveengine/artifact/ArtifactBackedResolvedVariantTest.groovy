@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.Describables
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import spock.lang.Specification
 
@@ -145,7 +146,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     ResolvedVariant of(artifacts) {
-        return ArtifactBackedResolvedVariant.create(variant, artifacts)
+        return ArtifactBackedResolvedVariant.create(Describables.of("<variant>"), variant, artifacts)
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable { }

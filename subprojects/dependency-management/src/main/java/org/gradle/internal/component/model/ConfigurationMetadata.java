@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.Describable;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -31,6 +32,8 @@ public interface ConfigurationMetadata extends HasAttributes {
     Set<String> getHierarchy();
 
     String getName();
+
+    Describable asDescribable();
 
     @Override
     AttributeContainerInternal getAttributes();

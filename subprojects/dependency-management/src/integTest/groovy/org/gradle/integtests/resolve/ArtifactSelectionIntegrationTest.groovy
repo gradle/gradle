@@ -765,14 +765,14 @@ task show {
         failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
         failure.assertHasCause("""More than one variant of project :lib matches the consumer attributes:
-  - Variant:
+  - configuration ':lib:compile':
       - Required artifactType 'jar' and found compatible value 'jar'.
       - Required usage 'api' and found compatible value 'api'.
-  - Variant:
+  - configuration ':lib:compile' variant debug:
       - Required artifactType 'jar' and found compatible value 'jar'.
       - Found buildType 'debug' but wasn't required.
       - Required usage 'api' and found compatible value 'api'.
-  - Variant:
+  - configuration ':lib:compile' variant release:
       - Required artifactType 'jar' and found compatible value 'jar'.
       - Found buildType 'release' but wasn't required.
       - Required usage 'api' and found compatible value 'api'.""")
@@ -870,14 +870,14 @@ task show {
         expect:
         fails "resolveView"
         failure.assertHasCause("""No variants of project :lib match the consumer attributes:
-  - Variant:
+  - configuration ':lib:compile':
       - Required artifactType 'dll' and found incompatible value 'jar'.
       - Required usage 'api' and found compatible value 'api'.
-  - Variant:
+  - configuration ':lib:compile' variant debug:
       - Required artifactType 'dll' and found incompatible value 'jar'.
       - Found buildType 'debug' but wasn't required.
       - Required usage 'api' and found compatible value 'api'.
-  - Variant:
+  - configuration ':lib:compile' variant release:
       - Required artifactType 'dll' and found incompatible value 'jar'.
       - Found buildType 'release' but wasn't required.
       - Required usage 'api' and found compatible value 'api'.""")

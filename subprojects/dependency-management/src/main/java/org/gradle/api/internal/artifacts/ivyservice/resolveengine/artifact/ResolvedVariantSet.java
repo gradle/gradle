@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.util.Set;
@@ -23,9 +24,7 @@ import java.util.Set;
 /**
  * Represents some provider of {@link ResolvedVariant} instances to select from.
  */
-public interface ResolvedVariantSet {
-    String getDisplayName();
-
+public interface ResolvedVariantSet extends Describable {
     AttributesSchemaInternal getSchema();
 
     Set<ResolvedVariant> getVariants();

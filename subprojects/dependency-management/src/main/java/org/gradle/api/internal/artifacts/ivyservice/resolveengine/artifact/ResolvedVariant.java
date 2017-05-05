@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Describable;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
-public interface ResolvedVariant extends HasAttributes {
+public interface ResolvedVariant extends HasAttributes, Describable {
     @Override
     AttributeContainerInternal getAttributes();
 

@@ -797,10 +797,10 @@ class FileSizer extends ArtifactTransform {
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from variant:
+  - Transform from configuration ':lib:compile':
       - artifactType 'type1'
       - usage 'api'
-  - Transform from variant:
+  - Transform from configuration ':lib:compile':
       - artifactType 'type1'
       - usage 'api'"""
     }
@@ -887,17 +887,17 @@ Found the following transforms:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant1:
       - artifactType 'jar'
       - buildType 'release'
       - flavor 'free'
       - usage 'api'
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant2:
       - artifactType 'jar'
       - buildType 'release'
       - flavor 'paid'
       - usage 'api'
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant3:
       - artifactType 'jar'
       - buildType 'debug'
       - usage 'api'"""

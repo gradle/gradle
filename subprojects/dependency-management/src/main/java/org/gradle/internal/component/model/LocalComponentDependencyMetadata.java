@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -276,6 +277,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         @Override
         public String getName() {
             return delegate.getName();
+        }
+
+        @Override
+        public Describable asDescribable() {
+            return delegate.asDescribable();
         }
 
         @Override

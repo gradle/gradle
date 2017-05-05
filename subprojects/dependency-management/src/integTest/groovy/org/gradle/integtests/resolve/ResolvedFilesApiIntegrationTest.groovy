@@ -365,11 +365,11 @@ task show {
         expect:
         fails("show")
         failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
-  - Variant:
+  - configuration ':a:compile' variant free:
       - Found artifactType 'jar' but wasn't required.
       - Found flavor 'free' but wasn't required.
       - Required usage 'compile' and found compatible value 'compile'.
-  - Variant:
+  - configuration ':a:compile' variant paid:
       - Found artifactType 'jar' but wasn't required.
       - Found flavor 'paid' but wasn't required.
       - Required usage 'compile' and found compatible value 'compile'.""")
@@ -448,11 +448,11 @@ task show {
         expect:
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
-  - Variant:
+  - configuration ':a:compile' variant free:
       - Found artifactType 'jar' but wasn't required.
       - Required flavor 'preview' and found incompatible value 'free'.
       - Required usage 'compile' and found compatible value 'compile'.
-  - Variant:
+  - configuration ':a:compile' variant paid:
       - Found artifactType 'jar' but wasn't required.
       - Required flavor 'preview' and found incompatible value 'paid'.
       - Required usage 'compile' and found compatible value 'compile'.""")

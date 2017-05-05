@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
@@ -25,6 +26,8 @@ import java.util.Set;
  * A representation of the outgoing variants of a component. Implementations are _not_ expected to be immutable.
  */
 public interface OutgoingVariant {
+    Describable asDescribable();
+
     AttributeContainerInternal getAttributes();
 
     Set<? extends PublishArtifact> getArtifacts();

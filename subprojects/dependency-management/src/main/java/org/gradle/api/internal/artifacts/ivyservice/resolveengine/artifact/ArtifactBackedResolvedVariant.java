@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -35,26 +36,33 @@ import java.util.List;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 class ArtifactBackedResolvedVariant implements ResolvedVariant {
+    private final Describable displayName;
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet artifacts;
 
-    private ArtifactBackedResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+    private ArtifactBackedResolvedVariant(Describable displayName, AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+        this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
     }
 
-    public static ResolvedVariant create(AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
+    public static ResolvedVariant create(Describable displayName, AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
         if (artifacts.isEmpty()) {
-            return new ArtifactBackedResolvedVariant(attributes, EMPTY);
+            return new ArtifactBackedResolvedVariant(displayName, attributes, EMPTY);
         }
         if (artifacts.size() == 1) {
-            return new ArtifactBackedResolvedVariant(attributes, new SingleArtifactSet(attributes, artifacts.iterator().next()));
+            return new ArtifactBackedResolvedVariant(displayName, attributes, new SingleArtifactSet(attributes, artifacts.iterator().next()));
         }
         List<SingleArtifactSet> artifactSets = new ArrayList<SingleArtifactSet>();
         for (ResolvedArtifact artifact : artifacts) {
             artifactSets.add(new SingleArtifactSet(attributes, artifact));
         }
-        return new ArtifactBackedResolvedVariant(attributes, CompositeArtifactSet.of(artifactSets));
+        return new ArtifactBackedResolvedVariant(displayName, attributes, CompositeArtifactSet.of(artifactSets));
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName.getDisplayName();
     }
 
     @Override

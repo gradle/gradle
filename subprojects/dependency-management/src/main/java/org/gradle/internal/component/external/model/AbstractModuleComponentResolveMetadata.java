@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.Describable;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -288,8 +290,13 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         @Override
+        public Describable asDescribable() {
+            return Describables.of(componentId, "configuration", name);
+        }
+
+        @Override
         public String toString() {
-            return componentId + ":" + name;
+            return asDescribable().getDisplayName();
         }
 
         @Override
@@ -409,7 +416,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
         @Override
         public Set<? extends VariantMetadata> getVariants() {
-            return ImmutableSet.of(new DefaultVariantMetadata(getAttributes(), getArtifacts()));
+            return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts()));
         }
 
         @Override
@@ -417,7 +424,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
         }
 
-        public void collectInheritedArtifacts(Set<ConfigurationMetadata> visited) {
+        protected void collectInheritedArtifacts(Set<ConfigurationMetadata> visited) {
             if (!visited.add(this)) {
                 return;
             }
@@ -431,5 +438,4 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             }
         }
     }
-
 }

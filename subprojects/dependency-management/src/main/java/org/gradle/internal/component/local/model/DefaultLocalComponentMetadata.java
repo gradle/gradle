@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
+import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -33,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -99,7 +101,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             for (ComponentArtifactMetadata oldArtifact : oldVariant.getArtifacts()) {
                 newArtifacts.add(copyArtifact((LocalComponentArtifactMetadata) oldArtifact, artifacts, transformedArtifacts));
             }
-            copy.allVariants.put(entry.getKey(), new DefaultVariantMetadata(oldVariant.getAttributes(), newArtifacts));
+            copy.allVariants.put(entry.getKey(), new DefaultVariantMetadata(oldVariant.asDescribable(), oldVariant.getAttributes(), newArtifacts));
         }
 
         // Don't include file dependencies
@@ -148,7 +150,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             }
             artifacts = builder.build();
         }
-        allVariants.put(configuration, new DefaultVariantMetadata(variant.getAttributes().asImmutable(), artifacts));
+        allVariants.put(configuration, new DefaultVariantMetadata(variant.asDescribable(), variant.getAttributes().asImmutable(), artifacts));
     }
 
     @Override
@@ -288,7 +290,12 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         @Override
         public String toString() {
-            return componentIdentifier.getDisplayName() + ":" + name;
+            return asDescribable().getDisplayName();
+        }
+
+        @Override
+        public Describable asDescribable() {
+            return Describables.of(componentIdentifier, "configuration", name);
         }
 
         public ComponentResolveMetadata getComponent() {
