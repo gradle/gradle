@@ -17,7 +17,6 @@
 package org.gradle.caching.configuration;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 import java.util.Map;
 
@@ -28,6 +27,7 @@ import java.util.Map;
  */
 @Incubating
 public interface BuildCache {
+
     /**
      * Returns whether the build cache is enabled.
      */
@@ -49,15 +49,14 @@ public interface BuildCache {
     void setPush(boolean enabled);
 
     /**
-    * Provides a human friendly description of the type of this cache.
-    * e.g. Directory, HTTP
-    */
-    @Nullable
+     * Provides a human friendly description of the type of this cache.
+     */
     String getDisplayName();
 
     /**
      * Returns a map of configuration entries such as the remote url or the local directory location.
+     * <p>
+     * Implementations should return an empty map if they have no config to describe.
      */
-    @Nullable
     Map<String, String> getConfigDescription();
 }

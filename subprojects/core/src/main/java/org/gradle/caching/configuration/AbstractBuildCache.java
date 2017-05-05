@@ -17,8 +17,9 @@
 package org.gradle.caching.configuration;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+import org.gradle.api.internal.tasks.GeneratedSubclasses;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -66,18 +67,16 @@ public abstract class AbstractBuildCache implements BuildCache {
     /**
      * {@inheritDoc}
      */
-    @Nullable
     @Override
     public String getDisplayName() {
-        return null;
+        return GeneratedSubclasses.unpack(getClass()).getName();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Nullable
     @Override
     public Map<String, String> getConfigDescription() {
-        return null;
+        return Collections.emptyMap();
     }
 }
