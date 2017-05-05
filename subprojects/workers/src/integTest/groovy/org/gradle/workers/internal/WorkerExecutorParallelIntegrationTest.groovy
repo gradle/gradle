@@ -539,6 +539,67 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    def "cannot mutate worker parameters when using IsolationMode.NONE"() {
+        given:
+        buildFile << """
+            List<String> mutableList = ["foo"]
+            
+            class VerifyingRunnable implements Runnable {
+                final String itemName
+                final List<String> list
+
+                @Inject
+                public VerifyingRunnable(String itemName, List<String> list) {
+                    this.itemName = itemName
+                    this.list = list
+                }
+
+                public void run() {
+                    assert list.size() == 1
+                    new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${itemName}", null, null).toURL().text
+                    assert list.size() == 1
+                }
+            }
+            
+            class VerifyingRunnableTask extends DefaultTask {
+                String itemName
+                List<String> list
+                
+                @Inject
+                WorkerExecutor getWorkerExecutor() {
+                    throw new UnsupportedOperationException()
+                }
+                
+                @TaskAction
+                void executeRunnable() {
+                    workerExecutor.submit(VerifyingRunnable.class) { config ->
+                        config.isolationMode = IsolationMode.NONE
+                        config.params = [ itemName.toString(), list ]
+                    }
+                }
+            }
+            
+            task firstTask(type: VerifyingRunnableTask) {
+                itemName = "task1"
+                list = mutableList
+            }
+            
+            task secondTask(type: MultipleWorkItemTask) {
+                doLast { 
+                    mutableList.add "bar"
+                    assert mutableList.size() == 2
+                    submitWorkItem("task2") 
+                }
+            }
+        """
+
+        blockingHttpServer.expectConcurrentExecution("task1", "task2")
+
+        expect:
+        args("--max-workers=2")
+        succeeds("firstTask", "secondTask")
+    }
+
     def getParallelRunnable() {
         return """
             import java.net.URI
