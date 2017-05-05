@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
+package org.gradle.api.resources.normalization;
+
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+
 /**
- * Interfaces and API for the 'Resources' concept.
+ * Configuration for the normalization strategy for the runtime classpath.
  *
  * @since 4.0
  */
 @Incubating
-package org.gradle.api.resources;
-
-import org.gradle.api.Incubating;
+@HasInternalProtocol
+public interface RuntimeClasspathNormalizationStrategy extends ResourceNormalizationStrategy {
+    /**
+     * Ignore resources in classpath entries matching the pattern.
+     */
+    void ignore(String pattern);
+}

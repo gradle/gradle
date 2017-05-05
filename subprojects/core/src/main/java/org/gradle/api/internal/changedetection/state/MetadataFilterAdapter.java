@@ -16,31 +16,43 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.Funnels;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteStreams;
+import org.gradle.api.file.RelativePath;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
-/**
- * Hashes contents of resources ({@link RegularFileSnapshot}s and {@link ZipEntry}s) in runtime classpath entries.
- *
- * Currently, we take the unmodified content into account but we could be smarter at some point.
- */
-public class RuntimeClasspathContentHasher implements ContentHasher {
+public class MetadataFilterAdapter implements ResourceHasher {
+    private final MetadataFilter filter;
+    private final ResourceHasher delegate;
+
+    public MetadataFilterAdapter(MetadataFilter filter, ResourceHasher delegate) {
+        this.filter = filter;
+        this.delegate = delegate;
+    }
+
     @Override
     public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        return fileSnapshot.getContent().getContentMd5();
+        if (filter.shouldBeIgnored(fileSnapshot.getRelativePath())) {
+            return null;
+        }
+        return delegate.hash(fileSnapshot);
     }
 
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        Hasher hasher = Hashing.md5().newHasher();
-        ByteStreams.copy(zipInput, Funnels.asOutputStream(hasher));
-        return hasher.hash();
+        if (filter.shouldBeIgnored(RelativePath.parse(true, zipEntry.getName()))) {
+            return null;
+        }
+        return delegate.hash(zipEntry, zipInput);
+    }
+
+    @Override
+    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+        hasher.putString(getClass().getName());
+        filter.appendConfigurationToHasher(hasher);
+        delegate.appendConfigurationToHasher(hasher);
     }
 }

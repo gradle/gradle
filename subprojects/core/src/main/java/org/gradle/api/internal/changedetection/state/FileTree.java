@@ -16,19 +16,25 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
-/**
- * Builds a {@link FileCollectionSnapshot} for a compile classpath.
- *
- * We only take class files in jar files and class files in directories into account.
- */
-public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
-    public CompileClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(classpathResourceHasher, cacheService, stringInterner);
+import java.io.IOException;
+import java.util.List;
+
+public class FileTree implements ResourceTree {
+    private final List<FileSnapshot> descendants;
+
+    public FileTree(List<FileSnapshot> descendants) {
+        this.descendants = descendants;
     }
 
     @Override
-    protected void visitNonJar(RegularFileSnapshot file) {
+    public void visit(ResourceWithContentsVisitor visitor) throws IOException {
+        for (FileSnapshot descendant : descendants) {
+            if (descendant.getType() == FileType.RegularFile) {
+                RegularFileSnapshot fileSnapshot = (RegularFileSnapshot) descendant;
+                visitor.visitFileSnapshot(fileSnapshot);
+            }
+        }
     }
 }

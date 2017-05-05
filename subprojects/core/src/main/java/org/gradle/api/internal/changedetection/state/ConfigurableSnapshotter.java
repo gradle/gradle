@@ -16,19 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.caching.internal.BuildCacheHasher;
 
-/**
- * Builds a {@link FileCollectionSnapshot} for a compile classpath.
- *
- * We only take class files in jar files and class files in directories into account.
- */
-public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
-    public CompileClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(classpathResourceHasher, cacheService, stringInterner);
-    }
+public interface ConfigurableSnapshotter {
 
-    @Override
-    protected void visitNonJar(RegularFileSnapshot file) {
-    }
+    /**
+     * Appends the identification of the configuration of this object to a snapshotter.
+     * The contract is that, if two hashes agree, then the methods on this snapshotter return the same result whenever the arguments are the same.
+     */
+    void appendConfigurationToHasher(BuildCacheHasher hasher);
 }

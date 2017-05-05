@@ -16,19 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.hash.HashCode;
+import org.gradle.api.Nullable;
 
-/**
- * Builds a {@link FileCollectionSnapshot} for a compile classpath.
- *
- * We only take class files in jar files and class files in directories into account.
- */
-public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
-    public CompileClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(classpathResourceHasher, cacheService, stringInterner);
-    }
-
-    @Override
-    protected void visitNonJar(RegularFileSnapshot file) {
-    }
+public interface RegularFileHasher {
+    /**
+     * Returns {@code null} if the file should be ignored.
+     */
+    @Nullable
+    HashCode hash(RegularFileSnapshot fileSnapshot);
 }

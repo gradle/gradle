@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  */
 
 /**
- * Interfaces and API for the 'Resources' concept.
- *
- * @since 4.0
+ * Interfaces and API for resource normalization.
  */
-@Incubating
-package org.gradle.api.resources;
-
-import org.gradle.api.Incubating;
+package org.gradle.api.resources.normalization;

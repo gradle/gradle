@@ -16,19 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.file.RelativePath;
 
-/**
- * Builds a {@link FileCollectionSnapshot} for a compile classpath.
- *
- * We only take class files in jar files and class files in directories into account.
- */
-public class CompileClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
-    public CompileClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(classpathResourceHasher, cacheService, stringInterner);
-    }
-
-    @Override
-    protected void visitNonJar(RegularFileSnapshot file) {
-    }
+public interface MetadataFilter extends ConfigurableSnapshotter {
+    boolean shouldBeIgnored(RelativePath path);
 }

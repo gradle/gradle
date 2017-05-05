@@ -24,6 +24,8 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,7 +38,7 @@ import java.util.zip.ZipEntry;
  * It can be either used on {@link RegularFileSnapshot}s or {@link ZipEntry}.
  * The {@link NormalizedFileSnapshot}s can be collected by a {@link FileCollectionSnapshotBuilder}.
  */
-public class ClasspathEntrySnapshotBuilder {
+public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisitor {
     private static final Ordering<Map.Entry<String, NormalizedFileSnapshot>> SNAPSHOT_ENTRY_ORDERING = Ordering.natural().onResultOf(new Function<Map.Entry<String, NormalizedFileSnapshot>, Comparable<NormalizedFileSnapshot>>() {
         @Override
         public NormalizedFileSnapshot apply(Map.Entry<String, NormalizedFileSnapshot> input) {
@@ -47,21 +49,27 @@ public class ClasspathEntrySnapshotBuilder {
     private final StringInterner stringInterner;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final Multimap<String, NormalizedFileSnapshot> normalizedSnapshots;
+    private final ResourceHasher classpathResourceHasher;
 
-    public ClasspathEntrySnapshotBuilder(StringInterner stringInterner) {
+    public ClasspathEntrySnapshotBuilder(ResourceHasher classpathResourceHasher, StringInterner stringInterner) {
+        this.classpathResourceHasher = classpathResourceHasher;
         this.normalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.RELATIVE;
         this.compareStrategy = TaskFilePropertyCompareStrategy.UNORDERED;
         this.stringInterner = stringInterner;
         this.normalizedSnapshots = MultimapBuilder.hashKeys().arrayListValues().build();
     }
 
-    public void visitFile(RegularFileSnapshot file, HashCode hash) {
+    @Override
+    public void visitFileSnapshot(RegularFileSnapshot file) {
+        HashCode hash = classpathResourceHasher.hash(file);
         if (hash != null) {
             normalizedSnapshots.put(file.getPath(), normalizationStrategy.getNormalizedSnapshot(file.withContentHash(hash), stringInterner));
         }
     }
 
-    public void visitZipFileEntry(ZipEntry zipEntry, HashCode hash) {
+    @Override
+    public void visitZipFileEntry(ZipEntry zipEntry, InputStream zipInput) throws IOException {
+        HashCode hash = classpathResourceHasher.hash(zipEntry, zipInput);
         if (hash != null) {
             normalizedSnapshots.put(zipEntry.getName(), new DefaultNormalizedFileSnapshot(zipEntry.getName(), new FileHashSnapshot(hash)));
         }

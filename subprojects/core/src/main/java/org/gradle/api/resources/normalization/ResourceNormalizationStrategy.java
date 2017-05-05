@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
+package org.gradle.api.resources.normalization;
+
+import org.gradle.api.Incubating;
+
 /**
- * Interfaces and API for the 'Resources' concept.
+ * Strategy for normalizing resources.
+ *
+ * Normalization strategies are used when Gradle tries to determine if two resources are different.
+ * Gradle then normalizes both resources and the resources are different iff the normalizations are different.
  *
  * @since 4.0
  */
 @Incubating
-package org.gradle.api.resources;
-
-import org.gradle.api.Incubating;
+public interface ResourceNormalizationStrategy {}

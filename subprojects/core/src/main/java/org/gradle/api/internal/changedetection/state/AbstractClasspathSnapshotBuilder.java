@@ -17,35 +17,38 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.util.DeprecationLogger;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.zip.ZipException;
 
 public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSnapshotBuilder {
-    private final ContentHasher classpathContentHasher;
-    private final ContentHasher jarContentHasher;
-    protected final StringInterner stringInterner;
+    private final ResourceHasher classpathResourceHasher;
+    private final StringInterner stringInterner;
+    private final ResourceSnapshotterCacheService cacheService;
+    private final JarHasher jarHasher;
+    private final byte[] jarHasherConfigurationHash;
 
-    public AbstractClasspathSnapshotBuilder(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, StringInterner stringInterner) {
+    public AbstractClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
         super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
+        this.cacheService = cacheService;
         this.stringInterner = stringInterner;
-        this.jarContentHasher = jarContentHasher;
-        this.classpathContentHasher = classpathContentHasher;
+        this.classpathResourceHasher = classpathResourceHasher;
+        this.jarHasher = new JarHasher();
+        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        jarHasher.appendConfigurationToHasher(hasher);
+        this.jarHasherConfigurationHash = hasher.hash().asBytes();
     }
 
-    @Override
-    public void visitFileTreeSnapshot(List<FileSnapshot> descendants) {
-        ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = new ClasspathEntrySnapshotBuilder(stringInterner);
-        for (FileSnapshot descendant : descendants) {
-            if (descendant.getType() == FileType.RegularFile) {
-                RegularFileSnapshot fileSnapshot = (RegularFileSnapshot) descendant;
-                entryResourceCollectionBuilder.visitFile(fileSnapshot, classpathContentHasher.hash(fileSnapshot));
-            }
-        }
-        entryResourceCollectionBuilder.collectNormalizedSnapshots(this);
-    }
+    protected abstract void visitNonJar(RegularFileSnapshot file);
 
     @Override
     public void visitDirectorySnapshot(DirectoryFileSnapshot directory) {
@@ -53,6 +56,17 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
 
     @Override
     public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
+    }
+
+    @Override
+    public void visitFileTreeSnapshot(List<FileSnapshot> descendants) {
+        ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = newClasspathEntrySnapshotBuilder();
+        try {
+            new FileTree(descendants).visit(entryResourceCollectionBuilder);
+        } catch (IOException e) {
+            throw new GradleException("Error while snapshotting directory in classpath", e);
+        }
+        entryResourceCollectionBuilder.collectNormalizedSnapshots(this);
     }
 
     @Override
@@ -64,12 +78,50 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
         }
     }
 
-    protected abstract void visitNonJar(RegularFileSnapshot file);
-
-    private void visitJar(RegularFileSnapshot file) {
-        HashCode hash = jarContentHasher.hash(file);
+    private void visitJar(RegularFileSnapshot jarFile) {
+        HashCode hash = cacheService.hashFile(jarFile, jarHasher, jarHasherConfigurationHash);
         if (hash != null) {
-            collectFileSnapshot(file.withContentHash(hash));
+            collectFileSnapshot(jarFile.withContentHash(hash));
         }
+    }
+
+    private class JarHasher implements RegularFileHasher, ConfigurableSnapshotter {
+        @Nullable
+        @Override
+        public HashCode hash(RegularFileSnapshot fileSnapshot) {
+            return hashJarContents(fileSnapshot);
+        }
+
+        @Override
+        public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+            hasher.putString(getClass().getName());
+            classpathResourceHasher.appendConfigurationToHasher(hasher);
+        }
+
+        private HashCode hashJarContents(RegularFileSnapshot jarFile) {
+            try {
+                ClasspathEntrySnapshotBuilder classpathEntrySnapshotBuilder = newClasspathEntrySnapshotBuilder();
+                new ZipTree(jarFile).visit(classpathEntrySnapshotBuilder);
+                return classpathEntrySnapshotBuilder.getHash();
+            } catch (ZipException e) {
+                // ZipExceptions point to a problem with the Zip, we try to be lenient for now.
+                return hashMalformedZip(jarFile);
+            } catch (IOException e) {
+                // IOExceptions other than ZipException are failures.
+                throw new UncheckedIOException("Error snapshotting jar [" + jarFile.getName() + "]", e);
+            } catch (Exception e) {
+                // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
+                return hashMalformedZip(jarFile);
+            }
+        }
+
+        private HashCode hashMalformedZip(FileSnapshot fileSnapshot) {
+            DeprecationLogger.nagUserWith("Malformed jar [" + fileSnapshot.getName() + "] found on classpath. Gradle 5.0 will no longer allow malformed jars on a classpath.");
+            return fileSnapshot.getContent().getContentMd5();
+        }
+    }
+
+    private ClasspathEntrySnapshotBuilder newClasspathEntrySnapshotBuilder() {
+        return new ClasspathEntrySnapshotBuilder(classpathResourceHasher, stringInterner);
     }
 }
