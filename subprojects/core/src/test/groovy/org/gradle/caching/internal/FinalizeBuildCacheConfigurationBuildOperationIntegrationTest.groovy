@@ -67,15 +67,16 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         succeeds("help")
 
         then:
-        operation().result.enabled == true
+        def result = result()
+        result.enabled == true
 
-        operation().result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
-        operation().result.local.config.directory == directory
-        operation().result.local.displayName == 'Directory'
-        operation().result.local.enabled == enabled
-        operation().result.local.push == push
+        result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
+        result.local.config.directory == directory
+        result.local.displayName == 'Directory'
+        result.local.enabled == enabled
+        result.local.push == push
 
-        operation().result.remote == null
+        result.remote == null
 
         where:
         push  | enabled
@@ -107,16 +108,17 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         succeeds("help")
 
         then:
-        operation().result.enabled == true
+        def result = result()
+        result.enabled == true
 
-        operation().result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
-        operation().result.remote.config.url == url
-        operation().result.remote.config.authenticated == authenticated
-        operation().result.remote.displayName == 'HTTP'
-        operation().result.remote.enabled == enabled
-        operation().result.remote.push == push
+        result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
+        result.remote.config.url == url
+        result.remote.config.authenticated == authenticated
+        result.remote.displayName == 'HTTP'
+        result.remote.enabled == enabled
+        result.remote.push == push
 
-        operation().result.local.enabled == enabled
+        result.local.enabled == enabled
 
         where:
         authenticated | credentials            | push  | enabled
@@ -156,12 +158,13 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         succeeds("help")
 
         then:
-        operation().result.enabled == true
+        def result = result()
+        result.enabled == true
 
-        operation().result.local.enabled == true
-        operation().result.local.className == 'CustomBuildCache'
-        operation().result.local.config.directory == directory
-        operation().result.local.displayName == displayName
+        result.local.enabled == true
+        result.local.className == 'CustomBuildCache'
+        result.local.config.directory == directory
+        result.local.displayName == displayName
 
     }
 
@@ -170,12 +173,14 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         succeeds("help")
 
         then:
-        operation().result.enabled == false
-        operation().result.local == null
-        operation().result.remote == null
+        def result = result()
+        result.enabled == false
+        result.local == null
+        result.remote == null
     }
 
-    private Object operation() {
-        buildOperations.operation("Finalize build cache configuration")
+    Map<String, ?> result() {
+        buildOperations.result("Finalize build cache configuration")
     }
+
 }
