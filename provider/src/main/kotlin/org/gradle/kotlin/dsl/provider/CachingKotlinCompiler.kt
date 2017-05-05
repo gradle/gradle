@@ -22,7 +22,6 @@ import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
-import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.cache.ScriptCache
 
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -101,16 +100,17 @@ class CachingKotlinCompiler(
 
     data class CompiledPluginsBlock(val lineNumber: Int, val compiledScript: CompiledScript)
 
-    fun compileBuildScript(
+    fun compileGradleScript(
         scriptPath: String,
         script: String,
+        scriptTemplate: KClass<out Any>,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
         val scriptFileName = scriptFileNameFor(scriptPath)
         return compileScript(cacheKeyPrefix + scriptFileName + script, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
-                KotlinBuildScript::class,
+                scriptTemplate,
                 scriptPath,
                 cacheFileFor(script, cacheDir, scriptFileName),
                 scriptFileName)
