@@ -1,0 +1,3 @@
+
+includeBuild("core")
+includeBuild("cli")
