@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Isolation mode for workers.
  *
- * @since 3.5
+ * @since 4.0
  */
 @Incubating
 public enum IsolationMode {

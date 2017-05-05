@@ -54,6 +54,8 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
 
     /**
      * @return the forking mode for this worker, see {@link IsolationMode}, defaults to {@link IsolationMode#AUTO}
+     *
+     * @since 4.0
      */
     IsolationMode getIsolationMode();
 
@@ -61,6 +63,8 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
      * Sets the forking mode for this worker, see {@link IsolationMode}.
      *
      * @param isolationMode the forking mode for this worker, see {@link IsolationMode}
+     *
+     * @since 4.0
      */
     void setIsolationMode(IsolationMode isolationMode);
 

@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
-import org.gradle.workers.internal.InProcessWorkerFactory;
+import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
@@ -30,10 +30,10 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final ProjectInternal project;
     private final JavaCompilerFactory javaCompilerFactory;
     private final WorkerDaemonFactory workerDaemonFactory;
-    private final InProcessWorkerFactory inProcessWorkerFactory;
+    private final IsolatedClassloaderWorkerFactory inProcessWorkerFactory;
 
     public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, WorkerDaemonFactory workerDaemonFactory,
-                                 InProcessWorkerFactory inProcessWorkerFactory) {
+                                 IsolatedClassloaderWorkerFactory inProcessWorkerFactory) {
         this.project = project;
         this.javaCompilerFactory = javaCompilerFactory;
         this.workerDaemonFactory = workerDaemonFactory;

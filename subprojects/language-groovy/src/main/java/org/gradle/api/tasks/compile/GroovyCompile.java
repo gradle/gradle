@@ -40,7 +40,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
-import org.gradle.workers.internal.InProcessWorkerFactory;
+import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
@@ -73,7 +73,7 @@ public class GroovyCompile extends AbstractCompile {
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
-            InProcessWorkerFactory inProcessWorkerFactory = getServices().get(InProcessWorkerFactory.class);
+            IsolatedClassloaderWorkerFactory inProcessWorkerFactory = getServices().get(IsolatedClassloaderWorkerFactory.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, workerDaemonFactory, inProcessWorkerFactory);
             Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
