@@ -17,7 +17,7 @@
 package org.gradle.script.lang.kotlin.support
 
 import org.gradle.script.lang.kotlin.KotlinBuildScript
-import org.gradle.script.lang.kotlin.KotlinScriptHandler
+import org.gradle.script.lang.kotlin.ScriptHandlerScope
 
 import org.gradle.api.Project
 
@@ -28,7 +28,7 @@ abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(proj
      *
      * @see [Project.buildscript]
      */
-    override fun buildscript(configuration: KotlinScriptHandler.() -> Unit) {
-        KotlinScriptHandler(project.buildscript).configuration()
+    override fun buildscript(configuration: ScriptHandlerScope.() -> Unit) {
+        ScriptHandlerScope(project.buildscript).configuration()
     }
 }

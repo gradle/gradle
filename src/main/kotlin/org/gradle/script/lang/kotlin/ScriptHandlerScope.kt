@@ -22,7 +22,11 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 
-class KotlinScriptHandler(scriptHandler: ScriptHandler) : ScriptHandler by scriptHandler {
+
+/**
+ * Receiver for the `buildscript` block.
+ */
+class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by scriptHandler {
 
     /**
      * The dependencies of the script.
