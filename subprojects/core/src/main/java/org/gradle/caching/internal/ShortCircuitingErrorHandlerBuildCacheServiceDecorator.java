@@ -90,7 +90,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
         LOGGER.debug("Closing {} build cache", getRole());
         if (!closed) {
             if (!enabled.get()) {
-                LOGGER.warn("The {} build cache was disabled during the build because " + disableMessage, getRole(), maxErrorCount);
+                LOGGER.warn("The {} build cache was disabled during the build because {}", getRole(), disableMessage);
             }
             super.close();
         }
@@ -99,14 +99,14 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
 
     private void recordFailure() {
         if (remainingErrorCount.decrementAndGet() <= 0) {
-            disableBuildCache("{} recoverable errors were encountered.");
+            disableBuildCache(maxErrorCount + " recoverable errors were encountered.");
         }
     }
 
     private void disableBuildCache(String message) {
         if (enabled.compareAndSet(true, false)) {
             disableMessage = message;
-            LOGGER.warn("The {} build cache is now disabled because " + message, getRole(), maxErrorCount);
+            LOGGER.warn("The {} build cache is now disabled because {}", getRole(), message);
         }
     }
 }
