@@ -23,7 +23,7 @@ import org.gradle.plugin.use.PluginDependencySpec
 /**
  * @see PluginDependenciesSpec
  */
-@BuildScriptBlockMarker
+@GradleDsl
 class KotlinPluginDependenciesHandler(plugins: PluginDependenciesSpec) : PluginDependenciesSpec by plugins
 
 

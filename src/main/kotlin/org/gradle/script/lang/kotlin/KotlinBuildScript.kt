@@ -27,8 +27,13 @@ import org.jetbrains.kotlin.script.SamWithReceiverAnnotations
 import org.jetbrains.kotlin.script.ScriptTemplateDefinition
 
 
+/**
+ * Delimits a Gradle DSL.
+ *
+ * See [DslMarker]
+ */
 @DslMarker
-annotation class BuildScriptBlockMarker
+annotation class GradleDsl
 
 
 /**
@@ -38,7 +43,7 @@ annotation class BuildScriptBlockMarker
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-@BuildScriptBlockMarker
+@GradleDsl
 abstract class KotlinBuildScript(project: Project) : Project by project {
 
     /**
