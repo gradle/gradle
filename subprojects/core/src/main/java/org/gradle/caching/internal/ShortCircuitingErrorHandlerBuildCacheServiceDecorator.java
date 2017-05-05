@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
 
+    private boolean closed;
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
@@ -74,12 +75,15 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
 
     @Override
     public void close() throws IOException {
-        if (!enabled.get()) {
-            LOGGER.warn("The {} build cache was disabled during the build after encountering {} errors.",
-                getRole(), maxErrorCount
-            );
+        if (!closed) {
+            if (!enabled.get()) {
+                LOGGER.warn("The {} build cache was disabled during the build after encountering {} errors.",
+                    getRole(), maxErrorCount
+                );
+            }
+            super.close();
         }
-        super.close();
+        closed = true;
     }
 
     private void recordFailure() {
