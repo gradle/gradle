@@ -108,6 +108,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Map<TaskInfo, TaskMutationInfo> taskMutations = Maps.newIdentityHashMap();
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<TaskInfo, TaskInfo>, Boolean> reachableCache = Maps.newHashMap();
+    private final Set<TaskInfo> dependenciesCompleteCache = Sets.newHashSet();
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
     private boolean tasksCancelled;
@@ -502,6 +503,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 taskMutations.clear();
                 canonicalizedFileCache.clear();
                 reachableCache.clear();
+                dependenciesCompleteCache.clear();
                 runningTasks.clear();
                 return FINISHED;
             }
@@ -573,7 +575,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         final Iterator<TaskInfo> iterator = executionQueue.iterator();
         while (iterator.hasNext()) {
             final TaskInfo taskInfo = iterator.next();
-            if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
+            if (taskInfo.isReady() && allDependenciesComplete(taskInfo)) {
                 coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override
                     public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
@@ -614,6 +616,19 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         } finally {
             coordinationService.withStateLock(unlock(workerLease, getProjectLock(selectedTask)));
         }
+    }
+
+    private boolean allDependenciesComplete(TaskInfo taskInfo) {
+        if (dependenciesCompleteCache.contains(taskInfo)) {
+            return true;
+        }
+
+        boolean dependenciesComplete = taskInfo.allDependenciesComplete();
+        if (dependenciesComplete) {
+            dependenciesCompleteCache.add(taskInfo);
+        }
+
+        return dependenciesComplete;
     }
 
     private boolean allProjectsLocked() {
