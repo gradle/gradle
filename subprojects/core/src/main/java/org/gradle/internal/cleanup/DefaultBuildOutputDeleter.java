@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cleanup;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.delete.Deleter;
@@ -39,7 +41,13 @@ public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
 
     @Override
     public void delete(final Iterable<File> outputs) {
-        Collection<? extends File> roots = FileUtils.calculateRoots(outputs);
+        Collection<? extends File> roots = Collections2.filter(FileUtils.calculateRoots(outputs), new Predicate<File>() {
+            @Override
+            public boolean apply(File file) {
+                return file.exists();
+            }
+        });
+
         if (!roots.isEmpty()) {
             logger.warn("Gradle is removing stale outputs from a previous version of Gradle, for more information about stale outputs see {}.", documentationRegistry.getDocumentationFor("more_about_tasks", "sec:stale_task_outputs"));
             for (File output : roots) {
