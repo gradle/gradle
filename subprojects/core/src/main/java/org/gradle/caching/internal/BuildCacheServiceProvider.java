@@ -17,6 +17,7 @@
 package org.gradle.caching.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Map;
+import java.util.SortedMap;
 
 public class BuildCacheServiceProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheServiceProvider.class);
@@ -185,7 +187,7 @@ public class BuildCacheServiceProvider {
         private final boolean enabled;
         private final boolean push;
         private final String displayName;
-        private final Map<String, String> config;
+        private final SortedMap<String, String> config;
 
         private OperationResultBuildCacheAdapter(BuildCache buildCache) {
             this(
@@ -193,11 +195,15 @@ public class BuildCacheServiceProvider {
                 buildCache.isEnabled(),
                 buildCache.isPush(),
                 buildCache.getDisplayName(),
-                buildCache.getConfigDescription()
+                copy(buildCache.getConfigDescription())
             );
         }
 
-        private OperationResultBuildCacheAdapter(String className, boolean enabled, boolean push, String displayName, Map<String, String> config) {
+        private static SortedMap<String, String> copy(Map<String, String> config) {
+            return config == null ? ImmutableSortedMap.<String, String>of() : ImmutableSortedMap.copyOf(config);
+        }
+
+        private OperationResultBuildCacheAdapter(String className, boolean enabled, boolean push, String displayName, SortedMap<String, String> config) {
             this.className = className;
             this.enabled = enabled;
             this.push = push;
@@ -221,7 +227,7 @@ public class BuildCacheServiceProvider {
             return displayName;
         }
 
-        public Map<String, String> getConfig() {
+        public SortedMap<String, String> getConfig() {
             return config;
         }
     }

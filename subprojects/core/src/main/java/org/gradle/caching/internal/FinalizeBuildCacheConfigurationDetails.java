@@ -19,7 +19,7 @@ package org.gradle.caching.internal;
 import org.gradle.api.Nullable;
 import org.gradle.internal.progress.BuildOperationDetails;
 
-import java.util.Map;
+import java.util.SortedMap;
 
 /**
  * Details about the build cache configuration of a build.
@@ -42,7 +42,7 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
 
             boolean isPush();
 
-            Map<String, String> getConfig();
+            SortedMap<String, String> getConfig();
 
         }
 
