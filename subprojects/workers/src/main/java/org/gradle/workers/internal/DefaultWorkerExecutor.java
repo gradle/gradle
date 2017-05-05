@@ -50,18 +50,18 @@ import java.util.concurrent.Future;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ListeningExecutorService executor;
-    private final WorkerFactory workerDaemonFactory;
-    private final WorkerFactory workerInProcessFactory;
-    private final WorkerFactory workerNoIsolationFactory;
+    private final WorkerFactory daemonWorkerFactory;
+    private final WorkerFactory isolatedClassloaderWorkerFactory;
+    private final WorkerFactory noIsolationWorkerFactory;
     private final FileResolver fileResolver;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
 
-    public DefaultWorkerExecutor(WorkerFactory workerDaemonFactory, WorkerFactory workerInProcessFactory, WorkerFactory workerNoIsolationFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
-        this.workerDaemonFactory = workerDaemonFactory;
-        this.workerInProcessFactory = workerInProcessFactory;
-        this.workerNoIsolationFactory = workerNoIsolationFactory;
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+        this.daemonWorkerFactory = daemonWorkerFactory;
+        this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
+        this.noIsolationWorkerFactory = noIsolationWorkerFactory;
         this.fileResolver = fileResolver;
         this.executor = MoreExecutors.listeningDecorator(executorFactory.create("Worker Daemon Execution"));
         this.workerLeaseRegistry = workerLeaseRegistry;
@@ -108,11 +108,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         switch(isolationMode) {
             case AUTO:
             case CLASSLOADER:
-                return workerInProcessFactory;
+                return isolatedClassloaderWorkerFactory;
             case NONE:
-                return workerNoIsolationFactory;
+                return noIsolationWorkerFactory;
             case PROCESS:
-                return workerDaemonFactory;
+                return daemonWorkerFactory;
             default:
                 throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
         }
