@@ -152,6 +152,9 @@ fun DependencyHandler.configureClientModule(
     }
 
 
+/**
+ * Receiver for [ClientModule] configuration blocks.
+ */
 class ClientModuleScope(
     private val dependencyHandler: DependencyHandler,
     val clientModule: ClientModule) : ClientModule by clientModule {
