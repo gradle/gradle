@@ -17,26 +17,34 @@
 package org.gradle.internal.cleanup;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
 
 import java.io.File;
+import java.util.Collection;
 
 public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
     private final Logger logger = Logging.getLogger(DefaultBuildOutputDeleter.class);
 
+    private final DocumentationRegistry documentationRegistry;
     private final Deleter deleter;
 
-    public DefaultBuildOutputDeleter(Deleter deleter) {
+    public DefaultBuildOutputDeleter(DocumentationRegistry documentationRegistry, Deleter deleter) {
+        this.documentationRegistry = documentationRegistry;
         this.deleter = deleter;
     }
 
     @Override
     public void delete(final Iterable<File> outputs) {
-        for (File output : FileUtils.calculateRoots(outputs)) {
-            deleteOutput(output);
+        Collection<? extends File> roots = FileUtils.calculateRoots(outputs);
+        if (!roots.isEmpty()) {
+            logger.warn("Gradle is removing stale outputs from a previous version of Gradle, for more information about stale outputs see {}.", documentationRegistry.getDocumentationFor("more_about_tasks", "sec:stale_task_outputs"));
+            for (File output : roots) {
+                deleteOutput(output);
+            }
         }
     }
 
@@ -44,13 +52,13 @@ public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
         try {
             if (output.isDirectory()) {
                 deleter.delete(output);
-                logger.quiet("Cleaned up directory '{}'", output);
+                logger.quiet("Deleting directory '{}'", output);
             } else if (output.isFile()) {
                 deleter.delete(output);
-                logger.quiet("Cleaned up file '{}'", output);
+                logger.quiet("Deleting file '{}'", output);
             }
         } catch (UncheckedIOException e) {
-            logger.warn("Unable to clean up '{}'", output);
+            logger.warn("Unable to delete '{}'", output);
         }
     }
 }
