@@ -31,7 +31,7 @@ import org.gradle.util.TextUtil
 @SuppressWarnings("UnusedImport")
 class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
-    private Map operations
+    private Map<Object, Map<String, ?>> operations
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
         super(executer, projectDir)
@@ -107,11 +107,8 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
         return operation(displayName) != null
     }
 
-    Object operation(String displayName) {
+    Map<String, ?> operation(String displayName) {
         return operations.find { it.value.displayName == displayName }.value
     }
 
-    Map getOperations() {
-        return operations
-    }
 }

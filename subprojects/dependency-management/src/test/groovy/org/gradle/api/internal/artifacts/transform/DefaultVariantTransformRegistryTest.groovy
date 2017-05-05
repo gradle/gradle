@@ -121,6 +121,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def "fails when artifactTransform cannot be instantiated"() {
         when:
         registry.registerTransform {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.artifactTransform(AbstractArtifactTransform)
         }
@@ -149,6 +150,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def "fails when incorrect number of artifactTransform parameters supplied for registration"() {
         when:
         registry.registerTransform {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.artifactTransform(TestArtifactTransformWithParams) { artifactConfig ->
                 artifactConfig.params("EXTRA_1", "EXTRA_2")
@@ -182,6 +184,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def "fails when artifactTransform throws exception"() {
         when:
         registry.registerTransform {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.artifactTransform(BrokenTransform)
         }
@@ -212,6 +215,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         registry.registerTransform {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
             it.artifactTransform(TestArtifactTransform) { artifactConfig ->
                 throw failure
             }
@@ -229,7 +234,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register transform: ArtifactTransform must be provided for registration.'
+        e.message == 'Could not register transform: an ArtifactTransform must be provided.'
         e.cause == null
     }
 
@@ -243,6 +248,48 @@ class DefaultVariantTransformRegistryTest extends Specification {
         then:
         def e = thrown(VariantTransformConfigurationException)
         e.message == 'Could not register transform: only one ArtifactTransform may be provided for registration.'
+        e.cause == null
+    }
+
+    def "fails when no from attributes are provided for registration"() {
+        when:
+        registry.registerTransform {
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+            it.artifactTransform(TestArtifactTransform)
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register transform: at least one 'from' attribute must be provided."
+        e.cause == null
+    }
+
+    def "fails when no to attributes are provided for registration"() {
+        when:
+        registry.registerTransform {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.artifactTransform(TestArtifactTransform)
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register transform: at least one 'to' attribute must be provided."
+        e.cause == null
+    }
+
+    def "fails when to attributes are not a subset of from attributes"() {
+        when:
+        registry.registerTransform {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.from.attribute(Attribute.of("from2", String), "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+            it.to.attribute(Attribute.of("other", Integer), 12)
+            it.artifactTransform(TestArtifactTransform)
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register transform: each 'to' attribute must be included as a 'from' attribute."
         e.cause == null
     }
 

@@ -97,13 +97,13 @@ task a(type: TransformerTask) {
 task block1 {
     dependsOn a
     doLast {
-        ${server.callFromBuildScript("block1")}
+        ${server.callFromBuild("block1")}
     }
 }
 task block2 {
     dependsOn a
     doLast {
-        ${server.callFromBuildScript("block2")}
+        ${server.callFromBuild("block2")}
     }
 }
 """
@@ -160,7 +160,7 @@ task b(type: TransformerTask) {
 }
 task block1 {
     doLast {
-        ${server.callFromBuildScript("block1")}
+        ${server.callFromBuild("block1")}
     }
 }
 block1.mustRunAfter a
@@ -168,7 +168,7 @@ b.mustRunAfter block1
 
 task block2 {
     doLast {
-        ${server.callFromBuildScript("block2")}
+        ${server.callFromBuild("block2")}
     }
 }
 block2.mustRunAfter b

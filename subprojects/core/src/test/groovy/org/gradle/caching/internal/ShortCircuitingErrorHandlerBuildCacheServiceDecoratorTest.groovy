@@ -63,6 +63,15 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Abstract
         !decorator.load(key, reader)
     }
 
+    def "close only closes once"() {
+        when:
+        decorator.close()
+        decorator.close()
+        decorator.close()
+        then:
+        1 * delegate.close()
+    }
+
     def "store does not throw an exception if the delegate throws BuildCacheException"() {
         delegate.store(key, writer) >> { throw new BuildCacheException() }
         when:

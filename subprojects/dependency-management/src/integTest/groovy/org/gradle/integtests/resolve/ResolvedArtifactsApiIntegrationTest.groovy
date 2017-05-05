@@ -512,6 +512,7 @@ dependencies {
     compile project(':b')
     compile 'org:test:1.0'
     registerTransform {
+        from.attribute(usage, "compile")
         to.attribute(usage, "transformed")
         artifactTransform(VariantArtifactTransform)
     }

@@ -26,6 +26,4 @@ public interface AttributeSelectionSchema {
     void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result);
 
     void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result);
-
-    boolean isCompatibleWhenMissing(Attribute<?> attribute);
 }

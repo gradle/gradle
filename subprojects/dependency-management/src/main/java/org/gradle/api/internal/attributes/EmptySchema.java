@@ -80,11 +80,6 @@ public class EmptySchema implements AttributesSchemaInternal {
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {
         @Override
-        public boolean isCompatibleWhenMissing() {
-            return false;
-        }
-
-        @Override
         public void execute(CompatibilityCheckResult<Object> result) {
         }
     }

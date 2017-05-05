@@ -22,8 +22,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -56,7 +57,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
      */
-    @Internal
+    @Classpath
     public FileCollection getPluginClasspath() {
         return pluginClasspath;
     }
@@ -106,7 +107,11 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
     @Input
     private List<String> getPaths() {
-        return CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
+        Iterable<File> classpathFiles = Collections.emptyList();
+        if (getPluginClasspath() != null) {
+            classpathFiles = getPluginClasspath();
+        }
+        return CollectionUtils.collect(classpathFiles, new Transformer<String, File>() {
             @Override
             public String transform(File file) {
                 return file.getAbsolutePath().replaceAll("\\\\", "/");

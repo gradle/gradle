@@ -151,23 +151,4 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         then:
         skipped(":$TASK_NAME")
     }
-
-    def "up-to-date if only the content change"() {
-        given:
-        buildFile << """
-            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = sourceSets.main.runtimeClasspath
-                outputDirectory = file('build/$TASK_NAME')
-            }
-        """
-        file("src/main/java/Thing.java") << "class Thing { int foo; }"
-        succeeds TASK_NAME
-
-        when:
-        file("src/main/java/Thing.java").text = "class Thing { int bar; }"
-        succeeds(TASK_NAME)
-
-        then:
-        skipped(":$TASK_NAME")
-    }
 }

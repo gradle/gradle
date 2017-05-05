@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.local.internal
+package org.gradle.cache.internal
 
+import org.gradle.cache.PersistentCache
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Subject(DirectoryBuildCacheCleanup)
-class DirectoryBuildCacheCleanupTest extends Specification {
+@Subject(FixedSizeOldestCacheCleanup)
+class FixedSizeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
-
-    def cleanupAction = new DirectoryBuildCacheCleanup(10)
+    def persistentCache = Mock(PersistentCache)
+    def cleanupAction = new FixedSizeOldestCacheCleanup(new TestBuildOperationExecutor(),10)
 
     def "filters for cache entry files"() {
         expect:
-        !DirectoryBuildCacheCleanup.canBeDeleted("cache.properties")
-        !DirectoryBuildCacheCleanup.canBeDeleted("gc.properties")
-        !DirectoryBuildCacheCleanup.canBeDeleted("cache.lock")
-        !DirectoryBuildCacheCleanup.canBeDeleted("0"*40)
-        !DirectoryBuildCacheCleanup.canBeDeleted("ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
+        !cleanupAction.canBeDeleted("cache.properties")
+        !cleanupAction.canBeDeleted("gc.properties")
+        !cleanupAction.canBeDeleted("cache.lock")
 
-        DirectoryBuildCacheCleanup.canBeDeleted("0"*32)
-        DirectoryBuildCacheCleanup.canBeDeleted("ABCDEFABCDEFABCDEFABCDEFABCDEF00")
-        DirectoryBuildCacheCleanup.canBeDeleted("abcdefabcdefabcdefabcdefabcdef00")
+        cleanupAction.canBeDeleted("0"*32)
+        cleanupAction.canBeDeleted("ABCDEFABCDEFABCDEFABCDEFABCDEF00")
+        cleanupAction.canBeDeleted("abcdefabcdefabcdefabcdefabcdef00")
     }
 
     def "finds eligible files"() {
@@ -62,7 +62,7 @@ class DirectoryBuildCacheCleanupTest extends Specification {
             createCacheEntry(1024*1024*10, 0), // 10MB, oldest file
         ]
         expect:
-        def filesToDelete = cleanupAction.findFilesToDelete(cacheEntries as File[])
+        def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries as File[])
         filesToDelete.size() == 1
         // we should only delete the last one
         filesToDelete[0] == cacheEntries.last()
@@ -75,7 +75,7 @@ class DirectoryBuildCacheCleanupTest extends Specification {
             createCacheEntry(1024*1024*5), // 5MB
         ]
         expect:
-        def filesToDelete = cleanupAction.findFilesToDelete(cacheEntries as File[])
+        def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries as File[])
         filesToDelete.size() == 0
     }
 
@@ -86,7 +86,7 @@ class DirectoryBuildCacheCleanupTest extends Specification {
             createCacheEntry(1024*1024*5), // 5MB
         ]
         when:
-        cleanupAction.cleanupFiles(cacheEntries)
+        cleanupAction.cleanupFiles(persistentCache, cacheEntries)
         then:
         cacheEntries.each {
             it.assertDoesNotExist()

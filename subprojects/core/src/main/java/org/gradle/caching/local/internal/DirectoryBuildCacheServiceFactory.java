@@ -23,6 +23,7 @@ import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -34,12 +35,14 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
     private final FileResolver resolver;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, FileResolver resolver) {
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, FileResolver resolver, BuildOperationExecutor buildOperationExecutor) {
         this.cacheRepository = cacheRepository;
         this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -52,6 +55,6 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
 
-        return new DirectoryBuildCacheService(cacheRepository, target, configuration.getTargetSizeInMB());
+        return new DirectoryBuildCacheService(cacheRepository, buildOperationExecutor, target, configuration.getTargetSizeInMB());
     }
 }

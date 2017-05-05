@@ -22,12 +22,14 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FixedSizeOldestCacheCleanup;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.Factory;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.util.GFileUtils;
@@ -45,11 +47,11 @@ public class DirectoryBuildCacheService implements BuildCacheService {
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
 
-    public DirectoryBuildCacheService(CacheRepository cacheRepository, File baseDir, long targetCacheSize) {
+    public DirectoryBuildCacheService(CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, File baseDir, long targetCacheSize) {
         this.fileStore = new PathKeyFileStore(baseDir);
         this.persistentCache = cacheRepository
             .cache(checkDirectory(baseDir))
-            .withCleanup(new DirectoryBuildCacheCleanup(targetCacheSize))
+            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetCacheSize))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

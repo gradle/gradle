@@ -18,5 +18,4 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 
 public interface CompatibilityRule<T> extends Action<CompatibilityCheckResult<T>> {
-    boolean isCompatibleWhenMissing();
 }
