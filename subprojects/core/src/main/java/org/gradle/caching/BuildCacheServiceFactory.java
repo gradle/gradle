@@ -48,6 +48,7 @@ import org.gradle.api.Incubating;
 public interface BuildCacheServiceFactory<T extends org.gradle.caching.configuration.BuildCache> {
     /**
      * Creates a build cache service with the given configuration.
+     * Given describer will capture the configuration of the Build Cache.
      */
-    BuildCacheService createBuildCacheService(T configuration);
+    BuildCacheService createBuildCacheService(T configuration, BuildCacheDescriber describer);
 }

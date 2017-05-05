@@ -16,12 +16,10 @@
 
 package org.gradle.caching.local;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
-import java.util.Map;
 
 /**
  * Configuration object for the local directory build cache.
@@ -78,17 +76,5 @@ public class DirectoryBuildCache extends AbstractBuildCache {
             throw new IllegalArgumentException("Directory build cache needs to have at least 1 MB of space but more space is useful.");
         }
         this.targetSizeInMB = targetSizeInMB;
-    }
-
-    @Nullable
-    @Override
-    public String getDisplayName() {
-        return "Directory";
-    }
-
-    @Nullable
-    @Override
-    public Map<String, String> getConfigDescription() {
-        return ImmutableMap.of("directory", directory == null ? "" : directory.toString());
     }
 }

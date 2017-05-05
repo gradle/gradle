@@ -36,7 +36,7 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
 
             String getClassName();
 
-            String getDisplayName();
+            String getType();
 
             boolean isEnabled();
 

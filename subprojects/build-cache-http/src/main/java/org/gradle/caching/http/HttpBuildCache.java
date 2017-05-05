@@ -16,7 +16,6 @@
 
 package org.gradle.caching.http;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
@@ -25,7 +24,6 @@ import org.gradle.caching.configuration.AbstractBuildCache;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Map;
 
 /**
  * Configuration object for the HTTP build cache.
@@ -86,17 +84,5 @@ public class HttpBuildCache extends AbstractBuildCache {
      */
     public void credentials(Action<? super HttpBuildCacheCredentials> configuration) {
         configuration.execute(credentials);
-    }
-
-    @Nullable
-    @Override
-    public String getDisplayName() {
-        return "HTTP";
-    }
-
-    @Nullable
-    @Override
-    public Map<String, String> getConfigDescription() {
-        return ImmutableMap.of("url", url == null ? "" : url.toString(), "authenticated", Boolean.valueOf(credentials.getUsername() != null && credentials.getPassword() != null).toString());
     }
 }

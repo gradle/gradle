@@ -17,10 +17,6 @@
 package org.gradle.caching.configuration;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.GeneratedSubclasses;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * Base implementation for build cache service configuration.
@@ -62,21 +58,5 @@ public abstract class AbstractBuildCache implements BuildCache {
     @Override
     public void setPush(boolean push) {
         this.push = push;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getDisplayName() {
-        return GeneratedSubclasses.unpack(getClass()).getName();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, String> getConfigDescription() {
-        return Collections.emptyMap();
     }
 }

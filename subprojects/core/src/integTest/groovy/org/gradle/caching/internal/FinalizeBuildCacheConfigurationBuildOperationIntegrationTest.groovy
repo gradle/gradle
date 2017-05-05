@@ -47,17 +47,15 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
     @Rule
     HttpBuildCache httpBuildCache = new HttpBuildCache(testDirectoryProvider)
 
-    @Unroll
     def "local build cache configuration is exposed"() {
         given:
         def cacheDir = temporaryFolder.file("cache-dir").createDir()
-        def directory = cacheDir.absoluteFile.toURI().toString()
         settingsFile << """
             buildCache {
                 local(DirectoryBuildCache) {
-                    enabled = $enabled
-                    directory = '$directory'
-                    push = $push
+                    enabled = true 
+                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    push = true 
                 }
             }
         """
@@ -71,17 +69,12 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         result.enabled == true
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
-        result.local.config.directory == directory
-        result.local.displayName == 'Directory'
-        result.local.enabled == enabled
-        result.local.push == push
+        result.local.config.directory == cacheDir.absoluteFile.toString()
+        result.local.type == 'Directory'
+        result.local.enabled == true
+        result.local.push == true
 
         result.remote == null
-
-        where:
-        push  | enabled
-        true  | true
-        false | false
     }
 
     @Unroll
@@ -92,10 +85,10 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         settingsFile << """
             buildCache {  
                 local {
-                    enabled = $enabled 
+                    enabled = false 
                 }
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = $enabled 
+                    enabled = true 
                     url = "$url"   
                     push = $push 
                     $credentials
@@ -114,23 +107,47 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
         result.remote.config.url == url
         result.remote.config.authenticated == authenticated
-        result.remote.displayName == 'HTTP'
-        result.remote.enabled == enabled
+        result.remote.type == 'HTTP'
+        result.remote.enabled == true
         result.remote.push == push
 
-        result.local.enabled == enabled
+        result.local.enabled == false
 
         where:
-        authenticated | credentials            | push  | enabled
-        'true'        | SOME_CREDENTIALS       | true  | true
-        'false'       | NO_CREDENTIALS         | false | false
-        'false'       | INCOMPLETE_CREDENTIALS | false | false
+        authenticated | credentials            | push
+        'true'        | SOME_CREDENTIALS       | true
+        'false'       | NO_CREDENTIALS         | false
+        'false'       | INCOMPLETE_CREDENTIALS | false
+    }
+
+    def "remote build cache configuration is exposed when basic auth is encoded on the url"() {
+        given:
+        httpBuildCache.start()
+        def safeUri = httpBuildCache.uri
+        def basicAuthUri = new URI(safeUri.getScheme(), 'user@pwd', safeUri.getHost(), safeUri.getPort(), safeUri.getPath(), safeUri.getQuery(), safeUri.getFragment())
+        settingsFile << """
+            buildCache {  
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    enabled = true 
+                    url = "${basicAuthUri}/"   
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+
+        when:
+        succeeds("help")
+
+        then:
+        def config = result().remote.config
+        config.url == safeUri.toString() + '/'
+        config.authenticated == 'true'
     }
 
     def "custom build cache connector configuration is exposed"() {
         given:
+        def type = 'CustomBuildCache Desc'
         def directory = 'someLocation'
-        def displayName = 'CustomBuildCache Desc'
         settingsFile << """
             class VisibleNoOpBuildCacheService implements BuildCacheService {
                 @Override boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException { false }
@@ -138,12 +155,13 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
                 @Override String getDescription() { "NO-OP build cache" }
                 @Override void close() throws IOException {}
             }
-            class CustomBuildCache extends AbstractBuildCache {
-                @Override Map<String, String> getConfigDescription() { [directory: '$directory'] }
-                @Override String getDisplayName() { '$displayName' }
-            }
+            class CustomBuildCache extends AbstractBuildCache {}
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
-                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration) { new VisibleNoOpBuildCacheService() }
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, BuildCacheDescriber describer) { 
+                    describer.type('$type')
+                              .configParam('directory', '$directory')
+                    new VisibleNoOpBuildCacheService() 
+                }
             }
             
             buildCache {
@@ -164,7 +182,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         result.local.enabled == true
         result.local.className == 'CustomBuildCache'
         result.local.config.directory == directory
-        result.local.displayName == displayName
+        result.local.type == type
 
     }
 

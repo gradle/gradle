@@ -22,6 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.GeneratedSubclasses;
+import org.gradle.caching.BuildCacheDescriber;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 
@@ -49,6 +51,7 @@ public class BuildCacheServiceProvider {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
     private final TemporaryFileProvider temporaryFileProvider;
+    private final BuildCacheDescriber buildCacheDescriber = new DefaultBuildCacheDescriber();
 
     @Inject
     public BuildCacheServiceProvider(BuildCacheConfigurationInternal buildCacheConfiguration, StartParameter startParameter, Instantiator instantiator, BuildOperationExecutor buildOperationExecutor, TemporaryFileProvider temporaryFileProvider) {
@@ -130,7 +133,7 @@ public class BuildCacheServiceProvider {
 
     private <T extends BuildCache> BuildCacheService createRawBuildCacheService(final T configuration) {
         Class<? extends BuildCacheServiceFactory<T>> buildCacheServiceFactoryType = Cast.uncheckedCast(buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass()));
-        return instantiator.newInstance(buildCacheServiceFactoryType).createBuildCacheService(configuration);
+        return instantiator.newInstance(buildCacheServiceFactoryType).createBuildCacheService(configuration, buildCacheDescriber);
     }
 
     private static class BuildCacheServiceWithRole extends ForwardingBuildCacheService implements RoleAwareBuildCacheService {
@@ -172,7 +175,7 @@ public class BuildCacheServiceProvider {
         private OperationResultBuildCacheAdapter convertToWrapper(BuildCache buildCache, boolean enabled) {
             return buildCache == null || !enabled
                 ? null
-                : new OperationResultBuildCacheAdapter(buildCache);
+                : new OperationResultBuildCacheAdapter(buildCache, buildCacheDescriber);
         }
 
         @Override
@@ -186,16 +189,16 @@ public class BuildCacheServiceProvider {
         private final String className;
         private final boolean enabled;
         private final boolean push;
-        private final String displayName;
+        private final String type;
         private final SortedMap<String, String> config;
 
-        private OperationResultBuildCacheAdapter(BuildCache buildCache) {
+        private OperationResultBuildCacheAdapter(BuildCache buildCache, BuildCacheDescriber buildCacheDescriber) {
             this(
                 GeneratedSubclasses.unpack(buildCache.getClass()).getName(),
                 buildCache.isEnabled(),
                 buildCache.isPush(),
-                buildCache.getDisplayName(),
-                copy(buildCache.getConfigDescription())
+                buildCacheDescriber.getType(),
+                copy(buildCacheDescriber.getConfigParams())
             );
         }
 
@@ -203,11 +206,11 @@ public class BuildCacheServiceProvider {
             return config == null ? ImmutableSortedMap.<String, String>of() : ImmutableSortedMap.copyOf(config);
         }
 
-        private OperationResultBuildCacheAdapter(String className, boolean enabled, boolean push, String displayName, SortedMap<String, String> config) {
+        private OperationResultBuildCacheAdapter(String className, boolean enabled, boolean push, String type, SortedMap<String, String> config) {
             this.className = className;
             this.enabled = enabled;
             this.push = push;
-            this.displayName = displayName;
+            this.type = type;
             this.config = config;
         }
 
@@ -223,12 +226,39 @@ public class BuildCacheServiceProvider {
             return push;
         }
 
-        public String getDisplayName() {
-            return displayName;
+        public String getType() {
+            return type;
         }
 
         public SortedMap<String, String> getConfig() {
             return config;
+        }
+    }
+
+    private class DefaultBuildCacheDescriber implements BuildCacheDescriber {
+        private String type;
+        private Map<String, String> configParams = new HashMap<String, String>();
+
+        @Override
+        public BuildCacheDescriber type(String type) {
+            this.type = type;
+            return this;
+        }
+
+        @Override
+        public BuildCacheDescriber configParam(String name, String value) {
+            configParams.put(name, value);
+            return this;
+        }
+
+        @Override
+        public String getType() {
+            return type;
+        }
+
+        @Override
+        public Map<String, String> getConfigParams() {
+            return configParams;
         }
     }
 }

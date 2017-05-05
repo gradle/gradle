@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.caching.BuildCacheDescriber;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -31,6 +32,7 @@ import java.io.File;
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     private static final String BUILD_CACHE_VERSION = "1";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
+    private static final String DIRECTORY_BUILD_CACHE_TYPE = "Directory";
 
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
@@ -46,7 +48,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     }
 
     @Override
-    public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration) {
+    public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheDescriber describer) {
         Object cacheDirectory = configuration.getDirectory();
         File target;
         if (cacheDirectory != null) {
@@ -54,6 +56,9 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         } else {
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
+
+        describer.type(DIRECTORY_BUILD_CACHE_TYPE)
+            .configParam("directory", target.toString());
 
         return new DirectoryBuildCacheService(cacheRepository, buildOperationExecutor, target, configuration.getTargetSizeInMB());
     }

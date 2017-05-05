@@ -18,7 +18,6 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.Incubating;
 
-import java.util.Map;
 
 /**
  * Configuration object for a build cache.
@@ -47,16 +46,4 @@ public interface BuildCache {
      * Sets whether pushing to the build cache is enabled.
      */
     void setPush(boolean enabled);
-
-    /**
-     * Provides a human friendly description of the type of this cache.
-     */
-    String getDisplayName();
-
-    /**
-     * Returns a map of configuration entries such as the remote url or the local directory location.
-     * <p>
-     * Implementations should return an empty map if they have no config to describe.
-     */
-    Map<String, String> getConfigDescription();
 }
