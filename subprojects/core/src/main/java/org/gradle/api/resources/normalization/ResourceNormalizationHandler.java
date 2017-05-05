@@ -17,12 +17,16 @@
 package org.gradle.api.resources.normalization;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 /**
  * Used to declare normalization strategies.
  *
  * Currently, it is only possible to configure normalization strategies for the runtime classpath.
+ *
+ * @since 4.0
  */
+@Incubating
 public interface ResourceNormalizationHandler {
     /**
      * Returns the normalization strategy for the runtime classpath.

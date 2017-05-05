@@ -1682,12 +1682,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Provides access to configuring resource normalization.
+     *
+     * @since 4.0
      */
     @Incubating
     ResourceNormalizationHandler getNormalization();
 
     /**
      * Configures resource normalization.
+     *
+     * @since 4.0
      */
     @Incubating
     void normalization(Action<? super ResourceNormalizationHandler> configuration);

@@ -21,6 +21,8 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Configuration for the normalization strategy for the runtime classpath.
+ *
+ * @since 4.0
  */
 @Incubating
 @HasInternalProtocol

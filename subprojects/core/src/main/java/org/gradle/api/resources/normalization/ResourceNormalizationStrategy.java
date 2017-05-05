@@ -16,10 +16,15 @@
 
 package org.gradle.api.resources.normalization;
 
+import org.gradle.api.Incubating;
+
 /**
  * Strategy for normalizing resources.
  *
  * Normalization strategies are used when Gradle tries to determine if two resources are different.
  * Gradle then normalizes both resources and the resources are different iff the normalizations are different.
+ *
+ * @since 4.0
  */
+@Incubating
 public interface ResourceNormalizationStrategy {}
