@@ -258,6 +258,7 @@ This release fixes several issues where Groovy compilation could produce differe
 - Removed the method `registerWatchPoints(FileSystemSubset.Builder)` from `FileCollectionDependency`.
 - Removed the method `getConfiguration()` from `ModuleDependency`.
 - Removed the method `getProjectConfiguration()` from `ProjectDependency`.
+- Removed the method `getDependencyModule()` from `IdeaModuleDependency`.
 - Removed class `BuildCache`.
 - Removed class `MapBasedBuildCache`.
 - Removed class `ActionBroadcast`.

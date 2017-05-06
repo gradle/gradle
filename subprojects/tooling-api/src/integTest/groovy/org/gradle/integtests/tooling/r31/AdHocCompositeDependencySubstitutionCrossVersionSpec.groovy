@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
 
 /**
  * Dependency substitution is performed for models in a composite build
@@ -106,7 +107,9 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         ideaModule.dependencies.size() == 1
         with(ideaModule.dependencies.first()) {
             it instanceof IdeaModuleDependency
-            dependencyModule == null
+            if (currentVersion < GradleVersion.version("4.0")) {
+                dependencyModule == null
+            }
             targetModuleName == "b1"
         }
     }

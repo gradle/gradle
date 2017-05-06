@@ -242,4 +242,12 @@ abstract class ToolingApiSpecification extends Specification {
     protected static GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)
     }
+
+    /**
+     * @return the current <b>base</b> version of Gradle being used to run this test
+     */
+    protected static GradleVersion getCurrentVersion() {
+        GradleVersion.current().baseVersion
+    }
+
 }
