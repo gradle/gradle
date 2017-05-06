@@ -143,7 +143,7 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.api.plugins.quality.FindBugs[],
     api:org.gradle.api.plugins.quality.JDepend[],
     api:org.gradle.api.plugins.quality.Pmd[]
-* Jacoco:
+* JaCoCo:
     api:org.gradle.testing.jacoco.tasks.JacocoMerge[],
     api:org.gradle.testing.jacoco.tasks.JacocoReport[]
 * Other tasks:
@@ -236,10 +236,6 @@ Gradle disables caching for a task when it detects stale outputs.
 | Gradle provides ways of specifying the path sensitivity for individual task properties (see `@api:org.gradle.api.tasks.PathSensitive[]`);
 however, it is common to need to pass absolute paths to tools or to tests via system properties or command line arguments.
 These kinds of inputs will cause cache misses because not every developer or CI server uses an identical absolute path to the root of a build.
-| None.
-
-| Using JaCoCo disables caching of the Test task.
-| The JaCoCo agent relies on appending to a shared output file that may be left over from a different test execution. If Gradle allowed Test tasks to be cacheable with the JaCoCo plugin, it could not guarantee the same results each time.
 | None.
 
 | Adding new actions to cacheable tasks in a build file makes that task sensitive to unrelated changes to the build file.
