@@ -81,13 +81,13 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         output.contains("test-api-1.2.jar {artifactType=jar}")
     }
 
-    def "artifacts in an Ivy repo have standard attributes defined based on their extension"() {
+    def "artifacts in an Ivy repo have standard attributes defined based on their type"() {
         ivyRepo.module("test", "test-jar", "1.2").publish()
         ivyRepo.module("test", "test-aar", "1.2")
-            .artifact(ext: 'aar')
+            .artifact(ext: 'aar', type: 'aar')
             .publish()
         ivyRepo.module("test", "test-thing", "1.2")
-            .artifact(ext: 'thing')
+            .artifact(ext: 'thing', type: 'thing')
             .publish()
         ivyRepo.module("test", "test", "1.2")
             .configuration('other')
@@ -100,8 +100,8 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         ivyRepo.module("test", "test-api", "1.2")
             .configuration("custom")
             .configuration("another")
-            .artifact(conf: "custom")
-            .artifact(ext: '', conf: "another")
+            .artifact(conf: 'custom', ext: 'jar', type: 'custom')
+            .artifact(ext: '', type: '', conf: 'another')
             .publish()
 
         buildFile << """
@@ -146,7 +146,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         output.contains("test-1.2.thing {artifactType=thing}")
         output.contains("test-1.2-util.jar {artifactType=jar}")
         output.contains("test-1.2-util.aar {artifactType=aar}")
-        output.contains("test-api-1.2.jar {artifactType=jar}")
+        output.contains("test-api-1.2.jar {artifactType=custom}")
         output.contains("test-api-1.2 {artifactType=}")
     }
 
@@ -182,17 +182,27 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         output.contains("test {artifactType=}")
     }
 
-    def "artifacts from a Gradle project have standard attributes defined based on their extension when none defined for the outgoing variant"() {
-        settingsFile << 'include "a", "b"'
+    def "artifacts from a Gradle project have standard attributes defined based on their type when none defined for the outgoing variant"() {
+        settingsFile << 'include "a", "b", "c"'
 
         buildFile << """
             project(':a') {
                 configurations { create 'default' }
-                artifacts { 'default' file('a.custom') }
+                artifacts { 
+                    'default' file('a.custom') 
+                }
             }
             project(':b') {
                 configurations { create 'default' }
-                artifacts { 'default' file('b.jar') }
+                artifacts { 
+                    'default' file('b.jar') 
+                }
+            }
+            project(':c') {
+                configurations { create 'default' }
+                artifacts {
+                    'default'(file('c.jar')) { type = 'other' }
+                }
             }
 
             configurations {
@@ -201,6 +211,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
             dependencies {
                 compile project(':a')
                 compile project(':b')
+                compile project(':c')
             }
             task show {
                 def artifacts = configurations.compile.incoming.artifacts
@@ -219,6 +230,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         then:
         output.contains("a.custom {artifactType=custom}")
         output.contains("b.jar {artifactType=jar}")
+        output.contains("c.jar {artifactType=other}")
     }
 
     def "can attach attributes to an artifact in a Maven repo"() {

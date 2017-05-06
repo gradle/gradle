@@ -91,7 +91,7 @@ public class DefaultArtifactSet implements ArtifactSet {
             if (!attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
                 String format = null;
                 for (ComponentArtifactMetadata artifact : artifacts) {
-                    String candidateFormat = artifact.getName().getExtension();
+                    String candidateFormat = artifact.getName().getType();
                     if (format == null) {
                         format = candidateFormat;
                     } else if (!format.equals(candidateFormat)) {
