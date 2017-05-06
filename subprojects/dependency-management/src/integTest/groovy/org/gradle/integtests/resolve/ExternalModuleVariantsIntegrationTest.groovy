@@ -234,14 +234,71 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
     }
 
     def "can attach attributes to an artifact in a Maven repo"() {
+        mavenRepo.module("test", "test-jar", "1.2").publish()
+        mavenRepo.module("test", "test-aar", "1.2")
+            .hasPackaging('aar')
+            .hasType('aar')
+            .publish()
+        mavenRepo.module("test", "test-thing", "1.2")
+            .hasPackaging('thing')
+            .hasType('thing')
+            .publish()
 
+        buildFile << """
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
+            configurations {
+                compile
+            }
+            dependencies {
+                compile 'test:test-jar:1.2'
+                compile 'test:test-aar:1.2'
+                compile 'test:test-thing:1.2'
+                artifactTypes {
+                    jar {
+                        attributes.attribute(Attribute.of('usage', String), 'java-runtime')
+                        attributes.attribute(Attribute.of('javaVersion', String), '1.8')
+                    }
+                    aar {
+                        attributes.attribute(Attribute.of('artifactType', String), 'aar')
+                        attributes.attribute(Attribute.of('androidType', String), 'library-archive')
+                    }
+                    thing {
+                        attributes.attribute(Attribute.of('artifactType', String), 'widget')
+                        attributes.attribute(Attribute.of('usage', String), 'unknown')
+                    }
+                }
+            }
+            task show {
+                def artifacts = configurations.compile.incoming.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    artifacts.each {
+                        println it.file.name + ' ' + it.variant.attributes
+                    }
+                }
+            }
+"""
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("test-jar-1.2.jar {artifactType=jar, javaVersion=1.8, usage=java-runtime}")
+        output.contains("test-aar-1.2.aar {androidType=library-archive, artifactType=aar}")
+        output.contains("test-thing-1.2.thing {artifactType=widget, usage=unknown}")
     }
 
     def "can attach attributes to an artifact in an Ivy repo"() {
-
+        expect: false
     }
 
     def "can attach attributes to an artifact provided by a file dependency"() {
+        expect: false
+    }
 
+    def "can attach attributes to an artifact provided by a Gradle project"() {
+        expect: false
     }
 }

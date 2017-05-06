@@ -22,13 +22,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
@@ -54,9 +53,9 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
 
-    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema,  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ImmutableAttributesFactory attributesFactory) {
+    public DefaultArtifactSet(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema,  ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id, ArtifactTypeRegistry artifactTypeRegistry) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
@@ -66,7 +65,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         this.artifactResolver = artifactResolver;
         this.allResolvedArtifacts = allResolvedArtifacts;
         this.id = id;
-        this.attributesFactory = attributesFactory;
+        this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     @Override
@@ -86,23 +85,8 @@ public class DefaultArtifactSet implements ArtifactSet {
             Set<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
             Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
 
-            // Add artifact format as an implicit attribute when all artifacts have the same format
-            AttributeContainerInternal attributes = variant.getAttributes();
-            if (!attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
-                String format = null;
-                for (ComponentArtifactMetadata artifact : artifacts) {
-                    String candidateFormat = artifact.getName().getType();
-                    if (format == null) {
-                        format = candidateFormat;
-                    } else if (!format.equals(candidateFormat)) {
-                        format = null;
-                        break;
-                    }
-                }
-                if (format != null) {
-                    attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, format);
-                }
-            }
+            // Apply any artifact type mappings to the attributes of the variant
+            ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variant);
 
             for (ComponentArtifactMetadata artifact : artifacts) {
                 IvyArtifactName artifactName = artifact.getName();

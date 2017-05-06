@@ -62,6 +62,8 @@ import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
 import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -181,10 +183,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return null;
         }
 
+        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory) {
+            return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory);
+        }
+
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
-                                                  ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
-                                                  ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema,
-                                                  VariantTransformRegistry artifactTransformRegistrations) {
+                                                  ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
                     configurationContainer,
                     dependencyFactory,
@@ -193,7 +197,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     componentModuleMetadataHandler,
                     resolutionQueryFactory,
                     attributesSchema,
-                    artifactTransformRegistrations);
+                    artifactTransformRegistrations,
+                    artifactTypeRegistry);
         }
 
         DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -223,7 +228,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        VariantTransformRegistry variantTransforms,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        ImmutableAttributesFactory attributesFactory,
-                                                       BuildOperationExecutor buildOperationExecutor) {
+                                                       BuildOperationExecutor buildOperationExecutor,
+                                                       ArtifactTypeRegistry artifactTypeRegistry) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -241,7 +247,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                 attributesSchema),
                             attributesFactory,
                             moduleIdentifierFactory,
-                            buildOperationExecutor),
+                            buildOperationExecutor,
+                            artifactTypeRegistry),
                         componentIdentifierFactory,
                         moduleIdentifierFactory));
         }
