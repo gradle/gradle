@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.IncludedBuildExecuter;
+import org.gradle.initialization.IncludedBuildTaskGraph;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -43,8 +44,9 @@ public class CompositeBuildIdeProjectResolver {
 
     public CompositeBuildIdeProjectResolver(LocalComponentRegistry registry, IncludedBuildExecuter executer, BuildIdentity buildIdentity) {
         this.registry = registry;
-        // Can't use the session-scope `IncludedBuildArtifactBuilder`, because we don't want to be execute jar tasks (which are pre-registered)
-        artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(executer), buildIdentity);
+        // Can't use the session-scope `IncludedBuildTaskGraph`, because we don't want to be execute jar tasks (which are pre-registered)
+        IncludedBuildTaskGraph taskGraph = new DefaultIncludedBuildTaskGraph(executer);
+        artifactBuilder = new CompositeProjectArtifactBuilder(new IncludedBuildArtifactBuilder(taskGraph), buildIdentity);
     }
 
     /**

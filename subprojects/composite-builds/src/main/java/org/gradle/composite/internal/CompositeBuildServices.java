@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
+import org.gradle.initialization.IncludedBuildTaskGraph;
 import org.gradle.initialization.IncludedBuilds;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
@@ -71,8 +72,12 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultIncludedBuildExecuter(includedBuilds);
         }
 
-        public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
-            return new IncludedBuildArtifactBuilder(includedBuildExecuter);
+        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildExecuter includedBuildExecuter) {
+            return new DefaultIncludedBuildTaskGraph(includedBuildExecuter);
+        }
+
+        public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildTaskGraph includedBuildTaskGraph) {
+            return new IncludedBuildArtifactBuilder(includedBuildTaskGraph);
         }
     }
 

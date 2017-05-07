@@ -19,12 +19,10 @@ package org.gradle.composite.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.initialization.IncludedBuildExecuter;
-import org.gradle.initialization.IncludedBuilds;
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.initialization.IncludedBuildTaskGraph;
 
 import java.util.Collection;
 import java.util.Set;
@@ -53,11 +51,12 @@ public class CompositeBuildTaskDelegate extends DefaultTask {
 
     @TaskAction
     public void executeTasksInOtherBuild() {
-        IncludedBuilds includedBuilds = getServices().get(IncludedBuilds.class);
-        IncludedBuildExecuter builder = getServices().get(IncludedBuildExecuter.class);
-        IncludedBuild includedBuild = includedBuilds.getBuild(build);
-        BuildIdentifier buildId = new DefaultBuildIdentifier(includedBuild.getName());
+        IncludedBuildTaskGraph taskGraph = getServices().get(IncludedBuildTaskGraph.class);
+
         // sourceBuild is currently always root build in a composite
-        builder.execute(new DefaultBuildIdentifier(":", true), buildId, tasks);
+        BuildIdentifier requestingBuild = new DefaultBuildIdentifier(":", true);
+        BuildIdentifier targetBuild = new DefaultBuildIdentifier(build);
+        taskGraph.addTasks(requestingBuild, targetBuild, tasks);
+        taskGraph.awaitCompletion(requestingBuild, targetBuild);
     }
 }
