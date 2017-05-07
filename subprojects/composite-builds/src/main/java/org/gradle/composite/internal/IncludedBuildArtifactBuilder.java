@@ -44,13 +44,13 @@ class IncludedBuildArtifactBuilder {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
             BuildIdentifier targetBuild = getBuildIdentifier(compositeBuildArtifact);
             includedBuildTaskGraph.addTasks(requestingBuild, targetBuild, compositeBuildArtifact.getTasks());
-            execute(requestingBuild, targetBuild);
+            execute(targetBuild);
         }
     }
 
-    private void execute(BuildIdentifier requestingBuild, BuildIdentifier targetBuild) {
+    private void execute(BuildIdentifier targetBuild) {
         try {
-            includedBuildTaskGraph.awaitCompletion(requestingBuild, targetBuild);
+            includedBuildTaskGraph.awaitCompletion(targetBuild);
         } catch (ReportedException e) {
             throw contextualizeFailure(targetBuild, e);
         }

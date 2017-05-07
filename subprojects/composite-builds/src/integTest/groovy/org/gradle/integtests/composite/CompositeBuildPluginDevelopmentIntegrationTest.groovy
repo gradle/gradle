@@ -130,7 +130,8 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             .assertHasDescription("Failed to build artifacts for build 'pluginC'")
             .assertHasCause("Failed to build artifacts for build 'buildB'")
             .assertHasCause("Failed to build artifacts for build 'buildD'")
-            .assertHasCause("Could not download buildB.jar (project :buildB:)")
+            .assertHasCause("Could not determine the dependencies of task ':buildD:compileJava'.")
+            .assertHasCause("Could not resolve all dependencies for configuration ':buildD:compileClasspath'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildD' -> build 'buildB'")
     }
 

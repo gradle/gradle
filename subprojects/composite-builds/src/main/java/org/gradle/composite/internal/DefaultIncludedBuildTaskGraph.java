@@ -16,14 +16,20 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildTaskGraph;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
+import java.util.List;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
+    private final Multimap<BuildIdentifier, BuildIdentifier> buildDependencies = LinkedHashMultimap.create();
     private final Multimap<BuildIdentifier, String> tasksForBuild = LinkedHashMultimap.create();
     private final IncludedBuildExecuter includedBuildExecuter;
 
@@ -33,16 +39,47 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
 
     @Override
     public synchronized void addTasks(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, Iterable<String> taskNames) {
+        buildDependencies.put(requestingBuild, targetBuild);
+
+        List<BuildIdentifier> candidateCycle = Lists.newArrayList();
+        checkNoCycles(requestingBuild, targetBuild, candidateCycle);
+
         tasksForBuild.putAll(targetBuild, taskNames);
     }
 
     @Override
-    public void awaitCompletion(BuildIdentifier requestingBuild, BuildIdentifier targetBuild) {
-        includedBuildExecuter.execute(requestingBuild, targetBuild, getTasksForBuild(targetBuild));
+    public void awaitCompletion(BuildIdentifier targetBuild) {
+        includedBuildExecuter.execute(targetBuild, getTasksForBuild(targetBuild));
     }
 
     private synchronized Collection<String> getTasksForBuild(BuildIdentifier targetBuild) {
         return tasksForBuild.get(targetBuild);
+    }
+
+    private void checkNoCycles(BuildIdentifier sourceBuild, BuildIdentifier targetBuild, List<BuildIdentifier> candidateCycle) {
+        candidateCycle.add(targetBuild);
+        for (BuildIdentifier nextTarget : buildDependencies.get(targetBuild)) {
+            if (sourceBuild.equals(nextTarget)) {
+                candidateCycle.add(nextTarget);
+                ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(candidateCycle.get(0), ":");
+                throw new ModuleVersionResolveException(selector, "Included build dependency cycle: " + reportCycle(candidateCycle));
+            }
+
+            checkNoCycles(sourceBuild, nextTarget, candidateCycle);
+
+        }
+        candidateCycle.remove(targetBuild);
+    }
+
+
+    private String reportCycle(List<BuildIdentifier> cycle) {
+        StringBuilder cycleReport = new StringBuilder();
+        for (BuildIdentifier buildIdentifier : cycle) {
+            cycleReport.append(buildIdentifier);
+            cycleReport.append(" -> ");
+        }
+        cycleReport.append(cycle.get(0));
+        return cycleReport.toString();
     }
 
 }

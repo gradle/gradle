@@ -57,6 +57,6 @@ public class CompositeBuildTaskDelegate extends DefaultTask {
         BuildIdentifier requestingBuild = new DefaultBuildIdentifier(":", true);
         BuildIdentifier targetBuild = new DefaultBuildIdentifier(build);
         taskGraph.addTasks(requestingBuild, targetBuild, tasks);
-        taskGraph.awaitCompletion(requestingBuild, targetBuild);
+        taskGraph.awaitCompletion(targetBuild);
     }
 }

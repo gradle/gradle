@@ -22,6 +22,5 @@ public interface IncludedBuildTaskGraph {
     // TODO:DAZ Tasks should be added individually, and return a reference that has `awaitCompletion`
     void addTasks(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, Iterable<String> taskNames);
 
-    // TODO:DAZ This `requesting build` should not be required
-    void awaitCompletion(BuildIdentifier requestingBuild, BuildIdentifier targetBuild);
+    void awaitCompletion(BuildIdentifier targetBuild);
 }
