@@ -162,6 +162,11 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ResolveResult result = new ResolveResult();
         dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema, new ArtifactTypeRegistry() {
             @Override
+            public ImmutableAttributes mapAttributesFor(File file) {
+                return ImmutableAttributes.EMPTY;
+            }
+
+            @Override
             public ImmutableAttributes mapAttributesFor(VariantMetadata variant) {
                 return variant.getAttributes().asImmutable();
             }

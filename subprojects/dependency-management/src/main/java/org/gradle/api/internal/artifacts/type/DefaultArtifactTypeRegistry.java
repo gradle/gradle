@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.type;
 
+import com.google.common.io.Files;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
@@ -25,6 +26,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.reflect.Instantiator;
+
+import java.io.File;
+
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
 public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     private final Instantiator instantiator;
@@ -45,9 +50,21 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     }
 
     @Override
+    public ImmutableAttributes mapAttributesFor(File file) {
+        String extension = Files.getFileExtension(file.getName());
+        ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
+        if (artifactTypeDefinitions != null) {
+            attributes = applyForExtension(attributes, extension);
+        }
+        attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_FORMAT, extension), attributes);
+        return attributes;
+    }
+
+    @Override
     public ImmutableAttributes mapAttributesFor(VariantMetadata variant) {
-        // Add artifact format as an implicit attribute when all artifacts have the same format
-        AttributeContainerInternal attributes = variant.getAttributes();
+        ImmutableAttributes attributes = variant.getAttributes().asImmutable();
+
+        // Add attributes to be applied given the extension
         if (artifactTypeDefinitions != null) {
             String extension = null;
             for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
@@ -60,12 +77,11 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
                 }
             }
             if (extension != null) {
-                ArtifactTypeDefinition definition = artifactTypeDefinitions.findByName(extension);
-                if (definition != null) {
-                    attributes = attributesFactory.concat(((AttributeContainerInternal) definition.getAttributes()).asImmutable(), attributes.asImmutable());
-                }
+                attributes = applyForExtension(attributes, extension);
             }
         }
+
+        // Add artifact format as an implicit attribute when all artifacts have the same format
         if (!attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
             String format = null;
             for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
@@ -81,6 +97,14 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
                 attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, format);
             }
         }
-        return attributes.asImmutable();
+        return attributes;
+    }
+
+    private ImmutableAttributes applyForExtension(ImmutableAttributes attributes, String extension) {
+        ArtifactTypeDefinition definition = artifactTypeDefinitions.findByName(extension);
+        if (definition != null) {
+            attributes = attributesFactory.concat(((AttributeContainerInternal) definition.getAttributes()).asImmutable(), attributes);
+        }
+        return attributes;
     }
 }

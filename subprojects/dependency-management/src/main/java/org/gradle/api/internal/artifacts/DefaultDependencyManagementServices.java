@@ -245,7 +245,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     attributesSchema,
                                     attributesFactory),
                                 attributesSchema),
-                            attributesFactory,
                             moduleIdentifierFactory,
                             buildOperationExecutor,
                             artifactTypeRegistry),

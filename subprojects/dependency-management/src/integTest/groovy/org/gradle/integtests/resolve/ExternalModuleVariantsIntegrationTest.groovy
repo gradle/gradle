@@ -291,14 +291,166 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
     }
 
     def "can attach attributes to an artifact in an Ivy repo"() {
-        expect: false
+        ivyRepo.module("test", "test-jar", "1.2").publish()
+        ivyRepo.module("test", "test-aar", "1.2")
+            .artifact(type: 'aar', ext: 'aar')
+            .publish()
+        ivyRepo.module("test", "test-thing", "1.2")
+            .artifact(type: 'thing', ext: 'thing')
+            .publish()
+
+        buildFile << """
+            repositories {
+                ivy { url '${ivyRepo.uri}' }
+            }
+            configurations {
+                compile
+            }
+            dependencies {
+                compile 'test:test-jar:1.2'
+                compile 'test:test-aar:1.2'
+                compile 'test:test-thing:1.2'
+                artifactTypes {
+                    jar {
+                        attributes.attribute(Attribute.of('usage', String), 'java-runtime')
+                        attributes.attribute(Attribute.of('javaVersion', String), '1.8')
+                    }
+                    aar {
+                        attributes.attribute(Attribute.of('artifactType', String), 'aar')
+                        attributes.attribute(Attribute.of('androidType', String), 'library-archive')
+                    }
+                    thing {
+                        attributes.attribute(Attribute.of('artifactType', String), 'widget')
+                        attributes.attribute(Attribute.of('usage', String), 'unknown')
+                    }
+                }
+            }
+            task show {
+                def artifacts = configurations.compile.incoming.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    artifacts.each {
+                        println it.file.name + ' ' + it.variant.attributes
+                    }
+                }
+            }
+"""
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("test-jar-1.2.jar {artifactType=jar, javaVersion=1.8, usage=java-runtime}")
+        output.contains("test-aar-1.2.aar {androidType=library-archive, artifactType=aar}")
+        output.contains("test-thing-1.2.thing {artifactType=widget, usage=unknown}")
     }
 
     def "can attach attributes to an artifact provided by a file dependency"() {
-        expect: false
+        buildFile << """
+            configurations {
+                compile
+            }
+            dependencies {
+                compile files('test.jar')
+                compile files('test.aar')
+                compile files('test.thing')
+                artifactTypes {
+                    jar {
+                        attributes.attribute(Attribute.of('usage', String), 'java-runtime')
+                        attributes.attribute(Attribute.of('javaVersion', String), '1.8')
+                    }
+                    aar {
+                        attributes.attribute(Attribute.of('artifactType', String), 'aar')
+                        attributes.attribute(Attribute.of('androidType', String), 'library-archive')
+                    }
+                    thing {
+                        attributes.attribute(Attribute.of('artifactType', String), 'widget')
+                        attributes.attribute(Attribute.of('usage', String), 'unknown')
+                    }
+                }
+            }
+            task show {
+                def artifacts = configurations.compile.incoming.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    artifacts.each {
+                        println it.file.name + ' ' + it.variant.attributes
+                    }
+                }
+            }
+"""
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("test.jar {artifactType=jar, javaVersion=1.8, usage=java-runtime}")
+        output.contains("test.aar {androidType=library-archive, artifactType=aar}")
+        output.contains("test.thing {artifactType=widget, usage=unknown}")
     }
 
     def "can attach attributes to an artifact provided by a Gradle project"() {
-        expect: false
+        settingsFile << 'include "a", "b", "c"'
+
+        buildFile << """
+            project(':a') {
+                configurations { create 'default' }
+                artifacts { 
+                    'default' file('a.jar') 
+                }
+            }
+            project(':b') {
+                configurations { create 'default' }
+                artifacts { 
+                    'default' file('b.aar') 
+                }
+            }
+            project(':c') {
+                configurations { create 'default' }
+                artifacts {
+                    'default'(file('c.thing')) { type = 'ignore-me' }
+                }
+            }
+
+            configurations {
+                compile
+            }
+            dependencies {
+                compile project(':a')
+                compile project(':b')
+                compile project(':c')
+                artifactTypes {
+                    jar {
+                        attributes.attribute(Attribute.of('usage', String), 'java-runtime')
+                        attributes.attribute(Attribute.of('javaVersion', String), '1.8')
+                    }
+                    aar {
+                        attributes.attribute(Attribute.of('artifactType', String), 'aar')
+                        attributes.attribute(Attribute.of('androidType', String), 'library-archive')
+                    }
+                    thing {
+                        attributes.attribute(Attribute.of('artifactType', String), 'widget')
+                        attributes.attribute(Attribute.of('usage', String), 'unknown')
+                    }
+                }
+            }
+            task show {
+                def artifacts = configurations.compile.incoming.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    artifacts.each {
+                        println it.file.name + ' ' + it.variant.attributes
+                    }
+                }
+            }
+"""
+
+        when:
+        run 'show'
+
+        then:
+        output.contains("a.jar {artifactType=jar, javaVersion=1.8, usage=java-runtime}")
+        output.contains("b.aar {androidType=library-archive, artifactType=aar}")
+        output.contains("c.thing {artifactType=widget, usage=unknown}")
     }
 }
