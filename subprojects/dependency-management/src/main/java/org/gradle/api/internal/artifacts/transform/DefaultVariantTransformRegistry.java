@@ -57,7 +57,16 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         RecordingRegistration reg = instantiatorFactory.decorate().newInstance(RecordingRegistration.class, immutableAttributesFactory);
         registrationAction.execute(reg);
         if (reg.type == null) {
-            throw new VariantTransformConfigurationException("Could not register transform: ArtifactTransform must be provided for registration.");
+            throw new VariantTransformConfigurationException("Could not register transform: an ArtifactTransform must be provided.");
+        }
+        if (reg.to.isEmpty()) {
+            throw new VariantTransformConfigurationException("Could not register transform: at least one 'to' attribute must be provided.");
+        }
+        if (reg.from.isEmpty()) {
+            throw new VariantTransformConfigurationException("Could not register transform: at least one 'from' attribute must be provided.");
+        }
+        if (!reg.from.keySet().containsAll(reg.to.keySet())) {
+            throw new VariantTransformConfigurationException("Could not register transform: each 'to' attribute must be included as a 'from' attribute.");
         }
 
         // TODO - should calculate this lazily

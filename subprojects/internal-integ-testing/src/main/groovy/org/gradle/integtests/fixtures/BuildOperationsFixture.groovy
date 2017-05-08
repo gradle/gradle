@@ -31,7 +31,7 @@ import org.gradle.util.TextUtil
 @SuppressWarnings("UnusedImport")
 class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
-    private Map operations
+    private Map<Object, Map<String, ?>> operations
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
         super(executer, projectDir)
@@ -58,6 +58,9 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                         name: "\${buildOperation.name}",
                         startTime: startEvent.startTime
                     ]
+                    if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.TaskOperationDetails) {
+                        operations[buildOperation.id].details = buildOperation.details
+                    }
                 }
 
                 void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
@@ -72,6 +75,8 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                     operations[buildOperation.id].endTime = finishEvent.endTime
                     if (finishEvent.failure != null) {
                         operations[buildOperation.id].failure = finishEvent.failure.message
+                    } else if (finishEvent.result != null) {
+                        operations[buildOperation.id].result = finishEvent.result
                     }
                 }
             }
@@ -102,11 +107,8 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
         return operation(displayName) != null
     }
 
-    Object operation(String displayName) {
+    Map<String, ?> operation(String displayName) {
         return operations.find { it.value.displayName == displayName }.value
     }
 
-    Map getOperations() {
-        return operations
-    }
 }

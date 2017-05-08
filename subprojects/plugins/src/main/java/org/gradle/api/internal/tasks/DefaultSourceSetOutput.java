@@ -101,7 +101,12 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         return classesDirs;
     }
 
-    @Override
+
+    /**
+     * Adds a new classes directory that compiled classes are assembled into.
+     *
+     * @param classesDir the classes dir. Should not be null.
+     */
     public void addClassesDir(Callable<File> classesDir) {
         classesDirs.from(classesDir);
     }

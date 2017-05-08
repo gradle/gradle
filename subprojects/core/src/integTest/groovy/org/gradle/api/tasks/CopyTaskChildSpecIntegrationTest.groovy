@@ -17,9 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def "changing child specs of the copy task while executing is disallowed"() {
         given:

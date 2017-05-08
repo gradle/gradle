@@ -108,7 +108,7 @@ The other tasks have not been loaded from the build cache since they are not cac
 and `:jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
 
 [[sec:task_output_caching_details]]
-==== Task Output Caching in detail
+==== Cacheable tasks
 
 Since a task describes all of its inputs and outputs, Gradle can compute a _build cache key_ that uniquely defines the task's outputs based on its inputs.
 That build cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
@@ -126,6 +126,7 @@ The following inputs contribute to the build cache key for a task in the same wa
 Task types need to opt-in to task output caching using the `@api:org.gradle.api.tasks.CacheableTask[]` annotation.
 Note that `@api:org.gradle.api.tasks.CacheableTask[]` is not inherited by subclasses.
 Custom task types are _not_ cacheable by default.
+
 Currently, the following built-in Gradle tasks are cacheable:
 
 * Java toolchain:
@@ -134,18 +135,24 @@ Currently, the following built-in Gradle tasks are cacheable:
 * Groovy toolchain:
     api:org.gradle.api.tasks.compile.GroovyCompile[],
     api:org.gradle.api.tasks.javadoc.Groovydoc[]
-* api:org.gradle.api.tasks.testing.Test[]
+* Testing:
+    api:org.gradle.api.tasks.testing.Test[]
 * Code quality tasks:
     api:org.gradle.api.plugins.quality.Checkstyle[],
     api:org.gradle.api.plugins.quality.CodeNarc[],
     api:org.gradle.api.plugins.quality.FindBugs[],
     api:org.gradle.api.plugins.quality.JDepend[],
     api:org.gradle.api.plugins.quality.Pmd[]
-* Jacoco:
+* JaCoCo:
     api:org.gradle.testing.jacoco.tasks.JacocoMerge[],
     api:org.gradle.testing.jacoco.tasks.JacocoReport[]
-* api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[]
+* Other tasks:
+    api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
+    api:org.gradle.api.tasks.WriteProperties[]
 
+All other tasks are currently not cacheable, but this may change in the future for other languages (Scala) or domains (native, Android, Play).
+Some tasks, like api:org.gradle.api.tasks.Copy[] or api:org.gradle.api.tasks.bundling.Jar[], usually do not make sense to make cacheable because Gradle is only copying files from one location to another.
+It also doesn't make sense to make tasks cacheable that do not produce outputs or have no task actions.
 
 [[sec:task_output_caching_inputs]]
 ==== Declaring task inputs and outputs
@@ -229,10 +236,6 @@ Gradle disables caching for a task when it detects stale outputs.
 | Gradle provides ways of specifying the path sensitivity for individual task properties (see `@api:org.gradle.api.tasks.PathSensitive[]`);
 however, it is common to need to pass absolute paths to tools or to tests via system properties or command line arguments.
 These kinds of inputs will cause cache misses because not every developer or CI server uses an identical absolute path to the root of a build.
-| None.
-
-| Using JaCoCo disables caching of the Test task.
-| The JaCoCo agent relies on appending to a shared output file that may be left over from a different test execution. If Gradle allowed Test tasks to be cacheable with the JaCoCo plugin, it could not guarantee the same results each time.
 | None.
 
 | Adding new actions to cacheable tasks in a build file makes that task sensitive to unrelated changes to the build file.
@@ -326,7 +329,7 @@ your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via api:org.gradle.caching.configuration.BuildCacheConfiguration#registerBuildCacheService(java.lang.Class,java.lang.Class)[].
 For an example of what this could look like see the https://github.com/gradle/gradle-hazelcast-plugin[Gradle Hazelcast plugin].
 
-https://gradle.com/build-cache[Gradle Enterprise] will include a high-performance, easy to install and operate, shared build cache.
+https://gradle.com/build-cache[Gradle Enterprise] includes a high-performance, easy to install and operate, shared build cache backend.
 
 [[sec:build_cache_known_issues]]
 === Known issues with built-in Build Caches
@@ -349,7 +352,7 @@ The built-in build caches have some known issues which will be addressed in futu
 | Gradle does not keep a local copy of remotely downloaded cache entries. After every clean build, Gradle will need to download all remote cache entries again.
 | None.
 
-| Some types of errors when reading or writing to the build cache are considered fatal.
-| When Gradle fails to store something into the build cache or fails to retrieve something from the build cache, the build may fail.
+| Some types of errors when reading from the build cache are considered fatal.
+| When Gradle fails to completely unpack something from the build cache, the build will fail because the outputs of the task are in an unknown state.
 | None.
 |===

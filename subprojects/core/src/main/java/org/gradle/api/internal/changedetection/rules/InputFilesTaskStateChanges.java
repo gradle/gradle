@@ -22,10 +22,11 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 
 public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry) {
-        super(task.getName(), previous, current, snapshotterRegistry, "Input", task.getInputs().getFileProperties());
+    public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, ResourceNormalizationHandler normalizationHandler) {
+        super(task.getName(), previous, current, snapshotterRegistry, "Input", task.getInputs().getFileProperties(), normalizationHandler);
         // Inputs are considered to be unchanged during task execution
         current.setInputFilesSnapshot(getCurrent());
     }

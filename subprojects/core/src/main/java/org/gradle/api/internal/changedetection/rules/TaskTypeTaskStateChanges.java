@@ -44,10 +44,9 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         currentExecution.setTaskClassLoaderHash(taskClassLoaderHash);
         List<HashCode> taskActionsClassLoaderHashes = collectActionClassLoaderHashes(taskActionClassLoaders, classLoaderHierarchyHasher);
         currentExecution.setTaskActionsClassLoaderHashes(taskActionsClassLoaderHashes);
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Task {} class loader hash: {}", taskPath, taskClassLoaderHash);
-            LOGGER.info("Task {} actions class loader hashes: {}", taskPath, taskActionsClassLoaderHashes);
-        }
+        LOGGER.debug("Task {} class loader hash: {}", taskPath, taskClassLoaderHash);
+        LOGGER.debug("Task {} actions class loader hashes: {}", taskPath, taskActionsClassLoaderHashes);
+
         this.taskPath = taskPath;
         this.taskClass = taskClassName;
         this.taskClassLoaderHash = taskClassLoaderHash;

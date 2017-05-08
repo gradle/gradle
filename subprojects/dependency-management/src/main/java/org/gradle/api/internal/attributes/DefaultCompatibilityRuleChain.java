@@ -33,8 +33,6 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
     private final List<Action<? super CompatibilityCheckDetails<T>>> rules = Lists.newArrayList();
     private final Instantiator instantiator;
 
-    private boolean assumeCompatibleWhenMissing;
-
     public DefaultCompatibilityRuleChain(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
@@ -65,12 +63,7 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
 
     @Override
     public void assumeCompatibleWhenMissing() {
-        assumeCompatibleWhenMissing = true;
-    }
-
-    @Override
-    public boolean isCompatibleWhenMissing() {
-        return assumeCompatibleWhenMissing;
+        // Don't care. This method will be removed shortly
     }
 
     @Override

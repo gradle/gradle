@@ -17,10 +17,10 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 
-class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def setup() {
         file("buildSrc/settings.gradle") << localCacheConfiguration()

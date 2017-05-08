@@ -36,34 +36,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class ComponentAttributeMatcher {
-    private final boolean ignoreAdditionalProducerAttributes;
-    private final boolean ignoreAdditionalConsumerAttributes;
-
-    public ComponentAttributeMatcher() {
-        this(false, false);
-    }
-
-    private ComponentAttributeMatcher(boolean ignoreAdditionalProducerAttributes, boolean ignoreAdditionalConsumerAttributes) {
-        this.ignoreAdditionalProducerAttributes = ignoreAdditionalProducerAttributes;
-        this.ignoreAdditionalConsumerAttributes = ignoreAdditionalConsumerAttributes;
-    }
-
-    public ComponentAttributeMatcher ignoreAdditionalProducerAttributes() {
-        return new ComponentAttributeMatcher(true, ignoreAdditionalConsumerAttributes);
-    }
-
-    public ComponentAttributeMatcher ignoreAdditionalConsumerAttributes() {
-        return new ComponentAttributeMatcher(ignoreAdditionalProducerAttributes, true);
-    }
-
     /**
      * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
      */
     public boolean isMatching(AttributeSelectionSchema schema, AttributeContainer candidate, AttributeContainer requested) {
-        if (requested.isEmpty()) {
-            if (candidate.isEmpty() || ignoreAdditionalProducerAttributes) {
-                return true;
-            }
+        if (requested.isEmpty() || candidate.isEmpty()) {
+            return true;
         }
 
         MatchDetails details = new MatchDetails<AttributeContainer>(candidate);
@@ -93,12 +71,7 @@ public class ComponentAttributeMatcher {
             Attribute<Object> attribute = requestedIterator.next();
             AttributeValue<Object> requestedValue = attributeValue(attribute, schema, requested);
             AttributeValue<Object> actualValue = attributeValue(attribute, schema, candidateAttributesContainer);
-            if (!actualValue.isPresent()) {
-                if (ignoreAdditionalConsumerAttributes) {
-                    continue;
-                }
-                details.updateForMissingProducerValue(attribute, schema);
-            } else {
+            if (actualValue.isPresent()) {
                 details.update(attribute, schema, requestedValue, actualValue);
             }
         }
@@ -112,11 +85,7 @@ public class ComponentAttributeMatcher {
                 continue;
             }
             AttributeValue<Object> actualValue = attributeValue(attribute, schema, candidateAttributesContainer);
-            if (ignoreAdditionalProducerAttributes) {
-                details.matchesByAttribute.put(attribute, actualValue.get());
-                continue;
-            }
-            details.updateForMissingConsumerValue(attribute, actualValue, schema);
+            details.updateForMissingConsumerValue(attribute, actualValue);
         }
     }
 
@@ -257,17 +226,7 @@ public class ComponentAttributeMatcher {
             }
         }
 
-        void updateForMissingProducerValue(Attribute<Object> attribute, AttributeSelectionSchema schema) {
-            if (!schema.isCompatibleWhenMissing(attribute)) {
-                compatible = false;
-            }
-        }
-
-        void updateForMissingConsumerValue(Attribute<Object> attribute, AttributeValue<Object> producerValue, AttributeSelectionSchema schema) {
-            if (!schema.isCompatibleWhenMissing(attribute)) {
-                compatible = false;
-                return;
-            }
+        void updateForMissingConsumerValue(Attribute<Object> attribute, AttributeValue<Object> producerValue) {
             matchesByAttribute.put(attribute, producerValue.get());
         }
     }

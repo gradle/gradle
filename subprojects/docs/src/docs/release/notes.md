@@ -126,9 +126,9 @@ For more info on using task property annotations, see the [user guide chapter](u
 
 #### Cache-safe mixed JVM language compilation
 
-In Gradle 3.5, projects that used both Java and another JVM language (like Groovy or Scala) would encounter problems when using the build cache. The class files created by multiple compilation tasks were all placed into the same output directory, which made determining the set of outputs to cache for each task difficult.
+In Gradle 3.5, projects that used both Java and another JVM language (like Groovy or Scala) would encounter problems when using the build cache. The class files created by multiple compilation tasks were all placed into the same output directory, which made determining the set of outputs to cache for each task difficult and would cause Gradle to cache the wrong outputs for each compilation task.
 
-Gradle now uses separate output directories for each JVM language. TODO: We should expand this since this is not specifically a build cache improvement.
+Gradle now uses separate output directories for each JVM language. 
 
 #### Automatic clean-up of local build cache
 
@@ -185,36 +185,44 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Setting the compiler executable is no longer deprecated
+
+In Gradle 3.5 `ForkOptions.executable` has been deprecated. In Gradle 4.0 it is not deprecated anymore, but using it to fork a compiler will disable task output caching for the compile task.
+
 ## Potential breaking changes
 
-### Multiple class directories
+### Build Scan 1.7.1 or newer is required when used with Gradle 4.0
 
-In projects that use multiple JVM languages (Java and Scala, Groovy and other languages), Gradle now uses separate output directories for each language. 
+To support additional features, you must use [Build Scan 1.7.1](https://plugins.gradle.org/plugin/com.gradle.build-scan) or newer with Gradle 4.0.
+
+### Multiple class directories for a single source set
+
+In projects that use multiple JVM languages (Java and Scala, Groovy and other languages) in separate source directories (e.g., `src/main/groovy` and `src/main/java`), Gradle now uses separate output directories for each language. 
 
 To return to the old behavior, explicitly set the classes directory:
 
-   // Change the output directory for the main source set back to the old path
-   sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
+    // Change the output directory for the main source set back to the old path
+    sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
 
-Please be aware that this will interfere with the effectiveness of the build cache when using multiple JVM languages in the same source set.
+Please be aware that this will interfere with the effectiveness of the build cache when using multiple JVM languages in the same source set. Gradle will disable caching for tasks when it detects that multiple tasks create outputs in the same location.
 
 ### Location of classes in the build directory
 
 The default location of classes when using the `java`, `groovy` or `scala` plugin has changed from:
 
-   Java: build/classes/main
-   Groovy: build/classes/main
-   Scala: build/classes/main
-   Generically: build/classes/${sourceSet.name}
+    Java: build/classes/main
+    Groovy: build/classes/main
+    Scala: build/classes/main
+    Generically: build/classes/${sourceSet.name}
 
 to
 
-   Java: build/classes/java/main
-   Groovy: build/classes/groovy/main
-   Scala: build/classes/scala/main
-   Generically: build/classes/${sourceDirectorySet.name}/${sourceSet.name}
+    Java: build/classes/java/main
+    Groovy: build/classes/groovy/main
+    Scala: build/classes/scala/main
+    Generically: build/classes/${sourceDirectorySet.name}/${sourceSet.name}
 
-Plugins, tasks or builds that hardcoded these paths may fail.  You can access the specific output directory for a particular language via [`SourceDirectorySet#outputDir`](dsl/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir). 
+Plugins, tasks or builds that used hardcoded paths may fail. You can access the specific output directory for a particular language via [`SourceDirectorySet#outputDir`](dsl/org.gradle.api.file.SourceDirectorySet.html#org.gradle.api.file.SourceDirectorySet:outputDir) or the collection of all of the output directories with [`SourceSetOutput#getClassesDirs()`](dsl/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs).
 
 ### maven-publish and ivy-publish mirror multi-project behavior
 
@@ -226,9 +234,11 @@ When using the `java` plugin, all `compile` and `runtime` dependencies will now 
 
 Previously Gradle would treat JVM compilation tasks as out-of-date whenever their memory settings changed compared to the previous execution. The same would happen if a forking compilation task was changed to non-forking, or vice versa. Since Gradle 4.0, these parameters are not treated as inputs anymore, and thus the compilation tasks will stay up-to-date when they are changed.
 
-<!--
-### Example breaking change
--->
+### Groovy upgraded to 2.4.11
+
+The version of Groovy bundled with Gradle was changed from Groovy 2.4.10 to [Groovy 2.4.11](http://www.groovy-lang.org/changelogs/changelog-2.4.11.html).
+
+This release fixes several issues where Groovy compilation could produce different (but functionally equivalent) bytecode given the same source files due to nondeterministic ordering in the compiler. These problems could cause build cache misses in Gradle 3.5 when compiling Groovy and Gradle script sources.
 
 ### Changes to previously deprecated APIs
 
@@ -248,12 +258,11 @@ Previously Gradle would treat JVM compilation tasks as out-of-date whenever thei
 - Removed the method `registerWatchPoints(FileSystemSubset.Builder)` from `FileCollectionDependency`.
 - Removed the method `getConfiguration()` from `ModuleDependency`.
 - Removed the method `getProjectConfiguration()` from `ProjectDependency`.
-- Removed class `BuildCache`.
-- Removed class `MapBasedBuildCache`.
-- Removed class `ActionBroadcast`.
+- Removed class `org.gradle.caching.BuildCache`.
+- Removed class `org.gradle.caching.MapBasedBuildCache`.
 - Removed the [Gradle GUI](https://docs.gradle.org/3.5/userguide/tutorial_gradle_gui.html). All classes for this feature have been removed as well as all leftovers supporting class from the Open API partly removed due to deprecation in Gradle 2.0.
 - Removed the annotation `@OrderSensitive` and the method `TaskInputFilePropertyBuilder.orderSensitive`.
-- Removed `dependencyCacheDir` getter and setters in java plugin, `JavaCompileSpec`, and `CompileOptions`
+- Removed `dependencyCacheDir` getter and setters in java plugin and `CompileOptions`
 - Removed Ant <depend> related classes `AntDepend`, `AntDependsStaleClassCleaner`, and `DependOptions`
 - Removed `Javadoc#setOptions`
 - Removed `Manifest.writeTo(Writer)`. Please use `Manifest.writeTo(Object)`

@@ -38,4 +38,7 @@ if (remoteCacheUrl) {
     }
 }
 
+gradle.rootProject { it ->
+    it.ext.remoteBuildCacheEnabled = remoteCacheUrl && gradle.startParameter.buildCacheEnabled && !gradle.startParameter.offline
+}
 

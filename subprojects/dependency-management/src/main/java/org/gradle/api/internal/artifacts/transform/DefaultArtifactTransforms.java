@@ -97,7 +97,7 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
                 return matches.get(0).getArtifacts();
             }
             if (matches.size() > 1) {
-                throw new AmbiguousVariantSelectionException(producer.getDisplayName(), requested, matches, matcher);
+                throw new AmbiguousVariantSelectionException(producer.asDescribable().getDisplayName(), requested, matches, matcher);
             }
 
             List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
@@ -115,13 +115,13 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
             }
 
             if (!candidates.isEmpty()) {
-                throw new AmbiguousTransformException(producer.getDisplayName(), requested, candidates);
+                throw new AmbiguousTransformException(producer.asDescribable().getDisplayName(), requested, candidates);
             }
 
             if (ignoreWhenNoMatches) {
                 return ResolvedArtifactSet.EMPTY;
             }
-            throw new NoMatchingVariantSelectionException(producer.getDisplayName(), requested, producer.getVariants(), matcher);
+            throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), requested, producer.getVariants(), matcher);
         }
     }
 

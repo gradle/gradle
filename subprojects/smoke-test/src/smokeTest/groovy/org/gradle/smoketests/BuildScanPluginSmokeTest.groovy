@@ -75,8 +75,6 @@ rootProject {
         result.output.contains("https://gradle.com/s/")
 
         where:
-        version << [ "1.0", "1.1", "1.1.1", "1.2", "1.3", "1.4", "1.5" ]
-        // "1.6" is broken with 4.0+
-        // "1.7" shouldn't be broken
+        version << ["1.7.1"]
     }
 }

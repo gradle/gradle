@@ -24,6 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
+import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
@@ -54,6 +55,10 @@ public class GroovyCompile extends AbstractCompile {
     private FileCollection groovyClasspath;
     private final CompileOptions compileOptions = new CompileOptions();
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
+
+    public GroovyCompile() {
+        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+    }
 
     @Override
     @TaskAction

@@ -17,12 +17,10 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.server.http.HttpBuildCache
-import org.junit.Rule
 import spock.lang.Timeout
 
 @Timeout(120)
-class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
+class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
 
     static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
@@ -39,9 +37,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-    @Rule
-    HttpBuildCache httpBuildCache = new HttpBuildCache(testDirectoryProvider)
-
     def setup() {
         httpBuildCache.start()
         settingsFile << useHttpBuildCache(httpBuildCache.uri)
@@ -56,31 +51,17 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private static String useHttpBuildCache(URI uri) {
-        """
-            buildCache {  
-                local {
-                    enabled = false
-                }
-                remote(org.gradle.caching.http.HttpBuildCache) {
-                    url = "${uri}/"   
-                    push = true
-                }
-            }
-        """
-    }
-
     def "no task is re-executed when inputs are unchanged"() {
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
 
         expect:
-        withHttpBuildCache().succeeds "clean"
+        withBuildCache().succeeds "clean"
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
     }
@@ -90,34 +71,34 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "application"
             mainClassName = "Hello"
         """
-        withHttpBuildCache().run "run"
-        withHttpBuildCache().run "clean"
+        withBuildCache().run "run"
+        withBuildCache().run "clean"
         expect:
-        withHttpBuildCache().succeeds "run"
+        withBuildCache().succeeds "run"
     }
 
     def "tasks get cached when source code changes back to previous state"() {
         expect:
-        withHttpBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
-        withHttpBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
         then:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         result.assertTaskSkipped ":compileJava"
     }
 
     def "clean doesn't get cached"() {
-        withHttpBuildCache().run "assemble"
-        withHttpBuildCache().run "clean"
-        withHttpBuildCache().run "assemble"
+        withBuildCache().run "assemble"
+        withBuildCache().run "clean"
+        withBuildCache().run "assemble"
         when:
-        withHttpBuildCache().succeeds "clean"
+        withBuildCache().succeeds "clean"
         then:
         nonSkippedTasks.contains ":clean"
     }
@@ -127,11 +108,11 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
             compileJava.outputs.cacheIf { false }
         """
 
-        withHttpBuildCache().run "compileJava"
-        withHttpBuildCache().run "clean"
+        withBuildCache().run "compileJava"
+        withBuildCache().run "clean"
 
         when:
-        withHttpBuildCache().succeeds "compileJava"
+        withBuildCache().succeeds "compileJava"
         then:
         // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
         nonSkippedTasks.contains ":compileJava"
@@ -158,13 +139,13 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withHttpBuildCache().run "jar"
+        withBuildCache().run "jar"
         then:
         nonSkippedTasks.contains ":customTask"
 
         when:
-        withHttpBuildCache().run "clean"
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().run "clean"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.contains ":customTask"
     }
@@ -181,16 +162,16 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
         httpBuildCache.authenticationAttempts == ['Basic'] as Set
 
         expect:
-        withHttpBuildCache().succeeds "clean"
+        withBuildCache().succeeds "clean"
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
         httpBuildCache.authenticationAttempts == ['Basic'] as Set
@@ -201,18 +182,18 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", "pass"))
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
         httpBuildCache.authenticationAttempts == ['None', 'Basic'] as Set
 
         expect:
-        withHttpBuildCache().succeeds "clean"
+        withBuildCache().succeeds "clean"
 
         when:
         httpBuildCache.reset()
         httpBuildCache.withBasicAuth("user", "pass")
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.containsAll ":compileJava"
         httpBuildCache.authenticationAttempts == ['None', 'Basic'] as Set
@@ -231,7 +212,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withHttpBuildCache().succeeds "jar"
+        withBuildCache().succeeds "jar"
         then:
         skippedTasks.empty
         httpBuildCache.authenticationAttempts == ['Basic'] as Set
@@ -255,7 +236,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withArgument("--info")
-        withHttpBuildCache().succeeds "assemble"
+        withBuildCache().succeeds "assemble"
         then:
         !result.output.contains("correct-username")
         !result.output.contains("correct-password")
@@ -273,15 +254,15 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withHttpBuildCache().fails "jar"
+        withBuildCache().fails "jar"
         then:
-        failureDescriptionContains "response status 401: Unauthorized"
+        failureCauseContains "response status 401: Unauthorized"
         // Make sure we don't log the password
         !output.contains("incorrect-pass")
         !errorOutput.contains("incorrect-pass")
     }
 
-    def "unknown host causes the build to fail"() {
+    def "unknown host causes the build cache to be disabled"() {
         settingsFile << """        
             buildCache {
                 remote {
@@ -292,14 +273,10 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled()
-        withHttpBuildCache().fails "jar"
+        withBuildCache().succeeds "jar"
 
         then:
-        failure.error.contains("java.net.UnknownHostException: invalid.invalid")
-    }
-
-    def withHttpBuildCache() {
-        executer.withBuildCacheEnabled()
-        this
+        output.contains("java.net.UnknownHostException: invalid.invalid")
+        output.contains("The remote build cache is now disabled because a non-recoverable error was encountered")
     }
 }

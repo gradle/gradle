@@ -18,19 +18,19 @@ package org.gradle.groovy.compile
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-// TODO:UPGRADE-GROOVY <- search for this to find all the places to upgrade
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.11'])
+@TargetCoverage({GroovyCoverage.ALL})
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)

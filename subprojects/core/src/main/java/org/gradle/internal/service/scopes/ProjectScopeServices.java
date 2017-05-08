@@ -41,9 +41,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
-import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
@@ -52,6 +52,10 @@ import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
+import org.gradle.api.resources.normalization.internal.DefaultResourceNormalizationHandler;
+import org.gradle.api.resources.normalization.internal.DefaultRuntimeClasspathNormalizationStrategy;
+import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationStrategyInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -220,5 +224,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         public Module getModule() {
             return new ProjectBackedModule(project);
         }
+    }
+
+    protected RuntimeClasspathNormalizationStrategyInternal createRuntimeClasspathNormalizationStrategy(Instantiator instantiator) {
+        return instantiator.newInstance(DefaultRuntimeClasspathNormalizationStrategy.class);
+    }
+
+    protected ResourceNormalizationHandler createResourceNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationStrategyInternal runtimeClasspathNormalizationStrategy) {
+        return instantiator.newInstance(DefaultResourceNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
     }
 }

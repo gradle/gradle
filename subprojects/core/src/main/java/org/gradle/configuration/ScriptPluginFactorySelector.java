@@ -16,40 +16,81 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scripts.ScriptingLanguages;
+import org.gradle.scripts.ScriptingLanguage;
 
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based
  * on its file name. Build script file names ending in ".gradle" are supported by the
  * {@link DefaultScriptPluginFactory}. Other files are delegated to the first available
- * implementation of the {@link ScriptPluginFactoryProvider} SPI to return non-null from
- * {@link ScriptPluginFactoryProvider#getFor(String)}. If all provider
- * implementations return null for a given file name, handling falls back to the
+ * matching implementation of the {@link ScriptingLanguage} SPI. If no provider
+ * implementations matches for a given file name, handling falls back to the
  * {@link DefaultScriptPluginFactory}. This approach allows users to name build scripts
  * with a suffix of choice, e.g. "build.groovy" or "my.build" instead of the typical
- * "build.gradle" while preserving default behaviour.
+ * "build.gradle" while preserving default behaviour which is to fallback to Groovy support.
  *
  * This factory wraps each {@link ScriptPlugin} implementation in a {@link BuildOperationScriptPlugin}.
  *
- * @see ScriptPluginFactoryProvider
  * @since 2.14
  */
-@Incubating
 public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
+    /**
+     * Scripting language ScriptPluginFactory instantiator.
+     *
+     * @since 4.0
+     */
+    public interface ProviderInstantiator {
+        ScriptPluginFactory instantiate(String providerClassName);
+    }
+
+    /**
+     * Default scripting language ScriptPluginFactory instantiator.
+     *
+     * @param instantiator the instantiator
+     * @return the provider instantiator
+     * @since 4.0
+     */
+    public static ProviderInstantiator defaultProviderInstantiatorFor(final Instantiator instantiator) {
+        return new ProviderInstantiator() {
+
+            @Override
+            public ScriptPluginFactory instantiate(String providerClassName) {
+                Class<?> providerClass = loadProviderClass(providerClassName);
+                return (ScriptPluginFactory) instantiator.newInstance(providerClass);
+            }
+
+            private Class<?> loadProviderClass(String providerClassName) {
+                try {
+                    return getClass().getClassLoader().loadClass(providerClassName);
+                } catch (ClassNotFoundException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        };
+    }
+
     private final ScriptPluginFactory defaultScriptPluginFactory;
-    private final DependencyInjectingServiceLoader serviceLoader;
+    private final ScriptingLanguages scriptingLanguages;
+    private final ProviderInstantiator providerInstantiator;
+    private final DependencyInjectingServiceLoader serviceLoader; // TODO:pm Remove old scripting provider SPI support
     private final BuildOperationExecutor buildOperationExecutor;
 
     public ScriptPluginFactorySelector(ScriptPluginFactory defaultScriptPluginFactory,
-                                       DependencyInjectingServiceLoader serviceLoader,
+                                       ScriptingLanguages scriptingLanguages,
+                                       ProviderInstantiator providerInstantiator,
+                                       DependencyInjectingServiceLoader serviceLoader, // TODO:pm Remove old scripting provider SPI support
                                        BuildOperationExecutor buildOperationExecutor) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
+        this.scriptingLanguages = scriptingLanguages;
+        this.providerInstantiator = providerInstantiator;
         this.serviceLoader = serviceLoader;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -69,6 +110,15 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private ScriptPluginFactory findScriptPluginFactoryFor(String fileName) {
+        for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {
+            if (fileName.endsWith(scriptingLanguage.getExtension())) {
+                ScriptPluginFactory scriptPluginFactory = scriptPluginFactoryFor(scriptingLanguage);
+                if (scriptPluginFactory != null) {
+                    return scriptPluginFactory;
+                }
+            }
+        }
+        // TODO:pm Remove old scripting provider SPI support
         for (ScriptPluginFactoryProvider scriptPluginFactoryProvider : scriptPluginFactoryProviders()) {
             ScriptPluginFactory scriptPluginFactory = scriptPluginFactoryProvider.getFor(fileName);
             if (scriptPluginFactory != null) {
@@ -78,6 +128,11 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
         return defaultScriptPluginFactory;
     }
 
+    private ScriptPluginFactory scriptPluginFactoryFor(ScriptingLanguage scriptingLanguage) {
+        return providerInstantiator.instantiate(scriptingLanguage.getProvider());
+    }
+
+    // TODO:pm Remove old scripting provider SPI support
     private Iterable<ScriptPluginFactoryProvider> scriptPluginFactoryProviders() {
         return serviceLoader.load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
     }

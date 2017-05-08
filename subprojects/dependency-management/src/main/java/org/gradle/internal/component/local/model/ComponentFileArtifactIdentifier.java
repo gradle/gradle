@@ -18,8 +18,9 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.DisplayName;
 
-public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentifier {
+public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
     private final ComponentIdentifier componentId;
     private final String fileName;
 
@@ -36,6 +37,11 @@ public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentif
     @Override
     public String getDisplayName() {
         return fileName + " (" + componentId + ")";
+    }
+
+    @Override
+    public String getCapitalizedDisplayName() {
+        return getDisplayName();
     }
 
     @Override

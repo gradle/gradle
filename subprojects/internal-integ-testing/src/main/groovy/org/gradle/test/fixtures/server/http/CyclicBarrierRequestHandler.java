@@ -89,7 +89,7 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
                     condition.signalAll();
                     throw failure;
                 }
-                System.out.println(String.format("[%d] waiting for other requests. Still waiting for [%s]", id, pending.keySet()));
+                System.out.println(String.format("[%d] waiting for other requests. Still waiting for %s", id, pending.keySet()));
                 condition.await(waitMs, TimeUnit.MILLISECONDS);
             }
 

@@ -78,7 +78,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * Gets unresolved IDE repository file dependencies.
      *
      * @param configuration Configuration
-     * @return Unresolved IDE repositoru file dependencies
+     * @return Unresolved IDE repository file dependencies
      */
     public List<UnresolvedIdeRepoFileDependency> getUnresolvedIdeRepoFileDependencies(Configuration configuration) {
         ResolutionResult result = getIncomingResolutionResult(configuration);

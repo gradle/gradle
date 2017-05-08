@@ -107,10 +107,10 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
                     startParameter.searchUpwards = false
                 }
                 otherBuild.doFirst {
-                    new URL("http://localhost:${barrier.port}/\${project.name}-started").text
+                    ${barrier.callFromBuildUsingExpression('project.name + "-started"')}
                 }
                 otherBuild.doLast {
-                    new URL("http://localhost:${barrier.port}/\${project.name}-finished").text
+                    ${barrier.callFromBuildUsingExpression('project.name + "-finished"')}
                 }
             }
             task otherBuild(type:GradleBuild) {
@@ -120,8 +120,8 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
             }
         """
         file('main/settings.gradle') << """
-            ${barrier.callFromBuildScript("child-build-started")}
-            ${barrier.callFromBuildScript("child-build-finished")}
+            ${barrier.callFromBuild("child-build-started")}
+            ${barrier.callFromBuild("child-build-finished")}
         """
         file('main/build.gradle') << """
             assert gradle.parent.rootProject.name == 'root'

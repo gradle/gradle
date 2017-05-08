@@ -51,7 +51,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
     private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
         Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Cannot choose between the following configurations on ");
+        formatter.node("Cannot choose between the following configurations of ");
         formatter.append(targetComponent.getComponentId().getDisplayName());
         formatter.startChildren();
         for (String configuration : ambiguousConfigurations) {

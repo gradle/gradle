@@ -25,11 +25,13 @@ import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 public class PropertiesToStartParameterConverter {
     private final PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
+    private final PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
 
     public StartParameter convert(Map<String, String> properties, StartParameter startParameter) {
         startParameter.setConfigureOnDemand(isTrue(properties.get(GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY)));
 
         propertiesToParallelismConfigurationConverter.convert(properties, startParameter);
+        propertiesToLogLevelConfigurationConverter.convert(properties, startParameter);
 
         // If they use both, the newer property wins.
         String buildCacheEnabled = properties.get(GradleProperties.BUILD_CACHE_PROPERTY);

@@ -25,6 +25,8 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.resolve.LocalLibraryMetaDataAdapter;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.Describables;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JarFile;
@@ -71,12 +73,17 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
 
     private DefaultLibraryLocalComponentMetadata createResolvedMetaData(BinarySpecInternal selectedBinary, String projectPath, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
 
-        DefaultLibraryLocalComponentMetadata metadata = newResolvedLibraryMetadata(selectedBinary.getId(), toStringMap(dependenciesPerUsage), projectPath);
+        final DefaultLibraryLocalComponentMetadata metadata = newResolvedLibraryMetadata(selectedBinary.getId(), toStringMap(dependenciesPerUsage), projectPath);
         for (Map.Entry<UsageKind, List<PublishArtifact>> entry : artifacts.entrySet()) {
             UsageKind usage = entry.getKey();
             final List<PublishArtifact> publishArtifacts = entry.getValue();
             metadata.addArtifacts(usage.getConfigurationName(), publishArtifacts);
             metadata.addVariant(usage.getConfigurationName(), new OutgoingVariant() {
+                @Override
+                public DisplayName asDescribable() {
+                    return Describables.of(metadata.getComponentId());
+                }
+
                 @Override
                 public AttributeContainerInternal getAttributes() {
                     return ImmutableAttributes.EMPTY;

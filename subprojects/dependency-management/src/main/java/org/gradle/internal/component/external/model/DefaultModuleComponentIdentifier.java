@@ -17,8 +17,9 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.DisplayName;
 
-public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifier {
+public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifier, DisplayName {
     private final String group;
     private final String module;
     private final String version;
@@ -40,6 +41,11 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         builder.append(":");
         builder.append(version);
         return builder.toString();
+    }
+
+    @Override
+    public String getCapitalizedDisplayName() {
+        return getDisplayName();
     }
 
     public String getGroup() {

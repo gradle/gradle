@@ -25,6 +25,8 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 
+import java.util.concurrent.TimeUnit
+
 import static org.gradle.cache.internal.FileLockManager.LockMode
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
@@ -172,6 +174,92 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         dir.file("some-file").isFile()
     }
 
+    def "runs cleanup action when it is due"() {
+        given:
+        def dir = createCacheDir()
+        def gcFile = dir.file("gc.properties")
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(LockMode.Shared), initializationAction, cleanupAction, lockManager, Mock(ExecutorFactory))
+
+        when:
+        try {
+            cache.open()
+        } finally {
+            cache.close()
+        }
+
+        then:
+        0 * _  // Does not call initialization or cleanup action.
+        gcFile.assertIsFile()
+
+        when:
+        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(7))
+        try {
+            cache.open()
+        } finally {
+            cache.close()
+        }
+        then:
+        1 * cleanupAction.execute(cache)
+        0 * _
+    }
+
+    def "fails gracefully if cleanup action fails"() {
+        given:
+        def dir = createCacheDir()
+        def gcFile = dir.file("gc.properties")
+        def failingCleanupAction = new Action() {
+            @Override
+            void execute(Object o) {
+                throw new Exception("Boom")
+            }
+        }
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(LockMode.Shared), initializationAction, failingCleanupAction, lockManager, Mock(ExecutorFactory))
+
+        when:
+        try {
+            cache.open()
+        } finally {
+            cache.close()
+        }
+
+        then:
+        0 * _  // Does not call initialization or cleanup action.
+        gcFile.assertIsFile()
+
+        when:
+        markCacheForCleanup(gcFile)
+        try {
+            cache.open()
+        } finally {
+            cache.close()
+        }
+        then:
+        noExceptionThrown()
+        0 * _
+    }
+
+    private void markCacheForCleanup(TestFile gcFile) {
+        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(7))
+    }
+
+    def "does not use gc.properties when no cleanup action is defined"() {
+        given:
+        def dir = createCacheDir()
+        def gcFile = dir.file("gc.properties")
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(LockMode.Shared), initializationAction, null, lockManager, Mock(ExecutorFactory))
+
+        when:
+        try {
+            cache.open()
+        } finally {
+            cache.close()
+        }
+
+        then:
+        0 * _
+        gcFile.assertDoesNotExist()
+    }
+
     private static Map<String, String> loadProperties(TestFile file) {
         Properties properties = GUtil.loadProperties(file)
         Map<String, String> result = new HashMap<String, String>()
@@ -188,7 +276,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         properties.putAll(this.properties)
         properties.putAll(GUtil.map((Object[]) extraProps))
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(LockMode.Shared), null, cleanupAction, lockManager, Mock(ExecutorFactory))
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, CacheBuilder.LockTarget.DefaultTarget, mode(LockMode.Shared), null, null, lockManager, Mock(ExecutorFactory))
 
         try {
             cache.open()

@@ -127,6 +127,46 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
     }
 
     @Override
+    public void release(String path) {
+        path = new SimpleResourceHandler(path).getPath();
+        lock.lock();
+        try {
+            if (!received.contains(path)) {
+                throw new IllegalStateException("Expected request not received, should wait for pending calls first.");
+            }
+            if (released.contains(path)) {
+                throw new IllegalStateException("Expected request already released.");
+            }
+            System.out.println(String.format("[%d] releasing %s", testId, path));
+            released.add(path);
+            doRelease(1);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void releaseAll() {
+        lock.lock();
+        try {
+            if (!expected.isEmpty()) {
+                throw new IllegalStateException("Expected requests not received, should wait for pending calls first.");
+            }
+            int count = 0;
+            for (String path : received) {
+                if (!released.contains(path)) {
+                    System.out.println(String.format("[%d] releasing %s", testId, path));
+                    released.add(path);
+                    count++;
+                }
+            }
+            doRelease(count);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     public void release(int count) {
         lock.lock();
         try {
@@ -142,12 +182,16 @@ class CyclicBarrierAnyOfRequestHandler extends TrackingHttpHandler implements Bl
             if (releaseCount != count) {
                 throw new IllegalStateException("Too few requests released, should wait for pending calls first.");
             }
-            waitingFor = Math.min(expected.size(), waitingFor + count);
-            System.out.println(String.format("[%d] now expecting %d further requests, received %s, released %s, not yet received %s", testId, waitingFor, received, released, expected.keySet()));
-            condition.signalAll();
+            doRelease(count);
         } finally {
             lock.unlock();
         }
+    }
+
+    private void doRelease(int count) {
+        waitingFor = Math.min(expected.size(), waitingFor + count);
+        System.out.println(String.format("[%d] now expecting %d further requests, received %s, released %s, not yet received %s", testId, waitingFor, received, released, expected.keySet()));
+        condition.signalAll();
     }
 
     @Override

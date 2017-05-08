@@ -18,10 +18,7 @@ package org.gradle.launcher.daemon.protocol
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogLevelChangeEvent
-import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEvent
-import org.gradle.internal.logging.events.ProgressCompleteEvent
-import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
@@ -43,29 +40,6 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def result = serialize(event, serializer)
         result instanceof LogLevelChangeEvent
         result.newLogLevel == LogLevel.LIFECYCLE
-    }
-
-    def "can serialize ProgressCompleteEvent messages"() {
-        expect:
-        def event = new ProgressCompleteEvent(new OperationIdentifier(1234L), 321L, "category", "description", "status")
-        def result = serialize(event, serializer)
-        result instanceof ProgressCompleteEvent
-        result.operationId == new OperationIdentifier(1234L)
-        result.timestamp == 321L
-        result.category == "category"
-        result.description == "description"
-        result.status == "status"
-    }
-
-    def "can serialize ProgressEvent messages"() {
-        expect:
-        def event = new ProgressEvent(new OperationIdentifier(1234L), 321L, "category", "status")
-        def result = serialize(event, serializer)
-        result instanceof ProgressEvent
-        result.operationId == new OperationIdentifier(1234L)
-        result.timestamp == 321L
-        result.category == "category"
-        result.status == "status"
     }
 
     def "can serialize Failure messages"() {

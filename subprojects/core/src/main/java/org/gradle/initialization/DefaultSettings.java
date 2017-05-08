@@ -37,6 +37,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -91,7 +92,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver());
+        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
     }
 
     public DefaultProjectDescriptor findProject(String path) {
@@ -217,6 +218,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     protected ServiceRegistry getServices() {
         return services;
+    }
+
+    @Inject
+    protected ScriptFileResolver getScriptFileResolver() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject

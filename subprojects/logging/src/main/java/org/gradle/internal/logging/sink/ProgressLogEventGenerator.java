@@ -73,7 +73,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
 
     private void onComplete(ProgressCompleteEvent progressCompleteEvent) {
         assert !operations.isEmpty();
-        Operation operation = operations.remove(progressCompleteEvent.getOperationId());
+        Operation operation = operations.remove(progressCompleteEvent.getProgressOperationId());
 
         // Didn't find an operation with that id in the map
         if (operation == null) {
