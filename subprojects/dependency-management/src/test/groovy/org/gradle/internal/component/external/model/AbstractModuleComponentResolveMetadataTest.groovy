@@ -51,7 +51,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
 
         expect:
         metadata.toString() == 'group:module:version'
-        metadata.getConfiguration('runtime').toString() == 'group:module:version:runtime'
+        metadata.getConfiguration('runtime').toString() == 'group:module:version configuration runtime'
     }
 
     def "returns null for unknown configuration"() {

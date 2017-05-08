@@ -33,6 +33,8 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
+    public static final int CLEANUP_INTERVAL = 7;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final Properties properties = new Properties();
     private final Action<? super PersistentCache> initAction;
@@ -116,7 +118,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                     long duration = System.currentTimeMillis() - gcFile.lastModified();
                     long timeInDays = TimeUnit.MILLISECONDS.toDays(duration);
                     LOGGER.info("{} has not been cleaned up in {} days", DefaultPersistentDirectoryCache.this, timeInDays);
-                    return timeInDays >= 7;
+                    return timeInDays >= CLEANUP_INTERVAL;
                 }
             }
             return false;

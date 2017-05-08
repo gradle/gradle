@@ -355,6 +355,19 @@
         </sample>
         </section>
     </section>
+    <section id="sec:stale_task_outputs">
+        <title>Stale task outputs</title>
+        <para>
+            When the Gradle version changes, Gradle detects that outputs from tasks that ran with older versions
+            of Gradle need to be removed to ensure that the newest version of the tasks are starting from a known
+            clean state.
+        </para>
+        <note>
+            <para>
+                Automatic clean-up of stale output directories has only been implemented for the output of source sets (Java/Groovy/Scala compilation).
+            </para>
+        </note>
+    </section>
     <section id="sec:up_to_date_checks">
         <title>Up-to-date checks (AKA Incremental Build)</title>
         <para>An important part of any build tool is the ability to avoid doing work that has already

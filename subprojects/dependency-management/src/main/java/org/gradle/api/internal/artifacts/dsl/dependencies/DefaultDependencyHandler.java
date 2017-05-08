@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
-import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -27,9 +26,11 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
+import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.internal.Factory;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -41,14 +42,7 @@ import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
-public class DefaultDependencyHandler extends GroovyObjectSupport implements DependencyHandler, MethodMixIn {
-    private static final Action<AttributesSchema> CONFIGURE_DEFAULT_SCHEMA_ACTION = new Action<AttributesSchema>() {
-        @Override
-        public void execute(AttributesSchema attributesSchema) {
-            attributesSchema.attribute(ARTIFACT_FORMAT).getCompatibilityRules().assumeCompatibleWhenMissing();
-        }
-    };
-
+public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
@@ -57,12 +51,18 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final AttributesSchema attributesSchema;
     private final VariantTransformRegistry transforms;
+    private final Factory<ArtifactTypeContainer> artifactTypeContainer;
     private final DynamicMethods dynamicMethods;
 
-    public DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
-                                    ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler,
-                                    ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema,
-                                    VariantTransformRegistry transforms) {
+    public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
+                                    DependencyFactory dependencyFactory,
+                                    ProjectFinder projectFinder,
+                                    ComponentMetadataHandler componentMetadataHandler,
+                                    ComponentModuleMetadataHandler componentModuleMetadataHandler,
+                                    ArtifactResolutionQueryFactory resolutionQueryFactory,
+                                    AttributesSchema attributesSchema,
+                                    VariantTransformRegistry transforms,
+                                    Factory<ArtifactTypeContainer> artifactTypeContainer) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
@@ -71,6 +71,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         this.resolutionQueryFactory = resolutionQueryFactory;
         this.attributesSchema = attributesSchema;
         this.transforms = transforms;
+        this.artifactTypeContainer = artifactTypeContainer;
         configureSchema();
         dynamicMethods = new DynamicMethods();
     }
@@ -178,7 +179,17 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     }
 
     private void configureSchema() {
-        attributesSchema(CONFIGURE_DEFAULT_SCHEMA_ACTION);
+        attributesSchema.attribute(ARTIFACT_FORMAT);
+    }
+
+    @Override
+    public ArtifactTypeContainer getArtifactTypes() {
+        return artifactTypeContainer.create();
+    }
+
+    @Override
+    public void artifactTypes(Action<? super ArtifactTypeContainer> configureAction) {
+        configureAction.execute(getArtifactTypes());
     }
 
     @Override

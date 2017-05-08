@@ -18,19 +18,19 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 public class FileDependencyArtifactSet implements ArtifactSet {
     private final long id;
     private final LocalFileDependencyMetadata fileDependency;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
 
-    public FileDependencyArtifactSet(long id, LocalFileDependencyMetadata fileDependency, ImmutableAttributesFactory attributesFactory) {
+    public FileDependencyArtifactSet(long id, LocalFileDependencyMetadata fileDependency, ArtifactTypeRegistry artifactTypeRegistry) {
         this.id = id;
         this.fileDependency = fileDependency;
-        this.attributesFactory = attributesFactory;
+        this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class FileDependencyArtifactSet implements ArtifactSet {
 
     @Override
     public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
-        return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, attributesFactory);
+        return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, artifactTypeRegistry);
     }
 
 }

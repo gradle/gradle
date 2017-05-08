@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
         buildFile << """
             import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory

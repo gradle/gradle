@@ -137,11 +137,12 @@ class StaleOutputJavaProject {
     }
 
     void assertHasCleanupMessage(ExecutionResult result, String path=defaultOutputDir()) {
+        result.assertOutputContains("Gradle is removing stale outputs from a previous version of Gradle, for more information about stale outputs see ")
         result.assertOutputContains(getClassesDirCleanupMessage(path))
     }
 
     private String createCleanupMessage(String path) {
-        "Cleaned up directory '${new File(testDir, path)}'"
+        "Deleting directory '${new File(testDir, path)}'"
     }
 
     boolean assertJarHasDescendants(String... relativePaths) {

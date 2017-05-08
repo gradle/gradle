@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
+import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
@@ -76,10 +77,12 @@ class DefaultArtifactTransformsTest extends Specification {
         def variants = [variant1, variant2] as Set
 
         given:
-        set.displayName >> '<component>'
+        set.asDescribable() >> Describables.of('<component>')
         set.schema >> producerSchema
         set.variants >> variants
+        variant1.asDescribable() >> Describables.of('<variant1>')
         variant1.attributes >> typeAttributes("classes")
+        variant2.asDescribable() >> Describables.of('<variant2>')
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
@@ -92,8 +95,8 @@ class DefaultArtifactTransformsTest extends Specification {
         then:
         def e = thrown(AmbiguousVariantSelectionException)
         e.message == toPlatformLineSeparators("""More than one variant of <component> matches the consumer attributes:
-  - Variant: Required artifactType 'classes' and found incompatible value 'classes'.
-  - Variant: Required artifactType 'classes' and found incompatible value 'jar'.""")
+  - <variant1>: Required artifactType 'classes' and found incompatible value 'classes'.
+  - <variant2>: Required artifactType 'classes' and found incompatible value 'jar'.""")
     }
 
     def "selects variant with attributes that can be transformed to requested format"() {
@@ -166,9 +169,11 @@ class DefaultArtifactTransformsTest extends Specification {
         given:
         set.schema >> producerSchema
         set.variants >> variants
-        set.displayName >> '<component>'
+        set.asDescribable() >> Describables.of('<component>')
         variant1.attributes >> typeAttributes("jar")
+        variant1.asDescribable() >> Describables.of('<variant1>')
         variant2.attributes >> typeAttributes("classes")
+        variant2.asDescribable() >> Describables.of('<variant2>')
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _) >> []
@@ -187,8 +192,8 @@ class DefaultArtifactTransformsTest extends Specification {
         def e = thrown(AmbiguousTransformException)
         e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant of <component> for consumer attributes: artifactType 'dll'
 Found the following transforms:
-  - Transform from variant: artifactType 'jar'
-  - Transform from variant: artifactType 'classes'""")
+  - Transform from <variant1>: artifactType 'jar'
+  - Transform from <variant2>: artifactType 'classes'""")
     }
 
     def "returns empty variant when no variants match and ignore no matching enabled"() {
@@ -223,9 +228,11 @@ Found the following transforms:
         given:
         set.schema >> producerSchema
         set.variants >> variants
-        set.displayName >> '<component>'
+        set.asDescribable() >> Describables.of('<component>')
         variant1.attributes >> typeAttributes("jar")
+        variant1.asDescribable() >> Describables.of('<variant1>')
         variant2.attributes >> typeAttributes("classes")
+        variant2.asDescribable() >> Describables.of('<variant2>')
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _) >> []
@@ -240,8 +247,8 @@ Found the following transforms:
         then:
         def e = thrown(NoMatchingVariantSelectionException)
         e.message == toPlatformLineSeparators("""No variants of <component> match the consumer attributes:
-  - Variant: Required artifactType 'dll' and found incompatible value 'jar'.
-  - Variant: Required artifactType 'dll' and found incompatible value 'classes'.""")
+  - <variant1>: Required artifactType 'dll' and found incompatible value 'jar'.
+  - <variant2>: Required artifactType 'dll' and found incompatible value 'classes'.""")
     }
 
     def visit(ResolvedArtifactSet set) {

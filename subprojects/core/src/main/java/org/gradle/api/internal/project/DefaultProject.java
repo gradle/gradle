@@ -70,6 +70,7 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -1300,6 +1301,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void fireDeferredConfiguration() {
         getDeferredProjectConfiguration().fire();
+    }
+
+    @Inject
+    @Override
+    public ResourceNormalizationHandler getNormalization() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void normalization(Action<? super ResourceNormalizationHandler> configuration) {
+        configuration.execute(getNormalization());
     }
 
 }

@@ -140,7 +140,6 @@ public class BuildCacheServiceProvider {
     private RoleAwareBuildCacheService decorate(BuildCacheService rawService, String role) {
         RoleAwareBuildCacheService decoratedService = new BuildCacheServiceWithRole(role, rawService);
         decoratedService = new BuildOperationFiringBuildCacheServiceDecorator(buildOperationExecutor, decoratedService);
-        decoratedService = new LoggingBuildCacheServiceDecorator(decoratedService);
         decoratedService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(MAX_ERROR_COUNT_FOR_BUILD_CACHE, decoratedService);
         return decoratedService;
     }

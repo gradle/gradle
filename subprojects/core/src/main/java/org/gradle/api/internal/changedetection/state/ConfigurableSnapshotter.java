@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.BuildCacheService
+import org.gradle.caching.internal.BuildCacheHasher;
 
-class LoggingBuildCacheServiceDecoratorTest extends AbstractRoleAwareBuildCacheServiceDecoratorTest {
-    def decorator = new LoggingBuildCacheServiceDecorator(delegate)
+public interface ConfigurableSnapshotter {
 
-    BuildCacheService getDecorator() {
-        return decorator
-    }
+    /**
+     * Appends the identification of the configuration of this object to a snapshotter.
+     * The contract is that, if two hashes agree, then the methods on this snapshotter return the same result whenever the arguments are the same.
+     */
+    void appendConfigurationToHasher(BuildCacheHasher hasher);
 }

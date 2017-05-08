@@ -44,35 +44,35 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
         then:
         operation().result.requestedTaskPaths == [":help"]
-        operation().result.filteredTaskPaths == []
+        operation().result.excludedTaskPaths == []
 
         when:
         succeeds('someTask')
 
         then:
         operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":b:someTask", ":a:someTask"] as Set
-        operation().result.filteredTaskPaths == []
+        operation().result.excludedTaskPaths == []
 
         when:
         succeeds('someTask', '-x', ':b:someTask')
 
         then:
         operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
-        operation().result.filteredTaskPaths as Set == [":b:someTask"] as Set
+        operation().result.excludedTaskPaths as Set == [":b:someTask"] as Set
 
         when:
         succeeds('someTask', '-x', 'otherTask')
 
         then:
         operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
-        operation().result.filteredTaskPaths as Set == [":b:otherTask", ":a:c:otherTask", ":otherTask", ":a:otherTask"] as Set
+        operation().result.excludedTaskPaths as Set == [":b:otherTask", ":a:c:otherTask", ":otherTask", ":a:otherTask"] as Set
 
         when:
         succeeds(':a:someTask')
 
         then:
         operation().result.requestedTaskPaths == [":a:someTask"]
-        operation().result.filteredTaskPaths == []
+        operation().result.excludedTaskPaths == []
     }
 
     def "errors in calculating task graph are exposed"() {

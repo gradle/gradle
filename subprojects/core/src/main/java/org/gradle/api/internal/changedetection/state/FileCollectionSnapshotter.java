@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 public interface FileCollectionSnapshotter {
@@ -36,7 +37,8 @@ public interface FileCollectionSnapshotter {
      * @param files The files to snapshot.
      * @param compareStrategy How to compare this collection snapshot to others.
      * @param snapshotNormalizationStrategy How to normalize file snapshots.
+     * @param normalizationHandler
      * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy);
+    FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler);
 }
