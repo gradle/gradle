@@ -812,7 +812,7 @@ Gradle understands if a file property (e.g. one holding a Java classpath) is ord
 
 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using api:org.gradle.api.tasks.TaskOutputs#upToDateWhen(groovy.lang.Closure)[]
 
-The inputs for the task are also used to calculate the <<build_cache,build cache>> key used to load task outputs when enabled. For more details see <<sec:task_output_caching_faster>>.
+The inputs for the task are also used to calculate the <<build_cache,build cache>> key used to load task outputs when enabled. For more details see <<sec:task_output_caching>>.
 
 [[sec:task_rules]]
 === Task rules
