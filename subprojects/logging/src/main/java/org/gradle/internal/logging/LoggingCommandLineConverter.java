@@ -82,6 +82,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 loggingConfiguration.setConsoleOutput(consoleOutput);
+                if (ConsoleOutput.Plain == consoleOutput && !loggingConfiguration.isLogLevelSet()) {
+                    loggingConfiguration.setLogLevel(LogLevel.LIFECYCLE);
+                }
             } catch (IllegalArgumentException e) {
                 throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, CONSOLE));
             }

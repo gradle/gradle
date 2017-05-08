@@ -26,7 +26,8 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import java.io.Serializable;
 
 public class DefaultLoggingConfiguration implements Serializable, LoggingConfiguration {
-    private LogLevel logLevel = LogLevel.WARN;
+    public final static LogLevel DEFAULT_LOG_LEVEL = LogLevel.WARN;
+    private LogLevel logLevel;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
 
@@ -40,12 +41,20 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
 
     @Override
     public LogLevel getLogLevel() {
+        if (logLevel == null) {
+            return DEFAULT_LOG_LEVEL;
+        }
         return logLevel;
     }
 
     @Override
     public void setLogLevel(LogLevel logLevel) {
         this.logLevel = logLevel;
+    }
+
+    @Override
+    public boolean isLogLevelSet() {
+        return logLevel != null;
     }
 
     @Override

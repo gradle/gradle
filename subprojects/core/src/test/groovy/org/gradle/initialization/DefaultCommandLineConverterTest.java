@@ -255,6 +255,7 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     @Test
     public void withNoColor() {
         expectedConsoleOutput = ConsoleOutput.Plain;
+        expectedLogLevel = LogLevel.LIFECYCLE;
         checkConversion("--console", "plain");
     }
 
