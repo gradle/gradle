@@ -167,9 +167,9 @@ All of them match the consumer attributes:""")
             }
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
-                    assert details.candidateValues*.value == ['FREE', 'free']
+                    assert details.candidateValues*.value == ['ONE', 'TWO']
                     details.candidateValues.each { producerValue ->
-                        if (producerValue.value == 'free') {
+                        if (producerValue.value == 'TWO') {
                             details.closestMatch(producerValue)
                         }
                     }
@@ -182,6 +182,80 @@ All of them match the consumer attributes:""")
                       attribute(flavor) {
                           compatibilityRules.add(FlavorCompatibilityRule)
                           disambiguationRules.add(FlavorSelectionRule)
+                      }
+                   }
+               }
+            }
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes { $freeDebug }
+                    _compileFreeRelease.attributes { $freeRelease }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                    _compileFreeRelease project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo2.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo {
+                        attributes { $debug; attribute(flavor, Flavor.of("ONE")) }
+                    }
+                    foo2 {
+                        attributes { $debug; attribute(flavor, Flavor.of("TWO")) }
+                    }
+                    bar {
+                        attributes { $freeRelease }
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task foo2Jar(type: Jar) {
+                   baseName = 'b-foo2'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    foo2 foo2Jar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+    }
+
+    def "selects configuration with requested value when multiple are compatible"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
+                void execute(CompatibilityCheckDetails<Flavor> details) {
+                    details.compatible()
+                }
+            }
+
+            project(':a') {
+               dependencies {
+                   attributesSchema {
+                      attribute(flavor) {
+                          compatibilityRules.add(FlavorCompatibilityRule)
                       }
                    }
                }
@@ -247,15 +321,13 @@ All of them match the consumer attributes:""")
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
                 void execute(CompatibilityCheckDetails<Flavor> details) {
-                    if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
-                        details.compatible()
-                    }
+                    details.compatible()
                 }
             }
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
                     details.candidateValues.each { producerValue ->
-                        if (producerValue.value.toLowerCase() == producerValue.value) {
+                        if (producerValue.value == "ONE") {
                             details.closestMatch(producerValue)
                         }
                     }
@@ -289,16 +361,16 @@ All of them match the consumer attributes:""")
             project(':b') {
                 configurations {
                     foo {
-                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("FREE")) }
+                        attributes { $debug; attribute(flavor, Flavor.of("TWO")) }
                     }
                     foo2 {
-                        attributes { $freeDebug }
+                        attributes { $debug; attribute(flavor, Flavor.of("ONE")) }
                     }
                     foo3 {
-                        attributes { $freeDebug }
+                        attributes { $debug; attribute(flavor, Flavor.of("ONE")) }
                     }
                     bar {
-                        attributes { $freeRelease }
+                        attributes { $release; attribute(flavor, Flavor.of("ONE")) }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -332,11 +404,10 @@ All of them match the consumer attributes:""")
 All of them match the consumer attributes:
   - Configuration 'foo2':
       - Required buildType 'debug' and found compatible value 'debug'.
-      - Required flavor 'free' and found compatible value 'free'.
+      - Required flavor 'free' and found compatible value 'ONE'.
   - Configuration 'foo3':
       - Required buildType 'debug' and found compatible value 'debug'.
-      - Required flavor 'free' and found compatible value 'free'."""
-
+      - Required flavor 'free' and found compatible value 'ONE'."""
     }
 
     def "can select best compatible match when single best matches are found on individual attributes"() {
@@ -347,15 +418,13 @@ All of them match the consumer attributes:
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
                 void execute(CompatibilityCheckDetails<Flavor> details) {
-                    if (details.consumerValue.value.equalsIgnoreCase(details.producerValue.value)) {
-                        details.compatible()
-                    }
+                    details.compatible()
                 }
             }
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
                     details.candidateValues.each { producerValue ->
-                        if (producerValue.value.toLowerCase() == producerValue.value) {
+                        if (producerValue.value == 'TWO') {
                             details.closestMatch(producerValue)
                         }
                     }
@@ -405,16 +474,16 @@ All of them match the consumer attributes:
             project(':b') {
                 configurations {
                     foo {
-                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("FREE")) }
+                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("ONE")) }
                     }
                     foo2 {
-                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("free")) }
+                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, Flavor.of("TWO")) }
                     }
                     bar {
-                        attributes { attribute(buildType, BuildType.release); attribute(flavor, Flavor.of("FREE")) }
+                        attributes { attribute(buildType, BuildType.release); attribute(flavor, Flavor.of("ONE")) }
                     }
                     bar2 {
-                        attributes { attribute(buildType, BuildType.release); attribute(flavor, Flavor.of("free")) }
+                        attributes { attribute(buildType, BuildType.release); attribute(flavor, Flavor.of("TWO")) }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -567,7 +636,7 @@ All of them match the consumer attributes:
                         attributes { $debug; attribute(flavor, Flavor.of('preview')) }
                     }
                     bar {
-                        attributes { $debug; $free }
+                        attributes { $debug; attribute(flavor, Flavor.of('any')) }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -1037,7 +1106,7 @@ All of them match the consumer attributes:
 
             project(':a') {
                 configurations {
-                    compile.attributes { $free; $debug }
+                    compile.attributes { $debug }
                 }
                 dependencies {
                     compile project(':b')
@@ -1108,7 +1177,7 @@ All of them match the consumer attributes:
 
             project(':a') {
                 configurations {
-                    compile.attributes { $free; $debug }
+                    compile.attributes { $debug }
                 }
                 dependencies {
                     compile project(':b')
