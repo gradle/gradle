@@ -41,11 +41,6 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
                 }
     
                 @Override
-                String getDescription() {
-                    return "Test cache backend"
-                }
-    
-                @Override
                 void close() throws IOException {
                 }
             }

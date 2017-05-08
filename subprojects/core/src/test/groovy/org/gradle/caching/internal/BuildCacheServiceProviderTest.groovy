@@ -65,7 +65,7 @@ class BuildCacheServiceProviderTest extends Specification {
 
         and:
         with(buildOpResult()) {
-            local.type == "Directory"
+            local.type == "directory"
             local.className == DirectoryBuildCache.name
             remote == null
         }
@@ -80,7 +80,7 @@ class BuildCacheServiceProviderTest extends Specification {
         then:
         s.role == "local"
         with(buildOpResult()) {
-            local.type == "Directory"
+            local.type == "directory"
             local.className == DirectoryBuildCache.name
             remote == null
         }
@@ -97,7 +97,7 @@ class BuildCacheServiceProviderTest extends Specification {
         c.role == "remote"
         with(buildOpResult()) {
             local == null
-            remote.type == "Remote"
+            remote.type == "remote"
             remote.className == TestRemoteBuildCache.name
         }
     }
@@ -110,12 +110,12 @@ class BuildCacheServiceProviderTest extends Specification {
 
         then:
         with(buildOpResult()) {
-            local.type == "Directory"
-            remote.type == "Remote"
+            local.type == "directory"
+            remote.type == "remote"
         }
     }
 
-    def 'when caching is disabled no services are created'() {
+    def 'when caching is disabled no services are` created'() {
         buildCacheEnabled = false
 
         expect:
@@ -133,7 +133,7 @@ class BuildCacheServiceProviderTest extends Specification {
     static class TestRemoteBuildCacheServiceFactory implements BuildCacheServiceFactory<TestRemoteBuildCache> {
         @Override
         BuildCacheService createBuildCacheService(TestRemoteBuildCache configuration, BuildCacheDescriber describer) {
-            describer.type("Remote").config("value", configuration.value)
+            describer.type("remote").config("value", configuration.value)
             new NoOpBuildCacheService()
         }
     }
@@ -141,7 +141,7 @@ class BuildCacheServiceProviderTest extends Specification {
     static class TestDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
         @Override
         BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheDescriber describer) {
-            describer.type("Directory").config("location", configuration.directory?.toString())
+            describer.type("directory").config("location", configuration.directory?.toString())
             new NoOpBuildCacheService()
         }
     }

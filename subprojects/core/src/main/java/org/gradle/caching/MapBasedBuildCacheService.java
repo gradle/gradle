@@ -39,11 +39,6 @@ public class MapBasedBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         final byte[] bytes = delegate.get(key.getHashCode());
         if (bytes == null) {

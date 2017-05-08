@@ -22,7 +22,6 @@ import org.gradle.caching.BuildCacheDescriber;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
-import org.gradle.caching.http.HttpBuildCacheCredentials;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
@@ -38,7 +37,6 @@ import java.util.Collections;
  * Build cache factory for HTTP backend.
  */
 public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
-    private static final String HTTP_BUILD_CACHE_TYPE = "HTTP";
 
     private final SslContextFactory sslContextFactory;
 
@@ -53,32 +51,26 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");
         }
-        URI safeUri = safeUri(url);
+        URI noUserInfoUrl = stripUserInfo(url);
 
         Collection<Authentication> authentications = Collections.emptyList();
         if (configuration.getCredentials().getUsername() != null && configuration.getCredentials().getPassword() != null) {
-            url = safeUri;
+            url = noUserInfoUrl;
             DefaultBasicAuthentication basicAuthentication = new DefaultBasicAuthentication("basic");
             basicAuthentication.setCredentials(configuration.getCredentials());
             authentications = Collections.<Authentication>singleton(basicAuthentication);
         }
 
-        HttpBuildCacheCredentials credentials = configuration.getCredentials();
-        describer.type(HTTP_BUILD_CACHE_TYPE)
-            .config("url", safeUri.toString())
-            .config("authenticated", authenticated(url, credentials).toString());
+        describer.type("HTTP").config("url", noUserInfoUrl.toASCIIString());
+        if (!authentications.isEmpty() || url.getUserInfo() != null) {
+            describer.config("authenticated", null);
+        }
 
         HttpClientHelper httpClientHelper = new HttpClientHelper(new DefaultHttpSettings(authentications, sslContextFactory));
         return new HttpBuildCacheService(httpClientHelper, url);
     }
 
-    /**
-     * Create a safe URI from the given one by stripping out user info.
-     *
-     * @param uri Original URI
-     * @return a new URI with no user info
-     */
-    private static URI safeUri(URI uri) {
+    private static URI stripUserInfo(URI uri) {
         try {
             return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
         } catch (URISyntaxException e) {
@@ -86,9 +78,4 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         }
     }
 
-    private Boolean authenticated(URI url, HttpBuildCacheCredentials credentials) {
-        boolean authenticatedThroughUrl = url.getUserInfo() != null;
-        boolean authenticatedThroughConfig = credentials.getUsername() != null && credentials.getPassword() != null;
-        return Boolean.valueOf(authenticatedThroughUrl || authenticatedThroughConfig);
-    }
 }

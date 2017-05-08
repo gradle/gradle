@@ -106,11 +106,6 @@ public class DispatchingBuildCacheService implements RoleAwareBuildCacheService 
     }
 
     @Override
-    public String getDescription() {
-        return "dispatching build cache";
-    }
-
-    @Override
     public void close() throws IOException {
         CompositeStoppable.stoppable(local, remote).stop();
     }

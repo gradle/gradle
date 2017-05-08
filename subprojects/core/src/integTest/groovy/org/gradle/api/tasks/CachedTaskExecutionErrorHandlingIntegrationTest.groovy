@@ -57,11 +57,6 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                 }
     
                 @Override
-                String getDescription() {
-                    return "Failing cache backend"
-                }
-    
-                @Override
                 void close() throws IOException {
                 }
             }

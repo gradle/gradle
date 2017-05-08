@@ -32,7 +32,7 @@ import java.io.File;
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     private static final String BUILD_CACHE_VERSION = "1";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
-    private static final String DIRECTORY_BUILD_CACHE_TYPE = "Directory";
+    private static final String DIRECTORY_BUILD_CACHE_TYPE = "directory";
 
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
@@ -57,8 +57,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
 
-        describer.type(DIRECTORY_BUILD_CACHE_TYPE)
-            .config("directory", target.toString());
+        describer.type(DIRECTORY_BUILD_CACHE_TYPE).config("location", target.getAbsolutePath());
 
         return new DirectoryBuildCacheService(cacheRepository, buildOperationExecutor, target, configuration.getTargetSizeInMB());
     }

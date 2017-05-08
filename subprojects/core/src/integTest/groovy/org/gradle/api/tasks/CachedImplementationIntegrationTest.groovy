@@ -90,11 +90,6 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        public String getDescription() {
-                            return "test cache backend";
-                        }
-        
-                        @Override
                         public void close() throws IOException {
                             try (OutputStream output = new FileOutputStream(cacheFile)) {
                                 data.store(output, null);

@@ -67,8 +67,8 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
-        result.local.config.directory == cacheDir.absoluteFile.toString()
-        result.local.type == 'Directory'
+        result.local.config.location == cacheDir.absoluteFile.toString()
+        result.local.type == 'directory'
         result.local.push == true
 
         result.remote == null
@@ -102,7 +102,14 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
         result.remote.config.url == url
-        result.remote.config.authenticated == authenticated
+
+        if (authenticated) {
+            result.remote.config.containsKey("authenticated")
+            result.remote.config.authenticated == null
+        } else {
+            result.remote.config.containsKey("authenticated")
+        }
+
         result.remote.type == 'HTTP'
         result.remote.push == push
 
@@ -136,7 +143,8 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def config = result().remote.config
         config.url == safeUri.toString() + '/'
-        config.authenticated == 'true'
+        config.containsKey("authenticated")
+        config.authenticated == null
     }
 
     def "custom build cache connector configuration is exposed"() {
@@ -147,7 +155,6 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             class VisibleNoOpBuildCacheService implements BuildCacheService {
                 @Override boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException { false }
                 @Override void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {}
-                @Override String getDescription() { "NO-OP build cache" }
                 @Override void close() throws IOException {}
             }
             class CustomBuildCache extends AbstractBuildCache {}

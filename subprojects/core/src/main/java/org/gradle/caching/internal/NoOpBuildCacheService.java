@@ -35,11 +35,6 @@ class NoOpBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public String getDescription() {
-        return "NO-OP build cache";
-    }
-
-    @Override
     public void close() throws IOException {
         // Do nothing
     }

@@ -16,6 +16,9 @@
 
 package org.gradle.caching.internal;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.GeneratedSubclasses;
@@ -83,11 +86,11 @@ public class BuildCacheServiceProvider {
                 }
 
                 DescribedBuildCacheService localDescribedService = localEnabled
-                    ? createRawBuildCacheService(local)
+                    ? createRawBuildCacheService(local, "local")
                     : null;
 
                 DescribedBuildCacheService remoteDescribedService = remoteEnabled
-                    ? createRawBuildCacheService(remote)
+                    ? createRawBuildCacheService(remote, "local")
                     : null;
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
@@ -97,12 +100,12 @@ public class BuildCacheServiceProvider {
 
                 //noinspection ConstantConditions
                 RoleAwareBuildCacheService localRoleAware = localEnabled
-                    ? decorate(localDescribedService.service, "local", local.isPush())
+                    ? decorate(localDescribedService.service, "local")
                     : null;
 
                 //noinspection ConstantConditions
                 RoleAwareBuildCacheService remoteRoleAware = remoteEnabled
-                    ? decorate(remoteDescribedService.service, "remote", remote.isPush())
+                    ? decorate(remoteDescribedService.service, "remote")
                     : null;
 
                 if (localEnabled && remoteEnabled) {
@@ -125,6 +128,7 @@ public class BuildCacheServiceProvider {
         });
     }
 
+
     private static RoleAwareBuildCacheService preventPushIfNecessary(RoleAwareBuildCacheService buildCacheService, boolean pushEnabled) {
         return pushEnabled ? buildCacheService : preventPush(buildCacheService);
     }
@@ -133,16 +137,15 @@ public class BuildCacheServiceProvider {
         return new PushOrPullPreventingBuildCacheServiceDecorator(true, false, buildCacheService);
     }
 
-    private RoleAwareBuildCacheService decorate(BuildCacheService rawService, String role, boolean push) {
+    private RoleAwareBuildCacheService decorate(BuildCacheService rawService, String role) {
         RoleAwareBuildCacheService decoratedService = new BuildCacheServiceWithRole(role, rawService);
-        LOGGER.warn("Using {} as {} build cache, push is {}.", decoratedService.getDescription(), role, push ? "enabled" : "disabled");
         decoratedService = new BuildOperationFiringBuildCacheServiceDecorator(buildOperationExecutor, decoratedService);
         decoratedService = new LoggingBuildCacheServiceDecorator(decoratedService);
         decoratedService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(MAX_ERROR_COUNT_FOR_BUILD_CACHE, decoratedService);
         return decoratedService;
     }
 
-    private <T extends BuildCache> DescribedBuildCacheService createRawBuildCacheService(final T configuration) {
+    private <T extends BuildCache> DescribedBuildCacheService createRawBuildCacheService(final T configuration, String role) {
         Class<? extends BuildCacheServiceFactory<T>> castFactoryType = Cast.uncheckedCast(
             buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
         );
@@ -152,7 +155,38 @@ public class BuildCacheServiceProvider {
         BuildCacheService service = factory.createBuildCacheService(configuration, describer);
         BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams);
 
+        logConfig(configuration, role, description);
+
         return new DescribedBuildCacheService(service, description);
+    }
+
+    private static void logConfig(BuildCache configuration, String role, BuildCacheDescription description) {
+        if (LOGGER.isWarnEnabled()) {
+            String config = "";
+            if (!description.config.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(" (");
+                Joiner.on(", ").appendTo(sb, Iterables.transform(description.config.entrySet(), new Function<Map.Entry<String, String>, String>() {
+                    @Override
+                    public String apply(Map.Entry<String, String> input) {
+                        if (input.getValue() == null) {
+                            return input.getKey();
+                        } else {
+                            return input.getKey() + " = " + input.getValue();
+                        }
+                    }
+                }));
+                sb.append(")");
+                config = sb.toString();
+            }
+
+            LOGGER.warn("Using {} {} build cache{}, push is {}.",
+                role,
+                description.type == null ? description.className : description.type,
+                config,
+                configuration.isPush() ? "enabled" : "disabled"
+            );
+        }
     }
 
     private static class BuildCacheServiceWithRole extends ForwardingBuildCacheService implements RoleAwareBuildCacheService {
