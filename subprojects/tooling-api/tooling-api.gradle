@@ -1,6 +1,3 @@
-import groovy.xml.XmlUtil
-import org.gradle.build.*
-
 // GradleConnector entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -65,13 +62,7 @@ task toolingApiShadedJar(type: Zip) {
     ext.buildReceipt = project(':versionInfo').createBuildReceipt
     destinationDir file("$buildDir/shaded-jar")
 }
-
-task testToolingApiShadedJar(type: Zip) {
-    ext.buildReceipt = project(':versionInfo').createTestBuildReceipt
-    destinationDir file("$buildDir/shaded-jar-with-test-version")
-}
-
-configure([toolingApiShadedJar, testToolingApiShadedJar]) {
+configure([toolingApiShadedJar]) {
     dependsOn shadedJarWithoutVersion, buildReceipt
     from zipTree(shadedJarWithoutVersion.jarFile)
     baseName = 'gradle-tooling-api-shaded'
@@ -101,33 +92,12 @@ eclipse {
     }
 }
 
-task generateFixedVersionPom {
-    dependsOn generatePom
-    ext.fixedVersionPomFile = new File(temporaryDir, 'pom.xml')
-    outputs.files(fixedVersionPomFile)
-    inputs.file { generatePom.pomFile } withPropertyName 'pomFile' withPathSensitivity PathSensitivity.NONE
-    inputs.property("testedVersion", { testedVersion })
-    doLast {
-        def xml = new XmlParser().parse(generatePom.pomFile)
-        xml.version[0].value = testedVersion
-        fixedVersionPomFile.parentFile.mkdirs()
-        fixedVersionPomFile.createNewFile()
-        fixedVersionPomFile.text = XmlUtil.serialize(xml)
-    }
-}
-
 artifacts {
     publishRuntime file: toolingApiShadedJar.archivePath, name: archivesBaseName, type: 'jar', builtBy: toolingApiShadedJar
-
-    testPublishRuntime jar
-    testPublishRuntime sourceJar
-    testPublishRuntime file: testToolingApiShadedJar.archivePath, name: archivesBaseName, type: 'jar', builtBy: testToolingApiShadedJar
-    testPublishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'pom', 'pom', null, new Date(), generateFixedVersionPom.fixedVersionPomFile, generateFixedVersionPom)
 }
 
 task publishLocalArchives(type: Upload) {
-    configuration = configurations.testPublishRuntime
-    dependsOn generateFixedVersionPom
+    configuration = configurations.publishRuntime
     uploadDescriptor = false
     repositories {
         ivy {

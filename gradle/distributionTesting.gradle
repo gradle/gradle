@@ -21,7 +21,7 @@ ext.distributionTestTasks = tasks.withType(DistributionTest)
 
 distributionTestTasks.all { DistributionTest task ->
     dependsOn ':intTestImage'
-    dependsOn ':toolingApi:testToolingApiShadedJar'
+    dependsOn ':toolingApi:toolingApiShadedJar'
     dependsOn ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
@@ -47,7 +47,7 @@ distributionTestTasks.all { DistributionTest task ->
                 reports.html.destination = file("${project.reporting.baseDir}/$name")
                 gradleHomeDir = rootProject.intTestImage.destinationDir
                 gradleUserHomeDir = rootProject.file('intTestHomeDir')
-                toolingApiShadedJarDir = rootProject.project(':toolingApi').testToolingApiShadedJar.destinationDir
+                toolingApiShadedJarDir = rootProject.project(':toolingApi').toolingApiShadedJar.destinationDir
 
                 if (requiresLibsRepo) {
                     libsRepo = rootProject.file('build/repo')
@@ -57,7 +57,7 @@ distributionTestTasks.all { DistributionTest task ->
                     systemProperties['integTest.distZipVersion'] = version
                 }
                 if (requiresBinZip) {
-                    binZip = project(':distributions').testBinZip.archivePath
+                    binZip = project(':distributions').binZip.archivePath
                 }
                 daemonRegistry = file("$rootProject.buildDir/daemon")
             }
@@ -182,7 +182,7 @@ project(":") {
     }
 
     task cleanUpCaches {
-        dependsOn ':versionInfo:createTestBuildReceipt'
+        dependsOn ':versionInfo:createBuildReceipt'
         doLast {
             def executingVersion = GradleVersion.version(gradle.gradleVersion)
 

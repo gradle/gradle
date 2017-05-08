@@ -29,6 +29,12 @@ sourceSets {
     main.output.dir generatedResourcesDir, builtBy: classpathManifest
 }
 
+normalization {
+    runtimeClasspath {
+        ignore '**/build-receipt.properties'
+    }
+}
+
 testTasks.all { task ->
     maxParallelForks = rootProject.maxParallelForks
     if (isCiServer) {

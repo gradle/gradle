@@ -43,18 +43,6 @@ ext {
     zipRootFolder = "gradle-$version"
     testZipRootFolder = "gradle-$testedVersion"
 
-    versionInfo = copySpec {
-        into('lib') {
-            from(project(':versionInfo').jar)
-        }
-    }
-
-    testVersionInfo = copySpec {
-        into("lib") {
-            from project(':versionInfo').testVersionInfoJar
-        }
-    }
-
     binDistImage = copySpec {
         from("$rootDir/LICENSE")
         from('src/toplevel')
@@ -73,7 +61,6 @@ ext {
 
     allDistImage = copySpec {
         with binDistImage
-        with versionInfo
         groovyProjects.each { project ->
             into("src/$project.projectDir.name") {
                 from project.sourceSets.main.allSource
@@ -99,15 +86,6 @@ task binZip(type: Zip) {
     classifier = 'bin'
     into(zipRootFolder) {
         with binDistImage
-        with versionInfo
-    }
-}
-
-task testBinZip(type: Zip) {
-    classifier = 'test-bin'
-    into(testZipRootFolder) {
-        with binDistImage
-        with testVersionInfo
     }
 }
 
