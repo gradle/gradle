@@ -274,6 +274,7 @@ Gradle pushes build outputs to any build cache that is enabled and has api:org.g
 By default, the local build cache has push enabled, and the remote build cache has push disabled.
 
 The local build cache is pre-configured to be a api:org.gradle.caching.local.DirectoryBuildCache[] and enabled by default.
+The `DirectoryBuildCache` will periodically clean-up the local cache directory to keep it under a configurable target size.
 The remote build cache can be configured by specifying the type of build cache to connect to (api:org.gradle.caching.configuration.BuildCacheConfiguration#remote(java.lang.Class)[]).
 
 Gradle supports connecting to a remote build cache backend via HTTP. This can be configured in `settings.gradle`.
