@@ -8,7 +8,7 @@ import org.junit.Test
 import java.io.File
 
 
-class LazyPropertiesSampleTest : AbstractSampleTest("lazy-properties") {
+class ProviderPropertiesSampleTest : AbstractSampleTest("provider-properties") {
 
     @Test
     fun `hello task logs and write message to files`() {
