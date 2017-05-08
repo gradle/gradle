@@ -18,6 +18,7 @@ package org.gradle.caching;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.caching.configuration.BuildCache;
 
 /**
  * Builder-style object that allows {@link BuildCacheServiceFactory} implementations to describe the cache.
@@ -25,6 +26,7 @@ import org.gradle.api.Nullable;
  * The description is for human consumption.
  * It may be logged and displayed by tooling.
  *
+ * @see BuildCacheServiceFactory#createBuildCacheService(BuildCache, BuildCacheDescriber)
  * @since 4.0
  */
 @Incubating
