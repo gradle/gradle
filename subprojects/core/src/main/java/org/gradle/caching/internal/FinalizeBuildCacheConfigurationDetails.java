@@ -30,15 +30,18 @@ import java.util.SortedMap;
  */
 public final class FinalizeBuildCacheConfigurationDetails implements BuildOperationDetails<FinalizeBuildCacheConfigurationDetails.Result> {
 
+    /**
+     * Represents the effective build cache configuration.
+     *
+     * Null values for local and remote represent a completely disabled state.
+     */
     public static class Result {
 
-        public interface BuildCache {
+        public interface BuildCacheDescription {
 
             String getClassName();
 
             String getType();
-
-            boolean isEnabled();
 
             boolean isPush();
 
@@ -46,29 +49,22 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
 
         }
 
-        private final boolean enabled;
+        private final BuildCacheDescription local;
 
-        private final BuildCache local;
+        private final BuildCacheDescription remote;
 
-        private final BuildCache remote;
-
-        public Result(boolean enabled, @Nullable BuildCache local, @Nullable BuildCache remote) {
-            this.enabled = enabled;
+        public Result(@Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
             this.local = local;
             this.remote = remote;
         }
 
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        @Nullable
-        public BuildCache getLocal() {
+        @Nullable // if not enabled
+        public BuildCacheDescription getLocal() {
             return local;
         }
 
-        @Nullable
-        public BuildCache getRemote() {
+        @Nullable // if not enabled
+        public BuildCacheDescription getRemote() {
             return remote;
         }
     }

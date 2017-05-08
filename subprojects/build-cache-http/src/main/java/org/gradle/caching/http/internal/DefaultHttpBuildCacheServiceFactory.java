@@ -65,8 +65,8 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
         HttpBuildCacheCredentials credentials = configuration.getCredentials();
         describer.type(HTTP_BUILD_CACHE_TYPE)
-            .configParam("url", safeUri.toString())
-            .configParam("authenticated", authenticated(url, credentials).toString());
+            .config("url", safeUri.toString())
+            .config("authenticated", authenticated(url, credentials).toString());
 
         HttpClientHelper httpClientHelper = new HttpClientHelper(new DefaultHttpSettings(authentications, sslContextFactory));
         return new HttpBuildCacheService(httpClientHelper, url);

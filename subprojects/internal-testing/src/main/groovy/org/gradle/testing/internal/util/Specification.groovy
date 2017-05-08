@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.caching;
+package org.gradle.testing.internal.util
 
-import org.gradle.api.Incubating;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.FirstParam
 
-/**
- * Describer object to capture a build cache configuration.
- *
- * @since 4.0
- */
-@Incubating
-public interface BuildCacheDescriber {
+@CompileStatic
+class Specification extends spock.lang.Specification {
 
-    /**
-     * Sets a human friendly description of the type of this cache.
-     */
-    BuildCacheDescriber type(String type);
-
-    /**
-     * Sets a configuration param such as the remote url or the local directory location.
-     */
-    BuildCacheDescriber config(String name, String value);
+    public <T> void with(
+        @DelegatesTo.Target T t,
+        @DelegatesTo(strategy = Closure.DELEGATE_FIRST)
+        @ClosureParams(FirstParam.FirstGenericType) Closure<?> closure
+    ) {
+        super.with(t, closure)
+    }
 
 }

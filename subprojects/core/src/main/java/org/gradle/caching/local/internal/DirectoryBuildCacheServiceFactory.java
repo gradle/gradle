@@ -58,7 +58,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
 
         describer.type(DIRECTORY_BUILD_CACHE_TYPE)
-            .configParam("directory", target.toString());
+            .config("directory", target.toString());
 
         return new DirectoryBuildCacheService(cacheRepository, buildOperationExecutor, target, configuration.getTargetSizeInMB());
     }

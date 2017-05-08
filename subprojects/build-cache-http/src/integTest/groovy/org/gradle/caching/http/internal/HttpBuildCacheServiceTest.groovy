@@ -48,8 +48,10 @@ class HttpBuildCacheServiceTest extends Specification {
         511 // network authentication required
     ]
 
-    @Rule HttpServer server = new HttpServer()
-    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    @Rule
+    HttpServer server = new HttpServer()
+    @Rule
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     BuildCacheService cache
     BuildCacheDescriber buildCacheDescriber
@@ -88,7 +90,7 @@ class HttpBuildCacheServiceTest extends Specification {
 
     def "can cache artifact with redirect"() {
         def destFile = tempDir.file("cached.zip")
-        server.expectPutRedirected("/cache/${key.hashCode}","/redirect/cache/${key.hashCode}")
+        server.expectPutRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
         server.expectPut("/redirect/cache/${key.hashCode}", destFile)
 
         when:
@@ -139,7 +141,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         then:
-        ! fromCache
+        !fromCache
     }
 
     def "load reports recoverable error on http code #httpCode"(int httpCode) {
@@ -288,12 +290,7 @@ class HttpBuildCacheServiceTest extends Specification {
         BuildCacheDescriber type(String type) { this }
 
         @Override
-        BuildCacheDescriber configParam(String name, String value) { this }
+        BuildCacheDescriber config(String name, String value) { this }
 
-        @Override
-        String getType() { null }
-
-        @Override
-        Map<String, String> getConfigParams() { [:] }
     }
 }

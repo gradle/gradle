@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
@@ -35,10 +36,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class DispatchingBuildCacheService implements RoleAwareBuildCacheService {
-    private final RoleAwareBuildCacheService local;
-    private final boolean pushToLocal;
-    private final RoleAwareBuildCacheService remote;
-    private final boolean pushToRemote;
+
+    @VisibleForTesting
+    final RoleAwareBuildCacheService local;
+    @VisibleForTesting
+    final boolean pushToLocal;
+    @VisibleForTesting
+    final RoleAwareBuildCacheService remote;
+    @VisibleForTesting
+    final boolean pushToRemote;
+
     private final TemporaryFileProvider temporaryFileProvider;
     private final String role;
 

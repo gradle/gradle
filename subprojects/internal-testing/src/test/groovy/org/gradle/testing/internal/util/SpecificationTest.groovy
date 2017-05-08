@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.caching;
+package org.gradle.testing.internal.util
 
-import org.gradle.api.Incubating;
+import spock.lang.FailsWith
 
-/**
- * Describer object to capture a build cache configuration.
- *
- * @since 4.0
- */
-@Incubating
-public interface BuildCacheDescriber {
+class SpecificationTest extends Specification {
 
-    /**
-     * Sets a human friendly description of the type of this cache.
-     */
-    BuildCacheDescriber type(String type);
-
-    /**
-     * Sets a configuration param such as the remote url or the local directory location.
-     */
-    BuildCacheDescriber config(String name, String value);
+    @FailsWith(AssertionError)
+    def "with block asserts"() {
+        expect:
+        with(1) {
+            intValue() == 2
+        }
+    }
 
 }

@@ -77,12 +77,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         BuildCacheDescriber type(String type) { this }
 
         @Override
-        BuildCacheDescriber configParam(String name, String value) { this }
+        BuildCacheDescriber config(String name, String value) { this }
 
-        @Override
-        String getType() { null }
-
-        @Override
-        Map<String, String> getConfigParams() { [:] }
     }
 }

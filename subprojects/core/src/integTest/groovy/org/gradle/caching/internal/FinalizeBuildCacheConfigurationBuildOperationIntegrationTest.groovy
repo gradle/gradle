@@ -66,12 +66,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
-        result.enabled == true
-
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.directory == cacheDir.absoluteFile.toString()
         result.local.type == 'Directory'
-        result.local.enabled == true
         result.local.push == true
 
         result.remote == null
@@ -102,16 +99,14 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
-        result.enabled == true
 
         result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
         result.remote.config.url == url
         result.remote.config.authenticated == authenticated
         result.remote.type == 'HTTP'
-        result.remote.enabled == true
         result.remote.push == push
 
-        result.local.enabled == false
+        result.local == null
 
         where:
         authenticated | credentials            | push
@@ -158,8 +153,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             class CustomBuildCache extends AbstractBuildCache {}
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
                 @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, BuildCacheDescriber describer) { 
-                    describer.type('$type')
-                              .configParam('directory', '$directory')
+                    describer.type('$type').config('directory', '$directory')
                     new VisibleNoOpBuildCacheService() 
                 }
             }
@@ -177,9 +171,6 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
-        result.enabled == true
-
-        result.local.enabled == true
         result.local.className == 'CustomBuildCache'
         result.local.config.directory == directory
         result.local.type == type
@@ -192,7 +183,6 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
-        result.enabled == false
         result.local == null
         result.remote == null
     }
