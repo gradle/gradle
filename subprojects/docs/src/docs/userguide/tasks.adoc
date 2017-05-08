@@ -32,7 +32,7 @@ When Gradle executes a task, it can label the task with different outcomes in th
 
 | `(no label)` or `EXECUTED`
 | Task executed its actions.
-| 
+|
 
 * Used whenever a task has actions and Gradle has determined they should be executed as part of a build.
 * Used whenever a task has no actions and some dependencies, and any of the dependencies are executed. See also <<sec:lifecycle_tasks>>.
@@ -40,7 +40,7 @@ When Gradle executes a task, it can label the task with different outcomes in th
 
 | `UP-TO-DATE`
 | Task's outputs did not change.
-| 
+|
 
 * Used when a task has outputs and inputs and they have not changed. See <<sec:up_to_date_checks>>.
 * Used when a task has actions, but the task tells Gradle it did not change its outputs.
@@ -50,14 +50,14 @@ When Gradle executes a task, it can label the task with different outcomes in th
 
 | `FROM-CACHE`
 | Task's outputs could be found from a previous execution.
-| 
+|
 
 * Used when a task has outputs restored from the build cache. See <<build_cache>>.
 
 
 | `SKIPPED`
 | Task did not execute its actions.
-| 
+|
 
 * Used when a task has been explicitly excluded from the command-line. See <<sec:excluding_tasks_from_the_command_line>>.
 * Used when a task has an `onlyIf` predicate return false. See <<sec:using_a_predicate>>.
@@ -65,7 +65,7 @@ When Gradle executes a task, it can label the task with different outcomes in th
 
 | `NO-SOURCE`
 | Task did not need to execute its actions.
-| 
+|
 
 * Used when a task has inputs and outputs, but <<skip-when-empty,no sources>>. For example, source files are `.java` files for api:org.gradle.api.tasks.compile.JavaCompile[].
 
@@ -175,7 +175,7 @@ You can also use a configuration closure when you define a task.
 [TIP]
 .Don't forget about the build phases
 ====
-A task has both configuration and actions. When using the `&lt;&lt;`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle>> for more details about the build lifecycle.
+A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle>> for more details about the build lifecycle.
 ====
 
 
@@ -331,7 +331,7 @@ If the logic for skipping a task can't be expressed with a predicate, you can us
         </sample>
 ++++
 
-This feature is helpful if you work with tasks provided by Gradle. It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script (see <<script-default-imports>>).] 
+This feature is helpful if you work with tasks provided by Gradle. It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports to your script (see <<script-default-imports>>).]
 
 [[sec:enabling_and_disabling_tasks]]
 ==== Enabling and disabling tasks
@@ -406,13 +406,15 @@ Annotations must be placed on getters or on Groovy properties. Annotations place
 Gradle supports three main categories of inputs and outputs:
 
 * Simple values
-
++
 Things like strings and numbers. More generally, a simple value can have any type that implements `Serializable`.
+
 * Filesystem types
-
++
 These consist of the standard `File` class but also derivatives of Gradle’s api:org.gradle.api.file.FileCollection[] type and anything else that can be passed to either the api:org.gradle.api.Project#file(java.lang.Object)[] method - for single file/directory properties - or the api:org.gradle.api.Project#files(java.lang.Object...)[] method.
-* Nested values
 
+* Nested values
++
 Custom types that don’t conform to the other two categories but have their own properties that are inputs or outputs. In effect, the task inputs or outputs are nested inside these custom types.
 
 As an example, imagine you have a task that processes templates of varying types, such as FreeMarker, Velocity, Moustache, etc. It takes template source files and combines them with some model data to generate populated versions of the template files.
@@ -438,16 +440,19 @@ When you’re writing a custom task class, it’s easy to register properties as
 There’s plenty to talk about in this example, so let’s work through each of the input and output properties in turn:
 
 * `templateEngine`
-
++
 Represents which engine to use when processing the source templates, e.g. FreeMarker, Velocity, etc. You could implement this as a string, but in this case we have gone for a custom enum as it provides greater type information and safety. Since enums implement `Serializable` automatically, we can treat this as a simple value and use the `@Input` annotation, just as we would with a `String` property.
+
 * `sourceFiles`
-
++
 The source templates that the task will be processing. Single files and collections of files need their own special annotations. In this case, we’re dealing with a collection of input files and so we use the `@InputFiles` annotation. You’ll see more file-oriented annotations in a table later.
+
 * `templateData`
-
++
 For this example, we’re using a custom class to represent the model data. However, it does not implement `Serializable`, so we can’t use the `@Input` annotation. That’s not a problem as the properties within `TemplateData` - a string and a hash map with serializable type parameters - are serializable and can be annotated with `@Input`. We use `@Nested` on `templateData` to let Gradle know that this is a value with nested input properties.
-* `outputDir`
 
+* `outputDir`
++
 The directory where the generated files go. As with input files, there are several annotations for output files and directories. A property representing a single directory requires `@OutputDirectory`. You’ll learn about the others soon.
 
 These annotated properties mean that Gradle will skip the task if none of the source files, template engine, model data or generated files have changed since the previous time Gradle executed the task. This will often save a significant amount of time. You can learn how Gradle detects <<sec:how_does_it_work,changes later>>.
@@ -468,20 +473,20 @@ Now that you have seen some of the input and output annotations in practice, let
 | A simple input value
 
 | `@api:org.gradle.api.tasks.InputFile[]`
-| `File`\*
+| `File`*
 | A single input file (not directory)
 
 | `@api:org.gradle.api.tasks.InputDirectory[]`
-| `File`\*
+| `File`*
 | A single input directory (not file)
 
 | `@api:org.gradle.api.tasks.InputFiles[]`
-| `Iterable&lt;File&gt;`\*
+| `Iterable&lt;File&gt;`*
 | An iterable of input files and directories
 
 | `@api:org.gradle.api.tasks.Classpath[]`
-| `Iterable&lt;File&gt;`\*
-| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). 
+| `Iterable&lt;File&gt;`*
+| An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order).
 [NOTE]
 ====
 To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`.
@@ -489,8 +494,8 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 
 
 | `@api:org.gradle.api.tasks.CompileClasspath[]`
-| `Iterable&lt;File&gt;`\*
-| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. The following kinds of changes to the classpath will be ignored: 
+| `Iterable&lt;File&gt;`*
+| An iterable of input files and directories that represent a Java compile classpath. This allows the task to ignore irrelevant changes that do not affect the API of the classes in classpath. The following kinds of changes to the classpath will be ignored:
 
 * Changes to the path of jar or top level directories.
 * Changes to timestamps and the order of entries in Jars.
@@ -507,19 +512,19 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 
 
 | `@api:org.gradle.api.tasks.OutputFile[]`
-| `File`\*
+| `File`*
 | A single output file (not directory)
 
 | `@api:org.gradle.api.tasks.OutputDirectory[]`
-| `File`\*
+| `File`*
 | A single output directory (not file)
 
 | `@api:org.gradle.api.tasks.OutputFiles[]`
-| `Map&lt;String, File&gt;`\*\* or `Iterable&lt;File&gt;`\*
+| `Map&lt;String, File&gt;`** or `Iterable&lt;File&gt;`*
 | An iterable of output files (no directories)
 
 | `@api:org.gradle.api.tasks.OutputDirectories[]`
-| `Map&lt;String, File&gt;`\*\* or `Iterable&lt;File&gt;`\*
+| `Map&lt;String, File&gt;`** or `Iterable&lt;File&gt;`*
 | An iterable of output directories (no files)
 
 | `@api:org.gradle.api.tasks.Nested[]`
@@ -533,16 +538,12 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 | `@api:org.gradle.api.tasks.Internal[]`
 | Any type
 | Indicates that the property is used internally but is neither an input nor an output.
+
+3+| _* In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are `Iterable&lt;File&gt;`s._
+
+3+| _** Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in `Callable`s, such as closures._
+
 |===
-
-
-[NOTE]
-====
-| _\*_ In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are `Iterable&lt;File&gt;`s.
-
-| _\*\*_ Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in `Callable`s, such as closures.
-
-====
 
 .Additional annotations used to further qualifying property type annotations
 [cols="a,a", options="header"]
@@ -550,8 +551,7 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 | Annotation
 | Description
 
-| <anchor>[[skip-when-empty]]
-</anchor>`@api:org.gradle.api.tasks.SkipWhenEmpty[]`
+| anchor:skip-when-empty[]`@api:org.gradle.api.tasks.SkipWhenEmpty[]`
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 | `@api:org.gradle.api.tasks.Optional[]`
@@ -809,7 +809,7 @@ Gradle also considers the _code_ of the task as part of the inputs to the task. 
 
 Gradle understands if a file property (e.g. one holding a Java classpath) is order-sensitive. When comparing the snapshot of such a property, even a change in the order of the files will result in the task becoming out-of-date.
 
-Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using api:org.gradle.api.tasks.TaskOutputs#upToDateWhen(groovy.lang.Closure)[] 
+Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using api:org.gradle.api.tasks.TaskOutputs#upToDateWhen(groovy.lang.Closure)[]
 
 The inputs for the task are also used to calculate the <<build_cache,build cache>> key used to load task outputs when enabled. For more details see <<sec:task_output_caching_faster>>.
 
