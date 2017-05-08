@@ -139,10 +139,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildC:jar", ":buildB:jar"
-        // TODO:DAZ This should be true but isn't, because `:buildC:compileJava` is triggered when resolving inputs for `:buildB:compileJava`
-//        executedInOrder ":buildC:compileJava", ":buildB:compileJava"
-//        executedInOrder ":buildC", ":buildB", ":resolve"
+        executed ":buildB", ":buildC", ":resolve"
+        executedInOrder ":buildC:jar", ":buildB:jar", ":resolve"
+        executedInOrder ":buildC:compileJava", ":buildB:compileJava"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
@@ -167,9 +166,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
+        executed ":buildB", ":buildC", ":resolve"
         executedInOrder ":buildC:jar", ":buildB:jar"
-        // TODO:DAZ This should be true but isn't, because `:buildC:compileJava` is triggered when resolving inputs for `:buildB:compileJava`
-//        executedInOrder ":buildC:compileJava", ":buildB:compileJava"
+        executedInOrder ":buildC:compileJava", ":buildB:compileJava"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
@@ -393,9 +392,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildC:jar", ":b1:classes", ":b1:jar"
         executedInOrder ":buildC:jar", ":b2:classes", ":b2:jar"
 
-        // TODO:DAZ This should be true but isn't, because `:buildC:compileJava` is triggered when resolving inputs for `:b1:compileJava`
-//        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b1:compileJava", ":b1:jar"
-//        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b2:compileJava", ":b2:jar"
+        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b1:compileJava", ":b1:jar"
+        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b2:compileJava", ":b2:jar"
     }
 
     def "builds multiple configurations for the same project via separate dependency paths"() {
@@ -458,7 +456,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         executed ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:jar"
-        // TODO:DAZ ':buildB:b1:compileJava' is executed twice (bug)
+        // TODO:DAZ ':buildB:b2:compileJava' is executed twice (bug)
 //        executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
     }
 
@@ -473,9 +471,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         execute(buildA, ":jar", arguments)
 
         then:
-        executedInOrder ":buildB:compileJava", ":buildB:classes", ":jar"
-        // TODO:DAZ Not yet true due to build-inputs-on-demand
-//        executedInOrder ":buildB:compileJava", ":compileJava"
+        executedInOrder ":buildB:compileJava", ":buildB:classes", ":compileJava", ":jar"
     }
 
     def "substitutes and builds transitive compileOnly dependency"() {
