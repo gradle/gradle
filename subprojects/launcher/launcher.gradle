@@ -64,3 +64,6 @@ useClassycle()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 
+integTest {
+    include "org/gradle/launcher/cli/CommandLineIntegrationLoggingSpec.class"
+}
