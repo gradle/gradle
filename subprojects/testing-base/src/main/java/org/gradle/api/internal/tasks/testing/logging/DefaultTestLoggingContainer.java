@@ -17,10 +17,13 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.collect.Maps;
-
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.testing.logging.*;
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
+import org.gradle.api.tasks.testing.logging.TestLogEvent;
+import org.gradle.api.tasks.testing.logging.TestLogging;
+import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
+import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.EnumSet;

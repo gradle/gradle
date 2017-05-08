@@ -19,7 +19,6 @@ package org.gradle.caching.http.internal
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
-
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService

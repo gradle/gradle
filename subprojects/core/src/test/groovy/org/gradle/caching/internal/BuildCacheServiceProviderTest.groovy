@@ -18,7 +18,6 @@ package org.gradle.caching.internal
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.file.TemporaryFileProvider
-
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.configuration.AbstractBuildCache
