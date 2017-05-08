@@ -34,7 +34,6 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
 public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new CompositeBuildGlobalScopeServices());
     }
 
     public void registerBuildTreeServices(ServiceRegistration registration) {
@@ -46,9 +45,6 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildGlobalScopeServices {
-        public TaskReferenceResolver createResolver() {
-            return new IncludedBuildTaskReferenceResolver();
-        }
     }
 
     private static class CompositeBuildTreeScopeServices {
@@ -69,7 +65,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         }
 
         public IncludedBuildExecuter createIncludedBuildExecuter(IncludedBuilds includedBuilds) {
-            return new DefaultIncludedBuildExecuter(includedBuilds);
+            IncludedBuildExecuter includedBuildExecuter = new DefaultIncludedBuildExecuter(includedBuilds);
+            return new ErrorHandlingIncludedBuildExecuter(includedBuildExecuter);
         }
 
         public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildExecuter includedBuildExecuter) {
@@ -84,6 +81,10 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     private static class CompositeBuildBuildScopeServices {
         public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return new DefaultIncludedBuildFactory(instantiator, startParameter, nestedBuildFactory, moduleIdentifierFactory);
+        }
+
+        public TaskReferenceResolver createResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
+            return new IncludedBuildTaskReferenceResolver(includedBuilds, buildIdentity);
         }
 
         public ProjectArtifactBuilder createProjectArtifactBuilder(IncludedBuildArtifactBuilder builder, BuildIdentity buildIdentity) {

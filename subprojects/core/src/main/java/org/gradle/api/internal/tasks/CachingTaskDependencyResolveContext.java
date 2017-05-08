@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
@@ -94,6 +95,10 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
                 values.addAll(dependency.getDependencies(task));
             } else if (node instanceof Task) {
                 values.add((Task) node);
+            } else if (node instanceof TaskReference) {
+                TaskContainerInternal tasks = (TaskContainerInternal) task.getProject().getTasks();
+                Task task = tasks.resolveTask((TaskReference) node);
+                values.add(task);
             } else {
                 throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
                         node.getClass().getSimpleName()));

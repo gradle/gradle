@@ -16,15 +16,29 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskReference;
+import org.gradle.initialization.BuildIdentity;
+import org.gradle.initialization.IncludedBuildTaskGraph;
+
+import java.util.Collection;
+import java.util.Collections;
 
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
+
+    private final IncludedBuildTaskGraph includedBuilds;
+    private final BuildIdentity buildIdentity;
+
+    public IncludedBuildTaskReferenceResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
+        this.includedBuilds = includedBuilds;
+        this.buildIdentity = buildIdentity;
+    }
 
     @Override
     public Task constructTask(final TaskReference reference, TaskContainer tasks) {
@@ -33,8 +47,14 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
         }
 
         final IncludedBuildTaskReference ref = (IncludedBuildTaskReference) reference;
-        String delegateTaskName = ref.getBuildName();
+        Collection<String> singleTask = Collections.singleton(ref.getTaskPath());
 
+        final BuildIdentifier sourceBuild = buildIdentity.getCurrentBuild();
+        BuildIdentifier targetBuild = new DefaultBuildIdentifier(ref.getBuildName());
+
+        includedBuilds.addTasks(sourceBuild, targetBuild, singleTask);
+
+        String delegateTaskName = ref.getBuildName();
         Task task = tasks.findByName(delegateTaskName);
 
         if (task == null) {
@@ -42,15 +62,11 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
                 @Override
                 public void execute(CompositeBuildTaskDelegate compositeBuildTaskDelegate) {
                     compositeBuildTaskDelegate.setBuild(ref.getBuildName());
-                    compositeBuildTaskDelegate.addTask(ref.getTaskPath());
                 }
             });
         }
 
         if (task instanceof CompositeBuildTaskDelegate) {
-            CompositeBuildTaskDelegate delegateTask = (CompositeBuildTaskDelegate) task;
-            Preconditions.checkState(((CompositeBuildTaskDelegate) task).getBuild().equals(ref.getBuildName()));
-            delegateTask.addTask(ref.getTaskPath());
             return task;
         }
 
