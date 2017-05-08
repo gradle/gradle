@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.type;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
@@ -23,6 +24,8 @@ import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.reflect.Instantiator;
+
+import java.util.Set;
 
 public class DefaultArtifactTypeContainer extends AbstractNamedDomainObjectContainer<ArtifactTypeDefinition> implements ArtifactTypeContainer {
     private final ImmutableAttributesFactory attributesFactory;
@@ -34,18 +37,31 @@ public class DefaultArtifactTypeContainer extends AbstractNamedDomainObjectConta
 
     @Override
     protected ArtifactTypeDefinition doCreate(final String name) {
-        return new ArtifactTypeDefinition() {
-            private DefaultMutableAttributeContainer attributes = new DefaultMutableAttributeContainer(attributesFactory);
+        return getInstantiator().newInstance(DefaultArtifactTypeDefinition.class, name, attributesFactory);
+    }
 
-            @Override
-            public String getName() {
-                return name;
-            }
+    public static class DefaultArtifactTypeDefinition implements ArtifactTypeDefinition {
+        private final String name;
+        private final DefaultMutableAttributeContainer attributes;
 
-            @Override
-            public AttributeContainer getAttributes() {
-                return attributes;
-            }
-        };
+        public DefaultArtifactTypeDefinition(String name, ImmutableAttributesFactory attributesFactory) {
+            this.name = name;
+            attributes = new DefaultMutableAttributeContainer(attributesFactory);
+        }
+
+        @Override
+        public Set<String> getFileNameExtensions() {
+            return ImmutableSet.of(name);
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return attributes;
+        }
     }
 }

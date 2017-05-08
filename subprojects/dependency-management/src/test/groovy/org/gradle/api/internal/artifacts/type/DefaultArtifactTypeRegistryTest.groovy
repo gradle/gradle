@@ -36,8 +36,18 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().is(container)
     }
 
+    def "can attach an artifact type"() {
+        expect:
+        def container = registry.create()
+        container.create('jar') {
+            attributes.attribute(Attribute.of('thing', String), '123')
+        }
+        container['jar'].fileNameExtensions == ['jar'] as Set
+        container['jar'].attributes.getAttribute(Attribute.of('thing', String)) == '123'
+    }
+
     def "does not apply any mapping when no artifact types registered"() {
-        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
+        def attrs = ImmutableAttributes.EMPTY
         def variant = Stub(VariantMetadata)
 
         given:
@@ -48,7 +58,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
     }
 
     def "does not apply any mapping when variant has no artifacts"() {
-        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
+        def attrs = ImmutableAttributes.EMPTY
         def variant = Stub(VariantMetadata)
 
         given:
@@ -60,8 +70,8 @@ class DefaultArtifactTypeRegistryTest extends Specification {
     }
 
     def "adds artifactType attribute but does not apply any mapping when no matching artifact type"() {
-        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
-        def attrsPlusFormat = attributesFactory.concat(attrs, attributesFactory.of(Attribute.of("artifactType", String), "jar"))
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["artifactType": "jar"])
         def variant = Stub(VariantMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
         def artifactName = Stub(IvyArtifactName)
@@ -80,7 +90,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
     }
 
     def "applies mapping when no attributes defined for matching type"() {
-        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
+        def attrs = ImmutableAttributes.EMPTY
         def attrsPlusFormat = concat(attrs, ["artifactType": "jar"])
         def variant = Stub(VariantMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
@@ -100,7 +110,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
     }
 
     def "applies mapping to matching artifact type"() {
-        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
+        def attrs = ImmutableAttributes.EMPTY
         def attrsPlusFormat = concat(attrs, ["artifactType": "jar", "custom": "123"])
         def variant = Stub(VariantMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
@@ -120,7 +130,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
     }
 
     def "does not apply mapping when multiple artifacts with different types"() {
-        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
+        def attrs = ImmutableAttributes.EMPTY
         def variant = Stub(VariantMetadata)
         def artifact1 = Stub(ComponentArtifactMetadata)
         def artifactName1 = Stub(IvyArtifactName)
@@ -142,6 +152,25 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         expect:
         registry.mapAttributesFor(variant) == attrs
+    }
+
+    def "does not apply mapping when variant already defines some attributes"() {
+        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
+        def variant = Stub(VariantMetadata)
+        def artifact = Stub(ComponentArtifactMetadata)
+        def artifactName = Stub(IvyArtifactName)
+
+        given:
+        variant.attributes >> attrs
+        variant.artifacts >> [artifact]
+        artifact.name >> artifactName
+        artifactName.extension >> "jar"
+        artifactName.type >> "jar"
+
+        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
+
+        expect:
+        registry.mapAttributesFor(variant) == concat(attrs, ["artifactType": "jar"])
     }
 
     def concat(ImmutableAttributes source, Map<String, String> attrs) {
