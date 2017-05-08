@@ -17,7 +17,8 @@
 package org.gradle.launcher.cli
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
@@ -28,6 +29,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         buildFile << """
             task assertLogging {
                 doLast {
+                    assert LogLevel.${logLevel.toUpperCase()} == project.gradle.startParameter.logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') { // check that there is a next level (there isn't in DEBUG)
@@ -50,7 +52,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         'debug'     | ''          | ['-Dorg.gradle.logging.level=debug']
     }
 
-    @Ignore("Could not get this test to work, even when extending DaemonIntegrationSpec")
+    @IgnoreIf({ GradleContextualExecuter.daemon })
     @Unroll
     def "Set log level using org.gradle.logging.level in GRADLE_OPTS to #logLevel"() {
         def message = 'Expected message in the output'
@@ -58,6 +60,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
             task assertLogging {
                 doLast {
                     assert System.getProperty("org.gradle.logging.level") == "${logLevel}"
+                    assert LogLevel.${logLevel.toUpperCase()} == project.gradle.startParameter.logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') {
@@ -67,7 +70,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
             }
         """
         expect:
-        executer.withBuildJvmOpts(flags)
+        executer.withCommandLineGradleOpts(flags).requireDaemon().requireIsolatedDaemons()
         succeeds("assertLogging")
         outputContains(message)
 
@@ -80,12 +83,15 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         'debug'     | ''          | ['-Dorg.gradle.logging.level=debug']
     }
 
+
+    @IgnoreIf({ GradleContextualExecuter.daemon })
     @Unroll
-    def "Command line switches override property: #flags"() {
+    def "Command line switches override properly: #flags #options"() {
         def message = 'Expected message in the output'
         buildFile << """
             task assertLogging {
                 doLast {
+                    assert LogLevel.${logLevel.toUpperCase()} == project.gradle.startParameter.logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') { // check that there is a next level (there isn't in DEBUG)
@@ -95,13 +101,15 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
             }
         """
         expect:
-        executer.withArguments(flags)
+        executer.withArguments(flags).withCommandLineGradleOpts(options).requireDaemon().requireIsolatedDaemons()
         succeeds("assertLogging")
         outputContains(message)
 
         where:
-        logLevel | nextLevel | flags
-        'quiet'  | 'warn'    | ['-q', '-Dorg.gradle.logging.level=debug']
-        'info'   | 'debug'   | ['-Dorg.gradle.logging.level=quiet', '--info']
+        logLevel | nextLevel | flags                                          | options
+        'quiet'  | 'warn'    | ['-q', '-Dorg.gradle.logging.level=debug']     | []
+        'info'   | 'debug'   | ['-Dorg.gradle.logging.level=quiet', '--info'] | []
+        'info'   | 'debug'   | ['--info']                                     | ['-Dorg.gradle.logging.level=quiet']
+        'quiet'  | 'warn'    | ['-Dorg.gradle.logging.level=quiet']           | ['-Dorg.gradle.logging.level=debug']
     }
 }
