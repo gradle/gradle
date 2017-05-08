@@ -21,8 +21,12 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultBuildOperationNotificationListenerRegistrar implements BuildOperationNotificationListenerRegistrar {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationNotificationListenerRegistrar.class);
 
     private final Action<? super BuildOperationListener> listenerSubscriber;
 
@@ -53,8 +57,8 @@ public class DefaultBuildOperationNotificationListenerRegistrar implements Build
             Started notification = new Started(buildOperation.getId(), buildOperation.getParentId(), buildOperation.getDetails());
             try {
                 listener.started(notification);
-            } catch (Exception ignore) {
-                // ignore
+            } catch (Exception e) {
+                LOGGER.debug("Build operation notification listener threw an error on " + notification, e);
             }
         }
 
@@ -69,8 +73,8 @@ public class DefaultBuildOperationNotificationListenerRegistrar implements Build
             Finished notification = new Finished(buildOperation.getId(), finishEvent.getResult());
             try {
                 listener.finished(notification);
-            } catch (Exception ignore) {
-                // ignore
+            } catch (Exception e) {
+                LOGGER.debug("Build operation notification listener threw an error on " + notification, e);
             }
         }
     }
@@ -101,6 +105,11 @@ public class DefaultBuildOperationNotificationListenerRegistrar implements Build
         public Object getDetails() {
             return details;
         }
+
+        @Override
+        public String toString() {
+            return "BuildOperationStartedNotification{id=" + id + ", parentId=" + parentId + ", details=" + details + '}';
+        }
     }
 
     private static class Finished implements BuildOperationFinishedNotification {
@@ -121,6 +130,11 @@ public class DefaultBuildOperationNotificationListenerRegistrar implements Build
         @Override
         public Object getResult() {
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "BuildOperationFinishedNotification{id=" + id + ", result=" + result + '}';
         }
     }
 
