@@ -81,7 +81,7 @@ public class DefaultBuildOperationNotificationListenerRegistrar implements Build
         private final Object parentId;
         private final Object details;
 
-        public Started(Object id, Object parentId, Object details) {
+        private Started(Object id, Object parentId, Object details) {
             this.id = id;
             this.parentId = parentId;
             this.details = details;
@@ -108,7 +108,7 @@ public class DefaultBuildOperationNotificationListenerRegistrar implements Build
         private final Object id;
         private final Object result;
 
-        public Finished(Object id, Object result) {
+        private Finished(Object id, Object result) {
             this.id = id;
             this.result = result;
         }
