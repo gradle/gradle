@@ -53,20 +53,32 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
     Iterable<File> getClasspath();
 
     /**
-     * @return the forking mode for this worker, see {@link IsolationMode}, defaults to {@link IsolationMode#AUTO}
+     * @return the isolation mode for this worker, see {@link IsolationMode}, defaults to {@link IsolationMode#AUTO}
      *
      * @since 4.0
      */
     IsolationMode getIsolationMode();
 
     /**
-     * Sets the forking mode for this worker, see {@link IsolationMode}.
+     * Sets the isolation mode for this worker, see {@link IsolationMode}.
      *
      * @param isolationMode the forking mode for this worker, see {@link IsolationMode}
      *
      * @since 4.0
      */
     void setIsolationMode(IsolationMode isolationMode);
+
+    /**
+     * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
+     */
+    ForkMode getForkMode();
+
+    /**
+     * Sets the forking mode for this worker, see {@link ForkMode}.
+     *
+     * @param forkMode the forking mode for this worker, see {@link ForkMode}
+     */
+    void setForkMode(ForkMode forkMode);
 
     /**
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.

@@ -359,6 +359,68 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
+    def "can set isolation mode using fork mode"() {
+        withRunnableClassInBuildScript()
+
+        buildFile << """
+            task runInWorker(type: WorkerTask) {
+                def daemonCount = 0
+                forkMode = ForkMode.ALWAYS
+                
+                doFirst {
+                    daemonCount = services.get(org.gradle.workers.internal.WorkerDaemonClientsManager.class).allClients.size()
+                }
+                
+                doLast {
+                    assert services.get(org.gradle.workers.internal.WorkerDaemonClientsManager.class).allClients.size() > daemonCount
+                }
+            }
+        """
+
+        expect:
+        succeeds("runInWorker")
+    }
+
+    def "classloader is not isolated when using IsolationMode.NONE"() {
+        withRunnableClassInBuildScript()
+
+        buildFile << """
+            class MutableItem {
+                static String value = "foo"
+            }
+            
+            class MutatingRunnable extends TestRunnable {
+                final String value
+                
+                @Inject
+                public MutatingRunnable(List<String> files, File outputDir, Foo foo) {
+                    super(files, outputDir, foo);
+                    this.value = files[0]
+                }
+                
+                public void run() {
+                    MutableItem.value = value
+                }
+            }
+            
+            task mutateValue(type: WorkerTask) {
+                list = [ "bar" ]
+                isolationMode = IsolationMode.NONE
+                runnableClass = MutatingRunnable.class
+            } 
+            
+            task verifyNotIsolated {
+                dependsOn mutateValue
+                doLast {
+                    assert MutableItem.value == "bar"
+                }
+            }
+        """
+
+        expect:
+        succeeds "verifyNotIsolated"
+    }
+
     void withParameterClassReferencingClassInAnotherPackage() {
         file("buildSrc/src/main/java/org/gradle/another/Bar.java").text = """
             package org.gradle.another;
