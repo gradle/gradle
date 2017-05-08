@@ -30,11 +30,6 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     }
 
     @Override
-    public void willBuild(ComponentArtifactMetadata artifact) {
-        artifactBuilder.willBuild(buildIdentity.getCurrentBuild(), artifact);
-    }
-
-    @Override
     public void build(ComponentArtifactMetadata artifact) {
         artifactBuilder.build(buildIdentity.getCurrentBuild(), artifact);
     }

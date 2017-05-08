@@ -456,8 +456,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         executed ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:jar"
-        // TODO:DAZ ':buildB:b2:compileJava' is executed twice (bug)
-//        executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
+        executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
     }
 
     def "substitutes and builds compileOnly dependency"() {
@@ -517,10 +516,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildB:jar", ":buildC:jar"
-
-        // TODO:DAZ ':buildB:compileJava' is executed twice
-//        executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
+        executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
     def "reports failure to build dependent artifact"() {

@@ -31,14 +31,6 @@ class IncludedBuildArtifactBuilder {
         this.includedBuildTaskGraph = includedBuildTaskGraph;
     }
 
-    public void willBuild(BuildIdentifier requestingBuild, ComponentArtifactMetadata artifact) {
-        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            BuildIdentifier buildId = getBuildIdentifier(compositeBuildArtifact);
-            includedBuildTaskGraph.addTasks(requestingBuild, buildId, compositeBuildArtifact.getTasks());
-        }
-    }
-
     public void build(BuildIdentifier requestingBuild, ComponentArtifactMetadata artifact) {
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;

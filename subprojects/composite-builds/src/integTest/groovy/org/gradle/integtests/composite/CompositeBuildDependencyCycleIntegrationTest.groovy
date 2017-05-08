@@ -89,7 +89,6 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
             .assertHasDescription("Failed to build artifacts for build 'buildB'")
             .assertHasCause("Failed to build artifacts for build 'buildC'")
             .assertHasCause("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Could not resolve all dependencies for configuration ':buildC:compileClasspath'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
@@ -180,7 +179,6 @@ project(':b1') {
             .assertHasDescription("Failed to build artifacts for build 'buildB'")
             .assertHasCause("Failed to build artifacts for build 'buildC'")
             .assertHasCause("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Could not resolve all dependencies for configuration ':buildC:compileClasspath'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
@@ -217,7 +215,6 @@ project(':b1') {
             .assertHasDescription("Failed to build artifacts for build 'buildB'")
             .assertHasCause("Failed to build artifacts for build 'buildC'")
             .assertHasCause("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Could not resolve all dependencies for configuration ':buildC:compileClasspath'.")
             .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
