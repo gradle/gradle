@@ -345,18 +345,6 @@ Every task has an `enabled` flag which defaults to `true`. Setting it to `false`
         </sample>
 ++++
 
-
-[[sec:stale_task_outputs]]
-=== Stale task outputs
-
-When the Gradle version changes, Gradle detects that outputs from tasks that ran with older versions of Gradle need to be removed to ensure that the newest version of the tasks are starting from a known clean state.
-
-[NOTE]
-====
-Automatic clean-up of stale output directories has only been implemented for the output of source sets (Java/Groovy/Scala compilation).
-====
-
-
 [[sec:up_to_date_checks]]
 === Up-to-date checks (AKA Incremental Build)
 
@@ -813,6 +801,17 @@ Gradle understands if a file property (e.g. one holding a Java classpath) is ord
 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using api:org.gradle.api.tasks.TaskOutputs#upToDateWhen(groovy.lang.Closure)[]
 
 The inputs for the task are also used to calculate the <<build_cache,build cache>> key used to load task outputs when enabled. For more details see <<sec:task_output_caching>>.
+
+
+[[sec:stale_task_outputs]]
+==== Stale task outputs
+
+When the Gradle version changes, Gradle detects that outputs from tasks that ran with older versions of Gradle need to be removed to ensure that the newest version of the tasks are starting from a known clean state.
+
+[NOTE]
+====
+Automatic clean-up of stale output directories has only been implemented for the output of source sets (Java/Groovy/Scala compilation).
+====
 
 [[sec:task_rules]]
 === Task rules
