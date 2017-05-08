@@ -19,11 +19,9 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.LoggingOutputInternal;
+import org.gradle.internal.logging.console.BuildLogLevelFilterRenderer;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.events.ProgressCompleteEvent;
-import org.gradle.internal.logging.events.ProgressEvent;
-import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
@@ -77,21 +75,13 @@ public class LogToClient extends BuildCommandOnly {
         private AsynchronousLogDispatcher(DaemonConnection conn, final LogLevel buildLogLevel) {
             super("Asynchronous log dispatcher for " + conn);
             this.connection = conn;
-            this.listener = new OutputEventListener() {
+            this.listener = new BuildLogLevelFilterRenderer(new OutputEventListener() {
                 public void onOutput(OutputEvent event) {
-                    if (dispatcher != null && (isMatchingBuildLogLevel(event) || isProgressEvent(event))) {
+                    if (dispatcher != null) {
                         dispatcher.submit(event);
                     }
                 }
-
-                private boolean isProgressEvent(OutputEvent event) {
-                    return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
-                }
-
-                private boolean isMatchingBuildLogLevel(OutputEvent event) {
-                    return event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0;
-                }
-            };
+            }, buildLogLevel);
             LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
             loggingOutput.addOutputEventListener(listener);
         }

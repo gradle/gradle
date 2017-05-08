@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.logging.LogLevel;
 
 public class ProgressStartEvent extends CategorisedOutputEvent {
     private final OperationIdentifier progressOperationId;
@@ -37,7 +36,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
                               @Nullable String loggingHeader,
                               String status,
                               @Nullable Object buildOperationId) {
-        super(timestamp, category, LogLevel.LIFECYCLE);
+        super(timestamp, category, null);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
         this.description = description;
