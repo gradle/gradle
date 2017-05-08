@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
@@ -31,6 +32,7 @@ import javax.inject.Inject;
 /**
  * Compiles Scala source files, and optionally, Java source files.
  */
+@CacheableTask
 public class ScalaCompile extends AbstractScalaCompile {
 
     private FileCollection scalaClasspath;
