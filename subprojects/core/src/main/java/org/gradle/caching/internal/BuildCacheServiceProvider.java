@@ -22,6 +22,8 @@ import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.GeneratedSubclasses;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -33,8 +35,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.SingleMessageLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -44,7 +44,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class BuildCacheServiceProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheServiceProvider.class);
+    private static final Logger LOGGER = Logging.getLogger(BuildCacheServiceProvider.class);
     private static final int MAX_ERROR_COUNT_FOR_BUILD_CACHE = 3;
 
     private final BuildCacheConfigurationInternal buildCacheConfiguration;

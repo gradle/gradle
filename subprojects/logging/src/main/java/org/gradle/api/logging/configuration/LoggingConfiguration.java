@@ -24,7 +24,7 @@ import org.gradle.api.logging.LogLevel;
 public interface LoggingConfiguration {
     /**
      * Returns the minimum logging level to use. All log messages with a lower log level are ignored.
-     * Defaults to {@link LogLevel#LIFECYCLE}.
+     * Defaults to {@link LogLevel#WARN}.
      */
     LogLevel getLogLevel();
 

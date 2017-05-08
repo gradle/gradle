@@ -101,6 +101,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean allowExtraLogging = true;
     private File workingDir;
     private boolean quiet;
+    private boolean lifecycle = true;
     private boolean taskList;
     private boolean dependencyList;
     private boolean searchUpwards;
@@ -181,6 +182,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         buildScript = null;
         settingsFile = null;
         quiet = false;
+        lifecycle = true;
         taskList = false;
         dependencyList = false;
         searchUpwards = false;
@@ -266,6 +268,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.usingExecutable(executable);
         if (quiet) {
             executer.withQuietLogging();
+        }
+        if (!lifecycle) {
+            executer.withLifecycleLoggingDisabled();
         }
         if (taskList) {
             executer.withTaskList();
@@ -538,6 +543,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withLifecycleLoggingDisabled() {
+        lifecycle = false;
+        return this;
+    }
+
     public GradleExecuter withTaskList() {
         taskList = true;
         return this;
@@ -775,7 +785,25 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         allArgs.addAll(args);
         allArgs.addAll(tasks);
+        prependLifecycleLogLevel(allArgs);
         return allArgs;
+    }
+
+    /**
+     * Adds LIFECYCLE log level to build execution arguments with the goal of being able to capture most output for testing.
+     * The log level is only added for Gradle versions supporting the command line option (>= 4.0). For earlier versions it is
+     * assumed to automatically log on LIFECYCLE level as it was the default.
+     * <p>
+     * <b>Note:</b> Build executions can override the log level by providing their own argument for this executor.
+     * The Log level command line options is evaluated with "last one wins" strategy.
+     * Setting the log level to LIFECYCLE level by default can also be disabled with the method {@link #withLifecycleLoggingDisabled()}.
+     *
+     * @param args Arguments
+     */
+    private void prependLifecycleLogLevel(List<String> args) {
+        if (lifecycle && gradleVersion.isSameOrNewer("4.0")) {
+            args.add(0, "-l");
+        }
     }
 
     /**
@@ -1006,6 +1034,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public boolean isAllowExtraLogging() {
         return allowExtraLogging;
+    }
+
+    public GradleExecuter useDefaultLogLevel() {
+        this.lifecycle = true;
+        return this;
+    }
+
+    public boolean isDefaultLogLevel() {
+        return lifecycle;
     }
 
     public boolean isRequiresGradleDistribution() {

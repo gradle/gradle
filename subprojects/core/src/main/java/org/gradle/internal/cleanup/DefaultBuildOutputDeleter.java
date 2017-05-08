@@ -60,10 +60,10 @@ public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
         try {
             if (output.isDirectory()) {
                 deleter.delete(output);
-                logger.quiet("Deleting directory '{}'", output);
+                logger.lifecycle("Deleting directory '{}'", output);
             } else if (output.isFile()) {
                 deleter.delete(output);
-                logger.quiet("Deleting file '{}'", output);
+                logger.lifecycle("Deleting file '{}'", output);
             }
         } catch (UncheckedIOException e) {
             logger.warn("Unable to delete '{}'", output);

@@ -199,7 +199,13 @@ test {
         !result.output.contains('output from foo')
 
         when: "run with lifecycle"
-        result = executer.noExtraLogging().withTasks('cleanTest', 'test').run()
+        result = executer.withArguments('-l').withTasks('cleanTest', 'test').run()
+
+        then:
+        !result.output.contains('output from foo')
+
+        when: "run with warn"
+        result = executer.withArguments('-w').withTasks('cleanTest', 'test').run()
 
         then:
         result.output.contains('output from foo')

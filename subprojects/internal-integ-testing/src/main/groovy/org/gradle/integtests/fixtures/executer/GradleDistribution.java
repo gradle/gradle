@@ -125,4 +125,9 @@ public interface GradleDistribution {
      * Returns true if the wrapper for this version honours the --gradle-user-home command-line option.
      */
     boolean isWrapperSupportsGradleUserHomeCommandLineOption();
+
+    /**
+     * Returns true if the lifecycle log level flag is supported by this distribution.
+     */
+    boolean isLifecycleLogLevelFlagSupported();
 }
