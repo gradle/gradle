@@ -133,7 +133,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested) {
-            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(candidate, requested);
+            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
             effectiveSchema.matchValue(attribute, result);
             return result.isCompatible();
         }

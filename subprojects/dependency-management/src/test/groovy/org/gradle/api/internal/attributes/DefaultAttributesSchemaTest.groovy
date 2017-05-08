@@ -127,7 +127,7 @@ class DefaultAttributesSchemaTest extends Specification {
         void execute(CompatibilityCheckDetails<Map> details) {
             def producerValue = details.producerValue
             def consumerValue = details.consumerValue
-            if (producerValue.size() == consumerValue.size()) {
+            if (producerValue.size() > consumerValue.size()) {
                 // arbitrary, just for testing purposes
                 details.compatible()
             }
@@ -149,15 +149,15 @@ class DefaultAttributesSchemaTest extends Specification {
             it.compatibilityRules.add(CustomCompatibilityRule)
         }
 
-        def value1 = [a: 'foo', b: 'bar']
-        def value2 = [c: 'foo', d: 'bar']
+        def consumerValue = [a: 'foo', b: 'bar']
+        def producerValue = [c: 'foo', d: 'bar', e: 'nothing']
 
         expect:
-        def checkDetails = new DefaultCompatibilityCheckResult<Map>(value1, value2)
+        def checkDetails = new DefaultCompatibilityCheckResult<Map>(consumerValue, producerValue)
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, checkDetails)
         checkDetails.isCompatible()
 
-        schema.matcher().isMatching(attr, value1, value2)
+        schema.matcher().isMatching(attr, producerValue, consumerValue)
     }
 
     def "selects all candidates when no disambiguation rules"() {
