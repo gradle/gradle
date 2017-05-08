@@ -26,43 +26,28 @@ open class GreetingPlugin : Plugin<Project> {
     }
 }
 
-open class GreetingPluginExtension(val project: Project) {
+open class GreetingPluginExtension(project: Project) {
 
     private
-    val messageState = project.property(String::class.java)
+    val messageState = project.property<String>()
 
-    private
-    val outputFileCollection = project.files()
+    var message by messageState
 
-    var message
-        get() = messageState.get()
-        set(value) = messageState.set(value)
+    val messageProvider: Provider<String> get() = messageState
 
-    val messageProvider: Provider<String>
-        get() = messageState
-
-    var outputFiles
-        get() = outputFileCollection
-        set(value) = outputFileCollection.setFrom(value)
+    var outputFiles by project.files()
 }
 
 open class Greeting : DefaultTask() {
 
     private
-    val messageState = project.property(String::class.java)
-
-    private
-    val outputFileCollection = project.files()
+    val messageState = project.property<String>()
 
     @get:Input
-    var message
-        get() = messageState.get()
-        set(value) = messageState.set(value)
+    var message by messageState
 
     @get:OutputFiles
-    var outputFiles
-        get() = outputFileCollection
-        set(value) = outputFileCollection.setFrom(value)
+    var outputFiles by project.files()
 
     fun provideMessage(message: Provider<String>) = messageState.set(message)
 
