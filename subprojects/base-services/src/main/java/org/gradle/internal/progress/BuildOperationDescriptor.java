@@ -76,7 +76,7 @@ public final class BuildOperationDescriptor {
      * Arbitrary metadata for the operation.
      */
     @Nullable
-    public Object getDetails() {
+    public BuildOperationDetails<?> getDetails() {
         return details;
     }
 
