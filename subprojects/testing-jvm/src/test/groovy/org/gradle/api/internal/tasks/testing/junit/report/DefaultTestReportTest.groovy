@@ -19,11 +19,11 @@ import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
@@ -47,7 +47,7 @@ class DefaultTestReportTest extends Specification {
 
     def reportWithMaxThreads(int numThreads) {
         buildOperationExecutor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), Mock(ProgressLoggerFactory),
+            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), numThreads)
         return new DefaultTestReport(buildOperationExecutor)
     }
