@@ -53,7 +53,8 @@
         <xi:include href='buildScriptsTutorial.xml'/>
         <xi:include href='buildInitPlugin.xml'/>
         <xi:include href='writingBuildScripts.xml'/>
-        <xi:include href='tasks.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/tasks.xml'/>
         <xi:include href='workingWithFiles.xml'/>
         <xi:include href='ant.xml'/>
         <xi:include href='buildLifecycle.xml'/>
