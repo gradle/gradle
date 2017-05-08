@@ -124,26 +124,11 @@ public class FileUtils {
      * Canonicalizes the given file.
      */
     public static File canonicalize(File src) {
-        if (src instanceof CanonicalFile || src == null) {
-            return src;
-        }
         try {
-            File canonicalFile = src.getCanonicalFile();
-            return new CanonicalFile(canonicalFile.getParentFile(), canonicalFile.getName());
+            return src.getCanonicalFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private static class CanonicalFile extends File {
-
-        public CanonicalFile(File parent, String child) {
-            super(parent, child);
-        }
-
-        @Override
-        public File getCanonicalFile() throws IOException {
-            return this;
-        }
-    }
 }
