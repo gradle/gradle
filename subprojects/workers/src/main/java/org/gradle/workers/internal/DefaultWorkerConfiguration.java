@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.util.GUtil;
+import org.gradle.workers.ForkMode;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 
@@ -57,6 +58,36 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
 
     public void setIsolationMode(IsolationMode isolationMode) {
         this.isolationMode = isolationMode == null ? IsolationMode.AUTO : isolationMode;
+    }
+
+    @Override
+    public ForkMode getForkMode() {
+        switch (isolationMode) {
+            case AUTO:
+                return ForkMode.AUTO;
+            case NONE:
+            case CLASSLOADER:
+                return ForkMode.NEVER;
+            case PROCESS:
+                return ForkMode.ALWAYS;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
+    public void setForkMode(ForkMode forkMode) {
+        switch (forkMode) {
+            case AUTO:
+                setIsolationMode(IsolationMode.AUTO);
+                break;
+            case NEVER:
+                setIsolationMode(IsolationMode.CLASSLOADER);
+                break;
+            case ALWAYS:
+                setIsolationMode(IsolationMode.PROCESS);
+                break;
+        }
     }
 
     @Override

@@ -68,6 +68,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
                 def foo = new Foo()
                 def displayName = null
                 def isolationMode = IsolationMode.AUTO
+                def forkMode = null
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -82,6 +83,9 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
                         forkOptions(additionalForkOptions)
                         classpath(additionalClasspath)
                         params = [ list.collect { it as String }, new File(outputFileDirPath), foo ]
+                        if (this.forkMode != null) {
+                            forkMode = this.forkMode
+                        }
                     }
                 }
             }
