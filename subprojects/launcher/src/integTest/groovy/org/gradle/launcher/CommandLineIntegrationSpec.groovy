@@ -255,7 +255,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             }
         """
         expect:
-        executer.withArguments(flags).withCommandLineGradleOpts(gradleOpts)
+        executer.withLifecycleLoggingDisabled().withArguments(flags).withCommandLineGradleOpts(gradleOpts)
         succeeds("assertLogging")
         outputContains(message)
 
