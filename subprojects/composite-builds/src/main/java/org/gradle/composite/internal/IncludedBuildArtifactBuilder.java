@@ -35,7 +35,9 @@ class IncludedBuildArtifactBuilder {
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
             BuildIdentifier targetBuild = getBuildIdentifier(compositeBuildArtifact);
-            includedBuildTaskGraph.addTasks(requestingBuild, targetBuild, compositeBuildArtifact.getTasks());
+            for (String taskName : compositeBuildArtifact.getTasks()) {
+                includedBuildTaskGraph.addTask(requestingBuild, targetBuild, taskName);
+            }
             execute(targetBuild);
         }
     }

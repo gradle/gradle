@@ -38,13 +38,14 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     }
 
     @Override
-    public synchronized void addTasks(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, Iterable<String> taskNames) {
-        buildDependencies.put(requestingBuild, targetBuild);
+    public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskName) {
+        boolean newBuildDependency = buildDependencies.put(requestingBuild, targetBuild);
+        if (newBuildDependency) {
+            List<BuildIdentifier> candidateCycle = Lists.newArrayList();
+            checkNoCycles(requestingBuild, targetBuild, candidateCycle);
+        }
 
-        List<BuildIdentifier> candidateCycle = Lists.newArrayList();
-        checkNoCycles(requestingBuild, targetBuild, candidateCycle);
-
-        tasksForBuild.putAll(targetBuild, taskNames);
+        tasksForBuild.put(targetBuild, taskName);
     }
 
     @Override

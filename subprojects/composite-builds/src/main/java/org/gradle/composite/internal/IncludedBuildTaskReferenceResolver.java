@@ -27,9 +27,6 @@ import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.IncludedBuildTaskGraph;
 
-import java.util.Collection;
-import java.util.Collections;
-
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
 
     private final IncludedBuildTaskGraph includedBuilds;
@@ -47,12 +44,11 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
         }
 
         final IncludedBuildTaskReference ref = (IncludedBuildTaskReference) reference;
-        Collection<String> singleTask = Collections.singleton(ref.getTaskPath());
 
         final BuildIdentifier sourceBuild = buildIdentity.getCurrentBuild();
         BuildIdentifier targetBuild = new DefaultBuildIdentifier(ref.getBuildName());
 
-        includedBuilds.addTasks(sourceBuild, targetBuild, singleTask);
+        includedBuilds.addTask(sourceBuild, targetBuild, ref.getTaskPath());
 
         String delegateTaskName = ref.getBuildName();
         Task task = tasks.findByName(delegateTaskName);

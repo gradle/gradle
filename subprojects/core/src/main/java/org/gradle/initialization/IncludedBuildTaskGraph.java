@@ -19,8 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public interface IncludedBuildTaskGraph {
-    // TODO:DAZ Tasks should be added individually, and return a reference that has `awaitCompletion`
-    void addTasks(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, Iterable<String> taskNames);
+    void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskName);
 
     void awaitCompletion(BuildIdentifier targetBuild);
 }
