@@ -173,11 +173,9 @@ You can also use a configuration closure when you define a task.
 ++++
 
 [TIP]
+.Don't forget about the build phases
 ====
- .Don't forget about the build phases
-  
 A task has both configuration and actions. When using the `&lt;&lt;`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle>> for more details about the build lifecycle.
- 
 ====
 
 
@@ -219,9 +217,7 @@ For more information about task dependencies, see the api:org.gradle.api.Task[] 
 
 [NOTE]
 ====
- 
 Task ordering is an <<feature_lifecycle,incubating>> feature. Please be aware that this feature may change in later Gradle versions.
- 
 ====
 
 In some cases it is useful to control the _order_ in which 2 tasks will execute, without introducing an explicit dependency between those tasks. The primary difference between a task _ordering_ and a task _dependency_ is that an ordering rule does not influence which tasks will be executed, only the order in which they will be executed.
@@ -357,9 +353,7 @@ When the Gradle version changes, Gradle detects that outputs from tasks that ran
 
 [NOTE]
 ====
- 
 Automatic clean-up of stale output directories has only been implemented for the output of source sets (Java/Groovy/Scala compilation).
- 
 ====
 
 
@@ -406,9 +400,7 @@ If you’re implementing a custom task as a class, then it takes just two steps 
 
 [NOTE]
 ====
- 
 Annotations must be placed on getters or on Groovy properties. Annotations placed on setters, or on a Java field without a corresponding annotated getter are ignored.
- 
 ====
 
 Gradle supports three main categories of inputs and outputs:
@@ -492,9 +484,7 @@ Now that you have seen some of the input and output annotations in practice, let
 | An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order). 
 [NOTE]
 ====
- 
 To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`.
- 
 ====
 
 
@@ -512,9 +502,7 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 
 [NOTE]
 ====
- 
 To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`.
- 
 ====
 
 
@@ -856,9 +844,7 @@ If you run “`gradle -q tasks`” you won't find a task named “`pingServer1`�
 
 [NOTE]
 ====
- 
 Finalizers tasks are an _incubating_ feature (see <<sec:incubating_state>>).
- 
 ====
 
 Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
