@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskExecutionHistory;
+import org.gradle.internal.id.UniqueId;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ import java.util.List;
  * The state for a single task execution.
  */
 public abstract class TaskExecution {
+    private UniqueId buildId;
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private List<HashCode> taskActionsClassLoaderHashes;
@@ -34,6 +36,14 @@ public abstract class TaskExecution {
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
     private TaskExecutionHistory.OverlappingOutputs detectedOverlappingOutputs;
+
+    public UniqueId getBuildId() {
+        return buildId;
+    }
+
+    public void setBuildId(UniqueId buildId) {
+        this.buildId = buildId;
+    }
 
     /**
      * Returns the names of all cacheable output property names that have a value set.

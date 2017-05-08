@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.internal.id.UniqueId;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;
@@ -27,6 +28,8 @@ public class TaskStateInternal implements TaskState {
     private Throwable failure;
     private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
+
+    private UniqueId originBuildId;
 
     public boolean getDidWork() {
         return didWork;
@@ -40,7 +43,7 @@ public class TaskStateInternal implements TaskState {
         return outcome != null;
     }
 
-    public boolean isConfigurable(){
+    public boolean isConfigurable() {
         return !getExecuted() && !executing;
     }
 
@@ -136,5 +139,13 @@ public class TaskStateInternal implements TaskState {
 
     public void setActionable(boolean actionable) {
         this.actionable = actionable;
+    }
+
+    public UniqueId getOriginBuildId() {
+        return originBuildId;
+    }
+
+    public void setOriginBuildId(UniqueId originBuildId) {
+        this.originBuildId = originBuildId;
     }
 }

@@ -44,6 +44,8 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.buildids.BuildIds;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.ServiceRegistry;
@@ -70,6 +72,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
+    private final BuildIds buildIds;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -78,6 +81,13 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
+
+        if (parent == null) {
+            this.buildIds = new BuildIds(UniqueId.generate());
+        } else {
+            this.buildIds = parent.getBuildIds();
+        }
+
         buildListenerBroadcast.add(new BuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
@@ -92,6 +102,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public String toString() {
         return rootProject == null ? "build" : ("build '" + rootProject.getName() + "'");
+    }
+
+    @Override
+    public BuildIds getBuildIds() {
+        return buildIds;
     }
 
     @Override

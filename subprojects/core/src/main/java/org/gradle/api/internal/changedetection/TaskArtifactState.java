@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
 
@@ -63,4 +65,7 @@ public interface TaskArtifactState {
      * Returns the history for this task.
      */
     TaskExecutionHistory getExecutionHistory();
+
+    @Nullable
+    UniqueId getOriginBuildId();
 }

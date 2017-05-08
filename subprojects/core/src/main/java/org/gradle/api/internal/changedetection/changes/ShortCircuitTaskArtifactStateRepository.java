@@ -16,12 +16,14 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
@@ -91,6 +93,12 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         public TaskExecutionHistory getExecutionHistory() {
             return delegate.getExecutionHistory();
+        }
+
+        @Nullable
+        @Override
+        public UniqueId getOriginBuildId() {
+            return null;
         }
 
         public void beforeTask() {

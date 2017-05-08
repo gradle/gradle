@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
 
@@ -49,6 +50,11 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
 
     public TaskExecutionHistory getExecutionHistory() {
         return this;
+    }
+
+    @Override
+    public UniqueId getOriginBuildId() {
+        return null;
     }
 
     public void beforeTask() {

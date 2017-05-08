@@ -69,6 +69,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.buildids.BuildIds;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -160,7 +161,7 @@ public class TaskExecutionServices {
         return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter, BuildIds buildIds) {
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter();
 
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
@@ -168,11 +169,15 @@ public class TaskExecutionServices {
             snapshotter.registerSerializers(serializerRegistry);
         }
 
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
+            cacheAccess,
             new CacheBackedFileSnapshotRepository(cacheAccess,
                 serializerRegistry.build(FileCollectionSnapshot.class),
-                new RandomLongIdGenerator()),
-            stringInterner);
+                new RandomLongIdGenerator()
+            ),
+            stringInterner,
+            buildIds
+        );
 
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
