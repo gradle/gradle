@@ -125,7 +125,6 @@ project(':b') {
                 
                 // TODO - should not require this
                 dependencies.attributesSchema.attribute(artifactType).compatibilityRules.add(JavaArtifactTypesRule)
-                dependencies.attributesSchema.attribute(artifactType).disambiguationRules.add(JavaArtifactTypesDisambiguateRule)
             }
             class JavaArtifactTypesRule implements AttributeCompatibilityRule<String> {
                 void execute(CompatibilityCheckDetails<String> details) {
@@ -137,14 +136,8 @@ project(':b') {
                     }
                 }
             }
-            class JavaArtifactTypesDisambiguateRule implements AttributeDisambiguationRule<String> {
-                void execute(MultipleCandidatesDetails<String> details) {
-                    if (details.candidateValues == [JavaPlugin.CLASS_DIRECTORY, 'jar'] as Set) {
-                        details.closestMatch(JavaPlugin.CLASS_DIRECTORY)
-                    }
-                }
-            }
 """
+
         when:
         run "resolve"
 
@@ -162,7 +155,6 @@ project(':b') {
 
                 // TODO - should not require this
                 dependencies.attributesSchema.attribute(artifactType).compatibilityRules.add(JavaArtifactTypesRule)
-                dependencies.attributesSchema.attribute(artifactType).disambiguationRules.add(JavaArtifactTypesDisambiguateRule)
             }
             class JavaArtifactTypesRule implements AttributeCompatibilityRule<String> {
                 void execute(CompatibilityCheckDetails<String> details) {
@@ -171,13 +163,6 @@ project(':b') {
                     }
                     if (details.consumerValue == JavaPlugin.RESOURCES_DIRECTORY && details.producerValue == 'jar') {
                         details.compatible()
-                    }
-                }
-            }
-            class JavaArtifactTypesDisambiguateRule implements AttributeDisambiguationRule<String> {
-                void execute(MultipleCandidatesDetails<String> details) {
-                    if (details.candidateValues == [JavaPlugin.RESOURCES_DIRECTORY, 'jar'] as Set) {
-                        details.closestMatch(JavaPlugin.RESOURCES_DIRECTORY)
                     }
                 }
             }
