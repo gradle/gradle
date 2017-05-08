@@ -14,36 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.internal.GeneratedSubclass;
 
+public class GeneratedSubclasses {
 
-/**
- * Configuration object for a build cache.
- *
- * @since 3.5
- */
-@Incubating
-public interface BuildCache {
+    private GeneratedSubclasses() {
+    }
 
-    /**
-     * Returns whether the build cache is enabled.
-     */
-    boolean isEnabled();
+    public static <T> boolean is(Class<T> clazz) {
+        return GeneratedSubclass.class.isAssignableFrom(clazz);
+    }
 
-    /**
-     * Enables or disables the build cache service.
-     */
-    void setEnabled(boolean enabled);
+    public static <T> Class<? super T> unpack(Class<T> clazz) {
+        if (is(clazz)) {
+            return clazz.getSuperclass();
+        } else {
+            return clazz;
+        }
+    }
 
-    /**
-     * Returns whether pushing to the build cache is enabled.
-     */
-    boolean isPush();
-
-    /**
-     * Sets whether pushing to the build cache is enabled.
-     */
-    void setPush(boolean enabled);
 }

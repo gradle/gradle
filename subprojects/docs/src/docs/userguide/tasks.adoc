@@ -520,11 +520,11 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 | A single output directory (not file)
 
 | `@api:org.gradle.api.tasks.OutputFiles[]`
-| `Map&lt;String, File&gt;`** or `Iterable&lt;File&gt;`*
+| `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
 | An iterable of output files (no directories)
 
 | `@api:org.gradle.api.tasks.OutputDirectories[]`
-| `Map&lt;String, File&gt;`** or `Iterable&lt;File&gt;`*
+| `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
 | An iterable of output directories (no files)
 
 | `@api:org.gradle.api.tasks.Nested[]`
@@ -538,12 +538,13 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 | `@api:org.gradle.api.tasks.Internal[]`
 | Any type
 | Indicates that the property is used internally but is neither an input nor an output.
-
-3+| _* In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are `Iterable&lt;File&gt;`s._
-
-3+| _** Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in `Callable`s, such as closures._
-
 |===
+
+*::
+In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
+
+**::
+Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
 
 .Additional annotations used to further qualifying property type annotations
 [cols="a,a", options="header"]
