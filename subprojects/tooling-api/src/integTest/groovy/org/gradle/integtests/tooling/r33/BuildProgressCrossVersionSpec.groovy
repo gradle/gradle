@@ -263,7 +263,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         !events.operations.find { it.name.contains("compileClasspath") }
-        events.operation("Run tasks").children.empty
     }
 
     @TargetGradleVersion(">=3.3 <3.5")

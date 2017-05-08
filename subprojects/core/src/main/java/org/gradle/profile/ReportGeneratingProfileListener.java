@@ -48,7 +48,7 @@ public class ReportGeneratingProfileListener extends BuildAdapter implements Pro
     }
 
     private void renderReportUrl(File reportFile) {
-        StyledTextOutput textOutput = textOutputFactory.create(ReportGeneratingProfileListener.class, LogLevel.LIFECYCLE);
+        StyledTextOutput textOutput = textOutputFactory.create(ReportGeneratingProfileListener.class, LogLevel.WARN);
         textOutput.println();
         String reportUrl = new ConsoleRenderer().asClickableFileUrl(reportFile);
         textOutput.formatln("See the profiling report at: %s", reportUrl);

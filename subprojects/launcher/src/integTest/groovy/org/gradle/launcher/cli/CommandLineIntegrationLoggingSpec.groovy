@@ -39,7 +39,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
             }
         """
         expect:
-        executer.withArguments(flags)
+        executer.withArguments(flags).withLifecycleLoggingDisabled()
         succeeds("assertLogging")
         outputContains(message)
 
@@ -70,7 +70,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
             }
         """
         expect:
-        executer.withCommandLineGradleOpts(flags).requireDaemon().requireIsolatedDaemons()
+        executer.withCommandLineGradleOpts(flags).requireDaemon().requireIsolatedDaemons().withLifecycleLoggingDisabled()
         succeeds("assertLogging")
         outputContains(message)
 
@@ -101,7 +101,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
             }
         """
         expect:
-        executer.withArguments(flags).withCommandLineGradleOpts(options).requireDaemon().requireIsolatedDaemons()
+        executer.withArguments(flags).withCommandLineGradleOpts(options).requireDaemon().requireIsolatedDaemons().withLifecycleLoggingDisabled()
         succeeds("assertLogging")
         outputContains(message)
 

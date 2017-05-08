@@ -36,6 +36,7 @@ import java.util.Collections;
  * Build cache factory for HTTP backend.
  */
 public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
+
     private final SslContextFactory sslContextFactory;
 
     @Inject
@@ -44,25 +45,36 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
     }
 
     @Override
-    public BuildCacheService createBuildCacheService(HttpBuildCache configuration) {
+    public BuildCacheService createBuildCacheService(HttpBuildCache configuration, Describer describer) {
         URI url = configuration.getUrl();
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");
         }
+        URI noUserInfoUrl = stripUserInfo(url);
 
         Collection<Authentication> authentications = Collections.emptyList();
         if (configuration.getCredentials().getUsername() != null && configuration.getCredentials().getPassword() != null) {
-            try {
-                url = new URI(url.getScheme(), null, url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getFragment());
-            } catch (URISyntaxException e) {
-                throw new GradleException("Error constructing URL for http build cache", e);
-            }
+            url = noUserInfoUrl;
             DefaultBasicAuthentication basicAuthentication = new DefaultBasicAuthentication("basic");
             basicAuthentication.setCredentials(configuration.getCredentials());
             authentications = Collections.<Authentication>singleton(basicAuthentication);
         }
 
+        describer.type("HTTP").config("url", noUserInfoUrl.toASCIIString());
+        if (!authentications.isEmpty() || url.getUserInfo() != null) {
+            describer.config("authenticated", null);
+        }
+
         HttpClientHelper httpClientHelper = new HttpClientHelper(new DefaultHttpSettings(authentications, sslContextFactory));
         return new HttpBuildCacheService(httpClientHelper, url);
     }
+
+    private static URI stripUserInfo(URI uri) {
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new GradleException("Error constructing URL for http build cache", e);
+        }
+    }
+
 }

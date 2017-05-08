@@ -24,6 +24,7 @@ import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import org.gradle.internal.progress.BuildOperationType
 import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.RedirectStdOutAndErr
@@ -37,7 +38,8 @@ class ConsoleFunctionalTest extends Specification {
     private final ConsoleMetaData metaData = Mock(ConsoleMetaData)
     private OutputEventRenderer renderer
     private long currentTimeMs;
-    public static final String IDLE = '> IDLE'
+    private static final String IDLE = '> IDLE'
+    private static final String CATEGORY = 'CATEGORY'
 
     def setup() {
         renderer = new OutputEventRenderer(timeProvider)
@@ -253,11 +255,11 @@ class ConsoleFunctionalTest extends Specification {
     ProgressStartEvent startEvent(Long id, Long parentId=null, category='CATEGORY', description='DESCRIPTION', shortDescription='SHORT_DESCRIPTION', loggingHeader='LOGGING_HEADER', status='STATUS') {
         long timestamp = timeProvider.currentTime
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
-        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, null)
+        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, null, null, BuildOperationType.UNCATEGORIZED)
     }
 
     ProgressStartEvent startEvent(Long id, String status) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, null)
+        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, null, null, BuildOperationType.UNCATEGORIZED)
     }
 
     ProgressEvent progressEvent(Long id, category='CATEGORY', status='STATUS') {

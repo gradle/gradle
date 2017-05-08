@@ -45,7 +45,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
     def "displays info about local build cache configuration"() {
         withBuildCache().succeeds "cacheable"
         expect:
-        result.assertOutputContains "Using directory (${cacheDir}) as local build cache, push is enabled."
+        result.assertOutputContains "Using local directory build cache (location = ${cacheDir}), push is enabled."
     }
 
     def "cache entry contains expected contents"() {

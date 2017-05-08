@@ -82,7 +82,7 @@ class JavaProjectUnderTest {
             }
         """
 
-        writeTestSourceFile(testSrcDir)
+        writeTestSourceFile(testSrcDir, "IntegrationTest")
         this
     }
 
@@ -98,13 +98,13 @@ class JavaProjectUnderTest {
         """
     }
 
-    private void writeTestSourceFile(String baseDir) {
-        file("$baseDir/org/gradle/Class1Test.java") << """
+    private void writeTestSourceFile(String baseDir, String type="Test") {
+        file("$baseDir/org/gradle/Class1${type}.java") << """
             package org.gradle; 
 
             import org.junit.Test; 
 
-            public class Class1Test { 
+            public class Class1${type} { 
                 @Test 
                 public void someTest() { 
                     new Class1().isFoo("test"); 

@@ -33,6 +33,7 @@ package org.gradle.internal.progress;
  * - Types must be practically immutable to consumers
  * - Types must only expose JDK types, or other structured types only exposing JDK types
  *   - This significantly eases testing by making the objects serializable to JSON
+ * - Unless impractical, collection like structures should have deterministic order (e.g. sorted)
  * - Objects should not assume they are not referenced outside of listeners
  *
  * Regarding the last point, the build scan plugin may hold on to the details and/or result

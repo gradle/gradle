@@ -345,18 +345,6 @@ Every task has an `enabled` flag which defaults to `true`. Setting it to `false`
         </sample>
 ++++
 
-
-[[sec:stale_task_outputs]]
-=== Stale task outputs
-
-When the Gradle version changes, Gradle detects that outputs from tasks that ran with older versions of Gradle need to be removed to ensure that the newest version of the tasks are starting from a known clean state.
-
-[NOTE]
-====
-Automatic clean-up of stale output directories has only been implemented for the output of source sets (Java/Groovy/Scala compilation).
-====
-
-
 [[sec:up_to_date_checks]]
 === Up-to-date checks (AKA Incremental Build)
 
@@ -520,11 +508,11 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 | A single output directory (not file)
 
 | `@api:org.gradle.api.tasks.OutputFiles[]`
-| `Map&lt;String, File&gt;`** or `Iterable&lt;File&gt;`*
+| `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
 | An iterable of output files (no directories)
 
 | `@api:org.gradle.api.tasks.OutputDirectories[]`
-| `Map&lt;String, File&gt;`** or `Iterable&lt;File&gt;`*
+| `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
 | An iterable of output directories (no files)
 
 | `@api:org.gradle.api.tasks.Nested[]`
@@ -538,12 +526,13 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 | `@api:org.gradle.api.tasks.Internal[]`
 | Any type
 | Indicates that the property is used internally but is neither an input nor an output.
-
-3+| _* In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are `Iterable&lt;File&gt;`s._
-
-3+| _** Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in `Callable`s, such as closures._
-
 |===
+
+*::
+In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
+
+**::
+Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
 
 .Additional annotations used to further qualifying property type annotations
 [cols="a,a", options="header"]
@@ -811,7 +800,18 @@ Gradle understands if a file property (e.g. one holding a Java classpath) is ord
 
 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using api:org.gradle.api.tasks.TaskOutputs#upToDateWhen(groovy.lang.Closure)[]
 
-The inputs for the task are also used to calculate the <<build_cache,build cache>> key used to load task outputs when enabled. For more details see <<sec:task_output_caching_faster>>.
+The inputs for the task are also used to calculate the <<build_cache,build cache>> key used to load task outputs when enabled. For more details see <<sec:task_output_caching>>.
+
+
+[[sec:stale_task_outputs]]
+==== Stale task outputs
+
+When the Gradle version changes, Gradle detects that outputs from tasks that ran with older versions of Gradle need to be removed to ensure that the newest version of the tasks are starting from a known clean state.
+
+[NOTE]
+====
+Automatic clean-up of stale output directories has only been implemented for the output of source sets (Java/Groovy/Scala compilation).
+====
 
 [[sec:task_rules]]
 === Task rules

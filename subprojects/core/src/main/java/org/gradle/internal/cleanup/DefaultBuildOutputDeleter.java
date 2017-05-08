@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.Collection;
 
 public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
+    public static final String STALE_OUTPUT_MESSAGE = "Gradle is removing stale outputs from a previous version of Gradle, for more information about stale outputs see";
     private final Logger logger = Logging.getLogger(DefaultBuildOutputDeleter.class);
 
     private final DocumentationRegistry documentationRegistry;
@@ -49,7 +50,7 @@ public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
         });
 
         if (!roots.isEmpty()) {
-            logger.warn("Gradle is removing stale outputs from a previous version of Gradle, for more information about stale outputs see {}.", documentationRegistry.getDocumentationFor("more_about_tasks", "sec:stale_task_outputs"));
+            logger.warn(STALE_OUTPUT_MESSAGE + " {}.", documentationRegistry.getDocumentationFor("more_about_tasks", "sec:stale_task_outputs"));
             for (File output : roots) {
                 deleteOutput(output);
             }
@@ -60,10 +61,10 @@ public class DefaultBuildOutputDeleter implements BuildOutputDeleter {
         try {
             if (output.isDirectory()) {
                 deleter.delete(output);
-                logger.quiet("Deleting directory '{}'", output);
+                logger.info("Deleted directory '{}'", output);
             } else if (output.isFile()) {
                 deleter.delete(output);
-                logger.quiet("Deleting file '{}'", output);
+                logger.info("Deleted file '{}'", output);
             }
         } catch (UncheckedIOException e) {
             logger.warn("Unable to delete '{}'", output);
