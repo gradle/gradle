@@ -18,6 +18,7 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.scala.AntScalaDoc;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
@@ -33,6 +34,7 @@ import java.io.File;
 /**
  * Generates HTML API documentation for Scala source files.
  */
+@CacheableTask
 public class ScalaDoc extends SourceTask {
 
     private File destinationDir;
