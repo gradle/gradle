@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
@@ -425,6 +424,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     private class OwnServices implements Provider {
         private List<Provider> providers;
+        private Set<Class<?>> serviceTypes;
 
         @Override
         public ServiceProvider getFactory(LookupContext context, Class<?> type) {
@@ -511,15 +511,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public boolean hasService(Class<?> serviceType) {
-            if (providers == null) {
-                return false;
-            }
-            for (Provider provider : providers) {
-                if (provider.hasService(serviceType)) {
-                    return true;
-                }
-            }
-            return false;
+            return serviceTypes != null && serviceTypes.contains(serviceType);
         }
 
         @Override
@@ -534,8 +526,27 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             assertMutable();
             if (providers == null) {
                 providers = new ArrayList<Provider>();
+                serviceTypes = new HashSet<Class<?>>();
+                serviceTypes.add(Object.class);
             }
             this.providers.add(provider);
+            if (provider instanceof SingletonService) {
+                addServiceType(((SingletonService) provider).serviceClass);
+            } else {
+                throw new UnsupportedOperationException("Unsupported service provider type: " + provider);
+            }
+        }
+
+        private void addServiceType(Class<?> serviceType) {
+            if (serviceType!=null && serviceTypes.add(serviceType)) {
+                addServiceType(serviceType.getSuperclass());
+                Class<?>[] interfaces = serviceType.getInterfaces();
+                if (interfaces!=null) {
+                    for (Class<?> intf : interfaces) {
+                        addServiceType(intf);
+                    }
+                }
+            }
         }
     }
 
@@ -925,7 +936,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         private static final Object ABSENT = new Object();
         private final ConcurrentMap<Object, Object> seen = new ConcurrentHashMap<Object, Object>();
         private final ConcurrentMap<Class<?>, List<ServiceProvider>> allServicesCache = new ConcurrentHashMap<Class<?>, List<ServiceProvider>>();
-        private final Map<Class<?>, Boolean> serviceTypes = Maps.newConcurrentMap();
+        private final Map<Class<?>, Boolean> serviceTypes = new ConcurrentHashMap<Class<?>, Boolean>();
 
         private final Provider delegate;
 
