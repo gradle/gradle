@@ -240,6 +240,18 @@ The version of Groovy bundled with Gradle was changed from Groovy 2.4.10 to [Gro
 
 This release fixes several issues where Groovy compilation could produce different (but functionally equivalent) bytecode given the same source files due to nondeterministic ordering in the compiler. These problems could cause build cache misses in Gradle 3.5 when compiling Groovy and Gradle script sources.
 
+### Version of PMD has been upgraded
+
+By default, Gradle now uses [PMD 5.6.1](https://sourceforge.net/projects/pmd/files/pmd/5.6.1/). Previously, Gradle used PMD 5.5.1. 
+
+Newer versions of PMD usually bring new rules, better inspections and bug fixes. Your build may fail due to these changes.
+
+You can upgrade or downgrade the version of PMD with:
+
+    pmd {
+        toolVersion = '5.5.1'
+    }
+
 ### Changes to previously deprecated APIs
 
 - The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
@@ -320,6 +332,7 @@ We would like to thank the following community members for making contributions 
 - [Bo Zhang](https://github.com/blindpirate) - Use Enum.getDeclaringClass() to avoid NPE in comparing enums ([gradle/gradle#1862](https://github.com/gradle/gradle/pull/1862))
 - [Danny Thomas](https://github.com/DanielThomas) - Improve performance of version parsing ([gradle/gradle#1659](https://github.com/gradle/gradle/pull/1659))
 - [Ethan Hall](https://github.com/ethankhall) - Pattern and layout support for Ivy plugin repositories ([gradle/gradle#1813](https://github.com/gradle/gradle/pull/1813))
+- [Sebastian Schuberth](https://github.com/sschuberth) - Upgrade default PMD version to 5.6.1 ([gradle/gradle#1858](https://github.com/gradle/gradle/pull/1858))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
