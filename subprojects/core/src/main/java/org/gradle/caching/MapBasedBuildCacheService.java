@@ -30,17 +30,10 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Incubating
 public class MapBasedBuildCacheService implements BuildCacheService {
-    private final String description;
     private final ConcurrentMap<String, byte[]> delegate;
 
-    public MapBasedBuildCacheService(String description, ConcurrentMap<String, byte[]> delegate) {
-        this.description = description;
+    public MapBasedBuildCacheService(ConcurrentMap<String, byte[]> delegate) {
         this.delegate = delegate;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
     }
 
     @Override

@@ -31,6 +31,7 @@ import java.io.File;
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     private static final String BUILD_CACHE_VERSION = "1";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
+    private static final String DIRECTORY_BUILD_CACHE_TYPE = "directory";
 
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
@@ -46,7 +47,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     }
 
     @Override
-    public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration) {
+    public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, Describer describer) {
         Object cacheDirectory = configuration.getDirectory();
         File target;
         if (cacheDirectory != null) {
@@ -54,6 +55,8 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         } else {
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
+
+        describer.type(DIRECTORY_BUILD_CACHE_TYPE).config("location", target.getAbsolutePath());
 
         return new DirectoryBuildCacheService(cacheRepository, buildOperationExecutor, target, configuration.getTargetSizeInMB());
     }

@@ -141,11 +141,6 @@ public class DirectoryBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public String getDescription() {
-        return "directory (" + persistentCache.getBaseDir() + ")";
-    }
-
-    @Override
     public void close() throws IOException {
         persistentCache.close();
     }

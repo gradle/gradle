@@ -14,36 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration;
+package org.gradle.testing.internal.util
 
-import org.gradle.api.Incubating;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.FirstParam
 
+@CompileStatic
+class Specification extends spock.lang.Specification {
 
-/**
- * Configuration object for a build cache.
- *
- * @since 3.5
- */
-@Incubating
-public interface BuildCache {
+    public <T> void with(
+        @DelegatesTo.Target T t,
+        @DelegatesTo(strategy = Closure.DELEGATE_FIRST)
+        @ClosureParams(FirstParam.FirstGenericType) Closure<?> closure
+    ) {
+        super.with(t, closure)
+    }
 
-    /**
-     * Returns whether the build cache is enabled.
-     */
-    boolean isEnabled();
-
-    /**
-     * Enables or disables the build cache service.
-     */
-    void setEnabled(boolean enabled);
-
-    /**
-     * Returns whether pushing to the build cache is enabled.
-     */
-    boolean isPush();
-
-    /**
-     * Sets whether pushing to the build cache is enabled.
-     */
-    void setPush(boolean enabled);
 }

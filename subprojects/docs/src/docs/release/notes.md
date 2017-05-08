@@ -307,6 +307,17 @@ task copy(type: Copy) {
 }
 ```
 
+### Changes to how build cache configurations are described
+
+The (incubating) [`BuildCacheServiceFactory`](javadoc/org/gradle/caching/BuildCacheServiceFactory.html) and
+ [`BuildCacheService`](javadoc/org/gradle/caching/BuildCacheService.html) interfaces have changed in this release.
+This only affects custom build cache connector implementations.
+It does not affect usage of the build cache connectors that ship with Gradle.
+
+Previously, the `BuildCacheService` was responsible for providing a `getDescription()` method that returned a human friendly description of the cache.
+This responsibility has been moved to the associated `BuildCacheServiceFactory` implementation,
+that now receives an additional argument that can be used to supply a more structured description of the build cache.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

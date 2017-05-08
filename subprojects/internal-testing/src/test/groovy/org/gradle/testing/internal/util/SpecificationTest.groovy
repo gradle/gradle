@@ -14,36 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration;
+package org.gradle.testing.internal.util
 
-import org.gradle.api.Incubating;
+import spock.lang.FailsWith
 
+class SpecificationTest extends Specification {
 
-/**
- * Configuration object for a build cache.
- *
- * @since 3.5
- */
-@Incubating
-public interface BuildCache {
+    @FailsWith(AssertionError)
+    def "with block asserts"() {
+        expect:
+        with(1) {
+            intValue() == 2
+        }
+    }
 
-    /**
-     * Returns whether the build cache is enabled.
-     */
-    boolean isEnabled();
-
-    /**
-     * Enables or disables the build cache service.
-     */
-    void setEnabled(boolean enabled);
-
-    /**
-     * Returns whether pushing to the build cache is enabled.
-     */
-    boolean isPush();
-
-    /**
-     * Sets whether pushing to the build cache is enabled.
-     */
-    void setPush(boolean enabled);
 }

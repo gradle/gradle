@@ -14,36 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.configuration;
-
-import org.gradle.api.Incubating;
-
+package org.gradle.api.internal;
 
 /**
- * Configuration object for a build cache.
- *
- * @since 3.5
+ * Marker interface for types that are runtime generated subclasses by {@link ClassGenerator}
  */
-@Incubating
-public interface BuildCache {
-
-    /**
-     * Returns whether the build cache is enabled.
-     */
-    boolean isEnabled();
-
-    /**
-     * Enables or disables the build cache service.
-     */
-    void setEnabled(boolean enabled);
-
-    /**
-     * Returns whether pushing to the build cache is enabled.
-     */
-    boolean isPush();
-
-    /**
-     * Sets whether pushing to the build cache is enabled.
-     */
-    void setPush(boolean enabled);
+public interface GeneratedSubclass {
 }

@@ -50,7 +50,8 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
 
             public class InMemoryBuildCacheService implements BuildCacheServiceFactory<InMemoryBuildCache> {
                 @Override
-                public BuildCacheService createBuildCacheService(InMemoryBuildCache configuration) {
+                public BuildCacheService createBuildCacheService(InMemoryBuildCache configuration, Describer describer) {
+                    describer.type("in-memory");
                     final Properties data = new Properties();
                     final File cacheFile = new File("cache.bin");
                     if (cacheFile.exists()) {
@@ -89,11 +90,6 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
                             }
                         }
 
-                        @Override
-                        public String getDescription() {
-                            return "test cache backend";
-                        }
-        
                         @Override
                         public void close() throws IOException {
                             try (OutputStream output = new FileOutputStream(cacheFile)) {
@@ -154,7 +150,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedTasks.contains ":compileJava"
         output.contains "Build cache is an incubating feature."
-        output.contains "Using test cache backend as remote build cache, push is enabled."
+        output.contains "Using local in-memory build cache, push is enabled."
 
         expect:
         succeeds "clean"

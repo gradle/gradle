@@ -29,7 +29,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             }
             
             class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory<FailingBuildCache> {
-                FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration) {
+                FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration, Describer describer) {
                     return new FailingBuildCacheService(configuration.shouldFail, configuration.recoverable)
                 }
             }
@@ -60,11 +60,6 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                         }
                         throw new RuntimeException("Failure while packing")
                     }
-                }
-    
-                @Override
-                String getDescription() {
-                    return "Failing cache backend"
                 }
     
                 @Override
