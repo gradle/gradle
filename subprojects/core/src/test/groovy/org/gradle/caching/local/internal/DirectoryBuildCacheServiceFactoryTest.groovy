@@ -21,7 +21,8 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.VersionStrategy
-import org.gradle.caching.BuildCacheDescriber
+
+import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -71,13 +72,13 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         0 * _
     }
 
-    private class NoopBuildCacheDescriber implements BuildCacheDescriber {
+    private class NoopBuildCacheDescriber implements BuildCacheServiceFactory.Describer {
 
         @Override
-        BuildCacheDescriber type(String type) { this }
+        BuildCacheServiceFactory.Describer type(String type) { this }
 
         @Override
-        BuildCacheDescriber config(String name, String value) { this }
+        BuildCacheServiceFactory.Describer config(String name, String value) { this }
 
     }
 }

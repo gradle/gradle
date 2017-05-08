@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.caching.BuildCacheDescriber;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -48,7 +47,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     }
 
     @Override
-    public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheDescriber describer) {
+    public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, Describer describer) {
         Object cacheDirectory = configuration.getDirectory();
         File target;
         if (cacheDirectory != null) {

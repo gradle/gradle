@@ -159,7 +159,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             }
             class CustomBuildCache extends AbstractBuildCache {}
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
-                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, BuildCacheDescriber describer) { 
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
                     describer.type('$type').config('directory', '$directory')
                     new VisibleNoOpBuildCacheService() 
                 }

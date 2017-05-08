@@ -50,7 +50,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
 
             public class InMemoryBuildCacheService implements BuildCacheServiceFactory<InMemoryBuildCache> {
                 @Override
-                public BuildCacheService createBuildCacheService(InMemoryBuildCache configuration, BuildCacheDescriber describer) {
+                public BuildCacheService createBuildCacheService(InMemoryBuildCache configuration, Describer describer) {
                     final Properties data = new Properties();
                     final File cacheFile = new File("cache.bin");
                     if (cacheFile.exists()) {

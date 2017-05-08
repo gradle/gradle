@@ -19,10 +19,11 @@ package org.gradle.caching.http.internal
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
-import org.gradle.caching.BuildCacheDescriber
+
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
+import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -54,7 +55,7 @@ class HttpBuildCacheServiceTest extends Specification {
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     BuildCacheService cache
-    BuildCacheDescriber buildCacheDescriber
+    BuildCacheServiceFactory.Describer buildCacheDescriber
 
     def key = new BuildCacheKey() {
         @Override
@@ -284,13 +285,13 @@ class HttpBuildCacheServiceTest extends Specification {
         })
     }
 
-    private class NoopBuildCacheDescriber implements BuildCacheDescriber {
+    private class NoopBuildCacheDescriber implements BuildCacheServiceFactory.Describer {
 
         @Override
-        BuildCacheDescriber type(String type) { this }
+        BuildCacheServiceFactory.Describer type(String type) { this }
 
         @Override
-        BuildCacheDescriber config(String name, String value) { this }
+        BuildCacheServiceFactory.Describer config(String name, String value) { this }
 
     }
 }

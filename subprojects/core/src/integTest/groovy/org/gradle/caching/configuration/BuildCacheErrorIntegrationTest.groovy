@@ -23,7 +23,7 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             class TestBuildCache extends AbstractBuildCache {}
             class TestBuildCacheServiceFactory implements BuildCacheServiceFactory<TestBuildCache> {
-                TestBuildCacheService createBuildCacheService(TestBuildCache configuration, BuildCacheDescriber describer) {
+                TestBuildCacheService createBuildCacheService(TestBuildCache configuration, Describer describer) {
                     return new TestBuildCacheService(configuration)
                 }
             }

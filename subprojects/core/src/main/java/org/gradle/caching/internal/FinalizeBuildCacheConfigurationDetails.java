@@ -17,10 +17,11 @@
 package org.gradle.caching.internal;
 
 import org.gradle.api.Nullable;
-import org.gradle.caching.BuildCacheDescriber;
 import org.gradle.internal.progress.BuildOperationDetails;
 
 import java.util.SortedMap;
+
+import static org.gradle.caching.BuildCacheServiceFactory.Describer;
 
 /**
  * Represents the transformation of the user's build cache config, to the effective configuration.
@@ -59,17 +60,20 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
             /**
              * The human friendly description of the type (e.g. "HTTP", "directory")
              *
-             * @see BuildCacheDescriber#type(String)
+             * @see Describer#type(String)
              */
             String getType();
 
+            /**
+             * Whether push was enabled.
+             */
             boolean isPush();
 
             /**
              * May contain null values.
              * Entries with null values are to be treated as {@code true} flag values.
              *
-             * @see BuildCacheDescriber#config(String, String)
+             * @see Describer#config(String, String)
              */
             SortedMap<String, String> getConfig();
 

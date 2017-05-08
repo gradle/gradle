@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.GeneratedSubclasses;
-import org.gradle.caching.BuildCacheDescriber;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -150,7 +149,7 @@ public class BuildCacheServiceProvider {
         );
 
         BuildCacheServiceFactory<T> factory = instantiator.newInstance(castFactoryType);
-        DefaultBuildCacheDescriber describer = new DefaultBuildCacheDescriber();
+        Describer describer = new Describer();
         BuildCacheService service = factory.createBuildCacheService(configuration, describer);
         BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams);
 
@@ -255,18 +254,18 @@ public class BuildCacheServiceProvider {
         }
     }
 
-    private static class DefaultBuildCacheDescriber implements BuildCacheDescriber {
+    private static class Describer implements BuildCacheServiceFactory.Describer {
         private String type;
         private Map<String, String> configParams = new HashMap<String, String>();
 
         @Override
-        public BuildCacheDescriber type(String type) {
+        public BuildCacheServiceFactory.Describer type(String type) {
             this.type = type;
             return this;
         }
 
         @Override
-        public BuildCacheDescriber config(String name, String value) {
+        public BuildCacheServiceFactory.Describer config(String name, String value) {
             configParams.put(name, value);
             return this;
         }

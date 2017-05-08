@@ -18,7 +18,6 @@ package org.gradle.caching.http.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.authentication.Authentication;
-import org.gradle.caching.BuildCacheDescriber;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
@@ -46,7 +45,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
     }
 
     @Override
-    public BuildCacheService createBuildCacheService(HttpBuildCache configuration, BuildCacheDescriber describer) {
+    public BuildCacheService createBuildCacheService(HttpBuildCache configuration, Describer describer) {
         URI url = configuration.getUrl();
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");

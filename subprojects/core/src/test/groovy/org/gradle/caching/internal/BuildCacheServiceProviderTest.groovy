@@ -18,7 +18,7 @@ package org.gradle.caching.internal
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.caching.BuildCacheDescriber
+
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.configuration.AbstractBuildCache
@@ -132,7 +132,7 @@ class BuildCacheServiceProviderTest extends Specification {
 
     static class TestRemoteBuildCacheServiceFactory implements BuildCacheServiceFactory<TestRemoteBuildCache> {
         @Override
-        BuildCacheService createBuildCacheService(TestRemoteBuildCache configuration, BuildCacheDescriber describer) {
+        BuildCacheService createBuildCacheService(TestRemoteBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
             describer.type("remote").config("value", configuration.value)
             new NoOpBuildCacheService()
         }
@@ -140,7 +140,7 @@ class BuildCacheServiceProviderTest extends Specification {
 
     static class TestDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
         @Override
-        BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheDescriber describer) {
+        BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
             describer.type("directory").config("location", configuration.directory?.toString())
             new NoOpBuildCacheService()
         }
