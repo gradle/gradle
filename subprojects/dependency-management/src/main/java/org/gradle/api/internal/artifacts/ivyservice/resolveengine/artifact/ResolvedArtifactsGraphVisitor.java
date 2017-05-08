@@ -25,8 +25,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -49,14 +50,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final Map<Long, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
     private final DependencyArtifactsVisitor artifactResults;
     private final ModuleExclusions moduleExclusions;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ImmutableAttributesFactory attributesFactory,  ModuleExclusions moduleExclusions) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry,  ModuleExclusions moduleExclusions) {
         this.artifactResults = artifactsBuilder;
         this.artifactResolver = artifactResolver;
-        this.attributesFactory = attributesFactory;
+        this.artifactTypeRegistry = artifactTypeRegistry;
         this.moduleExclusions = moduleExclusions;
     }
 
@@ -94,15 +95,15 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
         Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
         if (!artifacts.isEmpty()) {
-            Set<DefaultVariantMetadata> variants = ImmutableSet.of(new DefaultVariantMetadata(ImmutableAttributes.EMPTY, artifacts));
-            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, attributesFactory);
+            Set<DefaultVariantMetadata> variants = ImmutableSet.of(new DefaultVariantMetadata(Describables.of(component.getComponentId()), ImmutableAttributes.EMPTY, artifacts));
+            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, artifactTypeRegistry);
         }
 
         ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, attributesFactory);
+            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, artifactTypeRegistry);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
             if (!dependency.getExclusions(moduleExclusions).mayExcludeArtifacts()) {

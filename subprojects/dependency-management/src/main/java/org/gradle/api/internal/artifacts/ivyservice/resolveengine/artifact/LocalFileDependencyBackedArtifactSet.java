@@ -19,13 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
@@ -41,13 +42,13 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final VariantSelector selector;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ImmutableAttributesFactory attributesFactory) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ArtifactTypeRegistry artifactTypeRegistry) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
         this.selector = selector;
-        this.attributesFactory = attributesFactory;
+        this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     @Override
@@ -80,7 +81,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
                 artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
             }
 
-            AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
+            AttributeContainerInternal variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes, dependencyMetadata);
             selectedArtifacts.add(selector.select(variant));
         }
@@ -112,8 +113,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public String getDisplayName() {
-            return artifactIdentifier.getDisplayName();
+        public DisplayName asDescribable() {
+            return Describables.of(artifactIdentifier);
         }
 
         @Override

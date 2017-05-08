@@ -20,6 +20,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.DisplayName;
 
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,8 @@ public interface ConfigurationMetadata extends HasAttributes {
     Set<String> getHierarchy();
 
     String getName();
+
+    DisplayName asDescribable();
 
     @Override
     AttributeContainerInternal getAttributes();

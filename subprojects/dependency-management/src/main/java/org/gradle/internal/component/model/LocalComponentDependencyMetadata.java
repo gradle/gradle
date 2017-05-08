@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
@@ -276,6 +277,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         @Override
         public String getName() {
             return delegate.getName();
+        }
+
+        @Override
+        public DisplayName asDescribable() {
+            return delegate.asDescribable();
         }
 
         @Override

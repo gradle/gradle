@@ -16,6 +16,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -178,8 +179,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildOutputCleanupRegistry(fileResolver);
     }
 
-    protected BuildOutputDeleter createBuildOutputDeleter(BuildOperationExecutor buildOperationExecutor, GradleInternal gradle, FileResolver fileResolver, FileLookup lookup) {
-        return new BuildOperationBuildOutputDeleterDecorator(gradle, buildOperationExecutor, new DefaultBuildOutputDeleter(new Deleter(fileResolver, lookup.getFileSystem())));
+    protected BuildOutputDeleter createBuildOutputDeleter(BuildOperationExecutor buildOperationExecutor, GradleInternal gradle, FileResolver fileResolver, FileLookup lookup, DocumentationRegistry documentationRegistry) {
+        return new BuildOperationBuildOutputDeleterDecorator(gradle, buildOperationExecutor, new DefaultBuildOutputDeleter(documentationRegistry, new Deleter(fileResolver, lookup.getFileSystem())));
     }
 
     protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, GradleInternal gradle, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {

@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.Describables
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
@@ -34,7 +35,8 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def notationParser = Stub(NotationParser)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def attributesFactory = new DefaultImmutableAttributesFactory()
-    def publications = new DefaultConfigurationPublications(artifacts, allArtifacts, parentAttributes, DirectInstantiator.INSTANCE, notationParser, fileCollectionFactory, attributesFactory)
+    def displayName = Describables.of("<config>")
+    def publications = new DefaultConfigurationPublications(displayName, artifacts, allArtifacts, parentAttributes, DirectInstantiator.INSTANCE, notationParser, fileCollectionFactory, attributesFactory)
 
     def setup() {
         artifacts.whenObjectAdded { allArtifacts.add(it) }
@@ -44,11 +46,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
         expect:
         def variant = publications.convertToOutgoingVariant()
 
+        variant.asDescribable() == displayName
         variant.attributes == publications.attributes
         variant.artifacts == publications.artifacts
         variant.children.size() == 1
 
         def child = variant.children.first()
+        child.asDescribable() == displayName
         child.attributes == publications.attributes
         child.artifacts == allArtifacts
         child.children.empty
@@ -62,11 +66,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variant = publications.convertToOutgoingVariant()
+        variant.asDescribable() == displayName
         variant.attributes == publications.attributes
         variant.artifacts == publications.artifacts
         variant.children.size() == 1
 
         def child = variant.children.first()
+        child.asDescribable() == displayName
         child.attributes == publications.attributes
         child.artifacts == allArtifacts
         child.children.empty
@@ -80,11 +86,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variant = publications.convertToOutgoingVariant()
+        variant.asDescribable() == displayName
         variant.attributes == publications.attributes
         variant.artifacts == publications.artifacts
         variant.children.size() == 1
 
         def child = variant.children.first()
+        child.asDescribable() == displayName
         child.attributes == publications.attributes
         child.artifacts == allArtifacts
         child.children.empty
@@ -96,11 +104,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variant = publications.convertToOutgoingVariant()
+        variant.asDescribable() == displayName
         variant.attributes == publications.attributes
         variant.artifacts == publications.artifacts
         variant.children.size() == 1
 
         def child = variant.children.first()
+        child.asDescribable() == displayName
         child.attributes == publications.attributes
         child.artifacts == allArtifacts
         child.children.empty
@@ -116,11 +126,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variant = publications.convertToOutgoingVariant()
+        variant.asDescribable() == displayName
         variant.attributes == publications.attributes
         variant.artifacts == publications.artifacts
         variant.children.size() == 1
 
         def child = variant.children.first()
+        child.asDescribable().displayName == '<config> variant child'
         child.attributes == variantDef.attributes
         child.artifacts == variantDef.artifacts
         child.children.empty
@@ -139,16 +151,19 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variant = publications.convertToOutgoingVariant()
+        variant.asDescribable() == displayName
         variant.attributes == publications.attributes
         variant.artifacts == publications.artifacts
         variant.children.size() == 2
 
         def implicit = variant.children.first()
-        variant.attributes == publications.attributes
-        variant.artifacts == allArtifacts
+        implicit.asDescribable() == displayName
+        implicit.attributes == publications.attributes
+        implicit.artifacts == allArtifacts
         implicit.children.empty
 
         def explicit = (variant.children as List)[1]
+        explicit.asDescribable().displayName == '<config> variant child'
         explicit.attributes == variantDef.attributes
         explicit.artifacts == variantDef.artifacts
         explicit.children.empty
@@ -167,16 +182,19 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variant = publications.convertToOutgoingVariant()
+        variant.asDescribable() == displayName
         variant.attributes == publications.attributes
         variant.artifacts == publications.artifacts
         variant.children.size() == 2
 
         def implicit = variant.children.first()
+        implicit.asDescribable() == displayName
         implicit.attributes == publications.attributes
         implicit.artifacts == allArtifacts
         implicit.children.empty
 
         def explicit = (variant.children as List)[1]
+        explicit.asDescribable().displayName == '<config> variant child'
         explicit.attributes == variantDef.attributes
         explicit.artifacts == variantDef.artifacts
         explicit.children.empty

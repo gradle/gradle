@@ -286,7 +286,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    private class RunnableBuildOperationWorker<O extends RunnableBuildOperation> implements BuildOperationWorker<O> {
+    private static class RunnableBuildOperationWorker<O extends RunnableBuildOperation> implements BuildOperationWorker<O> {
         @Override
         public String getDisplayName() {
             return "runnable build operation";
@@ -298,7 +298,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    private class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
+    private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
         private T returnValue;
 
         @Override

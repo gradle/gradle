@@ -61,7 +61,6 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvide
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -271,7 +270,6 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
-                                                                ImmutableAttributesFactory cache,
                                                                 ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                 ModuleExclusions moduleExclusions) {
         return new DefaultArtifactDependencyResolver(
@@ -279,7 +277,6 @@ class DependencyManagementBuildScopeServices {
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,
-            cache,
             moduleIdentifierFactory,
             moduleExclusions
         );

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
@@ -79,6 +80,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
@@ -169,9 +172,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
 
-    private String displayName;
+    private final DisplayName displayName;
 
-    public DefaultConfiguration(Path identityPath, Path path, String name,
+    public DefaultConfiguration(final Path identityPath, Path path, String name,
                                 ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver,
                                 ListenerManager listenerManager,
@@ -205,42 +208,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
 
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+        displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
-        this.dependencies = new DefaultDependencySet(new Factory<String>() {
-            @Override
-            public String create() {
-                return getDisplayName() + " dependencies";
-            }
-        }, this, ownDependencies);
+        this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
         this.inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        this.allDependencies = new DefaultDependencySet(new Factory<String>() {
-            @Override
-            public String create() {
-                return getDisplayName() + " all dependencies";
-            }
-        }, this, inheritedDependencies);
+        this.allDependencies = new DefaultDependencySet(Describables.of(displayName, "all dependencies"), this, inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
 
-        this.artifacts = new DefaultPublishArtifactSet(new Factory<String>() {
-            @Override
-            public String create() {
-                return getDisplayName() + " artifacts";
-            }
-        }, ownArtifacts, fileCollectionFactory);
+        this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
         this.inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
-        this.allArtifacts = new DefaultPublishArtifactSet(new Factory<String>() {
-            @Override
-            public String create() {
-                return getDisplayName() + " all artifacts";
-            }
-        }, inheritedArtifacts, fileCollectionFactory);
+        this.allArtifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "all artifacts"), inheritedArtifacts, fileCollectionFactory);
 
-        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
+        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
     }
 
@@ -585,14 +569,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getDisplayName() {
-        if (displayName == null) {
-            StringBuilder builder = new StringBuilder();
-            builder.append("configuration '");
-            builder.append(identityPath);
-            builder.append("'");
-            displayName = builder.toString();
-        }
-        return displayName;
+        return displayName.getDisplayName();
     }
 
     public ResolvableDependencies getIncoming() {
@@ -782,6 +759,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         if (type != MutationType.STRATEGY) {
             dependenciesModified = true;
+        }
+    }
+
+    private static class ConfigurationDescription implements Describable {
+        private final Path identityPath;
+
+        ConfigurationDescription(Path identityPath) {
+            this.identityPath = identityPath;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "configuration '" + identityPath + "'";
         }
     }
 

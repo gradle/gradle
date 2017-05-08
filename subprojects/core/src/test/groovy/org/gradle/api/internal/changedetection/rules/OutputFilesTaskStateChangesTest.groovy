@@ -22,11 +22,13 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler
 import spock.lang.Issue
 import spock.lang.Subject
 
 @Subject(OutputFilesTaskStateChanges)
 class OutputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
+    def normalizationHandler = Mock(ResourceNormalizationHandler)
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when output snapshot throws UncheckedIOException" () {
@@ -37,11 +39,11 @@ class OutputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
         def mockOutputFileSnapshotter = Mock(OutputFilesSnapshotter)
 
         when:
-        new OutputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, mockInputFileSnapshotterRegistry, mockOutputFileSnapshotter)
+        new OutputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, mockInputFileSnapshotterRegistry, mockOutputFileSnapshotter, normalizationHandler)
         then:
         1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        1 * mockInputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
+        1 * mockInputFileSnapshotter.snapshot(_, _, _, _) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)

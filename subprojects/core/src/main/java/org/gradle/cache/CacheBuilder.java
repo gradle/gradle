@@ -81,6 +81,11 @@ public interface CacheBuilder {
 
     /**
      * Specifies an action to execute when the cache needs to be cleaned up. An exclusive lock is held while the cleanup is executing, to prevent cross-process access.
+     *
+     * A clean-up action is run when a cache is closed, but only after a certain interval of time after the last clean-up.
+     *
+     * Currently, a clean-up action is run after {@value org.gradle.cache.internal.DefaultPersistentDirectoryCache#CLEANUP_INTERVAL} days.
+     *
      */
     CacheBuilder withCleanup(Action<? super PersistentCache> cleanup);
 

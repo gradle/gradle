@@ -74,10 +74,10 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public ImmutableAttributes concat(ImmutableAttributes attributes, ImmutableAttributes state) {
-        Builder builder = new Builder(state);
-        for (Attribute<?> attribute : attributes.keySet()) {
-            builder = builder.addAttribute(attribute, attributes.getAttribute(attribute));
+    public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
+        Builder builder = new Builder(attributes2);
+        for (Attribute<?> attribute : attributes1.keySet()) {
+            builder = builder.addAttribute(attribute, attributes1.getAttribute(attribute));
         }
         return builder.get();
     }

@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
@@ -404,6 +405,20 @@ public interface DependencyHandler {
      */
     @Incubating
     AttributesSchema getAttributesSchema();
+
+    /**
+     * Returns the artifact type definitions for this handler.
+     * @since 4.0
+     */
+    @Incubating
+    ArtifactTypeContainer getArtifactTypes();
+
+    /**
+     * Configures the artifact type definitions for this handler.
+     * @since 4.0
+     */
+    @Incubating
+    void artifactTypes(Action<? super ArtifactTypeContainer> configureAction);
 
     /**
      * Register an artifact transformation.
