@@ -18,8 +18,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
+import org.gradle.internal.resource.transfer.DownloadBuildOperationDetails
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -30,7 +30,7 @@ import spock.lang.Unroll
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Rule
-    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    public final BuildOperationNotificationsFixture buildOperations = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     @Unroll
     void "emits events for dependency resolution downloads - chunked: #chunked"() {
@@ -39,7 +39,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
             .allowAll()
             .publish()
 
-        args "--refresh-dependencies"
+        args "--refresh-dependencies", "-S"
 
         buildFile << """
             apply plugin: "base"
@@ -62,7 +62,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def actualFileLength = m.pom.file.bytes.length
-        def buildOp = operation(m)
+        def buildOp = buildOperations.first(DownloadBuildOperationDetails)
         buildOp.details.contentType == 'null'
         buildOp.details.contentLength == chunked ? -1 : actualFileLength
         buildOp.details.location.path == m.pomPath
@@ -70,10 +70,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         where:
         chunked << [true, false]
-    }
-
-    private Object operation(MavenHttpModule module) {
-        buildOperations.operation("Download ${mavenHttpRepo.server.uri}${module.pomPath}")
     }
 
 }

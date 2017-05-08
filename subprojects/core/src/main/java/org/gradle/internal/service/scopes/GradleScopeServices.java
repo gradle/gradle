@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -28,9 +29,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
-import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.options.OptionReader;
@@ -66,11 +67,15 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
+import org.gradle.internal.operations.notify.DefaultBuildOperationNotificationListenerRegistrar;
+import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Arrays;
@@ -113,8 +118,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     BuildExecuter createBuildExecuter() {
         return new DefaultBuildExecuter(
-                asList(new DryRunBuildExecutionAction(),
-                        new SelectedTaskExecutionAction()));
+            asList(new DryRunBuildExecutionAction(),
+                new SelectedTaskExecutionAction()));
     }
 
     BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer) {
@@ -184,6 +189,21 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, GradleInternal gradle, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         return new DefaultBuildOutputCleanupCache(cacheRepository, gradle, buildOutputDeleter, buildOutputCleanupRegistry);
+    }
+
+    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(final Gradle gradle, final BuildOperationService buildOperationService) {
+        return new DefaultBuildOperationNotificationListenerRegistrar(new Action<BuildOperationListener>() {
+            @Override
+            public void execute(final BuildOperationListener buildOperationListener) {
+                buildOperationService.addListener(buildOperationListener);
+                gradle.buildFinished(new Action<BuildResult>() {
+                    @Override
+                    public void execute(BuildResult buildResult) {
+                        buildOperationService.removeListener(buildOperationListener);
+                    }
+                });
+            }
+        });
     }
 
     @Override
