@@ -17,6 +17,7 @@
 package org.gradle.script.lang.kotlin
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -35,6 +36,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginManager
+import org.gradle.api.provider.PropertyState
 
 import org.gradle.script.lang.kotlin.resolver.gradleScriptKotlinApiOf
 
@@ -172,6 +174,17 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
  */
 operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
     findProperty(property.name)
+
+
+/**
+ * Creates a [PropertyState] that holds values of the given type [T].
+ *
+ * @see Project.property
+ */
+@Incubating
+inline
+fun <reified T> Project.property(): PropertyState<T> =
+    property(T::class.java)
 
 
 /**
