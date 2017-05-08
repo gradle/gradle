@@ -17,15 +17,25 @@
 package org.gradle.caching.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.caching.BuildCacheDescriber;
 import org.gradle.internal.progress.BuildOperationDetails;
 
 import java.util.SortedMap;
 
 /**
- * Details about the build cache configuration of a build.
+ * Represents the transformation of the user's build cache config, to the effective configuration.
+ *
+ * This operation should occur some time after the configuration phase.
+ * In practice, it will fire as part of bootstrapping the execution of the first task to execute.
+ *
+ * This operation should always be executed, regardless of whether caching is enabled/disabled.
+ * That is, determining enabled-ness is part of “finalizing”.
+ * However, if the build fails during configuration or task graph assembly, it will not be emitted.
+ * It must fire before any build cache is used.
  *
  * This class is intentionally internal and consumed by the build scan plugin.
  *
+ * @see BuildCacheServiceProvider
  * @since 4.0
  */
 public final class FinalizeBuildCacheConfigurationDetails implements BuildOperationDetails<FinalizeBuildCacheConfigurationDetails.Result> {
@@ -39,12 +49,28 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
 
         public interface BuildCacheDescription {
 
+            /**
+             * The class name of the DSL configuration type.
+             *
+             * e.g. {@link org.gradle.caching.local.DirectoryBuildCache}
+             */
             String getClassName();
 
+            /**
+             * The human friendly description of the type (e.g. "HTTP", "directory")
+             *
+             * @see BuildCacheDescriber#type(String)
+             */
             String getType();
 
             boolean isPush();
 
+            /**
+             * May contain null values.
+             * Entries with null values are to be treated as {@code true} flag values.
+             *
+             * @see BuildCacheDescriber#config(String, String)
+             */
             SortedMap<String, String> getConfig();
 
         }
