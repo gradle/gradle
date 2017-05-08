@@ -76,6 +76,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(WorkerLeaseRegistry) >> Stub(WorkerLeaseRegistry)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
+        parent.hasService(_) >> true
     }
 
     def "can create services for a project instance"() {

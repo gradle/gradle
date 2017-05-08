@@ -38,6 +38,7 @@ class SettingsScopeServicesTest extends Specification {
         parent.get(org.gradle.internal.nativeintegration.filesystem.FileSystem) >> Stub(org.gradle.internal.nativeintegration.filesystem.FileSystem)
         parent.get(PluginRegistry) >> pluginRegistryParent
         parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
+        parent.hasService(_) >> true
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }
 
