@@ -258,8 +258,8 @@ This release fixes several issues where Groovy compilation could produce differe
 - Removed the method `registerWatchPoints(FileSystemSubset.Builder)` from `FileCollectionDependency`.
 - Removed the method `getConfiguration()` from `ModuleDependency`.
 - Removed the method `getProjectConfiguration()` from `ProjectDependency`.
-- Removed class `BuildCache`.
-- Removed class `MapBasedBuildCache`.
+- Removed class `org.gradle.caching.BuildCache`.
+- Removed class `org.gradle.caching.MapBasedBuildCache`.
 - Removed the [Gradle GUI](https://docs.gradle.org/3.5/userguide/tutorial_gradle_gui.html). All classes for this feature have been removed as well as all leftovers supporting class from the Open API partly removed due to deprecation in Gradle 2.0.
 - Removed the annotation `@OrderSensitive` and the method `TaskInputFilePropertyBuilder.orderSensitive`.
 - Removed `dependencyCacheDir` getter and setters in java plugin and `CompileOptions`
