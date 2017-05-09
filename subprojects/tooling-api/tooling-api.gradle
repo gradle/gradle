@@ -101,7 +101,7 @@ task publishLocalArchives(type: Upload) {
     uploadDescriptor = false
     repositories {
         ivy {
-            artifactPattern "${rootProject.file('build/repo')}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/${testedVersion}/[artifact]-${testedVersion}(-[classifier]).[ext]"
+            artifactPattern "${rootProject.file('build/repo')}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
         }
     }
 }
