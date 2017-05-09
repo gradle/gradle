@@ -16,12 +16,43 @@
 
 package org.gradle.internal.operations.notify;
 
+/**
+ * A notification that a build operation has started.
+ *
+ * The methods of this interface are awkwardly prefixed to allow
+ * internal types to implement this interface along with other internal interfaces
+ * without risking method collision.
+ *
+ * @since 4.0
+ */
 public interface BuildOperationStartedNotification {
 
-    Object getId();
+    /**
+     * A unique, opaque, value identifying this operation.
+     */
+    Object getNotificationOperationId();
 
-    Object getParentId();
+    /**
+     * A structured object providing details about the operation to be performed.
+     */
+    Object getNotificationOperationDetails();
 
-    Object getDetails();
+    /*
+        NOTES:
+
+        Parent operation IDs and timestamps are conspicuously absent here.
+
+        The build scan plugin does not currently need parent IDs.
+        Before we add it here, we need to define the semantics of details-less operations
+        and this interface. Specifically, what is to happen if a parent operation is details-less
+        but the child operation has details.
+
+        Timestamps are missing because the build scan plugin has different timestamp requirements.
+        Specifically, it goes to some effort to provide monotonic timestamps (and the observed value) if different,
+        and deterministic ordering of events that yield the same timestamp value (e.g. two clock reads quicker than the clock granularity).
+
+        These are both things to be worked out.
+        When we do, they will be added to this interface in some form.
+     */
 
 }

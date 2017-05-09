@@ -16,10 +16,35 @@
 
 package org.gradle.internal.operations.notify;
 
+/**
+ * A notification that a build operation has finished.
+ *
+ * The methods of this interface are awkwardly prefixed to allow
+ * internal types to implement this interface along with other internal interfaces
+ * without risking method collision.
+ *
+ * @since 4.0
+ */
 public interface BuildOperationFinishedNotification {
 
-    Object getId();
+    /**
+     * The operation ID.
+     *
+     * Must be logically equal to a {@link BuildOperationStartedNotification#getNotificationOperationId()} value
+     * of a previously emitted started notification.
+     */
+    Object getNotificationOperationId();
 
-    Object getResult();
+    /**
+     * A structured object representing the outcome of the operation.
+     * Null if the operation failed, or if no result details are produced for the type of operation.
+     */
+    Object getNotificationOperationResult();
+
+    /**
+     * The operation failure.
+     * Null if the operation did not fail.
+     */
+    Throwable getNotificationOperationFailure();
 
 }

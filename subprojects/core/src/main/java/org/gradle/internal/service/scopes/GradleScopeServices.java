@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service.scopes;
 
-import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
@@ -68,9 +67,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
-import org.gradle.internal.operations.notify.DefaultBuildOperationNotificationListenerRegistrar;
-import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -192,19 +190,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildOutputCleanupCache(cacheRepository, gradle, buildOutputDeleter, buildOutputCleanupRegistry);
     }
 
-    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(final Gradle gradle, final BuildOperationService buildOperationService) {
-        return new DefaultBuildOperationNotificationListenerRegistrar(new Action<BuildOperationListener>() {
-            @Override
-            public void execute(final BuildOperationListener buildOperationListener) {
-                buildOperationService.addListener(buildOperationListener);
-                gradle.buildFinished(new Action<BuildResult>() {
-                    @Override
-                    public void execute(BuildResult buildResult) {
-                        buildOperationService.removeListener(buildOperationListener);
-                    }
-                });
-            }
-        });
+    BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationService buildOperationService) {
+        return new BuildOperationNotificationBridge(buildOperationService);
+    }
+
+    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(BuildOperationNotificationBridge bridge) {
+        return bridge.notificationListenerRegistrar();
     }
 
     @Override

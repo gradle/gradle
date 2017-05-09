@@ -28,10 +28,12 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
+import java.util.concurrent.ConcurrentHashMap
+
 class BuildOperationNotificationsFixture extends InitScriptExecuterFixture {
 
     private final TestFile operationsDir
-    private final Map<Object, CompleteOperation> operations = [:]
+    private final Map<Object, CompleteBuildOperation> operations = [:]
 
     BuildOperationNotificationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
         super(executer, projectDir)
@@ -45,28 +47,26 @@ class BuildOperationNotificationsFixture extends InitScriptExecuterFixture {
             import ${BuildOperationStartedNotification.name}
             import ${BuildOperationFinishedNotification.name}
 
-            def operations = [:]
+            def operations = new ${ConcurrentHashMap.name}()
             def listener = new BuildOperationNotificationListener() {
                 void started(BuildOperationStartedNotification notification) {
-                    if (notification.details instanceof ${TaskOperationDetails.name}) {
+                    if (notification.notificationOperationDetails instanceof ${TaskOperationDetails.name}) {
                         return // this type is not serializable
                     }
                     
-                    operations[notification.id] = [
-                        id: notification.id,
-                        details: notification.details,
-                        detailsType: notification.details.class.name
+                    operations[notification.notificationOperationId] = [
+                        id: notification.notificationOperationId,
+                        details: notification.notificationOperationDetails,
+                        detailsType: notification.notificationOperationDetails.class.name
                     ] 
                 }
 
                 void finished(BuildOperationFinishedNotification notification) {
-                    def o = operations[notification.id]
-                    if (o != null && notification.result != null) {
-                        o.putAll(
-                            result: notification.result,
-                            resultType: notification.result.class.name
-                        )
-                    }
+                    def o = operations[notification.notificationOperationId]
+                    o.putAll(
+                        result: notification.notificationOperationResult,
+                        resultType: notification.notificationOperationResult.class.name
+                    )
                 }
             }
 
@@ -87,9 +87,8 @@ class BuildOperationNotificationsFixture extends InitScriptExecuterFixture {
         def slurper = new JsonSlurper()
         def rawOperations = slurper.parseText(jsonFile.text)
         rawOperations.each { k, v ->
-            operations.put(k, new CompleteOperation(
+            operations.put(k, new CompleteBuildOperation(
                 v.id,
-                v.parentId,
                 getClass().classLoader.loadClass(v.detailsType.toString()),
                 v.details as Map<String, ?>,
                 v.resultType == null ? null : getClass().classLoader.loadClass(v.resultType.toString()),
@@ -98,7 +97,7 @@ class BuildOperationNotificationsFixture extends InitScriptExecuterFixture {
         }
     }
 
-    CompleteOperation first(Class<?> detailsType) {
+    CompleteBuildOperation first(Class<?> detailsType) {
         def operation = operations.values().find { it.detailsType == detailsType }
         if (operation == null) {
             throw new AssertionError("No operation with details type $detailsType found (found types: ${operations.values().detailsType.toSet()*.name.join(", ")})")
@@ -106,23 +105,27 @@ class BuildOperationNotificationsFixture extends InitScriptExecuterFixture {
         operation
     }
 
-    static class CompleteOperation {
+    static class CompleteBuildOperation {
 
         final Object id
-        final Object parentId
         final Class<?> detailsType
         final Map<String, ?> details
         final Class<?> resultType
         final Map<String, ?> result
 
-        CompleteOperation(Object id, Object parentId, Class<?> detailsType, Map<String, ?> details, Class<?> resultType, Map<String, ?> result) {
+        CompleteBuildOperation(Object id, Class<?> detailsType, Map<String, ?> details, Class<?> resultType, Map<String, ?> result) {
             this.id = id
-            this.parentId = parentId
             this.resultType = resultType
             this.detailsType = detailsType
             this.details = details
             this.result = result
         }
+
+        @Override
+        String toString() {
+            return "CompleteBuildOperation{" + "id=" + id + ", detailsType=" + detailsType + ", details=" + details + ", resultType=" + resultType + ", result=" + result + '}'
+        }
+
     }
 
 }

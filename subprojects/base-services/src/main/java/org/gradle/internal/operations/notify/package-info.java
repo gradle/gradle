@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations.notify;
-
 /**
- * Obtained by the build scan plugin via the root project's service registry.
- * A single listener is registered.
+ * This package forms the basic contract between the build scan plugin
+ * and Gradle with regard to observing build operations.
  *
- * The listener is to be discarded after the build has completed.
+ * It has no dependencies to types outside of this package other than JDK types.
  *
- * @since 4.0
+ * Only binary compatible changes, from the caller's perspective,
+ * can be made to these types.
+ *
+ * It can be assumed that only Gradle implements these interfaces,
+ * except for {@link org.gradle.internal.operations.notify.BuildOperationNotificationListener}
+ * which is implemented by the build scan plugin.
  */
-public interface BuildOperationNotificationListenerRegistrar {
-
-    void registerBuildScopeListener(BuildOperationNotificationListener listener);
-
-}
+package org.gradle.internal.operations.notify;
