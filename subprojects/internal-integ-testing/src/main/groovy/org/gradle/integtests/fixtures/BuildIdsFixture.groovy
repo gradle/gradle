@@ -19,10 +19,10 @@ package org.gradle.integtests.fixtures
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
-import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.id.UniqueId
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 /**
  * Extracts the build ID for a build, and asserts that all nested builds have the same ID.
@@ -71,7 +71,7 @@ class BuildIdsFixture extends UserInitScriptExecuterFixture {
                 def buildPaths = Collections.synchronizedList([])
                 gradle.ext.buildPaths = buildPaths
                 gradle.buildFinished {
-                    gradle.rootProject.file("${org.gradle.util.TextUtil.normaliseFileSeparators(buildPathsFile.absolutePath)}").text = groovy.json.JsonOutput.toJson(buildPaths)
+                    gradle.rootProject.file("${TextUtil.normaliseFileSeparators(buildPathsFile.absolutePath)}").text = groovy.json.JsonOutput.toJson(buildPaths)
                 }
             } else {
                 assert gradle.buildIds.buildId == gradle.parent.buildIds.buildId
