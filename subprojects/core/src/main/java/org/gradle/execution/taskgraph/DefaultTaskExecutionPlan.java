@@ -76,7 +76,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -268,8 +267,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         int visitingSegmentCounter = nodeQueue.size();
 
         HashMultimap<TaskInfo, Integer> visitingNodes = HashMultimap.create();
-        Stack<GraphEdge> walkedShouldRunAfterEdges = new Stack<GraphEdge>();
-        Stack<TaskInfo> path = new Stack<TaskInfo>();
+        Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
+        Deque<TaskInfo> path = new ArrayDeque<TaskInfo>();
         HashMap<TaskInfo, Integer> planBeforeVisiting = new HashMap<TaskInfo, Integer>();
 
         while (!nodeQueue.isEmpty()) {
@@ -297,7 +296,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 addAllSuccessorsInReverseOrder(taskNode, successors);
                 for (TaskInfo successor : successors) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
-                        if (!walkedShouldRunAfterEdges.empty()) {
+                        if (!walkedShouldRunAfterEdges.isEmpty()) {
                             //remove the last walked should run after edge and restore state from before walking it
                             GraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
                             toBeRemoved.from.removeShouldRunAfterSuccessor(toBeRemoved.to);
@@ -336,7 +335,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     }
 
-    private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
+    private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
         if (!walkedShouldRunAfterEdges.isEmpty() && walkedShouldRunAfterEdges.peek().to.equals(taskNode)) {
             walkedShouldRunAfterEdges.pop();
         }
@@ -364,7 +363,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void restorePath(Stack<TaskInfo> path, GraphEdge toBeRemoved) {
+    private void restorePath(Deque<TaskInfo> path, GraphEdge toBeRemoved) {
         TaskInfo removedFromPath = null;
         while (!toBeRemoved.from.equals(removedFromPath)) {
             removedFromPath = path.pop();
@@ -392,8 +391,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void recordEdgeIfArrivedViaShouldRunAfter(Stack<GraphEdge> walkedShouldRunAfterEdges, Stack<TaskInfo> path, TaskInfo taskNode) {
-        if (!path.empty() && path.peek().getShouldSuccessors().contains(taskNode)) {
+    private void recordEdgeIfArrivedViaShouldRunAfter(Deque<GraphEdge> walkedShouldRunAfterEdges, Deque<TaskInfo> path, TaskInfo taskNode) {
+        if (!path.isEmpty() && path.peek().getShouldSuccessors().contains(taskNode)) {
             walkedShouldRunAfterEdges.push(new GraphEdge(path.peek(), taskNode));
         }
     }
