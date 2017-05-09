@@ -19,16 +19,36 @@ package org.gradle.testing.internal.util
 import groovy.transform.CompileStatic
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.FirstParam
+import groovy.transform.stc.SecondParam
 
+/**
+ * This fixes Spock's with() methods to be understandable by IDEA.
+ * By using this subclass, IDEA knows the closure delegate type when using with().
+ * This means that you get editing assistance in said blocks WRT the object under assertion.
+ */
 @CompileStatic
 class Specification extends spock.lang.Specification {
 
+    // Both of these methods are actually @Override-s
+    // But the originals do not have type parameters.
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T> void with(
         @DelegatesTo.Target T t,
         @DelegatesTo(strategy = Closure.DELEGATE_FIRST)
         @ClosureParams(FirstParam.FirstGenericType) Closure<?> closure
     ) {
         super.with(t, closure)
+    }
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T> void with(
+        Object t,
+        @DelegatesTo.Target Class<T> type,
+        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
+        @ClosureParams(SecondParam.FirstGenericType) Closure<?> closure
+    ) {
+        super.with(t, type, closure)
     }
 
 }

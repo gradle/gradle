@@ -30,8 +30,8 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.cached.ExternalResourceFileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.testing.internal.util.Specification
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
 import javax.inject.Inject
 
@@ -97,8 +97,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = repository.createResolver()
 
         then:
-        with(resolver) {
-            it instanceof IvyResolver
+        with(resolver, IvyResolver) {
             repository instanceof ExternalResourceRepository
             name == 'name'
             artifactPatterns == ["${fileUri}/[organisation]/[artifact]-[revision].[ext]", "${fileUri}/[organisation]/[module]/[artifact]-[revision].[ext]"]
