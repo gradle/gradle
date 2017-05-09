@@ -112,6 +112,14 @@ When two tasks write into the same directory, Gradle will now disable task outpu
 
 You can diagnose overlapping task output issues by running Gradle at the `--info` log level. If you are using [Gradle Build Scans](https://gradle.com/scans/get-started), the same detailed reason for disabling task output caching will be included in the build timeline. 
 
+#### JaCoCo reporting, `Test` and Build Cache work together
+ 
+In Gradle 3.5, if you applied the [`jacoco` plugin](userguide/jacoco_plugin.html), the `Test` tasks would no longer be cacheable because it was possible to share a JaCoCo execution file between `Test` tasks.
+
+Now that Gradle detects overlapping outputs properly, `Test` tasks can be safely cached when used with JaCoCo. 
+
+If your project uses a single JaCoCo execution file for multiple `Test` tasks (n.b., this is not the default), you will need to use separate files to take advantage of the build cache for tests. You can use [`JacocoMerge`](dsl/org.gradle.testing.jacoco.tasks.JacocoMerge.html) to merge multiple JaCoCo data files into one. 
+
 #### Stricter validation of task properties
 
 When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin will go through validation. In Gradle 4.0, additional problems are now detected. 
