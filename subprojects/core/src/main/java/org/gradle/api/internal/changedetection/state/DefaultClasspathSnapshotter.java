@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -37,8 +38,8 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
-        MetadataFilter metadataFilter = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).getMetadataFilter();
-        ResourceHasher classpathResourceHasher = new MetadataFilterAdapter(metadataFilter, new RuntimeClasspathResourceHasher());
+        ImmutableSet<String> ignores = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).getIgnores();
+        ResourceHasher classpathResourceHasher = new IgnoringResourceHasher(ignores, new RuntimeClasspathResourceHasher());
         return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathResourceHasher, cacheService, getStringInterner()));
     }
 }

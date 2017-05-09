@@ -18,11 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
-public interface ConfigurableSnapshotter {
-
-    /**
-     * Appends the identification of the configuration of this object to a snapshotter.
-     * The contract is that, if two hashes agree, then the methods on this snapshotter return the same result whenever the arguments are the same.
-     */
+/**
+ * A normalization strategy which is configurable.
+ *
+ * Allows tracking changes to its configuration.
+ */
+public interface ConfigurableNormalizationStrategy {
     void appendConfigurationToHasher(BuildCacheHasher hasher);
 }
