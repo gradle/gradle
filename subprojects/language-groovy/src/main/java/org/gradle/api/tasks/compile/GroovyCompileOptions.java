@@ -128,7 +128,7 @@ public class GroovyCompileOptions extends AbstractOptions {
     /**
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
      */
-    @Internal
+    @Input
     public boolean isFork() {
         return fork;
     }
