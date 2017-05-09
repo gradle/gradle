@@ -327,6 +327,10 @@ $lastOutput
         sleep(waitMillis)
     }
 
+    void update(File file, String text) {
+        waitBeforeModification(file)
+        file.text = text
+    }
     private static class UnexpectedBuildStartedException extends Exception {
         UnexpectedBuildStartedException(String message) {
             super(message)
