@@ -22,6 +22,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.progress.BuildOperationType
+import org.gradle.internal.time.TimeProvider
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -76,14 +77,23 @@ abstract class OutputSpecification extends Specification {
         start(description: description)
     }
 
+    ProgressStartEvent start(Long id) {
+        start(id: id)
+    }
+
+    ProgressStartEvent start(Long id, String status) {
+        start(id: id, status: status)
+    }
+
     ProgressStartEvent start(Map args) {
-        OperationIdentifier parentId = args.containsKey("parentId") ? args.parentId : new OperationIdentifier(counter)
+        Long parentId = args.containsKey("parentId") ? args.parentId : counter
+        OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
         Object buildOperationId = args.containsKey("buildOperationId") ? args.buildOperationId : null
         Object parentBuildOperationId = args.containsKey("parentBuildOperationId") ? args.parentBuildOperationId : null
         BuildOperationType buildOperationType = args.containsKey("buildOperationType") ? args.buildOperationType : BuildOperationType.UNCATEGORIZED
-        long id = ++counter
+        Long id = args.containsKey("id") ? args.id : ++counter
         String category = args.containsKey("category") ? args.category : CATEGORY
-        return new ProgressStartEvent(new OperationIdentifier(id), parentId, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId, parentBuildOperationId, buildOperationType)
+        return new ProgressStartEvent(new OperationIdentifier(id), parent, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId, parentBuildOperationId, buildOperationType)
     }
 
     ProgressEvent progress(String status) {
@@ -94,5 +104,9 @@ abstract class OutputSpecification extends Specification {
     ProgressCompleteEvent complete(String status) {
         long id = counter--
         return new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, CATEGORY, 'description', status)
+    }
+
+    ProgressCompleteEvent complete(Long id, category='CATEGORY', description='DESCRIPTION', status='STATUS') {
+        new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, category, description, status)
     }
 }
