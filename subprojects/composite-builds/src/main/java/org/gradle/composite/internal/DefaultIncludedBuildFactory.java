@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
@@ -55,7 +54,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
         File settingsFile = buildLayoutFactory.findExistingSettingsFileIn(settings.getSettingsDir());
         if (settingsFile == null) {
-            throw new InvalidUserDataException(String.format("Included build '%s' must have a '%s.*' file.", includedBuild.getName(), Settings.DEFAULT_SETTINGS_FILE_BASENAME));
+            throw new InvalidUserDataException(String.format("Included build '%s' must have a settings file.", includedBuild.getName()));
         }
     }
 
