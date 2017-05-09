@@ -67,7 +67,9 @@ public class BuildCacheServiceProvider {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
 
-                SingleMessageLogger.incubatingFeatureUsed("Build cache");
+                if(startParameter.isBuildCacheEnabled()) {
+                    SingleMessageLogger.incubatingFeatureUsed("Build cache");
+                }
 
                 BuildCache local = buildCacheConfiguration.getLocal();
                 BuildCache remote = buildCacheConfiguration.getRemote();
@@ -152,7 +154,9 @@ public class BuildCacheServiceProvider {
         BuildCacheService service = factory.createBuildCacheService(configuration, describer);
         BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams, enabled);
 
-        logConfig(configuration, role, description);
+        if (enabled) {
+            logConfig(configuration, role, description);
+        }
 
         return new DescribedBuildCacheService(service, description);
     }
