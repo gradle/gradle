@@ -607,6 +607,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private static abstract class SingletonService extends ManagedObjectProvider<Object> implements ServiceProvider {
         final Type serviceType;
         final Class serviceClass;
+
+        // cached for performance
+        Class factoryElementType;
         boolean bound;
 
         SingletonService(Type serviceType) {
@@ -663,14 +666,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             if (!Factory.class.isAssignableFrom(c)) {
                 return false;
             }
+            if (factoryElementType != null) {
+                return elementType.isAssignableFrom(factoryElementType);
+            }
 
             if (type instanceof ParameterizedType) {
                 // Check if type is Factory<? extends ElementType>
                 ParameterizedType parameterizedType = (ParameterizedType) type;
                 if (parameterizedType.getRawType().equals(Factory.class)) {
                     Type actualType = parameterizedType.getActualTypeArguments()[0];
-                    if (actualType instanceof Class<?> && elementType.isAssignableFrom((Class<?>) actualType)) {
-                        return true;
+                    if (actualType instanceof Class) {
+                        factoryElementType = (Class) actualType;
+                        return elementType.isAssignableFrom((Class<?>) actualType);
                     }
                 }
             }
