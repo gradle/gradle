@@ -157,6 +157,23 @@ This will take advantage of performance optimizations in the latest [Zinc](https
 
 Ivy plugin repositories now support the same API for patterns and layouts that Ivy artifact repositories support.
 
+### Ignore classpath resources for up-to-date checks and the build cache
+
+It is now possible to ignore resources on the classpath for up-to-date checks and the build cache.
+Often a project has a file containing volatile data (like the `BUILD_ID` or a timestamp) which should be packaged to the jar for auditing reasons.
+As soon as such a file is present, the `test` task will never be up-to-date or from the build cache since on every Gradle invocation the contents of this file - and by this this the inputs to the task - would change.
+It is now possible to tell Gradle about these files by configuring [resource normalization](userguide/more_about_tasks.html#sec:custom_resource_normalization):
+
+    normalization {
+        runtimeClasspath {
+            ignore 'build-info.properties'
+        }
+    }
+
+The effect of this configuration would be that changes to build-info.properties would be ignored for up-to-date checks and build cache key calculations. Note that this will not change the runtime behavior of the Test task - i.e. any test is still able to load build-info.properties and the classpath is still the same as before.
+
+For more information on this feature see the corresponding section in the [userguide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
+
 <!--
 ### Example new and noteworthy
 -->

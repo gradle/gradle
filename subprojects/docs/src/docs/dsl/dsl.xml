@@ -316,6 +316,23 @@
     </section>
 
     <section>
+        <title>Resource Normalization types</title>
+        <para>Types used to customize resource normalization</para>
+        <table>
+            <title>Resource Normalization types</title>
+            <tr>
+                <td>org.gradle.api.resources.normalization.ResourceNormalizationHandler</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.resources.normalization.ResourceNormalizationStrategy</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.resources.normalization.RuntimeClasspathNormalizationStrategy</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
         <title>Help Task types</title>
         <para>Below are the task types that are available for every Gradle project.
             Those task types can also be declared and configured directly in the build script.

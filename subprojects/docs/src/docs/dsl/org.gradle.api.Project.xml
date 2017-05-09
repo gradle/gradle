@@ -103,6 +103,9 @@
             <tr>
                 <td>resources</td>
             </tr>
+            <tr>
+                <td>normalization</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -226,6 +229,9 @@
             </tr>
             <tr>
                 <td>container</td>
+            </tr>
+            <tr>
+                <td>normalization</td>
             </tr>
         </table>
     </section>

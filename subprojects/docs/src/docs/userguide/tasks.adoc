@@ -802,6 +802,30 @@ You can of course put more complex logic into the closure. You could check wheth
 
 One common mistake is to use `upToDateWhen()` instead of `Task.onlyIf()`. If you want to skip a task on the basis of some condition unrelated to the task inputs and outputs, then you should use `onlyIf()`. For example, in cases where you want to skip a task when a particular property is set or not set.
 
+[[sec:custom_resource_normalization]]
+===== Configure custom resource normalization strategies
+
+For up to date checks and the <<build_cache,build cache>> Gradle needs to determine if two sets of inputs are the same for a task.
+In order to do so, Gradle first normalizes both inputs and then compares the result.
+For example, for a compile classpath, Gradle extracts the ABI signature from the classes on the classpath and then compares signatures between the last Gradle run and the current Gradle run as described in <<sec:java_compile_avoidance>>.
+It is also possible to customize Gradle's built in normalization strategies and provide the information to Gradle what is and what is not considered a difference in inputs.
+
+Currently, customization is only available for runtime classpath inputs. These are all inputs annotated with `@api:org.gradle.api.tasks.Classpath[]`.
+
+Let's say you want to add a file `build-info.properties` to all your produced jar files which contains information about the build, e.g. the timestamp when the build started or the `BUILD_ID` when running on CI.
+This file is only for auditing purposes but has no effect on the outcome of running tests.
+Still, when running the test task the file would be on the classpath and would cause the `test` task to be executed since Gradle detects the change of the timestamp in `build-info.properties` every time the build is run.
+In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the classpath at the project level by using api:org.gradle.api.Project#normalization(org.gradle.api.Action)[]:
+
+++++
+<sample id="runtimeClasspathNormalization" dir="userguide/tasks/resourceNormalization" title="Runtime classpath normalization">
+    <sourcefile file="build.gradle" snippet="ignore-build-info-properties"/>
+</sample>
+++++
+
+The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache,build cache>> key calculations.
+Note that this will not change the runtime behavior of the `Test` task - i.e. any test is still able to load `build-info.properties` and the classpath is still the same as before.
+
 [[sec:stale_task_outputs]]
 ==== Stale task outputs
 
