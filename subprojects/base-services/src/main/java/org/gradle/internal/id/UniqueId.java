@@ -23,22 +23,19 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * A more compact / aesthetically please representation of effectively a UUID.
+ * A more compact / aesthetically pleasing representation of effectively a UUID.
+ * <p>
+ * Values of this type are serialized and deserialized (as strings) across Gradle versions.
+ * The string representation cannot change.
+ *
+ * @since 4.0
  */
-public class UniqueId {
+public final class UniqueId {
 
     private static final BaseEncoding ENCODING = BaseEncoding.base32().lowerCase().omitPadding();
-    private static final Pattern PATTERN = Pattern.compile("[a-z][2-7]{26}");
+    private static final Pattern PATTERN = Pattern.compile("[a-z2-7]{26}");
 
     private final String value;
-
-    private UniqueId(String value) {
-        this.value = value;
-    }
-
-    public String asString() {
-        return value;
-    }
 
     public static UniqueId from(UUID uuid) {
         long msb = uuid.getMostSignificantBits();
@@ -55,7 +52,7 @@ public class UniqueId {
         if (PATTERN.matcher(string).matches()) {
             return new UniqueId(string);
         } else {
-            throw new IllegalArgumentException("Value must be 26 characters long");
+            throw new IllegalArgumentException("Invalid unique ID: " + string);
         }
     }
 
@@ -63,8 +60,35 @@ public class UniqueId {
         return from(UUID.randomUUID());
     }
 
+    private UniqueId(String value) {
+        this.value = value;
+    }
+
+    public String asString() {
+        return value;
+    }
+
     @Override
     public String toString() {
-        return value;
+        return asString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        UniqueId uniqueId = (UniqueId) o;
+
+        return value.equals(uniqueId.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
     }
 }
