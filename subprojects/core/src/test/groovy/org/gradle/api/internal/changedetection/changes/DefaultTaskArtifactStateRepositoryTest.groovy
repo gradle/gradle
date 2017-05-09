@@ -623,7 +623,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         final state = repository.getStateFor(task)
         assert !state.isUpToDate([])
         assert !state.inputChanges.incremental
-        assert state.originBuildId == null
     }
 
     def inputsOutOfDate(TaskInternal task) {
