@@ -20,11 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
+    String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()
+    String buildSrcCacheDir = temporaryFolder.file("buildSrc-cache-dir").createDir().absoluteFile.toURI().toString()
+
     def setup() {
         buildFile << """
             task assertLocalCacheConfigured {
                 doLast {
-                    assert gradle.services.get(BuildCacheConfiguration).local.directory == "expected"
+                    assert gradle.services.get(BuildCacheConfiguration).local.directory == "$cacheDir"
                 }
             }
         """
@@ -34,7 +37,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             buildCache {
                 local(DirectoryBuildCache) {
-                    directory = "expected"
+                    directory = '$cacheDir'
                 }
             }
         """
@@ -47,7 +50,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
                     local(DirectoryBuildCache) {
-                        directory = "expected"
+                        directory = '$cacheDir'
                     }
                 }
             }
@@ -62,7 +65,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
                     local(DirectoryBuildCache) {
-                        directory = "expected"
+                        directory = '$cacheDir'
                     }
                 }
             }
@@ -89,14 +92,14 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
             """
         }
-        settingsFile << configuration("expected")
-        file("buildSrc/settings.gradle") << configuration("buildSrc-expected")
+        settingsFile << configuration(cacheDir)
+        file("buildSrc/settings.gradle") << configuration(buildSrcCacheDir)
         file("buildSrc/build.gradle") << """
             apply plugin: 'groovy'
 
             task assertLocalCacheConfigured {
                 doLast {
-                    assert gradle.services.get(BuildCacheConfiguration).local.directory == "buildSrc-expected"
+                    assert gradle.services.get(BuildCacheConfiguration).local.directory == "$buildSrcCacheDir"
                 }
             }
             
@@ -109,10 +112,27 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "last #cache cache configuration wins"() {
         settingsFile << """
+            import org.gradle.caching.internal.NoOpBuildCacheService
+
             class CustomBuildCache extends AbstractBuildCache {}
             class AnotherBuildCache extends AbstractBuildCache {}
+
+            class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
+                    new NoOpBuildCacheService() 
+                }
+            }
+
+            class AnotherBuildCacheFactory implements BuildCacheServiceFactory<AnotherBuildCache> {
+                @Override BuildCacheService createBuildCacheService(AnotherBuildCache configuration, Describer describer) { 
+                    new NoOpBuildCacheService() 
+                }
+            }
             
             buildCache {
+                registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
+                registerBuildCacheService(AnotherBuildCache, AnotherBuildCacheFactory)
+
                 $cache(CustomBuildCache)
                 $cache(AnotherBuildCache)
             }
@@ -128,9 +148,18 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     def "disables remote cache with --offline"() {
         settingsFile << """
+            import org.gradle.caching.internal.NoOpBuildCacheService
             class CustomBuildCache extends AbstractBuildCache {}
             
+            class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
+                    new NoOpBuildCacheService() 
+                }
+            }
+            
             buildCache {
+                registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
+                
                 remote(CustomBuildCache)
             }            
         """
@@ -177,7 +206,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             buildCache {
                 local(DirectoryBuildCache) {
-                    directory = "local-cache"
+                    directory = '$cacheDir'
                     enabled = false
                 }
             }
