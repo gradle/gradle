@@ -143,7 +143,7 @@ You can increase or decrease the size of the local build cache by configuring yo
         }
     }
 
-This is a _target_ size for the build cache. Gradle will periodically check if the local build cache has grown too large and trim it to below the target size. The oldest build cache entries will be deleted first.
+This is a _target_ size for the build cache. Gradle will periodically check if the local build cache has grown too large and trim it to below the target size. The least recently used build cache entries will be deleted first.
 
 ### Parallel download of dependencies
 
