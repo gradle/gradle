@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.id.UniqueId;
@@ -145,12 +146,16 @@ public class TaskStateInternal implements TaskState {
      * If task was UP_TO_DATE, this will convey the ID of the build that produced the outputs being reused.
      *
      * Value will be {@code null} for any other outcome.
+     * @since 4.0
      */
     public UniqueId getOriginBuildId() {
         return originBuildId;
     }
 
-    public void setOriginBuildId(UniqueId originBuildId) {
+    /**
+     * @since 4.0
+     */
+    public void setOriginBuildId(@Nullable UniqueId originBuildId) {
         this.originBuildId = originBuildId;
     }
 }

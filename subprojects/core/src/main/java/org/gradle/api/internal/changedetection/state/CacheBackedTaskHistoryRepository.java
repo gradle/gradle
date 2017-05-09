@@ -48,7 +48,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Note: use of {@link BuildIds} requires this implementation to be build scoped, or more granular.
+ */
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
+
     private static final int MAX_HISTORY_ENTRIES = 3;
 
     private final FileSnapshotRepository snapshotRepository;

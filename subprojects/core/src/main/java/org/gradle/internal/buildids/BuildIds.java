@@ -18,6 +18,11 @@ package org.gradle.internal.buildids;
 
 import org.gradle.internal.id.UniqueId;
 
+/**
+ * IDs for the current build.
+ *
+ * @since 4.0
+ */
 public class BuildIds {
 
     private final UniqueId buildId;
@@ -26,6 +31,12 @@ public class BuildIds {
         this.buildId = buildId;
     }
 
+    /**
+     * An ID for the current build invocation/execution.
+     *
+     * All nested builds in the same invocation share the same ID.
+     * Each execution that is part of a continuous build is assigned a new ID.
+     */
     public UniqueId getBuildId() {
         return buildId;
     }

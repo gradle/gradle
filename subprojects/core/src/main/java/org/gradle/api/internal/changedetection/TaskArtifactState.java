@@ -66,6 +66,14 @@ public interface TaskArtifactState {
      */
     TaskExecutionHistory getExecutionHistory();
 
+    /**
+     * The ID of the build that created the outputs that might be reused.
+     * Null if there are no previous executions, or outputs must not be reused (e.g. --rerun-tasks).
+     * Never null if {@link #isUpToDate(Collection)} returns true.
+     *
+     * TODO: should this move to getExecutionHistory()?
+     * @since 4.0
+     */
     @Nullable
     UniqueId getOriginBuildId();
 }
