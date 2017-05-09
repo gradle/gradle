@@ -96,8 +96,8 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
             if (event instanceof ProgressStartEvent && completeEventOperationIds.contains(((ProgressStartEvent) event).getProgressOperationId())) {
                 operationIdsToSkip.add(((ProgressStartEvent) event).getProgressOperationId());
                 listener.onOutput(event);
-            } else if ((event instanceof ProgressCompleteEvent && operationIdsToSkip.contains(((ProgressCompleteEvent) event).getProgressOperationId())) ||
-                (event instanceof ProgressEvent && operationIdsToSkip.contains(((ProgressEvent) event).getProgressOperationId()))) {
+            } else if ((event instanceof ProgressCompleteEvent && operationIdsToSkip.contains(((ProgressCompleteEvent) event).getProgressOperationId()))
+                || (event instanceof ProgressEvent && operationIdsToSkip.contains(((ProgressEvent) event).getProgressOperationId()))) {
                 listener.onOutput(event);
             } else {
                 onOutput(event);
