@@ -15,8 +15,14 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.UncheckedException;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,15 +30,24 @@ import java.util.concurrent.ConcurrentMap;
 
 public class RelevantMethods {
     private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<Class<?>, RelevantMethods>();
+    private static final ServiceMethodFactory SERVICE_METHOD_FACTORY = new DefaultServiceMethodFactory();
 
-    final List<Method> decorators;
-    final List<Method> factories;
-    final List<Method> configurers;
+    final List<ServiceMethod> decorators;
+    final List<ServiceMethod> factories;
+    final List<ServiceMethod> configurers;
 
     RelevantMethods(List<Method> decorators, List<Method> factories, List<Method> configurers) {
-        this.decorators = decorators;
-        this.factories = factories;
-        this.configurers = configurers;
+        this.decorators = toServiceMethodList(decorators);
+        this.factories = toServiceMethodList(factories);
+        this.configurers = toServiceMethodList(configurers);
+    }
+
+    private static List<ServiceMethod> toServiceMethodList(List<Method> methods) {
+        List<ServiceMethod> result = new ArrayList<ServiceMethod>(methods.size());
+        for (Method method : methods) {
+            result.add(SERVICE_METHOD_FACTORY.toServiceMethod(method));
+        }
+        return result;
     }
 
     public static RelevantMethods getMethods(Class<?> type) {
