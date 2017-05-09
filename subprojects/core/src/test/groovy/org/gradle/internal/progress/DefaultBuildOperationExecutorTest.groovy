@@ -18,9 +18,6 @@ package org.gradle.internal.progress
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
-import org.gradle.internal.logging.events.OperationIdentifier
-import org.gradle.internal.logging.progress.ProgressLogger
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationQueueFactory
 import org.gradle.internal.operations.CallableBuildOperation
@@ -33,7 +30,7 @@ import static org.gradle.internal.progress.BuildOperationDescriptor.displayName
 class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def listener = Mock(BuildOperationListener)
     def timeProvider = Mock(TimeProvider)
-    def progressLoggerFactory = Mock(ProgressLoggerFactory)
+    def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
     def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), 1)
 
     def "fires events when operation starts and finishes successfully"() {
@@ -42,7 +39,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         and:
         def buildOperation = Mock(CallableBuildOperation)
-        def progressLogger = Mock(ProgressLogger)
+        def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
         def details = Mock(BuildOperationDetails)
         def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").details(details)
         def id
@@ -67,10 +64,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         then:
-        1 * progressLoggerFactory.newOperation(_, _ as OperationIdentifier) >> progressLogger
-        1 * progressLogger.setDescription("<some-operation>")
-        1 * progressLogger.setShortDescription("<some-op>")
-        1 * progressLogger.started()
+        1 * progressLoggerFactory.newOperation(_ as Class, _ as BuildOperationDescriptor) >> progressLogger
+        1 * progressLogger.start("<some-operation>", "<some-op>")
 
         then:
         1 * buildOperation.call(_) >> "result"
@@ -103,7 +98,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         def buildOperation = Mock(RunnableBuildOperation)
         def operationDescriptionBuilder = displayName("<some-operation>").progressDisplayName("<some-op>")
         def failure = new RuntimeException()
-        def progressLogger = Mock(ProgressLogger)
+        def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
         def id
 
         when:
@@ -125,10 +120,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         then:
-        1 * progressLoggerFactory.newOperation(_, _ as OperationIdentifier) >> progressLogger
-        1 * progressLogger.setDescription("<some-operation>")
-        1 * progressLogger.setShortDescription("<some-op>")
-        1 * progressLogger.started()
+        1 * progressLoggerFactory.newOperation(_ as Class, _ as BuildOperationDescriptor) >> progressLogger
+        1 * progressLogger.start("<some-operation>", "<some-op>")
 
         then:
         1 * buildOperation.run(_) >> { throw failure }
@@ -161,6 +154,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         operationExecutor.run(buildOperation)
 
         then:
+        1 * progressLoggerFactory.newOperation(_ as Class, _ as BuildOperationDescriptor) >> Spy(NoOpProgressLoggerFactory.Logger)
         1 * buildOperation.run(_) >> { BuildOperationContext context -> context.failed(failure) }
 
         then:
@@ -193,17 +187,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         cleanup:
         GradleThread.setUnmanaged()
-    }
-
-    def "does not generate progress logging when operation has no progress display name"() {
-        def buildOperation = Spy(TestRunnableBuildOperation)
-
-        when:
-        operationExecutor.run(buildOperation)
-
-        then:
-        1 * buildOperation.run(_)
-        0 * progressLoggerFactory._
     }
 
     def "multiple threads can run independent operations concurrently"() {

@@ -17,10 +17,12 @@
 package org.gradle.internal.logging.progress;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.progress.BuildOperationType;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GUtil;
 
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
     private final TimeProvider timeProvider;
-    private final AtomicLong nextId = new AtomicLong(-1);
+    private final AtomicLong nextId = new AtomicLong(ROOT_PROGRESS_OPERATION_ID);
     private final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
 
     public DefaultProgressLoggerFactory(ProgressListener progressListener, TimeProvider timeProvider) {
@@ -41,34 +43,30 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         return newOperation(loggerCategory.getName());
     }
 
-    public ProgressLogger newOperation(Class loggerCategory, Object operationIdentifier) {
-        return newOperation(loggerCategory.getName());
+    public ProgressLogger newOperation(Class loggerCategory, @Nullable BuildOperationDescriptor buildOperationDescriptor) {
+        return init(loggerCategory.getName(), null, buildOperationDescriptor);
     }
 
     public ProgressLogger newOperation(String loggerCategory) {
         return init(loggerCategory, null, null);
     }
 
-    public ProgressLogger newOperation(String loggerCategory, Object buildOperationId) {
-        return init(loggerCategory, null, buildOperationId);
-    }
-
     public ProgressLogger newOperation(Class loggerClass, ProgressLogger parent) {
         return init(loggerClass.toString(), parent, null);
     }
 
-    private ProgressLogger init(String loggerCategory, @Nullable ProgressLogger parentOperation, @Nullable Object buildOperationId) {
+    private ProgressLogger init(String loggerCategory, @Nullable ProgressLogger parentOperation, @Nullable BuildOperationDescriptor buildOperationDescriptor) {
         if (parentOperation != null && !(parentOperation instanceof ProgressLoggerImpl)) {
             throw new IllegalArgumentException("Unexpected parent logger.");
         }
-        return new ProgressLoggerImpl((ProgressLoggerImpl) parentOperation, new OperationIdentifier(nextId.getAndIncrement()), loggerCategory, progressListener, timeProvider, buildOperationId);
+        return new ProgressLoggerImpl((ProgressLoggerImpl) parentOperation, new OperationIdentifier(nextId.getAndIncrement()), loggerCategory, progressListener, timeProvider, buildOperationDescriptor);
     }
 
     private enum State { idle, started, completed }
 
     private class ProgressLoggerImpl implements ProgressLogger {
         private final OperationIdentifier progressOperationId;
-        private final Object buildOperationId;
+        private final BuildOperationDescriptor buildOperationDescriptor;
         private final String category;
         private final ProgressListener listener;
         private final TimeProvider timeProvider;
@@ -78,13 +76,13 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private String loggingHeader;
         private State state = State.idle;
 
-        public ProgressLoggerImpl(ProgressLoggerImpl parent, OperationIdentifier progressOperationId, String category, ProgressListener listener, TimeProvider timeProvider, @Nullable Object buildOperationId) {
+        public ProgressLoggerImpl(ProgressLoggerImpl parent, OperationIdentifier progressOperationId, String category, ProgressListener listener, TimeProvider timeProvider, @Nullable BuildOperationDescriptor buildOperationDescriptor) {
             this.parent = parent;
             this.progressOperationId = progressOperationId;
             this.category = category;
             this.listener = listener;
             this.timeProvider = timeProvider;
-            this.buildOperationId = buildOperationId;
+            this.buildOperationDescriptor = buildOperationDescriptor;
         }
 
         @Override
@@ -145,7 +143,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 parent.assertRunning();
             }
             current.set(this);
-            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status), buildOperationId));
+            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status), getBuildOperationId(), getParentBuildOperationId(), getBuildOperationType()));
         }
 
         public void progress(String status) {
@@ -190,6 +188,18 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             if (state != State.idle) {
                 throw new IllegalStateException(String.format("Cannot configure this operation (%s) once it has started.", this));
             }
+        }
+
+        private Object getBuildOperationId() {
+            return buildOperationDescriptor == null ? null : buildOperationDescriptor.getId();
+        }
+
+        private Object getParentBuildOperationId() {
+            return buildOperationDescriptor == null ? null : buildOperationDescriptor.getParentId();
+        }
+
+        private BuildOperationType getBuildOperationType() {
+            return buildOperationDescriptor == null ? BuildOperationType.UNCATEGORIZED : buildOperationDescriptor.getOperationType();
         }
     }
 }

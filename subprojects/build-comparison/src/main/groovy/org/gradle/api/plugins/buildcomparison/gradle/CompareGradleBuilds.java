@@ -283,7 +283,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         } else {
             String message = String.format("The build outcomes were not found to be identical. See the report at: %s", reportUrl);
             if (getIgnoreFailures()) {
-                getLogger().warn(message);
+                getLogger().lifecycle(message);
             } else {
                 throw new GradleException(message);
             }

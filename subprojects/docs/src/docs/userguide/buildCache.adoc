@@ -69,7 +69,7 @@ Let us start with a project using the Java plugin which has a few Java source fi
 ----
 $> gradle --build-cache compileJava
 Build cache is an incubating feature.
-Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
+Using local directory build cache (location = /home/user/.gradle/caches/build-cache-1), push is enabled.
 :compileJava
 :processResources
 :classes
@@ -92,7 +92,7 @@ BUILD SUCCESSFUL
 ----
 $> gradle --build-cache assemble
 Build cache is an incubating feature.
-Using directory (/home/user/.gradle/caches/build-cache-1) as local build cache, push is enabled.
+Using local directory build cache (location = /home/user/.gradle/caches/build-cache-1), push is enabled.
 :compileJava FROM-CACHE
 :processResources
 :classes
@@ -274,6 +274,7 @@ Gradle pushes build outputs to any build cache that is enabled and has api:org.g
 By default, the local build cache has push enabled, and the remote build cache has push disabled.
 
 The local build cache is pre-configured to be a api:org.gradle.caching.local.DirectoryBuildCache[] and enabled by default.
+The `DirectoryBuildCache` will periodically clean-up the local cache directory to keep it under a configurable target size.
 The remote build cache can be configured by specifying the type of build cache to connect to (api:org.gradle.caching.configuration.BuildCacheConfiguration#remote(java.lang.Class)[]).
 
 Gradle supports connecting to a remote build cache backend via HTTP. This can be configured in `settings.gradle`.

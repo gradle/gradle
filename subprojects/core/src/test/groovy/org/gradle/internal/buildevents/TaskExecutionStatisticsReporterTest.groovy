@@ -50,7 +50,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         reporter.buildFinished(new TaskExecutionStatistics(1, 0))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}1 actionable task: 1 executed, 0 avoided (0%)\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{WARN}1 actionable task: 1 executed, 0 avoided (0%)\n"
     }
 
     def "reports statistics with rounded percentages"() {
@@ -58,6 +58,6 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         reporter.buildFinished(new TaskExecutionStatistics(2, 1))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}3 actionable tasks: 2 executed, 1 avoided (33%)\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{WARN}3 actionable tasks: 2 executed, 1 avoided (33%)\n"
     }
 }

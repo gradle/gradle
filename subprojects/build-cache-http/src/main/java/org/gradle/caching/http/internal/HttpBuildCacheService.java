@@ -188,11 +188,6 @@ public class HttpBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public String getDescription() {
-        return "HTTP build cache (" + safeUri + ")";
-    }
-
-    @Override
     public void close() throws IOException {
         httpClientHelper.close();
     }

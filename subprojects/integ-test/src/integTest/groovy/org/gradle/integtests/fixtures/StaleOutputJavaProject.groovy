@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import com.google.common.io.Files
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.cleanup.DefaultBuildOutputDeleter
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
@@ -111,10 +112,6 @@ class StaleOutputJavaProject {
         "$buildDirName/classes/java/main"
     }
 
-    String getClassesDirCleanupMessage(String path) {
-        createCleanupMessage(prependRootDirName(path))
-    }
-
     String getCompileTaskPath() {
         "${projectPath}:compileJava"
     }
@@ -132,17 +129,12 @@ class StaleOutputJavaProject {
         result.assertTaskSkipped(getJarTaskPath())
     }
 
-    void assertDoesNotHaveCleanupMessage(ExecutionResult result, String path=defaultOutputDir()) {
-        assert !result.output.contains(getClassesDirCleanupMessage(path))
+    void assertDoesNotHaveCleanupMessage(ExecutionResult result) {
+        assert !result.output.contains(DefaultBuildOutputDeleter.STALE_OUTPUT_MESSAGE)
     }
 
-    void assertHasCleanupMessage(ExecutionResult result, String path=defaultOutputDir()) {
-        result.assertOutputContains("Gradle is removing stale outputs from a previous version of Gradle, for more information about stale outputs see ")
-        result.assertOutputContains(getClassesDirCleanupMessage(path))
-    }
-
-    private String createCleanupMessage(String path) {
-        "Deleting directory '${new File(testDir, path)}'"
+    void assertHasCleanupMessage(ExecutionResult result) {
+        result.assertOutputContains(DefaultBuildOutputDeleter.STALE_OUTPUT_MESSAGE)
     }
 
     boolean assertJarHasDescendants(String... relativePaths) {

@@ -300,7 +300,7 @@ project.description = text
             file("build$idx/build.gradle") << """
 System.out.println 'this is stdout: $idx'
 System.err.println 'this is stderr: $idx'
-logger.lifecycle 'this is lifecycle: $idx'
+logger.warn 'this is warn: $idx'
 """
         }
 
@@ -318,9 +318,9 @@ logger.lifecycle 'this is lifecycle: $idx'
                     assert operation.standardError.contains("this is stderr: $idx")
                     assert operation.standardError.count("this is stderr") == 1
 
-                    assert operation.standardOutput.contains("this is lifecycle: $idx")
-                    assert operation.standardOutput.count("this is lifecycle") == 1
-                    assert operation.standardError.count("this is lifecycle") == 0
+                    assert operation.standardOutput.contains("this is warn: $idx")
+                    assert operation.standardOutput.count("this is warn") == 1
+                    assert operation.standardError.count("this is warn") == 0
                 }
             }
         }
@@ -335,7 +335,7 @@ logger.lifecycle 'this is lifecycle: $idx'
             file("build$idx/build.gradle") << """
 System.out.println 'this is stdout: $idx'
 System.err.println 'this is stderr: $idx'
-logger.lifecycle 'this is lifecycle: $idx'
+logger.warn 'this is warn: $idx'
 """
         }
 
@@ -353,9 +353,9 @@ logger.lifecycle 'this is lifecycle: $idx'
                     assert operation.standardError.contains("this is stderr: $idx")
                     assert operation.standardError.count("this is stderr") == 1
 
-                    assert operation.standardOutput.contains("this is lifecycle: $idx")
-                    assert operation.standardOutput.count("this is lifecycle") == 1
-                    assert operation.standardError.count("this is lifecycle") == 0
+                    assert operation.standardOutput.contains("this is warn: $idx")
+                    assert operation.standardOutput.count("this is warn") == 1
+                    assert operation.standardError.count("this is warn") == 0
                 }
             }
         }

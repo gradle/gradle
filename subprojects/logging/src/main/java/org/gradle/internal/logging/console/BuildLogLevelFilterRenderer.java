@@ -17,11 +17,12 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 
-public class BuildLogLevelFilterRenderer implements OutputEventListener {
+public class BuildLogLevelFilterRenderer extends BatchOutputEventListener {
     private final OutputEventListener listener;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 

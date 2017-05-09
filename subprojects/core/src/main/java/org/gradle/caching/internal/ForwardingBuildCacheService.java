@@ -41,11 +41,6 @@ public abstract class ForwardingBuildCacheService extends ForwardingObject imple
     }
 
     @Override
-    public String getDescription() {
-        return delegate().getDescription();
-    }
-
-    @Override
     public void close() throws IOException {
         delegate().close();
     }

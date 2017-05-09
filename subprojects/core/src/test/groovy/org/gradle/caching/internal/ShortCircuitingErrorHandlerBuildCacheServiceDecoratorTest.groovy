@@ -63,11 +63,6 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Specific
         1 * delegate.close()
 
         when:
-        decorator.getDescription()
-        then:
-        1 * delegate.getDescription()
-
-        when:
         decorator.store(key, writer)
         then:
         1 * delegate.store(key, writer)
