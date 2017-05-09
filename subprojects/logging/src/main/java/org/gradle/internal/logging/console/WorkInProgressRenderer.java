@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.internal.logging.console.BuildStatusRenderer.BUILD_PROGRESS_CATEGORY;
+
 public class WorkInProgressRenderer extends BatchOutputEventListener {
     private final OutputEventListener listener;
     private final ProgressOperations operations = new ProgressOperations();
@@ -89,7 +91,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
 
     @Override
     public void onOutput(Iterable<OutputEvent> events) {
-        Set<OperationIdentifier> completeEventOperationIds = toOperationIdSet(toProgressCompleteEvents(events));
+        Set<OperationIdentifier> completeEventOperationIds = toOperationIdSet(Iterables.filter(events, ProgressCompleteEvent.class));
         Set<OperationIdentifier> operationIdsToSkip = new HashSet<OperationIdentifier>();
 
         for (OutputEvent event : events) {
@@ -104,11 +106,6 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
             }
         }
         renderNow();
-    }
-
-    // Filters the events for ProgressCompleteEvent only.
-    private Iterable<ProgressCompleteEvent> toProgressCompleteEvents(Iterable<OutputEvent> events) {
-        return Iterables.filter(events, ProgressCompleteEvent.class);
     }
 
     // Transform ProgressCompleteEvent into their corresponding progress OperationIdentifier.
@@ -229,7 +226,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     // Any ProgressOperation in the parent chain has a message, the operation is considered renderable.
     private boolean isRenderable(ProgressOperation operation) {
         for (ProgressOperation current = operation;
-             current != null && !"org.gradle.internal.progress.BuildProgressLogger".equals(current.getCategory());
+             current != null && !BUILD_PROGRESS_CATEGORY.equals(current.getCategory());
              current = current.getParent()) {
             if (current.getMessage() != null) {
                 return true;

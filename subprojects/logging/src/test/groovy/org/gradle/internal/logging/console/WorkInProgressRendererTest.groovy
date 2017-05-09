@@ -42,7 +42,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         progressArea.display == ["> :bar", IDLE, IDLE, IDLE]
     }
 
-    def "events are forwarded to the listener even if are ignored"() {
+    def "events are forwarded to the listener even if are not rendered"() {
         given:
         def startEvent = start(1, ":foo")
         def completeEvent = complete(1)
