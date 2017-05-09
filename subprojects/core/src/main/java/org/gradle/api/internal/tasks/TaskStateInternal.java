@@ -141,6 +141,11 @@ public class TaskStateInternal implements TaskState {
         this.actionable = actionable;
     }
 
+    /**
+     * If task was UP_TO_DATE, this will convey the ID of the build that produced the outputs being reused.
+     *
+     * Value will be {@code null} for any other outcome.
+     */
     public UniqueId getOriginBuildId() {
         return originBuildId;
     }
