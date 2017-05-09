@@ -80,24 +80,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private static final ConcurrentMap<Type, BiFunction<ServiceProvider, LookupContext, Provider>> SERVICE_TYPE_PROVIDER_CACHE = new ConcurrentHashMap<Type, BiFunction<ServiceProvider, LookupContext, Provider>>();
     private final Map<Type, ServiceProvider> providerCache = new IdentityHashMap<Type, ServiceProvider>();
 
-    private final static Object lookup = createLookup();
-
-
-    /**
-     * This method is intentionally weakly typed, so that we don't depend on JDK 7+ types.
-     */
-    static Object getLookup() {
-        return lookup;
-    }
-
-    private static Object createLookup() {
-        try {
-            return Class.forName("java.lang.invoke.MethodHandles").getDeclaredMethod("lookup").invoke(null);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     private final Object lock = new Object();
     private final OwnServices ownServices;
     private final Provider allServices;

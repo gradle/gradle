@@ -16,14 +16,18 @@
 package org.gradle.internal.service;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 class MethodHandleBasedServiceMethodFactory implements ServiceMethodFactory {
     @Override
     public ServiceMethod toServiceMethod(Method method) {
-        try {
-            return new MethodHandleBasedServiceMethod(method);
-        } catch (IllegalAccessException ex) {
-            return new ReflectionBasedServiceMethod(method);
+        if (Modifier.isPublic(method.getModifiers()) && Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
+            try {
+                return new MethodHandleBasedServiceMethod(method);
+            } catch (IllegalAccessException ex) {
+                return new ReflectionBasedServiceMethod(method);
+            }
         }
+        return new ReflectionBasedServiceMethod(method);
     }
 }
