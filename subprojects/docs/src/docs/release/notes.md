@@ -147,7 +147,7 @@ This is a _target_ size for the build cache. Gradle will periodically check if t
 
 ### Parallel download of dependencies
 
-Gradle will now download dependencies from remote repositories in parallel. It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
+Gradle will now download dependencies from remote repositories in parallel (both metadata and artifacts). It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
 
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
