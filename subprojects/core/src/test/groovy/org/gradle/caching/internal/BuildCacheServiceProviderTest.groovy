@@ -81,7 +81,7 @@ class BuildCacheServiceProviderTest extends Specification {
         with(buildOpResult()) {
             local.type == "directory"
             local.className == DirectoryBuildCache.name
-            remote == null
+            !remote.enabled
         }
     }
 
@@ -95,7 +95,7 @@ class BuildCacheServiceProviderTest extends Specification {
         then:
         c.role == "remote"
         with(buildOpResult()) {
-            local == null
+            !local.enabled
             remote.type == "remote"
             remote.className == TestRemoteBuildCache.name
         }
@@ -120,7 +120,7 @@ class BuildCacheServiceProviderTest extends Specification {
         expect:
         create(NoOpBuildCacheService)
         with(buildOpResult()) {
-            local == null
+            !local.enabled
             remote == null
         }
     }
@@ -132,7 +132,10 @@ class BuildCacheServiceProviderTest extends Specification {
     static class TestRemoteBuildCacheServiceFactory implements BuildCacheServiceFactory<TestRemoteBuildCache> {
         @Override
         BuildCacheService createBuildCacheService(TestRemoteBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
-            describer.type("remote").config("value", configuration.value)
+            def chain = describer.type("remote")
+            if (configuration.value != null) {
+                chain.config("value", configuration.value)
+            }
             new NoOpBuildCacheService()
         }
     }
@@ -140,7 +143,11 @@ class BuildCacheServiceProviderTest extends Specification {
     static class TestDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
         @Override
         BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
-            describer.type("directory").config("location", configuration.directory?.toString())
+            def chain = describer.type("directory")
+            if (configuration.directory != null) {
+               chain.config("location", configuration.directory.toString())
+            }
+
             new NoOpBuildCacheService()
         }
     }
