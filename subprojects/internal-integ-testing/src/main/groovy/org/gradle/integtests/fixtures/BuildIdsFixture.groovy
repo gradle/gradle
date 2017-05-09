@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
 import org.gradle.integtests.tooling.fixture.TextUtil
@@ -29,6 +30,7 @@ import org.gradle.test.fixtures.file.TestFile
 class BuildIdsFixture extends UserInitScriptExecuterFixture {
 
     private final List<UniqueId> ids = []
+    private final List<List<String>> buildPaths = []
 
     BuildIdsFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
         super(executer, testDir)
@@ -42,8 +44,20 @@ class BuildIdsFixture extends UserInitScriptExecuterFixture {
         new ArrayList<UniqueId>(ids)
     }
 
-    private TestFile getFile() {
+    List<List<String>> getBuildPaths() {
+        new ArrayList<List<String>>(buildPaths)
+    }
+
+    List<String> lastBuildPaths() {
+        getBuildPaths().last()
+    }
+
+    private TestFile getBuildIdFile() {
         testDir.testDirectory.file("buildId.txt")
+    }
+
+    private TestFile getBuildPathsFile() {
+        testDir.testDirectory.file("buildPaths.json")
     }
 
     @Override
@@ -51,18 +65,35 @@ class BuildIdsFixture extends UserInitScriptExecuterFixture {
         """
             if (gradle.parent == null) {
                 gradle.rootProject {
-                    it.file("${TextUtil.normaliseFileSeparators(file.absolutePath)}").text = gradle.buildIds.buildId
-                }            
+                    it.file("${TextUtil.normaliseFileSeparators(buildIdFile.absolutePath)}").text = gradle.buildIds.buildId
+                }        
+                
+                def buildPaths = Collections.synchronizedList([])
+                gradle.ext.buildPaths = buildPaths
+                gradle.buildFinished {
+                    gradle.rootProject.file("${org.gradle.util.TextUtil.normaliseFileSeparators(buildPathsFile.absolutePath)}").text = groovy.json.JsonOutput.toJson(buildPaths)
+                }
             } else {
                 assert gradle.buildIds.buildId == gradle.parent.buildIds.buildId
-            }   
+            }
+
+            gradle.rootProject {
+                def rootGradle = gradle
+                while (rootGradle.parent != null) {
+                    rootGradle = rootGradle.parent
+                }           
+                rootGradle.ext.buildPaths << gradle.identityPath.toString()
+            }
         """
     }
 
     @Override
     void afterBuild() {
-        ids << UniqueId.from(file.text)
+        ids << UniqueId.from(buildIdFile.text)
         assert ids.unique() == ids
+
+        def paths = new JsonSlurper().parse(buildPathsFile) as List<String>
+        buildPaths << paths.sort()
     }
 
 }
