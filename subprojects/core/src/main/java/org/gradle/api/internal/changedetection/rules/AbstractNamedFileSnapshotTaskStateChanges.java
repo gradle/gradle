@@ -28,7 +28,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
+import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategies;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
@@ -45,16 +45,16 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     private final FileCollectionSnapshotterRegistry snapshotterRegistry;
     protected final TaskExecution previous;
     protected final TaskExecution current;
-    private final ResourceNormalizationHandler normalizationHandler;
+    private final ResourceNormalizationStrategies normalizationStrategies;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, ResourceNormalizationHandler normalizationHandler) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, ResourceNormalizationStrategies normalizationStrategies) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;
         this.snapshotterRegistry = snapshotterRegistry;
         this.title = title;
         this.fileProperties = fileProperties;
-        this.normalizationHandler = normalizationHandler;
+        this.normalizationStrategies = normalizationStrategies;
         this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties);
     }
 
@@ -88,7 +88,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
             FileCollectionSnapshot result;
             try {
                 FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getSnapshotNormalizationStrategy(), normalizationHandler);
+                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getSnapshotNormalizationStrategy(), normalizationStrategies);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
             }

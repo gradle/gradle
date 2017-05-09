@@ -54,8 +54,8 @@ import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.resources.normalization.internal.DefaultResourceNormalizationHandler;
-import org.gradle.api.resources.normalization.internal.DefaultRuntimeClasspathNormalizationStrategy;
-import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationStrategyInternal;
+import org.gradle.api.resources.normalization.internal.DefaultRuntimeClasspathNormalization;
+import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -226,11 +226,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         }
     }
 
-    protected RuntimeClasspathNormalizationStrategyInternal createRuntimeClasspathNormalizationStrategy(Instantiator instantiator) {
-        return instantiator.newInstance(DefaultRuntimeClasspathNormalizationStrategy.class);
+    protected RuntimeClasspathNormalizationInternal createRuntimeClasspathNormalizationStrategy(Instantiator instantiator) {
+        return instantiator.newInstance(DefaultRuntimeClasspathNormalization.class);
     }
 
-    protected ResourceNormalizationHandler createResourceNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationStrategyInternal runtimeClasspathNormalizationStrategy) {
+    protected ResourceNormalizationHandler createResourceNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
         return instantiator.newInstance(DefaultResourceNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
     }
 }

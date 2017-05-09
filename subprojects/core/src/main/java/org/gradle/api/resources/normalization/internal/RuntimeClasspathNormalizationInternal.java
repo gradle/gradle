@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization;
+package org.gradle.api.resources.normalization.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.resources.normalization.RuntimeClasspathNormalization;
 
-/**
- * Strategy for normalizing resources.
- *
- * Normalization strategies are used when Gradle tries to determine if two resources are different.
- * Gradle then normalizes both resources and the resources are different iff the normalizations are different.
- *
- * @since 4.0
- */
-@Incubating
-public interface ResourceNormalizationStrategy {}
+public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
+    RuntimeClasspathNormalizationStrategy buildFinalStrategy();
+}

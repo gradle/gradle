@@ -17,23 +17,35 @@
 package org.gradle.api.resources.normalization.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
-import org.gradle.api.resources.normalization.RuntimeClasspathNormalizationStrategy;
+import org.gradle.api.GradleException;
+import org.gradle.api.resources.normalization.RuntimeClasspathNormalization;
 
-public class DefaultResourceNormalizationHandler implements ResourceNormalizationHandler {
-    private final RuntimeClasspathNormalizationStrategyInternal runtimeClasspathNormalizationStrategy;
+public class DefaultResourceNormalizationHandler implements ResourceNormalizationHandlerInternal {
+    private final RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy;
+    private ResourceNormalizationStrategies finalStrategies;
 
-    public DefaultResourceNormalizationHandler(RuntimeClasspathNormalizationStrategyInternal runtimeClasspathNormalizationStrategy) {
+    public DefaultResourceNormalizationHandler(RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
         this.runtimeClasspathNormalizationStrategy = runtimeClasspathNormalizationStrategy;
     }
 
     @Override
-    public RuntimeClasspathNormalizationStrategy getRuntimeClasspath() {
+    public RuntimeClasspathNormalization getRuntimeClasspath() {
         return runtimeClasspathNormalizationStrategy;
     }
 
     @Override
-    public void runtimeClasspath(Action<? super RuntimeClasspathNormalizationStrategy> configuration) {
+    public synchronized void runtimeClasspath(Action<? super RuntimeClasspathNormalization> configuration) {
+        if (finalStrategies != null) {
+            throw new GradleException("Cannot configure resource normalization after execution started.");
+        }
         configuration.execute(getRuntimeClasspath());
+    }
+
+    @Override
+    public synchronized ResourceNormalizationStrategies buildFinalStrategies() {
+        if (finalStrategies == null) {
+            finalStrategies = new ResourceNormalizationStrategies(runtimeClasspathNormalizationStrategy.buildFinalStrategy());
+        }
+        return finalStrategies;
     }
 }

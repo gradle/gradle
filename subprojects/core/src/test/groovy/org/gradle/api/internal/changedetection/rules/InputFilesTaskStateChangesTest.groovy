@@ -21,13 +21,13 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler
+import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategies
 import spock.lang.Issue
 import spock.lang.Subject
 
 @Subject(InputFilesTaskStateChanges)
 class InputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
-    def normalizationHandler = Mock(ResourceNormalizationHandler)
+    def normalizationStrategies = ResourceNormalizationStrategies.NOT_CONFIGURED
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
@@ -37,7 +37,7 @@ class InputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
         def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new InputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, mockInputFileSnapshotterRegistry, normalizationHandler)
+        new InputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, mockInputFileSnapshotterRegistry, normalizationStrategies)
 
         then:
         1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter

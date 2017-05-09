@@ -21,8 +21,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultFileHasher
-import org.gradle.api.resources.normalization.internal.DefaultResourceNormalizationHandler
-import org.gradle.api.resources.normalization.internal.DefaultRuntimeClasspathNormalizationStrategy
+import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategies
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -206,7 +205,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
 
     def snapshot(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputsGenerated()
-        def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, null, new DefaultResourceNormalizationHandler(new DefaultRuntimeClasspathNormalizationStrategy()))
+        def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, null, ResourceNormalizationStrategies.NOT_CONFIGURED)
         return fileCollectionSnapshot.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
             [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.snapshot.toString()]
         }

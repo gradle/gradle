@@ -16,33 +16,28 @@
 
 package org.gradle.api.resources.normalization.internal;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 
 import java.util.Set;
 
-public class DefaultRuntimeClasspathNormalizationStrategy implements RuntimeClasspathNormalizationStrategyInternal {
+public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNormalizationInternal {
     private final Set<String> ignores = Sets.newHashSet();
-    private ImmutableSet<String> finalizedIgnores;
+    private RuntimeClasspathNormalizationStrategy finalizedStrategy;
 
     @Override
     public synchronized void ignore(String pattern) {
-        if (finalizedIgnores != null) {
+        if (finalizedStrategy != null) {
             throw new GradleException("Cannot configure runtime classpath normalization after execution started.");
         }
         ignores.add(pattern);
     }
 
-    private synchronized void finalizeConfiguration() {
-        if (finalizedIgnores == null) {
-            finalizedIgnores = ImmutableSet.copyOf(ignores);
-        }
-    }
-
     @Override
-    public ImmutableSet<String> getIgnores() {
-        finalizeConfiguration();
-        return finalizedIgnores;
+    public synchronized RuntimeClasspathNormalizationStrategy buildFinalStrategy() {
+        if (finalizedStrategy == null) {
+            finalizedStrategy = new RuntimeClasspathNormalizationStrategy(ignores);
+        }
+        return finalizedStrategy;
     }
 }

@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization;
+package org.gradle.api.resources.normalization.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Collection;
 
 /**
- * Configuration for the normalization strategy for the runtime classpath.
- *
- * @since 4.0
+ * Normalization strategy for the runtime classpath.
  */
-@Incubating
-@HasInternalProtocol
-public interface RuntimeClasspathNormalizationStrategy extends ResourceNormalizationStrategy {
-    /**
-     * Ignore resources in classpath entries matching the pattern.
-     */
-    void ignore(String pattern);
+public class RuntimeClasspathNormalizationStrategy {
+    private final ImmutableSet<String> ignores;
+
+    public RuntimeClasspathNormalizationStrategy(Collection<String> ignores) {
+        this.ignores = ImmutableSet.copyOf(ignores);
+    }
+
+    public ImmutableSet<String> getIgnores() {
+        return ignores;
+    }
 }

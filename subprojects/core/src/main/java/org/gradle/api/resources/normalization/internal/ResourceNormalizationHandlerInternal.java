@@ -16,9 +16,8 @@
 
 package org.gradle.api.resources.normalization.internal;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.resources.normalization.RuntimeClasspathNormalizationStrategy;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 
-public interface RuntimeClasspathNormalizationStrategyInternal extends RuntimeClasspathNormalizationStrategy {
-    ImmutableSet<String> getIgnores();
+public interface ResourceNormalizationHandlerInternal extends ResourceNormalizationHandler {
+    ResourceNormalizationStrategies buildFinalStrategies();
 }
