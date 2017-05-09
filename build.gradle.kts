@@ -120,7 +120,6 @@ val fixturesRuntime by configurations.creating {
 val fixturesSourceSet = sourceSets.create("fixtures") {
     compileClasspath += mainSourceSet.output
     runtimeClasspath += mainSourceSet.output
-    java.srcDirs()
     (this as HasConvention).convention.getPlugin<KotlinSourceSet>().apply {
         kotlin.srcDirs("src/fixtures/kotlin")
     }
