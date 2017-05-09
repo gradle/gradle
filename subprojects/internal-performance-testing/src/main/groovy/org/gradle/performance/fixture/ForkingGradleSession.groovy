@@ -74,7 +74,7 @@ class ForkingGradleSession implements GradleSession {
             args << "cmd.exe" << "/C"
         }
         args << new File(invocation.gradleDistribution.gradleHomeDir, "bin/gradle").absolutePath
-        args << "--gradle-user-home" << new File(invocationInfo.projectDir, "gradle-user-home").absolutePath
+        args << "--gradle-user-home" << invocationInfo.gradleUserHome.absolutePath
         args << "--no-search-upward"
         args << "--stacktrace"
         if (invocation.useDaemon) {
@@ -92,21 +92,17 @@ class ForkingGradleSession implements GradleSession {
 
         def exitCode = run.start().waitFor()
         if (exitCode != 0 && !invocation.expectFailure) {
-            throw new IllegalStateException("Build failed, see ${getBuildLog(invocationInfo)} for details")
+            throw new IllegalStateException("Build failed, see ${invocationInfo.buildLog} for details")
         }
     }
 
-    private ProcessBuilder newProcessBuilder(BuildExperimentInvocationInfo invocationInfo, List<String> args, Map<String, String> env) {
+    private static ProcessBuilder newProcessBuilder(BuildExperimentInvocationInfo invocationInfo, List<String> args, Map<String, String> env) {
         def builder = new ProcessBuilder()
             .directory(invocationInfo.projectDir)
-            .redirectOutput(Redirect.appendTo(getBuildLog(invocationInfo)))
-            .redirectError(Redirect.appendTo(getBuildLog(invocationInfo)))
+            .redirectOutput(Redirect.appendTo(invocationInfo.buildLog))
+            .redirectError(Redirect.appendTo(invocationInfo.buildLog))
             .command(args)
         builder.environment().putAll(env)
         builder
-    }
-
-    private File getBuildLog(BuildExperimentInvocationInfo invocationInfo) {
-        new File(invocationInfo.projectDir, "log.txt")
     }
 }

@@ -52,14 +52,14 @@ class TestTaskRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
                 testCompile "junit:junit:4.12"
             }
 
-            sourceSets.test.output.classesDir = file("build/classes/test")
+            sourceSets.test.java.outputDir = file("build/classes/test")
         """
     }
 
     @Override
     protected void moveFilesAround() {
         buildFile << """
-            sourceSets.test.output.classesDir = file("build/test-classes")
+            sourceSets.test.java.outputDir = file("build/test-classes")
         """
         file("build/classes/test").assertIsDir().deleteDir()
     }

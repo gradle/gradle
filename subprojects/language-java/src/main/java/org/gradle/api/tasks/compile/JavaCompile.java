@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
 import org.gradle.api.internal.tasks.JavaHomeBasedJavaToolChain;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -82,6 +83,10 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();
     private JavaToolChain toolChain;
+
+    public JavaCompile() {
+        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+    }
 
     /**
      * {@inheritDoc}

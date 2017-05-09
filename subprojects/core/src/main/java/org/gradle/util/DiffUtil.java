@@ -77,7 +77,7 @@ public class DiffUtil {
         // There is a slight risk that two versions of the same enum class are compared,
         // (that's why classloaders are used in equality checks), but checking both name
         // and ordinal should make this very unlikely.
-        return e1.getClass().getCanonicalName().equals(e2.getClass().getCanonicalName())
+        return e1.getDeclaringClass().getCanonicalName().equals(e2.getDeclaringClass().getCanonicalName())
             && e1.ordinal() == e2.ordinal()
             && e1.name().equals(e2.name());
     }

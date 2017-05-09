@@ -83,6 +83,7 @@ class GradleRunnerMiscEndUserIntegationTest extends BaseTestKitEndUserIntegratio
         """
 
         then:
+        executer.withArguments('-w')
         fails 'build'
         failure.output.contains "Could not find a Gradle installation to use based on the location of the GradleRunner class: $testKitJar.canonicalPath. Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar."
     }
@@ -114,6 +115,7 @@ class GradleRunnerMiscEndUserIntegationTest extends BaseTestKitEndUserIntegratio
         }
 
         then:
+        executer.withArguments('-w')
         succeeds 'test'
 
         testClassNames.each { testClassName ->

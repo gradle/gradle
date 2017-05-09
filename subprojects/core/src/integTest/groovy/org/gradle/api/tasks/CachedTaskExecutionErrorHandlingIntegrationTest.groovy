@@ -17,27 +17,30 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def setup() {
         settingsFile << """
             class FailingBuildCache extends AbstractBuildCache {
                 boolean shouldFail
+                boolean recoverable = true
             }
             
             class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory<FailingBuildCache> {
-                FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration) {
-                    return new FailingBuildCacheService(configuration.shouldFail)
+                FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration, Describer describer) {
+                    return new FailingBuildCacheService(configuration.shouldFail, configuration.recoverable)
                 }
             }
             
             class FailingBuildCacheService implements BuildCacheService {
                 boolean shouldFail
+                boolean recoverable
                 
-                FailingBuildCacheService(boolean shouldFail) {
+                FailingBuildCacheService(boolean shouldFail, boolean recoverable) {
                     this.shouldFail = shouldFail
+                    this.recoverable = recoverable
                 }
                 
                 @Override
@@ -52,13 +55,11 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
                     if (shouldFail) {
-                        throw new BuildCacheException("Unable to write " + key)
+                        if (recoverable) {
+                            throw new BuildCacheException("Unable to write " + key)
+                        }
+                        throw new RuntimeException("Failure while packing")
                     }
-                }
-    
-                @Override
-                String getDescription() {
-                    return "Failing cache backend"
                 }
     
                 @Override
@@ -75,6 +76,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                 
                 remote(FailingBuildCache) {
                     shouldFail = gradle.startParameter.systemPropertiesArgs.containsKey("fail")
+                    recoverable = gradle.startParameter.systemPropertiesArgs.containsKey("recoverable")
                     push = true
                 }
             }
@@ -105,30 +107,47 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             // there are errors.
             assemble.dependsOn customTask, anotherCustomTask
         """
-    }
 
-    def "cache switches off after third error for the current build"() {
         // We require a distribution here so that we can capture
         // the output produced after the build has finished
         executer.requireGradleDistribution()
         executer.withBuildCacheEnabled()
         executer.withStackTraceChecksDisabled()
+    }
 
+    def "cache switches off after third recoverable error for the current build"() {
         when:
-        succeeds "assemble", "-Dfail"
+        succeeds "assemble", "-Dfail", "-Drecoverable"
         then:
         output.count("Could not load entry") == 2
         output.count("Could not store entry") == 1
-        output.count("The remote build cache is now disabled because 3 errors were encountered") == 1
-        output.count("The remote build cache was disabled during the build after encountering 3 errors.") == 1
-
-        expect:
-        succeeds "clean"
+        output.count("The remote build cache is now disabled because 3 recoverable errors were encountered.") == 1
+        output.count("The remote build cache was disabled during the build because 3 recoverable errors were encountered.") == 1
 
         when:
-        succeeds "assemble"
-        then:
+        succeeds "clean", "assemble"
+
+        then: "build cache is still enabled during next build"
         !output.contains("The remote build cache is now disabled")
         !output.contains("The remote build cache was disabled during the build")
+        skippedTasks.empty
+    }
+
+    def "cache switches off after first non-recoverable error for the current build"() {
+        when:
+        succeeds "assemble", "-Dfail"
+        then:
+        output.count("Could not load entry") == 1
+        output.count("Failure while packing") == 1
+        output.count("The remote build cache is now disabled because a non-recoverable error was encountered.") == 1
+        output.count("The remote build cache was disabled during the build because a non-recoverable error was encountered.") == 1
+
+        when:
+        succeeds "clean", "assemble"
+
+        then: "build cache is still enabled during next build"
+        !output.contains("The remote build cache is now disabled")
+        !output.contains("The remote build cache was disabled during the build")
+        skippedTasks.empty
     }
 }

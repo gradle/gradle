@@ -144,14 +144,6 @@ public class JacocoPluginExtension {
                 }
             }
         });
-
-        // Do not cache the Test task if we are appending to the Jacoco output
-        taskInternal.getOutputs().doNotCacheIf("Jacoco agent configured with `append = true`", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return extension.isAppend();
-            }
-        });
     }
 
     /**

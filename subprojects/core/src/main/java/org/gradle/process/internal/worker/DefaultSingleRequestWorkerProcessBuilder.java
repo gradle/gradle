@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
@@ -113,7 +114,8 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
                     connection.addIncoming(ResponseProtocol.class, receiver);
                     connection.useJavaSerializationForParameters(workerImplementation.getClassLoader());
                     connection.connect();
-                    requestProtocol.runThenStop(method.getName(), method.getParameterTypes(), args);
+                    // TODO(ew): inject BuildOperationIdentifierRegistry instead of static use
+                    requestProtocol.runThenStop(method.getName(), method.getParameterTypes(), args, BuildOperationIdentifierRegistry.getCurrentOperationIdentifier());
                     boolean hasResult = receiver.awaitNextResult();
                     workerProcess.waitForStop();
                     if (!hasResult) {

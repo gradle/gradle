@@ -241,7 +241,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             executedAndNotSkipped ':external:fooJar'
             notExecuted ':external:barJar'
         } else {
-            failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'")
+            failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+            failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'")
         }
 
         when:
@@ -256,7 +257,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             executedAndNotSkipped ':external:barJar'
             notExecuted ':external:fooJar'
         } else {
-            failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:_compileFreeRelease'")
+            failure.assertHasDescription("Could not determine the dependencies of task ':a:checkRelease'.")
+            failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeRelease'")
         }
 
         where:

@@ -23,7 +23,7 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             class TestBuildCache extends AbstractBuildCache {}
             class TestBuildCacheServiceFactory implements BuildCacheServiceFactory<TestBuildCache> {
-                TestBuildCacheService createBuildCacheService(TestBuildCache configuration) {
+                TestBuildCacheService createBuildCacheService(TestBuildCache configuration, Describer describer) {
                     return new TestBuildCacheService(configuration)
                 }
             }
@@ -38,11 +38,6 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
     
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-                }
-    
-                @Override
-                String getDescription() {
-                    return "Test cache backend"
                 }
     
                 @Override

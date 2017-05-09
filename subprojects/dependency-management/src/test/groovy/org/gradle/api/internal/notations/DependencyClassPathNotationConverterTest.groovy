@@ -26,7 +26,7 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -46,7 +46,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
     def classPathRegistry = Mock(ClassPathRegistry)
     def fileResolver = TestFiles.resolver()
     def cache = Mock(GeneratedGradleJarCache)
-    def progressLoggerFactory = Mock(ProgressLoggerFactory)
+    def progressLoggerFactory = new NoOpProgressLoggerFactory()
     def shadedJarFactory = Mock(RuntimeShadedJarFactory)
     def gradleInstallation = Mock(CurrentGradleInstallation)
     def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, shadedJarFactory, gradleInstallation)

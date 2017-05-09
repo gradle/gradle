@@ -380,7 +380,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
-                    assert lazyInputs.files.parentFile*.name == ['${expectedDirName}']
+                    assert CollectionUtils.single(lazyInputs.files).toPath().endsWith('${expectedDirName}')
                 }
             }
         """
@@ -398,9 +398,9 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":b:$notExec"
 
         where:
-        scenario              | token                 | expectedDirName | executed           | notExec
-        'class directory'     | 'CLASS_DIRECTORY'     | 'classes'       | 'compileJava'      | 'processResources'
-        'resources directory' | 'RESOURCES_DIRECTORY' | 'resources'     | 'processResources' | 'compileJava'
+        scenario              | token                 | expectedDirName     | executed           | notExec
+        'class directory'     | 'CLASS_DIRECTORY'     | 'classes/java/main' | 'compileJava'      | 'processResources'
+        'resources directory' | 'RESOURCES_DIRECTORY' | 'resources/main'    | 'processResources' | 'compileJava'
     }
 
     private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {

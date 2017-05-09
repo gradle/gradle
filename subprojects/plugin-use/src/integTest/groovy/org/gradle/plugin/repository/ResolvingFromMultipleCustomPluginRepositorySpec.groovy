@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -62,7 +61,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
     private def publishPlugin(String pluginId, Repository repository) {
         def pluginBuilder = new PluginBuilder(testDirectory.file(pluginId + repository.hashCode()))
-        def idSegments = Splitter.on('.').split(pluginId);
+        def idSegments = Splitter.on('.').split(pluginId)
         def coordinates = [idSegments.dropRight(1).join('.'), idSegments.last(), "1.0"].join(':')
 
         def message = "from ${idSegments.last()} fetched from ${repository.uri}/"
@@ -203,7 +202,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
-    @Ignore("Must fix for 4.0")
     @Requires(TestPrecondition.ONLINE)
     def "Can opt-in to plugin portal"() {
         given:

@@ -60,6 +60,20 @@ public class Path implements Comparable<Path> {
         return getPath();
     }
 
+    /**
+     * Appends the supplied path to this path, returning the new path.
+     * It makes no difference if the appended path is absolute or relative.
+     */
+    public Path append(Path path) {
+        if (path.segments.length == 0) {
+            return this;
+        }
+        String[] concat = new String[segments.length + path.segments.length];
+        System.arraycopy(segments, 0, concat, 0, segments.length);
+        System.arraycopy(path.segments, 0, concat, segments.length, path.segments.length);
+        return new Path(concat, absolute);
+    }
+
     public String getPath() {
         if (fullPath == null) {
             fullPath = createFullPath();
@@ -179,10 +193,7 @@ public class Path implements Comparable<Path> {
         if (path.absolute) {
             return path;
         }
-        String[] concat = new String[segments.length + path.segments.length];
-        System.arraycopy(segments, 0, concat, 0, segments.length);
-        System.arraycopy(path.segments, 0, concat, segments.length, path.segments.length);
-        return new Path(concat, absolute);
+        return append(path);
     }
 
     /**

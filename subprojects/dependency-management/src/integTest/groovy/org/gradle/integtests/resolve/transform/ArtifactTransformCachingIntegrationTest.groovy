@@ -17,9 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -675,6 +673,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -769,13 +773,18 @@ allprojects {
         output.count("Transforming") == 0
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "transform is supplied with a different output directory when input file content changed by a task during the build"() {
         given:
         buildFile << """
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -830,15 +839,17 @@ allprojects {
                 dependencies {
                     compile project(':lib')
                 }
-                tasks.resolve.mustRunAfter(':lib:src2')
             }
 
             project(':app') {
                 dependencies {
                     compile project(':util')
                 }
-                tasks.resolve.mustRunAfter(':lib:src1')
             }
+            
+            project(':app').tasks.resolve.mustRunAfter(':lib:src1')
+            project(':lib').tasks.src2.mustRunAfter(':app:resolve')
+            project(':util').tasks.resolve.mustRunAfter(':lib:src2')
         """
 
         when:
@@ -862,6 +873,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -970,6 +987,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -1066,6 +1089,12 @@ allprojects {
             allprojects {
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer) { params(value) }
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer) { params(value) }
                     }
@@ -1165,6 +1194,7 @@ allprojects {
                 }
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }

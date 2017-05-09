@@ -17,45 +17,55 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.TrueTimeProvider;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class CyclicBarrierRequestHandler extends TrackingHttpHandler {
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
+    private final TimeProvider timeProvider = new TrueTimeProvider();
+    private final Lock lock;
+    private final Condition condition;
     private final List<String> received = new ArrayList<String>();
     private final Map<String, ResourceHandler> pending;
+    private final int timeoutMs;
+    private long mostRecentEvent;
     private AssertionError failure;
 
-    CyclicBarrierRequestHandler(Collection<? extends ResourceHandler> expectedCalls) {
-        pending = new HashMap<String, ResourceHandler>();
+    CyclicBarrierRequestHandler(Lock lock, int timeoutMs, Collection<? extends ResourceHandler> expectedCalls) {
+        this.lock = lock;
+        condition = lock.newCondition();
+        this.timeoutMs = timeoutMs;
+        pending = new TreeMap<String, ResourceHandler>();
         for (ResourceHandler call : expectedCalls) {
             pending.put(call.getPath(), call);
         }
     }
 
     @Override
-    public boolean handle(int id, HttpExchange httpExchange) throws Exception {
-        Date expiry = new Date(new TrueTimeProvider().getCurrentTime() + 30000);
+    public ResourceHandler handle(int id, HttpExchange httpExchange) throws Exception {
         ResourceHandler handler;
         lock.lock();
         try {
             if (pending.isEmpty()) {
                 // barrier open, let it travel on
-                return false;
+                return null;
             }
             if (failure != null) {
                 // Busted
                 throw failure;
+            }
+
+            long now = timeProvider.getCurrentTimeForDuration();
+            if (mostRecentEvent < now) {
+                mostRecentEvent = now;
             }
 
             String path = httpExchange.getRequestURI().getPath().substring(1);
@@ -72,16 +82,20 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
             }
 
             while (!pending.isEmpty() && failure == null) {
-                System.out.println(String.format("[%d] waiting for other requests", id));
-                if (!condition.awaitUntil(expiry)) {
-                    failure = new AssertionError(String.format("Timeout waiting for other concurrent requests to be received. Waiting for %s, received %s.", pending.keySet(), received));
+                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
+                if (waitMs < 0) {
+                    System.out.println(String.format("[%d] timeout waiting for other requests", id));
+                    failure = new AssertionError(String.format("Timeout waiting for expected requests to be received. Still waiting for %s, received %s.", pending.keySet(), received));
                     condition.signalAll();
                     throw failure;
                 }
+                System.out.println(String.format("[%d] waiting for other requests. Still waiting for %s", id, pending.keySet()));
+                condition.await(waitMs, TimeUnit.MILLISECONDS);
             }
 
             if (failure != null) {
                 // Failed in another thread
+                System.out.println(String.format("[%d] failure in another thread", id));
                 throw failure;
             }
         } finally {
@@ -89,13 +103,20 @@ class CyclicBarrierRequestHandler extends TrackingHttpHandler {
         }
 
         // All requests completed, write response
-        handler.writeTo(httpExchange);
-        return true;
+        return handler;
     }
 
     public void assertComplete() {
-        if (!pending.isEmpty()) {
-            throw new AssertionError(String.format("Did not receive expected concurrent requests. Waiting for %s, received %s", pending.keySet(), received));
+        lock.lock();
+        try {
+            if (failure != null) {
+                throw failure;
+            }
+            if (!pending.isEmpty()) {
+                throw new AssertionError(String.format("Did not receive expected requests. Waiting for %s, received %s", pending.keySet(), received));
+            }
+        } finally {
+            lock.unlock();
         }
     }
 }

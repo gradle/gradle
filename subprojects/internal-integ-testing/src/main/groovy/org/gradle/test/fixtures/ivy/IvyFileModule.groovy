@@ -83,7 +83,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     /**
      * Adds an additional artifact to this module.
-     * @param options Can specify any of name, type, ext or classifier
+     * @param options Can specify any of name, type, ext, classifier, conf
      * @return this
      */
     IvyFileModule artifact(Map<String, ?> options = [:]) {

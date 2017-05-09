@@ -90,9 +90,10 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             Timer totalTimer = Timers.startTimer();
             final Timer taskTimer = Timers.startTimer();
 
+            WorkerLease childLease = parentWorkerLease.createChild();
             boolean moreTasksToExecute = true;
             while (moreTasksToExecute) {
-                moreTasksToExecute = taskExecutionPlan.executeWithTask(parentWorkerLease, new Action<TaskInfo>() {
+                moreTasksToExecute = taskExecutionPlan.executeWithTask(childLease, new Action<TaskInfo>() {
                     @Override
                     public void execute(TaskInfo task) {
                         final String taskPath = task.getTask().getPath();

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
@@ -48,7 +47,6 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
             public void update(TaskInternal task, Callable<Object> futureValue) {
                 ((TaskInputFilePropertyBuilderInternal) task.getInputs().files(futureValue))
                     .withPropertyName(context.getName())
-                    .withSnapshotNormalizationStrategy(ClasspathSnapshotNormalizationStrategy.INSTANCE)
                     .withSnapshotter(getSnapshotterType())
                     .optional(context.isOptional());
             }

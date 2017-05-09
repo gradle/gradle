@@ -59,13 +59,13 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
         new TestFile(project.file("src/custom/java/File.java")) << "foo"
-        new TestFile(project.file("src/custom/resouces/resource.txt")) << "foo"
+        new TestFile(project.file("src/custom/resources/resource.txt")) << "foo"
 
         then:
         SourceSet set = project.sourceSets.custom
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
-        set.output.classesDir == new File(project.buildDir, 'classes/custom')
+        set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
         set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
 
         def processResources = project.tasks['processCustomResources']
@@ -81,7 +81,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
-        compileJava.destinationDir == new File(project.buildDir, 'classes/custom')
+        compileJava.destinationDir == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
         sources.files == project.sourceSets.custom.java.files
@@ -102,7 +102,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         SourceSet set = project.sourceSets.main
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
-        set.output.classesDir == new File(project.buildDir, 'classes/main')
+        set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
 
         def processResources = project.tasks.processResources

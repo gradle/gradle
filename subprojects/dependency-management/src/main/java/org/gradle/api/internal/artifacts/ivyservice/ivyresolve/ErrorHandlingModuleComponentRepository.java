@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -127,6 +128,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             } catch (Throwable throwable) {
                 result.failed(new ArtifactResolveException(artifact.getId(), throwable));
             }
+        }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
     }
 }

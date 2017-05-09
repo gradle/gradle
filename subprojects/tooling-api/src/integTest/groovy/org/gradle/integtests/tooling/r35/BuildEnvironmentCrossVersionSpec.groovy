@@ -22,11 +22,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
-import spock.lang.Ignore
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
-    @Ignore("Must fix for 4.0")
     @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
     def "provide setEnvironmentVariables on LongRunningOperation"() {
@@ -41,7 +39,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
             }"""
 
         when:
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
             connection.newBuild().setEnvironmentVariables(["var": "val"]).setStandardOutput(out).forTasks('printEnv').run()
         }

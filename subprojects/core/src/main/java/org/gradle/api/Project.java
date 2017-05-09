@@ -39,6 +39,7 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
@@ -257,6 +258,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The build directory. Never returns null.
      */
     File getBuildDir();
+
+    /**
+     * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
+     * generated into.</p>
+     *
+     * @param path The build directory
+     * @since 4.0
+     */
+    void setBuildDir(File path);
 
     /**
      * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
@@ -1669,4 +1679,20 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     SoftwareComponentContainer getComponents();
+
+    /**
+     * Provides access to configuring resource normalization.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    ResourceNormalizationHandler getNormalization();
+
+    /**
+     * Configures resource normalization.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    void normalization(Action<? super ResourceNormalizationHandler> configuration);
 }

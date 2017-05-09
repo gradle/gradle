@@ -34,10 +34,10 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.testing.internal.util.Specification
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.util.Matchers.normalizedLineSeparators
 
@@ -109,6 +109,22 @@ class AbstractIntegrationSpec extends Specification {
             return path[0] as TestFile
         }
         getTestDirectory().file(path);
+    }
+
+    TestFile javaClassFile(String fqcn) {
+        classFile("java", "main", fqcn)
+    }
+
+    TestFile groovyClassFile(String fqcn) {
+        classFile("groovy", "main", fqcn)
+    }
+
+    TestFile scalaClassFile(String fqcn) {
+        classFile("scala", "main", fqcn)
+    }
+
+    TestFile classFile(String language, String sourceSet, String fqcn) {
+        file("build/classes/", language, sourceSet, fqcn)
     }
 
     protected GradleExecuter sample(Sample sample) {

@@ -16,13 +16,12 @@
 
 package org.gradle.groovy.compile
 
-import groovy.transform.NotYetImplemented
 import org.gradle.AbstractCachedCompileIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
     String compilationTask = ':compileGroovy'
-    String compiledFile = "build/classes/main/Hello.class"
+    String compiledFile = "build/classes/groovy/main/Hello.class"
 
     @Override
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
@@ -84,7 +83,6 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         compileIsNotCached()
     }
 
-    @NotYetImplemented
     def "joint Java and Groovy compilation can be cached"() {
         given:
         buildScript """
@@ -114,8 +112,8 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
             }
         """
         file('src/main/groovy/UsesJava.groovy').makeOlder()
-        def compiledJavaClass = file('build/classes/main/RequiredByGroovy.class')
-        def compiledGroovyClass = file('build/classes/main/UsesJava.class')
+        def compiledJavaClass = javaClassFile('RequiredByGroovy.class')
+        def compiledGroovyClass = groovyClassFile('UsesJava.class')
 
         when:
         withBuildCache().succeeds ':compileJava', ':compileGroovy'

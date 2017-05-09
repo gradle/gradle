@@ -19,14 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.api.internal.artifacts.TestBuildOperationQueue
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.Describables
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class ArtifactBackedResolvedVariantTest extends Specification {
     def variant = Mock(AttributeContainerInternal)
-    def queue = new TestBuildOperationQueue()
+    def queue = new TestBuildOperationExecutor.TestBuildOperationQueue()
     def artifact1 = Mock(TestArtifact)
     def artifact2 = Mock(TestArtifact)
 
@@ -118,6 +119,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     def "collects build dependencies"() {
+        def visitor = Mock(BuildDependenciesVisitor)
         def deps1 = Stub(TaskDependency)
         def deps2 = Stub(TaskDependency)
         def set1 = of([artifact1, artifact2])
@@ -128,22 +130,23 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         artifact2.buildDependencies >> deps2
 
         when:
-        def buildDeps = []
-        set1.artifacts.collectBuildDependencies(buildDeps)
+        set1.artifacts.collectBuildDependencies(visitor)
 
         then:
-        buildDeps == [deps1, deps2]
+        1 * visitor.visitDependency(deps1)
+        1 * visitor.visitDependency(deps2)
+        0 * visitor._
 
         when:
-        buildDeps = []
-        set2.artifacts.collectBuildDependencies(buildDeps)
+        set2.artifacts.collectBuildDependencies(visitor)
 
         then:
-        buildDeps == [deps1]
+        1 * visitor.visitDependency(deps1)
+        0 * visitor._
     }
 
     ResolvedVariant of(artifacts) {
-        return ArtifactBackedResolvedVariant.create(variant, artifacts)
+        return ArtifactBackedResolvedVariant.create(Describables.of("<variant>"), variant, artifacts)
     }
 
     interface TestArtifact extends ResolvedArtifact, Buildable { }

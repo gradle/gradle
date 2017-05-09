@@ -69,7 +69,6 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
             invocationCount = runs
             projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
                 tasksToRun(equivalentMavenTasks.split(' ')).mavenOpts(jvmOpts.collect {it.toString()}).args(mvnArgs.collect {it.toString()})
-                    .args('-q', '-Dsurefire.printSummary=false')
             }
         }
         super.run()

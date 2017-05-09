@@ -81,7 +81,7 @@ jar.dependsOn postCompile
         cancelsAndExits()
 
         when:
-        def classloader = new URLClassLoader([file("build/classes/main").toURI().toURL()] as URL[])
+        def classloader = new URLClassLoader([javaClassFile("").toURI().toURL()] as URL[])
 
         then:
         assert classloader.loadClass('Thing').getDeclaredFields()*.name == ["CHANGED"]

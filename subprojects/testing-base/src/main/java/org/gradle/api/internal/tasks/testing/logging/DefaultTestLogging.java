@@ -40,6 +40,11 @@ public class DefaultTestLogging implements TestLogging {
     }
 
     @Override
+    public void setEvents(Set<TestLogEvent> events) {
+        this.events = EnumSet.copyOf(events);
+    }
+
+    @Override
     public void setEvents(Iterable<?> events) {
         this.events = toEnumSet(TestLogEvent.class, events);
     }
@@ -115,6 +120,11 @@ public class DefaultTestLogging implements TestLogging {
     }
 
     @Override
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        setExceptionFormat((Object) exceptionFormat);
+    }
+
+    @Override
     public void setExceptionFormat(Object exceptionFormat) {
         this.exceptionFormat = toEnum(TestExceptionFormat.class, exceptionFormat);
     }
@@ -122,6 +132,11 @@ public class DefaultTestLogging implements TestLogging {
     @Override
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return stackTraceFilters;
+    }
+
+    @Override
+    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraceFilters) {
+        this.stackTraceFilters = EnumSet.copyOf(stackTraceFilters);
     }
 
     @Override

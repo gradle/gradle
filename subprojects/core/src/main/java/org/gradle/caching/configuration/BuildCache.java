@@ -18,6 +18,7 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.Incubating;
 
+
 /**
  * Configuration object for a build cache.
  *
@@ -25,6 +26,7 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface BuildCache {
+
     /**
      * Returns whether the build cache is enabled.
      */

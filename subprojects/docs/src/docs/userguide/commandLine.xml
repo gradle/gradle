@@ -137,6 +137,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term>
+                <option>-l</option>, <option>--lifecycle</option>
+            </term>
+            <listitem>
+                <para>Set log level to lifecycle. See <xref linkend="logging"/></para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-m</option>, <option>--dry-run</option>
             </term>
             <listitem>
@@ -268,7 +276,8 @@
             <term><option>--scan (incubating)</option>
             </term>
             <listitem>
-                <para>Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. For more information about build scans, please visit <ulink url="https://gradle.com/scans">https://gradle.com/scans</ulink>.
+                <para>Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. For more information about build scans, please visit <ulink
+                    url="https://gradle.com/build-scans">https://gradle.com/build-scans</ulink>.
                 </para>
             </listitem>
         </varlistentry>
@@ -276,7 +285,7 @@
             <term><option>--no-scan (incubating)</option>
             </term>
             <listitem>
-                <para>Disables the creation of a build scan. For more information about build scans, please visit <ulink url="https://gradle.com/scans">https://gradle.com/scans</ulink>.
+                <para>Disables the creation of a build scan. For more information about build scans, please visit <ulink url="https://gradle.com/build-scans">https://gradle.com/build-scans</ulink>.
                 </para>
             </listitem>
         </varlistentry>

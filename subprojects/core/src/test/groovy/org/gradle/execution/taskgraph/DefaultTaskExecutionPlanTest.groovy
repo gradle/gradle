@@ -42,18 +42,27 @@ import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
 
-public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
+class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
     def cancellationHandler = Mock(BuildCancellationToken)
     def workerLeaseService = Mock(WorkerLeaseService)
     def coordinationService = Mock(ResourceLockCoordinationService)
-    def parentWorkerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory);
         executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
+        _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
+            _ * isLocked() >> false
+            _ * tryLock() >> true
+        }
+        _ * workerLease.tryLock() >> true
+        _ * coordinationService.withStateLock(_) >> { args ->
+            args[0].transform(Mock(ResourceLockState))
+            return true
+        }
     }
 
     def "schedules tasks in dependency order"() {
@@ -793,6 +802,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(b)
+        filtered(a)
     }
 
     def "does not build graph for or execute filtered dependencies"() {
@@ -811,6 +821,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(b, c)
+        filtered(a)
     }
 
     @Unroll
@@ -830,6 +841,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(b, c)
+        filtered(a)
 
         where:
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
@@ -850,6 +862,7 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(c)
+        filtered(b)
     }
 
     private void addToGraphAndPopulate(List tasks) {
@@ -868,21 +881,15 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         assert expectedTasks == expectedTasks as List
     }
 
+    void filtered(Task... expectedTasks) {
+        assert executionPlan.filteredTasks == expectedTasks as Set
+    }
+
     def getExecutedTasks() {
         def tasks = []
-        _ * parentWorkerLease.createChild() >> Mock(WorkerLeaseRegistry.WorkerLease) {
-            _ * tryLock() >> true
-        }
-        _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
-            _ * tryLock() >> true
-        }
-        _ * coordinationService.withStateLock(_) >> { args ->
-            args[0].transform(Mock(ResourceLockState))
-            return true
-        }
         def moreTasks = true
         while (moreTasks) {
-            moreTasks = executionPlan.executeWithTask(parentWorkerLease, new Action<TaskInfo>() {
+            moreTasks = executionPlan.executeWithTask(workerLease, new Action<TaskInfo>() {
                 @Override
                 void execute(TaskInfo taskInfo) {
                     tasks << taskInfo.task

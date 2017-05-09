@@ -87,17 +87,18 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -165,7 +166,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final DefaultTestFilter filter;
 
     private TestExecuter testExecuter;
-    private File testClassesDir;
+    private FileCollection testClassesDirs;
     private File binResultsDir;
     private PatternFilterable patternSet;
     private boolean ignoreFailures;
@@ -241,7 +242,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     @Inject
-    protected BuildOperationProcessor getBuildOperationProcessor() {
+    protected BuildOperationExecutor getBuildOperationExecutor() {
         throw new UnsupportedOperationException();
     }
 
@@ -289,6 +290,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
+    public void setWorkingDir(File dir) {
+        forkOptions.setWorkingDir(dir);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setWorkingDir(Object dir) {
         forkOptions.setWorkingDir(dir);
     }
@@ -328,6 +337,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public Test executable(Object executable) {
         forkOptions.executable(executable);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExecutable(String executable) {
+        forkOptions.setExecutable(executable);
     }
 
     /**
@@ -457,6 +474,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
+    public void setJvmArgs(List<String> arguments) {
+        forkOptions.setJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setJvmArgs(Iterable<?> arguments) {
         forkOptions.setJvmArgs(arguments);
     }
@@ -518,6 +543,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Override
     public List<String> getAllJvmArgs() {
         return forkOptions.getAllJvmArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setAllJvmArgs(List<String> arguments) {
+        forkOptions.setAllJvmArgs(arguments);
     }
 
     /**
@@ -641,7 +674,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationProcessor());
+                testReporter = new DefaultTestReport(getBuildOperationExecutor());
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
@@ -649,7 +682,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                         ? TestOutputAssociation.WITH_TESTCASE
                         : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationProcessor(), getInetAddressFactory().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 
@@ -866,7 +899,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Internal
     public File getTestClassesDir() {
-        return testClassesDir;
+        SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
+        if (testClassesDirs==null || testClassesDirs.isEmpty()) {
+            return null;
+        }
+        return getProject().file(CollectionUtils.first(testClassesDirs));
     }
 
     /**
@@ -875,7 +912,27 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testClassesDir The root folder
      */
     public void setTestClassesDir(File testClassesDir) {
-        this.testClassesDir = testClassesDir;
+        SingleMessageLogger.nagUserOfReplacedMethod("setTestClassesDir(File)", "setTestClassesDirs(FileCollection)");
+        setTestClassesDirs(getProject().files(testClassesDir));
+    }
+
+    /**
+     * Returns the directories for the compiled test sources.
+     *
+     * @return All test class directories to be used.
+     */
+    @Internal
+    public FileCollection getTestClassesDirs() {
+        return testClassesDirs;
+    }
+
+    /**
+     * Sets the directories to scan for compiled test sources.
+     *
+     * @param testClassesDirs All test class directories to be used.
+     */
+    public void setTestClassesDirs(FileCollection testClassesDirs) {
+        this.testClassesDirs = testClassesDirs;
     }
 
     /**
@@ -1159,7 +1216,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileTree getCandidateClassFiles() {
-        return getProject().fileTree(getTestClassesDir()).matching(patternSet);
+        return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
 
     /**

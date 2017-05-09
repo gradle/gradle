@@ -95,8 +95,8 @@ class ThingSpec {
 
         expect:
         succeeds 'test'
-        new ClassFile(file("build/classes/main/Thing.class")).javaVersion == javaVersion
-        new ClassFile(file("build/classes/main/GroovyThing.class")).javaVersion == javaVersion
-        new ClassFile(file("build/classes/test/ThingSpec.class")).javaVersion == javaVersion
+        new ClassFile(groovyClassFile("Thing.class")).javaVersion == javaVersion
+        new ClassFile(groovyClassFile("GroovyThing.class")).javaVersion == javaVersion
+        new ClassFile(classFile("groovy", "test", "ThingSpec.class")).javaVersion == javaVersion
     }
 }

@@ -177,6 +177,14 @@ class IdeaModuleFixture {
     class ImlModule extends ImlDependency {
         String scope
         String moduleName
+
+        @Override
+        String toString() {
+            return "ImlModule {" +
+                "name='" + moduleName + '\'' +
+                ", scope='" + scope + '\'' +
+                '}';
+        }
     }
 
     class ImlLibrary extends ImlDependency {

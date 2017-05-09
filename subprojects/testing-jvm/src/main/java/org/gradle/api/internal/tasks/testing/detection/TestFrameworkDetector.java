@@ -25,7 +25,7 @@ public interface TestFrameworkDetector {
 
     boolean processTestClass(File testClassFile);
 
-    void setTestClassesDirectory(File testClassesDir);
+    void setTestClasses(Set<File> testClasses);
 
     void setTestClasspath(Set<File> classpath);
 }

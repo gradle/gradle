@@ -35,15 +35,16 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileLockManager lockManager = Mock()
     final CacheInitializationAction initializationAction = Mock()
+    final CacheCleanupAction cleanupAction = Mock()
     final File lockFile = tmpDir.file('lock.bin')
     final File cacheDir = tmpDir.file('caches')
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
 
     private DefaultCacheAccess newAccess(LockMode lockMode) {
-        new DefaultCacheAccess("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, executorFactory) {
+        new DefaultCacheAccess("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupAction, executorFactory) {
             @Override
-            def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+            <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache
             }
         }
@@ -66,6 +67,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         _ * lock.state
+        1 * cleanupAction.requiresCleanup() >> false
         1 * lock.close()
         0 * _._
     }
@@ -87,8 +89,25 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         _ * lock.state
+        1 * cleanupAction.requiresCleanup() >> false
         1 * lock.close()
         0 * _._
+    }
+
+    @Unroll
+    def "cleans up when cleanup action is required with access #accessType"() {
+        def access = newAccess(accessType)
+        when:
+        access.close()
+
+        then:
+        _ * lock.state
+        1 * cleanupAction.requiresCleanup() >> true
+        1 * cleanupAction.cleanup()
+        0 * _._
+
+        where:
+        accessType << [Exclusive, Shared, None]
     }
 
     def "initializes cache on open when lock mode is shared by upgrading lock"() {
@@ -237,6 +256,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.close()
 
         then:
+        1 * cleanupAction.requiresCleanup() >> false
         0 * _._
 
         and:
@@ -512,6 +532,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.close()
 
         then:
+        1 * cleanupAction.requiresCleanup() >> false
         0 * _
     }
 

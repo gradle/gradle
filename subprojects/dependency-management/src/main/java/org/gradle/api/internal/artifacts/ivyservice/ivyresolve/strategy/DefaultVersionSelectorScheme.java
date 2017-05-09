@@ -25,7 +25,7 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
 
     public VersionSelector parseSelector(String selectorString) {
         if (VersionRangeSelector.ALL_RANGE.matcher(selectorString).matches()) {
-            return new VersionRangeSelector(selectorString, versionComparator.asStringComparator());
+            return new VersionRangeSelector(selectorString, versionComparator.asVersionComparator());
         }
 
         if (selectorString.endsWith("+")) {

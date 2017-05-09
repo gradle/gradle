@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.reporting.Report
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
+import org.gradle.testing.internal.util.Specification
 
 class CheckstyleTest extends Specification {
     def project = ProjectBuilder.builder().build()

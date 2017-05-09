@@ -55,6 +55,10 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return configuration;
     }
 
+    public void setTargetConfiguration(@Nullable String configuration) {
+        this.configuration = configuration;
+    }
+
     public ModuleDependency exclude(Map<String, String> excludeProperties) {
         excludeRuleContainer.add(excludeProperties);
         return this;

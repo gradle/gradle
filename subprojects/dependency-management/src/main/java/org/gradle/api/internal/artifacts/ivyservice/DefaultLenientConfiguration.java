@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
@@ -33,6 +32,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -52,9 +52,9 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -76,13 +76,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final ArtifactTransforms artifactTransforms;
     private final AttributeContainerInternal implicitAttributes;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildOperationProcessor buildOperationProcessor;
 
     // Selected for the configuration
     private SelectedArtifactResults artifactsForThisConfiguration;
     private SelectedFileDependencyResults filesForThisConfiguration;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor, BuildOperationProcessor buildOperationProcessor) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor) {
         this.configuration = configuration;
         this.implicitAttributes = configuration.getAttributes().asImmutable();
         this.unresolvedDependencies = unresolvedDependencies;
@@ -91,13 +90,13 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactTransforms = artifactTransforms;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.buildOperationProcessor = buildOperationProcessor;
     }
 
-    private BuildOperationDetails computeResolveAllBuildOperationDetails(AttributeContainer requestedAttributes) {
+    private BuildOperationDescriptor.Builder computeResolveAllBuildOperationDetails(AttributeContainer requestedAttributes) {
         String displayName = "Resolve artifacts "
             + (requestedAttributes == null || requestedAttributes.isEmpty() ? "of " : "view of ") + configuration.getPath();
-        return BuildOperationDetails.displayName(displayName).operationDescriptor(requestedAttributes).build();
+        return BuildOperationDescriptor.displayName(displayName)
+            .details(new ResolveArtifactsBuildOperationDetails(configuration.getPath()));
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
@@ -132,27 +131,32 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
         return new SelectedArtifactSet() {
             @Override
-            public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-                artifactResults.getArtifacts().collectBuildDependencies(dest);
-                fileDependencyResults.getArtifacts().collectBuildDependencies(dest);
-                return dest;
+            public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+                if (hasError()) {
+                    visitor.visitFailure(getFailure());
+                }
+
+                artifactResults.getArtifacts().collectBuildDependencies(visitor);
+                fileDependencyResults.getArtifacts().collectBuildDependencies(visitor);
             }
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor) {
                 if (hasError()) {
-                    List<Throwable> failures = new ArrayList<Throwable>();
-                    for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                        failures.add(unresolvedDependency.getProblem());
-                    }
-                    ResolveException resolveException = new ResolveException(configuration.toString(), failures);
-                    visitor.visitFailure(resolveException);
+                    visitor.visitFailure(getFailure());
                 }
 
                 DefaultLenientConfiguration.this.visitArtifactsWithBuildOperation(dependencySpec, artifactResults, fileDependencyResults, visitor, requestedAttributes);
             }
-
         };
+    }
+
+    private ResolveException getFailure() {
+        List<Throwable> failures = new ArrayList<Throwable>();
+        for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+            failures.add(unresolvedDependency.getProblem());
+        }
+        return new ResolveException(configuration.toString(), failures);
     }
 
     public boolean hasError() {
@@ -165,11 +169,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     public void rethrowFailure() throws ResolveException {
         if (hasError()) {
-            List<Throwable> failures = new ArrayList<Throwable>();
-            for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                failures.add(unresolvedDependency.getProblem());
-            }
-            throw new ResolveException(configuration.toString(), failures);
+            throw getFailure();
         }
     }
 
@@ -258,11 +258,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return files;
     }
 
-    private void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final SelectedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor, @Nullable AttributeContainer requestedAttributes) {
-        buildOperationExecutor.run(computeResolveAllBuildOperationDetails(requestedAttributes), new Action<BuildOperationContext>() {
+    private void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final SelectedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor, @Nullable final AttributeContainer requestedAttributes) {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
-            public void execute(BuildOperationContext buildOperationContext) {
+            public void run(BuildOperationContext context) {
                 visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
+
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return computeResolveAllBuildOperationDetails(requestedAttributes);
             }
         });
     }
@@ -282,7 +288,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 artifactSets.add(fileDependencyResults.getArtifacts());
             }
             artifactSets.add(artifactResults.getArtifacts());
-            ParallelResolveArtifactSet.wrap(CompositeArtifactSet.of(artifactSets), buildOperationProcessor).visit(visitor);
+            ParallelResolveArtifactSet.wrap(CompositeArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
             return;
         }
 
@@ -301,7 +307,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             walker.add(node);
         }
         walker.findValues();
-        ParallelResolveArtifactSet.wrap(CompositeArtifactSet.of(artifactSets), buildOperationProcessor).visit(visitor);
+        ParallelResolveArtifactSet.wrap(CompositeArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
     }
 
     public ConfigurationInternal getConfiguration() {

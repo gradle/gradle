@@ -19,7 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.transform.VariantSelector
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.VariantMetadata
 import spock.lang.Specification
 
@@ -27,10 +29,15 @@ class DefaultArtifactSetTest extends Specification {
     def componentId = Stub(ComponentIdentifier)
     def exclusions = Stub(ModuleExclusions)
     def schema = Stub(AttributesSchemaInternal)
+    def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
+
+    def setup() {
+        artifactTypeRegistry.mapAttributesFor(_) >> ImmutableAttributes.EMPTY
+    }
 
     def "returns empty set when component id does not match spec"() {
         def variant1 = Stub(VariantMetadata)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null)
+        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, artifactTypeRegistry)
 
         expect:
         def selected = artifactSet.select({false}, Stub(VariantSelector))
@@ -41,10 +48,10 @@ class DefaultArtifactSetTest extends Specification {
         def variant1 = Stub(VariantMetadata)
         def resolvedVariant1 = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
-        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, null)
+        def artifactSet = new DefaultArtifactSet(componentId, null, null, null, [variant1] as Set, schema, null, null, 12L, artifactTypeRegistry)
 
         given:
-        selector.select(_, schema) >> resolvedVariant1
+        selector.select(_) >> resolvedVariant1
 
         expect:
         def selected = artifactSet.select({true}, selector)

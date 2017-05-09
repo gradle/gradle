@@ -32,8 +32,9 @@ import java.util.Map;
  * sourceSets {
  *   main {
  *     //if you truly want to override the defaults:
- *     output.resourcesDir = 'out/res'
- *     output.classesDir   = 'out/bin'
+ *     output.resourcesDir = file('out/bin')
+ *     // Compiled Java classes should use this directory
+ *     java.outputDir = file('out/bin')
  *   }
  * }
  * </pre>
@@ -85,8 +86,10 @@ public interface SourceSetOutput extends FileCollection {
      * <p>
      * See example at {@link SourceSetOutput}
      *
-     * @return The classes dir. Never returns null.
+     * @return The classes dir.
+     * @deprecated Use {@link #getClassesDirs()}
      */
+    @Deprecated
     File getClassesDir();
 
     /**
@@ -95,8 +98,35 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @param classesDir the classes dir. Should not be null.
+     * @deprecated Set the output directory for the particular {@link org.gradle.api.file.SourceDirectorySet}
+     * @since 4.0
      */
+    @Deprecated
+    void setClassesDir(File classesDir);
+
+    /**
+     * Sets the directory to assemble the compiled classes into.
+     * <p>
+     * See example at {@link SourceSetOutput}
+     *
+     * @param classesDir the classes dir. Should not be null.
+     * @deprecated Set the output directory for the particular {@link org.gradle.api.file.SourceDirectorySet}
+     */
+    @Deprecated
     void setClassesDir(Object classesDir);
+
+    /**
+     * Returns the directories containing compiled classes.
+     *
+     * @return The classes directories. Never returns null.
+     */
+    FileCollection getClassesDirs();
+
+    /**
+     * Source set uses the legacy layout (single classes directory for the entire source set).
+     * @return true if the source set has a single classes directory
+     */
+    boolean isLegacyLayout();
 
     /**
      * Returns the output directory for resources
@@ -106,6 +136,16 @@ public interface SourceSetOutput extends FileCollection {
      * @return The dir resources are copied to.
      */
     File getResourcesDir();
+
+    /**
+     * Sets the output directory for resources
+     * <p>
+     * See example at {@link SourceSetOutput}
+     *
+     * @param resourcesDir the classes dir. Should not be null.
+     * @since 4.0
+     */
+    void setResourcesDir(File resourcesDir);
 
     /**
      * Sets the output directory for resources

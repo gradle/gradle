@@ -18,7 +18,6 @@ package org.gradle.play.plugins;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
@@ -26,9 +25,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ArtifactCollection;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileOperations;
@@ -41,7 +42,13 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.model.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.Finalize;
+import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
@@ -256,7 +263,7 @@ public class PlayDistributionPlugin extends RuleSource {
 
     static class PrefixArtifactFileNames implements Action<FileCopyDetails>, Function<File, String> {
         private final PlayPluginConfigurations.PlayConfiguration configuration;
-        ImmutableMap<File, String> renames;
+        Map<File, String> renames;
 
         PrefixArtifactFileNames(PlayPluginConfigurations.PlayConfiguration configuration) {
             this.configuration = configuration;
@@ -283,30 +290,28 @@ public class PlayDistributionPlugin extends RuleSource {
             }
         }
 
-        private ImmutableMap<File, String> calculate() {
-            ImmutableMap.Builder<File, String> files = ImmutableMap.builder();
-            for (ResolvedArtifact artifact : getResolvedArtifacts()) {
-                boolean isProject = artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier;
-                if (isProject) {
+        private Map<File, String> calculate() {
+            Map<File, String> files = Maps.newHashMap();
+            for (ResolvedArtifactResult artifact : getResolvedArtifacts()) {
+                ComponentIdentifier componentId = artifact.getId().getComponentIdentifier();
+                if (componentId instanceof ProjectComponentIdentifier) {
                     // rename project dependencies
-                    ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
+                    ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) componentId;
                     files.put(artifact.getFile(), renameForProject(projectComponentIdentifier, artifact.getFile()));
+                } else if (componentId instanceof ModuleComponentIdentifier) {
+                    ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) componentId;
+                    files.put(artifact.getFile(), renameForModule(moduleComponentIdentifier, artifact.getFile()));
                 } else {
-                    boolean isExternalModule = artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier;
-                    if (isExternalModule) {
-                        ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
-                        files.put(artifact.getFile(), renameForModule(moduleComponentIdentifier, artifact.getFile()));
-                    } else {
-                        // don't rename other types of dependencies
-                        files.put(artifact.getFile(), artifact.getFile().getName());
-                    }
+                    // don't rename other types of dependencies
+                    files.put(artifact.getFile(), artifact.getFile().getName());
                 }
             }
-            return files.build();
+            return Collections.unmodifiableMap(files);
         }
 
-        Set<ResolvedArtifact> getResolvedArtifacts() {
-            return configuration.getConfiguration().getResolvedConfiguration().getResolvedArtifacts();
+        Set<ResolvedArtifactResult> getResolvedArtifacts() {
+            ArtifactCollection artifacts = configuration.getConfiguration().getIncoming().getArtifacts();
+            return artifacts.getArtifacts();
         }
 
         static String renameForProject(ProjectComponentIdentifier id, File file) {

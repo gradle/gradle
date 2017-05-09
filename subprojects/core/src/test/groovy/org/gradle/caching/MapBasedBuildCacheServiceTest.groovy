@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentMap
 
 class MapBasedBuildCacheServiceTest extends Specification {
     def delegate = Mock(ConcurrentMap)
-    def cache = new MapBasedBuildCacheService("test cache", delegate)
+    def cache = new MapBasedBuildCacheService(delegate)
     def hashCode = "123456"
     def cacheKey = Stub(BuildCacheKey) {
         getHashCode() >> hashCode

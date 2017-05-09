@@ -30,7 +30,7 @@ class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/mixedJavaAndGroovy')
 
     @Test
-    public void canBuildJar() {
+    void canBuildJar() {
         TestFile projectDir = sample.dir
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
@@ -51,7 +51,7 @@ class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canBuildDocs() {
+    void canBuildDocs() {
         TestFile projectDir = sample.dir
         executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
 

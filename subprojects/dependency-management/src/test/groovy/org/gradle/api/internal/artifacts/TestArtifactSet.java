@@ -21,8 +21,8 @@ import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -54,9 +54,9 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
         for (ResolvedArtifact artifact : artifacts) {
-            dest.add(((Buildable) artifact).getBuildDependencies());
+            visitor.visitDependency(((Buildable) artifact).getBuildDependencies());
         }
     }
 }

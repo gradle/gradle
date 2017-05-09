@@ -122,7 +122,7 @@ ext.performanceTestTasks = tasks.withType(PerformanceTest)
 
 performanceTestTasks.all { PerformanceTest task ->
     withPerformanceDb(task)
-    testClassesDir = sourceSets.performanceTest.output.classesDir
+    testClassesDirs = sourceSets.performanceTest.output.classesDirs
     classpath = sourceSets.performanceTest.runtimeClasspath
     dependsOn prepareSamples
     requiresBinZip = true

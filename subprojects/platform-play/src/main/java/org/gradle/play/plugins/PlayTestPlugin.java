@@ -83,7 +83,7 @@ public class PlayTestPlugin extends RuleSource {
 
                     test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
 
-                    test.setTestClassesDir(testClassesDir);
+                    test.setTestClassesDirs(new SimpleFileCollection(testClassesDir));
                     test.setBinResultsDir(new File(binaryBuildDir, "results/" + testTaskName + "/bin"));
                     test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
                     test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));

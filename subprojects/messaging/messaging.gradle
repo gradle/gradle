@@ -6,7 +6,6 @@ dependencies {
     api project(':baseServices')
     api libraries.slf4j_api
 
-    implementation libraries.guava
     implementation libraries.kryo
 }
 

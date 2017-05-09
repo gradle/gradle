@@ -134,7 +134,13 @@ task hello {
     }
 
     void checkWrapperWorksWith(GradleExecuter executer, GradleDistribution executionVersion) {
-        def result = executer.usingExecutable('gradlew').withTasks('hello').run()
+        executer.usingExecutable('gradlew').withTasks('hello')
+
+        if (!executionVersion.isLifecycleLogLevelFlagSupported()) {
+            executer.withLifecycleLoggingDisabled()
+        }
+
+        def result = executer.run()
 
         assert result.output.contains("hello from $executionVersion.version.version")
         assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")

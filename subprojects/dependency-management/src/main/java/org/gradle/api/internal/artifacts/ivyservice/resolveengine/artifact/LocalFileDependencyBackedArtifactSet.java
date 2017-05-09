@@ -19,13 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.attributes.DefaultArtifactAttributes;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
@@ -33,7 +34,6 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -42,13 +42,13 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final VariantSelector selector;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ImmutableAttributesFactory attributesFactory) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ArtifactTypeRegistry artifactTypeRegistry) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
         this.selector = selector;
-        this.attributesFactory = attributesFactory;
+        this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         try {
             files = dependencyMetadata.getFiles().getFiles();
         } catch (Throwable throwable) {
-            return new BrokenResult(throwable);
+            return new BrokenResolvedArtifactSet(throwable);
         }
 
         List<ResolvedArtifactSet> selectedArtifacts = Lists.newArrayListWithCapacity(files.size());
@@ -81,20 +81,20 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
                 artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
             }
 
-            AttributeContainerInternal variantAttributes = DefaultArtifactAttributes.forFile(file, attributesFactory);
-            ResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes, dependencyMetadata);
-            selectedArtifacts.add(selector.select(Collections.singleton(variant), EmptySchema.INSTANCE));
+            AttributeContainerInternal variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
+            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes, dependencyMetadata);
+            selectedArtifacts.add(selector.select(variant));
         }
 
         return CompositeArtifactSet.of(selectedArtifacts).startVisit(actions, listener);
     }
 
     @Override
-    public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-        dest.add(dependencyMetadata.getFiles().getBuildDependencies());
+    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final AttributeContainerInternal variantAttributes;
@@ -113,6 +113,21 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public DisplayName asDescribable() {
+            return Describables.of(artifactIdentifier);
+        }
+
+        @Override
+        public Set<ResolvedVariant> getVariants() {
+            return Collections.<ResolvedVariant>singleton(this);
+        }
+
+        @Override
+        public AttributesSchemaInternal getSchema() {
+            return EmptySchema.INSTANCE;
+        }
+
+        @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
             if (listener.includeFileDependencies()) {
                 listener.fileAvailable(file);
@@ -127,26 +142,13 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-            dest.add(dependencyMetadata.getFiles().getBuildDependencies());
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+            visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
         }
 
         @Override
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
-        }
-    }
-
-    private class BrokenResult implements Completion {
-        private final Throwable throwable;
-
-        BrokenResult(Throwable throwable) {
-            this.throwable = throwable;
-        }
-
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-            visitor.visitFailure(throwable);
         }
     }
 }

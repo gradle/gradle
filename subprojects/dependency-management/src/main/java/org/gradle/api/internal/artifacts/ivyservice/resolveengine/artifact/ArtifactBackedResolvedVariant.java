@@ -18,16 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.DescribableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,26 +36,33 @@ import java.util.List;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 class ArtifactBackedResolvedVariant implements ResolvedVariant {
+    private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet artifacts;
 
-    private ArtifactBackedResolvedVariant(AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+    private ArtifactBackedResolvedVariant(DisplayName displayName, AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+        this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
     }
 
-    public static ResolvedVariant create(AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
+    public static ResolvedVariant create(DisplayName displayName, AttributeContainerInternal attributes, Collection<? extends ResolvedArtifact> artifacts) {
         if (artifacts.isEmpty()) {
-            return new ArtifactBackedResolvedVariant(attributes, EMPTY);
+            return new ArtifactBackedResolvedVariant(displayName, attributes, EMPTY);
         }
         if (artifacts.size() == 1) {
-            return new ArtifactBackedResolvedVariant(attributes, new SingleArtifactSet(attributes, artifacts.iterator().next()));
+            return new ArtifactBackedResolvedVariant(displayName, attributes, new SingleArtifactSet(attributes, artifacts.iterator().next()));
         }
         List<SingleArtifactSet> artifactSets = new ArrayList<SingleArtifactSet>();
         for (ResolvedArtifact artifact : artifacts) {
             artifactSets.add(new SingleArtifactSet(attributes, artifact));
         }
-        return new ArtifactBackedResolvedVariant(attributes, CompositeArtifactSet.of(artifactSets));
+        return new ArtifactBackedResolvedVariant(displayName, attributes, CompositeArtifactSet.of(artifactSets));
+    }
+
+    @Override
+    public DisplayName asDescribable() {
+        return displayName;
     }
 
     @Override
@@ -102,12 +109,12 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
-            dest.add(((Buildable) artifact).getBuildDependencies());
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+            visitor.visitDependency(((Buildable) artifact).getBuildDependencies());
         }
     }
 
-    private static class DownloadArtifactFile implements RunnableBuildOperation, DescribableBuildOperation<ComponentArtifactIdentifier> {
+    private static class DownloadArtifactFile implements RunnableBuildOperation {
         private final ResolvedArtifact artifact;
         private final SingleArtifactSet owner;
         private final AsyncArtifactListener listener;
@@ -119,7 +126,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public void run() {
+        public void run(BuildOperationContext context) {
             try {
                 artifact.getFile();
                 listener.artifactAvailable(artifact);
@@ -129,18 +136,9 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public String getDescription() {
-            return "Resolve artifact " + artifact;
-        }
-
-        @Override
-        public ComponentArtifactIdentifier getOperationDescriptor() {
-            return artifact.getId();
-        }
-
-        @Override
-        public String getProgressDisplayName() {
-            return null;
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Resolve artifact " + artifact)
+                .details(new DownloadArtifactBuildOperationDetails(artifact.getId().getDisplayName()));
         }
     }
 

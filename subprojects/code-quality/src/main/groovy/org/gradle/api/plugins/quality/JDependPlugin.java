@@ -107,11 +107,6 @@ public class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     protected void configureForSourceSet(final SourceSet sourceSet, JDepend task) {
         task.dependsOn(sourceSet.getOutput());
         task.setDescription("Run JDepend analysis for " + sourceSet.getName() + " classes");
-        conventionMappingOf(task).map("classesDir", new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return sourceSet.getOutput().getClassesDir();
-            }
-        });
+        task.setClassesDirs(sourceSet.getOutput().getClassesDirs());
     }
 }

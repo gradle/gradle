@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -38,12 +38,12 @@ import java.util.Set;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor {
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
-    private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
     private final SetMultimap<Long, FileDependencyArtifactSet> filesByNodeId = LinkedHashMultimap.create();
     private Map<FileCollectionDependency, FileDependencyArtifactSet> rootFiles;
 
-    public FileDependencyCollectingGraphVisitor(ImmutableAttributesFactory immutableAttributesFactory) {
-        this.immutableAttributesFactory = immutableAttributesFactory;
+    public FileDependencyCollectingGraphVisitor(ArtifactTypeRegistry artifactTypeRegistry) {
+        this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
         Set<LocalFileDependencyMetadata> fileDependencies = ((LocalConfigurationMetadata) root.getMetadata()).getFiles();
         rootFiles = Maps.newLinkedHashMap();
         for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-            FileDependencyArtifactSet artifactSet = new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, immutableAttributesFactory);
+            FileDependencyArtifactSet artifactSet = new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry);
             rootFiles.put(fileDependency.getSource(), artifactSet);
             filesByNodeId.put(root.getNodeId(), artifactSet);
         }
@@ -75,7 +75,7 @@ public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisi
                 if (edge.isTransitive()) {
                     Set<LocalFileDependencyMetadata> fileDependencies = localConfigurationMetadata.getFiles();
                     for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                        filesByNodeId.put(node.getNodeId(), new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, immutableAttributesFactory));
+                        filesByNodeId.put(node.getNodeId(), new FileDependencyArtifactSet(idGenerator.generateId(), fileDependency, artifactTypeRegistry));
                     }
                     break;
                 }

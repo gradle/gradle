@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import com.google.common.io.Files
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.cleanup.DefaultBuildOutputDeleter
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
@@ -60,7 +61,7 @@ class StaleOutputJavaProject {
     }
 
     private TestFile determineClassFile(File sourceFile) {
-        String classFilePath = "$buildDirName/classes/main/${Files.getNameWithoutExtension(sourceFile.name)}.class"
+        String classFilePath = "${defaultOutputDir()}/${Files.getNameWithoutExtension(sourceFile.name)}.class"
         classFilePath = prependRootDirName(classFilePath)
         testDir.file(classFilePath)
     }
@@ -108,11 +109,7 @@ class StaleOutputJavaProject {
     }
 
     String defaultOutputDir() {
-        "$buildDirName/classes/main"
-    }
-
-    String getClassesDirCleanupMessage(String path) {
-        createCleanupMessage(prependRootDirName(path))
+        "$buildDirName/classes/java/main"
     }
 
     String getCompileTaskPath() {
@@ -132,16 +129,12 @@ class StaleOutputJavaProject {
         result.assertTaskSkipped(getJarTaskPath())
     }
 
-    void assertDoesNotHaveCleanupMessage(ExecutionResult result, String path=defaultOutputDir()) {
-        assert !result.output.contains(getClassesDirCleanupMessage(path))
+    void assertDoesNotHaveCleanupMessage(ExecutionResult result) {
+        assert !result.output.contains(DefaultBuildOutputDeleter.STALE_OUTPUT_MESSAGE)
     }
 
-    void assertHasCleanupMessage(ExecutionResult result, String path=defaultOutputDir()) {
-        result.assertOutputContains(getClassesDirCleanupMessage(path))
-    }
-
-    private String createCleanupMessage(String path) {
-        "Cleaned up directory '${new File(testDir, path)}'"
+    void assertHasCleanupMessage(ExecutionResult result) {
+        result.assertOutputContains(DefaultBuildOutputDeleter.STALE_OUTPUT_MESSAGE)
     }
 
     boolean assertJarHasDescendants(String... relativePaths) {

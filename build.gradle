@@ -222,6 +222,7 @@ allprojects {
     repositories {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
+        maven { url "https://repo.gradle.org/gradle/libs-snapshots" }
     }
 }
 
@@ -365,6 +366,13 @@ task cleanUpRemovedProjects(type: Delete) {
     delete removedProjects.collect { "subprojects/$it" }
 }
 clean.dependsOn(cleanUpRemovedProjects)
+
+gradle.buildFinished { result ->
+    def rootProject = result.gradle.rootProject
+    if (rootProject.remoteBuildCacheEnabled && !rootProject.java7HomeSet) {
+        logger.warn("In order to have cache hits from the remote build cache you need to set 'java7Home' in your gradle.properties!")
+    }
+}
 
 /*
  * When run from a Continuous Integration environment HTML test reports will usually only be inspected

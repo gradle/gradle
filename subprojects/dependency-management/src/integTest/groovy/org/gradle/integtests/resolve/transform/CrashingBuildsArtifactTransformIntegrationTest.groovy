@@ -24,7 +24,7 @@ class CrashingBuildsArtifactTransformIntegrationTest extends AbstractDependencyR
         buildFile << """
 
 enum Color { Red, Green, Blue }
-def color = Attribute.of("color", Color)
+def type = Attribute.of("artifactType", String)
 
 class ToColor extends ArtifactTransform {
     Color color
@@ -48,9 +48,9 @@ class ToColor extends ArtifactTransform {
 }
 
 dependencies {
-    attributesSchema.attribute(color)
     registerTransform {
-        to.attribute(color, Color.Red)
+        from.attribute(type, "jar")
+        to.attribute(type, "red")
         artifactTransform(ToColor) { params(Color.Red) }
     }
 }
@@ -67,7 +67,7 @@ dependencies {
 task redThings {
     doLast {
         configurations.compile.incoming.artifactView {
-            attributes { it.attribute(color, Color.Red) }
+            attributes { it.attribute(type, "red") }
         }.files.files
     }
 }

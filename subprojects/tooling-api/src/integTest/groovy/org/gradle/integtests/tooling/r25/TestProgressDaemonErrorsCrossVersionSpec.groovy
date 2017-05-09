@@ -24,9 +24,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore("Must fix for 4.0")
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
     boolean killed = false

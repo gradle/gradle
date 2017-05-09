@@ -55,7 +55,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         succeeds("compileJava")
         output.contains(logStatement())
         !errorOutput
-        file("build/classes/main/compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person.class").exists()
     }
 
     def compileWithCustomHeapSettings() {
@@ -74,7 +74,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         succeeds("compileJava")
         output.contains(logStatement())
         !errorOutput
-        file("build/classes/main/compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person.class").exists()
         // couldn't find a good way to verify that heap settings take effect
     }
 
@@ -91,8 +91,8 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         output.contains(new File("src/main/java/compile/test/Person2.java").toString())
         output.contains(logStatement())
         !errorOutput
-        file("build/classes/main/compile/test/Person.class").exists()
-        file("build/classes/main/compile/test/Person2.class").exists()
+        javaClassFile("compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person2.class").exists()
     }
 
     def nonJavaSourceFilesAreAutomaticallyExcluded() {
@@ -105,7 +105,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
 
         expect:
         succeeds("compileJava")
-        file("build/classes/main/compile/test/Person.class").exists()
-        file("build/classes/main/compile/test/Person2.class").exists()
+        javaClassFile("compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person2.class").exists()
     }
 }

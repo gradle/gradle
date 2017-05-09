@@ -169,7 +169,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
             // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("Unable to store entry at '%s'", safeUri(uri)), e);
+            throw new BuildCacheException(String.format("Unable to store entry at '%s': %s", safeUri(uri), e.getMessage()), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -185,11 +185,6 @@ public class HttpBuildCacheService implements BuildCacheService {
         } else {
             throw new BuildCacheException(message);
         }
-    }
-
-    @Override
-    public String getDescription() {
-        return "HTTP build cache (" + safeUri + ")";
     }
 
     @Override

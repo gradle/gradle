@@ -70,6 +70,16 @@ public class GradleBuild extends ConventionTask {
      * Sets the project directory for the build.
      *
      * @param dir The project directory. Should not be null.
+     * @since 4.0
+     */
+    public void setDir(File dir) {
+        setDir((Object) dir);
+    }
+
+    /**
+     * Sets the project directory for the build.
+     *
+     * @param dir The project directory. Should not be null.
      */
     public void setDir(Object dir) {
         getStartParameter().setCurrentDir(getProject().file(dir));
@@ -90,6 +100,16 @@ public class GradleBuild extends ConventionTask {
      * Sets the build file that should be used for this build.
      *
      * @param file The build file. May be null to use the default build file for the build.
+     * @since 4.0
+     */
+    public void setBuildFile(File file) {
+        setBuildFile((Object) file);
+    }
+
+    /**
+     * Sets the build file that should be used for this build.
+     *
+     * @param file The build file. May be null to use the default build file for the build.
      */
     public void setBuildFile(Object file) {
         getStartParameter().setBuildFile(getProject().file(file));
@@ -103,6 +123,16 @@ public class GradleBuild extends ConventionTask {
     @Input
     public List<String> getTasks() {
         return getStartParameter().getTaskNames();
+    }
+
+    /**
+     * Sets the tasks that should be executed for this build.
+     *
+     * @param tasks The task names. May be empty or null to use the default tasks for the build.
+     * @since 4.0
+     */
+    public void setTasks(List<String> tasks) {
+        setTasks((Collection<String>) tasks);
     }
 
     /**

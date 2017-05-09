@@ -19,7 +19,6 @@ package org.gradle.launcher.daemon.protocol;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
@@ -29,9 +28,11 @@ import org.gradle.internal.logging.serializer.LogEventSerializer;
 import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressCompleteEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressEventSerializer;
+import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.progress.BuildOperationType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
@@ -45,6 +46,7 @@ public class DaemonMessageSerializer {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
+        Serializer<BuildOperationType> buildOperationTypeSerializer = factory.getSerializerFor(BuildOperationType.class);
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
         registry.register(BuildEvent.class, new BuildEventSerializer());
@@ -57,7 +59,7 @@ public class DaemonMessageSerializer {
         // Output events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
-        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
+        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer(buildOperationTypeSerializer));
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
         registry.register(ProgressEvent.class, new ProgressEventSerializer());
         registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
@@ -98,38 +100,6 @@ public class DaemonMessageSerializer {
         @Override
         public BuildEvent read(Decoder decoder) throws Exception {
             return new BuildEvent(payloadSerializer.read(decoder));
-        }
-    }
-
-    private static class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
-        @Override
-        public void write(Encoder encoder, ProgressStartEvent event) throws Exception {
-            encoder.writeSmallLong(event.getOperationId().getId());
-            if (event.getParentId() == null) {
-                encoder.writeBoolean(false);
-            } else {
-                encoder.writeBoolean(true);
-                encoder.writeSmallLong(event.getParentId().getId());
-            }
-            encoder.writeLong(event.getTimestamp());
-            encoder.writeString(event.getCategory());
-            encoder.writeString(event.getDescription());
-            encoder.writeNullableString(event.getShortDescription());
-            encoder.writeNullableString(event.getLoggingHeader());
-            encoder.writeString(event.getStatus());
-        }
-
-        @Override
-        public ProgressStartEvent read(Decoder decoder) throws Exception {
-            OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
-            OperationIdentifier parentId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
-            long timestamp = decoder.readLong();
-            String category = decoder.readString();
-            String description = decoder.readString();
-            String shortDescription = decoder.readNullableString();
-            String loggingHeader = decoder.readNullableString();
-            String status = decoder.readString();
-            return new ProgressStartEvent(id, parentId, timestamp, category, description, shortDescription, loggingHeader, status);
         }
     }
 

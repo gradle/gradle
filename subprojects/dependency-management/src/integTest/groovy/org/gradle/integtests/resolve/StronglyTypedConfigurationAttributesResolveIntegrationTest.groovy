@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.resolve
+
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -135,16 +136,22 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         """
 
         when:
-        run ':a:checkDebug'
+        fails ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':a:checkDebug')
+        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:""")
 
         when:
-        run ':a:checkRelease'
+        fails ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':a:checkRelease')
+        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:""")
     }
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {
@@ -319,7 +326,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+        failure.assertHasCause """Cannot choose between the following configurations of project :b:
   - foo2
   - foo3
 All of them match the consumer attributes:
@@ -934,7 +941,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
         failure.assertHasCause("Class FlavorCompatibilityRule has no constructor that is annotated with @Inject.")
@@ -992,7 +1000,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("broken!")
     }
@@ -1062,7 +1071,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
         failure.assertHasCause("Class FlavorSelectionRule has no constructor that is annotated with @Inject.")
@@ -1132,7 +1142,8 @@ All of them match the consumer attributes:
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':a:compile'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")
     }

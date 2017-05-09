@@ -206,32 +206,6 @@ class DefaultAttributesSchemaTest extends Specification {
         best == ["item1"]
     }
 
-    def "merges compatible-when-missing flags"() {
-        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-
-        def attr1 = Attribute.of("a", String)
-        def attr2 = Attribute.of("b", Integer)
-
-        schema.attribute(attr1)
-        schema.attribute(attr2).compatibilityRules.assumeCompatibleWhenMissing()
-
-        producer.attribute(attr1)
-        producer.attribute(attr2)
-
-        expect:
-        def merged = schema.mergeWith(producer)
-        merged.hasAttribute(attr1)
-        merged.hasAttribute(attr2)
-        !merged.isCompatibleWhenMissing(attr1)
-        merged.isCompatibleWhenMissing(attr2)
-
-        producer.attribute(attr1).compatibilityRules.assumeCompatibleWhenMissing()
-
-        def merged2 = schema.mergeWith(producer)
-        merged2.isCompatibleWhenMissing(attr1)
-        merged2.isCompatibleWhenMissing(attr2)
-    }
-
     def "merging creates schema with additional attributes defined by producer"() {
         def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
 

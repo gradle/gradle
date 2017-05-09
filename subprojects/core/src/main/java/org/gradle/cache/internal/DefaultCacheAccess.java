@@ -58,6 +58,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     private final String cacheDisplayName;
     private final File baseDir;
+    private final CacheCleanupAction cleanupAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
     private final Map<String, IndexedCacheEntry> caches = new HashMap<String, IndexedCacheEntry>();
@@ -76,9 +77,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private Runnable fileLockHeldByOwner;
     private int cacheClosedCount;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, ExecutorFactory executorFactory) {
+    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
+        this.cleanupAction = cleanupAction;
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
 
@@ -155,6 +157,15 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             // Take ownership
             takeOwnershipNow();
+            if (cleanupAction != null) {
+                try {
+                    if (cleanupAction.requiresCleanup()) {
+                        cleanupAction.cleanup();
+                    }
+                } catch (Exception e) {
+                    LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
+                }
+            }
             if (fileLockHeldByOwner != null) {
                 fileLockHeldByOwner.run();
             }

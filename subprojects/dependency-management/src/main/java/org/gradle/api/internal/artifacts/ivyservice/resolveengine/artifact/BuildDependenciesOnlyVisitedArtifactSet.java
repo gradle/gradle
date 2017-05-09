@@ -16,21 +16,30 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
+    private final Configuration configuration;
+    private final Set<UnresolvedDependency> unresolvedDependencies;
     private final VisitedArtifactsResults artifactsResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final ArtifactTransforms artifactTransforms;
 
-    public BuildDependenciesOnlyVisitedArtifactSet(VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults, ArtifactTransforms artifactTransforms) {
+    public BuildDependenciesOnlyVisitedArtifactSet(Configuration configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults, ArtifactTransforms artifactTransforms) {
+        this.configuration = configuration;
+        this.unresolvedDependencies = unresolvedDependencies;
         this.artifactsResults = artifactsResults;
         this.fileDependencyResults = fileDependencyResults;
         this.artifactTransforms = artifactTransforms;
@@ -41,23 +50,33 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
         VariantSelector variantSelector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariant);
         ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector).getArtifacts();
         ResolvedArtifactSet selectedFiles = fileDependencyResults.select(componentSpec, variantSelector).getArtifacts();
-        return new BuildDependenciesOnlySelectedArtifactSet(selectedArtifacts, selectedFiles);
+        return new BuildDependenciesOnlySelectedArtifactSet(configuration, unresolvedDependencies, selectedArtifacts, selectedFiles);
     }
 
     private static class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {
+        private final Configuration configuration;
+        private final Set<UnresolvedDependency> unresolvedDependencies;
         private final ResolvedArtifactSet selectedArtifacts;
         private final ResolvedArtifactSet selectedFiles;
 
-        BuildDependenciesOnlySelectedArtifactSet(ResolvedArtifactSet selectedArtifacts, ResolvedArtifactSet selectedFiles) {
+        BuildDependenciesOnlySelectedArtifactSet(Configuration configuration, Set<UnresolvedDependency> unresolvedDependencies, ResolvedArtifactSet selectedArtifacts, ResolvedArtifactSet selectedFiles) {
+            this.configuration = configuration;
+            this.unresolvedDependencies = unresolvedDependencies;
             this.selectedArtifacts = selectedArtifacts;
             this.selectedFiles = selectedFiles;
         }
 
         @Override
-        public <T extends Collection<Object>> T collectBuildDependencies(T dest) {
-            selectedArtifacts.collectBuildDependencies(dest);
-            selectedFiles.collectBuildDependencies(dest);
-            return dest;
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+            if (!unresolvedDependencies.isEmpty()) {
+                List<Throwable> failures = new ArrayList<Throwable>();
+                for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+                    failures.add(unresolvedDependency.getProblem());
+                }
+                visitor.visitFailure(new ResolveException(configuration.toString(), failures));
+            }
+            selectedArtifacts.collectBuildDependencies(visitor);
+            selectedFiles.collectBuildDependencies(visitor);
         }
 
         @Override

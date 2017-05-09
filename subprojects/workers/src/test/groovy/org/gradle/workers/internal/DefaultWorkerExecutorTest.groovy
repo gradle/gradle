@@ -22,7 +22,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices

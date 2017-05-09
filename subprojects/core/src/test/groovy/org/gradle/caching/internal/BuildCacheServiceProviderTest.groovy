@@ -18,108 +18,131 @@ package org.gradle.caching.internal
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.caching.BuildCacheService
+import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.configuration.AbstractBuildCache
-import org.gradle.caching.configuration.BuildCache
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
+import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
+import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.local.DirectoryBuildCache
-import org.gradle.internal.progress.BuildOperationExecutor
-import org.gradle.internal.reflect.Instantiator
-import spock.lang.Specification
+import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.testing.internal.util.Specification
 
 class BuildCacheServiceProviderTest extends Specification {
-    List<BuildCache> sensedBuildCaches = []
 
-    boolean buildCacheEnabled = true
-
+    def buildCacheEnabled = true
     def startParameter = Mock(StartParameter) {
         getSystemPropertiesArgs() >> [:]
         isBuildCacheEnabled() >> { buildCacheEnabled }
     }
-    def buildCacheService = Stub(RoleAwareBuildCacheService) {
-        getRole() >> "mock"
-        getDescription() >> "mock"
-    }
-    def buildCache = Mock(DirectoryBuildCache)
-    def instantiator = Mock(Instantiator) {
-        newInstance(_) >> buildCache
-    }
-    def local = createConfiguration(DirectoryBuildCache)
-    def remote
-    def buildCacheConfiguration = Mock(BuildCacheConfigurationInternal) {
-        isPullDisabled() >> false
-        isPushDisabled() >> false
-        getLocal() >> { local }
-        getRemote() >> { remote }
-    }
-    def buildOperationExecuter = Mock(BuildOperationExecutor)
+
+    def buildOperationExecuter = new TestBuildOperationExecutor()
     def temporaryFileProvider = Mock(TemporaryFileProvider)
-    def provider = new BuildCacheServiceProvider(buildCacheConfiguration, startParameter, instantiator, buildOperationExecuter, temporaryFileProvider) {
-        @Override
-        RoleAwareBuildCacheService createDecoratedBuildCacheService(String role, BuildCache buildCache) {
-            sensedBuildCaches += buildCache
-            buildCacheService
-        }
+    def config = new DefaultBuildCacheConfiguration(DirectInstantiator.INSTANCE, [
+        new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
+        new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
+
+    ])
+    def provider = new BuildCacheServiceProvider(config, startParameter, DirectInstantiator.INSTANCE, buildOperationExecuter, temporaryFileProvider)
+
+    private <T extends BuildCacheService> T create(Class<? extends T> serviceType) {
+        def service = provider.createBuildCacheService()
+        assert serviceType.isInstance(service)
+        serviceType.cast(service)
     }
 
-    def createConfiguration(Class<? extends BuildCache> type) {
-        Stub(type) {
-            isEnabled() >> true
-        }
+    private FinalizeBuildCacheConfigurationDetails.Result buildOpResult() {
+        buildOperationExecuter.log.mostRecentResult(FinalizeBuildCacheConfigurationDetails)
     }
 
     def 'local cache service is created when remote is not configured'() {
-        local = createConfiguration(DirectoryBuildCache)
-        remote = null
-
         when:
-        provider.createBuildCacheService()
+        def c = create(RoleAwareBuildCacheService)
+
         then:
-        sensedBuildCaches == [local]
+        c.role == "local"
+
+        and:
+        with(buildOpResult()) {
+            local.type == "directory"
+            local.className == DirectoryBuildCache.name
+            remote == null
+        }
     }
 
     def 'local cache service is created when remote is disabled'() {
-        local = createConfiguration(DirectoryBuildCache)
-        remote = Stub(RemoteBuildCache) {
-            isEnabled() >> false
-        }
+        config.remote(TestRemoteBuildCache).enabled = false
+
         when:
-        provider.createBuildCacheService()
+        def s = create(RoleAwareBuildCacheService)
+
         then:
-        sensedBuildCaches == [local]
+        s.role == "local"
+        with(buildOpResult()) {
+            local.type == "directory"
+            local.className == DirectoryBuildCache.name
+            remote == null
+        }
     }
 
     def 'remote cache service is created when local is disabled'() {
-        local = Stub(DirectoryBuildCache) {
-            isEnabled() >> false
-        }
-        remote = createConfiguration(RemoteBuildCache)
+        config.local.enabled = false
+        config.remote(TestRemoteBuildCache)
 
         when:
-        provider.createBuildCacheService()
+        def c = create(RoleAwareBuildCacheService)
+
         then:
-        sensedBuildCaches == [remote]
+        c.role == "remote"
+        with(buildOpResult()) {
+            local == null
+            remote.type == "remote"
+            remote.className == TestRemoteBuildCache.name
+        }
     }
 
     def 'dispatching cache service is created when local and remote are enabled'() {
-        local = createConfiguration(DirectoryBuildCache)
-        remote = createConfiguration(RemoteBuildCache)
+        config.remote(TestRemoteBuildCache)
 
         when:
-        def buildCacheService = provider.createBuildCacheService()
+        create(DispatchingBuildCacheService)
+
         then:
-        sensedBuildCaches == [local, remote]
-        buildCacheService instanceof DispatchingBuildCacheService
+        with(buildOpResult()) {
+            local.type == "directory"
+            remote.type == "remote"
+        }
     }
 
-    def 'when caching is disabled no services are created'() {
+    def 'when caching is disabled no services are` created'() {
         buildCacheEnabled = false
 
-        when:
-        def buildCacheService = provider.createBuildCacheService()
-
-        then:
-        buildCacheService instanceof NoOpBuildCacheService
+        expect:
+        create(NoOpBuildCacheService)
+        with(buildOpResult()) {
+            local == null
+            remote == null
+        }
     }
 
-    private static class RemoteBuildCache extends AbstractBuildCache {}
+    static class TestRemoteBuildCache extends AbstractBuildCache {
+        String value
+    }
+
+    static class TestRemoteBuildCacheServiceFactory implements BuildCacheServiceFactory<TestRemoteBuildCache> {
+        @Override
+        BuildCacheService createBuildCacheService(TestRemoteBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
+            describer.type("remote").config("value", configuration.value)
+            new NoOpBuildCacheService()
+        }
+    }
+
+    static class TestDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
+        @Override
+        BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
+            describer.type("directory").config("location", configuration.directory?.toString())
+            new NoOpBuildCacheService()
+        }
+    }
+
 }

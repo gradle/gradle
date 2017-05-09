@@ -25,13 +25,13 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         setup:
         buildScript("apply plugin: 'java'")
         def fooJavaFile = file('src/main/java/Foo.java') << 'public class Foo {}'
-        def fooClassFile = file('build/classes/main/Foo.class')
+        def fooClassFile = javaClassFile('Foo.class')
         def barJavaFile = file('src/main/java/com/example/Bar.java') << '''
             package com.example;
 
             public class Bar {}
         '''
-        def barClassFile = file('build/classes/main/com/example/Bar.class')
+        def barClassFile = javaClassFile('com/example/Bar.class')
 
         when:
         succeeds('compileJava')
@@ -122,7 +122,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("compileJava")
         then:
-        file("build/classes/main/Main.class").assertExists()
+        javaClassFile("Main.class").assertExists()
 
         when:
         // Now that we track this, we can detect the situation where
@@ -136,11 +136,11 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         then:
         // It looks like the build may have been run with a different version of Gradle
         // The build output has been removed
-        file("build/classes/main/Main.class").assertDoesNotExist()
+        javaClassFile("Main.class").assertDoesNotExist()
 
         when:
         succeeds("compileJava")
         then:
-        file("build/classes/main/Main.class").assertExists()
+        javaClassFile("Main.class").assertExists()
     }
 }

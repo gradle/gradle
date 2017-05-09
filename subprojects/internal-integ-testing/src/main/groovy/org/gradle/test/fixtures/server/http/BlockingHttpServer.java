@@ -27,22 +27,38 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * An HTTP server that allows a test to synchronize and make assertions about concurrent activities that happen in another process.
  * For example, can be used to that certain tasks do or do not execute in parallel.
  */
 public class BlockingHttpServer extends ExternalResource {
+    private static final AtomicInteger COUNTER = new AtomicInteger();
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    private final Lock lock = new ReentrantLock();
     private final HttpServer server;
     private final ChainingHttpHandler handler;
+    private final int timeoutMs;
+    private final int serverId;
+    private boolean running;
 
     public BlockingHttpServer() throws IOException {
+        this(30000);
+    }
+
+    public BlockingHttpServer(int timeoutMs) throws IOException {
         // Use an OS selected port
         server = HttpServer.create(new InetSocketAddress(0), 10);
-        server.setExecutor(Executors.newCachedThreadPool());
-        handler = new ChainingHttpHandler();
+        server.setExecutor(EXECUTOR_SERVICE);
+        serverId = COUNTER.incrementAndGet();
+        handler = new ChainingHttpHandler(lock, COUNTER);
         server.createContext("/", handler);
+        this.timeoutMs = timeoutMs;
     }
 
     /**
@@ -50,7 +66,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public URI getUri() {
         try {
-            return new URI("http", null, "localhost", getPort(), "/", null, null);
+            return new URI("http://localhost:" + getPort());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -68,69 +84,74 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     /**
-     * Returns a Gradle build script fragment that invokes the given call.
+     * Returns Java statements that invoke the given call.
      */
-    public String callFromBuildScript(String call) {
-        return "new URL('" + uri(call) + "').text";
+    public String callFromBuild(String call) {
+        URI uri = uri(call);
+        return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
     }
 
     /**
-     * Expects the given calls to be made concurrently. Blocks each call until they have all been received.
+     * Returns a Java statements that invokes a call, using the given expression to calculate the call to make.
+     */
+    public String callFromBuildUsingExpression(String expression) {
+        String uriExpression = "\"" + getUri() + "/\" + " + expression;
+        return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
+    }
+
+    /**
+     * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
     public void expectConcurrentExecution(String expectedCall, String... additionalExpectedCalls) {
         List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
-        resourceHandlers.add(resourceHandler(expectedCall));
+        resourceHandlers.add(new SimpleResourceHandler(expectedCall));
         for (String call : additionalExpectedCalls) {
-            resourceHandlers.add(resourceHandler(call));
+            resourceHandlers.add(new SimpleResourceHandler(call));
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
     }
 
     /**
-     * Expects the given calls to be made concurrently. Blocks each call until they have all been received.
+     * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
     public void expectConcurrentExecution(Collection<String> expectedCalls) {
         List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
         for (String call : expectedCalls) {
-            resourceHandlers.add(resourceHandler(call));
+            resourceHandlers.add(new SimpleResourceHandler(call));
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
     }
 
     /**
-     * Expects the given calls to be made concurrently. Blocks each call until they have all been received.
+     * Expects the given requests to be made concurrently. Blocks each request until they have all been received then releases them all.
      */
     public void expectConcurrentExecutionTo(Collection<? extends Resource> expectedCalls) {
         List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
         for (Resource call : expectedCalls) {
             resourceHandlers.add((ResourceHandler) call);
         }
-        handler.addHandler(new CyclicBarrierRequestHandler(resourceHandlers));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, resourceHandlers));
     }
 
     /**
-     * Returns a resource from this server that contains the same contents as the file.
+     * Expect a GET request to the given path, and return the contents of the given file.
      */
     public Resource file(String path, File file) {
-        return new FileResourceHandler(removeLeadingSlash(path), file);
+        return new FileResourceHandler(path, file);
     }
 
     /**
-     * Returns a resource from this server that contains some arbitrary content.
+     * Expect a GET request to the given path, and return some arbitrary content.
      */
     public Resource resource(String path) {
-        return resourceHandler(path);
+        return new SimpleResourceHandler(path);
     }
 
-    private SimpleResourceHandler resourceHandler(String path) {
-        return new SimpleResourceHandler(removeLeadingSlash(path));
-    }
-
-    private String removeLeadingSlash(String path) {
-        if (path.startsWith("/")) {
-            return path.substring(1);
-        }
-        return path;
+    /**
+     * Expect a GET request to the given path, and return the given content (UTF-8 encoded)
+     */
+    public Resource resource(String path, String content) {
+        return new SimpleResourceHandler(path, content);
     }
 
     /**
@@ -140,9 +161,9 @@ public class BlockingHttpServer extends ExternalResource {
     public BlockingHandler blockOnConcurrentExecutionAnyOf(int concurrent, String... expectedCalls) {
         List<ResourceHandler> resourceHandlers = new ArrayList<ResourceHandler>();
         for (String call : expectedCalls) {
-            resourceHandlers.add(resourceHandler(call));
+            resourceHandlers.add(new SimpleResourceHandler(call));
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(concurrent, resourceHandlers);
+        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(lock, serverId, timeoutMs, concurrent, resourceHandlers);
         handler.addHandler(requestHandler);
         return requestHandler;
     }
@@ -156,38 +177,47 @@ public class BlockingHttpServer extends ExternalResource {
         for (Resource call : expectedCalls) {
             resourceHandlers.add((ResourceHandler) call);
         }
-        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(concurrent, resourceHandlers);
+        CyclicBarrierAnyOfRequestHandler requestHandler = new CyclicBarrierAnyOfRequestHandler(lock, serverId, timeoutMs, concurrent, resourceHandlers);
         handler.addHandler(requestHandler);
         return requestHandler;
     }
 
     /**
-     * Expects the given call to be made.
+     * Expects the given request to be made.
      */
     public void expectSerialExecution(String expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(Collections.singleton(resourceHandler(expectedCall))));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, Collections.singleton(new SimpleResourceHandler(expectedCall))));
     }
 
     /**
-     * Expects the given call to be made.
+     * Expects the given request to be made.
      */
     public void expectSerialExecution(Resource expectedCall) {
-        handler.addHandler(new CyclicBarrierRequestHandler(Collections.singleton((ResourceHandler) expectedCall)));
+        handler.addHandler(new CyclicBarrierRequestHandler(lock, timeoutMs, Collections.singleton((ResourceHandler) expectedCall)));
     }
 
     public void start() {
         server.start();
+        running = true;
     }
 
     public void stop() {
         handler.assertComplete();
+        running = false;
         // Stop is very slow, clean it up later
-        Executors.newSingleThreadExecutor().execute(new Runnable() {
+        EXECUTOR_SERVICE.execute(new Runnable() {
             @Override
             public void run() {
                 server.stop(10);
             }
         });
+    }
+
+    /**
+     * For testing this fixture only.
+     */
+    void waitForRequests(int requestCount) {
+        handler.waitForRequests(requestCount);
     }
 
     @Override
@@ -196,6 +226,9 @@ public class BlockingHttpServer extends ExternalResource {
     }
 
     private int getPort() {
+        if (!running) {
+            throw new IllegalStateException("Cannot get HTTP port as server is not running.");
+        }
         return server.getAddress().getPort();
     }
 
@@ -209,9 +242,25 @@ public class BlockingHttpServer extends ExternalResource {
      * Allows the test to synchronise with and unblock requests.
      */
     public interface BlockingHandler {
+        /**
+         * Releases the given number of blocked requests. Fails when fewer than the given number of requests are waiting to be released.
+         */
         void release(int count);
 
-        void waitForAllPendingCalls(int timeoutSeconds);
+        /**
+         * Releases the given request. Fails when the given request is not waiting to be released.
+         */
+        void release(String path);
+
+        /**
+         * Releases all requests. Fails when there are requests yet to be received.
+         */
+        void releaseAll();
+
+        /**
+         * Waits for the expected number of concurrent requests to be received.
+         */
+        void waitForAllPendingCalls();
     }
 
 }

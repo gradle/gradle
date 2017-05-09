@@ -22,6 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -273,14 +274,14 @@ dependencies {
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
-            
+
             dependencies {
                implementation project(':utils')
             }
         '''
         file('utils/build.gradle') << '''
             apply plugin: 'java-library'
-            
+
             dependencies {
                 api project(':core')
             }
@@ -321,21 +322,21 @@ dependencies {
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
-            
+
             dependencies {
                implementation project(':utils')
             }
-            
+
             task printRunClasspath {
                 doLast {
                     println run.classpath.collect{ it.name }.join(',')
                 }
             }
-            
+
         '''
         file('utils/build.gradle') << '''
             apply plugin: 'java-library'
-            
+
             dependencies {
                api project(':core')
                runtime project(':foo')
@@ -374,21 +375,21 @@ dependencies {
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
-            
+
             dependencies {
                implementation project(':utils')
             }
-            
+
             task printTestClasspath {
                 doLast {
                     println test.classpath.collect{ it.name }.join(',')
                 }
             }
-            
+
         '''
         file('utils/build.gradle') << '''
             apply plugin: 'java-library'
-            
+
             dependencies {
                 api project(':core')
                 runtimeOnly project(':foo')
@@ -452,14 +453,20 @@ startScripts {
     }
 
     private void createMainClass() {
-        file('src/main/java/org/gradle/test/Main.java') << """
+        generateMainClass """
+            System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
+            System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+            System.out.println("Hello World!");
+        """
+    }
+
+    private void generateMainClass(String mainMethodBody) {
+        file('src/main/java/org/gradle/test/Main.java').text = """
 package org.gradle.test;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
-        System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
-        System.out.println("Hello World!");
+        $mainMethodBody
     }
 }
 """
@@ -496,5 +503,41 @@ rootProject.name = 'sample'
     private File getGeneratedStartScript(String filename) {
         File scriptOutputDir = file('build/scripts')
         new File(scriptOutputDir, filename)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1923")
+    def "not up-to-date if classpath changes"() {
+        given:
+        succeeds("startScripts")
+
+        when:
+        buildFile << """
+            // Set a version so the jar is created with a different name
+            // This should cause us to regenerated the script
+            version = "3.0"
+        """
+        and:
+        succeeds("startScripts")
+
+        then:
+        nonSkippedTasks.contains(":startScripts")
+
+        and:
+        succeeds("startScripts")
+
+        then:
+        skippedTasks.contains(":startScripts")
+    }
+
+    def "up-to-date if only the content change"() {
+        given:
+        succeeds("startScripts")
+
+        when:
+        generateMainClass """System.out.println("Goodbye World!");"""
+        succeeds("startScripts")
+
+        then:
+        skippedTasks.contains(":startScripts")
     }
 }

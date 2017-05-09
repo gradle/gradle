@@ -17,13 +17,14 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
-class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     public static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
                 public static void main(String... args) {
@@ -98,7 +99,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     def "restored cached results match original timestamp with millisecond precision"() {
         settingsFile << "rootProject.name = 'test'"
         withBuildCache().succeeds "jar"
-        def classFile = file("build/classes/main/Hello.class")
+        def classFile = javaClassFile("Hello.class")
         def originalModificationTime = classFile.assertIsFile().lastModified()
 
         when:
@@ -234,7 +235,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
-        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+        remoteProjectDir.file("build/classes/java/main/Hello.class").exists()
 
         // Remove the project completely
         remoteProjectDir.deleteDir()
@@ -243,7 +244,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
-        file("build/classes/main/Hello.class").exists()
+        javaClassFile("Hello.class").exists()
     }
 
     def "compile task gets loaded from cache when source is moved to another directory"() {
@@ -262,7 +263,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.empty
-        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+        remoteProjectDir.file("build/classes/java/main/Hello.class").exists()
 
         remoteProjectDir.deleteDir()
 
@@ -270,7 +271,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
-        file("build/classes/main/Hello.class").exists()
+        javaClassFile("Hello.class").exists()
     }
 
     def "error message contains spec which failed to evaluate"() {
@@ -402,7 +403,47 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.empty
     }
 
-    @Ignore
+    def "task with custom actions gets logged"() {
+        when:
+        withBuildCache().succeeds "compileJava", "--info"
+        then:
+        skippedTasks.empty
+        !output.contains("Custom actions are attached to task ':compileJava'.")
+
+        expect:
+        withBuildCache().succeeds "clean"
+
+        when:
+        buildFile << """
+            compileJava.doFirst { println "Custom action" }
+        """
+        withBuildCache().succeeds "compileJava", "--info"
+        then:
+        skippedTasks.empty
+        output.contains("Custom actions are attached to task ':compileJava'.")
+    }
+
+    def "compileJava is not cached if forked executable is used"() {
+        buildFile << """
+            compileJava.options.fork = true
+            compileJava.options.forkOptions.executable = "${TextUtil.escapeString(Jvm.current().getExecutable("javac"))}"
+        """
+
+        when:
+        withBuildCache().succeeds "compileJava", "--info"
+        then:
+        skippedTasks.empty
+        output.contains "Caching disabled for task ':compileJava': 'Forking compiler via ForkOptions.executable' satisfied"
+
+        expect:
+        succeeds "clean"
+
+        when:
+        withBuildCache().succeeds "compileJava"
+        then:
+        skippedTasks.empty
+    }
+
     def "order of resources on classpath does not affect how we calculate the cache key"() {
         buildFile << """
             apply plugin: 'base'
@@ -438,7 +479,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().succeeds("cacheable")
 
         when:
-        gradleUserHome.deleteDir() // nuke the cache
+        gradleUserHome.deleteDir() // nuke the file snapshot cache
         resources.deleteDir().mkdirs()
         succeeds("clean")
         and:

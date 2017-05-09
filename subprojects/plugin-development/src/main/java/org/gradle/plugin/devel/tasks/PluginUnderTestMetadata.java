@@ -23,6 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -81,12 +83,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
         Properties properties = new Properties();
 
         if (!getPluginClasspath().isEmpty()) {
-            List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
-                @Override
-                public String transform(File file) {
-                    return file.getAbsolutePath().replaceAll("\\\\", "/");
-                }
-            });
+            List<String> paths = getPaths();
             StringBuilder implementationClasspath = new StringBuilder();
             Joiner.on(File.pathSeparator).appendTo(implementationClasspath, paths);
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath.toString());
@@ -106,6 +103,20 @@ public class PluginUnderTestMetadata extends DefaultTask {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @Input
+    private List<String> getPaths() {
+        Iterable<File> classpathFiles = Collections.emptyList();
+        if (getPluginClasspath() != null) {
+            classpathFiles = getPluginClasspath();
+        }
+        return CollectionUtils.collect(classpathFiles, new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath().replaceAll("\\\\", "/");
+            }
+        });
     }
 
 }

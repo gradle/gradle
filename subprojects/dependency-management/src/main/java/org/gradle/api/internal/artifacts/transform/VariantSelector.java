@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-
-import java.util.Collection;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 
 public interface VariantSelector {
-    ResolvedArtifactSet select(Collection<? extends ResolvedVariant> candidates, AttributesSchemaInternal producerSchema);
+    /**
+     * Selects matching artifacts from a given set of candidates.
+     *
+     * On failure, returns a set that forwards the failure to the {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor}.
+     */
+    ResolvedArtifactSet select(ResolvedVariantSet candidates);
 }

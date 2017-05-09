@@ -42,6 +42,6 @@ public class FixedComponentArtifacts implements ComponentArtifacts {
 
     @Override
     public Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration) {
-        return ImmutableSet.of(new DefaultVariantMetadata(ImmutableAttributes.EMPTY, artifacts));
+        return ImmutableSet.of(new DefaultVariantMetadata(configuration.asDescribable(), ImmutableAttributes.EMPTY, artifacts));
     }
 }

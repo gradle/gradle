@@ -36,14 +36,23 @@ class StaticVersionComparator implements Comparator<Version> {
 
         String[] parts1 = version1.getParts();
         String[] parts2 = version2.getParts();
+        Long[] numericParts1 = version1.getNumericParts();
+        Long[] numericParts2 = version2.getNumericParts();
 
         int i = 0;
         for (; i < parts1.length && i < parts2.length; i++) {
-            if (parts1[i].equals(parts2[i])) {
+            String part1 = parts1[i];
+            String part2 = parts2[i];
+
+            Long numericPart1 = numericParts1[i];
+            Long numericPart2 = numericParts2[i];
+
+            boolean is1Number = numericPart1 != null;
+            boolean is2Number = numericPart2 != null;
+
+            if (part1.equals(part2)) {
                 continue;
             }
-            boolean is1Number = isNumber(parts1[i]);
-            boolean is2Number = isNumber(parts2[i]);
             if (is1Number && !is2Number) {
                 return 1;
             }
@@ -51,11 +60,11 @@ class StaticVersionComparator implements Comparator<Version> {
                 return -1;
             }
             if (is1Number && is2Number) {
-                return Long.valueOf(parts1[i]).compareTo(Long.valueOf(parts2[i]));
+                return numericPart1.compareTo(numericPart2);
             }
             // both are strings, we compare them taking into account special meaning
-            Integer sm1 = SPECIAL_MEANINGS.get(parts1[i].toLowerCase(Locale.US));
-            Integer sm2 = SPECIAL_MEANINGS.get(parts2[i].toLowerCase(Locale.US));
+            Integer sm1 = SPECIAL_MEANINGS.get(part1.toLowerCase(Locale.US));
+            Integer sm2 = SPECIAL_MEANINGS.get(part2.toLowerCase(Locale.US));
             if (sm1 != null) {
                 sm2 = sm2 == null ? 0 : sm2;
                 return sm1 - sm2;
@@ -63,19 +72,15 @@ class StaticVersionComparator implements Comparator<Version> {
             if (sm2 != null) {
                 return -sm2;
             }
-            return parts1[i].compareTo(parts2[i]);
+            return part1.compareTo(part2);
         }
         if (i < parts1.length) {
-            return isNumber(parts1[i]) ? 1 : -1;
+            return numericParts1[i] == null ? -1 : 1;
         }
         if (i < parts2.length) {
-            return isNumber(parts2[i]) ? -1 : 1;
+            return numericParts2[i] == null ? 1 : -1;
         }
 
         return 0;
-    }
-
-    private boolean isNumber(String str) {
-        return str.matches("\\d+");
     }
 }

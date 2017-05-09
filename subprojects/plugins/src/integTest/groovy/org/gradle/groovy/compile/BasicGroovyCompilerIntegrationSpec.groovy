@@ -18,18 +18,19 @@ package org.gradle.groovy.compile
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.10'])
+@TargetCoverage({GroovyCoverage.ALL})
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
@@ -51,8 +52,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         expect:
         succeeds("compileGroovy")
         !errorOutput
-        file("build/classes/main/Person.class").exists()
-        file("build/classes/main/Address.class").exists()
+        groovyClassFile("Person.class").exists()
+        groovyClassFile("Address.class").exists()
 
         where:
         module << ["groovy-all", "groovy"]
@@ -74,9 +75,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         then:
         succeeds("compileGroovy")
         !errorOutput
-        file('build/classes/main/Groovy.class').exists()
-        file('build/classes/main/Groovy$$Generated.java').exists()
-        file('build/classes/main/Groovy$$Generated.class').exists()
+        groovyClassFile('Groovy.class').exists()
+        groovyClassFile('Groovy$$Generated.java').exists()
+        groovyClassFile('Groovy$$Generated.class').exists()
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {
@@ -98,9 +99,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasCause(compilationFailureMessage)
 
         file('build/classes/stub/Groovy.java').exists()
-        file('build/classes/main/Groovy.class').exists()
-        file('build/classes/main/Groovy$$Generated.java').exists()
-        file('build/classes/main/Groovy$$Generated.class').exists()
+        groovyClassFile('Groovy.class').exists()
+        groovyClassFile('Groovy$$Generated.java').exists()
+        groovyClassFile('Groovy$$Generated.class').exists()
     }
 
     def "compileBadCodeWithoutAnnotationProcessor"() {
@@ -119,9 +120,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // No Groovy stubs will be created if there are no java files
         // and an annotation processor is not on the classpath
         !file('build/classes/stub/Groovy.java').exists()
-        !file('build/classes/main/Groovy.class').exists()
-        !file('build/classes/main/Groovy$$Generated.java').exists()
-        !file('build/classes/main/Groovy$$Generated.class').exists()
+        !groovyClassFile('Groovy$$Generated.java').exists()
+        !groovyClassFile('Groovy.class').exists()
+        !groovyClassFile('Groovy$$Generated.class').exists()
     }
 
     def "compileBadCodeWithAnnotationProcessorDisabled"() {
@@ -146,9 +147,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // Because annotation processing is disabled
         // No Groovy stubs will be created
         !file('build/classes/stub/Groovy.java').exists()
-        !file('build/classes/main/Groovy.class').exists()
-        !file('build/classes/main/Groovy$$Generated.java').exists()
-        !file('build/classes/main/Groovy$$Generated.class').exists()
+        !groovyClassFile('Groovy$$Generated.java').exists()
+        !groovyClassFile('Groovy.class').exists()
+        !groovyClassFile('Groovy$$Generated.class').exists()
     }
 
     def "jointCompileBadCodeWithoutAnnotationProcessor"() {
@@ -168,8 +169,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // the Groovy stub class won't be compiled, because it is not
         // referenced by any java code in the joint compile
         file('build/classes/stub/Groovy.java').exists()
-        !file('build/classes/main/Groovy.class').exists()
-        file('build/classes/main/Java.class').exists()
+        !groovyClassFile('Groovy.class').exists()
+        groovyClassFile('Java.class').exists()
     }
 
     def "jointCompileWithAnnotationProcessor"() {
@@ -188,12 +189,12 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         then:
         succeeds("compileGroovy")
         !errorOutput
-        file('build/classes/main/Groovy.class').exists()
-        file('build/classes/main/Java.class').exists()
-        file('build/classes/main/Groovy$$Generated.java').exists()
-        file('build/classes/main/Java$$Generated.java').exists()
-        file('build/classes/main/Groovy$$Generated.class').exists()
-        file('build/classes/main/Java$$Generated.class').exists()
+        groovyClassFile('Groovy.class').exists()
+        groovyClassFile('Java.class').exists()
+        groovyClassFile('Groovy$$Generated.java').exists()
+        groovyClassFile('Java$$Generated.java').exists()
+        groovyClassFile('Groovy$$Generated.class').exists()
+        groovyClassFile('Java$$Generated.class').exists()
     }
 
     def "jointCompileWithJavaAnnotationProcessorOnly"() {
@@ -207,12 +208,12 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         then:
         succeeds("compileGroovy")
         !errorOutput
-        file('build/classes/main/Java.class').exists()
-        file('build/classes/main/Groovy.class').exists()
-        !file('build/classes/main/Groovy$$Generated.java').exists()
-        file('build/classes/main/Java$$Generated.java').exists()
-        !file('build/classes/main/Groovy$$Generated.class').exists()
-        file('build/classes/main/Java$$Generated.class').exists()
+        groovyClassFile('Java.class').exists()
+        groovyClassFile('Groovy.class').exists()
+        !groovyClassFile('Groovy$$Generated.java').exists()
+        groovyClassFile('Java$$Generated.java').exists()
+        !groovyClassFile('Groovy$$Generated.class').exists()
+        groovyClassFile('Java$$Generated.class').exists()
     }
 
     def "jointCompileBadCodeWithAnnotationProcessor"() {
@@ -238,12 +239,12 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // it's not referenced by any other java code, even if the
         // Groovy compiler fails to compile the same class.
         file('build/classes/stub/Groovy.java').exists()
-        file('build/classes/main/Groovy.class').exists()
-        file('build/classes/main/Java.class').exists()
-        file('build/classes/main/Groovy$$Generated.java').exists()
-        file('build/classes/main/Java$$Generated.java').exists()
-        file('build/classes/main/Groovy$$Generated.class').exists()
-        file('build/classes/main/Java$$Generated.class').exists()
+        groovyClassFile('Groovy.class').exists()
+        groovyClassFile('Java.class').exists()
+        groovyClassFile('Groovy$$Generated.java').exists()
+        groovyClassFile('Java$$Generated.java').exists()
+        groovyClassFile('Groovy$$Generated.class').exists()
+        groovyClassFile('Java$$Generated.class').exists()
     }
 
     def "jointCompileWithAnnotationProcessorDisabled"() {
@@ -264,12 +265,12 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         then:
         succeeds("compileGroovy")
         !errorOutput
-        file('build/classes/main/Groovy.class').exists()
-        file('build/classes/main/Java.class').exists()
-        !file('build/classes/main/Groovy$$Generated.java').exists()
-        !file('build/classes/main/Java$$Generated.java').exists()
-        !file('build/classes/main/Groovy$$Generated.class').exists()
-        !file('build/classes/main/Java$$Generated.class').exists()
+        groovyClassFile('Groovy.class').exists()
+        groovyClassFile('Java.class').exists()
+        !groovyClassFile('Groovy$$Generated.java').exists()
+        !groovyClassFile('Java$$Generated.java').exists()
+        !groovyClassFile('Groovy$$Generated.class').exists()
+        !groovyClassFile('Java$$Generated.class').exists()
     }
 
     def "jointCompileBadCodeWithAnnotationProcessorDisabled"() {
@@ -296,12 +297,12 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // the Groovy class won't be compiled, because it is not
         // referenced by any java code in the joint compile
         file('build/classes/stub/Groovy.java').exists()
-        !file('build/classes/main/Groovy.class').exists()
-        file('build/classes/main/Java.class').exists()
-        !file('build/classes/main/Groovy$$Generated.java').exists()
-        !file('build/classes/main/Java$$Generated.java').exists()
-        !file('build/classes/main/Groovy$$Generated.class').exists()
-        !file('build/classes/main/Java$$Generated.class').exists()
+        !groovyClassFile('Groovy.class').exists()
+        groovyClassFile('Java.class').exists()
+        !groovyClassFile('Groovy$$Generated.java').exists()
+        !groovyClassFile('Java$$Generated.java').exists()
+        !groovyClassFile('Groovy$$Generated.class').exists()
+        !groovyClassFile('Java$$Generated.class').exists()
     }
 
     def "groovyToolClassesAreNotVisible"() {
@@ -321,7 +322,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         then:
         succeeds("compileGroovy")
         !errorOutput
-        file("build/classes/main/Thing.class").exists()
+        groovyClassFile("Thing.class").exists()
     }
 
     def "compileBadCode"() {

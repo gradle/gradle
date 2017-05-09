@@ -61,6 +61,62 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("jdependMain") && ":jdependMain" in nonSkippedTasks
     }
 
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    def "out-of-date when mixed with Java and Groovy code"() {
+        given:
+        goodCode()
+        buildFile << """
+            apply plugin: 'groovy'
+            dependencies {
+                compile localGroovy()
+            }
+        """
+        file("src/main/groovy/org/gradle/Groovy1.groovy") << """
+            package org.gradle
+            
+            class Groovy1 {
+                boolean is() { true }
+            }
+        """
+
+        expect:
+        succeeds("jdependMain")
+        result.assertTaskNotSkipped(":jdependMain")
+
+        when:
+        succeeds(":jdependMain")
+        then:
+        result.assertTaskSkipped(":jdependMain")
+        def report = file("build/reports/jdepend/main.xml").text
+        // Both languages are analyzed
+        report.contains('sourceFile="Class1.java"')
+        report.contains('sourceFile="Groovy1.groovy"')
+
+        when:
+        file("src/main/java/org/gradle/Class1.java").text = """
+            package org.gradle; 
+            class Class1 { 
+                public boolean is() { return true; }
+                public boolean isNot() { return false; } 
+            }
+        """
+        then:
+        succeeds("jdependMain")
+        result.assertTaskNotSkipped(":jdependMain")
+
+        when:
+        file("src/main/groovy/org/gradle/Groovy1.groovy").text = """
+            package org.gradle 
+            class Groovy1 { 
+                boolean is() { true }
+                boolean isNot() { false } 
+            }
+        """
+        then:
+        succeeds("jdependMain")
+        result.assertTaskNotSkipped(":jdependMain")
+    }
+
     def "cannot generate multiple reports"() {
         given:
         buildFile << """

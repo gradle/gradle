@@ -29,7 +29,7 @@ def usage = Attribute.of('usage', String)
 allprojects {
     dependencies {
         attributesSchema {
-           attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
+           attribute(usage)
         }
     }
     configurations {
@@ -364,12 +364,12 @@ task show {
 """
         expect:
         fails("show")
-        failure.assertHasCause("""More than one variant matches the consumer attributes:
-  - Variant:
+        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
+  - Configuration ':a:compile' variant free:
       - Found artifactType 'jar' but wasn't required.
       - Found flavor 'free' but wasn't required.
       - Required usage 'compile' and found compatible value 'compile'.
-  - Variant:
+  - Configuration ':a:compile' variant paid:
       - Found artifactType 'jar' but wasn't required.
       - Found flavor 'paid' but wasn't required.
       - Required usage 'compile' and found compatible value 'compile'.""")
@@ -390,6 +390,8 @@ task show {
 
     @Unroll
     def "reports failure when there is no compatible variant"() {
+        mavenRepo.module("test", "test", "1.2").publish()
+
         settingsFile << """
 include 'a', 'b'
 """
@@ -401,14 +403,22 @@ dependencies {
 }
 
 allprojects {
-    dependencies.attributesSchema.attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+    dependencies.attributesSchema.attribute(flavor)
+    repositories {
+        maven { url '${mavenRepo.uri}' }
+    }
 }
 
-configurations.compile.attributes.attribute(flavor, 'preview')
+configurations.compile {
+    attributes.attribute(flavor, 'preview')
+    attributes.attribute(Attribute.of('artifactType', String), 'dll')
+}
 
 project(':a') {
     dependencies {
         compile project(':b')
+        compile 'test:test:1.2'
+        compile files('things.jar')
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
@@ -447,15 +457,25 @@ task show {
 
         expect:
         fails("show")
-        failure.assertHasCause("""No variants match the consumer attributes:
-  - Variant:
-      - Found artifactType 'jar' but wasn't required.
+        failure.assertHasCause("""No variants of project :a match the consumer attributes:
+  - Configuration ':a:compile' variant free:
+      - Required artifactType 'dll' and found incompatible value 'jar'.
       - Required flavor 'preview' and found incompatible value 'free'.
       - Required usage 'compile' and found compatible value 'compile'.
-  - Variant:
-      - Found artifactType 'jar' but wasn't required.
+  - Configuration ':a:compile' variant paid:
+      - Required artifactType 'dll' and found incompatible value 'jar'.
       - Required flavor 'preview' and found incompatible value 'paid'.
       - Required usage 'compile' and found compatible value 'compile'.""")
+
+        failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes: test:test:1.2 configuration default:
+  - Required artifactType 'dll' and found incompatible value 'jar'.
+  - Required flavor 'preview' but no value provided.
+  - Required usage 'compile' but no value provided.""")
+
+        failure.assertHasCause("""No variants of things.jar match the consumer attributes: things.jar:
+  - Required artifactType 'dll' and found incompatible value 'jar'.
+  - Required flavor 'preview' but no value provided.
+  - Required usage 'compile' but no value provided.""")
 
         where:
         expression                                                                                         | _
@@ -601,6 +621,7 @@ task show {
 
     @Unroll
     def "reports multiple failures to resolve artifacts when files are queried using #expression"() {
+        settingsFile << "include 'a'"
         buildFile << """
 allprojects {
     repositories { maven { url '$mavenHttpRepo.uri' } }
@@ -610,6 +631,14 @@ dependencies {
     compile 'org:test2:2.0'
     compile files { throw new RuntimeException('broken 1') }
     compile files { throw new RuntimeException('broken 2') }
+    compile project(':a')
+}
+
+project(':a') {
+    configurations.compile.outgoing.variants {
+        v1 { }
+        v2 { }
+    }
 }
 
 task show {
@@ -636,6 +665,7 @@ task show {
         failure.assertHasCause("Could not download test2.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
+        failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
 
         where:
         expression                                                                                         | _

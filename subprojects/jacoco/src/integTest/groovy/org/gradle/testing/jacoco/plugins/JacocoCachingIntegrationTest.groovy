@@ -17,33 +17,34 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
-class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
+    private final TestFile reportFile = file("build/reports/jacoco/test/html/index.html")
 
-    def "jacoco file results are cached"() {
+    def setup() {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
-        def reportFile = file("build/reports/jacoco/test/html/index.html")
 
         buildFile << """
             jacocoTestReport.dependsOn test
             
-            sourceSets.test.output.classesDir = file("build/classes/test")
+            sourceSets.test.java.outputDir = file("build/classes/test")
             
             test {
                 jacoco {
-                    // No caching when append is enabled
-                    append = false
                     classDumpDir = file("\$buildDir/tmp/jacoco/classpathdumps")
                 }
             }
         """
+    }
 
+    def "jacoco file results are cached"() {
         when:
-        withBuildCache().succeeds "jacocoTestReport"
+        withBuildCache().succeeds "test", "jacocoTestReport"
         def snapshot = reportFile.snapshot()
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
@@ -59,5 +60,32 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Lo
         then:
         skippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertHasNotChangedSince(snapshot)
+    }
+
+    def "jacoco file results are not cached when sharing output with another task"() {
+        javaProjectUnderTest.writeIntegrationTestSourceFiles()
+        buildFile << """
+            integrationTest.jacoco {
+                destinationFile = test.jacoco.destinationFile
+            }
+        """
+        when:
+        withBuildCache().succeeds "jacocoTestReport"
+        def snapshot = reportFile.snapshot()
+        then:
+        nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
+        reportFile.assertIsFile()
+
+        when:
+        succeeds "clean"
+        then:
+        reportFile.assertDoesNotExist()
+
+        when:
+        withBuildCache().succeeds("integrationTest", "jacocoIntegrationTestReport")
+        and:
+        withBuildCache().succeeds "jacocoTestReport"
+        then:
+        nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
     }
 }

@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
-import java.util.Collection;
 
 /**
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
@@ -38,7 +36,7 @@ public interface ResolvedArtifactSet {
     /**
      * Collects the build dependencies required to build the artifacts in this set.
      */
-    void collectBuildDependencies(Collection<? super TaskDependency> dest);
+    void collectBuildDependencies(BuildDependenciesVisitor visitor);
 
     Completion EMPTY_RESULT = new Completion() {
         @Override
@@ -53,7 +51,7 @@ public interface ResolvedArtifactSet {
         }
 
         @Override
-        public void collectBuildDependencies(Collection<? super TaskDependency> dest) {
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
         }
     };
 

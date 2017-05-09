@@ -17,10 +17,10 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec implements LocalBuildCacheFixture {
+abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
         setupProjectInDirectory()
     }

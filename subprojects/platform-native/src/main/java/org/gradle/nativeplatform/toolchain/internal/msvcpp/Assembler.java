@@ -18,18 +18,18 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
 import java.util.List;
 
 class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
 
-    Assembler(BuildOperationProcessor buildOperationProcessor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<AssembleSpec, AssembleSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationProcessor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new AssemblerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
+    Assembler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<AssembleSpec, AssembleSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new AssemblerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
     }
 
     @Override

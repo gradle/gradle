@@ -25,7 +25,8 @@ import java.lang.annotation.Target;
 /**
  * <p>Marks a property as specifying one or more output directories for a task.</p>
  *
- * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
+ * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>This will cause the task to be considered out-of-date when the directory paths or task
  * output to those directories have been modified since the task was last run.</p>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,108 +16,36 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.api.Nullable;
-
 /**
- * Meta-data about a build operation.
+ * Structured information about a build operation, and optionally its result.
+ *
+ * This interface is intentionally internal and consumed by the build scan plugin.
+ *
+ * The type token indicates the type of result object that the operation provides.
+ * If the operation does not produce a result, extend {@link NoResultBuildOperationDetails}.
+ * The producer and consumer side APIs in Gradle do not currently enforce (at compile-time or run-time)
+ * That an operation with “details” provides a result, or provides a result of the right type.
+ * However, the build scan plugin does assume that an operation with a details object,
+ * where the result type is not {@code Void}, does provide a non-null result of the given type.
+ *
+ * The following rules apply to both details and result objects:
+ *
+ * - Types must be practically immutable to consumers
+ * - Types must only expose JDK types, or other structured types only exposing JDK types
+ *   - This significantly eases testing by making the objects serializable to JSON
+ * - Unless impractical, collection like structures should have deterministic order (e.g. sorted)
+ * - Objects should not assume they are not referenced outside of listeners
+ *
+ * Regarding the last point, the build scan plugin may hold on to the details and/or result
+ * outside of listener callback to process it off thread.
+ * It can be assumed that the objects are not held longer than is necessary to process/transform them
+ * into detached representations suitable for the build scan event stream.
+ *
+ * @param <R> the type of result
+ * @see BuildOperationDescriptor
+ * @since 4.0
  */
-public class BuildOperationDetails {
-    private final BuildOperationExecutor.Operation parent;
-    private final String displayName;
-    private final String name;
-    private final String progressDisplayName;
-    private final Object operationDescriptor;
+@SuppressWarnings("unused") // R type token is not enforced right now
+public interface BuildOperationDetails<R> {
 
-    private BuildOperationDetails(BuildOperationExecutor.Operation parent, String name, String displayName, String progressDisplayName, Object operationDescriptor) {
-        this.parent = parent;
-        this.name = name;
-        this.displayName = displayName;
-        this.progressDisplayName = progressDisplayName;
-        this.operationDescriptor = operationDescriptor;
-    }
-
-    /**
-     * Returns a short name for the operation. This is a short human consumable description of the operation that makes sense in the context of the parent operation.
-     * See TAPI {@code OperationDescriptor}.
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Returns the display name for the operation. This should be a standalone human consumable description of the
-     * operation, and should describe the operation whether currently running or not, eg "run test A" rather than
-     * "running test A".
-     */
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    /**
-     * Returns the display name to use for progress logging for the operation. Should be short and describe the operation
-     * as it is running, eg "running test A" rather than "run test A".
-     *
-     * <p>When null, no progress logging is generated for the operation. Defaults to null.
-     */
-    @Nullable
-    public String getProgressDisplayName() {
-        return progressDisplayName;
-    }
-
-    /**
-     * Arbitrary metadata for the operation.
-     */
-    @Nullable
-    public Object getOperationDescriptor() {
-        return operationDescriptor;
-    }
-
-    /**
-     * The parent for the operation, if any. When null, the operation of the current thread is used.
-     */
-    @Nullable
-    public BuildOperationExecutor.Operation getParent() {
-        return parent;
-    }
-
-    public static Builder displayName(String displayName) {
-        return new Builder(displayName);
-    }
-
-    public static class Builder {
-        private final String displayName;
-        private String name;
-        private BuildOperationExecutor.Operation parent;
-        private String progressDisplayName;
-        private Object operationDescriptor;
-
-        private Builder(String displayName) {
-            this.displayName = displayName;
-            this.name = displayName;
-        }
-
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Builder progressDisplayName(String progressDisplayName) {
-            this.progressDisplayName = progressDisplayName;
-            return this;
-        }
-
-        public Builder operationDescriptor(Object descriptor) {
-            this.operationDescriptor = descriptor;
-            return this;
-        }
-
-        public Builder parent(BuildOperationExecutor.Operation parent) {
-            this.parent = parent;
-            return this;
-        }
-
-        public BuildOperationDetails build() {
-            return new BuildOperationDetails(parent, name, displayName, progressDisplayName, operationDescriptor);
-        }
-    }
 }

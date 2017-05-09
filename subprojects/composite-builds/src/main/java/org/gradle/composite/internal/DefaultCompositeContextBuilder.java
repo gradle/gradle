@@ -16,27 +16,67 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.util.Path;
 
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
     private final DefaultIncludedBuilds allIncludedBuilds;
+    private final DefaultProjectPathRegistry projectRegistry;
     private final CompositeBuildContext context;
 
-    public DefaultCompositeContextBuilder(DefaultIncludedBuilds allIncludedBuilds, CompositeBuildContext context) {
+    public DefaultCompositeContextBuilder(DefaultIncludedBuilds allIncludedBuilds, DefaultProjectPathRegistry projectRegistry, CompositeBuildContext context) {
         this.allIncludedBuilds = allIncludedBuilds;
+        this.projectRegistry = projectRegistry;
         this.context = context;
     }
 
     @Override
-    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds) {
-        IncludedBuildDependencySubstitutionsBuilder contextBuilder = new IncludedBuildDependencySubstitutionsBuilder(context);
+    public void setRootBuild(SettingsInternal settings) {
+        ProjectRegistry<DefaultProjectDescriptor> projectRegistry = settings.getProjectRegistry();
+        String rootName = projectRegistry.getProject(":").getName();
+        DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootName, true);
+        Path rootProjectIdentityPath = Path.ROOT;
+        for (DefaultProjectDescriptor project : projectRegistry.getAllProjects()) {
+            Path projectIdentityPath = rootProjectIdentityPath.append(project.path());
+            ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, project.getPath());
+            this.projectRegistry.add(projectIdentityPath, projectComponentIdentifier);
+        }
+    }
+
+    @Override
+    public void addIncludedBuilds(Iterable<IncludedBuild> includedBuilds) {
+        registerProjects(includedBuilds);
+        registerSubstitutions(includedBuilds);
+    }
+
+    private void registerProjects(Iterable<IncludedBuild> includedBuilds) {
         for (IncludedBuild includedBuild : includedBuilds) {
             allIncludedBuilds.registerBuild(includedBuild);
+            Path rootProjectIdentityPath = Path.ROOT.child(includedBuild.getName());
+            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(includedBuild.getName());
+            for (DefaultProjectDescriptor project : ((IncludedBuildInternal) includedBuild).getLoadedSettings().getProjectRegistry().getAllProjects()) {
+                Path projectIdentityPath = rootProjectIdentityPath.append(project.path());
+                ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, project.getPath());
+                projectRegistry.add(projectIdentityPath, projectComponentIdentifier);
+            }
+        }
+    }
+
+    private void registerSubstitutions(Iterable<IncludedBuild> includedBuilds) {
+        IncludedBuildDependencySubstitutionsBuilder contextBuilder = new IncludedBuildDependencySubstitutionsBuilder(context);
+        for (IncludedBuild includedBuild : includedBuilds) {
             doAddToCompositeContext((IncludedBuildInternal) includedBuild, contextBuilder);
         }
     }

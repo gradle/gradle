@@ -75,14 +75,23 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     }
 
     private static String fullPath(BuildIdentifier build, String projectPath) {
+        // We _really_ should not use ':' as the root build 'name': composite-builds#70
         if (build.isCurrentBuild()) {
-            return projectPath;
+            if (build.getName().equals(":")) {
+                return projectPath;
+            } else {
+                return "[" + build.getName() + "]" + projectPath;
+            }
         }
         return ":" + build.getName() + projectPath;
     }
 
     public static ProjectComponentIdentifier newProjectId(IncludedBuild build, String projectPath) {
         BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getName());
+        return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
+    }
+
+    public static ProjectComponentIdentifier newProjectId(BuildIdentifier buildIdentifier, String projectPath) {
         return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
     }
 

@@ -78,6 +78,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = Type.getDescriptor(ConventionMapping.class);
         private static final String META_CLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = Type.getType(MetaClass.class);
+        private final static Type GENERATED_SUBCLASS_TYPE = Type.getType(GeneratedSubclass.class);
         private final static Type CONVENTION_AWARE_TYPE = Type.getType(IConventionAware.class);
         private final static Type CONVENTION_AWARE_HELPER_TYPE = Type.getType(ConventionAwareHelper.class);
         private final static Type DYNAMIC_OBJECT_AWARE_TYPE = Type.getType(DynamicObjectAware.class);
@@ -145,6 +146,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         public void startClass(boolean shouldImplementWithServices) {
             List<String> interfaceTypes = new ArrayList<String>();
+
+            interfaceTypes.add(GENERATED_SUBCLASS_TYPE.getInternalName());
+
             if (conventionAware && extensible) {
                 interfaceTypes.add(CONVENTION_AWARE_TYPE.getInternalName());
             }

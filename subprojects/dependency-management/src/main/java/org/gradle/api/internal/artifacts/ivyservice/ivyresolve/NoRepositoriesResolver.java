@@ -63,6 +63,11 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
     }
 
     @Override
+    public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+        return true;
+    }
+
+    @Override
     public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
         throw new UnsupportedOperationException();
     }

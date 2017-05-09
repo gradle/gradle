@@ -365,10 +365,10 @@ project(":b") {
         file('settings.gradle') << "include 'a', 'b'"
 
         and:
-        buildFile << '''
+        buildFile << """
 allprojects {
     apply plugin: 'java'
-    repositories { maven { url rootProject.uri('repo') } }
+    repositories { maven { url '${mavenRepo.uri}' } }
 }
 project(':a') {
     dependencies {
@@ -386,7 +386,7 @@ project(':b') {
         }
     }
 }
-'''
+"""
 
         expect:
         succeeds ":b:listJars"

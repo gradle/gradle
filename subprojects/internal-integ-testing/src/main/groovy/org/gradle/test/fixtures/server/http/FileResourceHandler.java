@@ -27,7 +27,7 @@ class FileResourceHandler implements BlockingHttpServer.Resource, ResourceHandle
     private final File file;
 
     public FileResourceHandler(String path, File file) {
-        this.path = path;
+        this.path = SimpleResourceHandler.removeLeadingSlash(path);
         this.file = file;
     }
 

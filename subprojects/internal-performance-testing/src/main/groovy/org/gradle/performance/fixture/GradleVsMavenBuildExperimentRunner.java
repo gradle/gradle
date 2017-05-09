@@ -19,12 +19,17 @@ package org.gradle.performance.fixture;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
@@ -47,7 +52,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         }
     }
 
-    private void runMavenExperiment(MeasuredOperationList results, MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
+    private void runMavenExperiment(MeasuredOperationList results, final MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
         File projectDir = buildSpec.getWorkingDirectory();
         performMeasurements(new InvocationExecutorProvider() {
             public Action<MeasuredOperation> runner(final BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
@@ -59,13 +64,28 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
                         DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
                             @Override
                             public void run() {
-                                mavenInvocation.execute();
+                                executeWithFileLogging(experiment, mavenInvocation);
                             }
                         });
                     }
                 };
             }
         }, experiment, results, projectDir);
+    }
+
+    private void executeWithFileLogging(MavenBuildExperimentSpec experiment, ExecAction mavenInvocation) {
+        File log = new File(experiment.getWorkingDirectory(), "log.txt");
+        OutputStream out = null;
+        try {
+            out = new FileOutputStream(log, true);
+            mavenInvocation.setErrorOutput(out);
+            mavenInvocation.setStandardOutput(out);
+            mavenInvocation.execute();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            CompositeStoppable.stoppable(out).stop();
+        }
     }
 
     @Override

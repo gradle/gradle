@@ -172,10 +172,6 @@ class Main {
         executedAndNotSkipped ":project-lib:jar", ":verify"
     }
 
-    // TODO:DAZ Not sure if this is really important. Artifact identifiers are not currently serializable, which makes this tough.
-    def "task is not up-to-date when metadata of input artifact changes"() {
-    }
-
     def "failure to resolve artifact collection"() {
         given:
         buildFile << """
@@ -198,6 +194,13 @@ class Main {
         fails "verify"
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        if (FluidDependenciesResolveRunner.isFluid()) {
+            failure.assertHasDescription("Could not determine the dependencies of task ':verify'.")
+            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+            failure.assertHasCause("Could not find org:does-not-exist:1.0.")
+        } else {
+            failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+            failure.assertHasCause("Could not find org:does-not-exist:1.0.")
+        }
     }
 }

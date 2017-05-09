@@ -28,21 +28,7 @@ class CacheInitScriptsSmokeTest extends AbstractSmokeTest {
         def expectedLines = """
             Overlapping task outputs while executing 'build':
 
-              - build/classes/main/ has overlap between:
-                  - :compileGroovy.destinationDir (org.gradle.api.tasks.compile.GroovyCompile)
-                  - :compileJava.destinationDir (org.gradle.api.tasks.compile.JavaCompile)
-              - build/classes/test has overlap between:
-                  - :compileTestGroovy.destinationDir (org.gradle.api.tasks.compile.GroovyCompile)
-                  - :compileTestJava.destinationDir (org.gradle.api.tasks.compile.JavaCompile)
-
-              Tasks affected by type:
-
-                - org.gradle.api.tasks.compile.GroovyCompile
-                  - :compileGroovy
-                  - :compileTestGroovy
-                - org.gradle.api.tasks.compile.JavaCompile
-                  - :compileJava
-                  - :compileTestJava
+              No tasks with overlapping outputs found
 
             Detailed cache statistics
 

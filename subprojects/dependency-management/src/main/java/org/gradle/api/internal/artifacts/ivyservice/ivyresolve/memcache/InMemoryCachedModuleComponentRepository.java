@@ -21,7 +21,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleCompone
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BaseModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -81,6 +83,11 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             if (!metaDataCache.supplyMetaData(moduleComponentIdentifier, result)) {
                 super.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
                 metaDataCache.newDependencyResult(moduleComponentIdentifier, result);
+                if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
+                    metaDataCache.cacheFetchingCost(moduleComponentIdentifier, MetadataFetchingCost.FAST);
+                } else {
+                    metaDataCache.cacheFetchingCost(moduleComponentIdentifier, MetadataFetchingCost.CHEAP);
+                }
             }
         }
 
@@ -106,6 +113,16 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
                 super.resolveArtifact(artifact, moduleSource, result);
                 artifactsCache.newArtifact(artifact.getId(), result);
             }
+        }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(final ModuleComponentIdentifier moduleComponentIdentifier) {
+            return metaDataCache.getOrCacheFetchingCost(moduleComponentIdentifier, new Factory<MetadataFetchingCost>() {
+                @Override
+                public MetadataFetchingCost create() {
+                    return CachedAccess.super.estimateMetadataFetchingCost(moduleComponentIdentifier);
+                }
+            });
         }
     }
 }

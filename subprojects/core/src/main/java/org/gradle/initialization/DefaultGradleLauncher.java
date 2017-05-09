@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
@@ -27,17 +26,19 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor;
-import org.gradle.execution.taskgraph.CalculateTaskGraphOperationResult;
+import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.taskgraph.CalculateTaskGraphDetails;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.progress.BuildOperationDetails;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultGradleLauncher implements GradleLauncher {
@@ -154,7 +155,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         if (stage == Stage.Load) {
             // Configure build
-            buildOperationExecutor.run("Configure build", new ConfigureBuildAction());
+            buildOperationExecutor.run(new ConfigureBuildBuildOperation());
             stage = Stage.Configure;
         }
 
@@ -166,13 +167,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
         stage = Stage.Build;
 
         // marker descriptor class for identifying build operation
-        StartParameter startParameter = gradle.getStartParameter();
-        CalculateTaskGraphDescriptor calculateTaskGraphDescriptor = new CalculateTaskGraphDescriptor(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames());
-        BuildOperationDetails buildOperationDetails = BuildOperationDetails.displayName("Calculate task graph").operationDescriptor(calculateTaskGraphDescriptor).build();
-        buildOperationExecutor.run(buildOperationDetails, new CalculateTaskGraphAction());
+        buildOperationExecutor.run(new CalculateTaskGraphBuildOperation());
 
         // Execute build
-        buildOperationExecutor.run("Run tasks", new RunTasksAction());
+        buildOperationExecutor.run(new RunTasksBuildOperation());
     }
 
     /**
@@ -194,9 +192,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private class ConfigureBuildAction implements Action<BuildOperationContext> {
+    private class ConfigureBuildBuildOperation implements RunnableBuildOperation {
         @Override
-        public void execute(BuildOperationContext buildOperationContext) {
+        public void run(BuildOperationContext context) {
             buildConfigurer.configure(gradle);
 
             if (!isConfigureOnDemand()) {
@@ -205,30 +203,60 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             modelConfigurationListener.onConfigure(gradle);
         }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Configure build");
+        }
     }
 
-    private class CalculateTaskGraphAction implements Action<BuildOperationContext> {
+    private class CalculateTaskGraphBuildOperation implements RunnableBuildOperation {
         @Override
-        public void execute(BuildOperationContext buildOperationContext) {
-            buildConfigurationActionExecuter.select(gradle);
+        public void run(BuildOperationContext buildOperationContext) {
+            try {
+                buildConfigurationActionExecuter.select(gradle);
+            } catch (RuntimeException ex) {
+                buildOperationContext.failed(ex);
+                throw ex;
+            }
+
             if (isConfigureOnDemand()) {
                 projectsEvaluated();
             }
+
             // make requested tasks available from according build operation.
-            buildOperationContext.setResult(new CalculateTaskGraphOperationResult(CollectionUtils.collect(gradle.getTaskGraph().getRequestedTasks(), new Transformer<String, Task>() {
-                @Override
-                public String transform(Task task) {
-                    return task.getPath();
-                }
-            })));
+            TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+            buildOperationContext.setResult(new CalculateTaskGraphDetails.Result(toTaskPaths(taskGraph.getRequestedTasks()), toTaskPaths(taskGraph.getFilteredTasks())));
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            StartParameter startParameter = gradle.getStartParameter();
+            CalculateTaskGraphDetails calculateTaskGraphDetails = new CalculateTaskGraphDetails(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames());
+            return BuildOperationDescriptor.displayName("Calculate task graph").details(calculateTaskGraphDetails);
         }
     }
 
-    private class RunTasksAction implements Action<BuildOperationContext> {
+    private class RunTasksBuildOperation implements RunnableBuildOperation {
         @Override
-        public void execute(BuildOperationContext buildOperationContext) {
+        public void run(BuildOperationContext context) {
             buildExecuter.execute(gradle);
         }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Run tasks");
+        }
+    }
+
+
+    private static Set<String> toTaskPaths(Set<Task> tasks) {
+        return CollectionUtils.collect(tasks, new Transformer<String, Task>() {
+            @Override
+            public String transform(Task task) {
+                return task.getPath();
+            }
+        });
     }
 
     private boolean isConfigureOnDemand() {

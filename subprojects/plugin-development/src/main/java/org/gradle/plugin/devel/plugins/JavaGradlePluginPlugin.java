@@ -87,6 +87,34 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
     static final String VALIDATE_TASK_PROPERTIES_TASK_NAME = "validateTaskProperties";
 
+    /**
+     * The task group used for tasks created by the Java Gradle plugin development plugin.
+     *
+     * @since 4.0
+     */
+    static final String PLUGIN_DEVELOPMENT_GROUP = "Plugin development";
+
+    /**
+     * The description for the task generating metadata for plugin functional tests.
+     *
+     * @since 4.0
+     */
+    static final String PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION = "Generates the metadata for plugin functional tests.";
+
+    /**
+     * The description for the task generating plugin descriptors from plugin declarations.
+     *
+     * @since 4.0
+     */
+    static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION = "Generates plugin descriptors from plugin declarations.";
+
+    /**
+     * The description for the task validating task property annotations for the plugin.
+     *
+     * @since 4.0
+     */
+    static final String VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION = "Validates task property annotations for the plugin.";
+
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
@@ -131,6 +159,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private PluginUnderTestMetadata createAndConfigurePluginUnderTestMetadataTask(final Project project, final GradlePluginDevelopmentExtension extension) {
         final PluginUnderTestMetadata pluginUnderTestMetadataTask = project.getTasks().create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata.class);
+        pluginUnderTestMetadataTask.setGroup(PLUGIN_DEVELOPMENT_GROUP);
+        pluginUnderTestMetadataTask.setDescription(PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION);
         final Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
 
         ConventionMapping conventionMapping = new DslObject(pluginUnderTestMetadataTask).getConventionMapping();
@@ -170,6 +200,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private void configureDescriptorGeneration(final Project project, final GradlePluginDevelopmentExtension extension) {
         final GeneratePluginDescriptors generatePluginDescriptors = project.getTasks().create(GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME, GeneratePluginDescriptors.class);
+        generatePluginDescriptors.setGroup(PLUGIN_DEVELOPMENT_GROUP);
+        generatePluginDescriptors.setDescription(GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION);
         generatePluginDescriptors.conventionMapping("declarations", new Callable<List<PluginDeclaration>>() {
             @Override
             public List<PluginDeclaration> call() throws Exception {
@@ -212,14 +244,16 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private void configureTaskPropertiesValidation(Project project) {
         ValidateTaskProperties validator = project.getTasks().create(VALIDATE_TASK_PROPERTIES_TASK_NAME, ValidateTaskProperties.class);
+        validator.setGroup(PLUGIN_DEVELOPMENT_GROUP);
+        validator.setDescription(VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION);
 
         File reportsDir = new File(project.getBuildDir(), "reports");
         File validatorReportsDir = new File(reportsDir, "task-properties");
         validator.setOutputFile(new File(validatorReportsDir, "report.txt"));
 
-        SourceSet mainSourceSet = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        final SourceSet mainSourceSet = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        validator.setClasses(mainSourceSet.getOutput().getClassesDirs());
         validator.setClasspath(mainSourceSet.getCompileClasspath());
-        validator.setClassesDir(mainSourceSet.getOutput().getClassesDir());
         validator.dependsOn(mainSourceSet.getOutput());
 
         project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(validator);

@@ -24,7 +24,8 @@ import java.lang.annotation.Target;
 /**
  * <p>Marks a property as specifying a nested bean, whose properties should be checked for annotations.</p>
  *
- * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
+ * Annotations on setters or just the field in Java are ignored.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

@@ -34,7 +34,8 @@ import static org.gradle.util.GFileUtils.forceDelete
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
-    private final GradleExecuter mostRecentFinalReleaseExecuter = releasedVersionDistributions.mostRecentFinalRelease.executer(temporaryFolder, getBuildContext())
+    // TODO: Convert this to .mostRecentFinalRelease once 4.0 is released.
+    private final GradleExecuter mostRecentFinalReleaseExecuter = releasedVersionDistributions.getMostRecentSnapshot().executer(temporaryFolder, getBuildContext())
 
     def cleanup() {
         mostRecentFinalReleaseExecuter.cleanup()
@@ -161,7 +162,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksExecuted(result)
-        javaProject.assertHasCleanupMessage(result, "out")
+        javaProject.assertHasCleanupMessage(result)
         javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         javaProject.mainClassFileAlternate.assertIsFile()
         javaProject.redundantClassFileAlternate.assertDoesNotExist()
@@ -171,7 +172,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksSkipped(result)
-        javaProject.assertDoesNotHaveCleanupMessage(result, "out")
+        javaProject.assertDoesNotHaveCleanupMessage(result)
     }
 
     @Unroll

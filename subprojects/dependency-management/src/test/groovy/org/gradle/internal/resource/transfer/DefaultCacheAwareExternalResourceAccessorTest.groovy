@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.ExternalResourceReadResult
 import org.gradle.internal.resource.cached.CachedExternalResource
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -228,7 +229,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         cachedMetaData.lastModified >> null
         1 * repository.getResource(new URI("scheme:thing.sha1"), true) >> remoteSha1
         1 * remoteSha1.withContent(_) >> { Transformer t ->
-            t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes))
+            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes)))
         }
         1 * remoteSha1.close()
         1 * localCandidates.findByHashValue(sha1) >> localCandidate

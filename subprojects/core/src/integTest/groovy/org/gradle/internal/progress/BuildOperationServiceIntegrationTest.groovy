@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
 
+    String operationListenerStartAction = "{p, e -> }"
+    String operationListenerFinishedAction = "{p, r -> }"
+
     def setup() {
         file("buildSrc/src/main/groovy/BuildOperationLogPlugin.groovy") << """
         import org.gradle.internal.progress.* 
@@ -32,12 +35,12 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
                 project.ext.operFinishedAction = {p, r -> }
                 def listener = new BuildOperationListener() {
                     @Override
-                    void started(BuildOperationInternal operation, OperationStartEvent startEvent) {
+                    void started(BuildOperationDescriptor operation, OperationStartEvent startEvent) {
                         project.operStartAction(operation, startEvent)
                     }
         
                     @Override
-                    void finished(BuildOperationInternal operation, OperationResult result) {
+                    void finished(BuildOperationDescriptor operation, OperationFinishEvent result) {
                         project.operFinishedAction(operation, result)
                     }
                 }
@@ -48,15 +51,28 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         }     
         """
-        buildFile << "apply plugin:BuildOperationLogPlugin"
+
+        buildFile << """
+            apply plugin:BuildOperationLogPlugin
+        """
+
+        executer.beforeExecute {
+            buildFile << """
+            project.plugins.withType(BuildOperationLogPlugin){
+                operStartAction = $operationListenerStartAction
+                operFinishedAction = $operationListenerFinishedAction
+            
+            }
+            """
+        }
     }
 
     def "plugin can listen to build operations events"() {
+        given:
+        operationListenerStartAction = '{ op, event -> project.logger.lifecycle "START \$op.displayName"}'
+        operationListenerFinishedAction = '{ op, result -> project.logger.lifecycle "FINISH \$op.displayName"}'
+
         when:
-        buildFile << """
-            operStartAction = { op, event -> project.logger.lifecycle "START \$op.displayName"}
-            operFinishedAction = { op, result -> project.logger.lifecycle "FINISH \$op.displayName"}
-        """
         succeeds 'help'
 
         then:
@@ -72,59 +88,4 @@ class BuildOperationServiceIntegrationTest extends AbstractIntegrationSpec {
         !result.output.contains('FINISH Task :help')
     }
 
-    def "requested tasks are exposed"() {
-        given:
-        settingsFile << """
-        include "a"
-        include "b"
-        include "a:c"
-"""
-        buildFile << """
-            allprojects {
-                task someTask
-            }
-
-            operFinishedAction = { op, result -> 
-                if(op.operationDescriptor != null && org.gradle.execution.taskgraph.CalculateTaskGraphDescriptor.class.isAssignableFrom(op.operationDescriptor.getClass())){
-                    result.result.requestedTaskPaths.each { tskPath ->
-                        println "requested task: \$tskPath"
-                    }
-                }
-            }
-        """
-        when:
-        succeeds('help')
-
-        then:
-        result.output.contains 'requested task: :help'
-
-        when:
-        succeeds('someTask')
-
-        then:
-        result.output.contains 'requested task: :someTask'
-        result.output.contains 'requested task: :a:someTask'
-        result.output.contains 'requested task: :b:someTask'
-        result.output.contains 'requested task: :a:c:someTask'
-
-        when:
-        succeeds('someTask', '-x', ':b:someTask')
-
-        then:
-        result.output.contains 'requested task: :someTask'
-        result.output.contains 'requested task: :a:someTask'
-        result.output.contains 'requested task: :a:c:someTask'
-        !result.output.contains('requested task: :b:someTask')
-
-
-        when:
-        succeeds(':a:someTask')
-
-        then:
-        result.output.contains('requested task: :a:someTask')
-        !result.output.contains('requested task: :someTask')
-        !result.output.contains('requested task: :a:c:someTask')
-        !result.output.contains('requested task: :b:someTask')
-
-    }
 }

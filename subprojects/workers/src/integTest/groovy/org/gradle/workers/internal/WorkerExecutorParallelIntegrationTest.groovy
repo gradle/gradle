@@ -371,19 +371,19 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         def gradle = executer.start()
 
         then:
-        handler.waitForAllPendingCalls(30)
+        handler.waitForAllPendingCalls()
 
         when:
         handler.release(1)
 
         then:
-        handler.waitForAllPendingCalls(10)
+        handler.waitForAllPendingCalls()
 
         when:
         handler.release(2)
 
         then:
-        handler.waitForAllPendingCalls(10)
+        handler.waitForAllPendingCalls()
 
         when:
         handler.release(3)
@@ -422,7 +422,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         """
         buildFile << """
             task firstTask(type: MultipleWorkItemTask) {
-                doLast { ${blockingHttpServer.callFromBuildScript("task1")} }
+                doLast { ${blockingHttpServer.callFromBuild("task1")} }
             }
             
             project(':childProject') {
@@ -456,7 +456,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             
             project(':childProject') {
                 task secondTask(type: MultipleWorkItemTask) {
-                    doLast { ${blockingHttpServer.callFromBuildScript("task2")} }
+                    doLast { ${blockingHttpServer.callFromBuild("task2")} }
                 }
             }
             
@@ -479,12 +479,12 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 doLast { 
                     submitWorkItem("task1-1") 
                     workerExecutor.await()
-                    ${blockingHttpServer.callFromBuildScript("task1-2")}
+                    ${blockingHttpServer.callFromBuild("task1-2")}
                 }
             }
             
             task secondTask(type: MultipleWorkItemTask) {
-                doLast { ${blockingHttpServer.callFromBuildScript("task2")} }
+                doLast { ${blockingHttpServer.callFromBuild("task2")} }
             }
             
             task allTasks {
@@ -510,13 +510,13 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 doLast { 
                     submitWorkItem("task1-1") 
                     workerExecutor.await()
-                    ${blockingHttpServer.callFromBuildScript("task1-2")}
+                    ${blockingHttpServer.callFromBuild("task1-2")}
                 }
             }
             
             project(':childProject') {
                 task secondTask(type: MultipleWorkItemTask) {
-                    doLast { ${blockingHttpServer.callFromBuildScript("task2")} }
+                    doLast { ${blockingHttpServer.callFromBuild("task2")} }
                 }
             }
             

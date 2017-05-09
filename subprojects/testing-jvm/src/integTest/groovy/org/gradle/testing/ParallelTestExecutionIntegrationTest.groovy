@@ -33,7 +33,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
-            plugins { id "groovy" }
+            plugins { id "java" }
             repositories { jcenter() }
             dependencies {
                 testCompile localGroovy()
@@ -42,8 +42,6 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         blockingServer.start()
-
-        executer.withArgument '--parallel'
     }
 
     @Unroll
@@ -63,6 +61,10 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         and:
+        // Warm everything up ready to run the tests
+        run("testClasses")
+
+        and:
         executer.withArgument "--max-workers=$maxWorkers"
 
         and:
@@ -73,17 +75,17 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         def gradle = executer.withTasks('test').start()
 
         then:
-        handler.waitForAllPendingCalls(120)
+        handler.waitForAllPendingCalls()
         handler.release(1)
 
         and:
         if (maxConcurrency - 1 > 0) {
-            handler.waitForAllPendingCalls(120)
+            handler.waitForAllPendingCalls()
             handler.release(maxConcurrency - 1)
         }
 
         and:
-        handler.waitForAllPendingCalls(120)
+        handler.waitForAllPendingCalls()
         handler.release(maxConcurrency)
 
         then:
@@ -103,14 +105,13 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     private void withJUnitTests(int testCount) {
         testIndices(testCount).each { idx ->
-            file("src/test/groovy/pkg/SomeTest_${idx}.groovy") << """
-                package pkg
-                import org.junit.Test
+            file("src/test/java/pkg/SomeTest_${idx}.java") << """
+                package pkg;
+                import org.junit.Test;
                 public class SomeTest_$idx {
                     @Test
-                    void test_$idx() {
-                        URL url = new URL("${blockingServer.uri("test_$idx")}")
-                        println url.openConnection().getHeaderField('RESPONSE')                        
+                    public void test_$idx() {
+                        ${blockingServer.callFromBuild("test_$idx")}
                     }
                 }
             """.stripIndent()

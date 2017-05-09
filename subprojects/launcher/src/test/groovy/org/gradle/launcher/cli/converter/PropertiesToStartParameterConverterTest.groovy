@@ -17,7 +17,9 @@
 package org.gradle.launcher.cli.converter
 
 import org.gradle.StartParameter
+import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.launcher.daemon.configuration.GradleProperties.*
 
@@ -40,4 +42,33 @@ class PropertiesToStartParameterConverterTest extends Specification {
         then:
         thrown(IllegalArgumentException)
     }
+
+    @Unroll
+    def "converts log levels"() {
+        expect:
+        converter.convert([(LOG_LEVEL_PROPERTY): level], new StartParameter()).logLevel == logLevel
+
+        where:
+        level       | logLevel
+        'quiet'     | LogLevel.QUIET
+        'warn'      | LogLevel.WARN
+        'LifeCycle' | LogLevel.LIFECYCLE
+        'Info'      | LogLevel.INFO
+        'DEBUG'     | LogLevel.DEBUG
+    }
+
+    def "throws exception for invalid log level"() {
+        when:
+        converter.convert([(LOG_LEVEL_PROPERTY): "fakeLevel"], new StartParameter())
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.getMessage().contains(LOG_LEVEL_PROPERTY)
+        LogLevel.values().each { level ->
+            if(level != LogLevel.ERROR) {
+                ex.getMessage().contains(level.toString())
+            }
+        }
+    }
+
 }

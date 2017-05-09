@@ -26,6 +26,7 @@ import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.MavenInvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT
@@ -35,6 +36,7 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC
  * Performance tests aimed at comparing the performance of Gradle for compiling and executing test suites, making
  * sure we are always faster than Maven.
  */
+@Ignore
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 
     @Unroll
@@ -60,17 +62,15 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         def results = runner.run()
 
         then:
-        if (gradleTask != "test" || testProject != MEDIUM_JAVA_MULTI_PROJECT) { //there seems to be some inefficiency when testing with --parallel
-            results.assertFasterThanMaven()
-        }
+        results.assertFasterThanMaven()
 
         where:
         testProject                    | gradleTask    | mavenTask | gradleCleanupTask | mavenCleanupTask
         MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'    | 'package' | 'clean'           | 'clean'
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'        | 'test'    | 'cleanTest'       | 'help'
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'        | 'test'    | 'cleanTest'       | '-help'
 
         MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'    | 'package' | 'clean'           | 'clean'
-        MEDIUM_JAVA_MULTI_PROJECT      | 'test'        | 'test'    | 'cleanTest'       | 'help'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'        | 'test'    | 'cleanTest'       | '-help'
     }
 
     @Unroll

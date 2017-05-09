@@ -33,7 +33,6 @@ import java.util.Set;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
-// TODO:DAZ Extract the `buildProjectDependencies` logic into a separate DependencyArtifactsVisitor
 /**
  * Collects all artifacts and their build dependencies.
  */
@@ -49,9 +48,6 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         this.sortOrder = sortOrder;
     }
 
-    // TODO:DAZ Split the 'consumer-first' implementation out
-    // TODO:DAZ Try using an 'access-order' LinkedHashMap
-    // TODO:DAZ Sort component nodes, not configuration nodes
     @Override
     public void startArtifacts(DependencyGraphNode root) {
         if (sortOrder == ResolutionStrategy.SortOrder.DEFAULT) {
@@ -70,6 +66,10 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         return sortOrder == ResolutionStrategy.SortOrder.CONSUMER_FIRST ? Lists.reverse(marked) : marked;
     }
 
+    /*
+     * Recursively sort the configuration nodes of the resolution graph.
+     * Note that this should really be sorting _component nodes_, not configuration nodes.
+     */
     private void topologicalSort(DependencyGraphNode node, Set<DependencyGraphNode> tempMarked, List<DependencyGraphNode> marked) {
         if (tempMarked.contains(node)) {
             return;

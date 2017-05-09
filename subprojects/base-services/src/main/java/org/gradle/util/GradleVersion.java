@@ -308,4 +308,17 @@ public class GradleVersion implements Comparable<GradleVersion> {
             return 0;
         }
     }
+
+    public boolean isSameOrNewer(String otherVersion) {
+        return isVersion(otherVersion) || this.compareTo(GradleVersion.version(otherVersion)) > 0;
+    }
+
+    public boolean isSameOrOlder(String otherVersion) {
+        return isVersion(otherVersion) || this.compareTo(GradleVersion.version(otherVersion)) <= 0;
+    }
+
+    public boolean isVersion(String otherVersionString) {
+        GradleVersion otherVersion = GradleVersion.version(otherVersionString);
+        return this.compareTo(otherVersion) == 0 || (this.isSnapshot() && this.getBaseVersion().equals(otherVersion.getBaseVersion()));
+    }
 }

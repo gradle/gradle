@@ -27,6 +27,8 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.platform.base.DependencySpec;
@@ -79,9 +81,14 @@ public class JvmLibraryResolveContext implements ResolveContext {
 
     @Override
     public ComponentResolveMetadata toRootComponentMetaData() {
-        DefaultLibraryLocalComponentMetadata componentMetadata = newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
+        final DefaultLibraryLocalComponentMetadata componentMetadata = newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
         for (UsageKind usageKind : UsageKind.values()) {
             componentMetadata.addVariant(usageKind.getConfigurationName(), new OutgoingVariant() {
+                @Override
+                public DisplayName asDescribable() {
+                    return Describables.of(componentMetadata.getComponentId());
+                }
+
                 @Override
                 public AttributeContainerInternal getAttributes() {
                     return ImmutableAttributes.EMPTY;

@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest implements IncrementalCompileMultiProjectTestFixture {
     String compilationTask = ':compileJava'
-    String compiledFile = "build/classes/main/Hello.class"
+    String compiledFile = "build/classes/java/main/Hello.class"
 
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
         project.with {

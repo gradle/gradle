@@ -44,14 +44,14 @@ public interface ExternalResource extends Resource, Closeable {
      *
      * @throws ResourceException on failure to copy the content.
      */
-    void writeTo(File destination) throws ResourceException;
+    ExternalResourceReadResult<Void> writeTo(File destination) throws ResourceException;
 
     /**
      * Copies the binary contents of this resource to the given stream. Does not close the provided stream.
      *
      * @throws ResourceException on failure to copy the content.
      */
-    void writeTo(OutputStream destination) throws ResourceException;
+    ExternalResourceReadResult<Void> writeTo(OutputStream destination) throws ResourceException;
 
     /**
      * Executes the given action against the binary contents of this resource.
@@ -59,7 +59,7 @@ public interface ExternalResource extends Resource, Closeable {
      * @throws ResourceException on failure to read the content.
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
-    void withContent(Action<? super InputStream> readAction) throws ResourceException;
+    ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) throws ResourceException;
 
     /**
      * Executes the given action against the binary contents of this resource.
@@ -67,7 +67,7 @@ public interface ExternalResource extends Resource, Closeable {
      * @throws ResourceException on failure to read the content.
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
-    <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
     /**
      * Executes the given action against the binary contents and meta-data of this resource.
@@ -77,7 +77,7 @@ public interface ExternalResource extends Resource, Closeable {
      * @throws ResourceException on failure to read the content.
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
-    <T> T withContent(ContentAction<? extends T> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException;
 
     void close() throws ResourceException;
 

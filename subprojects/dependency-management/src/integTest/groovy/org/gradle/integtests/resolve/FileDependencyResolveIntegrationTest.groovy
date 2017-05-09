@@ -44,7 +44,6 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 compile project(path: ':sub', configuration: 'compile') 
                 compile files('main.jar') { builtBy jar } 
             }
-            checkDeps.inputs.files configurations.compile
 '''
         file("sub/build.gradle") << '''
             dependencies { 
@@ -88,8 +87,6 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             
             // Nothing built yet, result should be empty
             assert configurations.compile.files.empty
-            
-            checkDeps.inputs.files configurations.compile
 '''
         file("sub/build.gradle") << '''
             dependencies { 
@@ -163,7 +160,6 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 compile project(path: ':sub', configuration: 'compile') 
                 compile jar.outputs.files
             }
-            checkDeps.inputs.files configurations.compile
 '''
         file("sub/build.gradle") << '''
             dependencies { 
@@ -210,7 +206,6 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                 compile project(path: ':sub', configuration: 'compile', transitive: false)
                 compile jar.outputs.files
             }
-            checkDeps.inputs.files configurations.compile
 '''
         file("sub/build.gradle") << '''
             dependencies { 

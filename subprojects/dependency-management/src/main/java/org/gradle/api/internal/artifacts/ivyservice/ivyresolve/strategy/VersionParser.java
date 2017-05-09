@@ -16,12 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import com.google.common.primitives.Longs;
 import org.gradle.api.Transformer;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class VersionParser implements Transformer<Version, String> {
+    public static final VersionParser INSTANCE = new VersionParser();
+
+    public VersionParser() {
+    }
+
     @Override
     public Version transform(String original) {
         List<String> parts = new ArrayList<String>();
@@ -75,11 +81,16 @@ public class VersionParser implements Transformer<Version, String> {
     private static class DefaultVersion implements Version {
         private final String source;
         private final String[] parts;
+        private final Long[] numericParts;
         private final DefaultVersion baseVersion;
 
         public DefaultVersion(String source, List<String> parts, DefaultVersion baseVersion) {
             this.source = source;
             this.parts = parts.toArray(new String[0]);
+            this.numericParts = new Long[this.parts.length];
+            for (int i = 0; i < parts.size(); i++) {
+                this.numericParts[i] = Longs.tryParse(this.parts[i]);
+            }
             this.baseVersion = baseVersion == null ? this : baseVersion;
         }
 
@@ -117,6 +128,16 @@ public class VersionParser implements Transformer<Version, String> {
 
         public String[] getParts() {
             return parts;
+        }
+
+        @Override
+        public Long[] getNumericParts() {
+            return numericParts;
+        }
+
+        @Override
+        public String getSource() {
+            return source;
         }
     }
 }

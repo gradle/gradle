@@ -17,10 +17,16 @@
 package org.gradle.internal.composite;
 
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.SettingsInternal;
 
 public interface CompositeContextBuilder {
     /**
+     * Set the root, or including, build.
+     */
+    void setRootBuild(SettingsInternal settings);
+
+    /**
      * Add the participants to the composite context, using the currently executing build context.
      */
-    void addToCompositeContext(Iterable<IncludedBuild> includedBuilds);
+    void addIncludedBuilds(Iterable<IncludedBuild> includedBuilds);
 }

@@ -27,8 +27,8 @@ public class DefaultGroovySourceSet implements GroovySourceSet {
     private final SourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
 
-    public DefaultGroovySourceSet(String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        groovy = sourceDirectorySetFactory.create(displayName +  " Groovy source");
+    public DefaultGroovySourceSet(String name, String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        groovy = sourceDirectorySetFactory.create(name, displayName +  " Groovy source");
         groovy.getFilter().include("**/*.java", "**/*.groovy");
         allGroovy = sourceDirectorySetFactory.create(displayName + " Groovy source");
         allGroovy.source(groovy);

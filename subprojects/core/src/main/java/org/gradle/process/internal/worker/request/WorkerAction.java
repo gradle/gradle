@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
@@ -64,25 +65,27 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Override
     public void stop() {
         completed.countDown();
+        BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
     }
 
     @Override
-    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args) {
+    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier) {
         try {
-            run(methodName, paramTypes, args);
+            run(methodName, paramTypes, args, operationIdentifier);
         } finally {
             stop();
         }
     }
 
     @Override
-    public void run(String methodName, Class<?>[] paramTypes, Object[] args) {
+    public void run(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier) {
         if (failure != null) {
             responder.infrastructureFailed(failure);
             return;
         }
         try {
             Method method = workerImplementation.getDeclaredMethod(methodName, paramTypes);
+            BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(operationIdentifier);
             Object result;
             try {
                 result = method.invoke(implementation, args);
@@ -99,6 +102,8 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             responder.completed(result);
         } catch (Throwable t) {
             responder.infrastructureFailed(t);
+        } finally {
+            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
         }
     }
 

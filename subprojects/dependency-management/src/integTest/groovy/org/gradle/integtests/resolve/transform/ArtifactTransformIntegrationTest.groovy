@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.transform
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -740,166 +739,18 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming") == 0
     }
 
-    def "can transform based on consumer-only attributes"() {
-        mavenRepo.module("test", "test", "1.3").publish()
-
-        given:
-        buildFile << """
-            def viewType = Attribute.of('viewType', String)
-
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            dependencies {
-                compile 'test:test:1.3'
-                attributesSchema {
-                    attribute(viewType)
-                }
-                
-                registerTransform {
-                    from.attribute(artifactType, 'jar')
-                    to.attribute(viewType, "transformed")
-                      .attribute(artifactType, "txt")
-                    artifactTransform(ViewTransform) {
-                        params("transformed.txt")
-                    }
-                }
-                registerTransform {
-                    from.attribute(artifactType, 'jar')
-                    to.attribute(viewType, "modified")
-                      .attribute(artifactType, "txt")
-                    artifactTransform(ViewTransform) {
-                        params("modified.txt")
-                    }
-                }
-            }
-
-            task checkFiles {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['test-1.3.jar']
-                    def transformed = configurations.compile.incoming.artifactView {
-                        attributes{ it.attribute(viewType, 'transformed') }
-                    }.artifacts
-                    assert transformed.collect { it.file.name } == ['transformed.txt']
-                    assert transformed.collect { it.variant.attributes.toString() } == ['{artifactType=txt, viewType=transformed}']
-                    def modified = configurations.compile.incoming.artifactView {
-                        attributes{ it.attribute(viewType, 'modified') }
-                    }.artifacts
-                    assert modified.collect { it.file.name } == ['modified.txt']
-                    assert modified.collect { it.variant.attributes.toString() } == ['{artifactType=txt, viewType=modified}']
-                }
-            }
-
-            class ViewTransform extends ArtifactTransform {
-                private String outputName
-
-                @javax.inject.Inject
-                ViewTransform(String outputName) {
-                    this.outputName = outputName
-                }
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, outputName)
-                    output << "content"
-                    return [output]
-                }
-            }
-"""
-
-        expect:
-        succeeds "checkFiles"
-    }
-
-    def "can use transform to include a subset of transformed artifacts based on arbitrary criteria"() {
-        mavenRepo.module("test", "to-keep", "1.3").publish()
-        mavenRepo.module("test", "to-exclude", "2.3").publish()
-
-        given:
-        buildFile << """
-            def viewType = Attribute.of('viewType', String)
-
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                selection
-            }
-            dependencies {
-                selection 'test:to-keep:1.3'
-                selection 'test:to-exclude:2.3'
-                attributesSchema {
-                    attribute(viewType)
-                }
-                
-                registerTransform {
-                    from.attribute(Attribute.of('artifactType', String), "jar")
-                    to.attribute(viewType, "filtered")
-                    artifactTransform(ArtifactFilter) {
-                        params(true)
-                    }
-                }
-                registerTransform {
-                    from.attribute(Attribute.of('artifactType', String), "jar")
-                    to.attribute(viewType, "unfiltered")
-                    artifactTransform(ArtifactFilter) {
-                        params(false)
-                    }
-                }
-            }
-
-            def filteredView = configurations.selection.incoming.artifactView {
-                attributes { it.attribute(viewType, 'filtered') }
-            }.files
-            def unfilteredView = configurations.selection.incoming.artifactView {
-                attributes { it.attribute(viewType, 'unfiltered') }
-            }.files
-
-            task checkFiles {
-                doLast {
-                    assert configurations.selection.collect { it.name } == ['to-keep-1.3.jar', 'to-exclude-2.3.jar']
-                    assert filteredView.collect { it.name } == ['to-keep-1.3.jar']
-                    assert unfilteredView.collect {it.name} == ['to-keep-1.3.jar', 'to-exclude-2.3.jar']
-                }
-            }
-
-            class ArtifactFilter extends ArtifactTransform {
-                boolean enableFilter
-                
-                @javax.inject.Inject
-                ArtifactFilter(boolean enableFilter) {
-                    this.enableFilter = enableFilter
-                }
-                
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    if (!enableFilter) {
-                        return [input]
-                    }
-                    if (input.name.startsWith('to-keep')) {
-                        return [input]
-                    }
-                    return []
-                }
-            }
-"""
-
-        expect:
-        succeeds "checkFiles"
-    }
-
     def "user receives reasonable error message when multiple transforms are available to produce requested variant"() {
         given:
         buildFile << """
             project(':lib') {
                 task jar1(type: Jar) {
                     destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    baseName = 'a'
+                    extension = 'custom'
                 }
 
                 artifacts {
-                    compile(jar1) {
-                        type 'type1'
-                    }
+                    compile(jar1)
                 }
             }
 
@@ -910,12 +761,12 @@ class FileSizer extends ArtifactTransform {
 
                 dependencies {
                     registerTransform {
-                        from.attribute(artifactType, 'type1')
+                        from.attribute(artifactType, 'custom')
                         to.attribute(artifactType, 'transformed')
                         artifactTransform(BrokenTransform)
                     }
                     registerTransform {
-                        from.attribute(artifactType, 'type1')
+                        from.attribute(artifactType, 'custom')
                         to.attribute(artifactType, 'transformed')
                         artifactTransform(BrokenTransform)
                     }
@@ -941,15 +792,15 @@ class FileSizer extends ArtifactTransform {
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes:
+        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib for consumer attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from variant:
-      - artifactType 'type1'
+  - Transform from configuration ':lib:compile':
+      - artifactType 'custom'
       - usage 'api'
-  - Transform from variant:
-      - artifactType 'type1'
+  - Transform from configuration ':lib:compile':
+      - artifactType 'custom'
       - usage 'api'"""
     }
 
@@ -996,11 +847,13 @@ Found the following transforms:
 
                 dependencies {
                     registerTransform {
+                        from.attribute(artifactType, 'jar')
                         from.attribute(buildType, 'release')
                         to.attribute(artifactType, 'transformed')
                         artifactTransform(BrokenTransform)
                     }
                     registerTransform {
+                        from.attribute(artifactType, 'jar')
                         from.attribute(buildType, 'debug')
                         to.attribute(artifactType, 'transformed')
                         artifactTransform(BrokenTransform)
@@ -1009,7 +862,9 @@ Found the following transforms:
     
                 task resolve(type: Copy) {
                     def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute (artifactType, 'transformed') }
+                        attributes { 
+                            attribute(artifactType, 'transformed') 
+                        }
                     }.artifacts
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
@@ -1027,28 +882,26 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant for consumer attributes:
+        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib for consumer attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant1:
       - artifactType 'jar'
       - buildType 'release'
       - flavor 'free'
       - usage 'api'
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant2:
       - artifactType 'jar'
       - buildType 'release'
       - flavor 'paid'
       - usage 'api'
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant3:
       - artifactType 'jar'
       - buildType 'debug'
       - usage 'api'"""
     }
 
-    //TODO JJ: we currently ignore all configuration attributes for view creation - need to use incoming.getFiles(attributes) / incoming.getArtifacts(attributes) to create a view
-    @NotYetImplemented
     def "result is applied for all query methods"() {
         given:
         buildFile << """
@@ -1059,8 +912,8 @@ Found the following transforms:
                 def jar = file('lib.jar')
                 jar.text = 'some text'
 
-                artifacts {
-                    compile txt, jar
+                dependencies {
+                    compile files(txt, jar)
                 }
             }
 
@@ -1070,10 +923,9 @@ Found the following transforms:
                 }
                 configurations {
                     compile {
-                        attributes artifactType: 'size'
+                        attributes.attribute(artifactType, 'size')
                     }
                 }
-                def artifactType = Attribute.of('artifactType', String)
                 dependencies {
                     registerTransform {
                         from.attribute(artifactType, "jar")
@@ -1082,7 +934,7 @@ Found the following transforms:
                     }
                 }
                 ext.checkArtifacts = { artifacts ->
-                    assert artifacts.collect { it.id.displayName } == ['lib.size (project :lib)', 'lib.jar.txt (project :lib)']
+                    assert artifacts.collect { it.id.displayName } == ['lib.size', 'lib.jar.txt (lib.jar)']
                     assert artifacts.collect { it.file.name } == ['lib.size', 'lib.jar.txt']
                 }
                 ext.checkFiles = { config ->
@@ -1103,20 +955,13 @@ Found the following transforms:
                         checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }
 
                         checkArtifacts configurations.compile.incoming.artifacts
-                        checkArtifacts configurations.compile.resolvedConfiguration.resolvedArtifacts
-                        checkArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts
-                        checkArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { true }
                     }
                 }
             }
         """
 
-        when:
+        expect:
         succeeds "resolve"
-
-        then:
-        file("app/build/transformed").assertHasDescendants("lib.jar.txt")
-        file("app/build/transformed/lib.jar.txt").text == "9"
     }
 
     def "transforms are applied lazily in file collections"() {
@@ -1639,6 +1484,8 @@ Found the following transforms:
             
             dependencies {
                 registerTransform {
+                    from.attribute(usage, 'any')
+                    to.attribute(usage, 'any')
                     artifactTransform(Custom) { params(new CustomType()) }
                 }
             }

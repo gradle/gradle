@@ -18,11 +18,15 @@ package org.gradle.api.plugins.osgi;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.bundling.Jar;
+
+import java.io.File;
 
 /**
  * A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project Jars.
@@ -37,10 +41,21 @@ public class OsgiPlugin implements Plugin<Project> {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
-                OsgiManifest osgiManifest = osgiConvention.osgiManifest();
-                osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main").getOutput().getClassesDir());
-                osgiManifest.setClasspath(project.getConfigurations().getByName("runtime"));
+
+                // When creating the OSGi manifest, we must have a single view of all of the classes included in the jar.
+                Sync prepareOsgiClasses = project.getTasks().create("osgiClasses", Sync.class);
+                FileCollection classes = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main").getOutput().getClassesDirs();
+                File singleClassesDirectory = new File(project.getBuildDir(), "osgi-classes");
+                prepareOsgiClasses.setDescription("Prepares a single classes directory required for OSGi analysis.");
+                prepareOsgiClasses.from(classes);
+                prepareOsgiClasses.into(singleClassesDirectory);
+
                 Jar jarTask = (Jar) project.getTasks().getByName("jar");
+                jarTask.dependsOn(prepareOsgiClasses);
+                OsgiManifest osgiManifest = osgiConvention.osgiManifest();
+                osgiManifest.setClassesDir(singleClassesDirectory);
+                osgiManifest.setClasspath(project.getConfigurations().getByName("runtime"));
+
                 jarTask.setManifest(osgiManifest);
             }
         });

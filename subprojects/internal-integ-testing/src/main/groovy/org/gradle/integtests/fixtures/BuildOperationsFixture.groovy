@@ -19,18 +19,19 @@ package org.gradle.integtests.fixtures
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
-import org.gradle.internal.progress.BuildOperationInternal
+import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationService
-import org.gradle.internal.progress.OperationResult
+import org.gradle.internal.progress.OperationFinishEvent
 import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
+@SuppressWarnings("UnusedImport")
 class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
-    private Map operations
+    private Map<Object, Map<String, ?>> operations
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
         super(executer, projectDir)
@@ -42,14 +43,14 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
         return """
             import ${BuildOperationService.name}
             import ${BuildOperationListener.name}
-            import ${BuildOperationInternal.name}
+            import ${BuildOperationDescriptor.name}
             import ${OperationStartEvent.name}
-            import ${OperationResult.name}
+            import ${OperationFinishEvent.name}
 
             def operations = [:]
             def operationListener = new BuildOperationListener() {
                 
-                void started(BuildOperationInternal buildOperation, OperationStartEvent startEvent) {
+                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
                     operations[buildOperation.id] = [
                         id: "\${buildOperation.id}",
                         displayName: "\${buildOperation.displayName}",
@@ -57,9 +58,12 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                         name: "\${buildOperation.name}",
                         startTime: startEvent.startTime
                     ]
+                    if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.TaskOperationDetails) {
+                        operations[buildOperation.id].details = buildOperation.details
+                    }
                 }
 
-                void finished(BuildOperationInternal buildOperation, OperationResult finishEvent) {
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
                     if (!operations[buildOperation.id]) {
                         operations[buildOperation.id] = [
                             id: "\${buildOperation.id}",
@@ -71,6 +75,8 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                     operations[buildOperation.id].endTime = finishEvent.endTime
                     if (finishEvent.failure != null) {
                         operations[buildOperation.id].failure = finishEvent.failure.message
+                    } else if (finishEvent.result != null) {
+                        operations[buildOperation.id].result = finishEvent.result
                     }
                 }
             }
@@ -101,11 +107,12 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
         return operation(displayName) != null
     }
 
-    Object operation(String displayName) {
+    Map<String, ?> operation(String displayName) {
         return operations.find { it.value.displayName == displayName }.value
     }
 
-    Map getOperations() {
-        return operations
+    Map<String, ?> result(String displayName) {
+        operation(displayName).result as Map<String, ?>
     }
+
 }

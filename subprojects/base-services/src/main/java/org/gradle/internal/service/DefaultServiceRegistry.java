@@ -15,10 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
@@ -593,7 +589,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
         public void add(Provider provider) {
             if (providers == null) {
-                providers = Lists.newArrayList();
+                providers = new ArrayList<Provider>();
             }
             this.providers.add(provider);
         }
@@ -619,7 +615,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
         public void requiredBy(Provider provider) {
             if (dependents == null) {
-                dependents = Sets.newHashSet();
+                dependents = new HashSet<Provider>();
             }
             dependents.add(provider);
         }
@@ -971,8 +967,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private static class CachingProvider implements Provider {
-        private final ConcurrentMap<Object, Optional<ServiceProvider>> seen = Maps.newConcurrentMap();
-        private final ConcurrentMap<Class<?>, List<ServiceProvider>> allServicesCache = Maps.newConcurrentMap();
+        private static final Object ABSENT = new Object();
+        private final ConcurrentMap<Object, Object> seen = new ConcurrentHashMap<Object, Object>();
+        private final ConcurrentMap<Class<?>, List<ServiceProvider>> allServicesCache = new ConcurrentHashMap<Class<?>, List<ServiceProvider>>();
 
         private final Provider delegate;
 
@@ -982,24 +979,24 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
         @Override
         public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
-            Optional<ServiceProvider> cached = seen.get(serviceType);
+            Object cached = seen.get(serviceType);
             if (cached != null) {
-                return cached.orNull();
+                return cached == ABSENT ? null : (ServiceProvider) cached;
             }
             ServiceProvider service = delegate.getService(context, serviceType);
             return cacheServiceProvider(serviceType, service);
         }
 
         private ServiceProvider cacheServiceProvider(Object key, ServiceProvider service) {
-            seen.putIfAbsent(key, service == null ? Optional.<ServiceProvider>absent() : Optional.of(service));
+            seen.putIfAbsent(key, service == null ? ABSENT : service);
             return service;
         }
 
         @Override
         public ServiceProvider getFactory(LookupContext context, Class<?> type) {
-            Optional<ServiceProvider> cached = seen.get(type);
+            Object cached = seen.get(type);
             if (cached != null) {
-                return cached.orNull();
+                return cached == ABSENT ? null : (ServiceProvider) cached;
             }
             ServiceProvider service = delegate.getFactory(context, type);
             return cacheServiceProvider(type, service);

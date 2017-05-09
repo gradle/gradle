@@ -115,16 +115,19 @@ class DiffUtilTest extends Specification {
     def "same enum equal"() {
         expect:
         DiffUtil.checkEquality(LocalEnum1.DUCK, LocalEnum1.DUCK)
+        DiffUtil.checkEquality(EnumWithClassBody.DUCK, EnumWithClassBody.DUCK)
     }
 
     def "same enum different constants do not equal"() {
         expect:
         !DiffUtil.checkEquality(LocalEnum1.DUCK, LocalEnum1.GOOSE)
+        !DiffUtil.checkEquality(EnumWithClassBody.DUCK, EnumWithClassBody.GOOSE)
     }
 
     def "different enums do not equal"() {
         expect:
         !DiffUtil.checkEquality(LocalEnum1.DUCK, LocalEnum2.DUCK)
+        !DiffUtil.checkEquality(LocalEnum1.DUCK, EnumWithClassBody.DUCK)
     }
 
     def "different class loaders do not equal"() {

@@ -72,7 +72,7 @@ class RegularFileSnapshot implements FileSnapshot {
     }
 
     @Override
-    public FileSnapshot withContentHash(HashCode contentHash) {
+    public RegularFileSnapshot withContentHash(HashCode contentHash) {
         if (!contentHash.equals(getContent().getContentMd5())) {
             return new RegularFileSnapshot(path, relativePath, root, new FileHashSnapshot(contentHash));
         }
