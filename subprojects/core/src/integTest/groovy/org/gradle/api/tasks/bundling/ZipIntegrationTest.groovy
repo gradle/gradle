@@ -17,12 +17,14 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
+@TestReproducibleArchives
 class ZipIntegrationTest extends AbstractIntegrationSpec {
 
     def ensureDuplicatesIncludedWithoutWarning() {

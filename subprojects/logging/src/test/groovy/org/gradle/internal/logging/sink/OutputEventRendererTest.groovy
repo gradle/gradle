@@ -26,6 +26,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
+import spock.lang.Unroll
 
 class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -172,6 +173,30 @@ class OutputEventRendererTest extends OutputSpecification {
         0 * listener._
     }
 
+    @Unroll("forward progress events to listener for #logLevel log level")
+    def forwardsProgressEventsToListenerRegardlessOfTheLogLevel() {
+        OutputEventListener listener = Mock()
+        def start = start('start')
+        def progress = progress('progress')
+        def complete = complete('complete')
+
+        when:
+        renderer.configure(logLevel)
+        renderer.addOutputEventListener(listener)
+        renderer.onOutput(start)
+        renderer.onOutput(progress)
+        renderer.onOutput(complete)
+
+        then:
+        1 * listener.onOutput(start)
+        1 * listener.onOutput(progress)
+        1 * listener.onOutput(complete)
+        0 * listener._
+
+        where:
+        logLevel << [LogLevel.ERROR, LogLevel.QUIET, LogLevel.WARN, LogLevel.LIFECYCLE, LogLevel.INFO, LogLevel.DEBUG]
+    }
+
     def doesNotForwardOutputEventsToRemovedListener() {
         OutputEventListener listener = Mock()
         LogEvent event = event('message', LogLevel.INFO)
@@ -239,7 +264,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.value.readLines() == ['description', 'info', '{error}error', '{normal}description {progressstatus}status{normal}']
+        console.buildOutputArea.toString().readLines() == ['description', 'info', '{error}error', '{normal}description {progressstatus}status{normal}']
     }
 
     def rendersLogEventsWhenOnlyStdOutIsConsole() {
@@ -254,7 +279,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.value.readLines() == ['description', 'info', 'description {progressstatus}status{normal}']
+        console.buildOutputArea.toString().readLines() == ['description', 'info', 'description {progressstatus}status{normal}']
     }
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
@@ -269,7 +294,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.value.readLines() == ['{error}error', '{normal}']
+        console.buildOutputArea.toString().readLines() == ['{error}error', '{normal}']
     }
 
     def rendersLogEventsInConsoleWhenLogLevelIsDebug() {
@@ -283,7 +308,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.value.readLines() == ['10:00:00.000 [INFO] [category] info', '{error}10:00:00.000 [ERROR] [category] error', '{normal}']
+        console.buildOutputArea.toString().readLines() == ['10:00:00.000 [INFO] [category] info', '{error}10:00:00.000 [ERROR] [category] error', '{normal}']
     }
 
     def attachesConsoleWhenStdOutAndStdErrAreAttachedToConsole() {
@@ -296,7 +321,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.value.readLines() == ['info', '{error}error', '{normal}']
+        console.buildOutputArea.toString().readLines() == ['info', '{error}error', '{normal}']
         outputs.stdOut == ''
         outputs.stdErr == ''
     }
@@ -311,7 +336,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.value.readLines() == ['info']
+        console.buildOutputArea.toString().readLines() == ['info']
         outputs.stdOut == ''
         outputs.stdErr.readLines() == ['error']
     }
@@ -326,7 +351,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        console.value.readLines() == ['{error}error', '{normal}']
+        console.buildOutputArea.toString().readLines() == ['{error}error', '{normal}']
         outputs.stdOut.readLines() == ['info']
         outputs.stdErr == ''
     }

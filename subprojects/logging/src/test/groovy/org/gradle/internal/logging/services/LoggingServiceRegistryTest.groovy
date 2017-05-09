@@ -87,7 +87,7 @@ class LoggingServiceRegistryTest extends Specification {
         logger.warn("before")
 
         then:
-        outputEventListener.toString() == '[WARN before]'
+        outputEventListener.toString() == '[[WARN] [category] before]'
 
         when:
         loggingManager.levelInternal = LogLevel.INFO
@@ -96,7 +96,7 @@ class LoggingServiceRegistryTest extends Specification {
         logger.warn("warning")
 
         then:
-        outputEventListener.toString() == '[WARN before]'
+        outputEventListener.toString() == '[[WARN] [category] before]'
     }
 
     def consumesSlf4jWhenStarted() {

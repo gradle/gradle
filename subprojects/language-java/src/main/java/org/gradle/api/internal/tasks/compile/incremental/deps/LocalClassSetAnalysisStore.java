@@ -17,27 +17,26 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import org.gradle.api.internal.cache.Loader;
-import org.gradle.api.internal.cache.SingleOperationPersistentStore;
 import org.gradle.api.internal.cache.Stash;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentIndexedCache;
 
 //Keeps the class set analysis of the given JavaCompile task
 public class LocalClassSetAnalysisStore implements Loader<ClassSetAnalysisData>, Stash<ClassSetAnalysisData> {
+    private final String taskPath;
+    private final PersistentIndexedCache<String, ClassSetAnalysisData> cache;
 
-    private SingleOperationPersistentStore<ClassSetAnalysisData> store;
-
-    public LocalClassSetAnalysisStore(CacheRepository cacheRepository, Object scope) {
-        //Single operation store that we throw away after the operation makes the implementation simpler.
-        this.store = new SingleOperationPersistentStore<ClassSetAnalysisData>(cacheRepository, scope, "local class set analysis", new ClassSetAnalysisData.Serializer());
+    public LocalClassSetAnalysisStore(String taskPath, PersistentIndexedCache<String, ClassSetAnalysisData> cache) {
+        this.taskPath = taskPath;
+        this.cache = cache;
     }
 
     @Override
     public void put(ClassSetAnalysisData analysis) {
-        store.putAndClose(analysis);
+        cache.put(taskPath, analysis);
     }
 
     @Override
     public ClassSetAnalysisData get() {
-        return store.getAndClose();
+        return cache.get(taskPath);
     }
 }

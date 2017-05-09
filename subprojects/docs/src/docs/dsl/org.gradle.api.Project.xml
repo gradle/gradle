@@ -103,6 +103,9 @@
             <tr>
                 <td>resources</td>
             </tr>
+            <tr>
+                <td>normalization</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -174,6 +177,9 @@
                 <td>copySpec</td>
             </tr>
             <tr>
+                <td>sync</td>
+            </tr>
+            <tr>
                 <td>javaexec</td>
             </tr>
             <tr>
@@ -223,6 +229,9 @@
             </tr>
             <tr>
                 <td>container</td>
+            </tr>
+            <tr>
+                <td>normalization</td>
             </tr>
         </table>
     </section>

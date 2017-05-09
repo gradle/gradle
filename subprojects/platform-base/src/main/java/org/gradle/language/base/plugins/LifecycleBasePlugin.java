@@ -49,7 +49,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     private final Set<String> placeholders = new HashSet<String>();
 
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         addClean(project);
         addCleanRule(project);
         addAssemble(project);

@@ -23,9 +23,11 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
@@ -33,18 +35,26 @@ import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
-    // Can we just override Task.getActions()?
-    // Would need to change return type on Task API to: List<? super Action<? super Task>> : not certain this is back-compatible
+    /**
+     * A more efficient version of {@link #getActions()}, which circumvents the
+     * validating change listener that normally prevents users from changing tasks
+     * once they start executing.
+     */
+    @Internal
     List<ContextAwareTaskAction> getTaskActions();
 
+    @Internal
     Set<ClassLoader> getActionClassLoaders();
 
+    @Internal
     Spec<? super TaskInternal> getOnlyIf();
 
     void execute();
 
+    @Internal
     StandardOutputCapture getStandardOutputCapture();
 
+    @Internal
     TaskExecuter getExecuter();
 
     void setExecuter(TaskExecuter executer);
@@ -55,12 +65,15 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Override
     TaskOutputsInternal getOutputs();
 
+    @Internal
     List<TaskValidator> getValidators();
 
     void addValidator(TaskValidator validator);
 
+    @Override
     TaskStateInternal getState();
 
+    @Internal
     boolean getImpliesSubProjects();
 
     void setImpliesSubProjects(boolean impliesSubProjects);
@@ -70,11 +83,16 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * <p>
      * The getTemporaryDir() method creates the directory which can be problematic. Use this to delay that creation.
      */
+    @Internal
     Factory<File> getTemporaryDirFactory();
 
     void prependParallelSafeAction(Action<? super Task> action);
 
     void appendParallelSafeAction(Action<? super Task> action);
 
+    @Internal
     boolean isHasCustomActions();
+
+    @Internal
+    Path getIdentityPath();
 }

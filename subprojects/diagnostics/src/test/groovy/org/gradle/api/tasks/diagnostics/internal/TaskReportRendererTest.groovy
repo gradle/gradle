@@ -27,9 +27,9 @@ class TaskReportRendererTest extends AbstractTaskModelSpec {
         renderer.output = writer
     }
 
-    def writesTaskAndDependenciesWithDetailDisabled() {
+    def writesTasksWithDetailDisabled() {
         TaskDetails task1 = taskDetails(':task1', description: 'task1Description')
-        TaskDetails task2 = taskDetails(':task2')
+        taskDetails(':task2')
         TaskDetails task3 = taskDetails(':task3')
         Rule rule1 = [getDescription: {'rule1Description'}] as Rule
         Rule rule2 = [getDescription: {'rule2Description'}] as Rule
@@ -41,7 +41,6 @@ class TaskReportRendererTest extends AbstractTaskModelSpec {
         renderer.addDefaultTasks(testDefaultTasks)
         renderer.startTaskGroup('group')
         renderer.addTask(task1)
-        renderer.addChildTask(task2)
         renderer.addTask(task3)
         renderer.completeTasks()
         renderer.addRule(rule1)
@@ -62,7 +61,7 @@ rule2Description
 '''
     }
 
-    def writesTaskAndDependenciesWithDetail() {
+    def writesTasksWithDetail() {
         TaskDetails task11 = taskDetails(':task11')
         TaskDetails task12 = taskDetails(':task12')
         TaskDetails task1 = taskDetails(':task1', description: 'task1Description', dependencies: [task11, task12])
@@ -77,7 +76,7 @@ rule2Description
         renderer.addDefaultTasks(testDefaultTasks)
         renderer.startTaskGroup('group')
         renderer.addTask(task1)
-        renderer.addChildTask(task2)
+        renderer.addTask(task2)
         renderer.addTask(task3)
         renderer.completeTasks()
         renderer.addRule(rule1)
@@ -88,9 +87,9 @@ rule2Description
 
 Group tasks
 -----------
-:task1 - task1Description [:task11, :task12]
-    :task2
-:task3 [:task1]
+:task1 - task1Description
+:task2
+:task3
 
 Rules
 -----

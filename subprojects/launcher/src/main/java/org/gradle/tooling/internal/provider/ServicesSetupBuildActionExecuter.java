@@ -16,8 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
@@ -37,11 +40,18 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(action.getStartParameter().getGradleUserHomeDir());
+        StartParameter startParameter = action.getStartParameter();
+        ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
         try {
-            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, action.getStartParameter(), actionParameters.getInjectedPluginClasspath());
+            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, actionParameters.getInjectedPluginClasspath());
             try {
-                return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+                SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
+                try {
+                    sessionLifecycleListener.afterStart();
+                    return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+                } finally {
+                    sessionLifecycleListener.beforeComplete();
+                }
             } finally {
                 CompositeStoppable.stoppable(buildSessionScopeServices).stop();
             }

@@ -69,7 +69,10 @@ class PluginUnderTest {
     }
 
     List<File> getImplClasspath() {
-        [projectDir.file("build/classes/main"), projectDir.file('build/resources/main')]
+        // TODO: This should come from a common place
+        [projectDir.file("build/classes/java/main"),
+         projectDir.file("build/classes/groovy/main"),
+         projectDir.file('build/resources/main')]
     }
 
     PluginUnderTest build() {

@@ -17,12 +17,15 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.*;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.ExtensibleDynamicObject;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import java.io.File;
 import java.util.Map;
@@ -38,10 +41,10 @@ public class SettingsFactory {
 
     public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
-                                           ClassLoaderScope rootClassLoaderScope) {
+                                           ClassLoaderScope buildRootClassLoaderScope) {
 
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
-                serviceRegistryFactory, gradle, rootClassLoaderScope.createChild("settings"), rootClassLoaderScope, settingsDir, settingsScript, startParameter
+                serviceRegistryFactory, gradle, buildRootClassLoaderScope.createChild("settings"), buildRootClassLoaderScope, settingsDir, settingsScript, startParameter
         );
 
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();

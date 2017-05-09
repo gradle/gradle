@@ -137,8 +137,8 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
 
         expect:
         succeeds("check")
-        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
-        file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("Class1.java"))
+        file("build/reports/findbugs/test.xml").assertContents(containsClass("Class1Test.java"))
     }
 
     void "excludes baseline bug for matching bug instance"() {
@@ -426,7 +426,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
             'package org.gradle; public class ClassUsingCaseConversion { public boolean useConversion() { return "Hi".toUpperCase().equals("HI"); } }'
 
         expect:
-        succeeds("check")
+        succeeds("findbugsMain")
 
         when:
         // Test extraArgs using DM_CONVERT_CASE which FindBugs treats as a LOW confidence warning.  We will use
@@ -438,7 +438,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         """
 
         then:
-        fails("check")
+        fails("findbugsMain")
         failure.assertHasDescription("Execution failed for task ':findbugsMain'.")
         failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at:"))
         file("build/reports/findbugs/main.xml").exists()
@@ -460,6 +460,54 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         fails "check"
         failure.assertHasCause 'FindBugs encountered an error.'
         failure.assertHasDescription "Execution failed for task ':findbugsMain'."
+    }
+
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    def "out-of-date with mixed Java and Groovy sources"() {
+        given:
+        goodCode()
+        buildFile << """
+            apply plugin: 'groovy'
+            dependencies {
+                compile localGroovy()
+            }
+        """
+        file("src/main/groovy/org/gradle/Groovy1.groovy") << """
+            package org.gradle
+            
+            class Groovy1 {
+                boolean is() { true }
+            }
+        """
+        expect:
+        succeeds("check")
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Groovy1"))
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+
+        when:
+        file("src/main/java/org/gradle/Class1.java").text = """
+            package org.gradle; 
+            public class Class1 { 
+                public boolean isFoo(Object arg) { return true; } 
+                public boolean isNotFoo(Object arg) { return false; } 
+            }
+        """
+        then:
+        succeeds("check")
+        result.assertTaskNotSkipped(":findbugsMain")
+
+        when:
+        file("src/main/groovy/org/gradle/Groovy1.groovy").text = """
+            package org.gradle
+            
+            class Groovy1 {
+                boolean is() { true }
+                boolean isNot() { false }
+            }
+        """
+        then:
+        succeeds("check")
+        result.assertTaskNotSkipped(":findbugsMain")
     }
 
     private static boolean containsXmlMessages(File xmlReportFile) {
@@ -485,7 +533,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
     }
 
     private Matcher<String> containsClass(String className) {
-        containsLine(containsString(className.replace(".", File.separator)))
+        containsLine(containsString(className))
     }
 
     private void writeBuildFile() {

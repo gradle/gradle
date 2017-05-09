@@ -52,6 +52,14 @@ class ArgWriterTest extends Specification {
         writer.toString() == toPlatformLineSeparators('"ab c" "d e f"\n')
     }
 
+    def "quotes empty argument"() {
+        when:
+        argWriter.args("a", "", "", "b")
+
+        then:
+        writer.toString() == toPlatformLineSeparators('a "" "" b\n')
+    }
+
     def "escapes double quotes in argument"() {
         when:
         argWriter.args('"abc"', 'a" bc')

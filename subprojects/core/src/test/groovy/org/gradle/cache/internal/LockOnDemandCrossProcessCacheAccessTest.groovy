@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.Factory
@@ -30,7 +29,15 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     def lockManager = Mock(FileLockManager)
     def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), Stub(Action), Stub(Action))
 
-    def "acquires lock then runs action and releases on completion"() {
+    def "close when lock has never been acquired"() {
+        when:
+        cacheAccess.close()
+
+        then:
+        0 * _
+    }
+
+    def "acquires lock then runs action and retains lock on completion"() {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
 
@@ -39,19 +46,73 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _)
 
         then:
         1 * action.create() >> "result"
+
+        then:
+        0 * _
+    }
+
+    def "releases retained lock when no actions running on contention"() {
+        def action = Mock(Factory)
+        def lock = Mock(FileLock)
+        def contendedAction
+
+        given:
+        lockManager.lock(file, _, _) >> lock
+        lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+
+        cacheAccess.withFileLock(action)
+
+        when:
+        contendedAction.run()
 
         then:
         1 * lock.close()
         0 * _
     }
 
-    def "releases lock on failure"() {
+    def "releases retained lock at completion of action on contention"() {
+        def action = Mock(Factory)
+        def lock = Mock(FileLock)
+        def contendedAction
+
+        when:
+        cacheAccess.withFileLock(action)
+
+        then:
+        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * action.create() >> { contendedAction.run(); "result" }
+        1 * lock.close()
+        0 * _
+    }
+
+    def "releases retained lock on close"() {
+        def action = Mock(Factory)
+        def lock = Mock(FileLock)
+
+        given:
+        _ * lockManager.lock(file, _, _) >> lock
+        _ * lockManager.allowContention(lock, _)
+
+        cacheAccess.withFileLock(action)
+
+        when:
+        cacheAccess.close()
+
+        then:
+        1 * lock.close()
+        0 * _
+    }
+
+    def "releases lock after failed action"() {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
         def failure = new RuntimeException()
+        def contendedAction
 
         when:
         cacheAccess.withFileLock(action)
@@ -62,33 +123,49 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         and:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
 
         then:
         1 * action.create() >> { throw failure }
+
+        then:
+        0 * _
+
+        when:
+        contendedAction.run()
 
         then:
         1 * lock.close()
         0 * _
     }
 
-    def "a thread can nest actions"() {
+    def "lock is acquired once when a thread nests actions"() {
         def action1 = Mock(Factory)
         def action2 = Mock(Factory)
         def lock = Mock(FileLock)
+        def contendedAction
 
         when:
         cacheAccess.withFileLock(action1)
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
         1 * action1.create() >> { cacheAccess.withFileLock(action2) }
         1 * action2.create() >> "result"
+        0 * _
+
+        when:
+        contendedAction.run()
+
+        then:
         1 * lock.close()
         0 * _
     }
 
-    def "lock is acquired once when multiple threads run actions concurrently"() {
+    def "lock is acquired when multiple threads run actions concurrently"() {
         def lock = Mock(FileLock)
+        def contendedAction
 
         when:
         async {
@@ -108,22 +185,37 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        0 * _
+
+        when:
+        contendedAction.run()
+
+        then:
         1 * lock.close()
         0 * _
     }
 
     def "can acquire lock and release later"() {
         def lock = Mock(FileLock)
+        def contendedAction
 
         when:
         def releaseAction = cacheAccess.acquireFileLock()
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
         0 * _
 
         when:
         releaseAction.run()
+
+        then:
+        0 * _
+
+        when:
+        contendedAction.run()
 
         then:
         1 * lock.close()
@@ -132,12 +224,14 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
     def "thread can acquire lock multiple times"() {
         def lock = Mock(FileLock)
+        def contendedAction
 
         when:
         def releaseAction = cacheAccess.acquireFileLock()
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
         0 * _
 
         when:
@@ -154,12 +248,19 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         releaseAction2.run()
 
         then:
+        0 * _
+
+        when:
+        contendedAction.run()
+
+        then:
         1 * lock.close()
         0 * _
     }
 
     def "multiple threads can acquire lock concurrently"() {
         def lock = Mock(FileLock)
+        def contendedAction
 
         when:
         async {
@@ -179,6 +280,13 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        0 * _
+
+        when:
+        contendedAction.run()
+
+        then:
         1 * lock.close()
         0 * _
     }
@@ -186,6 +294,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     def "can release lock from different thread to the thread that acquired the lock"() {
         def lock = Mock(FileLock)
         def releaseAction
+        def contendedAction
 
         when:
         async {
@@ -201,6 +310,13 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        0 * _
+
+        when:
+        contendedAction.run()
+
+        then:
         1 * lock.close()
         0 * _
     }
@@ -209,6 +325,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
         def initAction = Mock(CacheInitializationAction)
+        def contendedAction
         def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), initAction, Stub(Action), Stub(Action))
 
         when:
@@ -227,9 +344,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         1 * initAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(lock)
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
 
         then:
-        1 * action.create() >> "result"
+        1 * action.create() >> { contendedAction.run() }
 
         then:
         1 * lock.close()
@@ -245,10 +363,17 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         1 * initAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(lock)
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
         0 * _
 
         when:
         release.run()
+
+        then:
+        0 * _
+
+        when:
+        contendedAction.run()
 
         then:
         1 * lock.close()
@@ -288,56 +413,60 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
     }
 
-    def "can provide an action to run after the lock is released"() {
+    def "notifies handler when lock is acquired and released"() {
+        def action = Mock(Factory)
+        def onOpen = Mock(Action)
+        def onClose = Mock(Action)
         def lock = Mock(FileLock)
-        def completion = Mock(Runnable)
+        def contendedAction
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
         when:
-        def releaseAction = cacheAccess.acquireFileLock()
+        cacheAccess.withFileLock(action)
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * onOpen.execute(lock)
+
+        then:
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * action.create() >> "result"
         0 * _
 
         when:
-        releaseAction.run()
+        def release1 = cacheAccess.acquireFileLock()
+
+        then:
+        0 * _
+
+        when:
+        def release2 = cacheAccess.acquireFileLock()
+        release1.run()
+        contendedAction.run()
+
+        then:
+        0 * _
+
+        when:
+        release2.run()
+
+        then:
+        1 * onClose.execute(lock)
 
         then:
         1 * lock.close()
-
-        then:
-        completion.run()
-        0 * _
-    }
-
-    def "runs completion action even when unlock fails"() {
-        def lock = Mock(FileLock)
-        def completion = Mock(Runnable)
-        def failure = new RuntimeException()
-
-        when:
-        def releaseAction = cacheAccess.acquireFileLock()
-
-        then:
-        1 * lockManager.lock(file, _, _) >> lock
         0 * _
 
         when:
-        releaseAction.run()
+        cacheAccess.close()
 
         then:
-        1 * lock.close() >> { throw failure }
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        and:
-        completion.run()
         0 * _
     }
 
-    def "notifies handler when lock is acquired and released"() {
+    def "notifies handler when lock released on close"() {
         def action = Mock(Factory)
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
@@ -354,7 +483,12 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         1 * onOpen.execute(lock)
 
         then:
-        action.create() >> "result"
+        1 * lockManager.allowContention(lock, _)
+        1 * action.create() >> "result"
+        0 * _
+
+        when:
+        cacheAccess.close()
 
         then:
         1 * onClose.execute(lock)
@@ -362,57 +496,155 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         then:
         1 * lock.close()
         0 * _
+    }
+
+    def "notifies handler when lock released on contention"() {
+        def action = Mock(Factory)
+        def onOpen = Mock(Action)
+        def onClose = Mock(Action)
+        def lock = Mock(FileLock)
+        def contendedAction
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
         when:
-        def release1 = cacheAccess.acquireFileLock()
+        cacheAccess.withFileLock(action)
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
-        1 * onOpen.execute(lock)
-        0 * _
-
-        when:
-        def release2 = cacheAccess.acquireFileLock()
-        release1.run()
 
         then:
+        1 * onOpen.execute(lock)
+
+        then:
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * action.create() >> "result"
         0 * _
 
         when:
-        release2.run()
+        contendedAction.run()
 
         then:
         1 * onClose.execute(lock)
+
+        then:
+        1 * lock.close()
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
+        0 * _
+    }
+
+    def "releases lock when acquire handler fails"() {
+        def action = Mock(Factory)
+        def onOpen = Mock(Action)
+        def onClose = Mock(Action)
+        def lock = Mock(FileLock)
+        def failure = new RuntimeException()
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
+
+        when:
+        cacheAccess.withFileLock(action)
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * onOpen.execute(lock) >> { throw failure }
+
+        then:
+        1 * lock.close()
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
+        0 * _
+    }
+
+    def "releases lock when release handler fails"() {
+        def action = Mock(Factory)
+        def onOpen = Mock(Action)
+        def onClose = Mock(Action)
+        def lock = Mock(FileLock)
+        def failure = new RuntimeException()
+        def contendedAction
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
+
+        when:
+        cacheAccess.withFileLock(action)
+
+        then:
+        1 * lockManager.lock(file, _, _) >> lock
+
+        then:
+        1 * onOpen.execute(lock)
+
+        then:
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * action.create() >> "result"
+        0 * _
+
+        when:
+        contendedAction.run()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        1 * onClose.execute(lock) >> { throw failure }
+
+        then:
+        1 * lock.close()
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
+        0 * _
+    }
+
+    def "can acquire lock after previous acquire fails"() {
+        def action = Mock(Factory)
+        def lock = Mock(FileLock)
+        def failure = new RuntimeException()
+        def contendedAction
+
+        when:
+        cacheAccess.withFileLock(action)
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        then:
+        1 * lockManager.lock(file, _, _) >> { throw failure }
+        0 * _
+
+        when:
+        cacheAccess.withFileLock(action)
+
+        then:
+        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * action.create() >> "result"
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
         1 * lock.close()
         0 * _
     }
 
-    @NotYetImplemented
-    def "open handler can acquire and release lock"() {
-        expect: false
-    }
-
-    @NotYetImplemented
-    def "close handler can acquire and release lock"() {
-        expect: false
-    }
-
-    @NotYetImplemented
-    def "releases lock when open handler fails"() {
-        expect: false
-    }
-
-    @NotYetImplemented
-    def "releases lock when close handler fails"() {
-        expect: false
-    }
-
-    @NotYetImplemented
-    def "can acquire lock after previous acquire fails"() {
-        expect: false
-    }
-
-    @NotYetImplemented
     def "cannot close while holding the lock"() {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
@@ -422,6 +654,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _)
 
         then:
         1 * action.create() >> {
@@ -430,12 +663,17 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot close cache access for <cache> as it is currently in use by 1 threads.'
+        e.message == 'Cannot close cache access for <cache> as it is currently in use for 1 operations.'
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
         1 * lock.close()
         0 * _
     }
 
-    @NotYetImplemented
     def "close fails when action is currently running in another thread"() {
         def lock = Mock(FileLock)
 
@@ -459,15 +697,21 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot close cache access for <cache> as it is currently in use by 1 threads.'
+        e.message == 'Cannot close cache access for <cache> as it is currently in use for 1 operations.'
 
         and:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _)
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
         1 * lock.close()
         0 * _
     }
 
-    @NotYetImplemented
     def "close fails when lock is currently held by another thread"() {
         def lock = Mock(FileLock)
 
@@ -491,21 +735,18 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot close cache access for <cache> as it is currently in use by 1 threads.'
+        e.message == 'Cannot close cache access for <cache> as it is currently in use for 1 operations.'
 
         and:
         1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.allowContention(lock, _)
+        0 * _
+
+        when:
+        cacheAccess.close()
+
+        then:
         1 * lock.close()
         0 * _
-    }
-
-    @NotYetImplemented
-    def "cannot run action when close has started"() {
-        expect: false
-    }
-
-    @NotYetImplemented
-    def "cannot acquire lock when close has started"() {
-        expect: false
     }
 }

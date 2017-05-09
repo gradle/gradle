@@ -16,10 +16,15 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Actions;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestUtil;
@@ -79,6 +84,26 @@ public class CompositeFileTreeTest {
     }
 
     @Test
+    public void matchingWithActionReturnsUnionOfFilteredSets() {
+        final Action<PatternFilterable> action = Actions.doNothing();
+        final FileTreeInternal filtered1 = context.mock(FileTreeInternal.class);
+        final FileTreeInternal filtered2 = context.mock(FileTreeInternal.class);
+
+        context.checking(new Expectations() {{
+            oneOf(source1).matching(action);
+            will(returnValue(filtered1));
+            oneOf(source2).matching(action);
+            will(returnValue(filtered2));
+        }});
+
+        FileTree filtered = tree.matching(action);
+        assertThat(filtered, instanceOf(CompositeFileTree.class));
+        CompositeFileTree filteredCompositeSet = (CompositeFileTree) filtered;
+
+        assertThat(toList(filteredCompositeSet.getSourceCollections()), equalTo(toList(filtered1, filtered2)));
+    }
+
+    @Test
     public void matchingWithPatternSetReturnsUnionOfFilteredSets() {
         final PatternSet patternSet = new PatternSet();
         final FileTreeInternal filtered1 = context.mock(FileTreeInternal.class);
@@ -123,6 +148,19 @@ public class CompositeFileTreeTest {
     @Test
     public void visitsEachTreeWithClosure() {
         final Closure visitor = TestUtil.TEST_CLOSURE;
+        final FileVisitor closureAsVisitor = DefaultGroovyMethods.asType(visitor, FileVisitor.class);
+
+        context.checking(new Expectations() {{
+            oneOf(source1).visit(closureAsVisitor);
+            oneOf(source2).visit(closureAsVisitor);
+        }});
+
+        tree.visit(visitor);
+    }
+
+    @Test
+    public void visitsEachTreeWithAction() {
+        final Action<FileVisitDetails> visitor = Actions.doNothing();
 
         context.checking(new Expectations() {{
             oneOf(source1).visit(visitor);

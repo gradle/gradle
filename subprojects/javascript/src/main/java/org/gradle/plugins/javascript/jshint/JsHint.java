@@ -33,8 +33,8 @@ import org.gradle.plugins.javascript.jshint.internal.JsHintProtocol;
 import org.gradle.plugins.javascript.jshint.internal.JsHintResult;
 import org.gradle.plugins.javascript.jshint.internal.JsHintSpec;
 import org.gradle.plugins.javascript.jshint.internal.JsHintWorker;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
+import org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerHandleFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -62,6 +62,15 @@ public class JsHint extends SourceTask {
         return getProject().files(rhinoClasspath);
     }
 
+    /**
+     * Sets Rhino classpath.
+     *
+     * @since 4.0
+     */
+    public void setRhinoClasspath(FileCollection rhinoClasspath) {
+        this.rhinoClasspath = rhinoClasspath;
+    }
+
     public void setRhinoClasspath(Object rhinoClasspath) {
         this.rhinoClasspath = rhinoClasspath;
     }
@@ -69,6 +78,15 @@ public class JsHint extends SourceTask {
     @InputFiles
     public FileCollection getJsHint() {
         return getProject().files(jsHint);
+    }
+
+    /**
+     * Sets jshint file.
+     *
+     * @since 4.0
+     */
+    public void setJsHint(FileCollection jsHint) {
+        this.jsHint = jsHint;
     }
 
     public void setJsHint(Object jsHint) {
@@ -87,6 +105,15 @@ public class JsHint extends SourceTask {
     @OutputFile
     public File getJsonReport() {
         return jsonReport == null ? null : getProject().file(jsonReport);
+    }
+
+    /**
+     * Sets JSON report file.
+     *
+     * @since 4.0
+     */
+    public void setJsonReport(File jsonReport) {
+        this.jsonReport = jsonReport;
     }
 
     public void setJsonReport(Object jsonReport) {

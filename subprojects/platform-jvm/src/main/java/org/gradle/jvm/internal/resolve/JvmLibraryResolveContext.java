@@ -16,13 +16,24 @@
 
 package org.gradle.jvm.internal.resolve;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.platform.base.DependencySpec;
+
+import java.util.Set;
 
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata.newResolvingLocalComponentMetadata;
 
@@ -30,7 +41,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
     private final LibraryBinaryIdentifier libraryBinaryIdentifier;
     private final String displayName;
     private final UsageKind usage;
-    private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, null);
+    private final ResolutionStrategyInternal resolutionStrategy;
     private final VariantsMetaData variants;
     private final Iterable<DependencySpec> dependencies;
 
@@ -39,12 +50,14 @@ public class JvmLibraryResolveContext implements ResolveContext {
         VariantsMetaData variants,
         Iterable<DependencySpec> dependencies,
         UsageKind usage,
-        String displayName) {
+        String displayName,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.libraryBinaryIdentifier = libraryBinaryIdentifier;
         this.usage = usage;
         this.displayName = displayName;
         this.variants = variants;
         this.dependencies = dependencies;
+        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, null, moduleIdentifierFactory);
     }
 
     @Override
@@ -68,7 +81,31 @@ public class JvmLibraryResolveContext implements ResolveContext {
 
     @Override
     public ComponentResolveMetadata toRootComponentMetaData() {
-        return newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
+        final DefaultLibraryLocalComponentMetadata componentMetadata = newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
+        for (UsageKind usageKind : UsageKind.values()) {
+            componentMetadata.addVariant(usageKind.getConfigurationName(), new OutgoingVariant() {
+                @Override
+                public DisplayName asDescribable() {
+                    return Describables.of(componentMetadata.getComponentId());
+                }
+
+                @Override
+                public AttributeContainerInternal getAttributes() {
+                    return ImmutableAttributes.EMPTY;
+                }
+
+                @Override
+                public Set<? extends PublishArtifact> getArtifacts() {
+                    return ImmutableSet.of();
+                }
+
+                @Override
+                public Set<? extends OutgoingVariant> getChildren() {
+                    return ImmutableSet.of();
+                }
+            });
+        }
+        return componentMetadata;
     }
 
 }

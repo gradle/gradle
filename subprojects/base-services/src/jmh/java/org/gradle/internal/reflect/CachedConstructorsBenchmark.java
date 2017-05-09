@@ -30,6 +30,7 @@ public class CachedConstructorsBenchmark {
     private final static Class<?>[] CLAZZ_ARRAY = new Class[]{ArrayList.class, LinkedList.class, String.class, HashMap.class};
     private final static int ARR_LEN = 1024;
     private final static Random RANDOM = new Random();
+    public static final Class[] EMPTY = new Class[0];
 
     private final DirectInstantiator.ConstructorCache cache = new DirectInstantiator.ConstructorCache();
     private Class<?>[] randomClasses;
@@ -51,6 +52,6 @@ public class CachedConstructorsBenchmark {
 
     @Benchmark
     public void cached(Blackhole bh) {
-        bh.consume(cache.get(randomClasses[++i % ARR_LEN]));
+        bh.consume(cache.get(randomClasses[++i % ARR_LEN], EMPTY));
     }
 }

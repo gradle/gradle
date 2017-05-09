@@ -18,14 +18,19 @@ package org.gradle.launcher.continuous
 
 class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
-    def "can build and reload a project with buildSrc"() {
-        when:
+    def setup() {
         file("buildSrc/src/main/groovy/Thing.groovy") << """
             class Thing {
               public static final String VALUE = "original"
             }
         """
 
+        // Trigger generation of Gradle JARs before executing any test case
+        succeeds("help")
+    }
+
+    def "can build and reload a project with buildSrc"() {
+        when:
         buildScript """
             task a {
               inputs.files "a"

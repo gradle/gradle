@@ -33,8 +33,8 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
     }
 
     @Override
-    public boolean isResolvable() {
-        return true;
+    public ResolutionState getResolutionState() {
+        return ResolutionState.RESOLVED;
     }
 
     @Override

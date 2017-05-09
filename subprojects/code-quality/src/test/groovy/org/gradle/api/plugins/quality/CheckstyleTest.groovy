@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.reporting.Report
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
+import org.gradle.testing.internal.util.Specification
 
 class CheckstyleTest extends Specification {
     def project = ProjectBuilder.builder().build()
@@ -40,6 +40,8 @@ class CheckstyleTest extends Specification {
             reports.html.outputType == Report.OutputType.FILE
             !ignoreFailures
             showViolations
+            maxErrors == 0
+            maxWarnings == Integer.MAX_VALUE
         }
     }
 

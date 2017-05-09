@@ -21,7 +21,9 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.File;
@@ -35,33 +37,35 @@ public class TaskUpToDateState {
 
     private TaskStateChanges inputFileChanges;
     private DiscoveredInputsListener discoveredInputsListener;
-    private SummaryTaskStateChanges allTaskChanges;
-    private SummaryTaskStateChanges rebuildChanges;
+    private TaskStateChanges allTaskChanges;
+    private TaskStateChanges rebuildChanges;
 
     public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history,
                              OutputFilesSnapshotter outputFilesSnapshotter, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
-                             FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+                             FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ValueSnapshotter valueSnapshotter) {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
+        ResourceNormalizationHandler resourceNormalizationHandler = task.getProject().getNormalization();
 
         TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
         TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task.getPath(), task.getClass(), task.getActionClassLoaders(), classLoaderHierarchyHasher);
-        TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
+        TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task, valueSnapshotter);
 
         // Capture outputs state
-        TaskStateChanges outputFileChanges = caching(new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, outputFilesSnapshotter));
+        TaskStateChanges outputFileChanges = caching(new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, outputFilesSnapshotter, resourceNormalizationHandler));
 
         // Capture inputs state
-        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry);
-        this.inputFileChanges = caching(directInputFileChanges);
+        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, resourceNormalizationHandler);
+        TaskStateChanges inputFileChanges = caching(directInputFileChanges);
+        this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
 
         // Capture discovered inputs state from previous execution
-        DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution, fileCollectionSnapshotterRegistry, fileCollectionFactory, task);
+        DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution, fileCollectionSnapshotterRegistry, fileCollectionFactory, task, resourceNormalizationHandler);
         this.discoveredInputsListener = discoveredChanges;
         TaskStateChanges discoveredInputFilesChanges = caching(discoveredChanges);
 
-        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges);
-        rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges);
+        allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges));
+        rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges));
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -83,4 +87,5 @@ public class TaskUpToDateState {
     public void newInputs(Set<File> discoveredInputs) {
         discoveredInputsListener.newInputs(discoveredInputs);
     }
+
 }

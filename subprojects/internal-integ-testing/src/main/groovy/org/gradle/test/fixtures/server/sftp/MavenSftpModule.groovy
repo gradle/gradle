@@ -18,9 +18,9 @@ package org.gradle.test.fixtures.server.sftp
 
 import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.RemoteMavenModule
 
-class MavenSftpModule extends DelegatingMavenModule<MavenSftpModule> implements MavenModule {
+class MavenSftpModule extends DelegatingMavenModule<MavenSftpModule> implements RemoteMavenModule {
     MavenFileModule backingModule
     SFTPServer server
 

@@ -16,28 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Lists;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
+import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationStrategyInternal;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
-    private static final Comparator<DefaultFileDetails> FILE_DETAILS_COMPARATOR = new Comparator<DefaultFileDetails>() {
-        @Override
-        public int compare(DefaultFileDetails o1, DefaultFileDetails o2) {
-            return o1.getPath().compareTo(o2.getPath());
-        }
-    };
+    private final ResourceSnapshotterCacheService cacheService;
 
-    public DefaultClasspathSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        super(hasher, stringInterner, fileSystem, directoryFileTreeFactory);
+    public DefaultClasspathSnapshotter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+        super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -46,20 +36,9 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    protected void visitTreeOrBackingFile(FileTreeInternal fileTree, List<DefaultFileDetails> fileTreeElements) {
-        // Sort non-root elements as their order is not important
-        List<DefaultFileDetails> subElements = Lists.newArrayList();
-        super.visitTreeOrBackingFile(fileTree, subElements);
-        Collections.sort(subElements, FILE_DETAILS_COMPARATOR);
-        fileTreeElements.addAll(subElements);
-    }
-
-    @Override
-    protected void visitDirectoryTree(DirectoryFileTree directoryTree, List<DefaultFileDetails> fileTreeElements) {
-        // Sort non-root elements as their order is not important
-        List<DefaultFileDetails> subElements = Lists.newArrayList();
-        super.visitDirectoryTree(directoryTree, subElements);
-        Collections.sort(subElements, FILE_DETAILS_COMPARATOR);
-        fileTreeElements.addAll(subElements);
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
+        MetadataFilter metadataFilter = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).getMetadataFilter();
+        ResourceHasher classpathResourceHasher = new MetadataFilterAdapter(metadataFilter, new RuntimeClasspathResourceHasher());
+        return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathResourceHasher, cacheService, getStringInterner()));
     }
 }

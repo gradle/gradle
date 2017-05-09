@@ -24,18 +24,21 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.management.*;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class GarbageCollectionMonitor {
-    final public static int EVENT_WINDOW = 20;
-    final static Logger LOGGER = Logging.getLogger(GarbageCollectionMonitor.class);
-    final Map<String, SlidingWindow<GarbageCollectionEvent>> events;
-    final GarbageCollectorMonitoringStrategy gcStrategy;
-    final ScheduledExecutorService pollingExecutor;
+    public static final int POLL_INTERVAL_SECONDS = 1;
+    private static final int POLL_DELAY_SECONDS = 1;
+    private static final int EVENT_WINDOW = 20;
+    private static final Logger LOGGER = Logging.getLogger(GarbageCollectionMonitor.class);
+    private final Map<String, SlidingWindow<GarbageCollectionEvent>> events;
+    private final GarbageCollectorMonitoringStrategy gcStrategy;
+    private final ScheduledExecutorService pollingExecutor;
 
     public GarbageCollectionMonitor(ScheduledExecutorService pollingExecutor) {
         this(determineGcStrategy(), pollingExecutor);
@@ -81,7 +84,7 @@ public class GarbageCollectionMonitor {
     }
 
     private void pollForValues(String garbageCollectorName, List<String> memoryPoolNames) {
-        pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(events, memoryPoolNames, garbageCollectorName), 1, 1, TimeUnit.SECONDS);
+        pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(events, memoryPoolNames, garbageCollectorName), POLL_DELAY_SECONDS, POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     public GarbageCollectionStats getTenuredStats() {

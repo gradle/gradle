@@ -19,7 +19,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.util.Path;
 
-import java.util.Collections;
 import java.util.Set;
 
 public class TaskDetailsFactory {
@@ -46,14 +45,6 @@ public class TaskDetailsFactory {
 
             public String getDescription() {
                 return task.getDescription();
-            }
-
-            public Set<TaskDetails> getDependencies() {
-                return Collections.emptySet();
-            }
-
-            public Set<TaskDetails> getChildren() {
-                return Collections.emptySet();
             }
         };
     }

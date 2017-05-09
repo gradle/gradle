@@ -29,7 +29,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -49,7 +49,7 @@ public class TestReport extends DefaultTask {
     private List<Object> results = new ArrayList<Object>();
 
     @Inject
-    protected BuildOperationProcessor getBuildOperationProcessor() {
+    protected BuildOperationExecutor getBuildOperationExecutor() {
         throw new UnsupportedOperationException();
     }
 
@@ -133,7 +133,7 @@ public class TestReport extends DefaultTask {
         TestResultsProvider resultsProvider = createAggregateProvider();
         try {
             if (resultsProvider.isHasResults()) {
-                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationProcessor());
+                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationExecutor());
                 testReport.generateReport(resultsProvider, getDestinationDir());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResultDirs().getFiles());

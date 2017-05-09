@@ -26,8 +26,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.gradle.internal.classloader.ClassPathSnapshot;
-import org.gradle.internal.classloader.ClassPathSnapshotter;
+import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -41,12 +40,12 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     private final Object lock = new Object();
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
     private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
-    private final ClassPathSnapshotter snapshotter;
+    private final ClasspathHasher classpathHasher;
     private final HashingClassLoaderFactory classLoaderFactory;
 
-    public DefaultClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter snapshotter) {
+    public DefaultClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClasspathHasher classpathHasher) {
         this.classLoaderFactory = classLoaderFactory;
-        this.snapshotter = snapshotter;
+        this.classpathHasher = classpathHasher;
     }
 
     @Override
@@ -55,9 +54,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
-        ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
-        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec, overrideHashCode);
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
+        if (implementationHash == null) {
+            implementationHash = classpathHasher.hash(classPath);
+        }
+        ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(parent, classPath, implementationHash, filterSpec);
 
         synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
@@ -78,6 +79,19 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     }
 
     @Override
+    public <T extends ClassLoader> T put(ClassLoaderId id, T classLoader) {
+        synchronized (lock) {
+            remove(id);
+            ClassLoaderSpec spec = new UnmanagedClassLoaderSpec(classLoader);
+            CachedClassLoader cachedClassLoader = new CachedClassLoader(classLoader, spec, null);
+            cachedClassLoader.retain(id);
+            byId.put(id, cachedClassLoader);
+            bySpec.put(spec, cachedClassLoader);
+        }
+        return classLoader;
+    }
+
+    @Override
     public void remove(ClassLoaderId id) {
         synchronized (lock) {
             CachedClassLoader cachedClassLoader = byId.remove(id);
@@ -87,7 +101,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         }
     }
 
-    private CachedClassLoader getAndRetainLoader(ClassPath classPath, ClassLoaderSpec spec, ClassLoaderId id) {
+    private CachedClassLoader getAndRetainLoader(ClassPath classPath, ManagedClassLoaderSpec spec, ClassLoaderId id) {
         CachedClassLoader cachedLoader = bySpec.get(spec);
         if (cachedLoader == null) {
             ClassLoader classLoader;
@@ -96,7 +110,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = classLoaderFactory.createChildClassLoader(spec.parent, classPath, spec.overrideHashCode);
+                classLoader = classLoaderFactory.createChildClassLoader(spec.parent, classPath, spec.implementationHash);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -123,21 +137,32 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         }
     }
 
-    private static class ClassLoaderSpec {
-        private final ClassLoader parent;
-        private final ClassPathSnapshot classPathSnapshot;
-        private final FilteringClassLoader.Spec filterSpec;
-        private final HashCode overrideHashCode;
+    private static abstract class ClassLoaderSpec {
+    }
 
-        public ClassLoaderSpec(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode) {
+    private static class UnmanagedClassLoaderSpec extends ClassLoaderSpec {
+        private final ClassLoader loader;
+
+        public UnmanagedClassLoaderSpec(ClassLoader loader) {
+            this.loader = loader;
+        }
+    }
+
+    private static class ManagedClassLoaderSpec extends ClassLoaderSpec {
+        private final ClassLoader parent;
+        private final ClassPath classPath;
+        private final HashCode implementationHash;
+        private final FilteringClassLoader.Spec filterSpec;
+
+        public ManagedClassLoaderSpec(ClassLoader parent, ClassPath classPath, HashCode implementationHash, FilteringClassLoader.Spec filterSpec) {
             this.parent = parent;
-            this.classPathSnapshot = classPathSnapshot;
+            this.classPath = classPath;
+            this.implementationHash = implementationHash;
             this.filterSpec = filterSpec;
-            this.overrideHashCode = overrideHashCode;
         }
 
-        public ClassLoaderSpec unfiltered() {
-            return new ClassLoaderSpec(parent, classPathSnapshot, null, overrideHashCode);
+        public ManagedClassLoaderSpec unfiltered() {
+            return new ManagedClassLoaderSpec(parent, classPath, implementationHash, null);
         }
 
         public boolean isFiltered() {
@@ -147,19 +172,19 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         @Override
         public boolean equals(Object o) {
-            ClassLoaderSpec that = (ClassLoaderSpec) o;
+            ManagedClassLoaderSpec that = (ManagedClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
-                && this.classPathSnapshot.equals(that.classPathSnapshot)
-                && Objects.equal(this.filterSpec, that.filterSpec)
-                && Objects.equal(this.overrideHashCode, that.overrideHashCode);
+                && this.implementationHash.equals(that.implementationHash)
+                && this.classPath.equals(that.classPath)
+                && Objects.equal(this.filterSpec, that.filterSpec);
         }
 
         @Override
         public int hashCode() {
-            int result = classPathSnapshot.hashCode();
+            int result = implementationHash.hashCode();
+            result = 31 * result + classPath.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             result = 31 * result + (parent != null ? parent.hashCode() : 0);
-            result = 31 * result + (overrideHashCode != null ? overrideHashCode.hashCode() : 0);
             return result;
         }
     }

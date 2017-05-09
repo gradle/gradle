@@ -18,6 +18,8 @@ package org.gradle.api.dsl
 
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.configuration.Help
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -249,7 +251,7 @@ tasks.configure {
 
         expect:
         fails()
-        failure.assertHasCause("Could not set unknown property 'unknown' for task set.")
+        failure.assertHasCause("Could not set unknown property 'unknown' for task set of type $DefaultTaskContainer.name.")
     }
 
     def "reports invoke unknown method from polymorphic container configure closure"() {
@@ -262,7 +264,7 @@ tasks.configure {
 
         expect:
         fails()
-        failure.assertHasCause("Could not find method unknown() for arguments [12] on task set.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on task set of type ${DefaultTaskContainer.name}.")
     }
 
     def "can read property from polymorphic container configure closure outer scope"() {
@@ -352,7 +354,7 @@ repositories {
 
         expect:
         fails()
-        failure.assertHasCause("Could not get unknown property 'unknown' for repository container.")
+        failure.assertHasCause("Could not get unknown property 'unknown' for repository container of type $DefaultRepositoryHandler.name.")
     }
 
     def "reports set unknown property from container configure closure"() {
@@ -364,7 +366,7 @@ repositories {
 
         expect:
         fails()
-        failure.assertHasCause("Could not set unknown property 'unknown' for repository container.")
+        failure.assertHasCause("Could not set unknown property 'unknown' for repository container of type $DefaultRepositoryHandler.name.")
     }
 
     def "reports invoke unknown method from container configure closure"() {
@@ -377,7 +379,7 @@ repositories {
 
         expect:
         fails()
-        failure.assertHasCause("Could not find method unknown() for arguments [12] on repository container.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on repository container of type $DefaultRepositoryHandler.name.")
     }
 
     def "can read property from container configure closure outer scope"() {

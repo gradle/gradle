@@ -18,9 +18,12 @@ package org.gradle.internal.resource.transfer
 
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.ExternalResourceReadResult
 import org.gradle.internal.resource.cached.CachedExternalResource
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -45,7 +48,14 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         createTemporaryFile(_, _, _) >> tempFile
     }
     final cacheLockingManager = Mock(CacheLockingManager)
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager)
+    final cachePolicy = new DefaultExternalResourceCachePolicy()
+    final ProducerGuard<URI> producerGuard = Stub() {
+        guardByKey(_, _) >> { args ->
+            def (key, factory) = args
+            factory.create()
+        }
+    }
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def uri = new URI("scheme:thing")
@@ -111,7 +121,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * remoteResource.close()
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
@@ -180,7 +190,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
@@ -219,7 +229,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         cachedMetaData.lastModified >> null
         1 * repository.getResource(new URI("scheme:thing.sha1"), true) >> remoteSha1
         1 * remoteSha1.withContent(_) >> { Transformer t ->
-            t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes))
+            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes)))
         }
         1 * remoteSha1.close()
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
@@ -227,7 +237,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
@@ -271,7 +281,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
@@ -325,7 +335,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         0 * _._
 
         and:
-        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource

@@ -82,9 +82,10 @@ class DaemonsEventSequence implements Stoppable, Runnable {
                     checkForDaemonsStateChange()
                     sleep(pollRegistryMs)
                 }
-                putOnChangeQueue(null) // sentinel that no more is coming
             } catch (Exception e) {
                 e.printStackTrace()
+            } finally {
+                putOnChangeQueue(null) // sentinel that no more is coming
             }
         }
 

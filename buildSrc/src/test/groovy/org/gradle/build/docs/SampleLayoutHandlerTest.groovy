@@ -27,7 +27,7 @@ class SampleLayoutHandlerTest extends XmlSpecification {
         builder.handle('''
 build.gradle
 settings.gradle
-''', parent, samples)
+''', parent)
 
         then:
         expectLayout('''name/
@@ -41,7 +41,7 @@ settings.gradle
         builder.handle('''
 src/
 build/
-''', parent, samples)
+''', parent)
 
         then:
         expectLayout('''name/
@@ -55,7 +55,7 @@ build/
         builder.handle('''
 api/build/
 api/build.gradle
-''', parent, samples)
+''', parent)
 
         then:
         expectLayout('''name/
@@ -67,10 +67,10 @@ api/build.gradle
 
     def addsMetaDataToSamplesManifest() {
         when:
-        builder.handle('''
+        builder.handleSample('''
 build.gradle
 build/libs/
-''', parent, samples)
+''', samples)
 
         then:
         formatTree(samples) == '''<samples>
@@ -86,7 +86,7 @@ src/main/java/Source1.java
 src/main/java/org/
 src/test/java/SourceTest.java
 build/libs/test.jar
-''', parent, samples)
+''', parent)
 
         then:
         expectLayout('''name/
@@ -109,7 +109,7 @@ src/main/java/org/gradle/Source1.java
 src/main/java/org/gradle/Source2.java
 src/test/java/
 src/test/java/org/gradle/SourceTest.java
-''', parent, samples)
+''', parent)
 
         then:
         expectLayout('''name/
@@ -129,7 +129,7 @@ src/test/java/org/gradle/SourceTest.java
         builder.handle('''
 src/main/java
 src/main/java/org/gradle/Source1.java
-''', parent, samples)
+''', parent)
 
         then:
         RuntimeException e = thrown()
@@ -141,7 +141,7 @@ src/main/java/org/gradle/Source1.java
         builder.handle('''
 /src//java//
 src//java/Source.java
-''', parent, samples)
+''', parent)
 
         then:
         expectLayout('''name/

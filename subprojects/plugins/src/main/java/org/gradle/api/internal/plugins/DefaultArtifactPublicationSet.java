@@ -30,13 +30,14 @@ public class DefaultArtifactPublicationSet {
     }
 
     public void addCandidate(PublishArtifact artifact) {
+        String thisType = artifact.getType();
+
         if (defaultArtifact == null) {
             artifacts.add(artifact);
             defaultArtifact = artifact;
             return;
         }
 
-        String thisType = artifact.getType();
         String currentType = defaultArtifact.getType();
         if (thisType.equals("ear")) {
             replaceCurrent(artifact);

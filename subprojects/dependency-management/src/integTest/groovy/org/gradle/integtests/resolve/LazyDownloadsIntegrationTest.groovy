@@ -50,13 +50,13 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
             }
             task artifacts {
                 doLast {
-                    println configurations.compile.resolvedConfiguration.resolvedArtifacts
+                    println configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it.name }
                 }
             }
 """
     }
 
-    def "downloads only metadata when dependency graph is queried"() {
+    def "downloads only the metadata when dependency graph is queried"() {
         when:
         module.pom.expectGet()
 
@@ -64,7 +64,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("graph")
     }
 
-    def "downloads only metadata when artifacts are queried"() {
+    def "downloads only the metadata when resolved artifacts are queried"() {
         when:
         module.pom.expectGet()
 

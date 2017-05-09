@@ -18,8 +18,8 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
-import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.junit.Rule
 
 import static org.hamcrest.Matchers.startsWith
@@ -61,6 +61,20 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         failure.assertHasCause("Could not create plugin of type 'TestPlugin'.")
     }
 
+    def "error creating plugin"() {
+        portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
+        publishNonConstructablePlugin("org.my.myplugin", "my", "plugin", "1.0")
+
+        buildScript applyPlugin("org.my.myplugin", "1.0")
+
+        expect:
+        fails("verify")
+        failure.assertThatDescription(startsWith("An exception occurred applying plugin request [id: 'org.my.myplugin', version: '1.0']"))
+        failure.assertHasLineNumber(3)
+        failure.assertHasCause("Could not create plugin of type 'TestPlugin'.")
+        failure.assertHasCause("broken plugin")
+    }
+
     def "error applying plugin"() {
         portal.expectPluginQuery("org.my.myplugin", "1.0", "my", "plugin", "1.0")
         publishFailingPlugin("org.my.myplugin", "my", "plugin", "1.0")
@@ -85,6 +99,13 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         def module = portal.m2repo.module(group, artifact, version)
         module.allowAll()
         pluginBuilder.addUnloadablePlugin(pluginId)
+        pluginBuilder.publishTo(executer, module.artifactFile)
+    }
+
+    private void publishNonConstructablePlugin(String pluginId, String group, String artifact, String version) {
+        def module = portal.m2repo.module(group, artifact, version)
+        module.allowAll()
+        pluginBuilder.addNonConstructablePlugin(pluginId)
         pluginBuilder.publishTo(executer, module.artifactFile)
     }
 

@@ -122,7 +122,7 @@ class DefaultOsgiManifestTest extends Specification {
 
         and:
         prepareMock()
-        
+
         then:
         def effectiveManifest = osgiManifest.getEffectiveManifest()
         effectiveManifest.attributes[name] == testValue
@@ -191,6 +191,7 @@ class DefaultOsgiManifestTest extends Specification {
 
         when:
         DefaultManifest manifest = osgiManifest.getEffectiveManifest()
+        manifest.attributes.remove(Analyzer.BND_LASTMODIFIED) // this is generated based on when the test runs
         DefaultManifest defaultManifest = getDefaultManifestWithOsgiValues()
         DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(defaultManifest.getAttributes())
         for (Map.Entry<String, Attributes> ent: defaultManifest.getSections().entrySet()) {
@@ -220,6 +221,7 @@ class DefaultOsgiManifestTest extends Specification {
         expectedManifest.attributes(otherManifest.getAttributes())
 
         DefaultManifest manifest = osgiManifest.getEffectiveManifest()
+        manifest.attributes.remove(Analyzer.BND_LASTMODIFIED) // this is generated based on when the test runs
 
         then:
         manifest.isEqualsTo expectedManifest

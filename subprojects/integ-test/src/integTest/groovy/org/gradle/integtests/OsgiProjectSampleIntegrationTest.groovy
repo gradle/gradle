@@ -18,12 +18,14 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 import java.util.jar.Manifest
 
+@TestReproducibleArchives
 class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')

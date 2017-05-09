@@ -39,12 +39,13 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
     def "can shutdown tooling API session when no operations have been executed"() {
         given:
-        toolingApi.close();
+        toolingApi.close()
 
         when:
         toolingApi.withConnection {}
+
         then:
-        IllegalStateException e = thrown()
+        thrown(IllegalStateException)
     }
 
     @TargetGradleVersion(">=2.2")
@@ -127,6 +128,6 @@ task slow { doLast { new URL("${server.uri}").text } }
     private GradleExecuter daemonExecutor() {
         // Need to use the same JVM args to start daemon as those used by tooling api fixture
         // TODO - use more sane JVM args here and for the daemons started using tooling api fixture
-        targetDist.executer(temporaryFolder, getBuildContext()).withNoExplicitTmpDir().withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError").useDefaultBuildJvmArgs().requireDaemon()
+        targetDist.executer(temporaryFolder, getBuildContext()).withNoExplicitTmpDir().withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError").useOnlyRequestedJvmOpts().requireDaemon()
     }
 }

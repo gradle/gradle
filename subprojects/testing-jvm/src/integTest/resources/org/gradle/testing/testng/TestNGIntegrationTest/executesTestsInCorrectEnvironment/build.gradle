@@ -1,9 +1,0 @@
-apply plugin: 'java'
-repositories { mavenCentral() }
-dependencies { testCompile 'org.testng:testng:6.3.1' }
-test {
-    useTestNG()
-    systemProperties.testSysProperty = 'value'
-    systemProperties.testDir = projectDir
-    environment.TEST_ENV_VAR = 'value'
-}

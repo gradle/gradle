@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.quality
 
 import groovy.transform.NotYetImplemented
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -33,7 +32,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
-@TargetCoverage({ JavaVersion.current().isJava6() ? CheckstyleCoverage.JDK6_SUPPORTED : CheckstyleCoverage.ALL})
+@TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule
@@ -128,6 +127,46 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
+    def "can ignore maximum number of errors"() {
+        badCode()
+        buildFile << """
+            checkstyle {
+                maxErrors = 2
+            }
+        """
+
+        expect:
+        succeeds("check")
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    def "can fail on maximum number of warnings"() {
+        given:
+        writeConfigFileWithWarnings()
+        badCode()
+
+        when:
+        buildFile << """
+            checkstyle {
+                maxWarnings = 1
+            }
+        """
+
+        then:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
+    }
+
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "is incremental"() {
         given:
@@ -153,8 +192,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         when:
         buildFile << """
             checkstyleMain.reports {
-                xml.destination "foo.xml"
-                html.destination "bar.html"
+                xml.destination file("foo.xml")
+                html.destination file("bar.html")
             }
         """
 
@@ -270,6 +309,20 @@ checkstyle {
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
+    <module name="TreeWalker">
+        <module name="TypeName"/>
+    </module>
+</module>
+        """
+    }
+
+    private void writeConfigFileWithWarnings() {
+        file("config/checkstyle/checkstyle.xml").text = """
+<!DOCTYPE module PUBLIC
+        "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+        "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+<module name="Checker">
+    <property name="severity" value="warning"/>
     <module name="TreeWalker">
         <module name="TypeName"/>
     </module>

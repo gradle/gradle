@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.jcraft.jsch.*;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -36,7 +37,8 @@ public class SftpClientFactory implements Stoppable {
 
     private SftpClientCreator sftpClientCreator = new SftpClientCreator();
     private final Object lock = new Object();
-    private final ListMultimap<SftpHost, LockableSftpClient> clients = ArrayListMultimap.create();
+    private final List<LockableSftpClient> allClients = Lists.newArrayList();
+    private final ListMultimap<SftpHost, LockableSftpClient> idleClients = ArrayListMultimap.create();
 
     public LockableSftpClient createSftpClient(URI uri, PasswordCredentials credentials) {
         synchronized (lock) {
@@ -46,15 +48,42 @@ public class SftpClientFactory implements Stoppable {
     }
 
     private LockableSftpClient acquireClient(SftpHost sftpHost) {
-        return clients.containsKey(sftpHost) ? reuseExistingOrCreateNewClient(sftpHost) : sftpClientCreator.createNewClient(sftpHost);
+        return idleClients.containsKey(sftpHost) ? reuseExistingOrCreateNewClient(sftpHost) : createNewClient(sftpHost);
     }
 
     private LockableSftpClient reuseExistingOrCreateNewClient(SftpHost sftpHost) {
-        List<LockableSftpClient> clientsByHost = clients.get(sftpHost);
+        List<LockableSftpClient> clientsByHost = idleClients.get(sftpHost);
+
+        LockableSftpClient client = null;
         if (clientsByHost.isEmpty()) {
-            return sftpClientCreator.createNewClient(sftpHost);
+            LOGGER.debug("No existing sftp clients.  Creating a new one.");
+            client = createNewClient(sftpHost);
+        } else {
+            client = clientsByHost.remove(0);
+            if (!client.isConnected()) {
+                LOGGER.info("Tried to reuse an existing sftp client, but unexpectedly found it disconnected.  Discarding and trying again.");
+                discard(client);
+                client = reuseExistingOrCreateNewClient(sftpHost);
+            } else {
+                LOGGER.debug("Reusing an existing sftp client.");
+            }
         }
-        return clientsByHost.remove(0);
+
+        return client;
+    }
+
+    private LockableSftpClient createNewClient(SftpHost sftpHost) {
+        LockableSftpClient client = sftpClientCreator.createNewClient(sftpHost);
+        allClients.add(client);
+        return client;
+    }
+
+    private void discard(LockableSftpClient client) {
+        try {
+            client.stop();
+        } finally {
+            allClients.remove(client);
+        }
     }
 
     private static class SftpClientCreator {
@@ -125,20 +154,17 @@ public class SftpClientFactory implements Stoppable {
 
     public void releaseSftpClient(LockableSftpClient sftpClient) {
         synchronized (lock) {
-            clients.put(sftpClient.getHost(), sftpClient);
+            idleClients.put(sftpClient.getHost(), sftpClient);
         }
     }
 
     public void stop() {
         synchronized (lock) {
             try {
-                CompositeStoppable stoppable = new CompositeStoppable();
-                for (LockableSftpClient client : clients.values()) {
-                    stoppable.add(client);
-                }
-                stoppable.stop();
+                CompositeStoppable.stoppable(allClients).stop();
             } finally {
-                clients.clear();
+                allClients.clear();
+                idleClients.clear();
             }
         }
     }
@@ -165,6 +191,11 @@ public class SftpClientFactory implements Stoppable {
 
         public ChannelSftp getSftpClient() {
             return channelSftp;
+        }
+
+        @Override
+        public boolean isConnected() {
+            return channelSftp.isConnected();
         }
     }
 }

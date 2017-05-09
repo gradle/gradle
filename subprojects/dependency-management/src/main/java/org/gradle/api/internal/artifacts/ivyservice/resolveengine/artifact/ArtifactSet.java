@@ -16,13 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.specs.Spec;
 
-import java.util.Set;
-
+/**
+ * Represents a container of artifacts, possibly made up of several different variants.
+ */
 public interface ArtifactSet {
-
     long getId();
 
-    Set<ResolvedArtifact> getArtifacts();
+    /**
+     * Take a snapshot of this set, doing whatever work is required to calculate the variants of this set.
+     */
+    ArtifactSet snapshot();
+
+    /**
+     * Selects the artifacts of this set that meet the given criteria. Implementation should be eager where possible, so that selection happens immediately, but may be lazy.
+     */
+    ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector);
 }

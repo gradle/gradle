@@ -85,6 +85,16 @@ public class ComponentResolversChain implements ComponentResolvers {
                 resolver.resolve(identifier, componentOverrideMetadata, result);
             }
         }
+
+        @Override
+        public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+            for (ComponentMetaDataResolver resolver : resolvers) {
+                if (!resolver.isFetchingMetadataCheap(identifier)) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     private static class ArtifactResolverChain implements ArtifactResolver {

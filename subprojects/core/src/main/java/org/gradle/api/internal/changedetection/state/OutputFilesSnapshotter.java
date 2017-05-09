@@ -17,6 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.TaskExecutionHistory;
+import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +27,36 @@ import java.util.Map;
  * Takes a snapshot of the output files of a task.
  */
 public class OutputFilesSnapshotter {
+    public TaskExecutionHistory.OverlappingOutputs detectOverlappingOutputs(final String propertyName, final FileCollectionSnapshot previousExecution, FileCollectionSnapshot beforeExecution) {
+        Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
+        Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+
+        for (Map.Entry<String, NormalizedFileSnapshot> beforeSnapshot : beforeSnapshots.entrySet()) {
+            final String path = beforeSnapshot.getKey();
+            NormalizedFileSnapshot fileSnapshot = beforeSnapshot.getValue();
+            NormalizedFileSnapshot previousSnapshot = previousSnapshots.get(path);
+            // Missing files or just directories can be ignored
+            // It would be nice to consider directories too, but we can't distinguish between an existing _root_ directory of an output property
+            // and a directory inside the root directory.
+            if (fileSnapshot.getSnapshot().getType() == FileType.RegularFile) {
+                if (createdSincePreviousExecution(previousSnapshot) || changedSincePreviousExecution(fileSnapshot, previousSnapshot)) {
+                    return new TaskExecutionHistory.OverlappingOutputs(propertyName, fileSnapshot.getNormalizedPath());
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean changedSincePreviousExecution(NormalizedFileSnapshot fileSnapshot, NormalizedFileSnapshot previousSnapshot) {
+        // _changed_ since last execution, possibly by another task
+        return !previousSnapshot.getSnapshot().isContentUpToDate(fileSnapshot.getSnapshot());
+    }
+
+    private boolean createdSincePreviousExecution(NormalizedFileSnapshot previousSnapshot) {
+        // created since last execution, possibly by another task
+        return previousSnapshot == null;
+    }
+
     /**
      * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
      */

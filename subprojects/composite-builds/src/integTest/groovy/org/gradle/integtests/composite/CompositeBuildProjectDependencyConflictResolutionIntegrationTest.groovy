@@ -27,7 +27,7 @@ class CompositeBuildProjectDependencyConflictResolutionIntegrationTest extends A
 
     @Override
     String getBuildId() {
-        "org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier.of(projectName)"
+        "new org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier(projectName)"
     }
 
     @Override

@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
@@ -44,7 +43,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.AggregatingProjectArtifactBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CacheLockReleasingProjectArtifactBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
@@ -55,6 +53,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
@@ -66,6 +65,7 @@ import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
@@ -73,14 +73,19 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -89,6 +94,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -103,15 +109,15 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
-    // TODO:DAZ This should not hard-code the assumption that buildName == rootProject.name for included builds
     BuildIdentity createBuildIdentity(ProjectRegistry<ProjectInternal> projectRegistry) {
         ProjectInternal rootProject = projectRegistry.getProject(":");
         if (rootProject == null || rootProject.getGradle().getParent() == null) {
             // BuildIdentity for a top-level build
-            return new DefaultBuildIdentity(DefaultBuildIdentifier.of(":", true));
+            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":", true));
         }
         // BuildIdentity for an included build
-        return new DefaultBuildIdentity(DefaultBuildIdentifier.of(rootProject.getName(), true));
+        // This hard-codes the assumption that buildName == rootProject.name for included builds
+        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName(), true));
     }
 
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
@@ -138,19 +144,23 @@ class DependencyManagementBuildScopeServices {
             projectDependencyFactory);
     }
 
-    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory) {
-        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory);
+    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, directoryFileTreeFactory);
     }
 
     BuildCommencedTimeProvider createBuildTimeProvider() {
         return new BuildCommencedTimeProvider();
     }
 
-    ModuleVersionsCache createModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    ModuleExclusions createModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return new ModuleExclusions(moduleIdentifierFactory);
+    }
+
+    ModuleVersionsCache createModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return new SingleFileBackedModuleVersionsCache(
             timeProvider,
-            cacheLockingManager
-        );
+            cacheLockingManager,
+            moduleIdentifierFactory);
     }
 
     ModuleArtifactsCache createModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
@@ -160,12 +170,12 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData) {
+    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
         return new DefaultModuleMetaDataCache(
             timeProvider,
             cacheLockingManager,
-            artifactCacheMetaData
-        );
+            artifactCacheMetaData,
+            moduleIdentifierFactory, moduleExclusions);
     }
 
     ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
@@ -186,6 +196,10 @@ class DependencyManagementBuildScopeServices {
 
     ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
         return new ArtifactIdentifierFileStore(new UniquePathKeyFileStore(artifactCacheMetaData.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
+    }
+
+    ExternalResourceFileStore createExternalResourceFileStore(CacheScopeMapping cacheScopeMapping) {
+        return new ExternalResourceFileStore(cacheScopeMapping.getBaseDirectory(null, "external-resources", VersionStrategy.SharedCache), new TmpDirTemporaryFileProvider());
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {
@@ -212,26 +226,32 @@ class DependencyManagementBuildScopeServices {
         return new DefaultVersionComparator();
     }
 
-    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
+    RepositoryTransportFactory createRepositoryTransportFactory(StartParameter startParameter,
+                                                                ProgressLoggerFactory progressLoggerFactory,
                                                                 TemporaryFileProvider temporaryFileProvider,
                                                                 ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
                                                                 CacheLockingManager cacheLockingManager,
-                                                                ServiceRegistry serviceRegistry) {
+                                                                List<ResourceConnectorFactory> resourceConnectorFactories,
+                                                                BuildOperationExecutor buildOperationExecutor,
+                                                                ProducerGuard<URI> producerGuard) {
+        StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new RepositoryTransportFactory(
-            serviceRegistry.getAll(ResourceConnectorFactory.class),
+            resourceConnectorFactories,
             progressLoggerFactory,
             temporaryFileProvider,
             externalResourceIndex,
             buildCommencedTimeProvider,
-            cacheLockingManager
-        );
+            cacheLockingManager,
+            buildOperationExecutor,
+            startParameterResolutionOverride,
+            producerGuard);
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                                               ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex, CacheLockingManager cacheLockingManager,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
-                                              VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
+                                              VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
             moduleVersionsCache,
@@ -243,22 +263,25 @@ class DependencyManagementBuildScopeServices {
             buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory,
             versionSelectorScheme,
-            versionComparator);
+            versionComparator, moduleIdentifierFactory);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                                CacheLockingManager cacheLockingManager,
                                                                 VersionComparator versionComparator,
-                                                                ServiceRegistry serviceRegistry) {
-        ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
-            serviceRegistry,
+                                                                List<ResolverProviderFactory> resolverFactories,
+                                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                ModuleExclusions moduleExclusions,
+                                                                BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultArtifactDependencyResolver(
+            buildOperationExecutor,
+            resolverFactories,
             resolveIvyFactory,
             dependencyDescriptorFactory,
-            cacheLockingManager,
-            versionComparator
+            versionComparator,
+            moduleIdentifierFactory,
+            moduleExclusions
         );
-        return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
     }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
@@ -269,22 +292,17 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    ProjectLocalComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
-        return new DefaultProjectLocalComponentProvider(projectRegistry, metaDataBuilder);
+    ProjectLocalComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return new DefaultProjectLocalComponentProvider(projectRegistry, metaDataBuilder, moduleIdentifierFactory);
     }
 
-    LocalComponentRegistry createLocalComponentRegistry(ServiceRegistry serviceRegistry) {
-        List<LocalComponentProvider> providers = serviceRegistry.getAll(LocalComponentProvider.class);
+    LocalComponentRegistry createLocalComponentRegistry(List<LocalComponentProvider> providers) {
         return new DefaultLocalComponentRegistry(providers);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry,
-                                                              CacheLockingManager cacheLockingManager, ComponentIdentifierFactory componentIdentifierFactory) {
-        // This doesn't seem to consistently load all ProjectArtifactBuilder instances provided by modules.
-        // For embedded integration tests, I'm not convinced that the CompositeProjectArtifactBuilder will always be registered.
-        List<ProjectArtifactBuilder> delegateBuilders = serviceRegistry.getAll(ProjectArtifactBuilder.class);
+    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, List<ProjectArtifactBuilder> delegateBuilders,
+                                                              ComponentIdentifierFactory componentIdentifierFactory) {
         ProjectArtifactBuilder artifactBuilder = new AggregatingProjectArtifactBuilder(delegateBuilders);
-        artifactBuilder = new CacheLockReleasingProjectArtifactBuilder(artifactBuilder, cacheLockingManager);
         return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder, componentIdentifierFactory);
     }
 

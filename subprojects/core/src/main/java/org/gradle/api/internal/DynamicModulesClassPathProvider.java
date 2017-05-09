@@ -37,14 +37,17 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
         if (name.equals("GRADLE_EXTENSIONS")) {
             Set<Module> coreModules = moduleRegistry.getModule("gradle-core").getAllRequiredModules();
             ClassPath classpath = new DefaultClassPath();
-            for (String moduleName : Arrays.asList("gradle-dependency-management", "gradle-plugin-use")) {
+            for (String moduleName : Arrays.asList("gradle-workers", "gradle-dependency-management", "gradle-plugin-use")) {
                 for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
                     if (!coreModules.contains(module)) {
                         classpath = classpath.plus(module.getClasspath());
                     }
                 }
             }
-            for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
+            for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
+                classpath = classpath.plus(pluginModule.getClasspath());
+            }
+            for (Module pluginModule : pluginModuleRegistry.getImplementationModules()) {
                 classpath = classpath.plus(pluginModule.getClasspath());
             }
             return classpath;

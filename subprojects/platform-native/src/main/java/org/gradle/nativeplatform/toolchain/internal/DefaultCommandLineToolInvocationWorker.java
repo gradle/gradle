@@ -18,7 +18,9 @@ package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
@@ -49,7 +51,8 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
     }
 
     @Override
-    public void execute(CommandLineToolInvocation invocation) {
+    public void execute(CommandLineToolInvocation invocation, BuildOperationContext context) {
+        BuildOperationDescriptor description = invocation.description().build();
         ExecAction toolExec = execActionFactory.newExecAction();
 
         toolExec.executable(executable);
@@ -79,10 +82,10 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
         try {
             toolExec.execute();
-            invocation.getLogger().operationSuccess(invocation.getDescription(), combineOutput(stdOutput, errOutput));
+            invocation.getLogger().operationSuccess(description.getDisplayName(), combineOutput(stdOutput, errOutput));
         } catch (ExecException e) {
-            invocation.getLogger().operationFailed(invocation.getDescription(), combineOutput(stdOutput, errOutput));
-            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s.", name, invocation.getDescription()));
+            invocation.getLogger().operationFailed(description.getDisplayName(), combineOutput(stdOutput, errOutput));
+            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s.", name, description.getDisplayName()));
         }
     }
 

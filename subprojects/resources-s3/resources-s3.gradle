@@ -1,11 +1,14 @@
+apply plugin: 'java-library'
+
 dependencies {
-    compile project(':resources')
-    compile project(':resourcesHttp')
-    compile project(':core')
-    compile libraries.guava
-    compile libraries.awsS3
-    compile libraries.commons_lang
-    testCompile libraries.groovy
+    api project(':core')
+    api project(':resources')
+
+    implementation project(':resourcesHttp')
+    implementation libraries.slf4j_api
+    implementation libraries.guava
+    implementation libraries.awsS3
+    implementation libraries.commons_lang
 }
 
 useTestFixtures(project: ":dependencyManagement")

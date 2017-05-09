@@ -19,20 +19,33 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.*;
+import java.util.Collection;
 
 /**
  * A spec that excludes modules or artifacts that are excluded by _any_ of the supplied exclusions.
  * As such, this is an intersection of the separate exclude rule filters.
  */
 class IntersectionExclusion extends AbstractCompositeExclusion {
-    private final Set<AbstractModuleExclusion> excludeSpecs = new HashSet<AbstractModuleExclusion>();
+    private final ImmutableModuleExclusionSet excludeSpecs;
+    private final boolean mergeable;
 
-    public IntersectionExclusion(Collection<AbstractModuleExclusion> specs) {
-        this.excludeSpecs.addAll(specs);
+    public IntersectionExclusion(ImmutableModuleExclusionSet specs) {
+        this.excludeSpecs = specs;
+        boolean canMerge = true;
+        for (AbstractModuleExclusion spec : specs.elements) {
+            if (!canMerge(spec)) {
+                canMerge = false;
+                break;
+            }
+        }
+        mergeable = canMerge;
     }
 
-    Collection<AbstractModuleExclusion> getFilters() {
+    boolean canMerge() {
+        return mergeable;
+    }
+
+    ImmutableModuleExclusionSet getFilters() {
         return excludeSpecs;
     }
 
@@ -76,9 +89,19 @@ class IntersectionExclusion extends AbstractCompositeExclusion {
 
     /**
      * Can unpack into constituents when creating a larger intersection (since elements are applied as an intersection).
+     * @param specs
      */
     @Override
     protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
         specs.addAll(excludeSpecs);
     }
+
+    private static boolean canMerge(AbstractModuleExclusion excludeSpec) {
+        return excludeSpec instanceof ExcludeAllModulesSpec
+            || excludeSpec instanceof ArtifactExcludeSpec
+            || excludeSpec instanceof GroupNameExcludeSpec
+            || excludeSpec instanceof ModuleNameExcludeSpec
+            || excludeSpec instanceof ModuleIdExcludeSpec;
+    }
+
 }

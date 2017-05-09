@@ -25,12 +25,13 @@
             <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method.
         </para>
         <sample id="resolveFile" dir="userguide/files/file" title="Locating files">
-            <sourcefile file="build.gradle"/>
+            <sourcefile file="build.gradle" snippet="simple-params"/>
         </sample>
         <para>You can pass any object to the <literal>file()</literal> method, and it will attempt to convert the value
             to an absolute <classname>File</classname> object. Usually, you would pass it a
-            <classname>String</classname> or <classname>File</classname> instance. If this path is an absolute path, it is used
-            to construct a <classname>File</classname> instance. Otherwise, a <classname>File</classname> instance is
+            <classname>String</classname>, <classname>File</classname> or <classname>Path</classname> instance. If this
+            path is an absolute path, it is used to construct a <classname>File</classname> instance. Otherwise,
+            a <classname>File</classname> instance is
             constructed by prepending the project directory path to the supplied path. The <literal>file()</literal>
             method also understands URLs, such as <literal>file:/some/path.xml</literal>.
         </para>
@@ -252,9 +253,9 @@
                 <sourcefile file="build.gradle" snippet="filter-files"/>
             </sample>
             <para>When you use the <literal>ReplaceTokens</literal> class with the “filter” operation, the result is a template engine that replaces tokens of the form “@tokenName@” (the Apache Ant-style token) with a set of given values. The “expand” operation does the same thing except it treats the source files as
-            <ulink url="http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html">Groovy templates</ulink>
-            in which tokens take the form “${tokenName}”. Be aware that you may need to escape parts of your source files when
-            using this option, for example if it contains literal “$” or “&lt;%” strings.</para>
+                <ulink url="http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html">Groovy templates</ulink>
+                in which tokens take the form “${tokenName}”. Be aware that you may need to escape parts of your source files when
+                using this option, for example if it contains literal “$” or “&lt;%” strings.</para>
 
             <para>It's a good practice to specify the charset when reading and writing the file, using the <literal>filteringCharset</literal>
                 property. If not specified, the JVM default charset is used, which might not match with the actual charset of the files
@@ -321,7 +322,7 @@
             <title>Archive naming</title>
 
             <para>The format of <filename><replaceable>projectName</replaceable>-<replaceable>version</replaceable>.<replaceable>type</replaceable></filename>
-            is used for generated archive file names.
+                is used for generated archive file names.
                 For example:
             </para>
             <sample id="archiveNaming" dir="userguide/files/archiveNaming" title="Creation of ZIP archive">
@@ -420,10 +421,52 @@
             <para>You can use the <apilink class="org.gradle.api.Project" method="copySpec(org.gradle.api.Action)"/> method to share content between archives.</para>
         </section>
 
+        <section id="sec:reproducible_archives">
+            <title>Reproducible archives</title>
+            <para>Sometimes it can be desirable to recreate archives in a byte for byte way on different machines.
+                You want to be sure that building an artifact from source code produces the same result, byte for byte, no matter when and where it is built.
+                This is necessary for projects like <ulink url="https://reproducible-builds.org/">reproducible-builds.org</ulink>.
+            </para>
+            <para>
+                Reproducing the same archive byte for byte poses some challenges since the order of the files in an archive is influenced by the underlying filesystem.
+                Each time a zip, tar, jar, war or ear is built from source, the order of the files inside the archive may change.
+                Files that only have a different timestamp also causes archives to be slightly different between builds.
+                All <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/> (e.g. Jar, Zip) tasks shipped with Gradle include <link linkend="feature_lifecycle">incubating</link> support producing reproducible archives.
+            </para>
+            <para>
+                For example, to make a <literal>Zip</literal> task reproducible you need to set
+                <apilink class="org.gradle.api.tasks.bundling.Zip" method="isReproducibleFileOrder()"/> to <literal>true</literal>
+                and <apilink class="org.gradle.api.tasks.bundling.Zip" method="isPreserveFileTimestamps()"/> to <literal>false</literal>.
+                In order to make all archive tasks in your build reproducible, consider adding the following configuration to your build file:
+            </para>
+            <sample id="createZip" dir="userguide/files/archives" title="Activating reproducible archives">
+                <sourcefile file="build.gradle" snippet="reproducible"/>
+            </sample>
+        </section>
+
         <para>Often you will want to publish an archive, so that it is usable from another project. This process is
             described in <xref linkend="artifact_management"/>
         </para>
 
     </section>
 
+    <section id="sec:properties_files">
+        <title>Properties files</title>
+
+        <para>Properties files are used in many places during Java development. Gradle makes it easy to create properties files as a normal part of the build.
+            You can use the <apilink class="org.gradle.api.tasks.WriteProperties"/> task to create properties files.
+        </para>
+
+        <para>The <literal>WriteProperties</literal> task also fixes a well-known problem with <literal>Properties.store()</literal>
+            that can reduce the usefulness of incremental builds (see <xref linkend="sec:up_to_date_checks" />). The standard Java way to write a properties
+            file produces a unique file every time, even when the same properties and values are used, because it includes a timestamp in the comments.
+            Gradle's <literal>WriteProperties</literal> task generates exactly the same output byte-for-byte if none of the properties have changed.
+            This is achieved by a few tweaks to how a properties file is generated:
+        </para>
+        <itemizedlist>
+            <listitem>no timestamp comment is added to the output</listitem>
+            <listitem>the line separator is system independent, but can be configured explicitly (it defaults to <literal>'\n'</literal>)</listitem>
+            <listitem>the properties are sorted alphabetically</listitem>
+        </itemizedlist>
+    </section>
 </chapter>

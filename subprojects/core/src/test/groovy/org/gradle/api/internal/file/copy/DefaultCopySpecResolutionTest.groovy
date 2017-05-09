@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -154,7 +155,7 @@ public class DefaultCopySpecResolutionTest {
             one(fileResolver).resolveFilesAsTree(['a', 'b'] as Set)
             def tree = context.mock(FileTreeInternal, 'source')
             will(returnValue(tree))
-            one(tree).matching(withParam(equalTo(parentSpec.patternSet)))
+            one(tree).matching((PatternFilterable)withParam(equalTo(parentSpec.patternSet)))
             will(returnValue(filteredTree))
         }
 

@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
@@ -38,7 +40,8 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        String executable = spec.getCompileOptions().getForkOptions().getExecutable();
+        final ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        String executable = forkOptions.getJavaHome() != null ? Jvm.forHome(forkOptions.getJavaHome()).getJavacExecutable().getAbsolutePath() : forkOptions.getExecutable();
         LOGGER.info("Compiling with Java command line compiler '{}'.", executable);
 
         ExecHandle handle = createCompilerHandle(executable, spec);

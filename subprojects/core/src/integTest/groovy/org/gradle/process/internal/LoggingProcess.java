@@ -20,11 +20,22 @@ import org.gradle.api.Action;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 
 public class LoggingProcess implements Action<WorkerProcessContext>, Serializable {
+
+    private final List<SerializableLogAction> actions;
+
+    public LoggingProcess(SerializableLogAction... actions){
+        this.actions = Arrays.asList(actions);
+    }
+
     @Override
     public void execute(WorkerProcessContext workerProcessContext) {
-        System.out.println("this is stdout");
-        System.err.println("this is stderr");
+        workerProcessContext.getServerConnection().connect();
+        for (SerializableLogAction action : actions) {
+            action.execute();
+        }
     }
 }

@@ -68,7 +68,5 @@ class TaskDetailsFactoryTest extends AbstractTaskModelSpec {
         expect:
         def details = factory.create(task)
         details.description == 'description'
-        details.dependencies.isEmpty()
-        details.children.isEmpty()
     }
 }

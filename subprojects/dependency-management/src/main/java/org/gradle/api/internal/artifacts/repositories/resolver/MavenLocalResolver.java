@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -26,6 +27,7 @@ import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +39,10 @@ public class MavenLocalResolver extends MavenResolver {
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
                               LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                              MetaDataParser<MutableMavenModuleResolveMetadata> pomParser) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser);
+                              MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                              CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null);
     }
 
     @Override

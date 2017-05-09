@@ -136,7 +136,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     private void addCreateScriptsTask() {
         CreateStartScripts startScripts = project.getTasks().create(TASK_START_SCRIPTS_NAME, CreateStartScripts.class);
         startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
-        startScripts.setClasspath(project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles().plus(project.getConfigurations().getByName("runtime")));
+        startScripts.setClasspath(project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles().plus(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
         startScripts.getConventionMapping().map("mainClassName", new Callable<Object>() {
             @Override
@@ -174,7 +174,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         CopySpec libChildSpec = project.copySpec();
         libChildSpec.into("lib");
         libChildSpec.from(jar);
-        libChildSpec.from(project.getConfigurations().getByName("runtime"));
+        libChildSpec.from(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
 
         CopySpec binChildSpec = project.copySpec();
         binChildSpec.into("bin");

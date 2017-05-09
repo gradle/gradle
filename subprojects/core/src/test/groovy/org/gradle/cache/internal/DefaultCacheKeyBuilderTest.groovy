@@ -22,8 +22,7 @@ import com.google.common.hash.HashFunction
 import com.google.common.hash.Hasher
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.classloader.ClassPathSnapshot
-import org.gradle.internal.classloader.ClassPathSnapshotter
+import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.DefaultClassPath
 import spock.lang.Specification
 
@@ -33,9 +32,9 @@ class DefaultCacheKeyBuilderTest extends Specification {
 
     def hashFunction = Mock(HashFunction)
     def fileHasher = Mock(FileHasher)
-    def snapshotter = Mock(ClassPathSnapshotter)
+    def classpathHasher = Mock(ClasspathHasher)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-    def subject = new DefaultCacheKeyBuilder(hashFunction, fileHasher, snapshotter, classLoaderHierarchyHasher)
+    def subject = new DefaultCacheKeyBuilder(hashFunction, fileHasher, classpathHasher, classLoaderHierarchyHasher)
 
     def 'given just a prefix, it should return it'() {
         given:
@@ -90,14 +89,12 @@ class DefaultCacheKeyBuilderTest extends Specification {
         def prefix = 'p'
         def classPath = DefaultClassPath.of([new File('f')])
         def classPathHash = 42G
-        def classPathSnapshot = Mock(ClassPathSnapshot)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + classPath)
 
         then:
-        1 * snapshotter.snapshot(classPath) >> classPathSnapshot
-        1 * classPathSnapshot.getStrongHash() >> hashCodeFrom(classPathHash)
+        1 * classpathHasher.hash(classPath) >> hashCodeFrom(classPathHash)
         0 * _
 
         and:
@@ -114,7 +111,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + classLoader)
 
         then:
-        1 * classLoaderHierarchyHasher.getLenientHash(classLoader) >> hashCodeFrom(classLoaderHierarchyHash)
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(classLoader) >> hashCodeFrom(classLoaderHierarchyHash)
         0 * _
 
         and:
@@ -125,6 +122,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def string = 's'
+        def stringHash = 42G
         def file = new File('f')
         def fileHash = 51G
         def hasher = Mock(Hasher)
@@ -135,8 +133,9 @@ class DefaultCacheKeyBuilderTest extends Specification {
 
         then:
         1 * hashFunction.newHasher() >> hasher
-        1 * hasher.putString(string, Charsets.UTF_8) >> hasher
+        1 * hashFunction.hashString(string, Charsets.UTF_8) >> hashCodeFrom(stringHash)
         1 * fileHasher.hash(file) >> hashCodeFrom(fileHash)
+        1 * hasher.putBytes(stringHash.toByteArray())
         1 * hasher.putBytes(fileHash.toByteArray())
         1 * hasher.hash() >> hashCodeFrom(combinedHash)
         0 * _

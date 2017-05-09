@@ -31,6 +31,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
@@ -80,7 +81,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private static void configureSourceSetDefaults(final Project project, final SourceDirectorySetFactory sourceDirectorySetFactory) {
-        final JavaBasePlugin javaPlugin = project.getPlugins().getPlugin(JavaBasePlugin.class);
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
@@ -104,22 +104,24 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     }
                 });
 
-                configureScalaCompile(project, javaPlugin, sourceSet);
+                configureScalaCompile(project, sourceSet);
             }
 
         });
     }
 
-    private static void configureScalaCompile(final Project project, JavaBasePlugin javaPlugin, final SourceSet sourceSet) {
+    private static void configureScalaCompile(final Project project, final SourceSet sourceSet) {
         String taskName = sourceSet.getCompileTaskName("scala");
         final ScalaCompile scalaCompile = project.getTasks().create(taskName, ScalaCompile.class);
         scalaCompile.dependsOn(sourceSet.getCompileJavaTaskName());
-        javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
+
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
+        SourceSetUtil.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, project);
         scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
         scalaCompile.setSource(scalaSourceSet.getScala());
         project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(taskName);
+
 
         // cannot use convention mapping because the resulting object won't be serializable
         // cannot compute at task execution time because we need association with source set

@@ -18,8 +18,12 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 
-
 abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+
+    def setup() {
+        executer.withWorkerDaemonsExpirationDisabled()
+    }
+
     def cleanup() {
         gradle.cancel()
     }
@@ -40,14 +44,14 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         buildFile << """
             ${applyAndConfigure}
 
-            import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
-            import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions
+            import org.gradle.workers.internal.WorkerDaemonFactory
+            import org.gradle.workers.internal.DaemonForkOptions
 
             tasks.withType(${compileTaskType}) {
                 doLast { task ->
                     def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
-                    def daemonFactory = services.get(CompilerDaemonManager)
-                    compilerDaemonIdentityFile << daemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
+                    def workerDaemonFactory = services.get(WorkerDaemonFactory)
+                    compilerDaemonIdentityFile << workerDaemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }
         """

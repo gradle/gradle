@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
@@ -54,7 +55,7 @@ public class ClientStatus {
         return deprecationMessage != null ? deprecationMessage.hashCode() : 0;
     }
 
-    public static class Serializer implements org.gradle.internal.serialize.Serializer<ClientStatus> {
+    public static class Serializer extends AbstractSerializer<ClientStatus> {
         public ClientStatus read(Decoder decoder) throws Exception {
             return new ClientStatus(decoder.readNullableString());
         }

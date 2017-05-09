@@ -74,8 +74,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
                 'LOGGER: executing :project1:logInfo',
                 'LOGGER: executing :project1:logLifecycle',
                 'LOGGER: executing :project1:nestedBuildLog',
-                'LOGGER: executing :project1:log',
-                ':nestedBuild:log'
+                'LOGGER: executing :project1:log'
         )
         info(
                 'An info log message.',
@@ -156,6 +155,11 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void quietLogging() {
         checkOutput(this.&run, logOutput.quiet)
+    }
+
+    @Test
+    public void warnLogging() {
+        checkOutput(this.&run, logOutput.warn)
     }
 
     @Test
@@ -366,8 +370,14 @@ class LogOutput {
             errorMessages: [errorMessages],
             allMessages: allOuts
     )
-    final LogLevel lifecycle = new LogLevel(
+    final LogLevel warn = new LogLevel(
             args: [],
+            infoMessages: [quietMessages, warningMessages],
+            errorMessages: [errorMessages],
+            allMessages: allOuts
+    )
+    final LogLevel lifecycle = new LogLevel(
+            args: ['-l'],
             infoMessages: [quietMessages, warningMessages, lifecycleMessages],
             errorMessages: [errorMessages],
             allMessages: allOuts

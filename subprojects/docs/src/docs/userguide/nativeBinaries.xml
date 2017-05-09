@@ -72,7 +72,7 @@
                 <td>Mac OS X</td><td>XCode</td><td>Uses the Clang tool chain bundled with XCode.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010/2012/2013.</td>
+                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010/2012/2013/2015.</td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cygwin 32</ulink></td><td>Windows XP and later.</td>

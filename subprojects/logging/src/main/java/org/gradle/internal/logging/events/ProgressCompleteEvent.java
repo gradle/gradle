@@ -21,11 +21,11 @@ import org.gradle.api.logging.LogLevel;
 public class ProgressCompleteEvent extends CategorisedOutputEvent {
     private final String status;
     private final String description;
-    private OperationIdentifier operationId;
+    private OperationIdentifier progressOperationId;
 
-    public ProgressCompleteEvent(OperationIdentifier operationId, long timestamp, String category, String description, String status) {
+    public ProgressCompleteEvent(OperationIdentifier progressOperationId, long timestamp, String category, String description, String status) {
         super(timestamp, category, LogLevel.LIFECYCLE);
-        this.operationId = operationId;
+        this.progressOperationId = progressOperationId;
         this.status = status;
         this.description = description;
     }
@@ -43,7 +43,7 @@ public class ProgressCompleteEvent extends CategorisedOutputEvent {
         return "ProgressComplete " + status;
     }
 
-    public OperationIdentifier getOperationId() {
-        return operationId;
+    public OperationIdentifier getProgressOperationId() {
+        return progressOperationId;
     }
 }

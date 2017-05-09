@@ -31,9 +31,9 @@ public class PropertiesLoadingSettingsProcessor implements SettingsProcessor {
 
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
-                                    ClassLoaderScope baseClassLoaderScope,
+                                    ClassLoaderScope buildRootClassLoaderScope,
                                     StartParameter startParameter) {
         propertiesLoader.loadProperties(settingsLocation.getSettingsDir());
-        return processor.process(gradle, settingsLocation, baseClassLoaderScope, startParameter);
+        return processor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
     }
 }

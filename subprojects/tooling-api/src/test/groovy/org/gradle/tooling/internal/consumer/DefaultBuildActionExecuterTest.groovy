@@ -23,6 +23,7 @@ import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
 
@@ -161,6 +162,42 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
 
         and:
         operation.fetchResult.end > instant.failureAvailable
+    }
+
+    def "can define tasks to be run"() {
+        ResultHandlerVersion1<GradleProject> adaptedHandler
+        ResultHandler<GradleProject> handler = Mock()
+        GradleProject result = Mock()
+
+        when:
+        executer.forTasks('a', 'b').run(handler)
+
+        then:
+        1 * asyncConnection.run(!null, !null) >> {args ->
+            ConsumerAction<GradleProject> action = args[0]
+            action.run(connection)
+            adaptedHandler = args[1]
+        }
+        1 * connection.run(action, _) >> { args ->
+            ConsumerOperationParameters params = args[1]
+            assert params.tasks == ['a', 'b']
+            return result
+        }
+
+        when:
+        executer.forTasks(Collections.singleton("a")).run(handler)
+
+        then:
+        1 * asyncConnection.run(!null, !null) >> {args ->
+            ConsumerAction<GradleProject> action = args[0]
+            action.run(connection)
+            adaptedHandler = args[1]
+        }
+        1 * connection.run(action, _) >> { args ->
+            ConsumerOperationParameters params = args[1]
+            assert params.tasks == ['a']
+            return result
+        }
     }
 
 }

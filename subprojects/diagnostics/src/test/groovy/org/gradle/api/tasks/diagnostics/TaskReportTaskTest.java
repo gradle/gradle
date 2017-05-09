@@ -126,9 +126,6 @@ public class TaskReportTaskTest {
             one(renderer).addTask(with(isTask(task4)));
             inSequence(sequence);
 
-            one(renderer).addChildTask(with(isTask(task3)));
-            inSequence(sequence);
-
             one(renderer).completeTasks();
             inSequence(sequence);
         }});

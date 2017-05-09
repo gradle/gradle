@@ -27,15 +27,21 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 class RepositoryHttpServer extends HttpServer implements RepositoryServer {
 
     private TestDirectoryProvider testDirectoryProvider
+    private String gradleVersion
 
     RepositoryHttpServer(TestDirectoryProvider testDirectoryProvider) {
+        this(testDirectoryProvider, GradleVersion.current().getVersion())
+    }
+
+    RepositoryHttpServer(TestDirectoryProvider testDirectoryProvider, String gradleVersion) {
         this.testDirectoryProvider = testDirectoryProvider
+        this.gradleVersion = gradleVersion
     }
 
     @Override
     protected void before() throws Throwable {
         start()
-        expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
+        expectUserAgent(matchesNameAndVersion("Gradle", gradleVersion))
     }
 
     private IvyFileRepository getBackingRepository(boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {

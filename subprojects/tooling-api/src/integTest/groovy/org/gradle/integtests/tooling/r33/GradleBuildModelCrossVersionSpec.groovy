@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=3.3")
-@TargetGradleVersion(">=1.8")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=3.3")
@@ -59,7 +58,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         model.includedBuilds.size() == 0
     }
-
 
     def "No included builds for single root project"() {
         singleProjectBuildInRootFolder("root")

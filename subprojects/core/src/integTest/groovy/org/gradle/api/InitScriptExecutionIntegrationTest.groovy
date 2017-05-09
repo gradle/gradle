@@ -151,6 +151,22 @@ rootProject {
         result.assertTasksExecuted(':worker', ':a:worker', ':b:worker', ':root')
     }
 
+    def "notices changes to init scripts that do not change the file length"() {
+        def initScript = file("init.gradle")
+        initScript.text = "println 'counter: __'"
+        int before = initScript.length()
+
+        expect:
+        (10..40).each {
+            initScript.text = "println 'counter: $it'"
+            assert initScript.length() == before
+
+            executer.withArguments("--init-script", initScript.absolutePath)
+            succeeds()
+            result.assertOutputContains("counter: $it")
+        }
+    }
+
     private def createExternalJar() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile('org/gradle/test/BuildClass.java') << '''

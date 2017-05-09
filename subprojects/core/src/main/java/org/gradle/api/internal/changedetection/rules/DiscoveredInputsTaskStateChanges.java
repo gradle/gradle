@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.Iterators;
+import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 
 import java.io.File;
 import java.util.Collection;
@@ -42,14 +44,16 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
     private final TaskExecution previous;
     private final TaskExecution current;
     private Collection<File> discoveredFiles = Collections.emptySet();
+    private final ResourceNormalizationHandler normalizationHandler;
 
-    public DiscoveredInputsTaskStateChanges(TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory,
-                                            TaskInternal task) {
+    public DiscoveredInputsTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory,
+                                            TaskInternal task, ResourceNormalizationHandler normalizationHandler) {
         this.taskName = task.getName();
         this.snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class);
         this.fileCollectionFactory = fileCollectionFactory;
         this.previous = previous;
         this.current = current;
+        this.normalizationHandler = normalizationHandler;
     }
 
     private FileCollectionSnapshot getPrevious() {
@@ -86,7 +90,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
 
     private FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE);
+            return snapshotter.snapshot(fileCollection, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE, normalizationHandler);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for task '%s' during up-to-date check.", taskName), e);
         }

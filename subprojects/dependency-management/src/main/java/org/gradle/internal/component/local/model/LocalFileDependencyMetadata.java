@@ -16,10 +16,21 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 
+/**
+ * Represents a local file dependency. Should be modelled as a regular dependency, but is treated separately as a migration step.
+ */
 public interface LocalFileDependencyMetadata {
+    /**
+     * Returns the id of the component that the file dependency references, if known. If not known an arbitrary identifier will be assigned.
+     */
+    @Nullable
+    ComponentIdentifier getComponentId();
+
     /**
      * Remove this.
      */

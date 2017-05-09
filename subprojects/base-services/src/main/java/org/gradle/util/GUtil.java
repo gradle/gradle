@@ -404,4 +404,26 @@ public class GUtil {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
+    /**
+     * Note that setting the January 1st 1980 (or even worse, "0", as time) won't work due
+     * to Java 8 doing some interesting time processing: It checks if this date is before January 1st 1980
+     * and if it is it starts setting some extra fields in the zip. Java 7 does not do that - but in the
+     * zip not the milliseconds are saved but values for each of the date fields - but no time zone. And
+     * 1980 is the first year which can be saved.
+     * If you use January 1st 1980 then it is treated as a special flag in Java 8.
+     * Moreover, only even seconds can be stored in the zip file. Java 8 uses the upper half of
+     * some other long to store the remaining millis while Java 7 doesn't do that. So make sure
+     * that your seconds are even.
+     * Moreover, parsing happens via `new Date(millis)` in {@link java.util.zip.ZipUtils}#javaToDosTime() so we
+     * must use default timezone and locale.
+     *
+     * The date is 1980 February 1st.
+     */
+    public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
+
+    /**
+     * Tar files are simpler.  We can just use "0" as a timestamp.
+     */
+    public static final long CONSTANT_TIME_FOR_TAR_ENTRIES = 0;
 }

@@ -66,7 +66,7 @@ public class PublishingPlugin implements Plugin<Project> {
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
 
         // TODO Registering an extension should register it with the model registry as well
-        project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+        project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
         Task publishLifecycleTask = project.getTasks().create(PUBLISH_LIFECYCLE_TASK_NAME);
         publishLifecycleTask.setDescription("Publishes all publications produced by this project.");

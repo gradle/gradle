@@ -19,9 +19,9 @@ package org.gradle.integtests.resource.s3.fixtures
 
 import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.RemoteMavenModule
 
-class MavenS3Module extends DelegatingMavenModule<MavenS3Module> implements MavenModule {
+class MavenS3Module extends DelegatingMavenModule<MavenS3Module> implements RemoteMavenModule {
     MavenFileModule backingModule
     S3Server server
     String bucket

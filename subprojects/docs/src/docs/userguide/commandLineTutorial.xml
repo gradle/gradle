@@ -162,16 +162,16 @@
             <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
                 <output args="-q tasks"/>
             </sample>
-            <para>By default, this report shows only those tasks which have been assigned to a task group. You can do this
-                by setting the <literal>group</literal> property for the task. You can also set the <literal>description</literal>
-                property, to provide a description to be included in the report.
+            <para>By default, this report shows only those tasks which have been assigned to a task group, so-called <emphasis>visible</emphasis>
+                tasks. You can do this by setting the <literal>group</literal> property for the task. You can also set the
+                <literal>description</literal> property, to provide a description to be included in the report.
             </para>
             <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Changing the content of the task report">
                 <sourcefile file="build.gradle" snippet="add-task-to-report"/>
             </sample>
             <para>You can obtain more information in the task listing using the <option>--all</option> option. With
-                this option, the task report lists all tasks in the project, grouped by main task, and the dependencies
-                for each task. Here is an example:
+                this option, the task report lists all tasks in the project, including tasks which have not been assigned to a task group,
+                so-called <emphasis>hidden</emphasis> tasks. Here is an example:
             </para>
             <sample id="taskListAllReport" dir="userguide/tutorial/projectReports" title="Obtaining more information about tasks">
                 <output args="-q tasks --all"/>
@@ -180,7 +180,7 @@
         <section id="sec:show_task_details">
             <title>Show task usage details</title>
             <para>Running <userinput>gradle help --task someTask</userinput> gives you detailed information about a specific task or multiple
-                tasks matching the given task name in your multiproject build.
+                tasks matching the given task name in your multi-project build.
                 Below is an example of this detailed information:
             </para>
             <sample id="taskHelp" dir="userguide/tutorial/projectReports" title="Obtaining detailed help for tasks">

@@ -19,7 +19,7 @@ import spock.lang.Specification
 
 class DefaultDomainObjectSetTest extends Specification {
     def "findAll() filters elements and retains iteration order"() {
-        def set = new DefaultDomainObjectSet<String>(String.class)
+        def set = new DefaultDomainObjectSet<String>(String)
         set.add("a")
         set.add("b")
         set.add("c")
@@ -27,5 +27,26 @@ class DefaultDomainObjectSetTest extends Specification {
 
         expect:
         set.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
+    }
+
+    def "Set semantics preserved if backing collection is a filtered composite set"() {
+        def c1 = new DefaultDomainObjectSet<String>(String)
+        def c2 = new DefaultDomainObjectSet<String>(String)
+        given:
+        def composite = CompositeDomainObjectSet.<String>create(String, c1, c2)
+        def set = new DefaultDomainObjectSet<String>(String, composite.withType(String))
+
+        when:
+        c1.add("a")
+        c1.add("b")
+        c1.add("c")
+        c1.add("d")
+        c2.add("a")
+        c2.add("c")
+
+        then:
+        set.size() == 4
+        set.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
+        set.iterator().collect { it } == ["a", "b", "c", "d"]
     }
 }

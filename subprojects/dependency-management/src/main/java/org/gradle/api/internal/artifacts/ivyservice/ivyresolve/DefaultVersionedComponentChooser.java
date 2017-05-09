@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -72,15 +73,16 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
-            MetadataProvider metadataProvider = new MetadataProvider(candidate);
+            MetadataProvider metadataProvider = createMetadataProvider(candidate);
 
             boolean versionMatches = versionMatches(requestedVersion, candidate, metadataProvider);
             if (!metadataProvider.isUsable()) {
                 applyTo(metadataProvider, result);
                 return;
             }
+            String version = candidate.getVersion().getSource();
             if (!versionMatches) {
-                result.notMatched(candidate.getVersion());
+                result.notMatched(version);
                 continue;
             }
 
@@ -96,7 +98,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 return;
             }
 
-            result.rejected(candidate.getVersion());
+            result.rejected(version);
             if (requestedVersion.matchesUniqueVersion()) {
                 // Only consider one candidate
                 break;
@@ -104,6 +106,10 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
 
         result.noMatchFound();
+    }
+
+    protected MetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
+        return new MetadataProvider(candidate);
     }
 
     private void applyTo(MetadataProvider provider, BuildableComponentSelectionResult result) {
@@ -126,10 +132,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
 
     private boolean versionMatches(VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
         if (selector.requiresMetadata()) {
-            if (!metadataProvider.resolve()) {
-                return false;
-            }
-            return selector.accept(metadataProvider.getComponentMetadata());
+            ComponentMetadata componentMetadata = metadataProvider.getComponentMetadata();
+            return componentMetadata != null && selector.accept(componentMetadata);
         } else {
             return selector.accept(component.getVersion());
         }

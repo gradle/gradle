@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.api.Action;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
@@ -47,5 +49,11 @@ public class JarClasspathSnapshot {
     public boolean isAnyClassDuplicated(JarArchive jarArchive) {
         JarSnapshot snapshot = getSnapshot(jarArchive);
         return isAnyClassDuplicated(snapshot.getClasses());
+    }
+
+    public void forEachSnapshot(Action<? super JarSnapshot> action) {
+        for (JarSnapshot jarSnapshot : jarSnapshots.values()) {
+            action.execute(jarSnapshot);
+        }
     }
 }

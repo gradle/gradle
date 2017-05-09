@@ -16,11 +16,16 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.api.Action;
-
-public interface BuildOperationWorker<T extends BuildOperation> extends Action<T> {
+/**
+ * A worker that can run build operations.
+ *
+ * Implementations must be thread-safe.
+ */
+public interface BuildOperationWorker<O extends BuildOperation> {
     /**
      * Returns a human consumable name for this tool.
      */
     String getDisplayName();
+
+    void execute(O buildOperation, BuildOperationContext context);
 }

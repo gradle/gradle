@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.logging.Logging;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class CompositeBuildSettingsLoader implements SettingsLoader {
+    private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(CompositeBuildSettingsLoader.class);
     private final SettingsLoader delegate;
     private final ServiceRegistry buildServices;
 
@@ -43,14 +45,20 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+        CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
+
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+        compositeContextBuilder.setRootBuild(settings);
 
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
             gradle.setIncludedBuilds(includedBuilds);
 
-            CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
-            compositeContextBuilder.addToCompositeContext(includedBuilds);
+            if (gradle.getStartParameter().isContinuous()) {
+                LOGGER.warn("[composite-build] Warning: continuous build doesn't detect changes in included builds.");
+            }
+
+            compositeContextBuilder.addIncludedBuilds(includedBuilds);
         }
 
         return settings;

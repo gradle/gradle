@@ -61,7 +61,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
     private def publishPlugin(String pluginId, Repository repository) {
         def pluginBuilder = new PluginBuilder(testDirectory.file(pluginId + repository.hashCode()))
-        def idSegments = Splitter.on('.').split(pluginId);
+        def idSegments = Splitter.on('.').split(pluginId)
         def coordinates = [idSegments.dropRight(1).join('.'), idSegments.last(), "1.0"].join(':')
 
         def message = "from ${idSegments.last()} fetched from ${repository.uri}/"
@@ -72,14 +72,16 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
     private def use(Repository... repositories) {
         settingsFile << """
-            pluginRepositories {
-                ${repositories.collect {
-                    if (it instanceof MavenFileRepository) {
-                        "maven { url '${it.uri}' }"
-                    } else {
-                        "ivy { url '${it.uri}' }"
-                    }
-                  }.join('\n')}
+            pluginManagement {
+                repositories {
+                    ${repositories.collect {
+                        if (it instanceof MavenFileRepository) {
+                            "maven { url '${it.uri}' }"
+                        } else {
+                            "ivy { url '${it.uri}' }"
+                        }
+                      }.join('\n')}
+                }
             }
         """
     }
@@ -200,33 +202,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
-    def "Prefers Plugin Repositories over buildscript ones."() {
-        given:
-        publishPlugins(MAVEN)
-        buildScript """
-          buildscript {
-              repositories {
-                  maven {
-                      url "${repoA.uri}"
-                  }
-              }
-              dependencies {
-                  classpath "org.example:pluginAB:1.0"
-              }
-          }
-          plugins {
-               id "$pluginAB" version "1.0"
-          }
-        """
-
-        when:
-        use(repoB)
-
-        then:
-        succeeds("pluginAB")
-        output.contains("fetched from $repoB.uri")
-    }
-
     @Requires(TestPrecondition.ONLINE)
     def "Can opt-in to plugin portal"() {
         given:
@@ -240,9 +215,11 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
         when:
         settingsFile << """
-            pluginRepositories {
-                maven {url '${repoA.uri}' }
-                gradlePluginPortal()
+            pluginManagement {
+                repositories {
+                    maven {url '${repoA.uri}' }
+                    gradlePluginPortal()
+                }
             }
         """
 
@@ -271,9 +248,11 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
         when:
         settingsFile << """
-            pluginRepositories {
-                maven {url '${repoA.uri}' }
-                gradlePluginPortal()
+            pluginManagement {
+                repositories {
+                    maven {url '${repoA.uri}' }
+                    gradlePluginPortal()
+                }
             }
         """
 

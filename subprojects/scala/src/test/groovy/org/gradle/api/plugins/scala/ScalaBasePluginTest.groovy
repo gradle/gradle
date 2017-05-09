@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
@@ -36,7 +37,7 @@ import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-public class ScalaBasePluginTest {
+class ScalaBasePluginTest {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private final Project project = TestUtil.create(temporaryFolder).rootProject()
@@ -77,11 +78,14 @@ public class ScalaBasePluginTest {
     @Test
     void addsCompileTaskForNewSourceSet() {
         project.sourceSets.create('custom')
+        SourceSet customSourceSet = project.sourceSets.custom
         def task = project.tasks['compileCustomScala']
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Scala source.'))
-        assertThat(task.classpath, equalTo(project.sourceSets.custom.compileClasspath))
-        assertThat(task.source as List, equalTo(project.sourceSets.custom.scala as List))
+        assertThat(task.classpath.files as List, equalTo([
+            customSourceSet.java.outputDir
+        ]))
+        assertThat(task.source as List, equalTo(customSourceSet.scala as List))
         assertThat(task, dependsOn('compileCustomJava'))
     }
 

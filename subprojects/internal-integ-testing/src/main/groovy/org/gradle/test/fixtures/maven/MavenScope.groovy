@@ -49,4 +49,9 @@ class MavenScope {
         }
         return dependency
     }
+
+    @Override
+    String toString() {
+        "$dependencies"
+    }
 }

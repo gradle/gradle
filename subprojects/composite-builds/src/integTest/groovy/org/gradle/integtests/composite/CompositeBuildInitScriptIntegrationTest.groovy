@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 /**
@@ -42,14 +41,12 @@ allprojects { project ->
         includedBuilds << buildB
     }
 
-    @NotYetImplemented // `--init-script` argument is not passed to included builds.
     def "passes init-script arg to included build"() {
         given:
         [buildA, buildB].each {
             it.buildFile << """
-    if (project.initProperty != "foo") {
-        throw new RuntimeException("init script property not passed to build")
-    }
+    assert gradle.startParameter.initScripts.size() == 1
+    assert project.initProperty == "foo"
 """
         }
 
@@ -65,9 +62,8 @@ allprojects { project ->
         given:
         [buildA, buildB].each {
             it.buildFile << """
-    if (project.initProperty != "foo") {
-        throw new RuntimeException("init script property not passed to build")
-    }
+    assert gradle.startParameter.initScripts.size() == 0
+    assert project.initProperty == "foo"
 """
         }
 

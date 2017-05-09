@@ -42,17 +42,19 @@
         <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='continuousBuild.xml'/>
         <xi:include href='compositeBuilds.xml'/>
-        <xi:include href='guiTutorial.xml'/>
         <xi:include href='buildEnvironment.xml'/>
         <xi:include href='troubleshooting.xml'/>
         <xi:include href='embedding.xml'/>
+        <!-- this is generated -->
+        <xi:include href='../../../build/asciidoc/userguide/buildCache.xml'/>
     </part>
     <part>
         <title>Writing Gradle build scripts</title>
         <xi:include href='buildScriptsTutorial.xml'/>
         <xi:include href='buildInitPlugin.xml'/>
         <xi:include href='writingBuildScripts.xml'/>
-        <xi:include href='tasks.xml'/>
+        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/tasks.xml'/>
         <xi:include href='workingWithFiles.xml'/>
         <xi:include href='ant.xml'/>
         <xi:include href='buildLifecycle.xml'/>
@@ -87,10 +89,10 @@
         <title>Building JVM projects</title>
         <xi:include href='javaTutorial.xml'/>
         <xi:include href='javaPlugin.xml'/>
+        <xi:include href='javaLibraryPlugin.xml'/>
         <xi:include href='webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
         <xi:include href='earPlugin.xml'/>
-        <xi:include href='jettyPlugin.xml'/>
         <xi:include href='applicationPlugin.xml'/>
         <xi:include href='javaLibraryDistributionPlugin.xml'/>
         <xi:include href='groovyTutorial.xml'/>

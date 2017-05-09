@@ -19,8 +19,18 @@ dependencies {
     smokeTestCompile libraries.spock
 }
 
+processSmokeTestResources {
+    from ("$rootDir/gradle") {
+        into "org/gradle/smoketests/cache-init-scripts"
+        include "overlappingTaskOutputsStatsInit.gradle"
+        include "taskCacheDetailedStatsInit.gradle"
+    }
+}
+
 tasks.create('smokeTest', SmokeTest) { SmokeTest task ->
-    testClassesDir = sourceSets.smokeTest.output.classesDir
+    group = "Verification"
+    description = "Runs Smoke tests"
+    testClassesDirs = sourceSets.smokeTest.output.classesDirs
     classpath = sourceSets.smokeTest.runtimeClasspath
 }
 

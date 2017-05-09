@@ -20,6 +20,7 @@ import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.manage.binding.InvalidManagedTypeException
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 
 class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInterface, SpecialNamedThingInterface> {
@@ -81,7 +82,8 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof InvalidManagedTypeException
-        e.cause.message == """Type $Invalid.name is not a valid managed type:
+        e.cause.message == """Type ${fullyQualifiedNameOf(Invalid)} is not a valid managed type:
 - Cannot be a parameterized type."""
     }
 }
+

@@ -455,7 +455,7 @@ This story introduces a new Gradle core plugin to allow a team to generate build
     - The meta-data is generated even if the user doesn't provide any input through the DSL. The file will just contain the build platform `id` and `version`.
     - `id` is derived of the project's `group` property. `version` is derived of the project's `version` property. Fail the task if these properties are not set.
     - The meta-data file will be written to `build/build-system/META-INF`.
-    - The name of of the meta-data file is `build-platform.json` and cannot be changed.
+    - The name of the meta-data file is `build-platform.json` and cannot be changed.
 
 ### Usage
 

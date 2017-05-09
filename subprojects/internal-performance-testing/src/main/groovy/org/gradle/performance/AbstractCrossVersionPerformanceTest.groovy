@@ -16,35 +16,57 @@
 
 package org.gradle.performance
 
-import org.gradle.integtests.fixtures.executer.ForkingUnderDevelopmentGradleDistribution
-import org.gradle.integtests.fixtures.executer.PerformanceTestBuildContext
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.performance.categories.GradleCorePerformanceTest
+import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.CrossVersionResultsStore
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
-@Category(GradleCorePerformanceTest)
+@Category(PerformanceRegressionTest)
+@CleanupTestDirectory
 class AbstractCrossVersionPerformanceTest extends Specification {
 
+    private static def resultStore = new CrossVersionResultsStore()
+
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
-    static def resultStore = new CrossVersionResultsStore()
+    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
-    final PerformanceTestBuildContext buildContext = new PerformanceTestBuildContext()
+    @Rule
+    RetryRule retry = new PerformanceTestRetryRule()
 
-    final CrossVersionPerformanceTestRunner runner = new CrossVersionPerformanceTestRunner(
-        new BuildExperimentRunner(new GradleSessionProvider(tmpDir, buildContext)), resultStore, new ReleasedVersionDistributions(buildContext), buildContext)
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
+    private CrossVersionPerformanceTestRunner runner
+
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
-        runner.workingDir = tmpDir.testDirectory
-        runner.current = new ForkingUnderDevelopmentGradleDistribution(buildContext)
+        runner = new CrossVersionPerformanceTestRunner(
+            new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
+            resultStore,
+            new ReleasedVersionDistributions(buildContext),
+            buildContext
+        )
+        runner.workingDir = temporaryFolder.testDirectory
+        runner.current = new UnderDevelopmentGradleDistribution(buildContext)
+        performanceTestIdProvider.testSpec = runner
+    }
+
+    CrossVersionPerformanceTestRunner getRunner() {
+        runner
     }
 
     static {

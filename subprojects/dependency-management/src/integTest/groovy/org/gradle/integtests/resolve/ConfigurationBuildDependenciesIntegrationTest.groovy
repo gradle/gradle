@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
@@ -70,7 +69,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run taskName
 
         then:
-        result.assertTasksExecuted(":lib", ":child:jar", ":child:lib", ":$taskName");
+        executed ":lib", ":child:jar", ":child:lib", ":$taskName"
 
         where:
         taskName               | _
@@ -115,7 +114,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run("useCompileConfiguration")
 
         then:
-        result.assertTasksExecuted(":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration")
+        executed ":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration"
 
         where:
         fluid << [true, false]
@@ -152,7 +151,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run("useCompileConfiguration")
 
         then:
-        result.assertTasksExecuted(":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration")
+        executed ":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration"
 
         where:
         fluid << [true, false]
@@ -173,6 +172,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         expect:
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause('broken')
+
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
@@ -196,6 +200,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         expect:
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause('broken')
+
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
@@ -204,7 +213,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @NotYetImplemented
     def "reports failure to find build dependencies of file dependency when using fluid dependencies"() {
         def module = mavenHttpRepo.module("test", "test", "1.0").publish()
         makeFluid(true)
@@ -226,6 +234,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         expect:
+        module.pom.expectGetBroken()
+
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not get resource '${module.pom.uri}'")
+
         module.pom.expectGetBroken()
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
@@ -272,7 +288,50 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run 'useCompileConfiguration'
 
         then:
-        result.assertTasksExecuted(":child:jar", ":useCompileConfiguration")
+        executed ":child:jar", ":useCompileConfiguration"
+    }
+
+    def "does not download artifacts when task dependencies are calculated for configuration that is used as a task input when using fluid dependencies"() {
+        def module = mavenHttpRepo.module("test", "test", "1.0").publish()
+        makeFluid(true)
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url '$mavenHttpRepo.uri' }
+                }
+            }
+            
+            dependencies {
+                compile project(':child')
+            }
+            project(':child') {
+                task jar { 
+                    outputs.files file('thing.jar')
+                }
+                artifacts {
+                    compile file: jar.outputs.files.singleFile, builtBy: jar
+                }
+                dependencies {
+                    compile 'test:test:1.0'
+                }                
+            }
+"""
+
+        when:
+        module.pom.expectGet()
+        executer.withArgument("--dry-run")
+        run 'useCompileConfiguration'
+
+        then:
+        server.resetExpectations()
+
+        when:
+        // Expect downloads when task executed
+        module.artifact.expectGet()
+        run 'useCompileConfiguration'
+
+        then:
+        executed ":child:jar", ":useCompileConfiguration"
     }
 
     void makeFluid(boolean fluid) {

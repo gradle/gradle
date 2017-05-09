@@ -86,6 +86,10 @@ class JULRedirectorIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        // We require the Gradle distribution here to enforce a forked executer
+        // By this we make this test work from the IDE since there are some problems with running it from
+        // there with the embedded runner with regards to having the version-info module in the test worker
+        executer.requireGradleDistribution()
         executer.expectDeprecationWarning()
         run("test")
 

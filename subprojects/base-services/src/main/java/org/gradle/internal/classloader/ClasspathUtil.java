@@ -18,27 +18,33 @@ package org.gradle.internal.classloader;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ClasspathUtil {
     public static void addUrl(URLClassLoader classLoader, Iterable<URL> classpathElements) {
         try {
             Set<URI> original = new HashSet<URI>();
             for (URL url : classLoader.getURLs()) {
-                original.add(url.toURI());
+                original.add(toURI(url));
             }
             JavaMethod<URLClassLoader, Object> method = JavaReflectionUtil.method(URLClassLoader.class, Object.class, "addURL", URL.class);
             for (URL classpathElement : classpathElements) {
-                if (original.add(classpathElement.toURI())) {
+                if (original.add(toURI(classpathElement))) {
                     method.invoke(classLoader, classpathElement);
                 }
             }
@@ -47,15 +53,21 @@ public class ClasspathUtil {
         }
     }
 
-    public static List<URL> getClasspath(ClassLoader classLoader) {
-        final List<URL> implementationClassPath = new ArrayList<URL>();
+    public static ClassPath getClasspath(ClassLoader classLoader) {
+        final List<File> implementationClassPath = new ArrayList<File>();
         new ClassLoaderVisitor() {
             @Override
             public void visitClassPath(URL[] classPath) {
-                implementationClassPath.addAll(Arrays.asList(classPath));
+                for (URL url : classPath) {
+                    try {
+                        implementationClassPath.add(new File(toURI(url)));
+                    } catch (URISyntaxException e) {
+                        throw new UncheckedException(e);
+                    }
+                }
             }
         }.visit(classLoader);
-        return implementationClassPath;
+        return DefaultClassPath.of(implementationClassPath);
     }
 
     public static File getClasspathForClass(Class<?> targetClass) {
@@ -63,15 +75,17 @@ public class ClasspathUtil {
         try {
             CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
             if (codeSource != null && codeSource.getLocation() != null) {
-                location = codeSource.getLocation().toURI();
+                location = toURI(codeSource.getLocation());
                 if (location.getScheme().equals("file")) {
                     return new File(location);
                 }
             }
-            String resourceName = targetClass.getName().replace('.', '/') + ".class";
-            URL resource = targetClass.getClassLoader().getResource(resourceName);
-            if (resource != null) {
-                return getClasspathForResource(resource, resourceName);
+            if (targetClass.getClassLoader() != null) {
+                String resourceName = targetClass.getName().replace('.', '/') + ".class";
+                URL resource = targetClass.getClassLoader().getResource(resourceName);
+                if (resource != null) {
+                    return getClasspathForResource(resource, resourceName);
+                }
             }
             throw new GradleException(String.format("Cannot determine classpath for class %s.", targetClass.getName()));
         } catch (URISyntaxException e) {
@@ -90,7 +104,7 @@ public class ClasspathUtil {
     public static File getClasspathForResource(URL resource, String name) {
         URI location;
         try {
-            location = resource.toURI();
+            location = toURI(resource);
             String path = location.getPath();
             if (location.getScheme().equals("file")) {
                 assert path.endsWith("/" + name);
@@ -110,5 +124,20 @@ public class ClasspathUtil {
             throw UncheckedException.throwAsUncheckedException(e);
         }
         throw new GradleException(String.format("Cannot determine classpath for resource '%s' from location '%s'.", name, location));
+    }
+
+    private static URI toURI(URL url) throws URISyntaxException {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            try {
+                return new URL(url.getProtocol(),
+                               url.getHost(),
+                               url.getPort(),
+                               url.getFile().replace(" ", "%20")).toURI();
+            } catch (MalformedURLException e1) {
+                throw new UncheckedException(e1);
+            }
+        }
     }
 }

@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -186,6 +187,15 @@ public class Wrapper extends DefaultTask {
 
     /**
      * The file to write the wrapper script to.
+     *
+     * @since 4.0
+     */
+    public void setScriptFile(File scriptFile) {
+        this.scriptFile = scriptFile;
+    }
+
+    /**
+     * The file to write the wrapper script to.
      */
     public void setScriptFile(Object scriptFile) {
         this.scriptFile = scriptFile;
@@ -206,6 +216,15 @@ public class Wrapper extends DefaultTask {
     @OutputFile
     public File getJarFile() {
         return getProject().file(jarFile);
+    }
+
+    /**
+     * The file to write the wrapper jar file to.
+     *
+     * @since 4.0
+     */
+    public void setJarFile(File jarFile) {
+        this.jarFile = jarFile;
     }
 
     /**
@@ -311,7 +330,7 @@ public class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersion != null) {
-            return locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase()).toString();
+            return locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
         } else {
             return null;
         }

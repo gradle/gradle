@@ -113,7 +113,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         then:
         file('generated-ivy.xml').assertIsFile()
         IvyDescriptor ivy = new IvyDescriptor(file('generated-ivy.xml'))
-        ivy.expectArtifact(moduleName).hasAttributes("jar", "jar", ["runtime"])
+        ivy.expectArtifact(moduleName).hasAttributes("jar", "jar", ["compile"])
         module.ivyFile.assertDoesNotExist()
     }
 

@@ -18,24 +18,31 @@ package org.gradle.internal.logging;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.api.logging.configuration.ShowStacktrace;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class LoggingCommandLineConverter extends AbstractCommandLineConverter<LoggingConfiguration> {
     public static final String DEBUG = "d";
     public static final String DEBUG_LONG = "debug";
+    public static final String WARN = "w";
+    public static final String WARN_LONG = "warn";
     public static final String INFO = "i";
     public static final String INFO_LONG = "info";
+    public static final String LIFECYCLE = "l";
+    public static final String LIFECYCLE_LONG = "lifecycle";
     public static final String QUIET = "q";
     public static final String QUIET_LONG = "quiet";
     public static final String CONSOLE = "console";
@@ -48,6 +55,8 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
 
     public LoggingCommandLineConverter() {
         logLevelMap.put(QUIET, LogLevel.QUIET);
+        logLevelMap.put(LIFECYCLE, LogLevel.LIFECYCLE);
+        logLevelMap.put(WARN, LogLevel.WARN);
         logLevelMap.put(INFO, LogLevel.INFO);
         logLevelMap.put(DEBUG, LogLevel.DEBUG);
         showStacktraceMap.put(FULL_STACKTRACE, ShowStacktrace.ALWAYS_FULL);
@@ -85,7 +94,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.option(DEBUG, DEBUG_LONG).hasDescription("Log in debug mode (includes normal stacktrace).");
         parser.option(QUIET, QUIET_LONG).hasDescription("Log errors only.");
         parser.option(INFO, INFO_LONG).hasDescription("Set log level to info.");
-        parser.allowOneOf(DEBUG, QUIET, INFO);
+        parser.option(LIFECYCLE, LIFECYCLE_LONG).hasDescription("Set log level to lifecycle.");
+        parser.option(WARN, WARN_LONG).hasDescription("Set log level to warn.");
+        parser.allowOneOf(DEBUG, QUIET, INFO, LIFECYCLE, WARN);
 
         parser.option(CONSOLE).hasArgument().hasDescription("Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'.");
 
@@ -130,7 +141,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
      * @return a collection of available log levels
      */
     public Set<LogLevel> getLogLevels() {
-        return new HashSet<LogLevel>(Arrays.asList(LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET));
+        return new HashSet<LogLevel>(Arrays.asList(LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET, LogLevel.WARN));
     }
 
     /**

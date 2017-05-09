@@ -1,9 +1,0 @@
-subprojects {
-    apply plugin: 'java'
-}
-
-project(':app') {
-    dependencies {
-        compile project(':lib')
-    }
-}

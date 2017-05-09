@@ -20,8 +20,9 @@ import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -79,10 +80,9 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
-        for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
-            NormalizedFileSnapshot normalizedSnapshot = entry.getValue();
-            normalizedSnapshot.appendToCacheKey(builder);
+    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+        for (NormalizedFileSnapshot normalizedSnapshot : snapshots) {
+            normalizedSnapshot.appendToHasher(hasher);
         }
     }
 

@@ -16,7 +16,8 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import spock.lang.Specification
-public class ArtifactFileTest extends Specification {
+
+class ArtifactFileTest extends Specification {
     final String module = '1.2'
 
     def "determines name and extension from file name"() {
@@ -33,7 +34,7 @@ public class ArtifactFileTest extends Specification {
         "some-file.zip"     | "some-file"       | "zip"
         "some-file.zip.zip" | "some-file.zip"   | "zip"
         ".zip"              | ""                | "zip"
-        "some-file"         | "some-file"       | null
+        "some-file"         | "some-file"       | ""
     }
 
     def "removes module version from file name"() {
@@ -49,11 +50,11 @@ public class ArtifactFileTest extends Specification {
         inputFileName            | name                 | extension
         "some-file-1.2.zip"      | "some-file"          | "zip"
         "some-file-1.2-1.2.zip"  | "some-file-1.2"      | "zip"
-        "some-file-1.2"          | "some-file"          | null
+        "some-file-1.2"          | "some-file"          | ""
         "some-file-1.22.zip"     | "some-file-1.22"     | "zip"
         "some-file-1.22.zip.zip" | "some-file-1.22.zip" | "zip"
     }
-    
+
     def "determines classifier from file name"() {
         when:
         def artifactFile = new ArtifactFile(new File(inputFileName), module)
@@ -68,7 +69,7 @@ public class ArtifactFileTest extends Specification {
         "some-file-1.2-classifier.jar"     | "some-file"                | "classifier" | "jar"
         "some-file-1.2-classifier-1.2.jar" | "some-file-1.2-classifier" | null         | "jar"
         "-1.2-classifier.jar"              | ""                         | "classifier" | "jar"
-        "some-file-1.2-classifier"         | "some-file"                | "classifier" | null
+        "some-file-1.2-classifier"         | "some-file"                | "classifier" | ""
         "some-file-1.2-.jar"               | "some-file"                | null         | "jar"
     }
 }

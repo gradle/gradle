@@ -28,7 +28,7 @@ class CopySpecBackedCopyActionProcessingStreamTest extends Specification {
     CopyActionProcessingStream copyActionProcessingStream
 
     def setup() {
-        copyActionProcessingStream = new CopySpecBackedCopyActionProcessingStream(copySpecInternal, instantiator, fileSystem)
+        copyActionProcessingStream = new CopySpecBackedCopyActionProcessingStream(copySpecInternal, instantiator, fileSystem, false)
     }
 
     def "walks spec"() {

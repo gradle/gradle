@@ -19,6 +19,8 @@
 package org.gradle.api.internal.notations
 
 import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
@@ -27,8 +29,12 @@ import spock.lang.Subject
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
 class ModuleIdentifierNotationConverterTest extends Specification {
-
-    @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentifierNotationConverter()).toComposite()
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
+        module(_, _) >> { args ->
+            DefaultModuleIdentifier.newId(*args)
+        }
+    }
+    @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory)).toComposite()
 
     def "parses module identifer notation"() {
         expect:

@@ -17,13 +17,12 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import groovy.util.CharsetToolkit;
-import org.apache.commons.io.IOUtils;
+import org.gradle.api.GradleException;
 
 import java.io.File;
 import java.io.Writer;
@@ -51,19 +50,19 @@ public class SimpleTemplateOperation implements TemplateOperation {
 
     @Override
     public void generate() {
-        target.getParentFile().mkdirs();
-        SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
         try {
+            target.getParentFile().mkdirs();
+            SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
             String templateText = Resources.asCharSource(templateURL, CharsetToolkit.getDefaultSystemCharset()).read();
             Template template = templateEngine.createTemplate(templateText);
             Writer writer = Files.asCharSink(target, Charsets.UTF_8).openStream();
             try {
                 template.make(bindings).writeTo(writer);
             } finally {
-                IOUtils.closeQuietly(writer);
+                writer.close();
             }
         } catch (Exception ex) {
-            throw Throwables.propagate(ex);
+            throw new GradleException("Could not generate file " + target + ".", ex);
         }
     }
 }

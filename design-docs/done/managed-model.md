@@ -24,7 +24,7 @@ This story makes the following possible…
     }
 
 1. No implementation of `Person` is provided
-2. A `@Model` method returning `void` indicates the the first arg should be an “empty” instance of the model type and is the thing to be created (all other args are inputs to the rule)
+2. A `@Model` method returning `void` indicates the first arg should be an “empty” instance of the model type and is the thing to be created (all other args are inputs to the rule)
 3. Only support for `String` properties is required at this point - it is an error to have a property of any other type
 4. Properties conform to the JavaBean convention - it is an error to have a method that doesn't conform to this, or a non read & write property
 4. `@Managed` types must be interfaces and cannot extend other interfaces

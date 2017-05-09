@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.gradle.testkit.runner
 
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
+import org.gradle.testkit.runner.fixtures.WithNoSourceTaskOutcome
 
 import static org.gradle.testkit.runner.TaskOutcome.*
-
 /**
  * Tests more intricate aspects of the BuildResult object
  */
@@ -50,6 +50,27 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
         result.taskPaths(FROM_CACHE).empty
         result.taskPaths(FAILED).empty
     }
+
+    @WithNoSourceTaskOutcome
+    def "executed tasks with no source are marked with NO-SOURCE"() {
+        given:
+        buildFile << """
+           task empty {
+                inputs.files(project.files()).skipWhenEmpty()
+                doLast{}
+           }
+        """
+
+        when:
+        def result = runner('empty')
+            .build()
+
+        then:
+        result.tasks.collect { it.path } == [':empty']
+        result.taskPaths(SUCCESS) == []
+        result.taskPaths(NO_SOURCE) == [':empty']
+    }
+
 
     def "executed buildSrc tasks are not part of tasks in result object"() {
         given:

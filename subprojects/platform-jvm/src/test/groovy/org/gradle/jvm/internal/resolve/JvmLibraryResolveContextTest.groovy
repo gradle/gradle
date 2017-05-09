@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.internal.resolve
 
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -24,10 +25,12 @@ class JvmLibraryResolveContextTest extends Specification {
     private final static String COMPONENT_NAME = 'lib'
     private final static String VARIANT = 'api'
 
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
+
     @Unroll
     def "context name for project #path and library #library is #contextName"() {
         given:
-        def id = DefaultLibraryBinaryIdentifier.of(path, COMPONENT_NAME, VARIANT)
+        def id = new DefaultLibraryBinaryIdentifier(path, COMPONENT_NAME, VARIANT)
 
         when:
         def context = resolveContext(id, usage)
@@ -43,7 +46,7 @@ class JvmLibraryResolveContextTest extends Specification {
     }
 
     private JvmLibraryResolveContext resolveContext(DefaultLibraryBinaryIdentifier id, UsageKind usage) {
-        new JvmLibraryResolveContext(id, Mock(VariantsMetaData), Collections.emptyList(), usage, 'test source set')
+        new JvmLibraryResolveContext(id, Mock(VariantsMetaData), Collections.emptyList(), usage, 'test source set', moduleIdentifierFactory)
     }
 
 }

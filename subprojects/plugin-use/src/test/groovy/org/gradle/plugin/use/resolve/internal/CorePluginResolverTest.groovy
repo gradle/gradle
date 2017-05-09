@@ -17,14 +17,15 @@
 package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.Plugin
+import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.internal.PluginId
-import org.gradle.plugin.use.internal.DefaultPluginRequest
-import org.gradle.plugin.use.internal.InvalidPluginRequestException
-import org.gradle.plugin.use.internal.PluginRequest
+import org.gradle.plugin.use.internal.DefaultPluginId
+import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.InvalidPluginRequestException
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import spock.lang.Specification
 
 class CorePluginResolverTest extends Specification {
@@ -41,7 +42,7 @@ class CorePluginResolverTest extends Specification {
 
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
-    PluginRequest request(String id, String version = null) {
+    PluginRequestInternal request(String id, String version = null) {
         new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
     }
 
@@ -58,7 +59,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("foo"), result)
 
         then:
-        1 * pluginRegistry.lookup(PluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
+        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
         1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.plugin.asClass() == MyPlugin })
     }
 
@@ -67,7 +68,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("org.gradle.foo"), result)
 
         then:
-        1 * pluginRegistry.lookup(PluginId.of("org.gradle.foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
+        1 * pluginRegistry.lookup(DefaultPluginId.of("org.gradle.foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
         1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.plugin.asClass() == MyPlugin })
     }
 
@@ -76,7 +77,18 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("foo", "1.0"), result)
 
         then:
-        1 * pluginRegistry.lookup(PluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
+        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
+
+        and:
+        thrown InvalidPluginRequestException
+    }
+
+    def "cannot have custom artifact"() {
+        when:
+        resolver.resolve(new DefaultPluginRequest(DefaultPluginId.of("foo"), null, true, 1, "test", Mock(ModuleVersionSelector)), result)
+
+        then:
+        1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }
 
         and:
         thrown InvalidPluginRequestException
@@ -87,7 +99,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("org.gradle.foo", "1.0"), result)
 
         then:
-        1 * pluginRegistry.lookup(PluginId.of("org.gradle.foo")) >> null
+        1 * pluginRegistry.lookup(DefaultPluginId.of("org.gradle.foo")) >> null
         1 * result.notFound(resolver.getDescription(), { it.contains("not a core plugin") })
     }
 

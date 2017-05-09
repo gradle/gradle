@@ -17,10 +17,12 @@ package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
@@ -54,11 +56,48 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
             javadoc.options.header = "<!-- Hey Joe! -->"
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        writeSourceFile()
 
         when: run("javadoc", "-i")
         then:
         file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
+    }
+
+    @Unroll
+    @Issue("gradle/gradle#1090")
+    def "can use single quote character in #option"() {
+        buildFile << """
+            apply plugin: 'java'
+            javadoc.options.$option = "'some text'"
+        """
+
+        file('src/main/java/Foo.java') << 'public class Foo {}'
+
+        when:
+        succeeds 'javadoc'
+
+        then:
+        file('build/docs/javadoc/Foo.html').text.contains("'some text'")
+
+        where:
+        option << ['header', 'footer']
+    }
+
+    def "can configure options with an Action"() {
+        given:
+        buildFile << '''
+            apply plugin: "java"
+            javadoc.options({ MinimalJavadocOptions options ->
+                options.header = 'myHeader'
+            } as Action<MinimalJavadocOptions>)
+        '''.stripIndent()
+        writeSourceFile()
+
+        when:
+        run 'javadoc'
+
+        then:
+        file('build/docs/javadoc/Foo.html').text.contains('myHeader')
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -72,7 +111,7 @@ Joe! -->
             \"\"\"
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        writeSourceFile()
 
         when: run("javadoc", "-i")
         then:
@@ -89,12 +128,158 @@ Joe!""")
             }
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        writeSourceFile()
 
         when:
         run("javadoc")
 
         then:
         file("build/javadoc/Foo.html").exists()
+    }
+
+    def "changing standard doclet options makes task out-of-date"() {
+        buildFile << """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    windowTitle = "Window title"
+                }
+            }
+        """
+
+        writeSourceFile()
+
+        when:
+        run "javadoc"
+        then:
+        nonSkippedTasks == [":javadoc"]
+
+        when:
+        run "javadoc"
+        then:
+        skippedTasks as List == [":javadoc"]
+
+        when:
+        buildFile.text = """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    windowTitle = "Window title changed"
+                }
+            }
+        """
+        run "javadoc"
+
+        then:
+        nonSkippedTasks == [":javadoc"]
+    }
+
+    def "ensure javadoc task does not change its inputs"() {
+        executer.withArgument("-Dorg.gradle.tasks.verifyinputs=true")
+        buildFile << """
+            apply plugin: 'java'
+        """
+        writeSourceFile()
+        expect:
+        succeeds("javadoc")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1456")
+    def "can use custom JavadocOptionFileOption type"() {
+        buildFile << """
+            apply plugin: 'java'
+            import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
+            
+            class CustomJavadocOptionFileOption implements JavadocOptionFileOption<String> {
+                private String value = "foo"
+                
+                public String getValue() {
+                    return value
+                }
+
+                public void setValue(String value) {
+                    this.value = value
+                }
+
+                public String getOption() {
+                    return "exclude"
+                }
+
+                public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
+                    writerContext.writeOptionHeader(getOption())
+                    writerContext.writeValue(value)
+                    writerContext.newLine()
+                }
+            }
+            
+            javadoc {
+                options {
+                    addOption(new CustomJavadocOptionFileOption())
+                }
+            }
+        """
+        writeSourceFile()
+        expect:
+        succeeds("javadoc")
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-exclude 'foo'"))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1484")
+    def "can use various multi-value options"() {
+        buildFile << """
+            apply plugin: 'java'
+            
+            javadoc {
+                options {
+                    addMultilineStringsOption("addMultilineStringsOption").setValue([
+                        "a",
+                        "b",
+                        "c"
+                    ])
+                    addStringsOption("addStringsOption", " ").setValue([
+                        "a",
+                        "b",
+                        "c"
+                    ])
+                    addMultilineMultiValueOption("addMultilineMultiValueOption").setValue([
+                        [ "a" ],
+                        [ "b", "c" ]
+                    ])
+                }
+            }
+        """
+        writeSourceFile()
+        expect:
+        executer.expectDeprecationWarning() // Error output triggers are "deprecated" warning check
+        fails("javadoc") // we're using unsupported options to verify that we do the right thing
+
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineStringsOption 'a'
+-addMultilineStringsOption 'b'
+-addMultilineStringsOption 'c'"""))
+
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
+
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
+'a' 
+-addMultilineMultiValueOption 
+'b' 'c' """))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1502")
+    def "can pass Jflags to javadoc"() {
+        buildFile << """
+            apply plugin: 'java'
+            javadoc.options.JFlags = ["-Dpublic.api=com.sample.tools.VisibilityPublic"]
+        """
+        writeSourceFile()
+        expect:
+        succeeds("javadoc", "--info")
+        result.assertOutputContains("-J-Dpublic.api=com.sample.tools.VisibilityPublic")
+    }
+
+    private TestFile writeSourceFile() {
+        file("src/main/java/Foo.java") << "public class Foo {}"
     }
 }

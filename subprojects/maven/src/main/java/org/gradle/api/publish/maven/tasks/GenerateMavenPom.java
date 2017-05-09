@@ -85,6 +85,16 @@ public class GenerateMavenPom extends DefaultTask {
     /**
      * Sets the destination the descriptor will be written to.
      *
+     * @param destination The file the descriptor will be written to.
+     * @since 4.0
+     */
+    public void setDestination(File destination) {
+        this.destination = destination;
+    }
+
+    /**
+     * Sets the destination the descriptor will be written to.
+     *
      * The value is resolved with {@link org.gradle.api.Project#file(Object)}
      *
      * @param destination The file the descriptor will be written to.
@@ -100,6 +110,9 @@ public class GenerateMavenPom extends DefaultTask {
         MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(pomInternal.getProjectIdentity(), getVersionRangeMapper());
         pomGenerator.setPackaging(pomInternal.getPackaging());
 
+        for (MavenDependencyInternal runtimeDependency : pomInternal.getApiDependencies()) {
+            pomGenerator.addApiDependency(runtimeDependency);
+        }
         for (MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {
             pomGenerator.addRuntimeDependency(runtimeDependency);
         }

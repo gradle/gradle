@@ -16,14 +16,14 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.Iterators;
-import org.apache.commons.collections.collection.CompositeCollection;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +33,7 @@ import java.util.Set;
  *
  * @param <T> The type of domain objects in the component collections of this collection.
  */
-public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
+public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements WithEstimatedSize {
 
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
@@ -41,7 +41,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
         //noinspection unchecked
-        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new CompositeCollection());
+        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection());
         CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
@@ -57,7 +57,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public class ItemIsUniqueInCompositeSpec implements Spec<T> {
         public boolean isSatisfiedBy(T element) {
             int matches = 0;
-            for (Object collection : getStore().getCollections()) {
+            for (Object collection : getStore().store) {
                 if (((Collection) collection).contains(element)) {
                     if (++matches > 1) {
                         return false;
@@ -76,8 +76,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     }
 
     @SuppressWarnings("unchecked")
-    protected CompositeCollection getStore() {
-        return (CompositeCollection) this.backingSet.getStore();
+    protected DomainObjectCompositeCollection getStore() {
+        return (DomainObjectCompositeCollection) this.backingSet.getStore();
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
@@ -89,7 +89,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     }
 
     public void addCollection(DomainObjectCollection<? extends T> collection) {
-        if (!getStore().getCollections().contains(collection)) {
+        if (!getStore().containsCollection(collection)) {
             getStore().addComposited(collection);
             collection.all(backingSet.getEventRegister().getAddAction());
             collection.whenObjectRemoved(backingSet.getEventRegister().getRemoveAction());
@@ -107,20 +107,32 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     @SuppressWarnings({"NullableProblems", "unchecked"})
     @Override
     public Iterator<T> iterator() {
-        CompositeCollection store = getStore();
+        DomainObjectCompositeCollection store = getStore();
         if (store.isEmpty()) {
             return Iterators.emptyIterator();
         }
-        return new SetIterator();
+        return SetIterator.of(store);
+
     }
 
     @SuppressWarnings("unchecked")
+    /**
+     * This method is expensive. Avoid calling it if possible. If all you need is a rough
+     * estimate, call {@link #estimatedSize()} instead.
+     */
     public int size() {
-        CompositeCollection store = getStore();
+        DomainObjectCompositeCollection store = getStore();
         if (store.isEmpty()) {
             return 0;
         }
-        return new HashSet<T>(store).size();
+        Set<T> tmp = Sets.newHashSetWithExpectedSize(estimatedSize());
+        tmp.addAll(store);
+        return tmp.size();
+    }
+
+    @Override
+    public int estimatedSize() {
+        return getStore().estimatedSize();
     }
 
     public void all(Action<? super T> action) {
@@ -132,53 +144,132 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
     }
 
-    private class SetIterator implements Iterator<T> {
-        private final Set<T> visited = new HashSet<T>(64);
-        private final Iterator<T> iterator;
+    private final static class DomainObjectCompositeCollection<T> implements Collection<T>, WithEstimatedSize {
 
-        private T next;
+        private final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
 
-        @SuppressWarnings("unchecked")
-        public SetIterator() {
-            Collection<Collection<T>> collections = getStore().getCollections();
-            if (collections instanceof List && collections.size()==1) {
-                // shortcut Apache Commons iterator() which creates a chaining iterator even if there's
-                // only one underlying collection
-                iterator = (((List<Collection<T>>) collections).get(0)).iterator();
-            } else {
-                iterator = getStore().iterator();
-            }
-            fetchNext();
-        }
-
-        private void fetchNext() {
-            while (iterator.hasNext()) {
-                next = iterator.next();
-                if (!visited.contains(next)) {
-                    visited.add(next);
-                    return;
+        public boolean containsCollection(DomainObjectCollection<? extends T> collection) {
+            for (DomainObjectCollection<? extends T> ts : store) {
+                if (ts == collection) {
+                    return true;
                 }
             }
-            next = null;
+            return false;
         }
 
         @Override
-        public boolean hasNext() {
-            return next != null;
+        public int size() {
+            int size = 0;
+            for (DomainObjectCollection<? extends T> ts : store) {
+                size += ts.size();
+            }
+            return size;
         }
 
         @Override
-        public T next() {
-            try {
-                return next;
-            } finally {
-                fetchNext();
+        public boolean isEmpty() {
+            for (DomainObjectCollection<? extends T> ts : store) {
+                if (!ts.isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            for (DomainObjectCollection<? extends T> ts : store) {
+                if (ts.contains(o)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Iterator<T> iterator() {
+            if (store.isEmpty()) {
+                return Iterators.emptyIterator();
+            }
+            if (store.size() == 1) {
+                return (Iterator<T>) store.get(0).iterator();
+            }
+            Iterator[] iterators = new Iterator[store.size()];
+            int i=0;
+            for (DomainObjectCollection<? extends T> ts : store) {
+                iterators[i++] = ts.iterator();
+            }
+            return Iterators.<T>concat(iterators);
+        }
+
+        @Override
+        public Object[] toArray() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <V> V[] toArray(V[] a) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean add(T t) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends T> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        public void addComposited(DomainObjectCollection<? extends T> collection) {
+            this.store.add(collection);
+        }
+
+        public void removeComposited(DomainObjectCollection<? extends T> collection) {
+            Iterator<DomainObjectCollection<? extends T>> iterator = store.iterator();
+            while (iterator.hasNext()) {
+                DomainObjectCollection<? extends T> next = iterator.next();
+                if (next == collection) {
+                    iterator.remove();
+                    break;
+                }
             }
         }
 
         @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
+        public int estimatedSize() {
+            int size = 0;
+            for (DomainObjectCollection<? extends T> ts : store) {
+                size += Estimates.estimateSizeOf(ts);
+            }
+            return size;
         }
     }
 }

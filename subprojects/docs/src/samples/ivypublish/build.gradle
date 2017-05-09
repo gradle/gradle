@@ -48,7 +48,10 @@ uploadArchives {
         def ns = new groovy.xml.Namespace("http://ant.apache.org/ivy/maven", 'm')
         def root = new XmlParser().parse(new File(repoDir, 'ivy.xml'))
         assert root.publications.artifact.find { it.@name == 'ivypublishSource' }.attribute(ns.classifier) == 'src'
-        assert (root.configurations.conf.collect { it.@name } as Set) == ['archives', 'compile', 'default', 'runtime', 'testCompile', 'testRuntime', 'compileOnly', 'testCompileOnly', 'compileClasspath', 'testCompileClasspath'] as Set
+        assert (root.configurations.conf.collect { it.@name } as Set) == ['archives', 'apiElements', 'compile', 'compileClasspath', 'compileOnly', 'default',
+                                                                          'implementation', 'runtime', 'runtimeClasspath', 'runtimeElements',
+                                                                          'runtimeOnly', 'testCompile', 'testCompileClasspath', 'testCompileOnly',
+                                                                          'testImplementation', 'testRuntime', 'testRuntimeClasspath', 'testRuntimeOnly'] as Set
         assert root.dependencies.dependency.find { it.@org == 'junit' }.attributes() == [org: 'junit', name: 'junit', rev: '4.12', conf: 'compile->default']
         assert root.dependencies.dependency.find { it.@org == 'ivypublish' }.attributes() == [org: 'ivypublish', name: 'subproject', rev: 'unspecified',
                 conf: 'compile->default']

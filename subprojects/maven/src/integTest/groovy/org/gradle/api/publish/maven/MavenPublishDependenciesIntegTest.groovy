@@ -57,8 +57,8 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
         then:
         repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.runtime.expectDependency('group:projectA:RELEASE')
-        repoModule.parsedPom.scopes.runtime.expectDependency('group:projectB:LATEST')
+        repoModule.parsedPom.scopes.compile.expectDependency('group:projectA:RELEASE')
+        repoModule.parsedPom.scopes.compile.expectDependency('group:projectB:LATEST')
     }
 
     @Issue("GRADLE-3233")
@@ -97,8 +97,8 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
         then:
         repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:")
-        def dependency = repoModule.parsedPom.scopes.runtime.dependencies.get("group:projectA:")
+        repoModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:")
+        def dependency = repoModule.parsedPom.scopes.compile.dependencies.get("group:projectA:")
         dependency.groupId == "group"
         dependency.artifactId == "projectA"
         dependency.version == ""
@@ -108,4 +108,67 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         "empty"     | "'group:projectA'"
         "null"      | "group:'group', name:'projectA', version:null"
     }
+
+    @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
+    void "maps dependencies in the correct Maven scope"() {
+        given:
+        def repoModule = mavenRepo.module('group', 'root', '1.0')
+
+        file("settings.gradle") << '''
+            rootProject.name = 'root' 
+            include "b"
+        '''
+        buildFile << """
+            apply plugin: "$plugin"
+            apply plugin: "maven-publish"
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            
+            dependencies {
+                $gradleConfiguration project(':b')
+            }
+        """
+
+        file('b/build.gradle') << """
+            apply plugin: 'java'
+            
+            group = 'org.gradle.test'
+            version = '1.2'
+            
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublishedAsJavaModule()
+        repoModule.parsedPom.scopes."$mavenScope"?.expectDependency('org.gradle.test:b:1.2')
+
+        where:
+        plugin         | gradleConfiguration  | mavenScope
+        'java'         | 'compile'            | 'compile'
+        'java'         | 'runtime'            | 'compile'
+        'java'         | 'implementation'     | 'runtime'
+        'java'         | 'runtimeOnly'        | 'runtime'
+
+        'java-library' | 'api'                | 'compile'
+        'java-library' | 'compile'            | 'compile'
+        'java-library' | 'runtime'            | 'compile'
+        'java-library' | 'runtimeOnly'        | 'runtime'
+        'java-library' | 'implementation'     | 'runtime'
+
+    }
+
 }

@@ -202,6 +202,16 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     /**
      * Sets the directory that will contain the HTML comparison report and any other report files.
      *
+     * @param reportDir The directory that will contain the HTML comparison report and any other report files.
+     * @since 4.0
+     */
+    public void setReportDir(File reportDir) {
+        setReportDir((Object) reportDir);
+    }
+
+    /**
+     * Sets the directory that will contain the HTML comparison report and any other report files.
+     *
      * The value will be evaluated by {@link org.gradle.api.Project#file(Object) project.file()}.
      *
      * @param reportDir The directory that will contain the HTML comparison report and any other report files.
@@ -273,7 +283,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         } else {
             String message = String.format("The build outcomes were not found to be identical. See the report at: %s", reportUrl);
             if (getIgnoreFailures()) {
-                getLogger().warn(message);
+                getLogger().lifecycle(message);
             } else {
                 throw new GradleException(message);
             }

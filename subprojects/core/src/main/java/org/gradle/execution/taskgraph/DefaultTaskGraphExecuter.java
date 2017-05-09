@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -24,12 +25,14 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.execution.internal.TaskOperationDetails;
 import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
@@ -37,13 +40,18 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.progress.BuildOperationExecutor;
-import org.gradle.internal.progress.OperationIdGenerator;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.progress.BuildOperationType;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,23 +70,24 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final TaskPlanExecutor taskPlanExecutor;
     // This currently needs to be lazy, as it uses state that is not available when the graph is created
     private final Factory<? extends TaskExecuter> taskExecuter;
-    private final TimeProvider timeProvider;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final ListenerBroadcast<InternalTaskExecutionListener> internalTaskListeners;
+    private final InternalTaskExecutionListener internalTaskListener;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, TimeProvider timeProvider, BuildOperationExecutor buildOperationExecutor) {
+    private final Set<Task> requestedTasks = Sets.newTreeSet();
+    private Spec<? super Task> filter = Specs.SATISFIES_ALL;
+
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
-        this.timeProvider = timeProvider;
         this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        internalTaskListeners = listenerManager.createAnonymousBroadcaster(InternalTaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken);
+        internalTaskListener = listenerManager.getBroadcaster(InternalTaskExecutionListener.class);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, coordinationService, workerLeaseService);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {
@@ -86,7 +95,8 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void useFilter(Spec<? super Task> filter) {
-        taskExecutionPlan.useFilter(filter);
+        this.filter = (Spec<? super Task>) (filter != null ? filter : Specs.SATISFIES_ALL);
+        taskExecutionPlan.useFilter(this.filter);
         taskGraphState = TaskGraphState.DIRTY;
     }
 
@@ -98,7 +108,9 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         Set<Task> taskSet = new LinkedHashSet<Task>();
         for (Task task : tasks) {
             taskSet.add(task);
+            requestedTasks.add(task);
         }
+
         taskExecutionPlan.addToTaskGraph(taskSet);
         taskGraphState = TaskGraphState.DIRTY;
 
@@ -111,7 +123,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperationId()));
+            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             taskExecutionPlan.clear();
@@ -198,7 +210,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         switch (taskGraphState) {
             case EMPTY:
                 throw new IllegalStateException(
-                        "Task information is not available, as this task execution graph has not been populated.");
+                    "Task information is not available, as this task execution graph has not been populated.");
             case DIRTY:
                 taskExecutionPlan.determineExecutionPlan();
                 taskGraphState = TaskGraphState.POPULATED;
@@ -215,28 +227,57 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
      */
     private class EventFiringTaskWorker implements Action<TaskInternal> {
         private final TaskExecuter taskExecuter;
-        private final Object parentOperationId;
+        private final BuildOperationState parentOperation;
 
-        public EventFiringTaskWorker(TaskExecuter taskExecuter, Object parentOperationId) {
+        EventFiringTaskWorker(TaskExecuter taskExecuter, BuildOperationState parentOperation) {
             this.taskExecuter = taskExecuter;
-            this.parentOperationId = parentOperationId;
+            this.parentOperation = parentOperation;
         }
 
         @Override
-        public void execute(TaskInternal task) {
-            Object id = OperationIdGenerator.generateId(task);
-            TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentOperationId, task);
-            TaskStateInternal state = task.getState();
-            long startTime = timeProvider.getCurrentTime();
-            internalTaskListeners.getSource().beforeExecute(taskOperation, new OperationStartEvent(startTime));
-            try {
-                taskListeners.getSource().beforeExecute(task);
-                taskExecuter.execute(task, task.getState(), new DefaultTaskExecutionContext());
-                taskListeners.getSource().afterExecute(task, state);
-            } finally {
-                long endTime = timeProvider.getCurrentTime();
-                internalTaskListeners.getSource().afterExecute(taskOperation, new OperationResult(startTime, endTime, task.getState().getFailure()));
-            }
+        public void execute(final TaskInternal task) {
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    final Object taskExecutionOperationId = buildOperationExecutor.getCurrentOperation().getId();
+                    // These events are used by build scans
+                    TaskOperationInternal legacyOperation = new TaskOperationInternal(task, taskExecutionOperationId);
+                    internalTaskListener.beforeExecute(legacyOperation, new OperationStartEvent(0));
+                    TaskStateInternal state = task.getState();
+                    taskListeners.getSource().beforeExecute(task);
+                    taskExecuter.execute(task, state, new DefaultTaskExecutionContext());
+                    taskListeners.getSource().afterExecute(task, state);
+                    context.failed(state.getFailure());
+                    internalTaskListener.afterExecute(legacyOperation, new OperationFinishEvent(0, 0, state.getFailure(), null));
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    TaskOperationDetails taskOperation = new TaskOperationDetails(task);
+                    return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
+                        .name(task.getIdentityPath().toString())
+                        .parent(parentOperation)
+                        .operationType(BuildOperationType.TASK)
+                        .details(taskOperation);
+                }
+            });
         }
     }
+
+    public Set<Task> getRequestedTasks() {
+        return requestedTasks;
+    }
+
+    public Set<Task> getFilteredTasks() {
+        /*
+            Note: we currently extract this information from the execution plan because it's
+            buried under functions in #filter. This could be detangled/simplified by introducing
+            excludeTasks(Iterable<Task>) as an analog to addTasks(Iterable<Task>).
+
+            This is too drastic a change for the stage in the release cycle were exposing this information
+            was necessary, therefore the minimal change solution was implemented.
+         */
+        return taskExecutionPlan.getFilteredTasks();
+    }
+
 }

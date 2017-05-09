@@ -16,28 +16,33 @@
 
 package org.gradle.api.internal.plugins;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.DeferredConfigurable;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.UncheckedException;
-import org.gradle.listener.ActionBroadcast;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.internal.MutableActionSet;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.String.format;
+import static org.gradle.internal.Cast.uncheckedCast;
+
 public class ExtensionsStorage {
+
     private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
 
-    public void add(String name, Object extension) {
-        if (extensions.containsKey(name)) {
-            throw new IllegalArgumentException(String.format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
+    public <T> void add(TypeOf<T> publicType, String name, T extension) {
+        if (hasExtension(name)) {
+            throw new IllegalArgumentException(
+                format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
-        extensions.put(name, wrap(name, extension));
+        extensions.put(name, wrap(name, publicType, extension));
     }
 
     public boolean hasExtension(String name) {
@@ -46,76 +51,101 @@ public class ExtensionsStorage {
 
     public Map<String, Object> getAsMap() {
         Map<String, Object> rawExtensions = new LinkedHashMap<String, Object>(extensions.size());
-        for (String name : extensions.keySet()) {
-            rawExtensions.put(name, extensions.get(name).get());
+        for (Map.Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
+            rawExtensions.put(entry.getKey(), entry.getValue().get());
         }
         return rawExtensions;
     }
 
-    public void checkExtensionIsNotReassigned(String name) {
-        if (hasExtension(name)) {
-            throw new IllegalArgumentException(String.format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
+    public Map<String, TypeOf<?>> getSchema() {
+        Map<String, TypeOf<?>> schema = new LinkedHashMap<String, TypeOf<?>>(extensions.size());
+        for (Map.Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
+            schema.put(entry.getKey(), entry.getValue().getPublicType());
         }
+        return schema;
     }
 
-    public boolean isConfigureExtensionMethod(String methodName, Object ... arguments) {
-        return extensions.containsKey(methodName) && arguments.length == 1 && arguments[0] instanceof Closure;
-    }
-
-    public <T> T configureExtension(String methodName, Object ... arguments) {
-        Closure closure = (Closure) arguments[0];
-        Action<T> action = ConfigureUtil.configureUsing(closure);
-        ExtensionHolder<T> extensionHolder = extensions.get(methodName);
+    public <T> T configureExtension(String name, Action<? super T> action) {
+        ExtensionHolder<T> extensionHolder = uncheckedCast(extensions.get(name));
         return extensionHolder.configure(action);
     }
 
-    public <T> void configureExtension(Class<T> type, Action<? super T> action) {
+    public <T> void configureExtension(TypeOf<T> type, Action<? super T> action) {
         getHolderByType(type).configure(action);
     }
 
-    public <T> T getByType(Class<T> type) {
+    public <T> T getByType(TypeOf<T> type) {
         return getHolderByType(type).get();
     }
 
-    public <T> T findByType(Class<T> type) {
-        ExtensionHolder<T> holder;
-        try {
-            holder = getHolderByType(type);
-        } catch (UnknownDomainObjectException e) {
-            return null;
-        }
-        return holder.get();
+    public <T> T findByType(TypeOf<T> type) {
+        ExtensionHolder<T> found = findHolderByType(type);
+        return found != null ? found.get() : null;
     }
 
-    private <T> ExtensionHolder<T> getHolderByType(Class<T> type) {
-        List<String> types = new LinkedList<String>();
+    private <T> ExtensionHolder<T> getHolderByType(TypeOf<T> type) {
+        ExtensionHolder<T> found = findHolderByType(type);
+        if (found != null) {
+            return found;
+        }
+        throw new UnknownDomainObjectException(
+            "Extension of type '" + type.getSimpleName() + "' does not exist. Currently registered extension types: " + registeredExtensionTypeNames());
+    }
+
+    private <T> ExtensionHolder<T> findHolderByType(TypeOf<T> type) {
+        ExtensionHolder<T> firstHolderWithExactPublicType = firstHolderWithExactPublicType(type);
+        return firstHolderWithExactPublicType != null
+            ? firstHolderWithExactPublicType
+            : firstHolderWithAssignableType(type);
+    }
+
+    @Nullable
+    private <T> ExtensionHolder<T> firstHolderWithExactPublicType(TypeOf<T> type) {
         for (ExtensionHolder extensionHolder : extensions.values()) {
-            Class<?> clazz = extensionHolder.getType();
-            types.add(clazz.getSimpleName());
-            if (type.isAssignableFrom(clazz)) {
-                return extensionHolder;
+            if (type.equals(extensionHolder.getPublicType())) {
+                return uncheckedCast(extensionHolder);
             }
         }
-        throw new UnknownDomainObjectException("Extension of type '" + type.getSimpleName() + "' does not exist. Currently registered extension types: " + types);
+        return null;
+    }
+
+    @Nullable
+    private <T> ExtensionHolder<T> firstHolderWithAssignableType(TypeOf<T> type) {
+        for (ExtensionHolder extensionHolder : extensions.values()) {
+            if (type.isAssignableFrom(extensionHolder.getPublicType())) {
+                return uncheckedCast(extensionHolder);
+            }
+        }
+        return null;
     }
 
     public Object getByName(String name) {
-        if (!hasExtension(name)) {
-            throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
+        Object extension = findByName(name);
+        if (extension != null) {
+            return extension;
         }
-        return findByName(name);
+        throw new UnknownDomainObjectException(
+            "Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
     }
 
     public Object findByName(String name) {
         ExtensionHolder extensionHolder = extensions.get(name);
-        return extensionHolder == null ? null : extensionHolder.get();
+        return extensionHolder != null ? extensionHolder.get() : null;
     }
 
-    private <T> ExtensionHolder<T> wrap(String name, T extension) {
+    private <T> ExtensionHolder<T> wrap(String name, TypeOf<T> publicType, T extension) {
         if (isDeferredConfigurable(extension)) {
-            return new DeferredConfigurableExtensionHolder<T>(name, extension);
+            return new DeferredConfigurableExtensionHolder<T>(name, publicType, extension);
         }
-        return new ExtensionHolder<T>(extension);
+        return new ExtensionHolder<T>(publicType, extension);
+    }
+
+    private List<String> registeredExtensionTypeNames() {
+        List<String> types = new ArrayList<String>(extensions.size());
+        for (ExtensionHolder holder : extensions.values()) {
+            types.add(holder.getPublicType().getSimpleName());
+        }
+        return types;
     }
 
     private <T> boolean isDeferredConfigurable(T extension) {
@@ -123,22 +153,20 @@ public class ExtensionsStorage {
     }
 
     private static class ExtensionHolder<T> {
+        protected final TypeOf<T> publicType;
         protected final T extension;
 
-        private ExtensionHolder(T extension) {
+        private ExtensionHolder(TypeOf<T> publicType, T extension) {
+            this.publicType = publicType;
             this.extension = extension;
         }
 
-        public Class<?> getType() {
-            return extension.getClass();
+        public TypeOf<T> getPublicType() {
+            return publicType;
         }
 
         public T get() {
             return extension;
-        }
-
-        public T configure(Closure configuration) {
-            return configure(ConfigureUtil.configureUsing(configuration));
         }
 
         public T configure(Action<? super T> action) {
@@ -149,12 +177,12 @@ public class ExtensionsStorage {
 
     private static class DeferredConfigurableExtensionHolder<T> extends ExtensionHolder<T> {
         private final String name;
-        private ActionBroadcast<T> actions = new ActionBroadcast<T>();
+        private MutableActionSet<T> actions = new MutableActionSet<T>();
         private boolean configured;
         private Throwable configureFailure;
 
-        public DeferredConfigurableExtensionHolder(String name, T extension) {
-            super(extension);
+        DeferredConfigurableExtensionHolder(String name, TypeOf<T> publicType, T extension) {
+            super(publicType, extension);
             this.name = name;
         }
 
@@ -171,7 +199,7 @@ public class ExtensionsStorage {
 
         private void configureLater(Action<? super T> action) {
             if (configured) {
-                throw new InvalidUserDataException(String.format("Cannot configure the '%s' extension after it has been accessed.", name));
+                throw new InvalidUserDataException(format("Cannot configure the '%s' extension after it has been accessed.", name));
             }
             actions.add(action);
         }
@@ -191,6 +219,5 @@ public class ExtensionsStorage {
                 throw UncheckedException.throwAsUncheckedException(configureFailure);
             }
         }
-
     }
 }

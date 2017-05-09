@@ -80,7 +80,25 @@ public interface CacheBuilder {
     CacheBuilder withInitializer(Action<? super PersistentCache> initializer);
 
     /**
+     * Specifies an action to execute when the cache needs to be cleaned up. An exclusive lock is held while the cleanup is executing, to prevent cross-process access.
+     *
+     * A clean-up action is run when a cache is closed, but only after a certain interval of time after the last clean-up.
+     *
+     * Currently, a clean-up action is run after {@value org.gradle.cache.internal.DefaultPersistentDirectoryCache#CLEANUP_INTERVAL} days.
+     *
+     */
+    CacheBuilder withCleanup(Action<? super PersistentCache> cleanup);
+
+    /**
      * Opens the cache. It is the caller's responsibility to close the cache when finished with it.
+     *
+     * <p>
+     *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.internal.FileLockManager.LockMode#Shared}.
+     * <ul>
+     *     <li>Using {@link org.gradle.cache.internal.FileLockManager.LockMode#Exclusive} will lock the cache on open() and keep it locked until {@link PersistentCache#close()} is called.</li>
+     *     <li>Using {@link org.gradle.cache.internal.FileLockManager.LockMode#None} or {@link org.gradle.cache.internal.FileLockManager.LockMode#Shared} will <em>not</em> lock the cache on open().</li>
+     * </ul>
+     * </p>
      *
      * @return The cache.
      */

@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.component.Artifact;
 import org.gradle.api.artifacts.result.UnresolvedArtifactResult;
+import org.gradle.api.component.Artifact;
 
 public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult {
     private final ComponentArtifactIdentifier identifier;
@@ -28,6 +28,11 @@ public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult
         this.identifier = identifier;
         this.type = type;
         this.failure = failure;
+    }
+
+    @Override
+    public String toString() {
+        return identifier.getDisplayName();
     }
 
     @Override

@@ -15,14 +15,10 @@
  */
 package org.gradle.util;
 
-import com.google.common.base.Equivalence;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -33,7 +29,23 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.Transformers;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import static org.gradle.internal.Cast.cast;
 
@@ -612,7 +624,7 @@ public abstract class CollectionUtils {
         return target;
     }
 
-    public static <K, V> ImmutableListMultimap<K, V> groupBy(Iterable<? extends V> iterable, Transformer<? extends K, V> grouper) {
+    public static <K, V> Map<K, Collection<V>> groupBy(Iterable<? extends V> iterable, Transformer<? extends K, V> grouper) {
         ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
 
         for (V element : iterable) {
@@ -620,7 +632,7 @@ public abstract class CollectionUtils {
             builder.put(key, element);
         }
 
-        return builder.build();
+        return builder.build().asMap();
     }
 
     public static <T> Iterable<? extends T> unpack(final Iterable<? extends Factory<? extends T>> factories) {
@@ -649,20 +661,6 @@ public abstract class CollectionUtils {
     public static <T> List<T> nonEmptyOrNull(Iterable<T> iterable) {
         ImmutableList<T> list = ImmutableList.copyOf(iterable);
         return list.isEmpty() ? null : list;
-    }
-
-    public static <T> List<T> dedup(Iterable<T> source, final Equivalence<? super T> equivalence) {
-        Iterable<Equivalence.Wrapper<T>> wrappers = Iterables.transform(source, new Function<T, Equivalence.Wrapper<T>>() {
-            public Equivalence.Wrapper<T> apply(@Nullable T input) {
-                return equivalence.wrap(input);
-            }
-        });
-        Set<Equivalence.Wrapper<T>> deduped = ImmutableSet.copyOf(wrappers);
-        return ImmutableList.copyOf(Iterables.transform(deduped, new Function<Equivalence.Wrapper<T>, T>() {
-            public T apply(Equivalence.Wrapper<T> input) {
-                return input.get();
-            }
-        }));
     }
 
     public static String asCommandLine(Iterable<String> arguments) {

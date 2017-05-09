@@ -33,7 +33,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
 
     @Override
     public void upload(final LocalResource resource, URI destination) throws IOException {
-        final ResourceOperation uploadOperation = createResourceOperation(destination.toString(), ResourceOperation.Type.upload, getClass(), resource.getContentLength());
+        final ResourceOperation uploadOperation = createResourceOperation(destination, ResourceOperation.Type.upload, getClass(), resource.getContentLength());
 
         try {
             delegate.upload(new ProgressLoggingLocalResource(resource, uploadOperation), destination);

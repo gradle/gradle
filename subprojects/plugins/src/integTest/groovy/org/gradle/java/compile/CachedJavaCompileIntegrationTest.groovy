@@ -19,9 +19,9 @@ package org.gradle.java.compile
 import org.gradle.AbstractCachedCompileIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
+class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest implements IncrementalCompileMultiProjectTestFixture {
     String compilationTask = ':compileJava'
-    String compiledFile = "build/classes/main/Hello.class"
+    String compiledFile = "build/classes/java/main/Hello.class"
 
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
         project.with {
@@ -38,7 +38,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
             }
 
             dependencies {
-                compile 'org.codehaus.groovy:groovy-all:2.4.7'
+                compile 'org.codehaus.groovy:groovy-all:2.4.10'
             }
         """.stripIndent()
 
@@ -50,5 +50,36 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
             }
         """.stripIndent()
         }
+    }
+
+    def "up-to-date incremental compilation is cached if nothing to recompile"() {
+        given:
+        buildFile.text = ""
+        libraryAppProjectWithIncrementalCompilation()
+
+        when:
+        withBuildCache().succeeds appCompileJava
+
+        then:
+        executedAndNotSkipped appCompileJava
+
+        when:
+        writeUnusedLibraryClass()
+
+        and:
+        withBuildCache()
+        executer.withArgument('-i')
+        succeeds appCompileJava
+
+        then:
+        result.output.contains  "None of the classes needs to be compiled!"
+        result.output.contains "${appCompileJava} UP-TO-DATE"
+        executedAndNotSkipped libraryCompileJava
+
+        when:
+        withBuildCache().succeeds 'clean', appCompileJava
+
+        then:
+        result.output.contains "${appCompileJava} FROM-CACHE"
     }
 }

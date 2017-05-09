@@ -16,10 +16,10 @@
 
 package org.gradle.play.plugins
 
-import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
@@ -33,25 +33,25 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
         String projectFileName = 'project.jar'
         File projectFile = new File(projectFileName)
         String newProjectName = "subproject-" + projectFileName
-        ResolvedArtifact projectArtifact = resolvedArtifact(projectFile, newProjectId(":subproject"))
+        ResolvedArtifactResult projectArtifact = resolvedArtifact(projectFile, newProjectId(":subproject"))
         FileCopyDetails projectFcd = Mock()
         projectFcd.getFile() >> projectFile
 
         String moduleFileName = 'module.jar'
         File moduleFile = new File(moduleFileName)
         String newModuleName = "com.example-" + moduleFileName
-        ResolvedArtifact moduleArtifact = resolvedArtifact(moduleFile, moduleId("com.example"))
+        ResolvedArtifactResult moduleArtifact = resolvedArtifact(moduleFile, moduleId("com.example"))
         FileCopyDetails moduleFcd = Mock()
         moduleFcd.getFile() >> moduleFile
 
         String nonProjectFileName = 'dependency.jar'
         File nonProjectFile = new File(nonProjectFileName)
-        ResolvedArtifact nonProjectArtifact = resolvedArtifact(nonProjectFile, new OpaqueComponentIdentifier("non-project"))
+        ResolvedArtifactResult nonProjectArtifact = resolvedArtifact(nonProjectFile, new OpaqueComponentIdentifier("non-project"))
         FileCopyDetails nonProjectFcd = Mock()
         nonProjectFcd.getFile() >> nonProjectFile
 
         def renamer = new PlayDistributionPlugin.PrefixArtifactFileNames(null) {
-            Set<ResolvedArtifact> getResolvedArtifacts() {
+            Set<ResolvedArtifactResult> getResolvedArtifacts() {
                 return [projectArtifact, moduleArtifact, nonProjectArtifact] as Set
             }
         }
@@ -118,6 +118,31 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
         renameForModule("com.example", "file.jar") == "com.example-file.jar"
     }
 
+    def "ignores duplicate artifacts"() {
+        String moduleFileName = 'module.jar'
+        File moduleFile = new File(moduleFileName)
+        String newModuleName = "com.example-" + moduleFileName
+        ResolvedArtifactResult moduleArtifact = resolvedArtifact(moduleFile, moduleId("com.example"))
+
+        ResolvedArtifactResult duplicateArtifact = resolvedArtifact(moduleFile, moduleId("com.example"))
+
+        def renamer = new PlayDistributionPlugin.PrefixArtifactFileNames(null) {
+            Set<ResolvedArtifactResult> getResolvedArtifacts() {
+                return [moduleArtifact, duplicateArtifact] as Set
+            }
+        }
+
+        FileCopyDetails moduleFcd = Mock(FileCopyDetails)
+        moduleFcd.getFile() >> moduleFile
+
+        when:
+        renamer.execute(moduleFcd)
+        then:
+        1 * moduleFcd.setName(newModuleName)
+        and:
+        renamer.apply(moduleFile) == newModuleName
+    }
+
     private String renameForProject(String projectPath, String fileName) {
         return PlayDistributionPlugin.PrefixArtifactFileNames.renameForProject(newProjectId(projectPath), new File(fileName))
     }
@@ -128,11 +153,11 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
 
 
     private ModuleComponentIdentifier moduleId(String group) {
-        return DefaultModuleComponentIdentifier.of(group, "module", "1.0")
+        return new DefaultModuleComponentIdentifier(group, "module", "1.0")
     }
 
-    private ResolvedArtifact resolvedArtifact(File artifactFile, ComponentIdentifier componentId) {
-        ResolvedArtifact artifact = Mock()
+    private ResolvedArtifactResult resolvedArtifact(File artifactFile, ComponentIdentifier componentId) {
+        ResolvedArtifactResult artifact = Mock()
         artifact.getFile() >> artifactFile
         ComponentArtifactIdentifier componentArtifactId = Mock()
         artifact.getId() >> componentArtifactId

@@ -21,6 +21,7 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,23 +37,52 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
         return "Failed to notify " + typeDescription + ".";
     }
 
+    protected void dispatch(MethodInvocation invocation, Dispatch<MethodInvocation> handler) {
+        try {
+            handler.dispatch(invocation);
+        } catch (UncheckedException e) {
+            throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singletonList(e.getCause()));
+        } catch (RuntimeException t) {
+            throw t;
+        } catch (Throwable t) {
+            throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singletonList(t));
+        }
+    }
+
     protected void dispatch(MethodInvocation invocation, Iterator<? extends Dispatch<MethodInvocation>> handlers) {
-        List<Throwable> failures = new ArrayList<Throwable>();
+        // Defer creation of failures list, assume dispatch will succeed
+        List<Throwable> failures = null;
         while (handlers.hasNext()) {
             Dispatch<MethodInvocation> handler = handlers.next();
             try {
                 handler.dispatch(invocation);
+            } catch (ListenerNotificationException e) {
+                if (failures == null) {
+                    failures = new ArrayList<Throwable>();
+                }
+                if (e.getEvent() == invocation) {
+                    failures.addAll(e.getCauses());
+                } else {
+                    failures.add(e);
+                }
             } catch (UncheckedException e) {
+                if (failures == null) {
+                    failures = new ArrayList<Throwable>();
+                }
                 failures.add(e.getCause());
             } catch (Throwable t) {
+                if (failures == null) {
+                    failures = new ArrayList<Throwable>();
+                }
                 failures.add(t);
             }
+        }
+        if (failures == null) {
+            return;
         }
         if (failures.size() == 1 && failures.get(0) instanceof RuntimeException) {
             throw (RuntimeException) failures.get(0);
         }
-        if (!failures.isEmpty()) {
-            throw new ListenerNotificationException(getErrorMessage(), failures);
-        }
+        throw new ListenerNotificationException(invocation, getErrorMessage(), failures);
     }
 }

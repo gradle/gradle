@@ -16,9 +16,7 @@
 
 package org.gradle.integtests
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
@@ -27,13 +25,13 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         setup:
         buildScript("apply plugin: 'java'")
         def fooJavaFile = file('src/main/java/Foo.java') << 'public class Foo {}'
-        def fooClassFile = file('build/classes/main/Foo.class')
+        def fooClassFile = javaClassFile('Foo.class')
         def barJavaFile = file('src/main/java/com/example/Bar.java') << '''
             package com.example;
 
             public class Bar {}
         '''
-        def barClassFile = file('build/classes/main/com/example/Bar.class')
+        def barClassFile = javaClassFile('com/example/Bar.class')
 
         when:
         succeeds('compileJava')
@@ -112,28 +110,37 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains(':test')
     }
 
-    @NotYetImplemented
-    @Issue("GRADLE-1501")
-    def "stale outputs are deleted after task history is deleted"() {
-        settingsFile << "rootProject.name = 'test'"
-        buildFile << "apply plugin: 'java'"
-        file("src/main/java/Main.java") << "public class Main {}"
-        file("src/main/java/Redundant.java") << "public class Redundant {}"
+    def "stale outputs are removed after Gradle version change"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+        file("src/main/java/Main.java") << """
+            public class Main {}
+        """
 
         when:
-        succeeds "jar"
+        succeeds("compileJava")
         then:
-        file("build/classes/main/Main.class").assertIsFile()
-        file("build/classes/main/Redundant.class").assertIsFile()
-        new JarTestFixture(file("build/libs/test.jar")).hasDescendants("Main.class", "Redundant.class")
+        javaClassFile("Main.class").assertExists()
 
         when:
-        file(".gradle").assertIsDir().deleteDir()
-        file("src/main/java/Redundant.java").delete()
-        succeeds "jar"
+        // Now that we track this, we can detect the situation where
+        // someone builds with Gradle 3.4, then 3.5 and then 3.4 again.
+        // Simulate building with a different version of Gradle
+        file(".gradle/buildOutputCleanup/cache.properties").text = """
+            gradle.version=1.0
+        """
+        and:
+        succeeds("help")
         then:
-        file("build/classes/main/Main.class").assertIsFile()
-        file("build/classes/main/Redundant.class").assertDoesNotExist()
-        new JarTestFixture(file("build/libs/test.jar")).hasDescendants("Main.class")
+        // It looks like the build may have been run with a different version of Gradle
+        // The build output has been removed
+        javaClassFile("Main.class").assertDoesNotExist()
+
+        when:
+        succeeds("compileJava")
+        then:
+        javaClassFile("Main.class").assertExists()
     }
 }

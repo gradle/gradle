@@ -36,4 +36,9 @@ public interface ArtifactCacheMetaData {
      * @return Metadata store location
      */
     File getMetaDataStoreDirectory();
+
+    /**
+     * Returns the root directory for the transforms cache.
+     */
+    File getTransformsStoreDirectory();
 }

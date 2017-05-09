@@ -15,59 +15,41 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 
 public class DefaultModuleComponentSelector implements ModuleComponentSelector {
-    private static final Interner<DefaultModuleComponentSelector> INSTANCES_INTERNER = Interners.newStrongInterner();
-    private final DefaultModuleIdentifier id;
+    private final String group;
+    private final String module;
     private final String version;
-    private String displayName;
-    private final int hashCode;
 
-    private DefaultModuleComponentSelector(String group, String module, String version) {
+    public DefaultModuleComponentSelector(String group, String module, String version) {
         assert group != null : "group cannot be null";
         assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
-        this.id = DefaultModuleIdentifier.of(group, module);
+        this.group = group;
+        this.module = module;
         this.version = version;
-        this.hashCode = calculateHashCode();
     }
 
-    public static DefaultModuleComponentSelector of(String group, String module, String version) {
-        DefaultModuleComponentSelector instance = new DefaultModuleComponentSelector(group, module, version);
-        return INSTANCES_INTERNER.intern(instance);
-    }
-
-    private String createDisplayName() {
-        StringBuilder builder = new StringBuilder(id.getGroup().length() + id.getName().length() + version.length() + 2);
-        builder.append(id.getGroup());
+    public String getDisplayName() {
+        StringBuilder builder = new StringBuilder(group.length() + module.length() + version.length() + 2);
+        builder.append(group);
         builder.append(":");
-        builder.append(id.getName());
+        builder.append(module);
         builder.append(":");
         builder.append(version);
         return builder.toString();
     }
 
-    public String getDisplayName() {
-        if (displayName == null) {
-            displayName = createDisplayName();
-        }
-        return displayName;
-    }
-
     public String getGroup() {
-        return id.getGroup();
+        return group;
     }
 
     public String getModule() {
-        return id.getName();
+        return module;
     }
 
     public String getVersion() {
@@ -79,8 +61,8 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
         if(identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)identifier;
-            return id.getName().equals(moduleComponentIdentifier.getModule())
-                    && id.getGroup().equals(moduleComponentIdentifier.getGroup())
+            return module.equals(moduleComponentIdentifier.getModule())
+                    && group.equals(moduleComponentIdentifier.getGroup())
                     && version.equals(moduleComponentIdentifier.getVersion());
         }
 
@@ -98,11 +80,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
         DefaultModuleComponentSelector that = (DefaultModuleComponentSelector) o;
 
-        if (hashCode() != that.hashCode()) {
+        if (!group.equals(that.group)) {
             return false;
         }
-
-        if (!id.equals(that.id)) {
+        if (!module.equals(that.module)) {
             return false;
         }
         if (!version.equals(that.version)) {
@@ -114,11 +95,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
     @Override
     public int hashCode() {
-        return hashCode;
-    }
-
-    private int calculateHashCode() {
-        return Objects.hashCode(id, version);
+        int result = group.hashCode();
+        result = 31 * result + module.hashCode();
+        result = 31 * result + version.hashCode();
+        return result;
     }
 
     @Override
@@ -127,10 +107,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     public static ModuleComponentSelector newSelector(String group, String name, String version) {
-        return of(group, name, version);
+        return new DefaultModuleComponentSelector(group, name, version);
     }
 
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
-        return of(selector.getGroup(), selector.getName(), selector.getVersion());
+        return new DefaultModuleComponentSelector(selector.getGroup(), selector.getName(), selector.getVersion());
     }
 }

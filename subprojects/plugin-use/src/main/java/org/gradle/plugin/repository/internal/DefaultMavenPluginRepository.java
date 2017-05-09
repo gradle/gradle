@@ -29,7 +29,7 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
 import org.gradle.plugin.repository.MavenPluginRepository;
 
 
-class DefaultMavenPluginRepository extends AbstractPluginRepository implements MavenPluginRepository {
+class DefaultMavenPluginRepository extends AbstractArtifactPluginRepository implements MavenPluginRepository {
     private static final String MAVEN = "maven";
 
     public DefaultMavenPluginRepository(

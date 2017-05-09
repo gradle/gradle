@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>toolVersion</td>
-                <td><literal>5.9</literal></td>
+                <td><literal>6.19</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>
@@ -31,6 +31,14 @@
             <tr>
                 <td>showViolations</td>
                 <td><literal>true</literal></td>
+            </tr>
+            <tr>
+                <td>maxErrors</td>
+                <td><literal>0</literal></td>
+            </tr>
+            <tr>
+                <td>maxWarnings</td>
+                <td><literal>Integer.MAX_VALUE</literal></td>
             </tr>
         </table>
     </section>

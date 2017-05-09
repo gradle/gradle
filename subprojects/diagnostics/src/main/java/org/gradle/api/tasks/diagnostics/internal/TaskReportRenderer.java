@@ -23,11 +23,8 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.Path;
 
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
@@ -89,26 +86,11 @@ public class TaskReportRenderer extends TextReportRenderer {
         writeTask(task, "");
     }
 
-    public void addChildTask(TaskDetails task) {
-        if (detail) {
-            writeTask(task, "    ");
-        }
-    }
-
     private void writeTask(TaskDetails task, String prefix) {
         getTextOutput().text(prefix);
         getTextOutput().withStyle(Identifier).text(task.getPath());
         if (GUtil.isTrue(task.getDescription())) {
             getTextOutput().withStyle(Description).format(" - %s", task.getDescription());
-        }
-        if (detail) {
-            SortedSet<Path> sortedDependencies = new TreeSet<Path>();
-            for (TaskDetails dependency : task.getDependencies()) {
-                sortedDependencies.add(dependency.getPath());
-            }
-            if (sortedDependencies.size() > 0) {
-                getTextOutput().withStyle(Info).format(" [%s]", CollectionUtils.join(", ", sortedDependencies));
-            }
         }
         getTextOutput().println();
     }

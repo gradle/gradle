@@ -31,9 +31,9 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             tasks.create("validateTaskProperties", org.gradle.plugin.devel.tasks.ValidateTaskProperties) { validator ->
                 def sourceSet = sourceSets.main
                 validator.dependsOn sourceSet.output
-                validator.classesDir = sourceSet.output.classesDir
                 validator.classpath = sourceSet.runtimeClasspath
                 validator.failOnWarning = true
+                validator.classes = sourceSets.main.output.classesDirs
             }
             tasks.check.dependsOn validateTaskProperties
         """
@@ -105,8 +105,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'MyTask' declares property that is not annotated: 'badTime'."
-        failure.assertHasCause "Warning: Task type 'MyTask' declares property that is not annotated: 'options.badNested'."
+        failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
     }
 
     def "detects missing annotation on Groovy properties"() {
@@ -142,13 +142,78 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
-        failure.assertHasCause "Warning: Task type 'MyTask' declares property that is not annotated: 'badTime'."
-        failure.assertHasCause "Warning: Task type 'MyTask' declares property that is not annotated: 'options.badNested'."
+        failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
     }
 
     def "no problems with Copy task"() {
         file("src/main/java/MyTask.java") << """
             public class MyTask extends org.gradle.api.tasks.Copy {}
+        """
+
+        expect:
+        succeeds "validateTaskProperties"
+    }
+
+    def "does not report missing properties for Provider types"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.provider.Provider;
+            import org.gradle.api.provider.PropertyState;
+            
+            import java.io.File;
+            import java.util.concurrent.Callable;
+
+            public class MyTask extends DefaultTask {
+                private final Provider<String> text;
+                private final PropertyState<File> file;
+                private final PropertyState<Pojo> pojo;
+
+                public MyTask() {
+                    text = getProject().provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "Hello World!";
+                        }
+                    });
+                    file = getProject().property(File.class);
+                    file.set(new File("some/dir"));
+                    pojo = getProject().property(Pojo.class);
+                }
+
+                @Input
+                public String getText() {
+                    return text.get();
+                }
+
+                @OutputFile
+                public File getFile() {
+                    return file.get();
+                }
+
+                @Nested
+                public Pojo getPojo() {
+                    return pojo.get();
+                }
+            }
+        """
+
+        file("src/main/java/Pojo.java") << """
+            import org.gradle.api.tasks.Input;
+
+            public class Pojo {
+                private final Boolean enabled;
+                
+                public Pojo(Boolean enabled) {
+                    this.enabled = enabled;
+                }
+
+                @Input
+                public Boolean isEnabled() {
+                    return enabled;
+                }
+            }
         """
 
         expect:

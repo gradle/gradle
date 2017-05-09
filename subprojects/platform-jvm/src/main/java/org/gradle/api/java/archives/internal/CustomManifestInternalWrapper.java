@@ -22,7 +22,6 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestException;
 
 import java.io.OutputStream;
-import java.io.Writer;
 import java.util.Map;
 
 public class CustomManifestInternalWrapper implements ManifestInternal {
@@ -72,12 +71,6 @@ public class CustomManifestInternalWrapper implements ManifestInternal {
     @Override
     public Manifest getEffectiveManifest() {
         return delegate.getEffectiveManifest();
-    }
-
-    @Deprecated
-    @Override
-    public Manifest writeTo(Writer writer) {
-        return delegate.writeTo(writer);
     }
 
     @Override

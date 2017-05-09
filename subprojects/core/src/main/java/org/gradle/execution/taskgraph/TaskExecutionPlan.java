@@ -16,9 +16,12 @@
 
 package org.gradle.execution.taskgraph;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a graph of dependent tasks, returned in execution order.
@@ -41,10 +44,17 @@ public interface TaskExecutionPlan {
     List<Task> getTasks();
 
     /**
-     * Provides a ready-to-execute task. A task is ready-to-execute if all of its dependencies have been completed successfully.
-     * This method blocks until the at least one task is ready-to-execute.
-     * If no tasks remain, null will be returned.
-     * @return The task, or null if no matching tasks remain.
+     * @return The set of all filtered tasks that don't get executed.
      */
-    TaskInfo getTaskToExecute();
+    Set<Task> getFilteredTasks();
+
+    /**
+     * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one
+     * can be executed.  If all tasks have been executed, returns false.
+     *
+     * @param parentWorkerLease
+     * @param taskExecution
+     * @return true if there are more tasks waiting to execute, false if all tasks have executed.
+     */
+    boolean executeWithTask(WorkerLeaseRegistry.WorkerLease parentWorkerLease, Action<TaskInfo> taskExecution);
 }

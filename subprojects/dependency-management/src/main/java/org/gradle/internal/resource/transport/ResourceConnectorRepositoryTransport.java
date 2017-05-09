@@ -17,11 +17,20 @@
 package org.gradle.internal.resource.transport;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.transfer.*;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceUploader;
 import org.gradle.util.BuildCommencedTimeProvider;
+
+import java.net.URI;
 
 public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
@@ -33,12 +42,15 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                                 BuildCommencedTimeProvider timeProvider,
                                                 CacheLockingManager cacheLockingManager,
-                                                ExternalResourceConnector connector) {
+                                                ExternalResourceConnector connector,
+                                                BuildOperationExecutor buildOperationExecutor,
+                                                ExternalResourceCachePolicy cachePolicy,
+                                                ProducerGuard<URI> producerGuard) {
         super(name);
         ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory);
-        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, loggingAccessor, loggingUploader);
-        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager);
+        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, loggingAccessor, loggingUploader, buildOperationExecutor);
+        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard);
     }
 
     public ExternalResourceRepository getRepository() {

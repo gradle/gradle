@@ -16,7 +16,6 @@
 package org.gradle.cache.internal.btree;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -45,7 +44,7 @@ import java.util.List;
 // todo - free list leaks disk space
 // todo - merge adjacent free blocks
 // todo - use more efficient lookup for free block with nearest size
-public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
+public class BTreePersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
     private final File cacheFile;
     private final KeyHasher<K> keyHasher;

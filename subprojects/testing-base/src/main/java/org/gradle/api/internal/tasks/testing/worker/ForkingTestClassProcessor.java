@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcess;
@@ -41,20 +40,17 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Iterable<File> classPath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
-    private final BuildOperationWorkerRegistry.Operation owner;
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
-    private BuildOperationWorkerRegistry.Completion workerCompletion;
 
-    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry.Operation owner) {
+    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry) {
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
         this.classPath = classPath;
         this.buildConfigAction = buildConfigAction;
         this.moduleRegistry = moduleRegistry;
-        this.owner = owner;
     }
 
     @Override
@@ -65,7 +61,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (remoteProcessor == null) {
-            workerCompletion = owner.operationStart();
             remoteProcessor = forkProcess();
         }
 
@@ -78,6 +73,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
         builder.applicationClasspath(classPath);
         options.copyTo(builder.getJavaCommand());
+        builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
 
         workerProcess = builder.build();
@@ -94,6 +90,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     List<URL> getTestWorkerImplementationClasspath() {
         return CollectionUtils.flattenCollections(URL.class,
+            moduleRegistry.getModule("gradle-version-info").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-core").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-logging").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-messaging").getImplementationClasspath().getAsURLs(),
@@ -102,7 +99,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-jvm").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("guava-jdk5").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
@@ -115,12 +112,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     @Override
     public void stop() {
         if (remoteProcessor != null) {
-            try {
-                remoteProcessor.stop();
-                workerProcess.waitForStop();
-            } finally {
-                workerCompletion.operationFinish();
-            }
+            remoteProcessor.stop();
+            workerProcess.waitForStop();
         }
     }
 }

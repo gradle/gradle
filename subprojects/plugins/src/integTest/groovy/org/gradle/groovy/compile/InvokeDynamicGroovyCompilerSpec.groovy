@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-@TargetVersions(['2.4.7:indy'])
+@TargetVersions(['2.4.10:indy'])
 @LeaksFileHandles
 class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
     def canEnableAndDisableInvokeDynamicOptimization() {

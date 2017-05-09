@@ -39,7 +39,7 @@ public class CommandLineTaskParser {
         List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
             String path = remainingPaths.remove(0);
-            TaskSelector.TaskSelection selection = taskSelector.getSelection(taskExecutionRequest.getProjectPath(), path);
+            TaskSelector.TaskSelection selection = taskSelector.getSelection(taskExecutionRequest.getProjectPath(), taskExecutionRequest.getRootDir(), path);
             Set<Task> tasks = selection.getTasks();
             remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
             out.add(selection);

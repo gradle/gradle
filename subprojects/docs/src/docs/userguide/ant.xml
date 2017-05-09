@@ -35,7 +35,7 @@
     </para>
 
     <para>Finally, since build scripts are Groovy scripts, you can always execute an Ant build as an external process.
-        Your build script may contain statements like:<literal>"ant clean compile".execute()</literal>.
+        Your build script may contain statements like: <literal>"ant clean compile".execute()</literal>.
         <footnote>
             <para>In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a
                 look in 'Groovy in Action' 9.3.2 or at the Groovy wiki
@@ -94,7 +94,7 @@
         </sample>
 
         <para>More information about <literal>AntBuilder</literal> can be found in 'Groovy in Action' 8.4 or at the
-            <ulink url="http://groovy.codehaus.org/Using+Ant+from+Groovy">Groovy Wiki</ulink>
+            <ulink url="http://groovy-lang.org/scripting-ant.html">Groovy Wiki</ulink>
         </para>
 
         <section id="sec:using_custom_ant_tasks">

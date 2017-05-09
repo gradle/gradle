@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
@@ -38,12 +39,13 @@ public class IncrementalCompilerDecorator {
     private final RecompilationSpecProvider staleClassDetecter;
     private final ClassSetAnalysisUpdater classSetAnalysisUpdater;
     private final CompilationSourceDirs sourceDirs;
+    private final FileCollection annotationProcessorPath;
     private final IncrementalCompilationInitializer compilationInitializer;
 
     public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, CompileCaches compileCaches,
                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
                                         RecompilationSpecProvider staleClassDetecter, ClassSetAnalysisUpdater classSetAnalysisUpdater,
-                                        CompilationSourceDirs sourceDirs) {
+                                        CompilationSourceDirs sourceDirs, FileCollection annotationProcessorPath) {
         this.jarClasspathSnapshotMaker = jarClasspathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
@@ -52,6 +54,7 @@ public class IncrementalCompilerDecorator {
         this.staleClassDetecter = staleClassDetecter;
         this.classSetAnalysisUpdater = classSetAnalysisUpdater;
         this.sourceDirs = sourceDirs;
+        this.annotationProcessorPath = annotationProcessorPath;
     }
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
@@ -66,6 +69,10 @@ public class IncrementalCompilerDecorator {
         }
         if (!sourceDirs.canInferSourceRoots()) {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
+            return cleaningCompiler;
+        }
+        if (!annotationProcessorPath.isEmpty()) {
+            LOG.lifecycle("{} - is not incremental. Annotation processors are present.", displayName);
             return cleaningCompiler;
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();

@@ -124,6 +124,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * and minimum/maximum heap size are updated.
      *
      * @param arguments The arguments. Must not be null.
+     * @since 4.0
+     */
+    void setJvmArgs(List<String> arguments);
+
+    /**
+     * Sets the extra arguments to use to launch the JVM for the process. System properties
+     * and minimum/maximum heap size are updated.
+     *
+     * @param arguments The arguments. Must not be null.
      */
     void setJvmArgs(Iterable<?> arguments);
 
@@ -208,6 +217,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
      */
     @Internal
     List<String> getAllJvmArgs();
+
+    /**
+     * Sets the full set of arguments to use to launch the JVM for the process. Overwrites any previously set system
+     * properties, minimum/maximum heap size, assertions, and bootstrap classpath.
+     *
+     * @param arguments The arguments. Must not be null.
+     * @since 4.0
+     */
+    void setAllJvmArgs(List<String> arguments);
 
     /**
      * Sets the full set of arguments to use to launch the JVM for the process. Overwrites any previously set system

@@ -23,6 +23,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
@@ -32,6 +34,7 @@ import org.gradle.process.JavaExecSpec;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * <p>This interface is implemented by all Gradle scripts to add in some Gradle-specific methods. As your compiled
@@ -151,7 +154,7 @@ public interface Script {
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as per {@link #file(Object)}.</p>
-     * 
+     *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
@@ -337,7 +340,7 @@ public interface Script {
     ExecResult exec(Action<? super ExecSpec> action);
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to control the logging level and
+     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this script. By default, System.out is redirected to the Gradle logging system
      * at the QUIET log level, and System.err is redirected at the ERROR log level.
      *
@@ -359,4 +362,27 @@ public interface Script {
      */
     ResourceHandler getResources();
 
+    /**
+     * Creates a {@code Provider} implementation based on the provided value.
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
+     * @since 4.0
+     */
+    @Incubating
+    <T> Provider<T> provider(Callable<T> value);
+
+    /**
+     * Creates a {@code PropertyState} implementation based on the provided class.
+     *
+     * @param clazz The class to be used for property state.
+     * @return The property state. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
+     * @see org.gradle.api.provider.ProviderFactory#property(Class)
+     * @since 4.0
+     */
+    @Incubating
+    <T> PropertyState<T> property(Class<T> clazz);
 }

@@ -16,10 +16,12 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
+@TestReproducibleArchives
 class JavaSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define dependencies on Java source set"() {

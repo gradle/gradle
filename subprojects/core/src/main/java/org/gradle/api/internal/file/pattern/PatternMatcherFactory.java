@@ -19,12 +19,9 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class PatternMatcherFactory {
 
-    public static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
+    private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
     private static final String PATH_SEPARATORS = "\\/";
 
     public static Spec<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
@@ -32,7 +29,7 @@ public class PatternMatcherFactory {
         return new PathMatcherBackedSpec(partialMatchDirs, pathMatcher);
     }
 
-    private static PathMatcher compile(boolean caseSensitive, String pattern) {
+    public static PathMatcher compile(boolean caseSensitive, String pattern) {
         if (pattern.length() == 0) {
             return END_OF_PATH_MATCHER;
         }
@@ -54,23 +51,25 @@ public class PatternMatcherFactory {
             pos++;
         }
         if (pos > startIndex) {
+            if (pos == parts.length) {
+                return new AnythingMatcher();
+            }
             return new GreedyPathMatcher(compile(parts, pos, caseSensitive));
         }
-        List<PatternStep> steps = new ArrayList<PatternStep>(parts.length - startIndex);
-        while (pos < parts.length && !parts[pos].equals("**")) {
-            steps.add(PatternStepFactory.getStep(parts[pos], caseSensitive));
-            pos++;
-        }
-        return new FixedStepsPathMatcher(steps, compile(parts, pos, caseSensitive));
+        return new FixedStepPathMatcher(PatternStepFactory.getStep(parts[pos], caseSensitive), compile(parts, pos + 1, caseSensitive));
     }
 
-    private static class PathMatcherBackedSpec implements Spec<RelativePath> {
+    static class PathMatcherBackedSpec implements Spec<RelativePath> {
         private final boolean partialMatchDirs;
         private final PathMatcher pathMatcher;
 
-        public PathMatcherBackedSpec(boolean partialMatchDirs, PathMatcher pathMatcher) {
+        PathMatcherBackedSpec(boolean partialMatchDirs, PathMatcher pathMatcher) {
             this.partialMatchDirs = partialMatchDirs;
             this.pathMatcher = pathMatcher;
+        }
+
+        PathMatcher getPathMatcher() {
+            return pathMatcher;
         }
 
         public boolean isSatisfiedBy(RelativePath element) {

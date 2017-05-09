@@ -26,6 +26,7 @@ import org.gradle.testing.performance.generator.*
  */
 abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     int sourceFiles = 1
+    int projectCount = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
     int filesPerPackage = 100
@@ -43,7 +44,6 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
 
     AbstractProjectGeneratorTask() {
         super()
-        setProjects(1)
     }
 
     int getTestSourceFiles() {
@@ -51,18 +51,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
     }
 
     void setProjects(int projectCount) {
-        if (projects.size() > projectCount) {
-            projects.subList(projectCount, projects.size()).clear()
-        } else {
-            while (projects.size() < projectCount) {
-                def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this, projects.size())
-                projects << project
-            }
-        }
-    }
-
-    int getProjectCount() {
-        projects.size()
+        this.projectCount = projectCount
     }
 
     void dependencyGraph(Closure configClosure) {
@@ -82,6 +71,11 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         println "  root project templates: ${rootProjectTemplates}"
         println "  project templates: ${subProjectTemplates}"
         println "  number of external dependencies: ${numberOfExternalDependencies}"
+
+        while (projects.size() < projectCount) {
+            def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this, projects.size())
+            projects << project
+        }
 
         ant.delete(dir: destDir)
         destDir.mkdirs()
@@ -106,11 +100,11 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         }
     }
 
-    List getSubprojectNames() {
+    protected List getSubprojectNames() {
         return getSubprojects().collect { it.name }
     }
 
-    TestProject getRootProject() {
+    protected TestProject getRootProject() {
         return projects[0]
     }
 
@@ -124,20 +118,16 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         return repo;
     }
 
-    List<TestProject> getSubprojects() {
+    protected List<TestProject> getSubprojects() {
         return projects.subList(1, projects.size())
     }
 
     def generateRootProject() {
-        def templates = [] + (subprojectNames.empty ? subProjectTemplates : rootProjectTemplates)
-        if (!templates.empty) {
-            templates.addAll(['measurement-plugin'])
-        }
         generateProject(rootProject,
                 subprojects: subprojectNames,
                 projectDir: destDir,
-                files: subprojectNames.empty ? [] : ['settings.gradle', 'checkstyle.xml'],
-                templates: templates,
+                files: rootProjectFiles,
+                templates: effectiveRootProjectTemplates,
                 includeSource: subprojectNames.empty)
 
         project.copy {
@@ -150,6 +140,14 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
                 into(getDestDir())
             }
         }
+    }
+
+    List<String> getEffectiveRootProjectTemplates() {
+        subprojectNames.empty ? subProjectTemplates : rootProjectTemplates
+    }
+
+    List<String> getRootProjectFiles() {
+        subprojectNames.empty ? [] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
     }
 
     def generateSubProject(TestProject testProject) {
@@ -170,7 +168,7 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
 
         def files = []
         files.addAll(args.files)
-        files.addAll(['build.gradle', 'pom.xml', 'build.xml'])
+        files.addAll(defaultProjectFiles)
         files.addAll(additionalProjectFiles)
 
         args += [
@@ -192,6 +190,10 @@ abstract class AbstractProjectGeneratorTask extends ProjectGeneratorTask {
         if (args.includeSource) {
             generateProjectSource(projectDir, testProject, args)
         }
+    }
+
+    List<String> getDefaultProjectFiles() {
+        ['build.gradle', 'settings.gradle', 'gradle.properties', 'pom.xml', 'build.xml']
     }
 
     void generateWithTemplate(File projectDir, String name, String templateName, Map templateArgs) {

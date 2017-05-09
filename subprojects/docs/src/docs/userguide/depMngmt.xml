@@ -862,7 +862,7 @@
                 </tr>
                 <tr>
                     <td><literal>s3</literal></td>
-                    <td>access key/secret key</td>
+                    <td>access key/secret key/session token or Environment variables</td>
                 </tr>
             </table>
             <para>To define a repository use the <literal>repositories</literal> configuration block. Within the <literal>repositories</literal> closure,
@@ -883,6 +883,12 @@
             </para>
             <sample id="mavenIvyS3RepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository">
                 <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository"/>
+            </sample>
+
+            <para>You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how :
+            </para>
+            <sample id="mavenIvyS3RepositoriesAuthWithIam" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository using IAM">
+                <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository-with-iam"/>
             </sample>
 
             <section id="sub:s3_configuration properties">
@@ -1155,7 +1161,7 @@ someroot/[artifact]-[revision].[ext]
             </para>
         </section>
         <section id="sec:prefer_project_modules">
-            <title>Preferring modules that are part of the your build</title>
+            <title>Preferring modules that are part of the build</title>
             <para>Preferring project modules tells Gradle to use the version of a module that is part of the build itself (as part of <xref linkend='multi_project_builds'/>
                 or as includes in <xref linkend='composite_builds'/>). This allows the easy inclusion of an individual fork (e.g. containing a bugfix) of a module - for more
                 information see <xref linkend='sub:version_conflicts'/>.

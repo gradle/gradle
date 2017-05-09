@@ -119,4 +119,36 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         def hash3 = GUtil.loadProperties(metadataFile).getProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY)
         hash3 == hash2
     }
+
+    def "not up-to-date if pluginClasspath change"() {
+        given:
+        buildFile << """
+            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
+                pluginClasspath = sourceSets.main.runtimeClasspath
+                outputDirectory = file('build/$TASK_NAME')
+            }
+        """
+        file("src/main/java/Thing.java") << "class Thing { int foo; }"
+        succeeds TASK_NAME
+
+        when:
+        // Move the source file to another location to change the plugin classpath
+        // This should cause us to regenerate the script
+        file("src/mainAlt/java/Thing.java") << "class Thing { int foo; }"
+        buildFile << """
+            sourceSets.create("mainAlt")
+
+            ${TASK_NAME}.pluginClasspath = sourceSets.mainAlt.runtimeClasspath
+        """
+        succeeds TASK_NAME
+
+        then:
+        executedAndNotSkipped(":$TASK_NAME")
+
+        and:
+        succeeds TASK_NAME
+
+        then:
+        skipped(":$TASK_NAME")
+    }
 }

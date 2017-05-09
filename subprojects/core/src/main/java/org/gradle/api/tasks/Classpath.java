@@ -27,7 +27,11 @@ import java.lang.annotation.Target;
 /**
  * <p>Marks a property as specifying a JVM classpath for a task.</p>
  *
- * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
+ * Annotations on setters or just the field in Java are ignored.</p>
+ *
+ * <p><strong>Note:</strong> to stay compatible with versions prior to Gradle 3.2, classpath
+ * properties need to be annotated with {@literal @}{@link InputFiles} as well.</p>
  *
  * @since 3.2
  */

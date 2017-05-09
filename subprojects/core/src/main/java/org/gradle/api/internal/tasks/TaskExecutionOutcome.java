@@ -20,6 +20,7 @@ public enum TaskExecutionOutcome {
     FROM_CACHE(true, true, "FROM-CACHE"),
     UP_TO_DATE(true, true, "UP-TO-DATE"),
     SKIPPED(true, false, "SKIPPED"),
+    NO_SOURCE(true, false, "NO-SOURCE"),
     EXECUTED(false, false, null);
 
     private final boolean skipped;
@@ -38,7 +39,6 @@ public enum TaskExecutionOutcome {
     public boolean isUpToDate() {
         return upToDate;
     }
-
     public String getMessage() {
         return message;
     }

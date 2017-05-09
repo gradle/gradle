@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import groovy.util.BuilderSupport;
 import groovy.util.Node;
@@ -24,6 +23,7 @@ import groovy.util.XmlParser;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import java.io.InputStream;
@@ -55,7 +55,7 @@ public class AntBuilderDelegate extends BuilderSupport {
                 String className = args.get("classname");
                 addTaskDefinition(name, className);
             } catch (ClassNotFoundException ex) {
-                throw Throwables.propagate(ex);
+                throw new RuntimeException(ex);
             }
         } else if (argNames.equals(Collections.singleton("resource"))) {
             InputStream instr = antlibClassLoader.getResourceAsStream(args.get("resource"));
@@ -68,7 +68,7 @@ public class AntBuilderDelegate extends BuilderSupport {
                     addTaskDefinition(name, className);
                 }
             } catch (Exception ex) {
-                throw Throwables.propagate(ex);
+                throw UncheckedException.throwAsUncheckedException(ex);
             } finally {
                 IOUtils.closeQuietly(instr);
             }

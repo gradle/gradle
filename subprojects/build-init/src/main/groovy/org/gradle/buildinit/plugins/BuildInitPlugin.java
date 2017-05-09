@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.buildinit.tasks.internal.TaskConfiguration;
@@ -24,11 +23,8 @@ import org.gradle.buildinit.tasks.internal.TaskConfiguration;
 /**
  * The build init plugin.
  */
-@Incubating
 public class BuildInitPlugin implements Plugin<Project> {
-
     public void apply(final Project project) {
         TaskConfiguration.createInitTask(project);
     }
-
 }

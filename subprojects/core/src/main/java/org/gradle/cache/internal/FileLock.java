@@ -51,6 +51,7 @@ public interface FileLock extends Closeable, FileAccess {
      * An immutable snapshot of the state of a lock.
      */
     interface State {
+        boolean canDetectChanges();
         boolean isInInitialState();
         boolean hasBeenUpdatedSince(State state);
     }

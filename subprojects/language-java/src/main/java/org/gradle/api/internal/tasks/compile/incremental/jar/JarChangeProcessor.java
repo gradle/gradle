@@ -34,7 +34,7 @@ public class JarChangeProcessor {
     }
 
     public void processChange(InputFileDetails input, RecompilationSpec spec) {
-        JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()), fileOperations.getFileResolver().getPatternSetFactory());
+        JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
         JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarClasspathSnapshot, previousCompilation);
         DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
         if (actualDependents.isDependencyToAll()) {

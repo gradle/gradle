@@ -18,8 +18,10 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public interface DependencyMetadata {
@@ -55,17 +57,20 @@ public interface DependencyMetadata {
      */
     ComponentSelector getSelector();
 
+    List<Exclude> getExcludes();
+
     /**
-     * Returns the exclusions to apply when traversing this dependency from the given configuration
+     * Returns a view of the excludes filtered by configurations
+     * @param configurations the configurations to be included
+     * @return matching excludes
      */
-    // TODO:ADAM - fromConfiguration should be implicit in this metadata
-    ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration);
+    List<Exclude> getExcludes(Collection<String> configurations);
 
     /**
      * Select the target configurations for this dependency from the given target component.
      */
     // TODO:ADAM - fromComponent and fromConfiguration should be implicit in this metadata
-    Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
+    Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema);
 
     /**
      * Returns the set of source configurations that this dependency should be attached to.

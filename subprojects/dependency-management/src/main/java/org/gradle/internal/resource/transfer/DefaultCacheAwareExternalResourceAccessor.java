@@ -22,10 +22,10 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
@@ -33,7 +33,11 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.*;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -57,82 +61,95 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final BuildCommencedTimeProvider timeProvider;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
-    private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
+    private final ExternalResourceCachePolicy externalResourceCachePolicy;
+    private final ProducerGuard<URI> producerGuard;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<URI> producerGuard) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cacheLockingManager = cacheLockingManager;
+        this.externalResourceCachePolicy = externalResourceCachePolicy;
+        this.producerGuard = producerGuard;
     }
 
-    public LocallyAvailableExternalResource getResource(final URI location, final ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
-        LOGGER.debug("Constructing external resource: {}", location);
-        CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
+    public LocallyAvailableExternalResource getResource(final URI location, final ResourceFileStore fileStore, @Nullable final LocallyAvailableResourceCandidates additionalCandidates) throws IOException {
+        return producerGuard.guardByKey(location, new Factory<LocallyAvailableExternalResource>() {
+            @Override
+            public LocallyAvailableExternalResource create() {
+                LOGGER.debug("Constructing external resource: {}", location);
+                CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
 
-        // If we have no caching options, just get the thing directly
-        if (cached == null && (localCandidates == null || localCandidates.isNone())) {
-            return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, false));
-        }
+                // If we have no caching options, just get the thing directly
+                if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
+                    return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, false));
+                }
 
-        // We might be able to use a cached/locally available version
-        if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
-            return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
-        }
+                // We might be able to use a cached/locally available version
+                if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
+                    return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
+                }
 
-        // We have a cached version, but it might be out of date, so we tell the upstreams to revalidate too
-        final boolean revalidate = true;
+                // We have a cached version, but it might be out of date, so we tell the upstreams to revalidate too
+                final boolean revalidate = true;
 
-        // Get the metadata first to see if it's there
-        final ExternalResourceMetaData remoteMetaData = delegate.getResourceMetaData(location, revalidate);
-        if (remoteMetaData == null) {
-            return null;
-        }
+                // Get the metadata first to see if it's there
+                final ExternalResourceMetaData remoteMetaData = delegate.getResourceMetaData(location, revalidate);
+                if (remoteMetaData == null) {
+                    return null;
+                }
 
-        // Is the cached version still current?
-        if (cached != null) {
-            boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
-                    cached.getExternalResourceMetaData(),
-                    new Factory<ExternalResourceMetaData>() {
-                        public ExternalResourceMetaData create() {
-                            return remoteMetaData;
+                // Is the cached version still current?
+                if (cached != null) {
+                    boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
+                        cached.getExternalResourceMetaData(),
+                        new Factory<ExternalResourceMetaData>() {
+                            public ExternalResourceMetaData create() {
+                                return remoteMetaData;
+                            }
                         }
-                    }
-            );
+                    );
 
-            if (isUnchanged) {
-                LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
-                // TODO - update the index with the new remote meta-data
-                return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
-            }
-        }
-
-        // Either no cached, or it's changed. See if we can find something local with the same checksum
-        boolean hasLocalCandidates = localCandidates != null && !localCandidates.isNone();
-        if (hasLocalCandidates) {
-            // The “remote” may have already given us the checksum
-            HashValue remoteChecksum = remoteMetaData.getSha1();
-
-            if (remoteChecksum == null) {
-                remoteChecksum = getResourceSha1(location, revalidate);
-            }
-
-            if (remoteChecksum != null) {
-                LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
-                if (local != null) {
-                    LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location, local.getFile());
-                    // TODO - should iterate over each candidate until we successfully copy into the cache
-                    LocallyAvailableExternalResource resource = copyCandidateToCache(location, fileStore, remoteMetaData, remoteChecksum, local);
-                    if (resource != null) {
-                        return resource;
+                    if (isUnchanged) {
+                        LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
+                        // TODO - update the index with the new remote meta-data
+                        return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
                     }
                 }
-            }
-        }
 
-        // All local/cached options failed, get directly
-        return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, revalidate));
+                // Either no cached, or it's changed. See if we can find something local with the same checksum
+                boolean hasLocalCandidates = additionalCandidates != null && !additionalCandidates.isNone();
+                if (hasLocalCandidates) {
+                    // The “remote” may have already given us the checksum
+                    HashValue remoteChecksum = remoteMetaData.getSha1();
+
+                    if (remoteChecksum == null) {
+                        remoteChecksum = getResourceSha1(location, revalidate);
+                    }
+
+                    if (remoteChecksum != null) {
+                        LocallyAvailableResource local = additionalCandidates.findByHashValue(remoteChecksum);
+                        if (local != null) {
+                            LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location, local.getFile());
+                            // TODO - should iterate over each candidate until we successfully copy into the cache
+                            LocallyAvailableExternalResource resource = null;
+                            try {
+                                resource = copyCandidateToCache(location, fileStore, remoteMetaData, remoteChecksum, local);
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
+                            if (resource != null) {
+                                return resource;
+                            }
+                        }
+                    }
+                }
+
+                // All local/cached options failed, get directly
+                return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, revalidate));
+            }
+        });
     }
 
     private HashValue getResourceSha1(URI location, boolean revalidate) {
@@ -153,7 +170,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                             throw new UncheckedIOException(e);
                         }
                     }
-                });
+                }).getResult();
             } finally {
                 resource.close();
             }
@@ -176,11 +193,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyToCache(URI source, ResourceFileStore fileStore, ExternalResource resource) {
+    private LocallyAvailableExternalResource copyToCache(final URI source, final ResourceFileStore fileStore, final ExternalResource resource) {
         if (resource == null) {
             return null;
         }
-
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             final DownloadToFileAction downloadAction = new DownloadToFileAction(destination);
@@ -204,7 +220,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     }
 
     private LocallyAvailableExternalResource moveIntoCache(final URI source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
-        return cacheLockingManager.useCache("Store " + source, new Factory<LocallyAvailableExternalResource>() {
+        return cacheLockingManager.useCache(new Factory<LocallyAvailableExternalResource>() {
             public LocallyAvailableExternalResource create() {
                 LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
                 File fileInFileStore = cachedResource.getFile();

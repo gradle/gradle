@@ -87,7 +87,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         HashCode sourceHashCode = hasher.hash(source.getResource());
         final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
         final String dslId = operation.getId();
-        final String classpathHash = dslId + classLoaderHierarchyHasher.getLenientHash(classLoader);
+        HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
+        if (classLoaderHash == null) {
+            throw new IllegalArgumentException("Unknown classloader: " + classLoader);
+        }
+        final String classpathHash = dslId + classLoaderHash;
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
@@ -101,7 +105,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             .withValidator(validator)
             .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
-                "Compiling " + source.getFileName() + " into local build cache"))
+                "Compiling " + source.getFileName() + " into local compilation cache"))
             .open();
         remappedClassesCache.close();
 

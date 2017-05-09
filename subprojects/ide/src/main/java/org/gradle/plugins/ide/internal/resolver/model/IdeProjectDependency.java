@@ -22,11 +22,6 @@ public class IdeProjectDependency extends IdeDependency {
     private final ProjectComponentIdentifier projectId;
     private final String projectName;
 
-    public IdeProjectDependency(ProjectComponentIdentifier projectId, String projectName) {
-        this.projectId = projectId;
-        this.projectName = projectName;
-    }
-
     public IdeProjectDependency(ProjectComponentIdentifier projectId) {
         this.projectId = projectId;
         this.projectName = determineProjectName(projectId);
@@ -40,9 +35,7 @@ public class IdeProjectDependency extends IdeDependency {
         return projectName;
     }
 
-    // TODO:DAZ Maybe add this to ProjectComponentIdentifier
     private static String determineProjectName(ProjectComponentIdentifier projectId) {
-        assert !projectId.getBuild().isCurrentBuild();
         String projectPath = projectId.getProjectPath();
         if (projectPath.equals(":")) {
             return projectId.getBuild().getName();

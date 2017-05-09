@@ -26,6 +26,8 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
 import java.io.File;
 import java.util.List;
@@ -175,6 +177,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     @Incubating
     @Optional

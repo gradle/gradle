@@ -56,8 +56,8 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
     }
 
     @Override
-    public boolean isResolvable() {
-        return resolvable;
+    public ResolutionState getResolutionState() {
+        return resolvable ? ResolutionState.RESOLVED : ResolutionState.FAILED;
     }
 
     @Override

@@ -17,21 +17,31 @@
 package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.*;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
-import org.gradle.jvm.internal.*;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithDependencies;
+import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.jvm.internal.resolve.DefaultVariantsMetaData;
 import org.gradle.jvm.internal.resolve.SourceSetDependencyResolvingClasspath;
+import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.jvm.internal.resolve.DefaultVariantsMetaData;
-import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -48,7 +58,6 @@ import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -62,6 +71,8 @@ import static org.gradle.util.CollectionUtils.first;
 /**
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
  * language support with the {@link JavaSourceSet}.
+ *
+ * @since 3.4
  */
 @Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
@@ -153,13 +164,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
                 compile.setDescription("Compiles " + javaSourceSet + ".");
                 compile.setDestinationDir(conventionalCompilationOutputDirFor(assembly));
-                DeprecationLogger.whileDisabled(new Runnable() {
-                    @Override
-                    @SuppressWarnings("deprecation")
-                    public void run() {
-                        compile.setDependencyCacheDir(new File(compile.getProject().getBuildDir(), "jvm-dep-cache"));
-                    }
-                });
                 compile.dependsOn(javaSourceSet);
                 compile.setSource(javaSourceSet.getSource());
 
@@ -186,7 +190,11 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 List<ResolutionAwareRepository> resolutionAwareRepositories = collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
                 ModelSchema<? extends BinarySpec> schema = schemaStore.getSchema(((BinarySpecInternal) binary).getPublicType());
                 VariantsMetaData variantsMetaData = DefaultVariantsMetaData.extractFrom(binary, schema);
-                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories);
+                AttributesSchemaInternal attributesSchema = serviceRegistry.get(AttributesSchemaInternal.class);
+                ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
+                BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
+
+                return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, variantsMetaData, resolutionAwareRepositories, attributesSchema, moduleIdentifierFactory, buildOperationExecutor);
             }
 
             private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {

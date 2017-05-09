@@ -21,32 +21,9 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with
-                        <literal>jacoco</literal>
-                        plugin
-                    </td>
+                    <td>Default with <literal>jacoco</literal> plugin</td>
                 </tr>
             </thead>
-            <tr>
-                <td>executionData</td>
-                <td/>
-            </tr>
-            <tr>
-                <td>sourceDirectories</td>
-                <td/>
-            </tr>
-            <tr>
-                <td>classDirectories</td>
-                <td/>
-            </tr>
-            <tr>
-                <td>additionalClassDirs</td>
-                <td/>
-            </tr>
-            <tr>
-                <td>additionalSourceDirs</td>
-                <td/>
-            </tr>
             <tr>
                 <td>reports</td>
                 <td/>
@@ -61,9 +38,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>executionData</td>
-            </tr>
         </table>
     </section>
 </section>

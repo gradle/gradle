@@ -18,6 +18,8 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -49,7 +51,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
 
         expect:
         metadata.toString() == 'group:module:version'
-        metadata.getConfiguration('runtime').toString() == 'group:module:version:runtime'
+        metadata.getConfiguration('runtime').toString() == 'group:module:version configuration runtime'
     }
 
     def "returns null for unknown configuration"() {
@@ -69,10 +71,15 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
 
         when:
         def md = metadata
+        def runtime = md.getConfiguration("runtime")
+        def compile = md.getConfiguration("compile")
 
         then:
-        md.getConfiguration("runtime").dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
-        md.getConfiguration("compile").dependencies*.requested*.version == ["1.2", "1.3", "1.5"]
+        runtime.dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
+        runtime.dependencies.is(runtime.dependencies)
+
+        compile.dependencies*.requested*.version == ["1.2", "1.3", "1.5"]
+        compile.dependencies.is(compile.dependencies)
     }
 
     def "builds and caches artifacts for a configuration"() {
@@ -82,10 +89,26 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         artifact("two", ["runtime"])
 
         when:
-        def artifacts = metadata.getConfiguration("runtime").artifacts
+        def runtime = metadata.getConfiguration("runtime")
 
         then:
-        artifacts*.name.name == ["one", "two"]
+        runtime.artifacts*.name.name == ["one", "two"]
+        runtime.artifacts.is(runtime.artifacts)
+    }
+
+    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
+        given:
+        configuration("runtime")
+        artifact("one", ["runtime"])
+        artifact("two", ["runtime"])
+
+        when:
+        def runtime = metadata.getConfiguration("runtime")
+
+        then:
+        runtime.variants.size() == 1
+        runtime.variants.first().attributes.empty
+        runtime.variants.first().artifacts*.name.name == ["one", "two"]
     }
 
     def "artifacts include union of those inherited from other configurations"() {
@@ -105,6 +128,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
 
     def "builds and caches exclude rules for a configuration"() {
         given:
+        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         configuration("compile")
         configuration("runtime", ["compile"])
         def rule1 = exclude("one", ["runtime"])
@@ -114,9 +138,9 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         expect:
         def config = metadata.getConfiguration("runtime")
 
-        def exclusions = config.exclusions
-        exclusions == ModuleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.exclusions)
+        def exclusions = config.getExclusions(moduleExclusions)
+        exclusions == moduleExclusions.excludeAny(rule1, rule2)
+        exclusions.is(config.getExclusions(moduleExclusions))
     }
 
     def "can make a copy with different source"() {
@@ -148,11 +172,11 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     }
 
     def artifact(String name, List<String> confs = []) {
-        moduleDescriptor.addArtifact(DefaultIvyArtifactName.of(name, "type", "ext", "classifier"), confs as Set<String>)
+        moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
     }
 
     def exclude(String name, List<String> confs = []) {
-        def exclude = new DefaultExclude("group", name, confs as String[], "exact")
+        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", name), confs as String[], "exact")
         moduleDescriptor.addExclude(exclude)
         exclude
     }

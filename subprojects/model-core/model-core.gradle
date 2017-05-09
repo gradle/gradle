@@ -17,27 +17,26 @@
 /*
  * The model management core.
  */
-apply plugin: 'groovy'
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    compile libraries.slf4j_api
-    compile project(':baseServices')
-    compile project(':baseServicesGroovy')
-    compile libraries.groovy
-    compile libraries.guava
-    compile libraries.commons_lang
-    compile libraries.jcip
-    compile libraries.asm
+    api project(':baseServices')
+    api libraries.groovy
 
-    testCompile libraries.groovy
+    implementation project(':baseServicesGroovy')
+    implementation libraries.slf4j_api
+    implementation libraries.guava
+    implementation libraries.commons_lang
+    implementation libraries.jcip
+    implementation libraries.asm
 
-    integTestCompile project(':core')
-    integTestRuntime project(':plugins')
+    integTestImplementation project(':core')
+    integTestRuntimeOnly project(':plugins')
 
-    testFixturesCompile project(':internalTesting')
-    testFixturesCompile project(':core')
+    testFixturesImplementation project(':internalTesting')
+    testFixturesImplementation project(':core')
 }
 
 useTestFixtures()

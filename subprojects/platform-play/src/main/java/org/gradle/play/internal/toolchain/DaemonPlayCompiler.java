@@ -17,11 +17,11 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.workers.internal.DaemonForkOptions;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Collections;
@@ -30,8 +30,8 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
     private final Iterable<File> compilerClasspath;
     private final Iterable<String> classLoaderPackages;
 
-    public DaemonPlayCompiler(File projectDir, Compiler<T> compiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages) {
-        super(projectDir, compiler, compilerDaemonFactory);
+    public DaemonPlayCompiler(File projectDir, Compiler<T> compiler, WorkerDaemonFactory workerDaemonFactory, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages) {
+        super(projectDir, compiler, workerDaemonFactory);
         this.compilerClasspath = compilerClasspath;
         this.classLoaderPackages = classLoaderPackages;
     }

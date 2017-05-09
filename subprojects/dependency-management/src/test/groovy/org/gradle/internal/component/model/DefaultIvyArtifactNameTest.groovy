@@ -23,7 +23,7 @@ import spock.lang.Specification
 class DefaultIvyArtifactNameTest extends Specification {
     def "has useful string representation"() {
         expect:
-        def name = DefaultIvyArtifactName.of("name", "type", "ext", "classifier")
+        def name = new DefaultIvyArtifactName("name", "type", "ext", "classifier")
         name.toString() == "name-classifier.ext"
 
         where:
@@ -35,12 +35,12 @@ class DefaultIvyArtifactNameTest extends Specification {
     }
 
     def "is equal when all fields are equal"() {
-        def name = DefaultIvyArtifactName.of("name", "type", "ext", 'classifier')
-        def same = DefaultIvyArtifactName.of("name", "type", "ext", 'classifier')
-        def differentName = DefaultIvyArtifactName.of("other", "type", "ext", 'classifier')
-        def differentType = DefaultIvyArtifactName.of("name", "other", "ext", 'classifier')
-        def differentExt = DefaultIvyArtifactName.of("name", "type", "other", 'classifier')
-        def differentAttr = DefaultIvyArtifactName.of("name", "type", "ext", 'other')
+        def name = new DefaultIvyArtifactName("name", "type", "ext", 'classifier')
+        def same = new DefaultIvyArtifactName("name", "type", "ext", 'classifier')
+        def differentName = new DefaultIvyArtifactName("other", "type", "ext", 'classifier')
+        def differentType = new DefaultIvyArtifactName("name", "other", "ext", 'classifier')
+        def differentExt = new DefaultIvyArtifactName("name", "type", "other", 'classifier')
+        def differentAttr = new DefaultIvyArtifactName("name", "type", "ext", 'other')
 
         expect:
         name Matchers.strictlyEqual(same)

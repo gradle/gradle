@@ -22,6 +22,7 @@ import org.gradle.tooling.events.OperationType;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -173,6 +174,21 @@ public interface LongRunningOperation {
      * @since 2.6
      */
     LongRunningOperation withArguments(@Nullable Iterable<String> arguments);
+
+    /**
+     * Specifies the environment variables to use for this operation.
+     * <p>
+     * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.
+     * If you want to get hold of this information you can ask tooling API to build this model.
+     * <p>
+     * If not configured or null is passed, then the reasonable default will be used.
+     *
+     * @param envVariables environment variables
+     * @return this
+     * @since 3.5
+     */
+    @Incubating
+    LongRunningOperation setEnvironmentVariables(@Nullable Map<String, String> envVariables);
 
     /**
      * Adds a progress listener which will receive progress events as the operation runs.

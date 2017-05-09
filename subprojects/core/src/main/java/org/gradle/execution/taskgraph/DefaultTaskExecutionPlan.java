@@ -20,26 +20,27 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Nullable;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -50,6 +51,11 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 
@@ -71,52 +77,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
 
 /**
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
  * methods.
  */
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
-
-    public static final String INTRA_PROJECT_TOGGLE = "org.gradle.parallel.intra";
-
     private final static Logger LOGGER = Logging.getLogger(DefaultTaskExecutionPlan.class);
 
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
+    private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
     private final BuildCancellationToken cancellationToken;
-    private final Multiset<String> projectsWithRunningTasks = HashMultiset.create();
-    private final Multiset<String> projectsWithRunningNonParallelizableTasks = HashMultiset.create();
     private final Set<TaskInternal> runningTasks = Sets.newIdentityHashSet();
+    private final Set<Task> filteredTasks = Sets.newIdentityHashSet();
     private final Map<Task, Set<String>> canonicalizedOutputCache = Maps.newIdentityHashMap();
-    private final Map<Task, Boolean> isParallelSafeCache = Maps.newIdentityHashMap();
+    private final ResourceLockCoordinationService coordinationService;
+    private final WorkerLeaseService workerLeaseService;
     private boolean tasksCancelled;
 
-    private final boolean intraProjectParallelization;
-
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, boolean intraProjectParallelization) {
+    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService) {
         this.cancellationToken = cancellationToken;
-        this.intraProjectParallelization = intraProjectParallelization;
-
-        if (intraProjectParallelization) {
-            LOGGER.info("intra project task parallelization is enabled");
-        }
-    }
-
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken) {
-        this(cancellationToken, Boolean.getBoolean(INTRA_PROJECT_TOGGLE));
+        this.coordinationService = coordinationService;
+        this.workerLeaseService = workerLeaseService;
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
@@ -153,6 +148,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 queue.remove(0);
                 node.dependenciesProcessed();
                 node.doNotRequire();
+                filteredTasks.add(task);
                 continue;
             }
 
@@ -322,6 +318,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 visitingNodes.remove(taskNode, currentSegment);
                 path.pop();
                 executionPlan.put(taskNode.getTask(), taskNode);
+                Project project = taskNode.getTask().getProject();
+                projectLocks.put(project, getOrCreateProjectLock(project));
                 // Add any finalizers to the queue
                 ArrayList<TaskInfo> finalizerTasks = new ArrayList<TaskInfo>();
                 addAllReversed(finalizerTasks, taskNode.getFinalizers());
@@ -334,6 +332,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
         executionQueue.clear();
         executionQueue.addAll(executionPlan.values());
+
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
@@ -471,25 +470,29 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void clear() {
-        lock.lock();
-        try {
-            graph.clear();
-            entryTasks.clear();
-            executionPlan.clear();
-            executionQueue.clear();
-            failures.clear();
-            projectsWithRunningTasks.clear();
-            projectsWithRunningNonParallelizableTasks.clear();
-            canonicalizedOutputCache.clear();
-            isParallelSafeCache.clear();
-            runningTasks.clear();
-        } finally {
-            lock.unlock();
-        }
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                graph.clear();
+                entryTasks.clear();
+                executionPlan.clear();
+                executionQueue.clear();
+                projectLocks.clear();
+                failures.clear();
+                canonicalizedOutputCache.clear();
+                runningTasks.clear();
+                return FINISHED;
+            }
+        });
     }
 
     public List<Task> getTasks() {
         return new ArrayList<Task>(executionPlan.keySet());
+    }
+
+    @Override
+    public Set<Task> getFilteredTasks() {
+        return filteredTasks;
     }
 
     public void useFilter(Spec<? super Task> filter) {
@@ -500,65 +503,114 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureHandler = handler;
     }
 
-    public TaskInfo getTaskToExecute() {
-        lock.lock();
-        try {
-            while (true) {
+    @Override
+    public boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInfo> taskExecution) {
+        final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
+        final AtomicBoolean workRemaining = new AtomicBoolean();
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 if (cancellationToken.isCancellationRequested()) {
                     if (abortExecution()) {
                         tasksCancelled = true;
                     }
                 }
-                TaskInfo nextMatching = null;
-                boolean allTasksComplete = true;
-                Iterator<TaskInfo> iterator = executionQueue.iterator();
-                while (iterator.hasNext()) {
-                    TaskInfo taskInfo = iterator.next();
-                    allTasksComplete = allTasksComplete && taskInfo.isComplete();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
-                        nextMatching = taskInfo;
-                        iterator.remove();
-                        break;
-                    }
+
+                workRemaining.set(workRemaining());
+                if (!workRemaining.get()) {
+                    return FINISHED;
                 }
-                if (allTasksComplete) {
-                    return null;
+
+                if (allProjectsLocked()) {
+                    return RETRY;
                 }
-                if (nextMatching == null) {
-                    try {
-                        condition.await();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+
+                selected.set(selectNextTask(workerLease));
+
+                if (selected.get() == null && workRemaining.get()) {
+                    return RETRY;
                 } else {
-                    if (nextMatching.allDependenciesSuccessful()) {
-                        nextMatching.startExecution();
-                        recordTaskStarted(nextMatching);
-                        return nextMatching;
-                    } else {
-                        nextMatching.skipExecution();
-                        condition.signalAll();
-                    }
+                    return FINISHED;
                 }
             }
+        });
+
+
+        TaskInfo selectedTask = selected.get();
+        execute(selectedTask, workerLease, taskExecution);
+        return workRemaining.get();
+    }
+
+    private TaskInfo selectNextTask(final WorkerLease workerLease) {
+        final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
+        final Iterator<TaskInfo> iterator = executionQueue.iterator();
+        while (iterator.hasNext()) {
+            final TaskInfo taskInfo = iterator.next();
+            if (taskInfo.isReady() && taskInfo.allDependenciesComplete()) {
+                coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                    @Override
+                    public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                        ResourceLock projectLock = getProjectLock(taskInfo);
+                        // TODO: convert output file checks to a resource lock
+                        if (!projectLock.tryLock() || !workerLease.tryLock() || !canRunWithCurrentlyExecutedTasks(taskInfo)) {
+                            return FAILED;
+                        }
+
+                        selected.set(taskInfo);
+                        iterator.remove();
+                        if (taskInfo.allDependenciesSuccessful()) {
+                            taskInfo.startExecution();
+                            recordTaskStarted(taskInfo);
+                        } else {
+                            taskInfo.skipExecution();
+                        }
+                        return FINISHED;
+                    }
+                });
+
+                if (selected.get() != null) {
+                    break;
+                }
+            }
+        }
+        return selected.get();
+    }
+
+    private void execute(TaskInfo selectedTask, WorkerLease workerLease, Action<TaskInfo> taskExecution) {
+        if (selectedTask == null) {
+            return;
+        }
+        try {
+            if (!selectedTask.isComplete()) {
+                taskExecution.execute(selectedTask);
+            }
         } finally {
-            lock.unlock();
+            coordinationService.withStateLock(unlock(workerLease, getProjectLock(selectedTask)));
         }
     }
 
-    private boolean canRunWithWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
-        TaskInternal task = taskInfo.getTask();
-        String projectPath = task.getProject().getPath();
-
-        if (isParallelizable(task)) {
-            if (projectsWithRunningNonParallelizableTasks.contains(projectPath)) {
-                return false;
-            }
-        } else {
-            if (projectsWithRunningTasks.contains(projectPath)) {
+    private boolean allProjectsLocked() {
+        for (ResourceLock lock : projectLocks.values()) {
+            if (!lock.isLocked()) {
                 return false;
             }
         }
+        return true;
+    }
+
+    private ResourceLock getProjectLock(TaskInfo taskInfo) {
+        return projectLocks.get(taskInfo.getTask().getProject());
+    }
+
+    private ResourceLock getOrCreateProjectLock(Project project) {
+        String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
+        String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
+        return workerLeaseService.getProjectLock(gradlePath, projectPath);
+    }
+
+
+    private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
+        TaskInternal task = taskInfo.getTask();
 
         Pair<TaskInternal, String> overlap = firstTaskWithOverlappingOutput(task);
         if (overlap == null) {
@@ -628,68 +680,31 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return longer.startsWith(shorter + StandardSystemProperty.FILE_SEPARATOR.value());
     }
 
-    boolean isParallelizable(TaskInternal task) {
-        if (intraProjectParallelization) {
-            Boolean safe = isParallelSafeCache.get(task);
-            if (safe == null) {
-                safe = detectIsParallelizable(task);
-                isParallelSafeCache.put(task, safe);
-            }
-
-            return safe;
-        }
-
-        return false;
-    }
-
-    private boolean detectIsParallelizable(TaskInternal task) {
-        if (task.getClass().isAnnotationPresent(ParallelizableTask.class)) {
-            if (task.isHasCustomActions()) {
-                LOGGER.info("Unable to parallelize task {} due to presence of custom actions (e.g. doFirst()/doLast())", task.getPath());
-            } else {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private void recordTaskStarted(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
-        String projectPath = task.getProject().getPath();
-        if (!isParallelizable(task)) {
-            projectsWithRunningNonParallelizableTasks.add(projectPath);
-        }
-        projectsWithRunningTasks.add(projectPath);
         runningTasks.add(task);
     }
 
     private void recordTaskCompleted(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
-        String projectPath = task.getProject().getPath();
-        if (!isParallelizable(task)) {
-            projectsWithRunningNonParallelizableTasks.remove(projectPath);
-        }
-        projectsWithRunningTasks.remove(projectPath);
         canonicalizedOutputCache.remove(task);
-        isParallelSafeCache.remove(task);
         runningTasks.remove(task);
     }
 
-    public void taskComplete(TaskInfo taskInfo) {
-        lock.lock();
-        try {
-            enforceFinalizerTasks(taskInfo);
-            if (taskInfo.isFailed()) {
-                handleFailure(taskInfo);
-            }
+    public void taskComplete(final TaskInfo taskInfo) {
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                enforceFinalizerTasks(taskInfo);
+                if (taskInfo.isFailed()) {
+                    handleFailure(taskInfo);
+                }
 
-            taskInfo.finishExecution();
-            recordTaskCompleted(taskInfo);
-            condition.signalAll();
-        } finally {
-            lock.unlock();
-        }
+                taskInfo.finishExecution();
+                recordTaskCompleted(taskInfo);
+                return FINISHED;
+            }
+        });
     }
 
     private void enforceFinalizerTasks(TaskInfo taskInfo) {
@@ -700,18 +715,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void enforceWithDependencies(TaskInfo node, Set<TaskInfo> enforcedTasks) {
-        if (enforcedTasks.contains(node)) {
-            return;
-        }
+    private void enforceWithDependencies(TaskInfo nodeInfo, Set<TaskInfo> enforcedTasks) {
+        Deque<TaskInfo> candidateNodes = new ArrayDeque<TaskInfo>();
+        candidateNodes.add(nodeInfo);
 
-        enforcedTasks.add(node);
+        while (!candidateNodes.isEmpty()) {
+            TaskInfo node = candidateNodes.pop();
+            if (!enforcedTasks.contains(node)) {
+                enforcedTasks.add(node);
 
-        for (TaskInfo dependencyNode : node.getDependencySuccessors()) {
-            enforceWithDependencies(dependencyNode, enforcedTasks);
-        }
-        if (node.isMustNotRun() || node.isRequired()) {
-            node.enforceRun();
+                candidateNodes.addAll(node.getDependencySuccessors());
+
+                if (node.isMustNotRun() || node.isRequired()) {
+                    node.enforceRun();
+                }
+            }
         }
     }
 
@@ -748,19 +766,17 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void awaitCompletion() {
-        lock.lock();
-        try {
-            while (!allTasksComplete()) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                if (allTasksComplete()) {
+                    rethrowFailures();
+                    return FINISHED;
+                } else {
+                    return RETRY;
                 }
             }
-            rethrowFailures();
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
     private void rethrowFailures() {
@@ -785,6 +801,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
         return true;
+    }
+
+    private boolean workRemaining() {
+        for (TaskInfo taskInfo : executionQueue) {
+            if (!taskInfo.isComplete()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class GraphEdge {

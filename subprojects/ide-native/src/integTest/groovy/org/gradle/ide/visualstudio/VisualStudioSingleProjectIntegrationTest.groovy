@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.*
+import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
@@ -57,6 +58,38 @@ model {
     }
 }
 """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/790")
+    def "creating visual studio multiple time gives the same result"() {
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+"""
+        when:
+        run "mainVisualStudio"
+        def filtersFileContent = filtersFile("mainExe.vcxproj.filters").file.text
+        def projectFileContent = projectFile("mainExe.vcxproj").projectFile.text
+        def solutionFileContent = solutionFile("mainExe.sln").file.text
+
+        then:
+        executedAndNotSkipped ":mainExeVisualStudio"
+
+        when:
+        run "mainVisualStudio"
+
+        then:
+        executedAndNotSkipped ":mainExeVisualStudio"
+
+        and:
+        filtersFile("mainExe.vcxproj.filters").file.text == filtersFileContent
+        projectFile("mainExe.vcxproj").projectFile.text == projectFileContent
+        solutionFile("mainExe.sln").file.text == solutionFileContent
     }
 
     def "create visual studio solution for single executable"() {

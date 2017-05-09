@@ -17,10 +17,16 @@ package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 
 public abstract class AbstractPublishArtifact implements PublishArtifact {
     private final DefaultTaskDependency taskDependency;
+
+    public AbstractPublishArtifact(TaskResolver resolver, Object... tasks) {
+        taskDependency = new DefaultTaskDependency(resolver);
+        taskDependency.add(tasks);
+    }
 
     public AbstractPublishArtifact(Object... tasks) {
         taskDependency = new DefaultTaskDependency();

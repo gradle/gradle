@@ -37,6 +37,10 @@ public class FluidDependenciesResolveRunner extends AbstractMultiTestRunner {
         add(new ResolveDependencyGraphExecution(false))
     }
 
+    public static isFluid() {
+        return System.getProperty(ASSUME_FLUID_DEPENDENCIES) == "true"
+    }
+
     private class ResolveDependencyGraphExecution extends AbstractMultiTestRunner.Execution {
         final boolean assumeFluidDependencies
 

@@ -39,10 +39,6 @@ import java.util.Locale;
  * @param <T> The type which this option represents.
  */
 public class EnumJavadocOptionFileOption<T> extends AbstractJavadocOptionFileOption<T> {
-    public EnumJavadocOptionFileOption(String option) {
-        super(option);
-    }
-
     public EnumJavadocOptionFileOption(String option, T value) {
         super(option, value);
     }
@@ -53,5 +49,10 @@ public class EnumJavadocOptionFileOption<T> extends AbstractJavadocOptionFileOpt
             // See https://issues.gradle.org/browse/GRADLE-3470
             writerContext.writeOption(value.toString().toLowerCase(Locale.ENGLISH));
         }
+    }
+
+    @Override
+    public EnumJavadocOptionFileOption<T> duplicate() {
+        return new EnumJavadocOptionFileOption<T>(option, value);
     }
 }

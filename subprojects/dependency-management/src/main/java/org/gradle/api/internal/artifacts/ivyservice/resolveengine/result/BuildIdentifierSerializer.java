@@ -18,18 +18,18 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class BuildIdentifierSerializer implements Serializer<BuildIdentifier> {
+public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifier> {
     @Override
     public BuildIdentifier read(Decoder decoder) throws IOException {
         String buildName = decoder.readString();
         boolean current = decoder.readBoolean();
-        return DefaultBuildIdentifier.of(buildName, current);
+        return new DefaultBuildIdentifier(buildName, current);
     }
 
     @Override

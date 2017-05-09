@@ -34,7 +34,7 @@ class CopyFileVisitorImplTest extends Specification {
     FileVisitor copyFileVisitorImpl
 
     def setup() {
-        copyFileVisitorImpl = new CopyFileVisitorImpl(specResolver, action, instantiator, fileSystem)
+        copyFileVisitorImpl = new CopyFileVisitorImpl(specResolver, action, instantiator, fileSystem, false)
     }
 
     def "visit directory"() {

@@ -19,6 +19,7 @@ package org.gradle;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -41,4 +42,13 @@ public interface TaskExecutionRequest {
      * @return project path or {@code null} to use the default project path.
      */
     @Nullable String getProjectPath();
+
+    /**
+     * The root folder of the build that this task was defined in.
+     *
+     * @return the root project folder or {@code null} if the information is not available.
+     * @since 3.3
+     */
+    @Nullable
+    File getRootDir();
 }

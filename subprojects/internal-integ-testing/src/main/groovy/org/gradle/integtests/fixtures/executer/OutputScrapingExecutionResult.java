@@ -36,8 +36,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
@@ -48,10 +47,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private static final String TASK_LOGGER_DEBUG_PATTERN = "(?:.*\\s+\\[LIFECYCLE\\]\\s+\\[class org\\.gradle\\.TaskExecutionLogger\\]\\s+)?";
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
-    private final Pattern skippedTaskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(FROM-CACHE))");
+    private final Pattern skippedTaskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(NO-SOURCE)|(FROM-CACHE))");
 
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
-    private final Pattern taskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+FAILED)|(\\s*))");
+    private final Pattern taskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+NO-SOURCE)|(\\s+FAILED)|(\\s*))");
+
+    private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
 
     public OutputScrapingExecutionResult(String output, String error) {
         this.output = TextUtil.normaliseLineSeparators(output);
@@ -84,8 +85,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
                 // Remove the "Daemon will be shut down" message
                 i++;
-            } else if (i == lines.size() - 1 && line.matches("Total time: [\\d\\.]+ secs")) {
-                result.append("Total time: 1 secs");
+            } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
+                result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 result.append('\n');
                 i++;
             } else {
@@ -118,9 +119,23 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return grepTasks(taskPattern);
     }
 
+    public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
+        Set<String> allTasks = TaskOrderSpecs.exact(taskPaths).getTasks();
+        assertTasksExecuted(allTasks.toArray(new String[]{}));
+        assertTaskOrder(taskPaths);
+        return this;
+    }
+
+    @Override
     public ExecutionResult assertTasksExecuted(String... taskPaths) {
         List<String> expectedTasks = Arrays.asList(taskPaths);
-        assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), equalTo(expectedTasks));
+        assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), containsInAnyOrder(taskPaths));
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTaskOrder(Object... taskPaths) {
+        TaskOrderSpecs.exact(taskPaths).assertMatches(-1, getExecutedTasks());
         return this;
     }
 
@@ -167,7 +182,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 java.util.regex.Matcher matcher = pattern.matcher(s);
                 if (matcher.matches()) {
                     String taskName = matcher.group(1);
-                    if (!taskName.startsWith(":buildSrc:")) {
+                    if (!taskName.contains(":buildSrc:")) {
                         //for INFO/DEBUG level the task may appear twice - once for the execution, once for the UP-TO-DATE
                         //so I'm not adding the task to the list if it is the same as previously added task.
                         if (tasks.size() == 0 || !tasks.getLast().equals(taskName)) {

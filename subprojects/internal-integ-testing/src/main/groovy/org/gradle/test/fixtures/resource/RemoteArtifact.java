@@ -16,7 +16,9 @@
 
 package org.gradle.test.fixtures.resource;
 
-public interface RemoteArtifact extends RemoteResource {
+import org.gradle.test.fixtures.ModuleArtifact;
+
+public interface RemoteArtifact extends RemoteResource, ModuleArtifact {
     RemoteResource getMd5();
 
     RemoteResource getSha1();

@@ -16,53 +16,32 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK;
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG;
-
-public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JavaLibraryProjectInitDescriptor.class);
+public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
+    private final static Description DESCRIPTION = new Description(
+        "Java Library",
+        "Java Libraries",
+        "java_library_plugin",
+        "java-library"
+    );
 
     public JavaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                             FileResolver fileResolver,
                                             TemplateLibraryVersionProvider libraryVersionProvider,
-                                            ProjectInitDescriptor globalSettingsDescriptor) {
-        super("java", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+                                            ProjectInitDescriptor globalSettingsDescriptor,
+                                            DocumentationRegistry documentationRegistry) {
+        super(templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor, documentationRegistry);
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
-        templateOperationFactory.newTemplateOperation()
-            .withTemplate(gradleBuildTemplate(testFramework))
-            .withTarget("build.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial", "tutorial_java_projects"))
-            .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
-            .withBindings(GUtil.map("slf4jVersion", libraryVersionProvider.getVersion("slf4j")))
-            .withBindings(GUtil.map("groovyVersion", libraryVersionProvider.getVersion("groovy")))
-            .withBindings(GUtil.map("spockVersion", libraryVersionProvider.getVersion("spock")))
-            .withBindings(GUtil.map("testngVersion", libraryVersionProvider.getVersion("testng")))
-            .create().generate();
-        TemplateOperation javalibraryTemplateOperation = fromClazzTemplate("javalibrary/Library.java.template", "main");
-        whenNoSourcesAvailable(javalibraryTemplateOperation, testTemplateOperation(testFramework)).generate();
+    protected TemplateOperation sourceTemplateOperation() {
+        return fromClazzTemplate("javalibrary/Library.java.template", "main");
     }
 
-    private String gradleBuildTemplate(BuildInitTestFramework testFramework) {
-        switch (testFramework) {
-            case SPOCK:
-                return "javalibrary/spock-build.gradle.template";
-            case TESTNG:
-                return "javalibrary/testng-build.gradle.template";
-            default:
-                return "javalibrary/build.gradle.template";
-        }
-    }
-
-    private TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
+    @Override
+    protected TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
         switch (testFramework) {
             case SPOCK:
                 return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test", "groovy");
@@ -74,7 +53,22 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return testFramework == SPOCK || testFramework == TESTNG;
+    protected Description getDescription() {
+        return DESCRIPTION;
+    }
+
+    @Override
+    protected String getImplementationConfigurationName() {
+        return "implementation";
+    }
+
+    @Override
+    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder.dependency(
+            "api",
+            "This dependency is exported to consumers, that is to say found on their compile classpath.",
+            "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
+        buildScriptBuilder.dependency(getImplementationConfigurationName(), "This dependency is used internally, and not exposed to consumers on their own compile classpath.",
+            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 }

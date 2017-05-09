@@ -139,7 +139,7 @@ model {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
-        failure.assertHasCause('''Type MyPlugin$Rules is not a valid rule source:
+        failure.assertHasCause('''Type MyPlugin.Rules is not a valid rule source:
 - Enclosed classes must be static and non private
 - Cannot declare a constructor that takes arguments''')
     }

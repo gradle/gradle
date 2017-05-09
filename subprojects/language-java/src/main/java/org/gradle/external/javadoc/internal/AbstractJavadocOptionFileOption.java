@@ -16,20 +16,14 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.external.javadoc.JavadocOptionFileOption;
-
 /**
  * A base class for {@link org.gradle.external.javadoc.JavadocOptionFileOption} implementations.
  *
  * @param <T> The type which this option represents.
  */
-public abstract class AbstractJavadocOptionFileOption<T> implements JavadocOptionFileOption<T> {
+public abstract class AbstractJavadocOptionFileOption<T> implements JavadocOptionFileOptionInternal<T> {
     protected final String option;
     protected T value;
-
-    protected AbstractJavadocOptionFileOption(String option) {
-        this(option, null);
-    }
 
     protected AbstractJavadocOptionFileOption(String option, T value) {
         if (option == null) {
@@ -54,4 +48,7 @@ public abstract class AbstractJavadocOptionFileOption<T> implements JavadocOptio
     public void setValue(T value) {
         this.value = value;
     }
+
+    @Override
+    public abstract JavadocOptionFileOptionInternal<T> duplicate();
 }

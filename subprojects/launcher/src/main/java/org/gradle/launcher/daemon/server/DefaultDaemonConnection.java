@@ -145,6 +145,11 @@ public class DefaultDaemonConnection implements DaemonConnection {
         CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue, cancelQueue).stop();
     }
 
+    @Override
+    public String toString() {
+        return "DefaultDaemonConnection: " + connection;
+    }
+
     private static abstract class CommandQueue<C extends Message, H> implements Stoppable {
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();

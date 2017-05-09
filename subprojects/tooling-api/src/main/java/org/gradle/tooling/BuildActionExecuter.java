@@ -28,6 +28,30 @@ import org.gradle.api.Incubating;
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
 
     /**
+     * Specifies the tasks to execute before executing the BuildAction.
+     *
+     * If not configured, null, or an empty array is passed, then no tasks will be executed.
+     *
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @return this
+     * @since 3.5
+     */
+    @Incubating
+    BuildActionExecuter<T> forTasks(String... tasks);
+
+    /**
+     * Specifies the tasks to execute before executing the BuildAction.
+     *
+     * If not configured, null, or an empty array is passed, then no tasks will be executed.
+     *
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @return this
+     * @since 3.5
+     */
+    @Incubating
+    BuildActionExecuter<T> forTasks(Iterable<String> tasks);
+
+    /**
      * Runs the action, blocking until its result is available.
      *
      * @throws UnsupportedVersionException When the target Gradle version does not support build action execution.

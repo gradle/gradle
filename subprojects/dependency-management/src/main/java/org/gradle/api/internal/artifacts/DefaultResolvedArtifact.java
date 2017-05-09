@@ -15,33 +15,49 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
+import org.gradle.api.Buildable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class DefaultResolvedArtifact implements ResolvedArtifact {
-    private static final Interner<File> ARTIFACT_FILE_INTERNER = Interners.newWeakInterner();
-    private final ResolvedModuleVersion owner;
+public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable {
+    private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
-    private Factory<File> artifactSource;
-    private File file;
+    private final TaskDependency buildDependencies;
+    private volatile Factory<File> artifactSource;
+    private volatile File file;
 
-    public DefaultResolvedArtifact(ResolvedModuleVersion owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, Factory<File> artifactSource) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, Factory<File> artifactSource) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
+        this.buildDependencies = buildDependencies;
         this.artifactSource = artifactSource;
     }
 
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, File artifactFile) {
+        this.owner = owner;
+        this.artifact = artifact;
+        this.artifactId = artifactId;
+        this.buildDependencies = buildDependencies;
+        this.file = artifactFile;
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
+    }
+
     public ResolvedModuleVersion getModuleVersion() {
-        return owner;
+        return new DefaultResolvedModuleVersion(owner);
     }
 
     @Override
@@ -51,7 +67,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     @Override
     public String toString() {
-        return String.format("[ResolvedArtifact dependency:%s name:%s classifier:%s extension:%s type:%s]", owner, getName(), getClassifier(), getExtension(), getType());
+        return artifactId.getDisplayName();
     }
 
     @Override
@@ -63,13 +79,12 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
             return false;
         }
         DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
-        return other.owner.getId().equals(owner.getId())
-                && other.artifactId.equals(artifactId);
+        return other.owner.equals(owner) && other.artifactId.equals(artifactId);
     }
 
     @Override
     public int hashCode() {
-        return owner.getId().hashCode() ^ artifactId.hashCode();
+        return owner.hashCode() ^ artifactId.hashCode();
     }
 
     public String getName() {
@@ -90,8 +105,11 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     public File getFile() {
         if (file == null) {
-            file = artifactSource.create();
-            file = ARTIFACT_FILE_INTERNER.intern(file);
+            synchronized (this) {
+                if (file == null) {
+                    file = artifactSource.create();
+                }
+            }
             artifactSource = null;
         }
         return file;

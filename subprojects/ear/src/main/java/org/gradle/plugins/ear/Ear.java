@@ -24,7 +24,6 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -36,16 +35,18 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.concurrent.Callable;
 
+import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
+
 /**
  * Assembles an EAR archive.
  */
-@CacheableTask
 public class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 
@@ -58,7 +59,7 @@ public class Ear extends Jar {
         setMetadataCharset("UTF-8");
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(new Callable<String>() {
             public String call() {
-                return getLibDirName();
+                return GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME);
             }
         });
         getMainSpec().appendCachingSafeCopyAction(
@@ -105,7 +106,7 @@ public class Ear extends Jar {
             public FileTreeAdapter call() {
                 final DeploymentDescriptor descriptor = getDeploymentDescriptor();
                 if (descriptor != null) {
-                    MapFileTree descriptorSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem());
+                    MapFileTree descriptorSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem(), getDirectoryFileTreeFactory());
                     if (descriptor.getLibraryDirectory() == null) {
                         descriptor.setLibraryDirectory(getLibDirName());
                     }
@@ -138,12 +139,29 @@ public class Ear extends Jar {
      * @return This.
      */
     public Ear deploymentDescriptor(@DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
+        return this;
+    }
+
+    /**
+     * Configures the deployment descriptor for this EAR archive.
+     *
+     * <p>The given action is executed to configure the deployment descriptor.</p>
+     *
+     * @param configureAction The action.
+     * @return This.
+     * @since 3.5
+     */
+    public Ear deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
+        configureAction.execute(forceDeploymentDescriptor());
+        return this;
+    }
+
+    private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
             deploymentDescriptor = getInstantiator().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getInstantiator());
         }
-
-        ConfigureUtil.configure(configureClosure, deploymentDescriptor);
-        return this;
+        return deploymentDescriptor;
     }
 
     /**
@@ -164,6 +182,21 @@ public class Ear extends Jar {
      */
     public CopySpec lib(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getLib());
+    }
+
+    /**
+     * Adds dependency libraries to include in the 'lib' directory of the EAR archive.
+     *
+     * <p>The given action is executed to configure a {@code CopySpec}.</p>
+     *
+     * @param configureAction The action.
+     * @return The created {@code CopySpec}
+     * @since 3.5
+     */
+    public CopySpec lib(Action<? super CopySpec> configureAction) {
+        CopySpec copySpec = getLib();
+        configureAction.execute(copySpec);
+        return copySpec;
     }
 
     /**

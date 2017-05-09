@@ -15,10 +15,11 @@
  */
 
 package org.gradle.integtests.resolve.http
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -49,11 +50,11 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         server.authenticationAttempts.asList() == authenticationAttempts
 
         where:
-        useAuth | authScheme                   | authSchemeName | authenticationAttempts
-        false   | null                         | 'no'           | ['None']
-        true    | HttpServer.AuthScheme.BASIC  | 'basic'        | ['None', 'Basic']
-        true    | HttpServer.AuthScheme.DIGEST | 'digest'       | ['None', 'Digest']
-        true    | HttpServer.AuthScheme.NTLM   | 'ntlm'         | ['None', 'NTLM']
+        useAuth | authScheme        | authSchemeName | authenticationAttempts
+        false   | null              | 'no'           | ['None']
+        true    | AuthScheme.BASIC  | 'basic'        | ['None', 'Basic']
+        true    | AuthScheme.DIGEST | 'digest'       | ['None', 'Digest']
+        true    | AuthScheme.NTLM   | 'ntlm'         | ['None', 'NTLM']
     }
 
     def "resolve with server and client certificate"() {

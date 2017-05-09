@@ -53,12 +53,16 @@ public class DependencyInjectingInstantiator implements Instantiator {
             Constructor<?> constructor = cached.constructor;
             Object[] resolvedParameters = convertParameters(type, constructor, parameters);
             try {
-                return type.cast(constructor.newInstance(resolvedParameters));
+                Object instance = constructor.newInstance(resolvedParameters);
+                if (instance instanceof WithServiceRegistry) {
+                    ((WithServiceRegistry) instance).setServices(services);
+                }
+                return type.cast(instance);
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             }
-        } catch (Throwable e) {
-            throw new ObjectInstantiationException(type, e);
+        } catch (Throwable t) {
+            throw new ObjectInstantiationException(type, t);
         }
     }
 
@@ -86,7 +90,6 @@ public class DependencyInjectingInstantiator implements Instantiator {
         }
         return resolvedParameters;
     }
-
 
     public static class ConstructorCache {
         private final LoadingCache<Class<?>, CachedConstructor> cachedConstructors = CacheBuilder.newBuilder()
@@ -178,5 +181,13 @@ public class DependencyInjectingInstantiator implements Instantiator {
             return new CachedConstructor(null, err);
         }
 
+    }
+
+    /**
+     * An internal interface that can be used by code generators/proxies to indicate that
+     * they require a service registry.
+     */
+    interface WithServiceRegistry {
+        void setServices(ServiceRegistry services);
     }
 }

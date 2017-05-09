@@ -16,22 +16,28 @@
 
 package org.gradle.internal.progress;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class BuildProgressLogger implements LoggerProvider {
+    public static final String INITIALIZATION_PHASE_DESCRIPTION = "INITIALIZATION PHASE";
+    public static final String INITIALIZATION_PHASE_SHORT_DESCRIPTION = "INITIALIZING";
+    public static final String CONFIGURATION_PHASE_DESCRIPTION = "CONFIGURATION PHASE";
+    public static final String CONFIGURATION_PHASE_SHORT_DESCRIPTION = "CONFIGURING";
+    public static final String EXECUTION_PHASE_DESCRIPTION = "EXECUTION PHASE";
+    public static final String EXECUTION_PHASE_SHORT_DESCRIPTION = "EXECUTING";
+    public static final int PROGRESS_BAR_WIDTH = 13;
+    public static final String PROGRESS_BAR_PREFIX = "<";
+    public static final char PROGRESS_BAR_COMPLETE_CHAR = '=';
+    public static final char PROGRESS_BAR_INCOMPLETE_CHAR = '-';
+    public static final String PROGRESS_BAR_SUFFIX = ">";
 
     private final ProgressLoggerProvider loggerProvider;
+    private boolean taskGraphPopulated;
 
     private ProgressLogger buildProgress;
-    private ProgressLogger configurationProgress;
-    private Map<String, ProgressLogger> projectConfigurationProgress = new HashMap<String, ProgressLogger>();
-
     private ProgressFormatter buildProgressFormatter;
-    private ProgressFormatter configurationProgressFormatter;
 
     public BuildProgressLogger(ProgressLoggerFactory progressLoggerFactory) {
         this(new ProgressLoggerProvider(progressLoggerFactory, BuildProgressLogger.class));
@@ -42,61 +48,44 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     public void buildStarted() {
-        buildProgress = loggerProvider.start("Initialize build", "Loading");
+        buildProgressFormatter = newProgressBar(INITIALIZATION_PHASE_SHORT_DESCRIPTION, 1);
+        buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+    }
+
+    public void settingsEvaluated() {
+        buildProgress.completed();
     }
 
     public void projectsLoaded(int totalProjects) {
-        configurationProgressFormatter = new SimpleProgressFormatter(totalProjects, "projects");
-        configurationProgress = loggerProvider.start("Configure projects", configurationProgressFormatter.getProgress());
+        buildProgressFormatter = newProgressBar(CONFIGURATION_PHASE_SHORT_DESCRIPTION, totalProjects);
+        buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
+    }
+
+    public void beforeEvaluate(String projectPath) {}
+
+    public void afterEvaluate(String projectPath) {
+        if (!taskGraphPopulated) {
+            buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
+        }
     }
 
     public void graphPopulated(int totalTasks) {
-        configurationProgress.completed();
-        configurationProgress = null;
-
-        buildProgress.completed("Task graph ready");
-
-        buildProgressFormatter = new PercentageProgressFormatter("Building", totalTasks);
-        buildProgress = loggerProvider.start("Execute tasks", buildProgressFormatter.getProgress());
-    }
-
-    public void buildFinished() {
-        for (ProgressLogger l : projectConfigurationProgress.values()) {
-            l.completed();
-        }
-        if (configurationProgress != null) {
-            configurationProgress.completed();
-        }
+        taskGraphPopulated = true;
         buildProgress.completed();
-        buildProgress = null;
-        buildProgressFormatter = null;
-        configurationProgress = null;
+        buildProgressFormatter = newProgressBar(EXECUTION_PHASE_SHORT_DESCRIPTION, totalTasks);
+        buildProgress = loggerProvider.start(EXECUTION_PHASE_DESCRIPTION, buildProgressFormatter.getProgress());
     }
+
+    public void beforeExecute() {}
 
     public void afterExecute() {
         buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
     }
 
-    public void settingsEvaluated() {
-        buildProgress.progress("Configuring");
-    }
-
-    public void beforeEvaluate(String projectPath) {
-        if (configurationProgress != null) {
-            ProgressLogger logger = loggerProvider.start("Configure project " + projectPath, projectPath.equals(":") ? "root project" : projectPath);
-            projectConfigurationProgress.put(projectPath, logger);
-        }
-    }
-
-    public void afterEvaluate(String projectPath) {
-        if (configurationProgress != null) {
-            ProgressLogger logger = projectConfigurationProgress.remove(projectPath);
-            if (logger == null) {
-                throw new IllegalStateException("Unexpected afterEvaluate event received without beforeEvaluate");
-            }
-            logger.completed();
-            configurationProgress.progress(configurationProgressFormatter.incrementAndGetProgress());
-        }
+    public void buildFinished() {
+        buildProgress.completed();
+        buildProgress = null;
+        buildProgressFormatter = null;
     }
 
     public ProgressLogger getLogger() {
@@ -104,5 +93,16 @@ public class BuildProgressLogger implements LoggerProvider {
             throw new IllegalStateException("Build logger is unavailable (it hasn't started or is already completed).");
         }
         return buildProgress;
+    }
+
+    @VisibleForTesting
+    public ProgressBar newProgressBar(String initialSuffix, int totalWorkItems) {
+        return new ProgressBar(PROGRESS_BAR_PREFIX,
+            PROGRESS_BAR_WIDTH,
+            PROGRESS_BAR_SUFFIX,
+            PROGRESS_BAR_COMPLETE_CHAR,
+            PROGRESS_BAR_INCOMPLETE_CHAR,
+            initialSuffix,
+            totalWorkItems);
     }
 }

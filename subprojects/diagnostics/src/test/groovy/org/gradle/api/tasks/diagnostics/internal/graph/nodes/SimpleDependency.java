@@ -50,8 +50,8 @@ public class SimpleDependency implements RenderableDependency {
         return name;
     }
 
-    public boolean isResolvable() {
-        return resolvable;
+    public ResolutionState getResolutionState() {
+        return resolvable ? ResolutionState.RESOLVED : ResolutionState.FAILED;
     }
 
     public String getDescription() {

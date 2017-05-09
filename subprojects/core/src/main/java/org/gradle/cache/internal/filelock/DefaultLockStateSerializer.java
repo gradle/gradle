@@ -83,6 +83,10 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
             return sequenceNumber == 0 || sequenceNumber != originalSequenceNumber;
         }
 
+        public boolean canDetectChanges() {
+            return true;
+        }
+
         public boolean isInInitialState() {
             return originalSequenceNumber <= 0;
         }

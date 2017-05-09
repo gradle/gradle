@@ -49,14 +49,6 @@
                 <td></td>
             </tr>
             <tr>
-                <td>useDepend</td>
-                <td><literal>false</literal></td>
-            </tr>
-            <tr>
-                <td>dependOptions</td>
-                <td></td>
-            </tr>
-            <tr>
                 <td>bootClasspath</td>
                 <td><literal>null</literal></td>
             </tr>
@@ -76,6 +68,10 @@
                 <td>incremental</td>
                 <td><literal>false</literal></td>
             </tr>
+            <tr>
+                <td>annotationProcessorPath</td>
+                <td><literal>null</literal></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -91,9 +87,6 @@
             </tr>
             <tr>
                 <td>fork</td>
-            </tr>
-            <tr>
-                <td>depend</td>
             </tr>
         </table>
     </section>

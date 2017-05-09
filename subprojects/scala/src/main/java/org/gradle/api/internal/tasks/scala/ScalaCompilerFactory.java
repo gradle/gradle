@@ -17,25 +17,25 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Set;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
-    private final CompilerDaemonFactory compilerDaemonFactory;
+    private final WorkerDaemonFactory workerDaemonFactory;
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private final File rootProjectDirectory;
     private final File gradleUserHomeDir;
 
     public ScalaCompilerFactory(
-        File rootProjectDirectory, CompilerDaemonFactory compilerDaemonFactory, FileCollection scalaClasspath,
+        File rootProjectDirectory, WorkerDaemonFactory workerDaemonFactory, FileCollection scalaClasspath,
         FileCollection zincClasspath, File gradleUserHomeDir) {
         this.rootProjectDirectory = rootProjectDirectory;
-        this.compilerDaemonFactory = compilerDaemonFactory;
+        this.workerDaemonFactory = workerDaemonFactory;
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
         this.gradleUserHomeDir = gradleUserHomeDir;
@@ -48,7 +48,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
             rootProjectDirectory, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
-            compilerDaemonFactory, zincClasspathFiles);
+            workerDaemonFactory, zincClasspathFiles);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

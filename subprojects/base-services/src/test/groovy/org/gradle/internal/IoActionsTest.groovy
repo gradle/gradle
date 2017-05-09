@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static IoActions.*
+import static org.gradle.internal.IoActions.*
 
 class IoActionsTest extends Specification {
 
@@ -163,5 +163,57 @@ class IoActionsTest extends Specification {
         then:
         1 * resource.close() >> { throw new IOException("ignore me") }
         0 * _._
+    }
+
+    def "can handle null resource when closing"() {
+        when:
+        uncheckedClose(null)
+
+        then:
+        noExceptionThrown()
+
+        when:
+        closeQuietly(null)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can close a valid resource"() {
+        def resource = Mock(Closeable)
+
+        when:
+        uncheckedClose(resource)
+
+        then:
+        1 * resource.close()
+
+        when:
+        closeQuietly(resource)
+
+        then:
+        1 * resource.close()
+    }
+
+    def "rethrows unchecked exception when closing resource"() {
+        def resource = Mock(Closeable)
+
+        when:
+        uncheckedClose(resource)
+
+        then:
+        1 * resource.close() >> { throw new IOException() }
+        thrown(UncheckedIOException)
+    }
+
+    def "does not rethrow exception when closing resource"() {
+        def resource = Mock(Closeable)
+
+        when:
+        closeQuietly(resource)
+
+        then:
+        1 * resource.close() >> { throw new IOException() }
+        noExceptionThrown()
     }
 }

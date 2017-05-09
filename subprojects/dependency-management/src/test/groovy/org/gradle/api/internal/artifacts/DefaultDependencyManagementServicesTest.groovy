@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts
+
 import org.gradle.api.Action
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
@@ -25,22 +27,22 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualArtifactPublisher
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.lang.reflect.ParameterizedType
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
-    final Instantiator instantiator = DirectInstantiator.INSTANCE
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
     def setup() {
-        _ * parent.get(Instantiator) >> instantiator
+        _ * parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorate()
+        _ * parent.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
         _ * parent.get({it instanceof Class}) >> { Class t -> Stub(t) }
         _ * parent.get({it instanceof ParameterizedType}) >> { ParameterizedType t -> Stub(t.rawType) }
         _ * parent.getAll({it instanceof Class}) >> { Class t -> [Stub(t)]}

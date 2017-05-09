@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform
 
-import org.gradle.execution.taskgraph.DefaultTaskExecutionPlan
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
@@ -39,7 +38,6 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
     def setup() {
         executer.withArgument("--parallel")
                 .withArgument("--max-workers=4")
-                .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)

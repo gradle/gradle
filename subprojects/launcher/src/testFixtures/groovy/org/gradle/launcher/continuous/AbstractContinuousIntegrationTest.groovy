@@ -19,9 +19,17 @@ package org.gradle.launcher.continuous
 import com.google.common.util.concurrent.SimpleTimeLimiter
 import com.google.common.util.concurrent.UncheckedTimeoutException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.RetryRuleUtil
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.testing.internal.util.RetryRule
+import org.junit.Rule
 
 import java.util.concurrent.TimeUnit
 
@@ -33,6 +41,9 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
     private static final String CHANGE_DETECTED_OUTPUT = "Change detected, executing build..."
     private static final String WAITING_FOR_CHANGES_OUTPUT = "Waiting for changes to input files of tasks..."
+
+    @Rule
+    RetryRule timeoutRetryRule = RetryRuleUtil.retryContinuousBuildSpecificationOnTimeout(this)
 
     GradleHandle gradle
 
@@ -195,8 +206,7 @@ $lastOutput
     }
 
     private OutputScrapingExecutionResult createExecutionResult(String out, String err) {
-        //noinspection GroovyConditionalWithIdenticalBranches
-        out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
+        out.contains("BUILD FAILED") || err.contains("FAILURE: Build failed with an exception.") ? new OutputScrapingExecutionFailure(out, err) : new OutputScrapingExecutionResult(out, err)
     }
 
     void parseResults(String out, String err) {

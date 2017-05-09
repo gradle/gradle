@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc.internal;
 
+import com.google.common.collect.Maps;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -38,7 +39,7 @@ public class GroupsJavadocOptionFileOptionTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         writerContextMock = context.mock(JavadocOptionFileWriterContext.class);
 
-        groupsFile = new GroupsJavadocOptionFileOption(optionName);
+        groupsFile = new GroupsJavadocOptionFileOption(optionName, Maps.<String, List<String>>newLinkedHashMap());
     }
 
     @Test

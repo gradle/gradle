@@ -45,8 +45,8 @@ public abstract class AbstractRenderableModuleResult implements RenderableDepend
     }
 
     @Override
-    public boolean isResolvable() {
-        return true; // TODO
+    public ResolutionState getResolutionState() {
+        return ResolutionState.RESOLVED;
     }
 
     @Override

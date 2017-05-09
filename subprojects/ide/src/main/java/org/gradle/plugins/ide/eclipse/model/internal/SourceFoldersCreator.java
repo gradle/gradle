@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.DynamicObjectUtil;
@@ -147,7 +147,7 @@ public class SourceFoldersCreator {
         }
 
         List<String> allIncludes = CollectionUtils.flattenCollections(String.class, includesByType);
-        return CollectionUtils.dedup(allIncludes, Equivalence.equals());
+        return ImmutableSet.copyOf(allIncludes).asList();
     }
 
     private List<Set<String>> getFiltersForTreeGroupedByType(SourceSet sourceSet, DirectoryTree directoryTree, String filterOperation) {

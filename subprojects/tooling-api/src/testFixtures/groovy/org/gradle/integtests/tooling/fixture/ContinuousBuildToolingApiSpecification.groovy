@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleVersions
@@ -28,11 +29,16 @@ import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
+import org.hamcrest.Matcher
+import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Timeout
+
+import static org.hamcrest.Matchers.containsString
 
 @Timeout(180)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
@@ -41,6 +47,8 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
     public static final String BUILD_CANCELLED = "Build cancelled."
+    public static final String BUILD_CANCELLED_AND_STOPPED = "the build was canceled"
+
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     TestOutputStream stderr = new TestOutputStream()
@@ -50,6 +58,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ExecutionFailure failure
 
     int buildTimeout = 20
+
+    @Rule
+    RetryRule timeoutRetryRule = RetryRuleUtil.retryContinuousBuildSpecificationOnTimeout(this)
 
     @Rule
     GradleBuildCancellation cancellationTokenSource
@@ -155,21 +166,23 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     }
 
     private void waitForBuild() {
-        ExecutionOutput executionOutput = waitUntilOutputContains WAITING_MESSAGE
+        ExecutionOutput executionOutput = waitUntilOutputContains containsString(WAITING_MESSAGE)
         result = executionOutput.stdout.contains("BUILD SUCCESSFUL") ?
                     new OutputScrapingExecutionResult(executionOutput.stdout, executionOutput.stderr) :
                     new OutputScrapingExecutionFailure(executionOutput.stdout, executionOutput.stderr)
     }
 
-    private ExecutionOutput waitUntilOutputContains(String expectedMessage) {
+    private ExecutionOutput waitUntilOutputContains(Matcher<String> expectedMatcher) {
         boolean success = false
         long pollingStartNanos = System.nanoTime()
         try {
             ConcurrentTestUtil.poll(buildTimeout, 0.5) {
                 def out = stdout.toString()
-                assert out.contains(expectedMessage)
+                assert expectedMatcher.matches(out)
             }
             success = true
+        } catch (Throwable t) {
+            throw new RuntimeException("Timeout waiting for build to complete.", t)
         } finally {
             if (!success) {
                 println "Polling lasted ${(long) ((System.nanoTime() - pollingStartNanos) / 1000000L)} ms measured with monotonic clock"
@@ -224,7 +237,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     boolean cancel() {
         cancellationTokenSource.cancel()
-        waitUntilOutputContains BUILD_CANCELLED
+        waitUntilOutputContains Matchers.anyOf(containsString(BUILD_CANCELLED), containsString(BUILD_CANCELLED_AND_STOPPED))
         true
     }
 

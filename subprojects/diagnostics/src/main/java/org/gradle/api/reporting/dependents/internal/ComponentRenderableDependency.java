@@ -50,8 +50,8 @@ public class ComponentRenderableDependency implements RenderableDependency {
     }
 
     @Override
-    public boolean isResolvable() {
-        return true;
+    public ResolutionState getResolutionState() {
+        return ResolutionState.RESOLVED;
     }
 
     @Override

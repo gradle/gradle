@@ -18,10 +18,12 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.plugins.ide.idea.model.internal.PathInterner;
+import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
@@ -49,6 +51,10 @@ public class ToolingModelServices implements PluginServiceRegistry {
 
     private static class BuildScopeToolingServices {
 
+        protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectPathRegistry projectRegistry) {
+            return new DefaultUniqueProjectNameProvider(projectRegistry);
+        }
+
         protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(ProjectTaskLister taskLister, ProjectPublicationRegistry projectPublicationRegistry, ServiceRegistry services) {
             DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry();
             GradleProjectBuilder gradleProjectBuilder  = new GradleProjectBuilder();
@@ -62,10 +68,6 @@ public class ToolingModelServices implements PluginServiceRegistry {
             registry.register(new PublicationsBuilder(projectPublicationRegistry));
             registry.register(new BuildEnvironmentBuilder());
             return registry;
-        }
-
-        protected PathInterner createPathInterner() {
-            return new PathInterner();
         }
     }
 }

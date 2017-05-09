@@ -17,13 +17,15 @@
 package org.gradle.tooling.internal.provider.runner
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.progress.BuildOperationService
 import spock.lang.Specification
 
 class TestExecutionRequestActionRunnerTest extends Specification {
 
     def "does not handle non TestExecutionRequestAction"(){
         given:
-        def runner = new TestExecutionRequestActionRunner()
+        BuildOperationService buildOperationService = Mock(BuildOperationService)
+        def runner = new TestExecutionRequestActionRunner(buildOperationService)
         BuildAction buildAction = Mock(BuildAction)
         BuildController buildController= Mock(BuildController)
         when:

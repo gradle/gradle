@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 
 import java.util.Map;
 
 public interface TransientConfigurationResults {
 
-    Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies();
+    Map<ModuleDependency, DependencyGraphNodeResult> getFirstLevelDependencies();
 
-    ResolvedDependency getRoot();
+    DependencyGraphNodeResult getRootNode();
 }

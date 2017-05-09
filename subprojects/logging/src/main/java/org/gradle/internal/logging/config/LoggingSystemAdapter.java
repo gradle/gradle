@@ -24,7 +24,7 @@ import org.gradle.api.logging.LogLevel;
 public class LoggingSystemAdapter implements LoggingSourceSystem {
     private final LoggingConfigurer configurer;
     private boolean enabled;
-    private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private LogLevel logLevel = LogLevel.WARN;
 
     public LoggingSystemAdapter(LoggingConfigurer configurer) {
         this.configurer = configurer;

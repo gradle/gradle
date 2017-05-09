@@ -82,7 +82,7 @@
         <section id="sec:components_all_the_way_down">
             <title>Components all the way down</title>
             <para>
-                Components are composed of other components. A source set is just a special kind of component representing sources. It might be that the sources are provided, or generated. Similarily, some components are composed of different binaries, which are built by tasks. All buildable components are built by tasks. In the software model, you will write rules to generate both binaries from components and tasks from binaries.
+                Components are composed of other components. A source set is just a special kind of component representing sources. It might be that the sources are provided, or generated. Similarly, some components are composed of different binaries, which are built by tasks. All buildable components are built by tasks. In the software model, you will write rules to generate both binaries from components and tasks from binaries.
             </para>
         </section>
     </section>
@@ -212,7 +212,7 @@
             <para>
                 And in the components reports for such a build script we can see our model types properly registered:
             </para>
-            <sample id="softwareModelExtend-components" title="foo bar" dir="customModel/languageType/">
+            <sample id="softwareModelExtend-components" title="components report" dir="customModel/languageType/">
                 <output args="-q components"/>
             </sample>
         </section>

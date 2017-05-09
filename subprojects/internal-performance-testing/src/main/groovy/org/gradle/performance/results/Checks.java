@@ -18,14 +18,14 @@ package org.gradle.performance.results;
 enum Checks {
     NONE(false, false),
     ALL(true, true),
-    SPEED(false, true),
-    MEMORY(true, false);
+    SPEED(true, true),
+    EXCEPTIONS(true, false);
 
-    private final boolean checkMemory;
+    private final boolean checkExceptions;
     private final boolean checkSpeed;
 
-    Checks(boolean memory, boolean speed) {
-        checkMemory = memory;
+    Checks(boolean exceptions, boolean speed) {
+        checkExceptions = exceptions;
         checkSpeed = speed;
     }
 
@@ -33,7 +33,7 @@ enum Checks {
         return checkSpeed;
     }
 
-    boolean memory() {
-        return checkMemory;
+    boolean exceptions() {
+        return checkExceptions;
     }
 }

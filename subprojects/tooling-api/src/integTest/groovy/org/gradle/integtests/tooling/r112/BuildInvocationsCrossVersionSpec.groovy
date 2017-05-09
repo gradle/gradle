@@ -91,6 +91,7 @@ project(':b:c') {
             connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
         TaskSelector selector = projectSelectors.taskSelectors.find { it -> it.name == 't1'}
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(selector)
         }
 
@@ -107,6 +108,7 @@ project(':b:c') {
             it.name == 't1'
         }
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(selector)
         }
 
@@ -122,17 +124,19 @@ project(':b:c') {
         TaskSelector selectorT1 = model.taskSelectors.find {  it.name == 't1' }
         TaskSelector selectorT2 = model.taskSelectors.find { it.name == 't2' }
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(selectorT1, selectorT2)
         }
         then:
-        result.result.assertTasksExecuted(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+        result.result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
 
         when:
         result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(selectorT2, selectorT1)
         }
         then:
-        result.result.assertTasksExecuted(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
+        result.result.assertTasksExecutedInOrder(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
     def "can fetch task selectors for root project from connection"() {
@@ -189,6 +193,7 @@ project(':b:c') {
         }
         Launchable task = tasks.find { it -> it.name == 't2'}
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(task)
         }
 
@@ -205,6 +210,7 @@ project(':b:c') {
             it.name == 't1'
         }
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(task)
         }
 
@@ -221,18 +227,20 @@ project(':b:c') {
         GradleTask taskBT2 = model.findByPath(':b').tasks.find { it.name == 't2' }
         GradleTask taskBCT1 = model.findByPath(':b:c').tasks.find { it.name == 't1' }
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(taskT1, taskBT2, taskBCT1)
         }
 
         then:
-        result.result.assertTasksExecuted(':t1', ':b:t2', ':b:c:t1')
+        result.result.assertTasksExecutedInOrder(':t1', ':b:t2', ':b:c:t1')
 
         when:
         result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(taskBCT1, taskBT2, taskT1)
         }
         then:
-        result.result.assertTasksExecuted(':b:c:t1', ':b:t2', ':t1')
+        result.result.assertTasksExecutedInOrder(':b:c:t1', ':b:t2', ':t1')
     }
 
     @TargetGradleVersion(">=1.12")
@@ -248,10 +256,11 @@ project(':b:c') {
         TaskSelector selectorBT1 = bSelectors.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorBT3 = bSelectors.taskSelectors.find { it.name == 't3' }
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(selectorBT1, selectorBT3, taskT1)
         }
         then:
-        result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
+        result.result.assertTasksExecutedInOrder(':b:c:t1', ':b:t3', ':t1')
     }
 
     def "build tasks and selectors in order cross version"() {
@@ -267,10 +276,11 @@ project(':b:c') {
         TaskSelector selectorT1 = rootSelectors.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorT2 = rootSelectors.taskSelectors.find { it.name == 't2' }
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(taskT1, selectorT1, selectorT2, taskBT2)
         }
         then:
-        result.result.assertTasksExecuted(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+        result.result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
     }
 
     @TargetGradleVersion("=1.12")
@@ -306,6 +316,7 @@ project(':b:c') {
         TaskSelector selectorBT1 = bSelectors.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorBT3 = bSelectors.taskSelectors.find { it.name == 't3' }
         def result = withBuild { BuildLauncher it ->
+            enableLifecycleLogging(it)
             it.forLaunchables(selectorBT1, selectorBT3, selectorT1)
         }
         then:

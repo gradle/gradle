@@ -21,6 +21,7 @@ import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -29,24 +30,34 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
+    public static final int CLEANUP_INTERVAL = 7;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final Properties properties = new Properties();
     private final Action<? super PersistentCache> initAction;
+    private final Action<? super PersistentCache> cleanupAction;
     private final CacheValidator validator;
     private boolean didRebuild;
 
-    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheValidator validator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, FileLockManager lockManager, ExecutorFactory executorFactory) {
+    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheValidator validator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, Action<? super PersistentCache> cleanupAction, FileLockManager lockManager, ExecutorFactory executorFactory) {
         super(dir, displayName, lockTarget, lockOptions, lockManager, executorFactory);
         this.validator = validator;
         this.initAction = initAction;
+        this.cleanupAction = cleanupAction;
         this.properties.putAll(properties);
     }
 
     @Override
     protected CacheInitializationAction getInitAction() {
         return new Initializer();
+    }
+
+    @Override
+    public CacheCleanupAction getCleanupAction() {
+        return new Cleanup();
     }
 
     public Properties getProperties() {
@@ -63,7 +74,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
             }
 
             if (!lock.getUnlockedCleanly()) {
-                if (!lock.getState().isInInitialState()) {
+                if (lock.getState().canDetectChanges() && !lock.getState().isInInitialState()) {
                     LOGGER.warn("Invalidating {} as it was not closed cleanly.", DefaultPersistentDirectoryCache.this);
                 }
                 return true;
@@ -93,6 +104,34 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
             }
             GUtil.saveProperties(properties, propertiesFile);
             didRebuild = true;
+        }
+    }
+
+    private class Cleanup implements CacheCleanupAction {
+        @Override
+        public boolean requiresCleanup() {
+            // Dead simple check that it's been more than 7 days since we last checked for cleanup
+            if (cleanupAction!=null) {
+                if (!gcFile.exists()) {
+                    GFileUtils.touch(gcFile);
+                } else {
+                    long duration = System.currentTimeMillis() - gcFile.lastModified();
+                    long timeInDays = TimeUnit.MILLISECONDS.toDays(duration);
+                    LOGGER.info("{} has not been cleaned up in {} days", DefaultPersistentDirectoryCache.this, timeInDays);
+                    return timeInDays >= CLEANUP_INTERVAL;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void cleanup() {
+            if (cleanupAction!=null) {
+                Clock clock = new Clock();
+                cleanupAction.execute(DefaultPersistentDirectoryCache.this);
+                LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryCache.this, clock.getElapsed());
+            }
+            gcFile.setLastModified(System.currentTimeMillis());
         }
     }
 }

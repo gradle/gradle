@@ -17,14 +17,17 @@
 package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
-import com.typesafe.zinc.*;
+import com.typesafe.zinc.IncOptions;
+import com.typesafe.zinc.Inputs;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import scala.Option;
 
@@ -57,11 +60,13 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             final xsbti.Logger logger = new SbtLoggerAdapter();
 
+            Timer timer = Timers.startTimer();
             com.typesafe.zinc.Compiler compiler = ZincScalaCompilerFactory.createParallelSafeCompiler(scalaClasspath, zincClasspath, logger, gradleUserHome);
+            LOGGER.info("Initialized Zinc Scala compiler: {}", timer.getElapsed());
 
             List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
-            List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).build();
-            Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
+            List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
+            Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getCompileClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
                     scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
             if (LOGGER.isDebugEnabled()) {
                 Inputs.debug(inputs, logger);
@@ -70,12 +75,14 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             if (spec.getScalaCompileOptions().isForce()) {
                 GFileUtils.deleteDirectory(spec.getDestinationDir());
             }
+            LOGGER.info("Prepared Zinc Scala inputs: {}", timer.getElapsed());
 
             try {
                 compiler.compile(inputs, logger);
             } catch (xsbti.CompileFailed e) {
                 throw new CompilationFailedException(e);
             }
+            LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
 
             return new SimpleWorkResult(true);
         }

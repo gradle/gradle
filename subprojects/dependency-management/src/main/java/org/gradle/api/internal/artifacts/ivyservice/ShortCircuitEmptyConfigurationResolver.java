@@ -25,32 +25,35 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDependencyCollectingGraphVisitor;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
     private final ConfigurationResolver delegate;
     private final ComponentIdentifierFactory componentIdentifierFactory;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory) {
+    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.delegate = delegate;
         this.componentIdentifierFactory = componentIdentifierFactory;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override
@@ -73,11 +76,11 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     private void emptyGraph(ConfigurationInternal configuration, ResolverResults results) {
         Module module = configuration.getModule();
-        ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
+        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
-        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(false);
-        results.graphResolved(emptyResult, emptyProjectResult, new FileDependencyCollectingGraphVisitor());
+        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor();
+        results.graphResolved(emptyResult, emptyProjectResult, new EmptyResults());
     }
 
     @Override
@@ -89,61 +92,99 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
     }
 
-    private static class EmptyResults implements ArtifactResults {
+    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
         @Override
-        public void collectFiles(Spec<? super Dependency> dependencySpec, Collection<File> dest) {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
+            return this;
         }
 
         @Override
-        public void collectArtifacts(Collection<? super ResolvedArtifactResult> dest) {
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
         }
+
+        @Override
+        public void visitArtifacts(ArtifactVisitor visitor) {
+        }
+
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {
 
+        @Override
         public boolean hasError() {
             return false;
         }
 
+        @Override
         public LenientConfiguration getLenientConfiguration() {
             return new LenientConfiguration() {
+                @Override
+                public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+                    return Collections.emptySet();
+                }
+
+                @Override
                 public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
 
+                @Override
                 public Set<ResolvedDependency> getAllModuleDependencies() {
                     return Collections.emptySet();
                 }
 
+                @Override
                 public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
                     return Collections.emptySet();
                 }
 
+                @Override
+                public Set<File> getFiles() {
+                    return Collections.emptySet();
+                }
+
+                @Override
                 public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
 
+                @Override
+                public Set<ResolvedArtifact> getArtifacts() {
+                    return Collections.emptySet();
+                }
+
+                @Override
                 public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
             };
         }
 
+        @Override
         public void rethrowFailure() throws ResolveException {
         }
 
+        @Override
+        public Set<File> getFiles() throws ResolveException {
+            return Collections.emptySet();
+        }
+
+        @Override
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             return Collections.emptySet();
         }
 
+        @Override
         public Set<ResolvedArtifact> getResolvedArtifacts() {
             return Collections.emptySet();
         }

@@ -23,6 +23,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;
+import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
@@ -52,7 +53,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
 
     private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(NativeBinarySpec nativeBinary, DefaultVisualStudioProject project, String configuration, String platform) {
         Class<? extends VisualStudioProjectConfiguration> type =
-                nativeBinary instanceof NativeExecutableBinarySpec ? ExecutableVisualStudioProjectConfiguration.class : VisualStudioProjectConfiguration.class;
+                (nativeBinary instanceof NativeExecutableBinarySpec  || nativeBinary instanceof NativeTestSuiteBinarySpec)? ExecutableVisualStudioProjectConfiguration.class : VisualStudioProjectConfiguration.class;
         return getInstantiator().newInstance(type, project, configuration, platform, nativeBinary);
     }
 

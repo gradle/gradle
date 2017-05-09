@@ -31,8 +31,8 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
     }
 
     @Override
-    public boolean isResolvable() {
-        return false;
+    public ResolutionState getResolutionState() {
+        return ResolutionState.FAILED;
     }
 
     @Override

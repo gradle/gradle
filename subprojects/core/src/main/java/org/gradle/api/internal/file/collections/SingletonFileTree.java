@@ -16,14 +16,12 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A file tree with a single file entry.
@@ -41,7 +39,7 @@ public class SingletonFileTree implements MinimalFileTree {
     }
 
     public void visit(FileVisitor visitor) {
-        visitor.visitFile(new SingletonFileVisitDetails(file, fileSystem, false));
+        visitor.visitFile(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
     }
 
     @Override
@@ -52,12 +50,5 @@ public class SingletonFileTree implements MinimalFileTree {
     @Override
     public void visitTreeOrBackingFile(FileVisitor visitor) {
         visit(visitor);
-    }
-
-    // This is used so that we can detect the single-file origin of the details, and ignore the relative path
-    public static class SingletonFileVisitDetails extends DefaultFileVisitDetails {
-        public SingletonFileVisitDetails(File file, FileSystem fileSystem, boolean isDirectory) {
-            super(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem, isDirectory);
-        }
     }
 }

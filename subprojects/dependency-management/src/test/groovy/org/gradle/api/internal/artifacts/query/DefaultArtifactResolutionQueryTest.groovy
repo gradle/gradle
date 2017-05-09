@@ -85,11 +85,11 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         def query = createArtifactResolutionQuery(givenComponentTypeRegistry)
 
         when:
-        ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.of('mygroup', 'mymodule', '1.0')
+        ModuleComponentIdentifier componentIdentifier = new DefaultModuleComponentIdentifier('mygroup', 'mymodule', '1.0')
         ArtifactResolutionResult result = query.forComponents(componentIdentifier).withArtifacts(selectedComponentType, selectedArtifactType).execute()
 
         then:
-        1 * cacheLockingManager.useCache(_, _) >> { String operationDisplayName, Factory action ->
+        1 * cacheLockingManager.useCache(_) >> { Factory action ->
             action.create()
         }
         1 * resolveIvyFactory.create(_, _, _) >> repositoryChain

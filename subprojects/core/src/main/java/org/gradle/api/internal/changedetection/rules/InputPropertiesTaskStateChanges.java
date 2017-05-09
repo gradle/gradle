@@ -16,41 +16,68 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.util.ChangeListener;
-import org.gradle.util.DiffUtil;
+import org.gradle.api.internal.changedetection.state.ValueSnapshot;
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
-    private final Map<String, Object> properties;
-    private final TaskExecution previousExecution;
     private final TaskInternal task;
+    private final Set<String> removed;
+    private final Set<String> changed;
+    private final Set<String> added;
 
-    public InputPropertiesTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
-        this.properties = new HashMap<String, Object>(task.getInputs().getProperties());
-        currentExecution.setInputProperties(properties);
-        this.previousExecution = previousExecution;
+    public InputPropertiesTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task, ValueSnapshotter valueSnapshotter) {
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
+        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        removed = new HashSet<String>(previousInputProperties.keySet());
+        changed = new HashSet<String>();
+        added = new HashSet<String>();
+        for (Map.Entry<String, Object> entry : task.getInputs().getProperties().entrySet()) {
+            String propertyName = entry.getKey();
+            Object value = entry.getValue();
+            try {
+                removed.remove(propertyName);
+                ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
+                if (previousSnapshot == null) {
+                    added.add(propertyName);
+                    builder.put(propertyName, valueSnapshotter.snapshot(value));
+                } else {
+                    ValueSnapshot newSnapshot = valueSnapshotter.snapshot(value, previousSnapshot);
+                    if (newSnapshot == previousSnapshot) {
+                        builder.put(propertyName, previousSnapshot);
+                    } else {
+                        changed.add(propertyName);
+                        builder.put(propertyName, valueSnapshotter.snapshot(value));
+                    }
+                }
+            } catch (Exception e) {
+                throw new GradleException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
+            }
+        }
+
+        currentExecution.setInputProperties(builder.build());
         this.task = task;
     }
 
     @Override
     protected void addAllChanges(final List<TaskStateChange> changes) {
-        DiffUtil.diff(properties, previousExecution.getInputProperties(), new ChangeListener<Map.Entry<String, Object>>() {
-            public void added(Map.Entry<String, Object> element) {
-                changes.add(new DescriptiveChange("Input property '%s' has been added for %s", element.getKey(), task));
-            }
-
-            public void removed(Map.Entry<String, Object> element) {
-                changes.add(new DescriptiveChange("Input property '%s' has been removed for %s", element.getKey(), task));
-            }
-
-            public void changed(Map.Entry<String, Object> element) {
-                changes.add(new DescriptiveChange("Value of input property '%s' has changed for %s", element.getKey(), task));
-            }
-        });
+        for (String propertyName : changed) {
+            changes.add(new DescriptiveChange("Value of input property '%s' has changed for %s", propertyName, task));
+        }
+        for (String propertyName : added) {
+            changes.add(new DescriptiveChange("Input property '%s' has been added for %s", propertyName, task));
+        }
+        for (String propertyName : removed) {
+            changes.add(new DescriptiveChange("Input property '%s' has been removed for %s", propertyName, task));
+        }
     }
 }

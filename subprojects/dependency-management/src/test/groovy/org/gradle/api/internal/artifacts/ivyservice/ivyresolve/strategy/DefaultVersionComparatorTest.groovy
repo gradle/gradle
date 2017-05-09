@@ -90,7 +90,7 @@ class DefaultVersionComparatorTest extends Specification {
         "a-b-c"     | "a.b"
     }
 
-    def "gives some special treatment to 'dev', 'rc', and 'final' qualifiers"() {
+    def "gives some special treatment to 'dev', 'rc', 'release', and 'final' qualifiers"() {
         expect:
         compare(smaller, larger) < 0
         compare(larger, smaller) > 0
@@ -98,17 +98,22 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller     | larger
-        "1.0-dev-1" | "1.0"
-        "1.0-dev-1" | "1.0-dev-2"
-        "1.0-rc-1"  | "1.0"
-        "1.0-rc-1"  | "1.0-rc-2"
-        "1.0-dev-1" | "1.0-xx-1"
-        "1.0-xx-1"  | "1.0-rc-1"
-        "1.0-final" | "1.0"
-        "1.0-dev-1" | "1.0-rc-1"
-        "1.0-rc-1"  | "1.0-final"
-        "1.0-dev-1" | "1.0-final"
+        smaller       | larger
+        "1.0-dev-1"   | "1.0"
+        "1.0-dev-1"   | "1.0-dev-2"
+        "1.0-rc-1"    | "1.0"
+        "1.0-rc-1"    | "1.0-rc-2"
+        "1.0-rc-1"    | "1.0-release"
+        "1.0-dev-1"   | "1.0-xx-1"
+        "1.0-xx-1"    | "1.0-rc-1"
+        "1.0-release" | "1.0"
+        "1.0-final"   | "1.0"
+        "1.0-dev-1"   | "1.0-rc-1"
+        "1.0-rc-1"    | "1.0-final"
+        "1.0-dev-1"   | "1.0-final"
+        "1.0-release" | "1.0-final"
+        "1.0.0.RC1"   | "1.0.0.RC2"
+        "1.0.0.RC2"   | "1.0.0.RELEASE"
     }
 
     def "compares identical versions equal"() {
@@ -180,18 +185,14 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0"                     | "1.1-20150201.121010-12"
     }
 
-    def "can compare version strings"() {
-        expect:
-        def stringComparator = comparator.asStringComparator()
-        stringComparator.compare("1.2", "1.3") < 0
-    }
-
     def "can compare Version objects"() {
         def v1 = Stub(Version) {
             getParts() >> ["1", "2"]
+            getNumericParts() >> [1, 2]
         }
         def v2 = Stub(Version) {
             getParts() >> ["1", "3"]
+            getNumericParts() >> [1, 3]
         }
 
         expect:

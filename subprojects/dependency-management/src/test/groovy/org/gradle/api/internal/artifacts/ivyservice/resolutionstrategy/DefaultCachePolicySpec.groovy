@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.cache.ArtifactResolutionControl
 import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.Actions
@@ -40,7 +41,7 @@ public class DefaultCachePolicySpec extends Specification {
     private static final int WEEK = DAY * 7;
     private static final int FOREVER = Integer.MAX_VALUE
 
-    DefaultCachePolicy cachePolicy = new DefaultCachePolicy()
+    DefaultCachePolicy cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
 
     def "will cache default"() {
         expect:
@@ -311,17 +312,17 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def moduleComponent(String group, String name, String version) {
-        DefaultModuleComponentIdentifier.of(group, name, version)
+        new DefaultModuleComponentIdentifier(group, name, version)
     }
 
     private def moduleIdentifier(String group, String name, String version) {
-        DefaultModuleVersionIdentifier.of(group, name, version)
+        new DefaultModuleVersionIdentifier(group, name, version)
     }
 
     private def moduleVersion(String group, String name, String version) {
         return new ResolvedModuleVersion() {
             ModuleVersionIdentifier getId() {
-                return DefaultModuleVersionIdentifier.of(group, name, version);
+                return new DefaultModuleVersionIdentifier(group, name, version);
             }
         }
     }

@@ -4,14 +4,20 @@
  * Should have a very small set of dependencies, and should be appropriate to embed in an external
  * application (eg as part of the tooling API).
  */
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    publishCompile libraries.slf4j_api
-    compile libraries.guava
-    compile libraries.commons_lang
-    testCompile libraries.groovy
+    api libraries.guava
+
+    implementation libraries.slf4j_api
+    implementation libraries.commons_lang
+    implementation libraries.jcip
+}
+
+classpathManifest {
+    additionalProjects = [project(':versionInfo')]
 }
 
 useTestFixtures()

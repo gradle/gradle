@@ -27,6 +27,10 @@ buildscript {
 
 apply plugin: me.champeau.gradle.JMHPlugin
 
+configurations {
+    jmhImplementation.extendsFrom(implementation)
+}
+
 jmh {
     jmhVersion = '1.12'
     includeTests = false

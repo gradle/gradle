@@ -1,23 +1,18 @@
-Any of the checked boxes below indicate that I took action:
+### Context
+<!--- Why do you believe many users will benefit from this change? -->
+<!--- Link to relevant issues or forum discussions here -->
 
-- [ ] Reviewed the [Contribution Guidelines](https://github.com/gradle/gradle/blob/master/.github/CONTRIBUTING.md).
-- [ ] Signed the [Gradle CLA](http://gradle.org/contributor-license-agreement/).
-- [ ] Ensured that basic checks pass: `./gradlew quickCheck`
+### Contributor Checklist
+- [ ] [Review Contribution Guidelines](https://github.com/gradle/gradle/blob/master/.github/CONTRIBUTING.md)
+- [ ] [Sign Gradle CLA](http://gradle.org/contributor-license-agreement/)
+- [ ] [Link to Design Spec](https://github.com/gradle/gradle/tree/master/design-docs) for changes that affect more than 1 public API (that is, not in an `internal` package) or updates to > 20 files
+- [ ] Provide integration tests (under `<subproject>/src/integTest`) to verify changes from a user perspective
+- [ ] Provide unit tests (under `<subproject>/src/test`) to verify logic
+- [ ] Update User Guide, DSL Reference, and Javadoc for public-facing changes
+- [ ] Ensure that tests pass locally: `./gradlew quickCheck <impacted-subproject>:check`
 
-For all non-trivial changes that modify the behavior or public API:
-
-- [ ] Before submitting a pull request, I started a discussion on the [Gradle developer list](https://groups.google.com/forum/#!forum/gradle-dev),
-      the [forum](https://discuss.gradle.org/) or can reference a [JIRA issue](https://issues.gradle.org/secure/Dashboard.jspa).
-- [ ] I considered writing a design document. A design document can be
-brief but explains the use case or problem you are trying to solve,
-touches on the planned implementation approach as well as the test cases
-that verify the behavior. Optimally, design documents should be submitted
-as a separate pull request. [Samples](https://github.com/gradle/gradle/tree/master/design-docs)
-can be found in the Gradle GitHub repository. Please let us know if you need help with
-creating the design document. We are happy to help!
-- [ ] The pull request contains an appropriate level of unit and integration
-test coverage to verify the behavior. Before submitting the pull request
-I ran a build on your local machine via the command
-`./gradlew quickCheck <impacted-subproject>:check`.
-- [ ] The pull request updates the Gradle documentation like user guide,
-DSL reference and Javadocs where applicable.
+### Gradle Core Team Checklist
+- [ ] Verify design and implementation 
+- [ ] Verify test coverage and CI build status
+- [ ] Verify documentation including proper use of `@since` and `@Incubating` annotations for all public APIs
+- [ ] Recognize contributor in release notes

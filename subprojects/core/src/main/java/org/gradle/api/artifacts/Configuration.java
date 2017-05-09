@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -43,7 +44,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * <p>
  */
 @HasInternalProtocol
-public interface Configuration extends FileCollection {
+public interface Configuration extends FileCollection, HasConfigurableAttributes<Configuration> {
 
     /**
      * Returns the resolution strategy used by this configuration.
@@ -382,6 +383,24 @@ public interface Configuration extends FileCollection {
     ResolvableDependencies getIncoming();
 
     /**
+     * Returns the outgoing artifacts of this configuration.
+     *
+     * @return The outgoing artifacts of this configuration.
+     * @since 3.4
+     */
+    @Incubating
+    ConfigurationPublications getOutgoing();
+
+    /**
+     * Configures the outgoing artifacts of this configuration.
+     *
+     * @param action The action to perform the configuration.
+     * @since 3.4
+     */
+    @Incubating
+    void outgoing(Action<? super ConfigurationPublications> action);
+
+    /**
      * Creates a copy of this configuration that only contains the dependencies directly in this configuration
      * (without contributions from superconfigurations).  The new configuration will be in the
      * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.
@@ -434,44 +453,33 @@ public interface Configuration extends FileCollection {
     Configuration copyRecursive(Closure dependencySpec);
 
     /**
-     * Sets a configuration attribute.
-     * @param key the name of the attribute
-     * @param value the value of the attribute
-     * @return this configuration
+     * Configures if a configuration can be consumed.
+     *
+     * @since 3.3
      */
-    @Incubating
-    Configuration attribute(String key, String value);
-
-    /**
-     * Sets multiple configuration attributes at once. The attributes are copied from the source map.
-     * @param attributes the attributes to be copied to this configuration
-     * @return this configuration
-     */
-    @Incubating
-    Configuration attributes(Map<String, String> attributes);
-
-    @Incubating
-    Map<String, String> getAttributes();
-
-    @Incubating
-    boolean hasAttributes();
-
     @Incubating
     void setCanBeConsumed(boolean allowed);
 
     /**
      * Returns true if this configuration can be consumed from another project, or published. Defaults to true.
      * @return true if this configuration can be consumed or published.
+     * @since 3.3
      */
     @Incubating
     boolean isCanBeConsumed();
 
+    /**
+     * Configures if a configuration can be resolved.
+     *
+     * @since 3.3
+     */
     @Incubating
     void setCanBeResolved(boolean allowed);
 
     /**
      * Returns true if it is allowed to query or resolve this configuration. Defaults to true.
      * @return true if this configuration can be queried or resolved.
+     * @since 3.3
      */
     @Incubating
     boolean isCanBeResolved();

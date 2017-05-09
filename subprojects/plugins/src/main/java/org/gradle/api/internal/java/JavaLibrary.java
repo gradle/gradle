@@ -16,46 +16,121 @@
 
 package org.gradle.api.internal.java;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.Usage;
+import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME;
+
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
 public class JavaLibrary implements SoftwareComponentInternal {
-    private final Usage runtimeUsage = new RuntimeUsage();
     private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
-    private final DependencySet runtimeDependencies;
+    private final UsageContext runtimeUsage;
+    private final UsageContext compileUsage;
+    private final ConfigurationContainer configurations;
 
+    public JavaLibrary(ConfigurationContainer configurations, PublishArtifact... artifacts) {
+        Collections.addAll(this.artifacts, artifacts);
+        this.configurations = configurations;
+        this.runtimeUsage = new RuntimeUsageContext();
+        this.compileUsage = new CompileUsageContext();
+    }
+
+    /**
+     * This constructor should not be used, and is maintained only for backwards
+     * compatibility with the widely used Shadow plugin.
+     */
+    @Deprecated
     public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
-        artifacts.add(jarArtifact);
-        this.runtimeDependencies = runtimeDependencies;
+        this.artifacts.add(jarArtifact);
+        this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.FOR_RUNTIME, runtimeDependencies);
+        this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.FOR_COMPILE, runtimeDependencies);
+        this.configurations = null;
     }
 
     public String getName() {
         return "java";
     }
 
-    public Set<Usage> getUsages() {
-        return Collections.singleton(runtimeUsage);
+    public Set<UsageContext> getUsages() {
+        return ImmutableSet.of(runtimeUsage, compileUsage);
     }
 
-    private class RuntimeUsage implements Usage {
-        public String getName() {
-            return "runtime";
+    private class RuntimeUsageContext implements UsageContext {
+
+        private DependencySet dependencies;
+
+        @Override
+        public Usage getUsage() {
+            return Usage.FOR_RUNTIME;
         }
 
         public Set<PublishArtifact> getArtifacts() {
             return artifacts;
         }
 
+        public Set<ModuleDependency> getDependencies() {
+            if (dependencies == null) {
+                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getAllDependencies();
+            }
+            return dependencies.withType(ModuleDependency.class);
+        }
+    }
+
+    private class CompileUsageContext implements UsageContext {
+
+        private DependencySet dependencies;
+
+        @Override
+        public Usage getUsage() {
+            return Usage.FOR_COMPILE;
+        }
+
+        public Set<PublishArtifact> getArtifacts() {
+            return artifacts;
+        }
+
+        public Set<ModuleDependency> getDependencies() {
+            if (dependencies == null) {
+                dependencies = configurations.findByName(API_ELEMENTS_CONFIGURATION_NAME).getAllDependencies();
+            }
+            return dependencies.withType(ModuleDependency.class);
+        }
+    }
+
+    private class BackwardsCompatibilityUsageContext implements UsageContext {
+
+        private final Usage usage;
+        private final DependencySet runtimeDependencies;
+
+        private BackwardsCompatibilityUsageContext(Usage usage, DependencySet runtimeDependencies) {
+            this.usage = usage;
+            this.runtimeDependencies = runtimeDependencies;
+        }
+
+        @Override
+        public Usage getUsage() {
+            return usage;
+        }
+
+        @Override
+        public Set<PublishArtifact> getArtifacts() {
+            return artifacts;
+        }
+
+        @Override
         public Set<ModuleDependency> getDependencies() {
             return runtimeDependencies.withType(ModuleDependency.class);
         }

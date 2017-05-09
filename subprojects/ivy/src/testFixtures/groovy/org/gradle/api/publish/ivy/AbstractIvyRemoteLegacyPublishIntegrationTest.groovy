@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.ivy.IvyDescriptorDependencyExclusion
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 import org.gradle.test.fixtures.server.RepositoryServer
+import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -93,7 +94,7 @@ uploadArchives {
         then:
         module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-        module.parsedIvy.expectArtifact("publish", "jar").hasAttributes("jar", "jar", ["archives", "runtime"], null)
+        module.parsedIvy.expectArtifact("publish", "jar").hasAttributes("jar", "jar", ["apiElements", "archives", "runtime", "runtimeElements"], null)
 
         with (module.parsedIvy) {
             dependencies.size() == 6
@@ -147,5 +148,10 @@ uploadArchives {
 
         and:
         progressLogger.uploadProgressLogged(module.jar.uri)
+
+        cleanup:
+        if (server instanceof SFTPServer) {
+            ((SFTPServer) server).clearSessions()
+        }
     }
 }

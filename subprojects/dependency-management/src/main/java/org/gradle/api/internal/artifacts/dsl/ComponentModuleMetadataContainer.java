@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
@@ -34,9 +35,14 @@ import static java.lang.String.format;
 public class ComponentModuleMetadataContainer implements ModuleReplacementsData {
 
     private final Map<ModuleIdentifier, ModuleIdentifier> replacements = newHashMap();
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+    public ComponentModuleMetadataContainer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    }
 
     public ComponentModuleMetadataDetails module(final Object sourceModule) {
-        final NotationParser<Object, ModuleIdentifier> parser = parser();
+        final NotationParser<Object, ModuleIdentifier> parser = parser(moduleIdentifierFactory);
         final ModuleIdentifier source = parser.parseNotation(sourceModule);
         return new ComponentModuleMetadataDetails() {
             public void replacedBy(final Object targetModule) {
@@ -84,10 +90,10 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
         }
     }
 
-    private static NotationParser<Object, ModuleIdentifier> parser() {
+    private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return NotationParserBuilder
                 .toType(ModuleIdentifier.class)
-                .converter(new ModuleIdentifierNotationConverter())
+                .converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
                 .toComposite();
     }
 }

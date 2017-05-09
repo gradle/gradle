@@ -17,9 +17,23 @@ git config user.email user@example.com
 You can generate the IntelliJ project by running
 ```
 ./gradlew idea       # *nix-based systems
-./gradlew.bat idea   # Windows
+gradlew idea         # Windows
 ```
-then "Open" it with IntelliJ. Unfortunately, Eclipse project import isn't straightforward so it's not recommended.
+then "Open" it with IntelliJ.
+
+You can generate the Eclipse projects by running
+```
+./gradlew eclipse   # *nix-based systems
+gradlew eclipse     # Windows
+```
+
+### Running or debugging gradle under Eclipse
+1. Create a `Java Application Run/Debug configuration as`
+2. Right click on `launcher/src/main/java/org.gradle.launcher.Main` and select `Run as->Run configuration`
+3. In the Arguments tab, enter: `--no-daemon -Dorg.gradle.appname=gradle`
+4. In the Working Directory tab: `enter you project's root directory`
+5. Apply/Run/Close as needed
+
 
 ## Choosing Tasks
 If you'd like to contribute to Gradle but aren't sure where, please look for issues [labelled help-wanted](https://github.com/gradle/gradle/labels/help-wanted). We have designated these issues as good candidates for easy contribution.
@@ -31,13 +45,13 @@ Before starting to work on a feature or a fix, please open a discussion about yo
 Doing so helps to ensure that:
 * You understand how your proposed changes fit with the strategic goals of the Gradle project.
 * You can get early feedback on your proposed changes, and suggestions as to the best approach to implementation.
-* We can all collaborate in creating a [design document](design-docs). This is _required_ for all changes that affect behavior or public API.
+* We can all collaborate in creating a [design document](../design-docs). This is _required_ for all changes that affect behavior or public API.
     
 ### Code Change Guidelines
 All code contributions should contain the following:
 
 * Unit Tests (using [Spock](http://spockframework.org/spock/docs/1.1-rc-2/index.html)) for any logic introduced
-* Integration Test coverage of the bug/feature at the level of build execution
+* Integration Test coverage of the bug/feature at the level of build execution. Please annotate tests guarding against a specific GitHub issue `@Issue("gradle/gradle#123")`.
 * Documentation in the User Guide and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
 * Javadoc `@author` tags and committer names are not used in the codebase (contributions are recognised in the commit history and release notes)
 
@@ -71,10 +85,10 @@ Please consider reading [How to Write a Git Commit Message](http://chris.beams.i
 * Keep commits discrete: avoid including multiple unrelated changes in a single commit
 * Keep commits self-contained: avoid spreading a single change across multiple commits. A single commit should make sense in isolation
 * If your commit pertains to a GitHub issue, include (`Issue: #123`) in the commit message on a separate line
-* Please check that your email address matches that on your [CLA](http://gradle.org/contributor-license-agreement/)
+* Please check that your email address matches that on your [CLA](http://gradle.org/cla)
 
 ### Submitting Your Change
-Before we can accept any code contributions, you must complete and electronically sign a [Gradle CLA](http://gradle.org/contributor-license-agreement/).
+Before we can accept any code contributions, you must complete and electronically sign a [Gradle CLA](http://gradle.org/cla).
 
 All code contributions should be submitted via a [pull request](https://help.github.com/articles/using-pull-requests) from a [forked GitHub repository](https://help.github.com/articles/fork-a-repo).
 
@@ -87,7 +101,7 @@ After review, and usually after a number of iterations of development, your pull
 ## Our Thanks
 We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to. 
   
-If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.org/gradle-jobs/)? 
+If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.com/careers)? 
 
 
 

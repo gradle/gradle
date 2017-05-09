@@ -26,4 +26,33 @@
             <location>somelocation</location>
         </link>
     </linkedResources>
+    <filteredResources>
+        <filter>
+            <id>1</id>
+            <type>30</type>
+            <name/>
+            <matcher>
+                <id>org.eclipse.some.custom.matcher</id>
+                <arguments>foobar</arguments>
+            </matcher>
+        </filter>
+        <filter>
+            <id>1</id>
+            <type>9</type>
+            <name/>
+            <matcher>
+                <id>org.eclipse.ui.ide.orFilterMatcher</id>
+                <arguments>
+                    <matcher>
+                        <id>org.eclipse.ui.ide.multiFilter</id>
+                        <arguments>1.0-name-matches-false-false-node_modules</arguments>
+                    </matcher>
+                    <matcher>
+                        <id>org.eclipse.ui.ide.multiFilter</id>
+                        <arguments>1.0-name-matches-false-false-target</arguments>
+                    </matcher>
+                </arguments>
+            </matcher>
+        </filter>
+    </filteredResources>
 </projectDescription>

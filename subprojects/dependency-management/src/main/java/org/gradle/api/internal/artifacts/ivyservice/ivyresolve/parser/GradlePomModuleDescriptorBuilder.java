@@ -23,10 +23,12 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -82,11 +84,15 @@ public class GradlePomModuleDescriptorBuilder {
     private MutableModuleDescriptorState descriptor;
     private List<DependencyMetadata> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ModuleExclusions moduleExclusions;
 
-    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme) {
+    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
         this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         this.pomReader = pomReader;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.moduleExclusions = moduleExclusions;
     }
 
     public List<DependencyMetadata> getDependencies() {
@@ -157,7 +163,7 @@ public class GradlePomModuleDescriptorBuilder {
             // compared to how m2 behave with classifiers
             String optionalizedScope = optional ? "optional" : scope.toString().toLowerCase();
 
-            IvyArtifactName artifactName = DefaultIvyArtifactName.of(selector.getName(), type, ext, classifier);
+            IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getName(), type, ext, classifier);
             artifacts.add(new Artifact(artifactName, Collections.singleton(optionalizedScope)));
         }
 
@@ -172,8 +178,7 @@ public class GradlePomModuleDescriptorBuilder {
         }
         for (ModuleIdentifier excludedModule : excluded) {
             DefaultExclude rule = new DefaultExclude(
-                excludedModule.getGroup(),
-                excludedModule.getName(),
+                moduleIdentifierFactory.module(excludedModule.getGroup(), excludedModule.getName()),
                 WILDCARD,
                 PatternMatchers.EXACT);
             excludes.add(rule);

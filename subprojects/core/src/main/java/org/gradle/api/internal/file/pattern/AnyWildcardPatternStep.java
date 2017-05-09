@@ -15,7 +15,12 @@
  */
 package org.gradle.api.internal.file.pattern;
 
-public class AnyWildcardPatternStep implements PatternStep{
+public class AnyWildcardPatternStep implements PatternStep {
+    @Override
+    public String toString() {
+        return "{any}";
+    }
+
     public boolean matches(String candidate) {
         return true;
     }

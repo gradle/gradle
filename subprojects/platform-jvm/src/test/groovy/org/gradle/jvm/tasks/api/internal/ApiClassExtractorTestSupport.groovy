@@ -18,6 +18,7 @@ package org.gradle.jvm.tasks.api.internal
 
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
+import org.gradle.api.internal.tasks.compile.ApiClassExtractor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.objectweb.asm.ClassReader

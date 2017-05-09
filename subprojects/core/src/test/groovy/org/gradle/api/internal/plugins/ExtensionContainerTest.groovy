@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.internal.plugins
 
-
+import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.api.reflect.TypeOf
 import spock.lang.Specification
 
-public class ExtensionContainerTest extends Specification {
+import static org.gradle.api.reflect.TypeOf.typeOf
+
+class ExtensionContainerTest extends Specification {
 
     def container = new DefaultConvention(ThreadGlobalInstantiator.getOrCreate())
     def extension = new FooExtension()
@@ -34,6 +37,7 @@ public class ExtensionContainerTest extends Specification {
     }
 
     class BarExtension {}
+
     class SomeExtension {}
 
     def "has dynamic extension"() {
@@ -148,7 +152,7 @@ public class ExtensionContainerTest extends Specification {
 
         then:
         def ex = thrown(UnknownDomainObjectException)
-        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [${DefaultExtraPropertiesExtension.simpleName}, FooExtension]"
+        ex.message == "Extension of type 'ExtensionContainerTest.SomeExtension' does not exist. Currently registered extension types: [${ExtraPropertiesExtension.simpleName}, ExtensionContainerTest.FooExtension]"
     }
 
     def "types can be retrieved by interface and super types"() {
@@ -182,6 +186,83 @@ public class ExtensionContainerTest extends Specification {
         extension.thing.name == "bar"
     }
 
+    def "can hide implementation type of extensions"() {
+        given:
+        container.create Parent, 'foo', Child
+        container.create Capability, 'bar', Impl
+
+        expect:
+        container.findByType(Parent) != null
+        container.findByType(Child) == null
+
+        and:
+        container.findByType(Capability) != null
+        container.findByType(Impl) == null
+    }
+
+    def "can register extension with generic public type"() {
+        given:
+        def extension = []
+
+        when:
+        container.add new TypeOf<List<String>>() {}, 'foo', extension
+
+        then:
+        container.findByType(List) is extension
+        container.findByType(new TypeOf<List<String>>() {}) is extension
+    }
+
+    def "can distinguish unrelated generic type arguments"() {
+        given:
+        def parents = []
+        def capabilities = []
+
+        when:
+        container.add new TypeOf<List<Parent>>() {}, "parents", parents
+        container.add new TypeOf<List<Capability>>() {}, "capabilities", capabilities
+
+        then:
+        container.getByType(new TypeOf<List<Parent>>() {}) is parents
+        container.getByType(new TypeOf<List<Capability>>() {}) is capabilities
+    }
+
+    def "can distinguish related generic type arguments"() {
+        given:
+        def parents = []
+        def children = []
+
+        when:
+        container.add new TypeOf<List<Parent>>() {}, "parents", parents
+        container.add new TypeOf<List<Child>>() {}, "children", children
+
+        then:
+        container.getByType(new TypeOf<List<Parent>>() {}) is parents
+        container.getByType(new TypeOf<List<Child>>() {}) is children
+    }
+
+    def "can get extensions schema"() {
+        given:
+        container.create Parent, 'foo', Child
+        container.create Capability, 'bar', Impl
+        container.add new TypeOf<List<String>>() {}, 'baz', []
+
+        expect:
+        container.schema == [ext: typeOf(ExtraPropertiesExtension),
+                             foo: typeOf(Parent),
+                             bar: typeOf(Capability),
+                             baz: new TypeOf<List<String>>() {}]
+    }
+
+    def "can configure extensions by name"() {
+        given:
+        container.add "foo", extension
+
+        when:
+        container.configure "foo", { FooExtension foo -> foo.message = "bar" } as Action
+
+        then:
+        extension.message == "bar"
+    }
 }
 
 interface Capability {}
@@ -195,5 +276,4 @@ class Thing {
     Thing(String name) {
         this.name = name
     }
-
 }

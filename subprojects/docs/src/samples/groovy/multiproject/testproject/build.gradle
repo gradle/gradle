@@ -4,7 +4,7 @@ group = 'org.gradle'
 version = '1.0'
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile 'org.codehaus.groovy:groovy-all:2.4.10'
     compile project(':groovycDetector')
     testCompile 'junit:junit:4.12'
 }

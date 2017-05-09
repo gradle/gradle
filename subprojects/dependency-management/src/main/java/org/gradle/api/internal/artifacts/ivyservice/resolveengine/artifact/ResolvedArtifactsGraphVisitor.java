@@ -16,17 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DefaultVariantMetadata;
+import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -41,26 +47,34 @@ import java.util.Set;
  */
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
-    private final Map<ResolvedConfigurationIdentifier, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
+    private final Map<Long, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final ArtifactResolver artifactResolver;
-
+    private final ArtifactTypeRegistry artifactTypeRegistry;
     private final DependencyArtifactsVisitor artifactResults;
+    private final ModuleExclusions moduleExclusions;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry,  ModuleExclusions moduleExclusions) {
         this.artifactResults = artifactsBuilder;
         this.artifactResolver = artifactResolver;
+        this.artifactTypeRegistry = artifactTypeRegistry;
+        this.moduleExclusions = moduleExclusions;
     }
 
     @Override
     public void start(DependencyGraphNode root) {
+        artifactResults.startArtifacts(root);
     }
 
     @Override
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
     }
 
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+    @Override
+    public void visitSelector(DependencyGraphSelector selector) {
+    }
+
+    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
         for (DependencyGraphEdge dependency : resolvedConfiguration.getIncomingEdges()) {
             DependencyGraphNode parent = dependency.getFrom();
             ArtifactSet artifacts = getArtifacts(dependency, resolvedConfiguration);
@@ -74,35 +88,35 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         artifactSetsByConfiguration.clear();
     }
 
-    private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
+    private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
         long id = idGenerator.generateId();
-        ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.getNodeId();
-        ConfigurationMetadata configuration = childConfiguration.getMetadata();
-        ComponentResolveMetadata component = childConfiguration.getOwner().getMetadata();
+        ConfigurationMetadata configuration = toConfiguration.getMetadata();
+        ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
 
         Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
         if (!artifacts.isEmpty()) {
-            return new DefaultArtifactSet(component.getId(), component.getSource(), ModuleExclusions.excludeNone(), artifacts, artifactResolver, allResolvedArtifacts, id);
+            Set<DefaultVariantMetadata> variants = ImmutableSet.of(new DefaultVariantMetadata(Describables.of(component.getComponentId()), ImmutableAttributes.EMPTY, artifacts));
+            return new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), ModuleExclusions.excludeNone(), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, artifactTypeRegistry);
         }
 
-        ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(configurationIdentifier);
+        ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
-            artifacts = doResolve(component, configuration);
+            Set<? extends VariantMetadata> variants = doResolve(component, configuration);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getId(), component.getSource(), dependency.getExclusions(), artifacts, artifactResolver, allResolvedArtifacts, id);
+            configurationArtifactSet = new DefaultArtifactSet(component.getComponentId(), component.getId(), component.getSource(), dependency.getExclusions(moduleExclusions), variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, id, artifactTypeRegistry);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
-            if (!dependency.getExclusions().mayExcludeArtifacts()) {
-                artifactSetsByConfiguration.put(configurationIdentifier, configurationArtifactSet);
+            if (!dependency.getExclusions(moduleExclusions).mayExcludeArtifacts()) {
+                artifactSetsByConfiguration.put(toConfiguration.getNodeId(), configurationArtifactSet);
             }
         }
 
         return configurationArtifactSet;
     }
 
-    private Set<? extends ComponentArtifactMetadata> doResolve(ComponentResolveMetadata component, ConfigurationMetadata configuration) {
+    private Set<? extends VariantMetadata> doResolve(ComponentResolveMetadata component, ConfigurationMetadata configuration) {
         BuildableComponentArtifactsResolveResult result = new DefaultBuildableComponentArtifactsResolveResult();
         artifactResolver.resolveArtifacts(component, result);
-        return result.getResult().getArtifactsFor(configuration);
+        return result.getResult().getVariantsFor(configuration);
     }
 }

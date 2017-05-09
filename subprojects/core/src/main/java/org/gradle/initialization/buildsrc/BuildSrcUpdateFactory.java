@@ -44,11 +44,7 @@ public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
         File markerFile = new File(cache.getBaseDir(), "built.bin");
         final boolean rebuild = !markerFile.exists();
 
-        BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create(rebuild);
-        gradleLauncher.addListener(listener);
-        gradleLauncher.run();
-
-        Collection<File> classpath = listener.getRuntimeClasspath();
+        Collection<File> classpath = build(rebuild);
         LOGGER.debug("Gradle source classpath is: {}", classpath);
         try {
             markerFile.createNewFile();
@@ -56,5 +52,13 @@ public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
             throw new UncheckedIOException(e);
         }
         return new DefaultClassPath(classpath);
+    }
+
+    private Collection<File> build(boolean rebuild) {
+        BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create(rebuild);
+        gradleLauncher.addListener(listener);
+        gradleLauncher.run();
+
+        return listener.getRuntimeClasspath();
     }
 }

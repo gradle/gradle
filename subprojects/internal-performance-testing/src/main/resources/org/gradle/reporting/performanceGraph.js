@@ -32,6 +32,7 @@
             legend: {
                 noColumns: 0,
                 margin: 1,
+                position: "se",
                 labelFormatter:
                     function(label, series) {
                        return '<a href="#" class="chart-legend" onClick="performanceTests.togglePlot(\''+chartId+'\', \''+label+'\'); return false;">'+label+'</a>';

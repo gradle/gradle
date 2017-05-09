@@ -46,12 +46,12 @@ public interface ObjectConnectionBuilder {
     <T> void addIncoming(Class<T> type, T instance);
 
     /**
-     * Use Java serialization for method parameters for method invocations sent between peers.
+     * Use the given Classloader to deserialize method parameters for method invocations received from the peer, for those types where Java serialization is used.
      */
     void useJavaSerializationForParameters(ClassLoader incomingMessageClassLoader);
 
     /**
-     * Use the specified serializers for all incoming and outgoing method parameters.
+     * Adds a set of specified serializers for incoming and outgoing method parameters. For any types that are not known to any registry added using this method, then Java serialization is used.
      */
     void useParameterSerializers(SerializerRegistry serializers);
 }

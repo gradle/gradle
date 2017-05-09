@@ -26,6 +26,6 @@ class DaemonHealthLoggingIntegrationTest extends DaemonIntegrationSpec {
         def r = executer.noExtraLogging().run()
 
         then:
-        r.output.contains("Starting build in new daemon [memory: ")
+        r.output ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/
     }
 }

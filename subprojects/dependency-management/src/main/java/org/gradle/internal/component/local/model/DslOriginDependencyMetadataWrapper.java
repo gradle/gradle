@@ -19,7 +19,7 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -27,6 +27,7 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -60,8 +61,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent);
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent, consumerSchema);
     }
 
     @Override
@@ -75,13 +76,13 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        return delegate.getExclusions(fromConfiguration);
+    public List<Exclude> getExcludes() {
+        return delegate.getExcludes();
     }
 
     @Override
-    public List<Exclude> getExcludes() {
-        return delegate.getExcludes();
+    public List<Exclude> getExcludes(Collection<String> configurations) {
+        return delegate.getExcludes(configurations);
     }
 
     @Override

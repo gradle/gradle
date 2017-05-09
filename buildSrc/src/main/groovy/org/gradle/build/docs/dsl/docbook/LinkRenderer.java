@@ -15,10 +15,12 @@
  */
 package org.gradle.build.docs.dsl.docbook;
 
+import groovy.lang.GroovySystem;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.build.docs.dsl.source.model.EnumConstantMetaData;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;
 import org.gradle.build.docs.dsl.source.model.TypeMetaData;
+import org.gradle.internal.jvm.Jvm;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -30,10 +32,14 @@ public class LinkRenderer {
     private final Document document;
     private final DslDocModel model;
     private final Set<String> primitiveTypes = new HashSet<String>();
+    private final String groovyVersion;
+    private final String javaVersion;
 
-    public LinkRenderer(Document document, DslDocModel model) {
+    public LinkRenderer(Document document, DslDocModel model, String groovyVersion, String javaVersion) {
         this.document = document;
         this.model = model;
+        this.groovyVersion = groovyVersion;
+        this.javaVersion = javaVersion;
         primitiveTypes.add("boolean");
         primitiveTypes.add("byte");
         primitiveTypes.add("short");
@@ -43,6 +49,10 @@ public class LinkRenderer {
         primitiveTypes.add("float");
         primitiveTypes.add("double");
         primitiveTypes.add("void");
+    }
+
+    public LinkRenderer(Document document, DslDocModel model) {
+        this(document, model, GroovySystem.getVersion(), Jvm.current().getJavaVersion().getMajorVersion());
     }
 
     Node link(TypeMetaData type, final GenerationListener listener) {
@@ -80,7 +90,7 @@ public class LinkRenderer {
 
         if (className.startsWith("java.")) {
             Element linkElement = document.createElement("ulink");
-            linkElement.setAttribute("url", String.format("http://download.oracle.com/javase/1.5.0/docs/api/%s.html",
+            linkElement.setAttribute("url", String.format("http://download.oracle.com/javase/%s/docs/api/%s.html", javaVersion,
                     className.replace(".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
@@ -90,7 +100,7 @@ public class LinkRenderer {
 
         if (className.startsWith("groovy.")) {
             Element linkElement = document.createElement("ulink");
-            linkElement.setAttribute("url", String.format("http://groovy.codehaus.org/gapi/%s.html", className.replace(
+            linkElement.setAttribute("url", String.format("http://docs.groovy-lang.org/%s/html/gapi/%s.html", groovyVersion, className.replace(
                     ".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));

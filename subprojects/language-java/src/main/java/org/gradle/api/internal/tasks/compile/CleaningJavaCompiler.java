@@ -21,7 +21,6 @@ import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
-import org.gradle.util.DeprecationLogger;
 
 public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> compiler;
@@ -42,24 +41,6 @@ public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompil
 
     @Override
     protected StaleClassCleaner createCleaner(final JavaCompileSpec spec) {
-        return DeprecationLogger.whileDisabled(new Factory<StaleClassCleaner>() {
-            @Override
-            public StaleClassCleaner create() {
-                return createCleanerWithoutDeprecationWarnings(spec);
-            }
-        });
-    }
-
-    @SuppressWarnings("deprecation")
-    private StaleClassCleaner createCleanerWithoutDeprecationWarnings(JavaCompileSpec spec) {
-        //TODO SF do we want to keep useDepend? The docs advertise that this option makes sense only when useAnt is on
-        //but the latter has been removed in 2.* Either we need to fix the the docs or deprecate useDepend
-        if (spec.getCompileOptions().isUseDepend()) {
-            AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory, spec.getCompileOptions());
-            cleaner.setDependencyCacheDir(spec.getDependencyCacheDir());
-            return cleaner;
-        } else {
-            return new SimpleStaleClassCleaner(taskOutputs);
-        }
+        return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

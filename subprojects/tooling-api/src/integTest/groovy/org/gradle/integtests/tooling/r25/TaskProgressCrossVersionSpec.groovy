@@ -29,6 +29,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.util.GradleVersion
 
 class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.5")
@@ -56,7 +57,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "asking for a model and specifying some task(s) to run first"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations).forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.TASK)).get()
@@ -74,7 +75,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: "launching a build"
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
@@ -133,7 +134,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('classes').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
@@ -149,7 +150,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         def processResources = events.operation('Task :processResources')
         processResources.descriptor.name == ":processResources"
         processResources.descriptor.taskPath == ":processResources"
-        processResources.result.upToDate
+        assertEmptyInputsTask(processResources)
 
         def disabled = events.operation('Task :disabled')
         disabled.descriptor.name == ":disabled"
@@ -185,7 +186,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
@@ -198,12 +199,13 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         def test = events.operation("Task :test")
         test.failed
         test.failures.size() == 1
+        test.failures[0].message == "Execution failed for task ':test'."
 
         events.failed == [test]
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
+    @TargetGradleVersion(">=2.5 <3.6")
     def "receive task progress events when tasks are executed in parallel"() {
         given:
         if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
@@ -221,15 +223,71 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelSleep').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
+                connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelSleep').addProgressListener(events).run()
         }
 
         then:
         events.tasks.size() == 3
-        events.successful == events.tasks
+
+        def runTasks = events.operation("Run tasks")
+
+        def t1 = events.operation("Task :para1")
+        def t2 = events.operation("Task :para2")
+        def t3 = events.operation("Task :parallelSleep")
+
+        t1.parent == runTasks
+        t2.parent == runTasks
+        t3.parent == runTasks
+    }
+
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=3.6")
+    def "receive task progress events when tasks are executed in parallel (with async work)"() {
+        given:
+        if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
+            toolingApi.requireDaemons()
+        }
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+            
+            class SleepRunnable implements Runnable {
+                public void run() {
+                    Thread.sleep(1000)
+                }
+            }
+            
+            class ParTask extends DefaultTask {
+                @TaskAction zzz() { services.get(WorkerExecutor.class).submit(SleepRunnable) { it.displayName = "Sleep \$path" } }
+            }
+
+            task para1(type:ParTask)
+            task para2(type:ParTask)
+            task parallelSleep(dependsOn:[para1,para2])
+        """
+
+        when:
+        def events = ProgressEvents.create()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().withArguments('--parallel', '--max-workers=2').forTasks('parallelSleep').addProgressListener(events).run()
+        }
+
+        then:
+        events.tasks.size() == 3
+
+        def runTasks = events.operation("Run tasks")
+
+        def t1 = events.operation("Task :para1")
+        def t2 = events.operation("Task :para2")
+        def t3 = events.operation("Task :parallelSleep")
+
+        t1.parent == runTasks
+        t2.parent == runTasks
+        t3.parent == runTasks
     }
 
     @ToolingApiVersion(">=2.5")
@@ -239,7 +297,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         goodCode()
 
         when: 'listening to task progress events and build operation listener is attached'
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
@@ -258,6 +316,43 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then: 'the parent of the task events is null'
         events.tasks.every { it.descriptor.parent == null }
+    }
+
+    @ToolingApiVersion(">=2.5")
+    @TargetGradleVersion(">=3.4")
+    def "task with empty skipwhenempty inputs marked as skipped with NO-SOURCE"() {
+        given:
+        buildFile << """
+           task empty {
+                inputs.files(project.files()).skipWhenEmpty()
+                doLast{}
+           }
+        """
+
+        when:
+        def events = ProgressEvents.create()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('empty').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
+        }
+
+        then:
+
+        def emptyTask = events.operation('Task :empty')
+        emptyTask.descriptor.name == ":empty"
+        emptyTask.descriptor.taskPath == ":empty"
+        emptyTask.result instanceof TaskSkippedResult
+        emptyTask.result.skipMessage == "NO-SOURCE"
+    }
+
+    def assertEmptyInputsTask(ProgressEvents.Operation taskOperation) {
+        if (targetVersion < GradleVersion.version("3.4")) {
+            assert taskOperation.result.upToDate
+        } else {
+            assert taskOperation.result instanceof TaskSkippedResult
+            assert taskOperation.result.skipMessage == "NO-SOURCE"
+        }
+        true
     }
 
     def goodCode() {

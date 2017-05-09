@@ -17,12 +17,14 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.BuildAdapter;
+import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
-import org.gradle.util.WrapUtil;
+import org.gradle.internal.Actions;
 
 import java.io.File;
 import java.util.Collection;
@@ -30,33 +32,50 @@ import java.util.Set;
 
 public class BuildSrcBuildListenerFactory {
 
-    private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
+    private final Action<ProjectInternal> buildSrcRootProjectConfiguration;
+
+    public BuildSrcBuildListenerFactory() {
+        this(Actions.<ProjectInternal>doNothing());
+    }
+
+    public BuildSrcBuildListenerFactory(Action<ProjectInternal> buildSrcRootProjectConfiguration) {
+        this.buildSrcRootProjectConfiguration = buildSrcRootProjectConfiguration;
+    }
 
     Listener create(boolean rebuild) {
-        return new Listener(rebuild);
+        return new Listener(rebuild, buildSrcRootProjectConfiguration);
     }
 
     public static class Listener extends BuildAdapter implements ModelConfigurationListener {
         private Set<File> classpath;
         private final boolean rebuild;
+        private final Action<ProjectInternal> rootProjectConfiguration;
 
-        public Listener(boolean rebuild) {
+        private Listener(boolean rebuild, Action<ProjectInternal> rootProjectConfiguration) {
             this.rebuild = rebuild;
+            this.rootProjectConfiguration = rootProjectConfiguration;
         }
 
         @Override
         public void projectsLoaded(Gradle gradle) {
-            gradle.getRootProject().apply(WrapUtil.toMap("from", BuildSrcBuildListenerFactory.class.getResource(DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE)));
+            rootProjectConfiguration.execute((ProjectInternal)gradle.getRootProject());
+
+        }
+
+        @Override
+        public void onConfigure(GradleInternal gradle) {
+            BuildableJavaComponent mainComponent = mainComponentOf(gradle);
+            gradle.getStartParameter().setTaskNames(
+                rebuild ? mainComponent.getRebuildTasks() : mainComponent.getBuildTasks());
+            classpath = mainComponent.getRuntimeClasspath().getFiles();
         }
 
         public Collection<File> getRuntimeClasspath() {
             return classpath;
         }
 
-        public void onConfigure(GradleInternal gradle) {
-            BuildableJavaComponent projectInfo = gradle.getRootProject().getServices().get(ComponentRegistry.class).getMainComponent();
-            gradle.getStartParameter().setTaskNames(rebuild ? projectInfo.getRebuildTasks() : projectInfo.getBuildTasks());
-            classpath = projectInfo.getRuntimeClasspath().getFiles();
+        private BuildableJavaComponent mainComponentOf(GradleInternal gradle) {
+            return gradle.getRootProject().getServices().get(ComponentRegistry.class).getMainComponent();
         }
     }
 }

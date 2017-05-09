@@ -16,7 +16,12 @@
 package org.gradle.internal.logging
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.logging.events.*
+import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.events.ProgressCompleteEvent
+import org.gradle.internal.logging.events.ProgressEvent
+import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.progress.BuildOperationType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
@@ -24,6 +29,7 @@ import java.text.SimpleDateFormat
 
 abstract class OutputSpecification extends Specification {
 
+    public static final String CATEGORY = 'category'
     private Long counter = 1
 
     protected String toNative(String value) {
@@ -50,6 +56,10 @@ abstract class OutputSpecification extends Specification {
         return new LogEvent(tenAm, 'category', logLevel, text, null)
     }
 
+    LogEvent event(String text, LogLevel logLevel, Object buildOperationId) {
+        return new LogEvent(tenAm, 'category', logLevel, text, null, buildOperationId)
+    }
+
     LogEvent event(long timestamp, String text, LogLevel logLevel) {
         return new LogEvent(timestamp, 'category', logLevel, text, null)
     }
@@ -67,18 +77,22 @@ abstract class OutputSpecification extends Specification {
     }
 
     ProgressStartEvent start(Map args) {
-        Long parent = counter
+        OperationIdentifier parentId = args.containsKey("parentId") ? args.parentId : new OperationIdentifier(counter)
+        Object buildOperationId = args.containsKey("buildOperationId") ? args.buildOperationId : null
+        Object parentBuildOperationId = args.containsKey("parentBuildOperationId") ? args.parentBuildOperationId : null
+        BuildOperationType buildOperationType = args.containsKey("buildOperationType") ? args.buildOperationType : BuildOperationType.UNCATEGORIZED
         long id = ++counter
-        return new ProgressStartEvent(new OperationIdentifier(id), new OperationIdentifier(parent), tenAm, 'category', args.description, args.shortDescription, args.loggingHeader, args.status)
+        String category = args.containsKey("category") ? args.category : CATEGORY
+        return new ProgressStartEvent(new OperationIdentifier(id), parentId, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId, parentBuildOperationId, buildOperationType)
     }
 
     ProgressEvent progress(String status) {
         long id = counter
-        return new ProgressEvent(new OperationIdentifier(id), tenAm, 'category', status)
+        return new ProgressEvent(new OperationIdentifier(id), tenAm, CATEGORY, status)
     }
 
     ProgressCompleteEvent complete(String status) {
         long id = counter--
-        return new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, 'category', 'description', status)
+        return new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, CATEGORY, 'description', status)
     }
 }

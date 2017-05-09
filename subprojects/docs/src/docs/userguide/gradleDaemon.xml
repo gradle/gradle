@@ -76,7 +76,7 @@
         (and enable) the Daemon in <xref linkend="daemon_faq"/> further down. That section also contains more detailed information on
         how the Daemon works.</para>
 
-        <para>Once you have globally enabled the Daemon in this way, all your builds will take advantage of the
+        <para>Note that having the Daemon enabled, all your builds will take advantage of the
         speed boost, regardless of the version of Gradle a particular build uses.</para>
 
         <tip>

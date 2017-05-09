@@ -17,18 +17,18 @@
 package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.IncludedBuilds;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class CompositeBuildServices implements PluginServiceRegistry {
@@ -57,20 +57,20 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     private static class CompositeBuildSessionScopeServices {
-        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, GradleLauncherFactory gradleLauncherFactory, ServiceRegistry serviceRegistry) {
-            return new DefaultIncludedBuildFactory(instantiator, startParameter, gradleLauncherFactory, serviceRegistry);
-        }
-
         public DefaultIncludedBuilds createIncludedBuilds() {
             return new DefaultIncludedBuilds();
         }
 
-        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds) {
-            return new DefaultBuildableCompositeBuildContext(includedBuilds);
+        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return new DefaultBuildableCompositeBuildContext(includedBuilds, moduleIdentifierFactory);
         }
 
-        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, CompositeBuildContext context) {
-            return new DefaultCompositeContextBuilder(includedBuilds, context);
+        public DefaultProjectPathRegistry createProjectPathRegistry() {
+            return new DefaultProjectPathRegistry();
+        }
+
+        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, DefaultProjectPathRegistry projectRegistry, CompositeBuildContext context) {
+            return new DefaultCompositeContextBuilder(includedBuilds, projectRegistry, context);
         }
 
         public IncludedBuildExecuter createIncludedBuildExecuter(IncludedBuilds includedBuilds) {
@@ -83,6 +83,10 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     private static class CompositeBuildBuildScopeServices {
+        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return new DefaultIncludedBuildFactory(instantiator, startParameter, nestedBuildFactory, moduleIdentifierFactory);
+        }
+
         public ProjectArtifactBuilder createProjectArtifactBuilder(IncludedBuildArtifactBuilder builder, BuildIdentity buildIdentity) {
             return new CompositeProjectArtifactBuilder(builder, buildIdentity);
         }

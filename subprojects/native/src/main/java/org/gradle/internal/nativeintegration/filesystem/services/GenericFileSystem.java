@@ -19,6 +19,8 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileException;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
+import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
@@ -33,12 +35,13 @@ import java.util.UUID;
 class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
-    final boolean caseSensitive;
-    final boolean canCreateSymbolicLink;
+    private final boolean caseSensitive;
+    private final boolean canCreateSymbolicLink;
 
     private final FileModeMutator chmod;
     private final FileModeAccessor stat;
     private final Symlink symlink;
+    private final FileMetadataAccessor metadata;
 
     @Override
     public boolean isCaseSensitive() {
@@ -74,6 +77,11 @@ class GenericFileSystem implements FileSystem {
     }
 
     @Override
+    public FileMetadataSnapshot stat(File f) throws FileException {
+        return metadata.stat(f);
+    }
+
+    @Override
     public void chmod(File f, int mode) {
         try {
             chmod.chmod(f, mode);
@@ -82,7 +90,8 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    public GenericFileSystem(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink) {
+    public GenericFileSystem(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink, FileMetadataAccessor metadata) {
+        this.metadata = metadata;
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;

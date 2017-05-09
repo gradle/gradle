@@ -18,8 +18,8 @@ package org.gradle.plugin.use.resolve.service.internal
 
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.use.internal.DefaultPluginRequest
-import org.gradle.plugin.use.internal.PluginRequest
+import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
@@ -28,7 +28,7 @@ import spock.lang.Specification
 class PersistentCachingPluginResolutionServiceClientTest extends Specification {
 
     public static final String PORTAL_URL_1 = "http://foo"
-    public static final PluginRequest REQUEST_1 = request("foo")
+    public static final PluginRequestInternal REQUEST_1 = request("foo")
     public static final String PLUGIN_URL_1 = "$PORTAL_URL_1/foo/1"
     public static final PluginUseMetaData PLUGIN_METADATA_1 = new PluginUseMetaData("foo", "1", [foo: "bar"], "implType", false)
     public static final ClientStatus CLIENT_STATUS_1 = new ClientStatus("One")
@@ -40,7 +40,7 @@ class PersistentCachingPluginResolutionServiceClientTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
 
-    def caches = new InMemoryCacheFactory.InMemoryCache(testDirectoryProvider.testDirectory)
+    def caches = new InMemoryCacheFactory().open(testDirectoryProvider.testDirectory, "plugins")
 
     PersistentIndexedCache<PersistentCachingPluginResolutionServiceClient.PluginRequestKey, PluginResolutionServiceClient.Response<PluginUseMetaData>> getPluginCache() {
         caches[PersistentCachingPluginResolutionServiceClient.PLUGIN_USE_METADATA_CACHE_NAME]
@@ -148,7 +148,7 @@ class PersistentCachingPluginResolutionServiceClientTest extends Specification {
         1 * delegate.close()
     }
 
-    static PluginRequest request(String id, String version = "1") {
+    static PluginRequestInternal request(String id, String version = "1") {
         new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
     }
 

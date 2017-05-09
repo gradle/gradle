@@ -28,6 +28,7 @@ import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrat
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.experimental.categories.Category
+import spock.lang.Unroll
 
 import static org.junit.Assume.assumeTrue
 
@@ -53,7 +54,8 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         )
     }
 
-    def "when build leaks slowly daemon is eventually expired"() {
+    @Unroll
+    def "when build leaks slowly daemon is eventually expired (heap: #heap)"() {
         when:
         setupBuildScript = tenuredHeapLeak
         maxBuilds = builds
@@ -65,7 +67,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
 
         where:
         builds | heap    | rate
-        40     | "200m"  | 800
+        45     | "200m"  | 600
         40     | "1024m" | 4000
     }
 
@@ -178,14 +180,15 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
             for (int i = 0; i < maxBuilds; i++) {
                 executer.noExtraLogging()
                 executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
-                def r = run()
-                if (r.output.contains("Starting build in new daemon [memory: ")) {
+                GradleHandle gradle = executer.start()
+                gradle.waitForExit()
+                if (gradle.standardOutput ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/) {
                     newDaemons++;
                 }
                 if (newDaemons > 1) {
                     return true
                 }
-                def lines = r.output.readLines()
+                def lines = gradle.standardOutput.readLines()
                 dataFile << lines[lines.findLastIndexOf { it.startsWith "Starting" }]
                 dataFile << "  " + lines[lines.findLastIndexOf { it.contains "Total time:" }]
                 dataFile << "\n"

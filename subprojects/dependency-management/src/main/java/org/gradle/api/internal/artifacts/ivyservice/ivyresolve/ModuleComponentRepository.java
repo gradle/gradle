@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
+
 /**
  * A repository of module components.
  */
@@ -27,4 +29,7 @@ public interface ModuleComponentRepository {
     ModuleComponentRepositoryAccess getLocalAccess();
 
     ModuleComponentRepositoryAccess getRemoteAccess();
+
+    ComponentMetadataSupplier createMetadataSupplier();
+
 }

@@ -15,4 +15,5 @@
  */
 package org.gradle.api.plugins.quality
 
-class FindBugsIntegrationTest extends AbstractFindBugsPluginIntegrationTest {}
+class FindBugsIntegrationTest extends AbstractFindBugsPluginIntegrationTest {
+}

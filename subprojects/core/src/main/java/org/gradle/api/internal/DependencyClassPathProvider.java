@@ -50,12 +50,12 @@ public class DependencyClassPathProvider implements ClassPathProvider {
 
     private ClassPath gradleApi() {
         ClassPath classpath = new DefaultClassPath();
-        for (String moduleName : Arrays.asList("gradle-core", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
+        for (String moduleName : Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
             for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());
             }
         }
-        for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
+        for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
             classpath = classpath.plus(pluginModule.getClasspath());
         }
         return classpath;

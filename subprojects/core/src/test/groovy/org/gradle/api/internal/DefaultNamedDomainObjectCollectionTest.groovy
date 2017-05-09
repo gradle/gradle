@@ -17,6 +17,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Namer
+import org.gradle.api.Rule
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
@@ -45,6 +46,64 @@ class DefaultNamedDomainObjectCollectionTest extends Specification {
         container.add(new Bean("bean3"))
         then:
         container.names == ["bean1", "bean2", "bean3"] as SortedSet
+    }
+
+    def "returns null element with name is not present and there are no rules to create it"() {
+        expect:
+        container.findByName("bean") == null
+    }
+
+    def "invokes rule to create element when element with name cannot be located"() {
+        def rule = Mock(Rule)
+        def bean = new Bean("bean")
+
+        given:
+        container.addRule(rule)
+
+        when:
+        def result = container.findByName("bean")
+
+        then:
+        result == bean
+
+        and:
+        1 * rule.apply("bean") >> { container.add(bean) }
+        0 * rule._
+    }
+
+    def "invokes rule once only when element cannot be located"() {
+        def rule = Mock(Rule)
+
+        given:
+        container.addRule(rule)
+
+        when:
+        def result = container.findByName("bean")
+
+        then:
+        result == null
+
+        and:
+        1 * rule.apply("bean")
+        0 * rule._
+    }
+
+    def "does not invoke rule when element with name is available"() {
+        def rule = Mock(Rule)
+        def bean = new Bean("bean")
+
+        given:
+        container.addRule(rule)
+        container.add(bean)
+
+        when:
+        def result = container.findByName("bean")
+
+        then:
+        result == bean
+
+        and:
+        0 * rule._
     }
 
     private class Bean {

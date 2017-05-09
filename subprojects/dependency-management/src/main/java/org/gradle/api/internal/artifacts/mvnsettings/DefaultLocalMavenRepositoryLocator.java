@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.SettingsBuildingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +64,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     // (see http://forums.gradle.org/gradle/topics/override_location_of_the_local_maven_repo).
     private synchronized String parseLocalRepoPathFromMavenSettings() throws SettingsBuildingException {
         if (localRepoPathFromMavenSettings == null) {
-            Settings settings = settingsProvider.buildSettings();
-            localRepoPathFromMavenSettings = settings.getLocalRepository();
+            localRepoPathFromMavenSettings = settingsProvider.getLocalRepository();
         }
         return localRepoPathFromMavenSettings;
     }

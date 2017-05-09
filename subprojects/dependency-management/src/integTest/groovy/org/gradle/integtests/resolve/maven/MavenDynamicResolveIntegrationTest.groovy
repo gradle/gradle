@@ -338,7 +338,7 @@ Searched in the following locations:
 
         when:
         server.resetExpectations()
-        repo.getModuleMetaData("group", "projectA").expectGet()
+        repo.getModuleMetaData("group", "projectA").expectHead()
         projectA.pom.expectHead()
         projectA.artifact.expectGet()
 

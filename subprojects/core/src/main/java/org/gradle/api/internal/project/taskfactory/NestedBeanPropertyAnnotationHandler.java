@@ -30,7 +30,7 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
 
     @Override
     public void attachActions(final TaskPropertyActionContext context) {
-        context.setNestedType(context.getType());
+        context.setNestedType(context.getValueType());
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, final Callable<Object> futureValue) {
                 task.getInputs().property(context.getName() + ".class", new Callable<Object>() {

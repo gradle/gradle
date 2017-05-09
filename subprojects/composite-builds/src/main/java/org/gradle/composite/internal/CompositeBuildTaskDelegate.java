@@ -56,8 +56,8 @@ public class CompositeBuildTaskDelegate extends DefaultTask {
         IncludedBuilds includedBuilds = getServices().get(IncludedBuilds.class);
         IncludedBuildExecuter builder = getServices().get(IncludedBuildExecuter.class);
         IncludedBuild includedBuild = includedBuilds.getBuild(build);
-        BuildIdentifier buildId = DefaultBuildIdentifier.of(includedBuild.getName());
-        // TODO:DAZ Get this from the `BuildIdentity. For now it will always be the root composite build
-        builder.execute(DefaultBuildIdentifier.of(":", true), buildId, tasks);
+        BuildIdentifier buildId = new DefaultBuildIdentifier(includedBuild.getName());
+        // sourceBuild is currently always root build in a composite
+        builder.execute(new DefaultBuildIdentifier(":", true), buildId, tasks);
     }
 }

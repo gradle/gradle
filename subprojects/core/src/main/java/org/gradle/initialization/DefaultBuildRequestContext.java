@@ -16,26 +16,17 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.util.Clock;
 
 public class DefaultBuildRequestContext implements BuildRequestContext {
     private final BuildCancellationToken token;
     private final BuildEventConsumer buildEventConsumer;
     private final BuildRequestMetaData metaData;
-    private final StandardOutputListener outputListener;
-    private final StandardOutputListener errorListener;
 
-    public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token, BuildEventConsumer buildEventConsumer, StandardOutputListener outputListener, StandardOutputListener errorListener) {
+    public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token, BuildEventConsumer buildEventConsumer) {
         this.metaData = metaData;
         this.token = token;
         this.buildEventConsumer = buildEventConsumer;
-        this.outputListener = outputListener;
-        this.errorListener = errorListener;
-    }
-
-    public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token, BuildEventConsumer buildEventConsumer) {
-        this(metaData, token, buildEventConsumer, new NoOpListener(), new NoOpListener());
     }
 
     @Override
@@ -56,21 +47,5 @@ public class DefaultBuildRequestContext implements BuildRequestContext {
     @Override
     public Clock getBuildTimeClock() {
         return metaData.getBuildTimeClock();
-    }
-
-    @Override
-    public StandardOutputListener getErrorListener() {
-        return errorListener;
-    }
-
-    @Override
-    public StandardOutputListener getOutputListener() {
-        return outputListener;
-    }
-
-    private static class NoOpListener implements StandardOutputListener {
-        @Override
-        public void onOutput(CharSequence output) {
-        }
     }
 }

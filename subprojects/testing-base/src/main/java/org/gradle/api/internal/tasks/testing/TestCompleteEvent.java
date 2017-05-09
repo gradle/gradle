@@ -19,9 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.Nullable;
 import org.gradle.api.tasks.testing.TestResult;
 
-import java.io.Serializable;
-
-public class TestCompleteEvent implements Serializable {
+public class TestCompleteEvent {
     private final long endTime;
     private final TestResult.ResultType resultType;
 

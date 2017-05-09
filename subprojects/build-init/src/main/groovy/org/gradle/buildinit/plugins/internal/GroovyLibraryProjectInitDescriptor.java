@@ -16,35 +16,22 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
 
-public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescriptor {
 
-    public GroovyLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                              TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor) {
-        super("groovy", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+    public GroovyLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor projectInitDescriptor, DocumentationRegistry documentationRegistry) {
+        super(templateOperationFactory, fileResolver, libraryVersionProvider, projectInitDescriptor, documentationRegistry);
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
-        templateOperationFactory.newTemplateOperation()
-            .withTemplate("groovylibrary/build.gradle.template")
-            .withTarget("build.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_groovy_tutorial", "tutorial_groovy_projects"))
-            .withBindings(GUtil.map("groovyVersion", libraryVersionProvider.getVersion("groovy")))
-            .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
-            .withBindings(GUtil.map("spockVersion", libraryVersionProvider.getVersion("spock")))
-            .create().generate();
-        TemplateOperation groovyLibTemplateOperation = fromClazzTemplate("groovylibrary/Library.groovy.template", "main");
-        TemplateOperation groovyTestTemplateOperation = fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test");
-        whenNoSourcesAvailable(groovyLibTemplateOperation, groovyTestTemplateOperation).generate();
+    protected TemplateOperation sourceTemplateOperation() {
+        return fromClazzTemplate("groovylibrary/Library.groovy.template", "main");
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+    protected TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
+        return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test");
     }
 }

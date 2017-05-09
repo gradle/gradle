@@ -17,9 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 
 import static org.hamcrest.Matchers.containsString
 
+@TestReproducibleArchives
 class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
     @Override

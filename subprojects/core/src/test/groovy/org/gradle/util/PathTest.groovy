@@ -21,22 +21,25 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.strictlyEquals
 
 class PathTest extends Specification {
-    def construction() {
+    def constructionFromString() {
         expect:
-        new Path(':').getPath() == ':'
+        Path.path(':').getPath() == ':'
         Path.path(':').is(Path.ROOT)
         Path.ROOT.getPath() == ':'
         Path.path('a').getPath() == 'a'
         Path.path('a:b:c').getPath() == 'a:b:c'
         Path.path(':a').getPath() == ':a'
         Path.path(':a:b').getPath() == ':a:b'
+        Path.path(':a:b:').getPath() == ':a:b'
     }
 
     def equalsAndHashCode() {
         expect:
         strictlyEquals(Path.ROOT, Path.ROOT)
         strictlyEquals(Path.path('path'), Path.path('path'))
-        Path.path(':a') != Path.path(':b')
+        strictlyEquals(Path.path(':a:path'), Path.path(':a:path'))
+        !strictlyEquals(Path.path(':a'), Path.path(':b'))
+        !strictlyEquals(Path.path(':a'), Path.path('a'))
     }
 
     def canGetParent() {
@@ -57,30 +60,33 @@ class PathTest extends Specification {
         Path.path('a').name == 'a'
     }
 
+    def canCreateChild() {
+        expect:
+        Path.path(':').child("a") == Path.path(":a")
+        Path.path(':a').child("b") == Path.path(":a:b")
+        Path.path('a:b').child("c") == Path.path("a:b:c")
+    }
+
     def convertsRelativePathToAbsolutePath() {
         when:
-        def Path path = Path.path(':')
+        def path = Path.path(':')
 
         then:
         path.absolutePath('path') == ':path'
-        path.resolve('path') == Path.path(':path')
 
         when:
         path = Path.path(':sub')
 
         then:
         path.absolutePath('path') == ':sub:path'
-        path.resolve('path') == Path.path(':sub:path')
     }
 
     def convertsAbsolutePathToAbsolutePath() {
-        def Path path = Path.path(':')
+        def path = Path.path(':')
 
         expect:
         path.absolutePath(':') == ':'
         path.absolutePath(':path') == ':path'
-        path.resolve(':') == Path.path(':')
-        path.resolve(':path') == Path.path(':path')
     }
 
     def convertsAbsolutePathToRelativePath() {
@@ -103,10 +109,34 @@ class PathTest extends Specification {
     }
 
     def convertsRelativePathToRelativePath() {
-        def Path path = Path.path(':')
+        def path = Path.path(':')
 
         expect:
         path.relativePath('path') == 'path'
+    }
+
+    def appendsPathToAbsolutePath() {
+        when:
+        def path = Path.path(':path')
+
+        then:
+        path.append(Path.ROOT).is(path)
+        path.append(Path.path(':absolute')) == Path.path(':path:absolute')
+        path.append(Path.path(':absolute:subpath')) == Path.path(':path:absolute:subpath')
+        path.append(Path.path('relative')) == Path.path(':path:relative')
+        path.append(Path.path('relative:subpath')) == Path.path(':path:relative:subpath')
+    }
+
+    def appendsPathToRelativePath() {
+        when:
+        def path = Path.path('path')
+
+        then:
+        path.append(Path.ROOT).is(path)
+        path.append(Path.path(':absolute')) == Path.path('path:absolute')
+        path.append(Path.path(':absolute:subpath')) == Path.path('path:absolute:subpath')
+        path.append(Path.path('relative')) == Path.path('path:relative')
+        path.append(Path.path('relative:subpath')) == Path.path('path:relative:subpath')
     }
 
     def sortsPathsDepthFirstCaseInsensitive() {

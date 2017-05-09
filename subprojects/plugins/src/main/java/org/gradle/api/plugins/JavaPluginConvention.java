@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
@@ -26,11 +27,12 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
@@ -38,8 +40,6 @@ import java.io.File;
  */
 public class JavaPluginConvention {
     private ProjectInternal project;
-
-    private String dependencyCacheDirName;
 
     private String docsDirName;
 
@@ -56,7 +56,6 @@ public class JavaPluginConvention {
         this.project = project;
         sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.getFileResolver(), project.getTasks(), instantiator,
             project.getServices().get(SourceDirectorySetFactory.class));
-        dependencyCacheDirName = "dependency-cache";
         docsDirName = "docs";
         testResultsDirName = "test-results";
         testReportDirName = "tests";
@@ -88,12 +87,6 @@ public class JavaPluginConvention {
      */
     public Object sourceSets(Closure closure) {
         return sourceSets.configure(closure);
-    }
-
-    @Deprecated
-    public File getDependencyCacheDir() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDir()");
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(dependencyCacheDirName);
     }
 
     /**
@@ -134,7 +127,16 @@ public class JavaPluginConvention {
      * @value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
     public void setSourceCompatibility(Object value) {
-        srcCompat = JavaVersion.toVersion(value);
+        setSourceCompatibility(JavaVersion.toVersion(value));
+    }
+
+    /**
+     * Sets the source compatibility used for compiling Java sources.
+     *
+     * @value The value for the source compatibility
+     */
+    public void setSourceCompatibility(JavaVersion value) {
+        srcCompat = value;
     }
 
     /**
@@ -147,17 +149,26 @@ public class JavaPluginConvention {
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
-     * @value The value for the target compatibilty as defined by {@link JavaVersion#toVersion(Object)}
+     * @value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
     public void setTargetCompatibility(Object value) {
-        targetCompat = JavaVersion.toVersion(value);
+        setTargetCompatibility(JavaVersion.toVersion(value));
+    }
+
+    /**
+     * Sets the target compatibility used for compiling Java sources.
+     *
+     * @value The value for the target compatibility
+     */
+    public void setTargetCompatibility(JavaVersion value) {
+        targetCompat = value;
     }
 
     /**
      * Creates a new instance of a {@link Manifest}.
      */
     public Manifest manifest() {
-        return manifest(null);
+        return manifest(Actions.<Manifest>doNothing());
     }
 
     /**
@@ -167,22 +178,23 @@ public class JavaPluginConvention {
      * @param closure The closure to use to configure the manifest.
      */
     public Manifest manifest(Closure closure) {
-        return ConfigureUtil.configure(closure, new DefaultManifest(project.getFileResolver()));
+        return configure(closure, createManifest());
     }
 
     /**
-     * The name of the dependency cache dir.
+     * Creates and configures a new instance of a {@link Manifest}.
+     *
+     * @param action The action to use to configure the manifest.
+     * @since 3.5
      */
-    @Deprecated
-    public String getDependencyCacheDirName() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDirName()");
-        return dependencyCacheDirName;
+    public Manifest manifest(Action<? super Manifest> action) {
+        Manifest manifest = createManifest();
+        action.execute(manifest);
+        return manifest;
     }
 
-    @Deprecated
-    public void setDependencyCacheDirName(String dependencyCacheDirName) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("JavaPluginConvention.getDependencyCacheDirName()");
-        this.dependencyCacheDirName = dependencyCacheDirName;
+    private Manifest createManifest() {
+        return new DefaultManifest(project.getFileResolver());
     }
 
     /**
@@ -227,14 +239,5 @@ public class JavaPluginConvention {
 
     public ProjectInternal getProject() {
         return project;
-    }
-
-    /**
-     * project
-     * @deprecated Project should be considered final.
-     */
-    @Deprecated
-    public void setProject(ProjectInternal project) {
-        this.project = project;
     }
 }

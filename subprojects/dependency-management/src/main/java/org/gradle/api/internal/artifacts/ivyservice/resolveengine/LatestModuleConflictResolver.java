@@ -24,7 +24,6 @@ import java.util.*;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
     private final Comparator<Version> versionComparator;
-    private final VersionParser versionParser = new VersionParser();
 
     LatestModuleConflictResolver(VersionComparator versionComparator) {
         this.versionComparator = versionComparator.asVersionComparator();
@@ -35,7 +34,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         Version baseVersion = null;
         Map<Version, T> matches = new LinkedHashMap<Version, T>();
         for (T candidate : candidates) {
-            Version version = versionParser.transform(candidate.getVersion());
+            Version version = VersionParser.INSTANCE.transform(candidate.getVersion());
             if (baseVersion == null || versionComparator.compare(version.getBaseVersion(), baseVersion) > 0) {
                 matches.clear();
                 baseVersion = version.getBaseVersion();

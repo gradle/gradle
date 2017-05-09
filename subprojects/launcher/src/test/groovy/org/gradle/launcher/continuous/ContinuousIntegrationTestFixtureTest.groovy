@@ -31,9 +31,7 @@ class ContinuousIntegrationTestFixtureTest extends Specification {
 Continuous build is an incubating feature.
 :sometask
 
-BUILD SUCCESSFUL
-
-Total time: 1.123 secs
+BUILD SUCCESSFUL in 1s
 
 Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
 '''
@@ -57,7 +55,7 @@ Task 'missingtask' not found in root project 'gradle'. Some candidates are: 'ini
 * Try:
 Run gradlew tasks to get a list of available tasks. Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
 
-BUILD FAILED
+BUILD FAILED in 0s
 '''
         when:
         sampleTest.succeeds("missingtask")
@@ -73,9 +71,7 @@ BUILD FAILED
 Continuous build is an incubating feature.
 :sometask
 
-BUILD SUCCESSFUL
-
-Total time: 1.123 secs
+BUILD SUCCESSFUL in 1s
 
 Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
 [info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:49788
@@ -94,18 +90,14 @@ Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
 Continuous build is an incubating feature.
 :sometask
 
-BUILD SUCCESSFUL
-
-Total time: 1.123 secs
+BUILD SUCCESSFUL in 1s
 
 Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
 new file: /some/new/file.txt
 Change detected, executing build...
 :sometask
 
-BUILD SUCCESSFUL
-
-Total time: 1.123 secs
+BUILD SUCCESSFUL in 1s
 
 Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
 '''

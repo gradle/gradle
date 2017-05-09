@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.attributes.EmptySchema;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
@@ -81,7 +83,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 Collections.singleton(usage),
                 true,
                 true,
-                null,
+                ImmutableAttributes.EMPTY,
                 true,
                 false);
         }
@@ -93,11 +95,11 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
     }
 
     private static DefaultModuleVersionIdentifier localModuleVersionIdentifierFor(LibraryBinaryIdentifier componentId) {
-        return DefaultModuleVersionIdentifier.of(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
+        return new DefaultModuleVersionIdentifier(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
     }
 
     private DefaultLibraryLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
-        super(id, componentIdentifier, Project.DEFAULT_STATUS);
+        super(id, componentIdentifier, Project.DEFAULT_STATUS, EmptySchema.INSTANCE);
     }
 
     private void addDependencies(Iterable<DependencySpec> dependencies, String projectPath, String usageConfigurationName) {
@@ -129,21 +131,21 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
             projectPath = defaultProject;
         }
         String libraryName = projectDependency.getLibraryName();
-        ComponentSelector selector = DefaultLibraryComponentSelector.of(projectPath, libraryName);
-        DefaultModuleVersionSelector requested = DefaultModuleVersionSelector.of(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
+        ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
+        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 
     private LocalOriginDependencyMetadata binaryDependencyMetadata(LibraryBinaryDependencySpec binarySpec, String usageConfigurationName) {
         String projectPath = binarySpec.getProjectPath();
         String libraryName = binarySpec.getLibraryName();
-        ComponentSelector selector = DefaultLibraryComponentSelector.of(projectPath, libraryName, binarySpec.getVariant());
-        DefaultModuleVersionSelector requested = DefaultModuleVersionSelector.of(projectPath, libraryName, getId().getVersion());
+        ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, binarySpec.getVariant());
+        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, libraryName, getId().getVersion());
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 
     private ModuleVersionSelector moduleVersionSelectorFrom(ModuleDependencySpec module) {
-        return DefaultModuleVersionSelector.of(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
+        return new DefaultModuleVersionSelector(module.getGroup(), module.getName(), effectiveVersionFor(module.getVersion()));
     }
 
     /**
@@ -155,10 +157,10 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
      */
     private LocalOriginDependencyMetadata dependencyMetadataFor(ComponentSelector selector, ModuleVersionSelector requested, String usageConfigurationName, String mappedUsageConfiguration) {
         return new LocalComponentDependencyMetadata(
-                selector, requested, usageConfigurationName, null, mappedUsageConfiguration,
-                Collections.<IvyArtifactName>emptySet(),
-                EXCLUDE_RULES,
-                false, false, true);
+            selector, requested, usageConfigurationName, null, mappedUsageConfiguration,
+            Collections.<IvyArtifactName>emptySet(),
+            EXCLUDE_RULES,
+            false, false, true);
     }
 
 }

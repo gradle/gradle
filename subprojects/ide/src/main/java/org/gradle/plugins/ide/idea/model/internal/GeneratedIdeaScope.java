@@ -16,28 +16,12 @@
 
 package org.gradle.plugins.ide.idea.model.internal;
 
-import com.google.common.collect.Sets;
-
-import java.util.Collections;
-import java.util.Set;
-
 /**
- * An enumeration of possible mappings used to assign Idea classpath scope to Gradle dependency.
+ * The classpath scopes available in IntelliJ IDEA
  */
 public enum GeneratedIdeaScope {
-    PROVIDED_TEST("PROVIDED", "TEST"),
-    PROVIDED("PROVIDED"),
-    COMPILE("COMPILE"),
-    RUNTIME_COMPILE_CLASSPATH("PROVIDED", "RUNTIME"),
-    RUNTIME_TEST_COMPILE_CLASSPATH("PROVIDED", "TEST"),
-    RUNTIME_TEST("RUNTIME", "TEST"),
-    RUNTIME("RUNTIME"),
-    TEST("TEST"),
-    COMPILE_CLASSPATH("PROVIDED");
-
-    public final Set<String> scopes;
-
-    GeneratedIdeaScope(String ... scopes) {
-        this.scopes = Collections.unmodifiableSet(Sets.newHashSet(scopes));
-    }
+    PROVIDED,
+    COMPILE,
+    RUNTIME,
+    TEST;
 }

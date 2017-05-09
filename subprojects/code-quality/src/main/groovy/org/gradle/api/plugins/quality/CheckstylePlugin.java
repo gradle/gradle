@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
  */
 public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
-    public static final String DEFAULT_CHECKSTYLE_VERSION = "5.9";
+    public static final String DEFAULT_CHECKSTYLE_VERSION = "6.19";
     private CheckstyleExtension extension;
 
     @Override
@@ -99,6 +99,18 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
                 return extension.isShowViolations();
             }
         });
+        taskMapping.map("maxErrors", new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return extension.getMaxErrors();
+            }
+        });
+        taskMapping.map("maxWarnings", new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return extension.getMaxWarnings();
+            }
+        });
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
@@ -120,7 +132,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, Checkstyle task) {
         task.setDescription("Run Checkstyle analysis for " + sourceSet.getName() + " classes");
-        task.setClasspath(sourceSet.getOutput());
+        task.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
         task.setSource(sourceSet.getAllJava());
     }
 }

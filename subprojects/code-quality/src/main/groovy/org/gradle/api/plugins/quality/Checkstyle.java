@@ -58,6 +58,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
     private final CheckstyleReports reports;
     private boolean ignoreFailures;
+    private int maxErrors;
+    private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
 
 
@@ -237,6 +239,50 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
+    }
+
+    /**
+     * The maximum number of errors that are tolerated before breaking the build
+     * or setting the failure property.
+     *
+     * @since 3.4
+     * @return the maximum number of errors allowed
+     */
+    @Input
+    public int getMaxErrors() {
+        return maxErrors;
+    }
+
+    /**
+     * Set the maximum number of errors that are tolerated before breaking the build.
+     *
+     * @since 3.4
+     * @param maxErrors number of errors allowed
+     */
+    public void setMaxErrors(int maxErrors) {
+        this.maxErrors = maxErrors;
+    }
+
+    /**
+     * The maximum number of warnings that are tolerated before breaking the build
+     * or setting the failure property.
+     *
+     * @since 3.4
+     * @return the maximum number of warnings allowed
+     */
+    @Input
+    public int getMaxWarnings() {
+        return maxWarnings;
+    }
+
+    /**
+     * Set the maximum number of warnings that are tolerated before breaking the build.
+     *
+     * @since 3.4
+     * @param maxWarnings number of warnings allowed
+     */
+    public void setMaxWarnings(int maxWarnings) {
+        this.maxWarnings = maxWarnings;
     }
 
     /**

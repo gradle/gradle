@@ -16,8 +16,8 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
+import org.gradle.workers.internal.WorkerDaemonFactory;
+import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -27,8 +27,8 @@ import java.util.Collections;
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("com.sun.tools.javac");
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, CompilerDaemonFactory compilerDaemonFactory) {
-        super(daemonWorkingDir, delegate, compilerDaemonFactory);
+    public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, WorkerDaemonFactory workerDaemonFactory) {
+        super(daemonWorkingDir, delegate, workerDaemonFactory);
     }
 
     @Override

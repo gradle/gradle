@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -26,8 +27,8 @@ import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrate
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.properties.TaskInputFilePropertySpec
-import org.gradle.api.internal.tasks.properties.TaskPropertySpec
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
+import org.gradle.api.internal.tasks.TaskPropertySpec
 import spock.lang.Specification
 
 abstract public class AbstractTaskStateChangesTest extends Specification {
@@ -44,14 +45,14 @@ abstract public class AbstractTaskStateChangesTest extends Specification {
     }
 
     protected static def fileProperties(Map<String, String> props) {
-        return props.collect { entry ->
+        return ImmutableSortedSet.copyOf(props.collect { entry ->
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
                 compareStrategy: TaskFilePropertyCompareStrategy.UNORDERED,
                 snapshotNormalizationStrategy: TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
             )
-        } as SortedSet
+        })
     }
 
     protected static class PropertySpec implements TaskInputFilePropertySpec {
@@ -67,8 +68,8 @@ abstract public class AbstractTaskStateChangesTest extends Specification {
         }
 
         @Override
-        boolean isPartOfCacheKey() {
-            return true
+        boolean isSkipWhenEmpty() {
+            return false
         }
     }
 }

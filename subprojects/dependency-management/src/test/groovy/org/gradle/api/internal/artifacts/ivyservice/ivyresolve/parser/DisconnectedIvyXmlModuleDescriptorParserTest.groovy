@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
@@ -25,7 +26,7 @@ class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {
     LocallyAvailableExternalResource localExternalResource = Mock()
     LocallyAvailableResource localResource = Mock()
     ExternalResource externalResource = Mock()
-    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser()
+    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser(null, new DefaultImmutableModuleIdentifierFactory())
     DescriptorParseContext parseContext = Mock()
 
     def "creates overridden internal Ivy parser"() throws Exception {

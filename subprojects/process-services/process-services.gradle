@@ -1,13 +1,17 @@
 /**
  * Process execution abstractions.
  */
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    compile project(':baseServices')
+    api project(':baseServices')
 
-    testCompile libraries.groovy
+    implementation project(':messaging')
+    implementation project(':native')
+    implementation libraries.guava
+    implementation libraries.slf4j_api
 }
 
 useTestFixtures()

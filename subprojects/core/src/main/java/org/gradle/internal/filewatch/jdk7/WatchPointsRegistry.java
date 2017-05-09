@@ -136,7 +136,7 @@ class WatchPointsRegistry {
         }
 
         public boolean shouldWatch(File file) {
-            boolean result = (inCombinedRootsOrAncestorOfAnyRootThis(file) || isAncestorOfAnyRoot(file, allRequestedRoots)) && !isAncestorOfAnyRoot(file, currentWatchPoints);
+            boolean result = inCombinedRootsOrAncestorOfAnyRootThis(file) || isAncestorOfAnyRoot(file, allRequestedRoots);
             if (!result) {
                 LOG.debug("not watching file: {} currentWatchPoints: {} allRequestedRoots: {} roots: {} unfiltered: {}", file, currentWatchPoints, allRequestedRoots, roots, combinedRoots);
             }

@@ -34,8 +34,21 @@ public interface ExecutorFactory {
      *
      * @param displayName The display name for the this executor. Used for thread names, logging and error message.
      * @param fixedSize The maximum number of threads allowed
-     *
      * @return The executor.
      */
     StoppableExecutor create(String displayName, int fixedSize);
+
+    /**
+     * Creates a scheduled executor which can run tasks periodically. It is the caller's responsibility to stop the executor.
+     *
+     * The created scheduled executor has a fixed pool size of {@literal fixedSize}.
+     *
+     * The executor will collect failures thrown by actions and rethrow when the executor is stopped.
+     *
+     * @param displayName The display name for the this executor. Used for thread names, logging and error message.
+     * @param fixedSize The maximum number of threads allowed
+     * @return The executor
+     * @see java.util.concurrent.ScheduledExecutorService
+     */
+    StoppableScheduledExecutor createScheduled(String displayName, int fixedSize);
 }

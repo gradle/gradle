@@ -24,7 +24,7 @@ def javaExecutables = [:].withDefault { execName ->
 tasks.withType(AbstractCompile) {
     options.with {
         fork = true
-        forkOptions.executable = javaExecutables.javac
+        forkOptions.javaHome = file(java6Home)
     }
 }
 tasks.withType(Javadoc) {

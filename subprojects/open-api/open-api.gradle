@@ -1,9 +1,0 @@
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
-
-dependencies {
-    integTestCompile libraries.groovy
-    integTestCompile libraries.slf4j_api
-    integTestCompile libraries.commons_lang
-}
-
-useTestFixtures()

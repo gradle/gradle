@@ -70,13 +70,13 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def reportsNestedBuildFailure() {
         when:
-        TestFile other = file('other.gradle') << '''
+        TestFile other = file('other/other.gradle') << '''
             throw new ArithmeticException('broken')
 '''
 
         buildFile << '''
             task build(type: GradleBuild) {
-                buildFile = 'other.gradle'
+                buildFile = 'other/other.gradle'
                 startParameter.searchUpwards = false
             }
 '''
@@ -87,7 +87,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasFileName("Build file '${other}'")
         failure.assertHasLineNumber(2)
-        failure.assertThatDescription(Matchers.startsWith('A problem occurred evaluating root project'))
+        failure.assertThatDescription(Matchers.startsWith("A problem occurred evaluating project ':other'"))
         failure.assertHasCause('broken')
     }
 
@@ -99,7 +99,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         and:
-        failure.assertHasDescription('Execution failed for task \':compileJava\'.')
+        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava'.")
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-3052")

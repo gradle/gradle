@@ -22,7 +22,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.options.OptionValues;
 import org.gradle.api.tasks.Input;
@@ -39,7 +38,6 @@ import java.util.List;
 /**
  * Generates a Gradle project structure.
  */
-@Incubating
 public class InitBuild extends DefaultTask {
     private String type;
     private String testFramework;
@@ -91,7 +89,7 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("The requested build setup type '" + type + "' is not supported. Supported types: " + supportedTypes + ".");
         }
 
-        ProjectInitDescriptor initDescriptor = (ProjectInitDescriptor) projectLayoutRegistry.get(type);
+        ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
         if (!testFramework.equals(BuildInitTestFramework.NONE) && !initDescriptor.supports(testFramework)) {
             throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
         }

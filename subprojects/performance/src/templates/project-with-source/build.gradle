@@ -32,15 +32,17 @@ dependencies {
     compile "commons-httpclient:commons-httpclient:3.0"
     compile "commons-codec:commons-codec:1.2"
     compile "org.slf4j:jcl-over-slf4j:1.7.10"
-    compile "org.codehaus.groovy:groovy:2.4.7"
+    compile "org.codehaus.groovy:groovy:2.4.10"
     testCompile 'junit:junit:4.12'
     runtime 'com.googlecode:reflectasm:1.01'
 
     <% if (dependencies) { dependencies.each { %>
     compile "${it.shortNotation()}" <% } %>
     <% } %>
-    <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { (1..<subprojectNumber).each { %>
-    projectsConfiguration project(":project${it}") <% } %>
+    <% if (binding.hasVariable("projectDependencies")) { %>
+        <% if (subprojectNumber != null && subprojectNumber - 3 > 0) { %>
+            projectsConfiguration project(":project${subprojectNumber - 3 }")
+            <% } %>
     <% } %>
 }
 
@@ -56,10 +58,27 @@ test {
     <% } %>
 }
 
+String compilerMemory = getProperty('compilerMemory')
+String testRunnerMemory = getProperty('testRunnerMemory')
+int testForkEvery = getProperty('testForkEvery') as Integer
+
+tasks.withType(JavaCompile) {
+    options.fork = true
+    options.incremental = true
+    options.forkOptions.memoryInitialSize=compilerMemory
+    options.forkOptions.memoryMaximumSize=compilerMemory
+}
+tasks.withType(Test) {
+    minHeapSize = testRunnerMemory
+    maxHeapSize = testRunnerMemory
+    maxParallelForks = 4
+    forkEvery = testForkEvery
+}
+
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    compile 'org.codehaus:groovy:groovy-all:2.4.7'
+    compile 'org.codehaus:groovy:groovy-all:2.4.10'
 }
 <% } %>
 

@@ -41,10 +41,12 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         return _delegate.toString();
     }
 
-    protected void _configure(String name, Object[] params, InvokeMethodResult result) {
+    protected DynamicInvokeResult _configure(String name, Object[] params) {
+        return DynamicInvokeResult.notFound();
     }
 
-    protected void _configure(String name, GetPropertyResult result) {
+    protected DynamicInvokeResult _configure(String name) {
+        return DynamicInvokeResult.notFound();
     }
 
     @Override
@@ -54,32 +56,30 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         boolean isAlreadyConfiguring = _configuring.get();
         _configuring.set(true);
         try {
-            InvokeMethodResult result = new InvokeMethodResult();
-
-            _delegate.invokeMethod(name, result, params);
+            DynamicInvokeResult result = _delegate.tryInvokeMethod(name, params);
             if (result.isFound()) {
-                return result.getResult();
+                return result.getValue();
             }
 
             MissingMethodException failure = null;
             if (!isAlreadyConfiguring) {
                 // Try to configure element
                 try {
-                    _configure(name, params, result);
+                    result = _configure(name, params);
                 } catch (MissingMethodException e) {
                     // Workaround for backwards compatibility. Previously, this case would unintentionally cause the method to be invoked on the owner
                     // continue below
                     failure = e;
                 }
                 if (result.isFound()) {
-                    return result.getResult();
+                    return result.getValue();
                 }
             }
 
             // try the owner
-            _owner.invokeMethod(name, result, params);
+            result = _owner.tryInvokeMethod(name, params);
             if (result.isFound()) {
-                return result.getResult();
+                return result.getValue();
             }
 
             if (failure != null) {
@@ -94,13 +94,12 @@ public class ConfigureDelegate extends GroovyObjectSupport {
 
     @Override
     public void setProperty(String property, Object newValue) {
-        SetPropertyResult result = new SetPropertyResult();
-        _delegate.setProperty(property, newValue, result);
+        DynamicInvokeResult result = _delegate.trySetProperty(property, newValue);
         if (result.isFound()) {
             return;
         }
 
-        _owner.setProperty(property, newValue, result);
+        result = _owner.trySetProperty(property, newValue);
         if (result.isFound()) {
             return;
         }
@@ -112,20 +111,19 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         boolean isAlreadyConfiguring = _configuring.get();
         _configuring.set(true);
         try {
-            GetPropertyResult result = new GetPropertyResult();
-            _delegate.getProperty(name, result);
+            DynamicInvokeResult result = _delegate.tryGetProperty(name);
             if (result.isFound()) {
                 return result.getValue();
             }
 
-            _owner.getProperty(name, result);
+            result = _owner.tryGetProperty(name);
             if (result.isFound()) {
                 return result.getValue();
             }
 
             if (!isAlreadyConfiguring) {
                 // Try to configure an element
-                _configure(name, result);
+                result = _configure(name);
                 if (result.isFound()) {
                     return result.getValue();
                 }

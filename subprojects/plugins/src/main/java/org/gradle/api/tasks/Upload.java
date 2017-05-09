@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -120,6 +121,16 @@ public class Upload extends ConventionTask {
      */
     public RepositoryHandler repositories(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getRepositories());
+    }
+
+    /**
+     * Configures the set of repositories to upload to.
+     * @since 3.5
+     */
+    public RepositoryHandler repositories(Action<? super RepositoryHandler> configureAction) {
+        RepositoryHandler repositories = getRepositories();
+        configureAction.execute(repositories);
+        return repositories;
     }
 
     /**

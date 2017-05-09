@@ -60,7 +60,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         }
         getGradle() >> gradle
     }
-    def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action, clientSubscriptions)
+    def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action, false /* isRunTasks */, clientSubscriptions)
     def runner = new ClientProvidedBuildActionRunner()
 
     def "can run action and returns result when completed"() {
@@ -80,6 +80,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
             assert result.failure == null
             assert result.result == output
         }
+        0 * buildController.run()
     }
 
     def "can run action and reports failure"() {
@@ -103,6 +104,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
             assert result.failure == output
             assert result.result == null
         }
+        0 * buildController.run()
     }
 
     def "can run action and propagate cancellation exception"() {
@@ -126,5 +128,17 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
             assert result.failure == output
             assert result.result == null
         }
+        0 * buildController.run()
+    }
+
+    def "can run tasks before run action"() {
+        given:
+        def clientProvidedBuildActionRunTasks = new ClientProvidedBuildAction(startParameter, action, true /* isRunTasks */, clientSubscriptions)
+
+        when:
+        runner.run(clientProvidedBuildActionRunTasks, buildController)
+
+        then:
+        1 * buildController.run()
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
@@ -144,7 +145,7 @@ credentials {
         progressLogging.uploadProgressLogged(module.jar.uri)
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.NTLM]
+        authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
     @Unroll
@@ -187,13 +188,13 @@ credentials {
         failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme                   | credsName | creds
-        HttpServer.AuthScheme.BASIC  | 'empty'   | ''
-        HttpServer.AuthScheme.DIGEST | 'empty'   | ''
-        HttpServer.AuthScheme.NTLM   | 'empty'   | ''
-        HttpServer.AuthScheme.BASIC  | 'bad'     | BAD_CREDENTIALS
-        HttpServer.AuthScheme.DIGEST | 'bad'     | BAD_CREDENTIALS
-        HttpServer.AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
+        authScheme        | credsName | creds
+        AuthScheme.BASIC  | 'empty'   | ''
+        AuthScheme.DIGEST | 'empty'   | ''
+        AuthScheme.NTLM   | 'empty'   | ''
+        AuthScheme.BASIC  | 'bad'     | BAD_CREDENTIALS
+        AuthScheme.DIGEST | 'bad'     | BAD_CREDENTIALS
+        AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
     def "reports failure publishing to HTTP repository"() {
@@ -241,7 +242,7 @@ credentials {
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${repositoryPort} (\\[.*\\])? failed: Connection refused(: connect)?"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
     def "uses first configured pattern for publication"() {

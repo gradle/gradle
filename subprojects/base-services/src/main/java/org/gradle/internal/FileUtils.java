@@ -108,7 +108,20 @@ public class FileUtils {
     }
 
     /**
-     * Canonializes the given file.
+     * Returns true if the given file name can represent a Jar archive
+     * @param fileName the file name to test
+     * @return true if the file name ends with ".jar", ignoring case
+     */
+    public static boolean isJar(String fileName) {
+        return endsWithIgnoreCase(fileName, ".jar");
+    }
+
+    private static boolean endsWithIgnoreCase(String subject, String suffix) {
+        return subject.regionMatches(true, subject.length() - suffix.length(), suffix, 0, suffix.length());
+    }
+
+    /**
+     * Canonicalizes the given file.
      */
     public static File canonicalize(File src) {
         try {

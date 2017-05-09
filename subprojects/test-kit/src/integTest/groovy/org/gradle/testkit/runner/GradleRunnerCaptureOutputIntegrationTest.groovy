@@ -177,7 +177,7 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         """
     }
 
-    private static boolean isCompatibleVersion(String minCompatibleVersion) {
+    static boolean isCompatibleVersion(String minCompatibleVersion) {
         gradleVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
     }
 }

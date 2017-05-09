@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import com.google.common.hash.HashCode
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.TestFiles
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -28,7 +27,7 @@ class JarClasspathSnapshotFactoryTest extends Specification {
     @Subject factory = new JarClasspathSnapshotFactory(snapshotter)
 
     def "creates classpath snapshot with correct duplicate classes"() {
-        def jar1 = Stub(JarArchive); def jar2 = Stub(JarArchive); def jar3 = Stub(JarArchive)
+        def jar1 = stubArchive("f1"); def jar2 = stubArchive("f2"); def jar3 = stubArchive("f3")
 
         def sn1 = Stub(JarSnapshot) { getClasses() >> ["A", "B", "C"] }
         def sn2 = Stub(JarSnapshot) { getClasses() >> ["C", "D"] }
@@ -47,8 +46,8 @@ class JarClasspathSnapshotFactoryTest extends Specification {
     }
 
     def "creates classpath snapshot with correct hashes"() {
-        def jar1 = new JarArchive(new File("f1"), Stub(FileTree), TestFiles.resolver().getPatternSetFactory())
-        def jar2 = new JarArchive(new File("f2"), Stub(FileTree), TestFiles.resolver().getPatternSetFactory())
+        def jar1 = stubArchive("f1")
+        def jar2 = stubArchive("f2")
 
         def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromString("1234") }
         def sn2 = Stub(JarSnapshot) { getHash() >> HashCode.fromString("2345") }
@@ -63,5 +62,25 @@ class JarClasspathSnapshotFactoryTest extends Specification {
         s.data.jarHashes.size() == 2
         s.data.jarHashes[new File("f1")] == HashCode.fromString("1234")
         s.data.jarHashes[new File("f2")] == HashCode.fromString("2345")
+    }
+
+    def "doesn't call snapshotter if file doesn't exist"() {
+        def jar1 = stubArchive("f1", true)
+        def jar2 = stubArchive("f2", false)
+
+        def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromString("1234") }
+
+        when:
+        factory.createSnapshot([jar1, jar2])
+
+        then:
+        1 * snapshotter.createSnapshot(jar1) >> sn1
+        0 * snapshotter.createSnapshot(jar2)
+    }
+
+    private JarArchive stubArchive(String name, boolean exists = true) {
+        new JarArchive(new File(name) {
+            boolean exists() { exists }
+        }, Stub(FileTree))
     }
 }

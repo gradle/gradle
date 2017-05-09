@@ -17,17 +17,21 @@
 package org.gradle.test.fixtures.server.sftp
 
 import org.apache.commons.io.FileUtils
-import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
-import org.apache.sshd.common.util.Buffer
+import org.apache.sshd.common.subsystem.sftp.SftpConstants
+import org.apache.sshd.common.util.buffer.Buffer
+import org.apache.sshd.common.util.buffer.ByteArrayBuffer
 import org.apache.sshd.server.Command
-import org.apache.sshd.server.PasswordAuthenticator
-import org.apache.sshd.server.PublickeyAuthenticator
-import org.apache.sshd.server.command.ScpCommandFactory
+import org.apache.sshd.server.SshServer
+import org.apache.sshd.server.auth.password.PasswordAuthenticator
+import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator
+import org.apache.sshd.server.scp.ScpCommandFactory
 import org.apache.sshd.server.session.ServerSession
-import org.apache.sshd.server.sftp.SftpSubsystem
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystem
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory
+import org.apache.sshd.server.subsystem.sftp.UnsupportedAttributePolicy
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
@@ -57,10 +61,10 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     Map<Integer, String> handleCreatedByRequest = [:]
     Map<String, Integer> openingRequestIdForPath = [:]
     List<SftpExpectation> expectations = []
-    private boolean passwordAuthenticationEnabled = true;
+    private boolean passwordAuthenticationEnabled = true
 
-    public SFTPServer(TestDirectoryProvider testDirectoryProvider) {
-        this.testDirectoryProvider = testDirectoryProvider;
+    SFTPServer(TestDirectoryProvider testDirectoryProvider) {
+        this.testDirectoryProvider = testDirectoryProvider
         this.hostAddress = "127.0.0.1"
     }
 
@@ -83,8 +87,8 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
      * this basically restarts the sftpserver without
      * registering a password authentication
      * */
-    public withPasswordAuthenticationDisabled(){
-        passwordAuthenticationEnabled = false;
+    def withPasswordAuthenticationDisabled() {
+        passwordAuthenticationEnabled = false
         restart()
     }
 
@@ -99,47 +103,53 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         allowInit()
     }
 
-    public void stop(boolean immediately = true) {
+    void stop(boolean immediately = true) {
         sshd?.stop(immediately)
     }
 
-    public void restart() {
+    void restart() {
         stop(true)
         before()
     }
 
+    void clearSessions() {
+        sshd.activeSessions.each { session ->
+            session.close(true)
+        }
+    }
+
     @Override
     protected void after() {
-        super.after();
+        super.after()
         passwordAuthenticationEnabled = true
     }
 
     private SshServer setupConfiguredTestSshd(int sshPort) {
         //copy dsa key to config directory
-        URL fileUrl = ClassLoader.getSystemResource("sshd-config/test-dsa.key");
-        FileUtils.copyURLToFile(fileUrl, new File(configDir, "test-dsa.key"));
+        URL fileUrl = ClassLoader.getSystemResource("sshd-config/test-dsa.key")
+        FileUtils.copyURLToFile(fileUrl, new File(configDir, "test-dsa.key"))
 
-        SshServer sshServer = SshServer.setUpDefaultServer();
-        sshServer.setPort(sshPort);
-        sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory());
-        sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory() {
+        SshServer sshServer = SshServer.setUpDefaultServer()
+        sshServer.setPort(sshPort)
+        sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory())
+        sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystemFactory() {
             Command create() {
                 new TestSftpSubsystem()
             }
-        }));
-        sshServer.setCommandFactory(new ScpCommandFactory());
-        sshServer.setKeyPairProvider(new GeneratingKeyPairProvider());
+        }))
+        sshServer.setCommandFactory(new ScpCommandFactory())
+        sshServer.setKeyPairProvider(new GeneratingKeyPairProvider())
 
-        if(passwordAuthenticationEnabled){
-            sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator());
+        if (passwordAuthenticationEnabled) {
+            sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator())
         }
 
         sshServer.setPublickeyAuthenticator(new PublickeyAuthenticator() {
             boolean authenticate(String username, PublicKey key, ServerSession session) {
                 return true
             }
-        });
-        return sshServer;
+        })
+        return sshServer
     }
 
 
@@ -160,11 +170,11 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     void allowInit() {
-        expectations << new SftpAllow(SftpSubsystem.SSH_FXP_INIT)
+        expectations << new SftpAllow(SftpConstants.SSH_FXP_INIT)
     }
 
     void expectLstat(String path) {
-        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_LSTAT, "LSTAT", path)
+        expectations << new SftpExpectOnePath(SftpConstants.SSH_FXP_LSTAT, "LSTAT", path)
     }
 
     void expectMetadataRetrieve(String path) {
@@ -172,15 +182,15 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     void expectOpen(String path) {
-        expectations << new SftpExpectOneOpen(SftpSubsystem.SSH_FXP_OPEN, "OPEN", path)
+        expectations << new SftpExpectOneOpen(SftpConstants.SSH_FXP_OPEN, "OPEN", path)
     }
 
     void allowRead(String path) {
-        expectations << new SftpAllowHandle(SftpSubsystem.SSH_FXP_READ, path)
+        expectations << new SftpAllowHandle(SftpConstants.SSH_FXP_READ, path)
     }
 
     void expectClose(String path) {
-        expectations << new SftpExpectOneHandle(SftpSubsystem.SSH_FXP_CLOSE, "CLOSE", path)
+        expectations << new SftpExpectOneHandle(SftpConstants.SSH_FXP_CLOSE, "CLOSE", path)
     }
 
     void expectFileDownload(String path) {
@@ -196,27 +206,27 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     void expectRealpath(String path) {
-        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_REALPATH, "REALPATH", path)
+        expectations << new SftpExpectOnePath(SftpConstants.SSH_FXP_REALPATH, "REALPATH", path)
     }
 
     void expectStat(String path) {
-        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_STAT, "STAT", path)
+        expectations << new SftpExpectOnePath(SftpConstants.SSH_FXP_STAT, "STAT", path)
     }
 
     void expectMkdir(String path) {
-        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_MKDIR, "MKDIR", path)
+        expectations << new SftpExpectOnePath(SftpConstants.SSH_FXP_MKDIR, "MKDIR", path)
     }
 
     void expectOpendir(String path) {
-        expectations << new SftpExpectOneOpen(SftpSubsystem.SSH_FXP_OPENDIR, "OPENDIR", path)
+        expectations << new SftpExpectOneOpen(SftpConstants.SSH_FXP_OPENDIR, "OPENDIR", path)
     }
 
     void allowReaddir(String path) {
-        expectations << new SftpAllowHandle(SftpSubsystem.SSH_FXP_READDIR, path)
+        expectations << new SftpAllowHandle(SftpConstants.SSH_FXP_READDIR, path)
     }
 
     void allowWrite(String path) {
-        expectations << new SftpAllowHandle(SftpSubsystem.SSH_FXP_WRITE, path)
+        expectations << new SftpAllowHandle(SftpConstants.SSH_FXP_WRITE, path)
     }
 
     void expectDirectoryList(String path) {
@@ -226,11 +236,11 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     void expectLstatBroken(String path) {
-        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_LSTAT, "LSTAT", path, true)
+        expectations << new SftpExpectOnePath(SftpConstants.SSH_FXP_LSTAT, "LSTAT", path, true)
     }
 
     void expectMkdirBroken(String path) {
-        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_MKDIR, "MKDIR", path, true)
+        expectations << new SftpExpectOnePath(SftpConstants.SSH_FXP_MKDIR, "MKDIR", path, true)
     }
 
     void expectMetadataRetrieveBroken(String path) {
@@ -238,11 +248,11 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     void expectWriteBroken(String path) {
-        expectations << new SftpExpectOneHandle(SftpSubsystem.SSH_FXP_WRITE, "WRITE", path, true)
+        expectations << new SftpExpectOneHandle(SftpConstants.SSH_FXP_WRITE, "WRITE", path, true)
     }
 
     void expectLstatMissing(String path) {
-        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_LSTAT, "LSTAT", path, false, true)
+        expectations << new SftpExpectOnePath(SftpConstants.SSH_FXP_LSTAT, "LSTAT", path, false, true)
     }
 
     RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
@@ -265,17 +275,21 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     static class DummyPasswordAuthenticator implements PasswordAuthenticator {
         // every combination where username == password is accepted
         boolean authenticate(String username, String password, ServerSession session) {
-            return username && password && username == password;
+            return username && password && username == password
         }
     }
 
     class TestVirtualFileSystemFactory extends VirtualFileSystemFactory {
         TestVirtualFileSystemFactory() {
-            setDefaultHomeDir(baseDir.absolutePath)
+            setDefaultHomeDir(baseDir.toPath())
         }
     }
 
     class TestSftpSubsystem extends SftpSubsystem {
+
+        TestSftpSubsystem() {
+            super(null, true, UnsupportedAttributePolicy.ThrowException)
+        }
 
         @Override
         protected void process(Buffer buffer) throws IOException {
@@ -292,10 +306,10 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
             def matched = expectations.find { it.matches(buffer, type, id) }
             if (matched) {
                 if (matched.failing) {
-                    sendStatus(id, SSH_FX_FAILURE, "Failure")
+                    sendStatus(new ByteArrayBuffer(), id, SftpConstants.SSH_FX_FAILURE, "Failure")
                     buffer.rpos(originalBufferPosition + length)
                 } else if (matched.missing) {
-                    sendStatus(id, SSH_FX_NO_SUCH_FILE, "No such file")
+                    sendStatus(new ByteArrayBuffer(), id, SftpConstants.SSH_FX_NO_SUCH_FILE, "No such file")
                     buffer.rpos(originalBufferPosition + length)
                 } else {
                     buffer.rpos(originalBufferPosition)
@@ -303,43 +317,43 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
                 }
             } else {
                 onFailure(new AssertionError("Unexpected SFTP command: $command"))
-                sendStatus(id, SSH_FX_FAILURE, "Unexpected command")
+                sendStatus(buffer, id, SftpConstants.SSH_FX_FAILURE, "Unexpected command")
                 buffer.rpos(originalBufferPosition + length)
             }
         }
 
         @Override
-        protected void sendHandle(int id, String handle) throws IOException {
-            super.sendHandle(id, handle)
+        protected void sendHandle(Buffer buffer, int id, String handle) throws IOException {
+            super.sendHandle(buffer, id, handle)
             handleCreatedByRequest[id] = handle
         }
 
         private String commandMessage(Buffer buffer, int type) {
             switch (type) {
-                case SSH_FXP_INIT:
+                case SftpConstants.SSH_FXP_INIT:
                     return "INIT"
-                case SSH_FXP_LSTAT:
+                case SftpConstants.SSH_FXP_LSTAT:
                     return "LSTAT for ${buffer.getString()}"
-                case SSH_FXP_OPEN:
+                case SftpConstants.SSH_FXP_OPEN:
                     return "OPEN for ${buffer.getString()}"
-                case SSH_FXP_READ:
+                case SftpConstants.SSH_FXP_READ:
                     return "READ"
-                case SSH_FXP_CLOSE:
+                case SftpConstants.SSH_FXP_CLOSE:
                     return "CLOSE"
-                case SSH_FXP_REALPATH:
+                case SftpConstants.SSH_FXP_REALPATH:
                     return "REALPATH for ${buffer.getString()}"
-                case SSH_FXP_STAT:
+                case SftpConstants.SSH_FXP_STAT:
                     return "STAT for ${buffer.getString()}"
-                case SSH_FXP_OPENDIR:
+                case SftpConstants.SSH_FXP_OPENDIR:
                     return "OPENDIR for ${buffer.getString()}"
-                case SSH_FXP_READDIR:
+                case SftpConstants.SSH_FXP_READDIR:
                     return "READDIR for ${buffer.getString()}"
-                case SSH_FXP_MKDIR:
+                case SftpConstants.SSH_FXP_MKDIR:
                     return "MKDIR for ${buffer.getString()}"
-                case SSH_FXP_WRITE:
+                case SftpConstants.SSH_FXP_WRITE:
                     return "WRITE"
             }
-            return type;
+            return type
         }
     }
 
@@ -492,7 +506,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         KeyPair keyPair
 
         GeneratingKeyPairProvider() {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA")
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA")
             generator.initialize(1024, SecureRandom.getInstance("SHA1PRNG"))
             keyPair = generator.generateKeyPair()
         }

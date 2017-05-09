@@ -10,5 +10,6 @@ dependencies {
 
 useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
+useTestFixtures(project: ':launcher')
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

@@ -24,36 +24,21 @@ import java.util.Map;
 import static org.gradle.launcher.daemon.configuration.GradleProperties.isTrue;
 
 public class PropertiesToStartParameterConverter {
+    private final PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
+    private final PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
+
     public StartParameter convert(Map<String, String> properties, StartParameter startParameter) {
         startParameter.setConfigureOnDemand(isTrue(properties.get(GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY)));
 
-        String parallel = properties.get(GradleProperties.PARALLEL_PROPERTY);
-        if (isTrue(parallel)) {
-            startParameter.setParallelProjectExecutionEnabled(true);
-        }
+        propertiesToParallelismConfigurationConverter.convert(properties, startParameter);
+        propertiesToLogLevelConfigurationConverter.convert(properties, startParameter);
 
-        String workers = properties.get(GradleProperties.WORKERS_PROPERTY);
-        if (workers != null) {
-            try {
-                int workerCount = Integer.parseInt(workers);
-                if (workerCount < 1) {
-                    invalidMaxWorkersPropValue(workers);
-                }
-                startParameter.setMaxWorkerCount(workerCount);
-            } catch (NumberFormatException e) {
-                invalidMaxWorkersPropValue(workers);
-            }
-        }
-
-        String taskOutputCache = properties.get(GradleProperties.TASK_OUTPUT_CACHE_PROPERTY);
-        if (isTrue(taskOutputCache)) {
-            startParameter.setTaskOutputCacheEnabled(true);
+        // If they use both, the newer property wins.
+        String buildCacheEnabled = properties.get(GradleProperties.BUILD_CACHE_PROPERTY);
+        if (buildCacheEnabled != null) {
+            startParameter.setBuildCacheEnabled(isTrue(buildCacheEnabled));
         }
 
         return startParameter;
-    }
-
-    private StartParameter invalidMaxWorkersPropValue(String value) {
-        throw new IllegalArgumentException(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, GradleProperties.WORKERS_PROPERTY));
     }
 }

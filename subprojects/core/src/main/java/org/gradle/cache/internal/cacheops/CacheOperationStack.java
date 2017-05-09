@@ -16,59 +16,31 @@
 
 package org.gradle.cache.internal.cacheops;
 
-import java.util.ArrayList;
-import java.util.List;
-
 class CacheOperationStack {
-    private final List<CacheOperation> operations = new ArrayList<CacheOperation>();
-
-    public String getDescription() {
-        checkNotEmpty();
-        return operations.get(0).description;
-    }
-
-    public CacheOperationStack pushLongRunningOperation(String description) {
-        operations.add(0, new CacheOperation(description, true));
-        return this;
-    }
-
-    public void popLongRunningOperation() {
-        pop(true);
-    }
+    private int operationCount;
 
     public boolean isInCacheAction() {
-        return !operations.isEmpty() && !operations.get(0).longRunningOperation;
+        return operationCount>0;
     }
 
-    public boolean isInLongRunningOperation() {
-        return !operations.isEmpty() && !isInCacheAction();
-    }
-
-    public CacheOperationStack pushCacheAction(String description) {
-        operations.add(0, new CacheOperation(description, false));
+    public CacheOperationStack pushCacheAction() {
+        operationCount++;
         return this;
     }
 
-    public CacheOperation popCacheAction() {
-        return pop(false);
+    public void popCacheAction() {
+        checkNotEmpty();
+        operationCount--;
     }
 
-    private CacheOperation pop(boolean longRunningOperation) {
-        checkNotEmpty();
-        CacheOperation operation = operations.remove(0);
-        if (operation.longRunningOperation == longRunningOperation) {
-            return operation;
-        }
-        throw new IllegalStateException(String.format("Unexpected operation %s at the top of the stack.", operation));
-    }
 
     private void checkNotEmpty() {
-        if (operations.isEmpty()) {
+        if (operationCount==0) {
             throw new IllegalStateException("Operation stack is empty.");
         }
     }
 
     public boolean isEmpty() {
-        return operations.isEmpty();
+        return operationCount==0;
     }
 }

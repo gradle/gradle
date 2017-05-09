@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
@@ -63,6 +64,12 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         }
     };
 
+    private static final Action<Void> IMMUTABLE_VIOLATION_EXCEPTION = new Action<Void>() {
+        public void execute(Void arg) {
+            throw new ImmutableViolationException();
+        }
+    };
+
 
     private NamedDomainObjectSet<T> enabled;
 
@@ -75,11 +82,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
             }
         });
 
-        beforeChange(new Runnable() {
-            public void run() {
-                throw new ImmutableViolationException();
-            }
-        });
+        beforeChange(IMMUTABLE_VIOLATION_EXCEPTION);
     }
 
     public NamedDomainObjectSet<T> getEnabled() {

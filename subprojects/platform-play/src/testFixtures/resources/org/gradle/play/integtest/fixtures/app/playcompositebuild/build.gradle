@@ -1,0 +1,7 @@
+plugins {
+    id 'play'
+}
+
+dependencies {
+    play "org.my:java-lib:1.0"
+}

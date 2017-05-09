@@ -20,17 +20,16 @@ import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
+import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.changedetection.state.ShortLivedProcessInMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -44,11 +43,8 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.DefaultFileHasher;
-import org.gradle.api.internal.hash.FileHasher;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -58,14 +54,11 @@ import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.MapBackedInMemoryStore;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
-import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
-import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
@@ -77,14 +70,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.Factory;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClassLoaderHasher;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.classloader.ClassPathSnapshotter;
-import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
-import org.gradle.internal.classloader.HashingClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -102,15 +88,22 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.progress.BuildOperationService;
+import org.gradle.internal.progress.DefaultBuildOperationService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.scripts.DefaultScriptingLanguages;
+import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -127,6 +120,12 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStra
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
+import org.gradle.process.internal.health.memory.DefaultMemoryManager;
+import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
+import org.gradle.process.internal.health.memory.JvmMemoryInfo;
+import org.gradle.process.internal.health.memory.MemoryManager;
+import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
 import java.util.List;
 
@@ -162,8 +161,12 @@ public class GlobalScopeServices {
         }
     }
 
-    GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry, TimeProvider timeProvider) {
-        return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry, timeProvider);
+    GradleLauncherFactory createGradleLauncherFactory(ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry) {
+        return new DefaultGradleLauncherFactory(listenerManager, progressLoggerFactory, userHomeScopeServiceRegistry);
+    }
+
+    BuildOperationService createBuildOperationService(ListenerManager listenerManager) {
+        return new DefaultBuildOperationService(listenerManager);
     }
 
     TemporaryFileProvider createTemporaryFileProvider() {
@@ -217,10 +220,6 @@ public class GlobalScopeServices {
         return new DefaultClassLoaderRegistry(classPathRegistry, legacyTypesSupport);
     }
 
-    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
-        return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderHasher);
-    }
-
     LegacyTypesSupport createLegacyTypesSupport() {
         return new DefaultLegacyTypesSupport();
     }
@@ -231,16 +230,12 @@ public class GlobalScopeServices {
         );
     }
 
-    JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {
-        return new DefaultJdkToolsInitializer(classLoaderFactory);
+    JdkToolsInitializer createJdkToolsInitializer() {
+        return new DefaultJdkToolsInitializer(new DefaultClassLoaderFactory());
     }
 
     ListenerManager createListenerManager() {
         return new DefaultListenerManager();
-    }
-
-    HashingClassLoaderFactory createClassLoaderFactory(ClassPathSnapshotter snapshotter) {
-        return new DefaultHashingClassLoaderFactory(snapshotter);
     }
 
     MessagingServices createMessagingServices() {
@@ -259,8 +254,8 @@ public class GlobalScopeServices {
         return new AsmBackedClassGenerator();
     }
 
-    Instantiator createInstantiator(ClassGenerator classGenerator) {
-        return new ClassGeneratorBackedInstantiator(classGenerator, DirectInstantiator.INSTANCE);
+    Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
+        return instantiatorFactory.decorate();
     }
 
     ExecutorFactory createExecutorFactory() {
@@ -274,12 +269,12 @@ public class GlobalScopeServices {
             fileLockContentionHandler);
     }
 
-    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
-        if(environment.isLongLivingProcess()) {
-            return new InMemoryTaskArtifactCache();
-        } else {
-            return new ShortLivedProcessInMemoryTaskArtifactCache();
-        }
+    CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
+        return new CrossBuildInMemoryCacheFactory(listenerManager);
+    }
+
+    InMemoryCacheDecoratorFactory createInMemoryTaskArtifactCache(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new InMemoryCacheDecoratorFactory(environment.isLongLivingProcess(), cacheFactory);
     }
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
@@ -308,30 +303,12 @@ public class GlobalScopeServices {
         return new DefaultExecActionFactory(fileResolver);
     }
 
-    ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {
-        List<MethodModelRuleExtractor> extractors = services.getAll(MethodModelRuleExtractor.class);
+    ModelRuleExtractor createModelRuleInspector(List<MethodModelRuleExtractor> extractors, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, FileHasher hasher) {
-        return new HashClassPathSnapshotter(hasher);
-    }
-
-    MapBackedInMemoryStore createInMemoryStore() {
-        return new MapBackedInMemoryStore();
-    }
-
-    FileHasher createCachingFileHasher(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore) {
-        return new CachingFileHasher(new DefaultFileHasher(), inMemoryStore, stringInterner);
-    }
-
-    ClassLoaderCache createClassLoaderCache(HashingClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
-        return new DefaultClassLoaderCache(classLoaderFactory, classPathSnapshotter);
-    }
-
-    protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(ServiceRegistry serviceRegistry) {
-        List<ModelSchemaAspectExtractionStrategy> strategies = serviceRegistry.getAll(ModelSchemaAspectExtractionStrategy.class);
+    protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(List<ModelSchemaAspectExtractionStrategy> strategies) {
         return new ModelSchemaAspectExtractor(strategies);
     }
 
@@ -339,8 +316,8 @@ public class GlobalScopeServices {
         return new ManagedProxyFactory();
     }
 
-    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ServiceRegistry serviceRegistry) {
-        return DefaultModelSchemaExtractor.withDefaultStrategies(serviceRegistry.getAll(ModelSchemaExtractionStrategy.class), aspectExtractor);
+    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, List<ModelSchemaExtractionStrategy> strategies) {
+        return DefaultModelSchemaExtractor.withDefaultStrategies(strategies, aspectExtractor);
     }
 
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
@@ -367,7 +344,7 @@ public class GlobalScopeServices {
         return new StringInterner();
     }
 
-    PatternSpecFactory createPatternSpecFactory(GradleBuildEnvironment environment) {
+    PatternSpecFactory createPatternSpecFactory() {
         return new CachingPatternSpecFactory();
     }
 
@@ -375,12 +352,8 @@ public class GlobalScopeServices {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
-    protected CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileHasher hasher) {
-        return new CrossBuildInMemoryCachingScriptClassCache(hasher);
-    }
-
-    DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
-        return new DependencyInjectingInstantiator.ConstructorCache();
+    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator) {
+        return new DefaultInstantiatorFactory(classGenerator);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
@@ -389,5 +362,29 @@ public class GlobalScopeServices {
 
     TimeProvider createTimeProvider() {
         return new TrueTimeProvider();
+    }
+
+    OsMemoryInfo createOsMemoryInfo() {
+        return new DefaultOsMemoryInfo();
+    }
+
+    JvmMemoryInfo createJvmMemoryInfo() {
+        return new DefaultJvmMemoryInfo();
+    }
+
+    MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
+        return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
+    }
+
+    ProviderFactory createProviderFactory() {
+        return new DefaultProviderFactory();
+    }
+
+    ScriptingLanguages createScriptingLanguages() {
+        return new DefaultScriptingLanguages();
+    }
+
+    ScriptFileResolver createScriptFileResolver(ScriptingLanguages scriptingLanguages) {
+        return DefaultScriptFileResolver.forScriptingLanguages(scriptingLanguages);
     }
 }

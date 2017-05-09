@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -51,6 +52,21 @@ public interface FileTree extends FileCollection {
      * <p>Restricts the contents of this tree to those files matching the given filter. The filtered tree is live, so
      * that any changes to this tree are reflected in the filtered tree.</p>
      *
+     * <p>The given action is used to configure the filter. A {@link org.gradle.api.tasks.util.PatternFilterable} is
+     * passed to the action. Only files which match the specified include patterns will be included in
+     * the filtered tree. Any files which match the specified exclude patterns will be excluded from the filtered
+     * tree.</p>
+     *
+     * @param filterConfigAction Action to use to configure the filter.
+     * @return The filtered tree.
+     * @since 3.3
+     */
+    FileTree matching(Action<? super PatternFilterable> filterConfigAction);
+
+    /**
+     * <p>Restricts the contents of this tree to those files matching the given filter. The filtered tree is live, so
+     * that any changes to this tree are reflected in the filtered tree.</p>
+     *
      * <p>The given pattern set is used to configure the filter. Only files which match the specified include patterns
      * will be included in the filtered tree. Any files which match the specified exclude patterns will be excluded from
      * the filtered tree.</p>
@@ -78,6 +94,16 @@ public interface FileTree extends FileCollection {
      * @return this
      */
     FileTree visit(Closure visitor);
+
+    /**
+     * Visits the files and directories in this file tree. Files are visited in depth-first prefix order, so that a directory
+     * is visited before its children. The file/directory to be visited is passed to the given action as a {@link
+     * FileVisitDetails}
+     *
+     * @param visitor The visitor.
+     * @return this
+     */
+    FileTree visit(Action<? super FileVisitDetails> visitor);
 
     /**
      * Returns a {@code FileTree} which contains the union of this tree and the given tree. The returned tree is live,

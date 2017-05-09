@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -29,7 +30,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 @Subject(ResolveTaskArtifactStateTaskExecuter)
-public class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
+class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
     final delegate = Mock(TaskExecuter)
     final outputs = Mock(TaskOutputsInternal)
     final task = Mock(TaskInternal)
@@ -37,22 +38,27 @@ public class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
     final taskContext = Mock(TaskExecutionContext)
     final repository = Mock(TaskArtifactStateRepository)
     final taskArtifactState = Mock(TaskArtifactState)
+    final taskExecutionhistory = Mock(TaskExecutionHistory)
     final Action<Task> action = Mock(Action)
 
     final executer = new ResolveTaskArtifactStateTaskExecuter(repository, delegate)
 
     def 'taskContext is initialized and cleaned as expected'() {
         when:
-        executer.execute(task, taskState, taskContext);
+        executer.execute(task, taskState, taskContext)
 
         then: 'taskContext is initialized with task artifact state'
         1 * repository.getStateFor(task) >> taskArtifactState
         1 * taskContext.setTaskArtifactState(taskArtifactState)
+        1 * taskArtifactState.getExecutionHistory() >> taskExecutionhistory
+        1 * task.getOutputs() >> outputs
+        1 * outputs.setHistory(taskExecutionhistory)
 
         then: 'delegate is executed'
         1 * delegate.execute(task, taskState, taskContext)
 
         then: 'task artifact state is removed from taskContext'
+        1 * outputs.setHistory(null)
         1 * taskContext.setTaskArtifactState(null)
 
         and: 'nothing else'

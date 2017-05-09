@@ -19,6 +19,8 @@ import org.junit.Ignore
 import org.junit.Test
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
+
 class TaskAutoDependencyIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void autoAddsInputFileCollectionAsADependency() {
@@ -54,7 +56,8 @@ configurations { archives }
 dependencies { archives files('b.jar') { builtBy jar } }
 artifacts { archives otherJar }
 '''
-        inTestDirectory().withTasks('doStuff').run().assertTasksExecuted(':b:jar', ':b:otherJar', ':a:doStuff')
+        inTestDirectory().withTasks('doStuff').run()
+            .assertTasksExecutedInOrder(any(':b:jar', ':b:otherJar'), ':a:doStuff')
     }
 
     @Test @Ignore
@@ -66,7 +69,7 @@ artifacts { archives otherJar }
     public void addsDependenciesForFileCollectionInSameProject() {
         fail()
     }
-    
+
     @Test @Ignore
     public void addsDependenciesForFileCollectionInProjectWithNoArtifacts() {
         fail()

@@ -17,6 +17,7 @@ package org.gradle.integtests.publish.maven
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.GradleVersion
@@ -460,7 +461,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST]
         // TODO: Does not work with DIGEST authentication
     }
 
@@ -556,7 +557,7 @@ uploadArchives {
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.5'
-        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions;
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions
         exclusions.size() == 1
         exclusions[0].groupId == 'org.slf4j'
         exclusions[0].artifactId == 'slf4j-api'
@@ -603,7 +604,7 @@ uploadArchives {
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.7'
-        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions;
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions
         exclusions.size() == 1
         exclusions[0].groupId == 'ch.qos.logback'
         exclusions[0].artifactId == 'logback-core'
@@ -643,7 +644,7 @@ uploadArchives {
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.5'
-        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions;
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions
         exclusions.size() == 1
         exclusions[0].groupId == 'org.slf4j'
         exclusions[0].artifactId == 'slf4j-api'
@@ -683,7 +684,7 @@ uploadArchives {
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.7'
-        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions;
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions
         exclusions.size() == 1
         exclusions[0].groupId == 'ch.qos.logback'
         exclusions[0].artifactId == 'logback-core'
@@ -725,5 +726,72 @@ uploadArchives {
         then:
         failure.assertHasCause "Could not publish configuration 'archives'"
         failure.assertThatCause(containsString('Cannot publish a directory'))
+    }
+
+    @Issue("gradle/gradle#1641")
+    def "can publish a new version of a module already present in the target repository"() {
+        given:
+        server.start()
+        def mavenRemoteRepo = new MavenHttpRepository(server, "/repo", mavenRepo)
+        def group = 'org.gradle'
+        def name = 'publish'
+
+        and:
+        settingsFile << "rootProject.name = '$name'"
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'maven'
+            group = '$group'
+            uploadArchives {
+                repositories {
+                    mavenDeployer {
+                        repository(url: "${mavenRemoteRepo.uri}")
+                    }
+                }
+            }
+        """.stripIndent()
+
+        and:
+        def module1 = mavenRemoteRepo.module(group, name, '1')
+        module1.artifact.expectPut()
+        module1.artifact.sha1.expectPut()
+        module1.artifact.md5.expectPut()
+        module1.rootMetaData.expectGetMissing()
+        module1.rootMetaData.expectPut()
+        module1.rootMetaData.sha1.expectPut()
+        module1.rootMetaData.md5.expectPut()
+        module1.pom.expectPut()
+        module1.pom.sha1.expectPut()
+        module1.pom.md5.expectPut()
+
+        when:
+        succeeds 'uploadArchives', '-Pversion=1'
+
+        then:
+        module1.rootMetaData.verifyChecksums()
+        module1.rootMetaData.versions == ["1"]
+
+        and:
+        def module2 = mavenRemoteRepo.module(group, name, '2')
+        module2.artifact.expectPut()
+        module2.artifact.sha1.expectPut()
+        module2.artifact.md5.expectPut()
+        module2.pom.expectPut()
+        module2.pom.sha1.expectPut()
+        module2.pom.md5.expectPut()
+
+        and:
+        module2.rootMetaData.expectGet()
+        module2.rootMetaData.sha1.expectGet()
+        module2.rootMetaData.expectPut()
+        module2.rootMetaData.sha1.expectPut()
+        module2.rootMetaData.md5.expectPut()
+
+        when:
+        succeeds 'uploadArchives', '-Pversion=2'
+
+        then:
+        module2.rootMetaData.verifyChecksums()
+        module2.rootMetaData.versions == ["1", "2"]
     }
 }

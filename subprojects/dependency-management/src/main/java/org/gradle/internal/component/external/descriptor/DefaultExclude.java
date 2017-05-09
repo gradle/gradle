@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
@@ -32,23 +31,23 @@ public class DefaultExclude implements Exclude {
     private final Set<String> configurations;
     private final String patternMatcher;
 
-    public DefaultExclude(String group, String module, String artifact, String type, String extension, String[] configurations, String patternMatcher) {
-        this.moduleId = DefaultModuleIdentifier.newId(group, module);
-        this.artifact = DefaultIvyArtifactName.of(artifact, type, extension);
+    public DefaultExclude(ModuleIdentifier id, String artifact, String type, String extension, String[] configurations, String patternMatcher) {
+        this.moduleId = id;
+        this.artifact = new DefaultIvyArtifactName(artifact, type, extension);
         this.configurations = ImmutableSet.copyOf(configurations);
         this.patternMatcher = patternMatcher;
     }
 
-    public DefaultExclude(String group, String module, String[] configurations, String patternMatcher) {
-        this.moduleId = DefaultModuleIdentifier.newId(group, module);
-        this.artifact = DefaultIvyArtifactName.of(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
+    public DefaultExclude(ModuleIdentifier id, String[] configurations, String patternMatcher) {
+        this.moduleId = id;
+        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
         this.configurations = ImmutableSet.copyOf(configurations);
         this.patternMatcher = patternMatcher;
     }
 
-    public DefaultExclude(String group, String module) {
-        this.moduleId = DefaultModuleIdentifier.newId(group, module);
-        this.artifact = DefaultIvyArtifactName.of(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
+    public DefaultExclude(ModuleIdentifier id) {
+        this.moduleId = id;
+        this.artifact = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
         this.configurations = ImmutableSet.of();
         this.patternMatcher = PatternMatchers.EXACT;
     }
@@ -76,5 +75,37 @@ public class DefaultExclude implements Exclude {
     @Override
     public String getMatcher() {
         return patternMatcher;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultExclude that = (DefaultExclude) o;
+
+        if (!moduleId.equals(that.moduleId)) {
+            return false;
+        }
+        if (!artifact.equals(that.artifact)) {
+            return false;
+        }
+        if (!configurations.equals(that.configurations)) {
+            return false;
+        }
+        return patternMatcher.equals(that.patternMatcher);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = moduleId.hashCode();
+        result = 31 * result + artifact.hashCode();
+        result = 31 * result + configurations.hashCode();
+        result = 31 * result + patternMatcher.hashCode();
+        return result;
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.concurrent.Stoppable;
 
 /**
@@ -54,24 +53,7 @@ public interface GradleLauncher extends Stoppable {
     BuildResult getBuildAnalysis() throws ReportedException;
 
     /**
-     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for
-     * supported listener types.</p>
-     *
-     * @param listener The listener to add. Has no effect if the listener has already been added.
+     * <p>Adds a listener to this build instance. Receives events for this build only.
      */
     void addListener(Object listener);
-
-    /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
-     *
-     * @param listener The listener to add. Has no effect if the listener has already been added.
-     */
-    void addStandardOutputListener(StandardOutputListener listener);
-
-    /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard error by Gradle's logging system
-     *
-     * @param listener The listener to add. Has no effect if the listener has already been added.
-     */
-    void addStandardErrorListener(StandardOutputListener listener);
 }

@@ -17,9 +17,16 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.util.Path;
 
 public class BasicDomainObjectContext implements DomainObjectContext {
-    public String absoluteProjectPath(String name) {
-        return name;
+    @Override
+    public Path identityPath(String name) {
+        return Path.path(name);
+    }
+
+    @Override
+    public Path projectPath(String name) {
+        return Path.path(name);
     }
 }

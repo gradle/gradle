@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal;
 
 import org.apache.commons.io.FilenameUtils;
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
@@ -24,6 +25,11 @@ import java.io.File;
 public class CompilerOutputFileNamingScheme {
     private String objectFileNameSuffix;
     private File outputBaseFolder;
+    private final RelativeFilePathResolver fileResolver;
+
+    public CompilerOutputFileNamingScheme(RelativeFilePathResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
 
     public CompilerOutputFileNamingScheme withOutputBaseFolder(File outputBaseFolder) {
         this.outputBaseFolder = outputBaseFolder;
@@ -37,8 +43,12 @@ public class CompilerOutputFileNamingScheme {
 
     public File map(File sourceFile) {
         final String baseName = FilenameUtils.removeExtension(sourceFile.getName());
-        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
-        File hashDirectory = new File(outputBaseFolder, compactMD5);
+        final String uniqueName = generateUniqueNameFor(sourceFile);
+        File hashDirectory = new File(outputBaseFolder, uniqueName);
         return new File(hashDirectory, baseName + objectFileNameSuffix);
+    }
+
+    protected String generateUniqueNameFor(File sourceFile) {
+        return HashUtil.createCompactMD5(fileResolver.resolveAsRelativePath(sourceFile));
     }
 }

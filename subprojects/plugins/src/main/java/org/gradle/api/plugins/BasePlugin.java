@@ -19,10 +19,14 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
@@ -54,11 +58,13 @@ public class BasePlugin implements Plugin<Project> {
 
     private final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurationActionContainer configurationActionContainer;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     @Inject
-    public BasePlugin(ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer) {
+    public BasePlugin(ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.publicationRegistry = publicationRegistry;
         this.configurationActionContainer = configurationActionContainer;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public void apply(Project project) {
@@ -134,8 +140,7 @@ public class BasePlugin implements Plugin<Project> {
 
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
                 Module module = configuration.getModule();
-                ModuleVersionIdentifier publicationId =
-                        DefaultModuleVersionIdentifier.of(module.getGroup(), module.getName(), module.getVersion());
+                ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
                 publicationRegistry.registerPublication(module.getProjectPath(), new DefaultProjectPublication(publicationId));
             }
         });
@@ -143,7 +148,7 @@ public class BasePlugin implements Plugin<Project> {
 
     private void configureConfigurations(final Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        project.setProperty("status", "integration");
+        project.setStatus("integration");
 
         Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for archive artifacts.");

@@ -29,6 +29,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         file("buildSrc/src/main/groovy/VariantsPlugin.groovy") << '''
             import org.gradle.api.Plugin
             import org.gradle.api.Project
+            import org.gradle.api.attributes.Attribute
             import org.gradle.api.tasks.compile.JavaCompile
             import org.gradle.api.tasks.bundling.Jar
             import org.gradle.api.tasks.bundling.Zip
@@ -36,6 +37,14 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
 
             class VariantsPlugin implements Plugin<Project> {
                 void apply(Project p) {
+                        def buildType = Attribute.of('buildType', String)
+                        def usage = Attribute.of('usage', String)
+                        def flavor = Attribute.of('flavor', String)
+                        p.dependencies.attributesSchema {
+                           attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                           attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
+                           attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                        }
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
                         def processResources = p.tasks.processResources
@@ -47,16 +56,23 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                 def compileConfig = p.configurations.create(baseName) {
                                     extendsFrom p.configurations.compile
                                     canBeResolved = false
-                                    attributes buildType: bt, flavor: f, usage: 'compile'
+                                    attributes.attribute(buildType, bt)
+                                    attributes.attribute(flavor, f)
+                                    attributes.attribute(usage, 'compile')
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
                                     extendsFrom p.configurations.compile
                                     canBeConsumed = false
-                                    attributes buildType: bt, flavor: f, usage: 'compile'
+                                    attributes.attribute(buildType, bt)
+                                    attributes.attribute(flavor, f)
+                                    attributes.attribute(usage, 'compile')
                                 }
                                 def mergedResourcesConf = p.configurations.create("resources${f.capitalize()}${bt.capitalize()}") {
                                     extendsFrom p.configurations.compile
-                                    attributes buildType: bt, flavor: f, usage: 'resources'
+                                    
+                                    attributes.attribute(buildType, bt)
+                                    attributes.attribute(flavor, f)
+                                    attributes.attribute(usage, 'resources')
                                 }
                                 p.dependencies.add(mergedResourcesConf.name, processResources.outputs.files)
                                 def compileTask = p.tasks.create("compileJava${f.capitalize()}${bt.capitalize()}", JavaCompile) { task ->

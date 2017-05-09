@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization.layout;
 
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
 
 import java.io.File;
@@ -48,16 +49,16 @@ public class BuildLayoutFactory {
     }
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
-        File settingsFile = new File(currentDir, "settings.gradle");
+        File settingsFile = new File(currentDir, Settings.DEFAULT_SETTINGS_FILE);
         if (settingsFile.isFile()) {
             return layout(currentDir, currentDir, settingsFile);
         }
         for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
-            settingsFile = new File(candidate, "settings.gradle");
+            settingsFile = new File(candidate, Settings.DEFAULT_SETTINGS_FILE);
             if (settingsFile.isFile()) {
                 return layout(candidate, candidate, settingsFile);
             }
-            settingsFile = new File(candidate, "master/settings.gradle");
+            settingsFile = new File(candidate, "master/" + Settings.DEFAULT_SETTINGS_FILE);
             if (settingsFile.isFile()) {
                 return layout(candidate, settingsFile.getParentFile(), settingsFile);
             }

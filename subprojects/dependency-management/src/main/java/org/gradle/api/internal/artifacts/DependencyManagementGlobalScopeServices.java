@@ -28,16 +28,25 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
+import org.gradle.cache.internal.DefaultProducerGuard;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
 
+import java.net.URI;
+
 class DependencyManagementGlobalScopeServices {
+
+    ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {
+        return new DefaultImmutableModuleIdentifierFactory();
+    }
+
     IvyContextManager createIvyContextManager() {
         return new DefaultIvyContextManager();
     }
 
-    ExcludeRuleConverter createExcludeRuleConverter() {
-        return new DefaultExcludeRuleConverter();
+    ExcludeRuleConverter createExcludeRuleConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
     ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
@@ -46,8 +55,7 @@ class DependencyManagementGlobalScopeServices {
 
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
         return new DefaultDependencyDescriptorFactory(
-            new ProjectIvyDependencyDescriptorFactory(
-                excludeRuleConverter),
+            new ProjectIvyDependencyDescriptorFactory(excludeRuleConverter),
             descriptorFactory);
     }
 
@@ -62,5 +70,9 @@ class DependencyManagementGlobalScopeServices {
 
     ResourceConnectorFactory createFileConnectorFactory() {
         return new FileConnectorFactory();
+    }
+
+    ProducerGuard<URI> createProducerAccess() {
+        return new DefaultProducerGuard<URI>();
     }
 }

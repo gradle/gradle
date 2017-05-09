@@ -31,18 +31,27 @@ def wrapperUpdateTask = { name, label ->
         }
     }
 
-    task "${wrapperTaskName}"(type: Wrapper, dependsOn: configureWrapperTaskName) {
+    task "${wrapperTaskName}"(type: Wrapper) {
+        dependsOn configureWrapperTaskName
         group = "wrapper"
     }
 }
 
 tasks.withType(Wrapper) {
-    def jvmOpts = "-Xmx1024m -Dfile.encoding=UTF-8"
+    def jvmOpts = "-Xmx2048m -Dfile.encoding=UTF-8"
     inputs.property("jvmOpts", jvmOpts)
     doLast {
         def optsEnvVar = "DEFAULT_JVM_OPTS"
         scriptFile.write scriptFile.text.replace("$optsEnvVar=\"\"", "$optsEnvVar=\"$jvmOpts\"")
         batchScript.write batchScript.text.replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts")
+    }
+    doLast {
+        def buildSrcWrapperDir = new File(rootDir, 'buildSrc/gradle/wrapper')
+        GFileUtils.mkdirs(buildSrcWrapperDir)
+        copy {
+            from propertiesFile
+            into buildSrcWrapperDir
+        }
     }
 }
 wrapperUpdateTask "nightly", "nightly"

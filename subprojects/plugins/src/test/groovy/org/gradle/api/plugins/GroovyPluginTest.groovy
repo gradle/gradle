@@ -16,95 +16,115 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Matchers
-import org.gradle.util.TestUtil
-import org.junit.Rule
-import org.junit.Test
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 
-class GroovyPluginTest {
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final Project project = TestUtil.create(tmpDir).rootProject()
+class GroovyPluginTest extends AbstractProjectBuilderSpec {
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
 
-    @Test
-    public void appliesTheJavaPluginToTheProject() {
+    def "applies the java plugin to the project"() {
+        when:
         groovyPlugin.apply(project)
 
-        assertTrue(project.getPlugins().hasPlugin(JavaPlugin));
+        then:
+        project.plugins.hasPlugin(JavaPlugin)
     }
 
-    @Test
-    public void addsGroovyConfigurationToTheProject() {
+    def "adds groovy configuration to the project"() {
+        given:
         groovyPlugin.apply(project)
 
-        def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), Matchers.isEmpty())
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        when:
+        def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
+
+        then:
+        compile.extendsFrom == [] as Set
+        !compile.visible
+        compile.transitive
+
+        when:
+        def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+
+        then:
+        implementation.extendsFrom == [compile] as Set
+        !implementation.visible
+        !implementation.canBeConsumed
+        !implementation.canBeResolved
     }
 
-    @Test
-    public void addsGroovyConventionToEachSourceSet() {
+    def "adds Groovy convention to each source set"() {
+        given:
         groovyPlugin.apply(project)
 
+        when:
         def sourceSet = project.sourceSets.main
-        assertThat(sourceSet.groovy.displayName, equalTo("main Groovy source"))
-        assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/main/groovy"))))
 
+        then:
+        sourceSet.groovy.displayName == "main Groovy source"
+        sourceSet.groovy.srcDirs == [project.file("src/main/groovy")] as Set
+
+        when:
         sourceSet = project.sourceSets.test
-        assertThat(sourceSet.groovy.displayName, equalTo("test Groovy source"))
-        assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/test/groovy"))))
+
+        then:
+        sourceSet.groovy.displayName == "test Groovy source"
+        sourceSet.groovy.srcDirs == [project.file("src/test/groovy")] as Set
     }
 
-    @Test
-    public void addsCompileTaskForEachSourceSet() {
+    def "adds compile task for each source set"() {
+        given:
         groovyPlugin.apply(project)
 
+        when:
         def task = project.tasks['compileGroovy']
-        assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.description, equalTo('Compiles the main Groovy source.'))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
+        then:
+        task instanceof GroovyCompile
+        task.description == 'Compiles the main Groovy source.'
+        dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME).matches(task)
+
+        when:
         task = project.tasks['compileTestGroovy']
-        assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.description, equalTo('Compiles the test Groovy source.'))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
+
+        then:
+        task instanceof GroovyCompile
+        task.description == 'Compiles the test Groovy source.'
+        dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME).matches(task)
     }
 
-    @Test
-    public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
+    def "dependencies of Java plugin tasks include Groovy compile tasks"() {
+        given:
         groovyPlugin.apply(project)
 
+        when:
         def task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
-        assertThat(task, dependsOn(hasItem('compileGroovy')))
+        then:
+        dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME, 'compileGroovy').matches(task)
 
+        when:
         task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
-        assertThat(task, dependsOn(hasItem('compileTestGroovy')))
+        then:
+        dependsOn(JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, 'compileTestGroovy').matches(task)
     }
 
-    @Test
-    public void addsStandardTasksToTheProject() {
+    def "adds standard tasks to the project"() {
+        given:
         groovyPlugin.apply(project)
 
-        project.sourceSets.main.groovy.srcDirs(tmpDir.getTestDirectory())
-        tmpDir.file("SomeFile.groovy").touch()
+        when:
+        project.sourceSets.main.groovy.srcDirs(temporaryFolder.getTestDirectory())
+        temporaryFolder.file("SomeFile.groovy").touch()
         def task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
-        assertThat(task, instanceOf(Groovydoc.class))
-        assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
-        assertThat(task.source.files, equalTo(project.sourceSets.main.groovy.files))
-        assertThat(task.docTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
-        assertThat(task.windowTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+
+        then:
+        task instanceof Groovydoc
+        task.destinationDir == new File(project.docsDir, 'groovydoc')
+        task.source.files == project.sourceSets.main.groovy.files
+        task.docTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.windowTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 }

@@ -19,9 +19,9 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.plugin.internal.PluginId;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginResolver {
 
@@ -35,7 +35,7 @@ public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginRes
         this.pluginDescriptorLocator = pluginDescriptorLocator;
     }
 
-    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
+    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
         PluginId pluginId = pluginRequest.getId();
         PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId.toString());
         if (pluginDescriptor == null || isCorePlugin(pluginId)) {

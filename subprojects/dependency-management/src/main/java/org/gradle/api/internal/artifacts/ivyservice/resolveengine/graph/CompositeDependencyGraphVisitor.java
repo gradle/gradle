@@ -38,9 +38,16 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
         }
     }
 
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+    @Override
+    public void visitSelector(DependencyGraphSelector selector) {
         for (DependencyGraphVisitor visitor : visitors) {
-            visitor.visitEdge(resolvedConfiguration);
+            visitor.visitSelector(selector);
+        }
+    }
+
+    public void visitEdges(DependencyGraphNode resolvedConfiguration) {
+        for (DependencyGraphVisitor visitor : visitors) {
+            visitor.visitEdges(resolvedConfiguration);
         }
     }
 

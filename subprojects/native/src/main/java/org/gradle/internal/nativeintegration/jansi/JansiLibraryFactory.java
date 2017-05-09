@@ -16,8 +16,6 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
-import java.io.File;
-
 public class JansiLibraryFactory {
 
     public final static String MAC_OSX_LIB_FILENAME = "libjansi.jnilib";
@@ -27,11 +25,6 @@ public class JansiLibraryFactory {
 
     void setJansiRuntimeResolver(JansiRuntimeResolver jansiRuntimeResolver) {
         this.jansiRuntimeResolver = jansiRuntimeResolver;
-    }
-
-    public File makeVersionSpecificDir(File storageDir) {
-        String jansiVersion = org.fusesource.jansi.Ansi.class.getPackage().getImplementationVersion();
-        return new File(storageDir, "jansi/" + jansiVersion);
     }
 
     public JansiLibrary create() {

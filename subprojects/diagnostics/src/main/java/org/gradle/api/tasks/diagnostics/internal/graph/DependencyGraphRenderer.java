@@ -19,25 +19,29 @@ package org.gradle.api.tasks.diagnostics.internal.graph;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
-
 public class DependencyGraphRenderer {
     private final GraphRenderer renderer;
     private final NodeRenderer nodeRenderer;
-    private boolean hasCyclicDependencies;
+    private final LegendRenderer legendRenderer;
 
-    public DependencyGraphRenderer(GraphRenderer renderer, NodeRenderer nodeRenderer) {
+
+    public DependencyGraphRenderer(GraphRenderer renderer, NodeRenderer nodeRenderer, LegendRenderer legendRenderer) {
         this.renderer = renderer;
         this.nodeRenderer = nodeRenderer;
+        this.legendRenderer = legendRenderer;
     }
 
     public void render(RenderableDependency root) {
+        if (root instanceof UnresolvableConfigurationResult) {
+            legendRenderer.setHasUnresolvableConfigurations(true);
+        }
         HashSet<Object> visited = Sets.newHashSet();
         visited.add(root.getId());
         renderChildren(root.getChildren(), visited);
@@ -58,7 +62,7 @@ public class DependencyGraphRenderer {
         Set<? extends RenderableDependency> children = node.getChildren();
         final boolean alreadyRendered = !visited.add(node.getId());
         if (alreadyRendered) {
-            hasCyclicDependencies = true;
+            legendRenderer.setHasCyclicDependencies(true);
         }
 
 
@@ -75,11 +79,4 @@ public class DependencyGraphRenderer {
 
     }
 
-    public void printLegend() {
-        if (hasCyclicDependencies) {
-            renderer.getOutput().println();
-            renderer.getOutput().withStyle(Info).println("(*) - dependencies omitted (listed previously)");
-        }
-
-    }
 }

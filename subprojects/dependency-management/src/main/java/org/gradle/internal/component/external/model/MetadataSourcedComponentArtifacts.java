@@ -16,9 +16,9 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.Set;
 
@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
-    public Set<ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration) {
-        return configuration.getArtifacts();
+    public Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration) {
+        return configuration.getVariants();
     }
 }

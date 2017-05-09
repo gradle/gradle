@@ -16,8 +16,9 @@
 
 package org.gradle.external.javadoc.internal;
 
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MultilineStringsJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<String>> {
@@ -25,11 +26,7 @@ public class MultilineStringsJavadocOptionFileOption extends AbstractListJavadoc
     // We should never attempt to join strings so if you see this, there's a problem
     private static final String JOIN_BY = "Not Used!";
 
-    protected MultilineStringsJavadocOptionFileOption(String option) {
-        super(option, new ArrayList<String>(), JOIN_BY);
-    }
-
-    protected MultilineStringsJavadocOptionFileOption(String option, List<String> value) {
+    public MultilineStringsJavadocOptionFileOption(String option, List<String> value) {
         super(option, value, JOIN_BY);
     }
 
@@ -38,5 +35,11 @@ public class MultilineStringsJavadocOptionFileOption extends AbstractListJavadoc
         if (value != null && !value.isEmpty()) {
             writerContext.writeMultilineValuesOption(option, value);
         }
+    }
+
+    @Override
+    public MultilineStringsJavadocOptionFileOption duplicate() {
+        List<String> duplicateValue = Lists.newArrayList(value);
+        return new MultilineStringsJavadocOptionFileOption(option, duplicateValue);
     }
 }

@@ -48,19 +48,28 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
         final InternalBuildAction<?> clientAction = (InternalBuildAction<?>) payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
+        final boolean isRunTasks = clientProvidedBuildAction.isRunTasks();
+
         gradle.addBuildListener(new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
                 if (result.getFailure() == null) {
-                    buildController.setResult(buildResult(clientAction, gradle));
+                    buildController.setResult(buildResult(clientAction, gradle, isRunTasks));
                 }
             }
         });
 
-        buildController.configure();
+        if (isRunTasks) {
+            buildController.run();
+        } else {
+            buildController.configure();
+        }
     }
-    private BuildActionResult buildResult(InternalBuildAction<?> clientAction, GradleInternal gradle) {
-        forceFullConfiguration(gradle);
+
+    private BuildActionResult buildResult(InternalBuildAction<?> clientAction, GradleInternal gradle, boolean isRunTasks) {
+        if (!isRunTasks) {
+            forceFullConfiguration(gradle);
+        }
 
         InternalBuildController internalBuildController = new DefaultBuildController(gradle);
         Object model = null;

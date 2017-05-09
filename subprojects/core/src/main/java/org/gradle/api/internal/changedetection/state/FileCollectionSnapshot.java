@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
 import java.io.File;
 import java.util.Collection;
@@ -28,9 +27,9 @@ import java.util.Map;
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 /**
- * An immutable snapshot of the contents and meta-data of a collection of files or directories.
+ * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
  */
-public interface FileCollectionSnapshot {
+public interface FileCollectionSnapshot extends Snapshot {
     FileCollectionSnapshot EMPTY = new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), UNORDERED, true);
 
     boolean isEmpty();
@@ -51,6 +50,4 @@ public interface FileCollectionSnapshot {
     Collection<File> getFiles();
 
     Map<String, NormalizedFileSnapshot> getSnapshots();
-
-    void appendToCacheKey(TaskCacheKeyBuilder builder);
 }

@@ -27,11 +27,12 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 
 class XIncludeAwareXmlProvider {
+
     Document root
 
     Element parse(File sourceFile) {
         root = parseSourceFile(sourceFile)
-        return root.documentElement
+        root.documentElement
     }
 
     Node emptyDoc() {
@@ -39,28 +40,31 @@ class XIncludeAwareXmlProvider {
     }
 
     void write(File destFile, boolean indent = false) {
-        destFile.withOutputStream {OutputStream stream ->
-            TransformerFactory factory = TransformerFactory.newInstance();
-            Transformer transformer = factory.newTransformer();
+        destFile.withOutputStream { OutputStream stream ->
+            TransformerFactory factory = TransformerFactory.newInstance()
+            Transformer transformer = factory.newTransformer()
             if (indent) {
                 transformer.setOutputProperty(OutputKeys.INDENT, "yes")
             }
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/xml");
-            transformer.transform(new DOMSource(root), new StreamResult(stream));
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml")
+            transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/xml")
+            transformer.transform(new DOMSource(root), new StreamResult(stream))
         }
     }
 
     Document getDocument() {
-        return root
-    }
-    
-    private Document parseSourceFile(File sourceFile) {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
-        factory.setNamespaceAware(true)
-        factory.setXIncludeAware(true)
-        DocumentBuilder builder = factory.newDocumentBuilder()
-        return builder.parse(sourceFile)
+        root
     }
 
+    private Document parseSourceFile(File sourceFile) {
+        documentBuilder().parse(sourceFile)
+    }
+
+    private DocumentBuilder documentBuilder() {
+        DocumentBuilderFactory.newInstance().with {
+            namespaceAware = true
+            XIncludeAware = true
+            newDocumentBuilder()
+        }
+    }
 }

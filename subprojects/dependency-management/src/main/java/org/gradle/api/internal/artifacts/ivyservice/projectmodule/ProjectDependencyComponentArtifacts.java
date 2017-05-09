@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.Set;
 
@@ -32,11 +33,13 @@ public class ProjectDependencyComponentArtifacts implements ComponentArtifacts {
     }
 
     @Override
-    public Set<? extends ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration) {
-        Set<? extends ComponentArtifactMetadata> artifacts = delegate.getArtifactsFor(configuration);
-        for (ComponentArtifactMetadata artifactMetadata : artifacts) {
-            builder.willBuild(artifactMetadata);
+    public Set<? extends VariantMetadata> getVariantsFor(ConfigurationMetadata configuration) {
+        Set<? extends VariantMetadata> variants = delegate.getVariantsFor(configuration);
+        for (VariantMetadata variant : variants) {
+            for (ComponentArtifactMetadata artifactMetadata : variant.getArtifacts()) {
+                builder.willBuild(artifactMetadata);
+            }
         }
-        return artifacts;
+        return variants;
     }
 }

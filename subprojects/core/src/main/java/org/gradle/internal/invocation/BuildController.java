@@ -23,6 +23,7 @@ import org.gradle.api.internal.GradleInternal;
  * This is intended to eventually replace {@link org.gradle.initialization.GradleLauncher} internally. It's pretty rough at the moment.
  */
 public interface BuildController {
+
     /**
      * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */

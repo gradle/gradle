@@ -15,26 +15,24 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.hash.HashCode;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
+import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
-
-    private final Cache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts =
-        CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
-
+    private final CrossBuildInMemoryCache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts;
     private final FileHasher hasher;
 
-    public CrossBuildInMemoryCachingScriptClassCache(FileHasher hasher) {
+    public CrossBuildInMemoryCachingScriptClassCache(FileHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.hasher = hasher;
+        cachedCompiledScripts = cacheFactory.newCache();
     }
 
     public <T extends Script, M> CompiledScript<T, M> getOrCompile(ScriptSource source, ClassLoader classLoader,
@@ -44,7 +42,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
                                                                    Action<? super ClassNode> verifier,
                                                                    ScriptClassCompiler delegate) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), classLoader, operation.getId());
-        CachedCompiledScript cached = cachedCompiledScripts.getIfPresent(key);
+        CachedCompiledScript cached = cachedCompiledScripts.get(key);
         HashCode hash = hasher.hash(source.getResource());
         if (cached != null) {
             if (hash.equals(cached.hash)) {

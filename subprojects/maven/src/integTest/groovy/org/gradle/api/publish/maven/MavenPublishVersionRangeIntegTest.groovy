@@ -57,8 +57,8 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
         then:
         mavenModule.assertPublishedAsJavaModule()
 
-        mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn(
+        mavenModule.parsedPom.scopes.keySet() == ["compile"] as Set
+        mavenModule.parsedPom.scopes.compile.assertDependsOn(
             "group:projectA:RELEASE",
             "group:projectB:LATEST",
             "group:projectC:1.+",
@@ -99,7 +99,7 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         mavenModule.assertPublishedAsJavaModule()
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:", "group:projectB:")
+        mavenModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:", "group:projectB:")
     }
 
 }

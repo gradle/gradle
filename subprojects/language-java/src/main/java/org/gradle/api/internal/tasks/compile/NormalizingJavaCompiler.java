@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
@@ -46,7 +45,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
-        resolveClasspath(spec);
+        spec.getCompileOptions().setAnnotationProcessorPath(null); // This is not used (the processor path is on the spec)
         resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
         logCompilerArguments(spec);
@@ -63,10 +62,6 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
         });
 
         spec.setSource(new SimpleFileCollection(javaOnly.getFiles()));
-    }
-
-    private void resolveClasspath(JavaCompileSpec spec) {
-        spec.setClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getClasspath())));
     }
 
     private void resolveNonStringsInCompilerArgs(JavaCompileSpec spec) {

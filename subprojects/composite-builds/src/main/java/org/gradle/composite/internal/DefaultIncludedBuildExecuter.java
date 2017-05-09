@@ -43,7 +43,7 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
     private final Condition buildCompleted = lock.newCondition();
     private final List<BuildRequest> executingBuilds = Lists.newLinkedList();
 
-    // TODO:DAZ Should be guarded by lock
+    // Not guarded by lock: possible thread-safety issue
     private final Multimap<BuildIdentifier, String> executedTasks = LinkedHashMultimap.create();
 
     public DefaultIncludedBuildExecuter(IncludedBuilds includedBuilds) {

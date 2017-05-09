@@ -16,7 +16,10 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.codehaus.groovy.ast.expr.*;
+import org.codehaus.groovy.ast.expr.ClosureExpression;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
+import org.codehaus.groovy.ast.expr.Expression;
+import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
@@ -26,7 +29,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 import org.gradle.plugin.internal.InvalidPluginIdException;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependencySpec;
 
 import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
@@ -93,7 +96,7 @@ public class PluginUseScriptBlockMetadataExtractor {
                             if (methodName.getText().equals("id")) {
                                 if (call.isImplicitThis()) {
                                     try {
-                                        PluginId.validate(argStringValue);
+                                        DefaultPluginId.validate(argStringValue);
                                         call.setNodeMetaData(PluginDependencySpec.class, pluginRequestCollector.createSpec(call.getLineNumber()).id(argStringValue));
                                     } catch (InvalidPluginIdException e) {
                                         restrict(argumentExpression, formatErrorMessage(e.getReason()));
@@ -154,10 +157,8 @@ public class PluginUseScriptBlockMetadataExtractor {
         });
     }
 
-
-
-    public PluginRequests getRequests() {
-        return new DefaultPluginRequests(pluginRequestCollector.getRequests());
+    public PluginRequests getPluginRequests() {
+        return pluginRequestCollector.getPluginRequests();
     }
 
     public String formatErrorMessage(String message) {

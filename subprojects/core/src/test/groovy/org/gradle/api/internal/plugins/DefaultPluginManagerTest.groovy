@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.AppliedPlugin
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestFile
@@ -34,8 +35,8 @@ class DefaultPluginManagerTest extends Specification {
         getLocalClassLoader() >> classLoader
     }
     def registry = new DefaultPluginRegistry(new PluginInspector(new ModelRuleSourceDetector()), classLoaderScope)
-    def applicator = Mock(PluginApplicator)
-    def manager = new DefaultPluginManager(registry, DirectInstantiator.INSTANCE, applicator)
+    def target = Mock(PluginTarget)
+    def manager = new DefaultPluginManager(registry, DirectInstantiator.INSTANCE, target, new TestBuildOperationExecutor())
 
     Class<?> rulesClass
     Class<? extends Plugin> hybridClass
@@ -92,7 +93,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(rulesClass)
 
         then:
-        1 * applicator.applyRules(null, rulesClass)
+        1 * target.applyRules(null, rulesClass)
 
         and:
         manager.pluginContainer.isEmpty()
@@ -106,7 +107,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(rulesClass)
 
         then:
-        1 * applicator.applyRules(null, rulesClass)
+        1 * target.applyRules(null, rulesClass)
 
         and:
         manager.hasPlugin("foo")
@@ -144,9 +145,9 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(rulesClass)
 
         then:
-        1 * applicator.applyRules(null, rulesClass)
+        1 * target.applyRules(null, rulesClass)
         1 * action.execute(_)
-        0 * applicator._
+        0 * target._
         0 * action._
 
         and:
@@ -161,7 +162,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply("foo")
 
         then:
-        1 * applicator.applyRules("foo", rulesClass)
+        1 * target.applyRules("foo", rulesClass)
 
         and:
         manager.pluginContainer.isEmpty()
@@ -207,7 +208,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(hybridClass)
 
         then:
-        1 * applicator.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
+        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -221,7 +222,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(hybridClass)
 
         then:
-        1 * applicator.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
+        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -244,7 +245,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply("foo")
 
         then:
-        1 * applicator.applyImperativeRulesHybrid("foo", { hybridClass.isInstance(it) })
+        1 * target.applyImperativeRulesHybrid("foo", { hybridClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -272,8 +273,8 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(hybridClass)
 
         then:
-        1 * applicator.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
-        0 * applicator._
+        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
+        0 * target._
         1 * action.execute(_)
         0 * action._
 
@@ -302,7 +303,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(imperativeClass)
 
         then:
-        1 * applicator.applyImperative(null, { imperativeClass.isInstance(it) })
+        1 * target.applyImperative(null, { imperativeClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -316,7 +317,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(imperativeClass)
 
         then:
-        1 * applicator.applyImperative(null, { imperativeClass.isInstance(it) })
+        1 * target.applyImperative(null, { imperativeClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -331,7 +332,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply("foo")
 
         then:
-        1 * applicator.applyImperative("foo", { imperativeClass.isInstance(it) })
+        1 * target.applyImperative("foo", { imperativeClass.isInstance(it) })
 
         and:
         manager.pluginContainer.size() == 1
@@ -354,8 +355,8 @@ class DefaultPluginManagerTest extends Specification {
         manager.pluginContainer.apply(imperativeClass)
 
         then:
-        1 * applicator.applyImperative(null, { imperativeClass.isInstance(it) })
-        0 * applicator._
+        1 * target.applyImperative(null, { imperativeClass.isInstance(it) })
+        0 * target._
 
         and:
         manager.pluginContainer.size() == 1
@@ -377,8 +378,8 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(imperativeClass)
 
         then:
-        1 * applicator.applyImperative(null, { imperativeClass.isInstance(it) })
-        0 * applicator._
+        1 * target.applyImperative(null, { imperativeClass.isInstance(it) })
+        0 * target._
         1 * action.execute(_)
         0 * action._
     }
@@ -522,8 +523,8 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(imperativeClass)
 
         then:
-        1 * applicator.applyImperative("bar", { imperativeClass.isInstance(it) })
-        0 * applicator._
+        1 * target.applyImperative("bar", { imperativeClass.isInstance(it) })
+        0 * target._
         1 * action.execute(_)
         0 * action._
 

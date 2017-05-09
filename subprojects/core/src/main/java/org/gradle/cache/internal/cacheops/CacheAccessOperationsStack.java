@@ -16,52 +16,35 @@
 
 package org.gradle.cache.internal.cacheops;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static java.lang.Thread.currentThread;
-
 public class CacheAccessOperationsStack {
-    private final Map<Thread, CacheOperationStack> perThreadStacks = new HashMap<Thread, CacheOperationStack>();
+    private final ThreadLocal<CacheOperationStack> stackForThread = new ThreadLocal<CacheOperationStack>();
 
-    public void pushCacheAction(String operationDisplayName) {
-        getStackForCurrentThread().pushCacheAction(operationDisplayName);
+    public void pushCacheAction() {
+        CacheOperationStack stack = getOrCreateStack();
+        stack.pushCacheAction();
     }
 
     public void popCacheAction() {
-        CacheOperationStack stack = getStackForCurrentThread();
+        CacheOperationStack stack = stackForThread.get();
+        if (stack == null) {
+            throw new IllegalStateException("Operation stack is empty.");
+        }
         stack.popCacheAction();
         if (stack.isEmpty()) {
-            perThreadStacks.remove(currentThread());
+            stackForThread.remove();
         }
     }
 
     public boolean isInCacheAction() {
-        CacheOperationStack stack = perThreadStacks.get(currentThread());
+        CacheOperationStack stack = stackForThread.get();
         return stack != null && stack.isInCacheAction();
     }
 
-    public void pushLongRunningOperation(String operationDisplayName) {
-        getStackForCurrentThread().pushLongRunningOperation(operationDisplayName);
-    }
-
-    public void popLongRunningOperation() {
-        CacheOperationStack stack = getStackForCurrentThread();
-        stack.popLongRunningOperation();
-        if (stack.isEmpty()) {
-            perThreadStacks.remove(currentThread());
-        }
-    }
-
-    public String getDescription() {
-        return getStackForCurrentThread().getDescription();
-    }
-
-    public CacheOperationStack getStackForCurrentThread() {
-        CacheOperationStack stack = perThreadStacks.get(currentThread());
+    private CacheOperationStack getOrCreateStack() {
+        CacheOperationStack stack = stackForThread.get();
         if (stack == null) {
             stack = new CacheOperationStack();
-            perThreadStacks.put(currentThread(), stack);
+            stackForThread.set(stack);
         }
         return stack;
     }

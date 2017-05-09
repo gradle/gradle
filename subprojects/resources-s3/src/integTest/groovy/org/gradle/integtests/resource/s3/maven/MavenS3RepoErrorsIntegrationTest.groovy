@@ -96,7 +96,7 @@ repositories {
         fails 'retrieve'
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("AwsCredentials must be set for S3 backed repository.")
+                .assertHasCause("S3 resource should either specify AwsIamAutentication or provide some AwsCredentials.")
 
     }
 

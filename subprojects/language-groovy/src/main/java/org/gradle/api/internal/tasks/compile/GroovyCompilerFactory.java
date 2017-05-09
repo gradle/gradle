@@ -18,26 +18,26 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
-import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.workers.internal.InProcessWorkerFactory;
+import org.gradle.workers.internal.WorkerFactory;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final JavaCompilerFactory javaCompilerFactory;
-    private final CompilerDaemonManager compilerDaemonFactory;
-    private final InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory;
+    private final WorkerDaemonFactory workerDaemonFactory;
+    private final InProcessWorkerFactory inProcessWorkerFactory;
 
-    public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, CompilerDaemonManager compilerDaemonManager,
-                                 InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory) {
+    public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, WorkerDaemonFactory workerDaemonFactory,
+                                 InProcessWorkerFactory inProcessWorkerFactory) {
         this.project = project;
         this.javaCompilerFactory = javaCompilerFactory;
-        this.compilerDaemonFactory = compilerDaemonManager;
-        this.inProcessCompilerDaemonFactory = inProcessCompilerDaemonFactory;
+        this.workerDaemonFactory = workerDaemonFactory;
+        this.inProcessWorkerFactory = inProcessWorkerFactory;
     }
 
     @Override
@@ -45,13 +45,13 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         GroovyCompileOptions groovyOptions = spec.getGroovyCompileOptions();
         Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
         Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
-        CompilerDaemonFactory daemonFactory;
+        WorkerFactory workerFactory;
         if (groovyOptions.isFork()) {
-            daemonFactory = compilerDaemonFactory;
+            workerFactory = workerDaemonFactory;
         } else {
-            daemonFactory = inProcessCompilerDaemonFactory;
+            workerFactory = inProcessWorkerFactory;
         }
-        groovyCompiler = new DaemonGroovyCompiler(project.getRootProject().getProjectDir(), groovyCompiler, project.getServices().get(ClassPathRegistry.class), daemonFactory);
+        groovyCompiler = new DaemonGroovyCompiler(project.getRootProject().getProjectDir(), groovyCompiler, project.getServices().get(ClassPathRegistry.class), workerFactory);
         return new NormalizingGroovyCompiler(groovyCompiler);
     }
 }

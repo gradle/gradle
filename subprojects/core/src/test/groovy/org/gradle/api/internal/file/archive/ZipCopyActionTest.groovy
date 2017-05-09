@@ -24,15 +24,13 @@ import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.DefaultZipCompressor
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
 
-import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
-import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit
 import static org.hamcrest.Matchers.equalTo
 
@@ -47,7 +45,7 @@ class ZipCopyActionTest extends Specification {
 
     def setup() {
         zipFile = tmpDir.getTestDirectory().file("test.zip")
-        visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry(), encoding)
+        visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry(), encoding, false)
     }
 
     void createsZipFile() {
@@ -80,23 +78,20 @@ class ZipCopyActionTest extends Specification {
         given:
         zip(dir("dir"), file("file"))
 
-        when:
-        Map<String, Integer> expected = new HashMap<String, Integer>();
-        expected.put("dir", 2);
-        expected.put("file", 1);
-
-        then:
-        assertVisitsPermissions(new ZipFileTree(zipFile, null, fileSystem(), directoryFileTreeFactory()), expected)
+        expect:
+        def zipFixture = new ZipTestFixture(zipFile)
+        zipFixture.assertFileMode("dir/", 2)
+        zipFixture.assertFileMode("file", 1)
     }
 
     void wrapsFailureToOpenOutputFile() {
         given:
         def invalidZipFile = tmpDir.createDir("test.zip")
-        visitor = new ZipCopyAction(invalidZipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry(), encoding)
+        visitor = new ZipCopyAction(invalidZipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry(), encoding, false)
 
         when:
         visitor.execute(new CopyActionProcessingStream() {
-            public void process(CopyActionProcessingStreamAction action) {
+            void process(CopyActionProcessingStreamAction action) {
                 // nothing
             }
         })
@@ -124,7 +119,7 @@ class ZipCopyActionTest extends Specification {
         1 * docRegistry.getDslRefForProperty(Zip, "zip64") >> "doc url"
         0 * docRegistry._
 
-        visitor = new ZipCopyAction(zipFile, compressor, docRegistry, encoding)
+        visitor = new ZipCopyAction(zipFile, compressor, docRegistry, encoding, false)
 
         when:
         zip(file("file2"))
@@ -135,7 +130,7 @@ class ZipCopyActionTest extends Specification {
     }
 
     @Test
-    public void wrapsFailureToAddElement() {
+    void wrapsFailureToAddElement() {
         given:
         Throwable failure = new RuntimeException("broken")
 
@@ -151,12 +146,12 @@ class ZipCopyActionTest extends Specification {
 
     private void zip(final FileCopyDetailsInternal... files) {
         visitor.execute(new CopyActionProcessingStream() {
-            public void process(CopyActionProcessingStreamAction action) {
+            void process(CopyActionProcessingStreamAction action) {
                 for (FileCopyDetailsInternal f : files) {
-                    action.processFile(f);
+                    action.processFile(f)
                 }
             }
-        });
+        })
     }
 
     private FileCopyDetailsInternal file(final String path) {

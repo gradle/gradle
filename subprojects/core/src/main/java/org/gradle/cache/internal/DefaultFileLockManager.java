@@ -292,7 +292,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     // Just read the state region
                     lockState = lockFileAccess.readLockState();
                 }
-                LOGGER.debug("Lock acquired.");
+                LOGGER.debug("Lock acquired on {}.", displayName);
                 lock = stateRegionLock;
                 return lockState;
             } catch (Throwable t) {

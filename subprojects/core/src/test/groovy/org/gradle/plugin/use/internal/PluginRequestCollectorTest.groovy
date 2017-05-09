@@ -18,6 +18,7 @@ package org.gradle.plugin.use.internal
 
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.plugin.management.internal.InvalidPluginRequestException
 import org.gradle.plugin.use.PluginDependenciesSpec
 import spock.lang.Specification
 
@@ -26,27 +27,25 @@ class PluginRequestCollectorTest extends Specification {
     final scriptSource = new StringScriptSource("d", "c")
     static final int LINE_NUMBER = 10
 
-    List<PluginRequest> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
+    List<Map> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
         new PluginRequestCollector(scriptSource).with {
             createSpec(LINE_NUMBER).with(closure)
-            getRequests()
+            listPluginRequests()
+        }.collect {
+            [id: it.id.id, version: it.version]
         }
-    }
-
-    List<PluginRequest> requests(Map<String, String> requests) {
-        requests.collect { new DefaultPluginRequest(it.key, it.value, true, LINE_NUMBER, scriptSource) }
     }
 
     def "can use spec dsl to build one request"() {
         expect:
-        requests(foo: "bar") == plugins {
+        [[id: 'foo', version: 'bar']] == plugins {
             id "foo" version "bar"
         }
     }
 
     def "version is optional"() {
         expect:
-        requests(foo: null) == plugins {
+        [[id: 'foo', version : null]] == plugins {
             id "foo"
         }
     }
@@ -58,7 +57,7 @@ class PluginRequestCollectorTest extends Specification {
 
     def "can specify multiple"() {
         expect:
-        requests(foo: "1.0", "bar": "2.0") == plugins {
+        [[id: 'foo', version: '1.0'], [id: "bar", version: '2.0']] == plugins {
             id "foo" version "1.0"
             id "bar" version "2.0"
         }

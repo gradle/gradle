@@ -30,9 +30,9 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
 
     def compilesScalaCodeIncrementally() {
         setup:
-        def person = file("build/classes/main/Person.class")
-        def house = file("build/classes/main/House.class")
-        def other = file("build/classes/main/Other.class")
+        def person = scalaClassFile("Person.class")
+        def house = scalaClassFile("House.class")
+        def other = scalaClassFile("Other.class")
         run("compileScala")
 
         when:
@@ -53,9 +53,9 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
 
     def compilesJavaCodeIncrementally() {
         setup:
-        def person = file("build/classes/main/Person.class")
-        def house = file("build/classes/main/House.class")
-        def other = file("build/classes/main/Other.class")
+        def person = scalaClassFile("Person.class")
+        def house = scalaClassFile("House.class")
+        def other = scalaClassFile("Other.class")
         run("compileScala")
 
         when:
@@ -73,9 +73,9 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
 
     def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
-        def person = file("prj1/build/classes/main/Person.class")
-        def house = file("prj2/build/classes/main/House.class")
-        def other = file("prj2/build/classes/main/Other.class")
+        def person = file("prj1/build/classes/scala/main/Person.class")
+        def house = file("prj2/build/classes/scala/main/House.class")
+        def other = file("prj2/build/classes/scala/main/Other.class")
         run("compileScala")
 
         when:
@@ -93,9 +93,9 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
 
     def compilesAllScalaCodeWhenForced() {
         setup:
-        def person = file("build/classes/main/Person.class")
-        def house = file("build/classes/main/House.class")
-        def other = file("build/classes/main/Other.class")
+        def person = scalaClassFile("Person.class")
+        def house = scalaClassFile("House.class")
+        def other = scalaClassFile("Other.class")
         run("compileScala")
 
         when:

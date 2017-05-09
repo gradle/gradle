@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * accept(). Note that it can't work with latest time strategy, cause no time is known for the
  * limits of the range. Therefore only purely revision based LatestStrategy can be used.
  */
-public class VersionRangeSelector extends AbstractVersionSelector {
+public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private static final String OPEN_INC = "[";
 
     private static final String OPEN_EXC = "]";
@@ -94,12 +94,14 @@ public class VersionRangeSelector extends AbstractVersionSelector {
             + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN + "|" + SINGLE_VALUE_RANGE);
 
     private final String upperBound;
+    private final Version upperBoundVersion;
     private final boolean upperInclusive;
     private final String lowerBound;
     private final boolean lowerInclusive;
-    private final Comparator<String> comparator;
+    private final Version lowerBoundVersion;
+    private final Comparator<Version> comparator;
 
-    public VersionRangeSelector(String selector, Comparator<String> comparator) {
+    public VersionRangeSelector(String selector, Comparator<Version> comparator) {
         super(selector);
         this.comparator = comparator;
 
@@ -137,6 +139,8 @@ public class VersionRangeSelector extends AbstractVersionSelector {
                 }
             }
         }
+        lowerBoundVersion = lowerBound == null ? null : VersionParser.INSTANCE.transform(lowerBound);
+        upperBoundVersion = upperBound == null ? null : VersionParser.INSTANCE.transform(upperBound);
     }
 
     public boolean isDynamic() {
@@ -151,11 +155,11 @@ public class VersionRangeSelector extends AbstractVersionSelector {
         return false;
     }
 
-    public boolean accept(String candidate) {
-        if (lowerBound != null && !isHigher(candidate, lowerBound, lowerInclusive)) {
+    public boolean accept(Version candidate) {
+        if (lowerBound != null && !isHigher(candidate, lowerBoundVersion, lowerInclusive)) {
             return false;
         }
-        if (upperBound != null && !isLower(candidate, upperBound, upperInclusive)) {
+        if (upperBound != null && !isLower(candidate, upperBoundVersion, upperInclusive)) {
             return false;
         }
         return true;
@@ -164,7 +168,7 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     /**
      * Tells if version1 is lower than version2.
      */
-    private boolean isLower(String version1, String version2, boolean inclusive) {
+    private boolean isLower(Version version1, Version version2, boolean inclusive) {
         int result = comparator.compare(version1, version2);
         return result <= (inclusive ? 0 : -1);
     }
@@ -172,7 +176,7 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     /**
      * Tells if version1 is higher than version2.
      */
-    private boolean isHigher(String version1, String version2, boolean inclusive) {
+    private boolean isHigher(Version version1, Version version2, boolean inclusive) {
         int result = comparator.compare(version1, version2);
         return result >= (inclusive ? 0 : 1);
     }

@@ -19,6 +19,7 @@ package org.gradle.test.fixtures.maven
 import groovy.xml.MarkupBuilder
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.Module
+import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
 
 import java.text.SimpleDateFormat
@@ -62,11 +63,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     TestFile getArtifactFile(Map options = [:]) {
-        if (version.endsWith("-SNAPSHOT") && !metaDataFile.exists() && uniqueSnapshots) {
-            def artifact = toArtifact(options)
-            return moduleDir.file("${artifactId}-${version}${artifact.classifier ? "-${artifact.classifier}" : ""}.${artifact.type}")
-        }
-        return artifactFile(options)
+        return getModuleArtifact(options).file
     }
 
     abstract boolean getUniqueSnapshots()
@@ -213,8 +210,18 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         new DefaultMavenMetaData(rootMetaDataFile)
     }
 
+    @Override
+    ModuleArtifact getArtifact() {
+        return getModuleArtifact([:])
+    }
+
+    @Override
+    ModuleArtifact getPom() {
+        return getModuleArtifact(type: 'pom')
+    }
+
     TestFile getPomFile() {
-        return getArtifactFile(type: 'pom')
+        return getPom().file
     }
 
     TestFile getPomFileForPublish() {
@@ -230,12 +237,30 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     TestFile artifactFile(Map<String, ?> options) {
+        return getModuleArtifact(options).file
+    }
+
+    ModuleArtifact getModuleArtifact(Map<String, ?> options) {
         def artifact = toArtifact(options)
-        def fileName = "$artifactId-${publishArtifactVersion}.${artifact.type}"
-        if (artifact.classifier) {
-            fileName = "$artifactId-$publishArtifactVersion-${artifact.classifier}.${artifact.type}"
+        def fileName
+        if (version.endsWith("-SNAPSHOT") && !metaDataFile.exists() && uniqueSnapshots) {
+            fileName = moduleDir.file("${artifactId}-${version}${artifact.classifier ? "-${artifact.classifier}" : ""}.${artifact.type}")
+        } else {
+            fileName = "$artifactId-${publishArtifactVersion}${artifact.classifier ? "-${artifact.classifier}" : ""}.${artifact.type}"
         }
-        return moduleDir.file(fileName)
+        def path = "/$groupId/$artifactId/$version/$fileName"
+        def file = moduleDir.file(fileName)
+        return new ModuleArtifact() {
+            @Override
+            String getPath() {
+                return path
+            }
+
+            @Override
+            TestFile getFile() {
+                return file
+            }
+        }
     }
 
     MavenModule publishWithChangedContent() {

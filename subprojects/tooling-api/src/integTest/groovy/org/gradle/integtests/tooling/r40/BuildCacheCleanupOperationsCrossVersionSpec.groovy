@@ -1,0 +1,98 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.tooling.r40
+
+import org.gradle.integtests.tooling.fixture.ProgressEvents
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.OperationType
+
+import java.util.concurrent.TimeUnit
+
+@ToolingApiVersion('>=3.3')
+@TargetGradleVersion(">=4.0")
+class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecification {
+    def cacheDir = file("task-output-cache")
+
+    def setup() {
+        buildFile << """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFile File outputFile = new File(temporaryDir, "output.txt")
+                @Input String run = project.findProperty("run") ?: ""
+                @TaskAction 
+                void generate() {
+                    logger.warn("Run " + run)
+                    def data = new byte[1024*1024]
+                    new Random().nextBytes(data)
+                    outputFile.bytes = data
+                }
+            }
+            
+            task cacheable(type: CustomTask) {
+                description = "Generates a 1MB file"
+            }
+        """
+        settingsFile << """
+            buildCache {
+                local(DirectoryBuildCache) {
+                    targetSizeInMB = 2
+                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
+                }
+            }
+        """
+    }
+
+    def "generates cleanup events"() {
+        when:
+        (1..4).each { run ->
+            withConnection {
+                ProjectConnection connection ->
+                    connection.newBuild().
+                        withArguments("--build-cache", "-Prun=" + run).
+                        forTasks("cacheable").
+                        run()
+            }
+        }
+        then:
+        cacheDir.directorySize() >= 4*1024*1024
+
+        when:
+        def gcFile = cacheDir.file("gc.properties")
+        gcFile.lastModified = gcFile.lastModified() - TimeUnit.DAYS.toMillis(60)
+        and:
+        def listener = ProgressEvents.create()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().
+                    withArguments("--build-cache").
+                    forTasks("cacheable").
+                    addProgressListener(listener, EnumSet.of(OperationType.GENERIC)).
+                    run()
+        }
+        then:
+        def cleaningUp = listener.operation("Cleaning up Build cache (" + cacheDir + ")")
+        cleaningUp.child("Scanning " + cacheDir)
+        cleaningUp.child("Choosing files to delete from Build cache (" + cacheDir + ")")
+        cleaningUp.child("Deleting files for Build cache (" + cacheDir + ")")
+
+        cacheDir.directorySize() <= 2*1024*1024
+    }
+}

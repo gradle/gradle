@@ -46,7 +46,7 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
         expect:
         succeeds("compileScala")
         output.contains("Compiling with Zinc Scala compiler")
-        file("build/classes/main/compile/test").assertContainsDescendants(
+        scalaClassFile("compile/test").assertContainsDescendants(
             "Person.class",
             "Person2.class"
         )
