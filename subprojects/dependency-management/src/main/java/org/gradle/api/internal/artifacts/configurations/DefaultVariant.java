@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -28,29 +29,27 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.internal.Factory;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.Describables;
 import org.gradle.internal.typeconversion.NotationParser;
 
 public class DefaultVariant implements ConfigurationVariant {
+    private final Describable parentDisplayName;
     private final String name;
     private final AttributeContainerInternal attributes;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final PublishArtifactSet artifacts;
 
-    public DefaultVariant(String name,
+    public DefaultVariant(Describable parentDisplayName, String name,
                           AttributeContainerInternal parentAttributes,
                           NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                           FileCollectionFactory fileCollectionFactory,
                           ImmutableAttributesFactory cache) {
+        this.parentDisplayName = parentDisplayName;
         this.name = name;
         attributes = new DefaultMutableAttributeContainer(cache, parentAttributes);
         this.artifactNotationParser = artifactNotationParser;
-        artifacts = new DefaultPublishArtifactSet(new Factory<String>() {
-            @Override
-            public String create() {
-                return DefaultVariant.this.name + " artifacts";
-            }
-        }, new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class), fileCollectionFactory);
+        artifacts = new DefaultPublishArtifactSet(getAsDescribable(), new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class), fileCollectionFactory);
     }
 
     @Override
@@ -59,7 +58,11 @@ public class DefaultVariant implements ConfigurationVariant {
     }
 
     public OutgoingVariant convertToOutgoingVariant() {
-        return new LeafOutgoingVariant(attributes, artifacts);
+        return new LeafOutgoingVariant(getAsDescribable(), attributes, artifacts);
+    }
+
+    private DisplayName getAsDescribable() {
+        return Describables.of(parentDisplayName, "variant", name);
     }
 
     @Override
@@ -89,5 +92,4 @@ public class DefaultVariant implements ConfigurationVariant {
         artifacts.add(publishArtifact);
         configureAction.execute(publishArtifact);
     }
-
 }

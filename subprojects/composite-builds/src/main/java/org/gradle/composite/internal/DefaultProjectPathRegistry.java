@@ -23,7 +23,6 @@ import org.gradle.util.Path;
 import java.util.Map;
 import java.util.Set;
 
-// TODO:DAZ Scope this correctly so it can be made immutable
 public class DefaultProjectPathRegistry implements ProjectPathRegistry {
     private final Map<Path, ProjectComponentIdentifier> allProjects = Maps.newLinkedHashMap();
 

@@ -699,7 +699,7 @@ dependencies {
 
 task checkDeps(dependsOn: configurations.compile) {
     doLast {
-        assert configurations.compile*.name == ['a-2.jar', 'c-2.jar', 'b-1.jar']
+        assert configurations.compile*.name.sort() == ['a-2.jar', 'b-1.jar', 'c-2.jar']
         assert configurations.compile.incoming.resolutionResult.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }.dependencies.size() == 1
     }
 }

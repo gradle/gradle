@@ -45,6 +45,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.progress.BuildOperationType;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -253,8 +254,11 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 @Override
                 public BuildOperationDescriptor.Builder description() {
                     TaskOperationDetails taskOperation = new TaskOperationDetails(task);
-                    return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath()).name(task.getIdentityPath().toString()).
-                        details(taskOperation).parent(parentOperation);
+                    return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
+                        .name(task.getIdentityPath().toString())
+                        .parent(parentOperation)
+                        .operationType(BuildOperationType.TASK)
+                        .details(taskOperation);
                 }
             });
         }

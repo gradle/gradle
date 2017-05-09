@@ -21,12 +21,12 @@ import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
@@ -57,7 +57,7 @@ abstract class NativeCompilerTest extends Specification {
 
     private BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
     private TimeProvider timeProvider = Mock(TimeProvider)
-    protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, Mock(ProgressLoggerFactory),
+    protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
         new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), 1)
 
     def setup() {

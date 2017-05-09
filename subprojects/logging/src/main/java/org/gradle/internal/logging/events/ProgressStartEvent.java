@@ -18,6 +18,7 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.progress.BuildOperationType;
 
 public class ProgressStartEvent extends CategorisedOutputEvent {
     private final OperationIdentifier progressOperationId;
@@ -27,6 +28,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
     private final String loggingHeader;
     private final String status;
     private final Object buildOperationId;
+    private final Object parentBuildOperationId;
+    private BuildOperationType buildOperationType;
 
     public ProgressStartEvent(OperationIdentifier progressOperationId,
                               @Nullable OperationIdentifier parentProgressOperationId,
@@ -36,7 +39,9 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
                               @Nullable String shortDescription,
                               @Nullable String loggingHeader,
                               String status,
-                              @Nullable Object buildOperationId) {
+                              @Nullable Object buildOperationId,
+                              @Nullable Object parentBuildOperationId,
+                              BuildOperationType buildOperationType) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
@@ -45,6 +50,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
         this.loggingHeader = loggingHeader;
         this.status = status;
         this.buildOperationId = buildOperationId;
+        this.parentBuildOperationId = parentBuildOperationId;
+        this.buildOperationType = buildOperationType;
     }
 
     @Nullable
@@ -82,5 +89,14 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
     @Nullable
     public Object getBuildOperationId() {
         return buildOperationId;
+    }
+
+    @Nullable
+    public Object getParentBuildOperationId() {
+        return parentBuildOperationId;
+    }
+
+    public BuildOperationType getBuildOperationType() {
+        return buildOperationType;
     }
 }

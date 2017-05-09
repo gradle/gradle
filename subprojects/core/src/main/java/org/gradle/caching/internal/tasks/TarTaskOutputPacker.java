@@ -101,11 +101,8 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         writeMetadata.execute(baos);
         entry.setSize(baos.size());
         outputStream.putNextEntry(entry);
-        try {
-            outputStream.write(baos.toByteArray());
-        } finally {
-            outputStream.closeEntry();
-        }
+        outputStream.write(baos.toByteArray());
+        outputStream.closeEntry();
     }
 
     private void pack(Collection<TaskOutputFilePropertySpec> propertySpecs, TarOutputStream outputStream) {
@@ -192,11 +189,8 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     private void storeFileEntry(File file, String path, long lastModified, long size, int mode, TarOutputStream outputStream) throws IOException {
         createTarEntry(path, lastModified, size, UnixStat.FILE_FLAG | mode, outputStream);
-        try {
-            Files.copy(file, outputStream);
-        } finally {
-            outputStream.closeEntry();
-        }
+        Files.copy(file, outputStream);
+        outputStream.closeEntry();
     }
 
     private static void createTarEntry(String path, long lastModified, long size, int mode, TarOutputStream outputStream) throws IOException {

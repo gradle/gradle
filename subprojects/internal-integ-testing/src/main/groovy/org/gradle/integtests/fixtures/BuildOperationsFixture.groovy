@@ -111,4 +111,8 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
         return operations.find { it.value.displayName == displayName }.value
     }
 
+    Map<String, ?> result(String displayName) {
+        operation(displayName).result as Map<String, ?>
+    }
+
 }

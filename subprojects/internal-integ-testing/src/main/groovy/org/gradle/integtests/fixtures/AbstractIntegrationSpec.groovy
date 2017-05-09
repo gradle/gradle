@@ -34,10 +34,10 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.testing.internal.util.Specification
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.util.Matchers.normalizedLineSeparators
 

@@ -19,22 +19,23 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 
 public class DefaultCompileClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements CompileClasspathSnapshotter {
-    private final ContentHasher classpathContentHasher;
-    private final ContentHasher jarContentHasher;
+    private final ResourceHasher classpathResourceHasher;
+    private final ResourceSnapshotterCacheService cacheService;
 
-    public DefaultCompileClasspathSnapshotter(ContentHasher classpathContentHasher, ContentHasher jarContentHasher, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultCompileClasspathSnapshotter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
-        this.classpathContentHasher = classpathContentHasher;
-        this.jarContentHasher = jarContentHasher;
+        this.cacheService = cacheService;
+        this.classpathResourceHasher = new CachingResourceHasher(new AbiExtractingClasspathResourceHasher(), cacheService);
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
         return super.snapshot(
             files,
-            new CompileClasspathSnapshotBuilder(classpathContentHasher, jarContentHasher, getStringInterner()));
+            new CompileClasspathSnapshotBuilder(classpathResourceHasher, cacheService, getStringInterner()));
     }
 
     @Override

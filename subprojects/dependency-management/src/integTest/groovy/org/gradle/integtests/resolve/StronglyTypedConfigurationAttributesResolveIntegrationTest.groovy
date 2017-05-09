@@ -139,7 +139,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations on project :b:
+        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
   - bar
   - foo
 All of them match the consumer attributes:""")
@@ -148,7 +148,7 @@ All of them match the consumer attributes:""")
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations on project :b:
+        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
   - bar
   - foo
 All of them match the consumer attributes:""")
@@ -326,7 +326,7 @@ All of them match the consumer attributes:""")
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+        failure.assertHasCause """Cannot choose between the following configurations of project :b:
   - foo2
   - foo3
 All of them match the consumer attributes:

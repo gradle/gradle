@@ -204,7 +204,8 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['buildA', 'buildB', 'buildC', 'buildD']
 
-        // TODO:DAZ This is wrong: the IdeaProject for including build should contain all IDEA modules
+        // This is not really correct: the IdeaProject for including build should contain all IDEA modules
+        // However, it appears that IDEA 2017 depends on this behaviour, and iterates over the included builds to get all modules
         allProjects.rootIdeaProject.name == 'buildA'
         allProjects.rootIdeaProject.modules.collect { it.name } == ['buildA']
 

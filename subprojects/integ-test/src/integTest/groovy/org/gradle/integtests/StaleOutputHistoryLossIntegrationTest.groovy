@@ -162,7 +162,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksExecuted(result)
-        javaProject.assertHasCleanupMessage(result, "out")
+        javaProject.assertHasCleanupMessage(result)
         javaProject.assertJarHasDescendants(javaProject.mainClassFile.name)
         javaProject.mainClassFileAlternate.assertIsFile()
         javaProject.redundantClassFileAlternate.assertDoesNotExist()
@@ -172,7 +172,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProject.assertBuildTasksSkipped(result)
-        javaProject.assertDoesNotHaveCleanupMessage(result, "out")
+        javaProject.assertDoesNotHaveCleanupMessage(result)
     }
 
     @Unroll

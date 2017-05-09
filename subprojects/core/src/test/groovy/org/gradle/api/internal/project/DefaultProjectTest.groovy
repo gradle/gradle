@@ -56,6 +56,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.resources.normalization.ResourceNormalizationHandler
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
@@ -133,6 +134,7 @@ class DefaultProjectTest {
     LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class)
     Instantiator instantiatorMock = context.mock(Instantiator)
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
+    ResourceNormalizationHandler resourceNormalizationHandler = context.mock(ResourceNormalizationHandler.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
     PluginManagerInternal pluginManager = context.mock(PluginManagerInternal.class)
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
@@ -180,6 +182,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
             allowing(serviceRegistryMock).get((Type) ComponentMetadataHandler); will(returnValue(moduleHandlerMock))
             allowing(serviceRegistryMock).get((Type) SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
+            allowing(serviceRegistryMock).get((Type) ResourceNormalizationHandler); will(returnValue(resourceNormalizationHandler))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get((Type) ScriptHandler); will(returnValue(scriptHandlerMock))

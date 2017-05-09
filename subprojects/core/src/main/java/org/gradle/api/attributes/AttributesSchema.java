@@ -62,7 +62,13 @@ public interface AttributesSchema {
      */
     <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction);
 
+    /**
+     * Returns the set of attributes known to this schema.
+     */
     Set<Attribute<?>> getAttributes();
 
+    /**
+     * Returns true when this schema contains the given attribute.
+     */
     boolean hasAttribute(Attribute<?> key);
 }

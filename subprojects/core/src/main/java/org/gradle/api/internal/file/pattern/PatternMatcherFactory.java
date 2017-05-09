@@ -21,7 +21,7 @@ import org.gradle.api.specs.Spec;
 
 public class PatternMatcherFactory {
 
-    public static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
+    private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
     private static final String PATH_SEPARATORS = "\\/";
 
     public static Spec<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
@@ -29,7 +29,7 @@ public class PatternMatcherFactory {
         return new PathMatcherBackedSpec(partialMatchDirs, pathMatcher);
     }
 
-    private static PathMatcher compile(boolean caseSensitive, String pattern) {
+    public static PathMatcher compile(boolean caseSensitive, String pattern) {
         if (pattern.length() == 0) {
             return END_OF_PATH_MATCHER;
         }

@@ -32,8 +32,8 @@ import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.health.memory.MemoryAmount;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerImplementationFactory;
-import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
 import org.gradle.process.internal.worker.child.WorkerJvmMemoryInfoProtocol;
+import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final Set<File> applicationClasspath = new LinkedHashSet<File>();
     private final MemoryManager memoryManager;
     private Action<? super WorkerProcessContext> action;
-    private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private LogLevel logLevel = LogLevel.WARN;
     private String baseName = "Gradle Worker";
     private File gradleUserHomeDir;
     private int connectTimeoutSeconds;

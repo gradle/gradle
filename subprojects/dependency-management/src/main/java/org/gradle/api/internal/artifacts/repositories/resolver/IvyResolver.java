@@ -54,6 +54,8 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory;
     private boolean m2Compatible;
+    private final IvyLocalRepositoryAccess localRepositoryAccess;
+    private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -64,6 +66,8 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new DownloadedIvyModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory));
         this.dynamicResolve = dynamicResolve;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.localRepositoryAccess = new IvyLocalRepositoryAccess();
+        this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
     }
 
     @Override
@@ -112,11 +116,11 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {
-        return new IvyLocalRepositoryAccess();
+        return localRepositoryAccess;
     }
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
-        return new IvyRemoteRepositoryAccess();
+        return remoteRepositoryAccess;
     }
 
     public ComponentMetadataSupplier createMetadataSupplier() {

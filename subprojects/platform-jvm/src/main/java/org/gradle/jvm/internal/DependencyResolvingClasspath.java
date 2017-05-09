@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -39,13 +40,16 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -156,7 +160,22 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     private ResolveResult resolve() {
         ResolveResult result = new ResolveResult();
-        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema);
+        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema, new ArtifactTypeRegistry() {
+            @Override
+            public ImmutableAttributes mapAttributesFor(File file) {
+                return ImmutableAttributes.EMPTY;
+            }
+
+            @Override
+            public ImmutableAttributes mapAttributesFor(VariantMetadata variant) {
+                return variant.getAttributes().asImmutable();
+            }
+
+            @Override
+            public ArtifactTypeContainer create() {
+                throw new UnsupportedOperationException();
+            }
+        });
         return result;
     }
 

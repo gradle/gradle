@@ -20,13 +20,14 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 import java.util.Set;
 
-class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
+class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
     private final ProjectComponentIdentifier componentIdentifier;
     private final IvyArtifactName ivyArtifactName;
     private final File artifactFile;
@@ -59,7 +60,6 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
         return componentIdentifier;
     }
 
-
     @Override
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
@@ -68,6 +68,11 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
         builder.append(componentIdentifier.toString());
         builder.append(")");
         return builder.toString();
+    }
+
+    @Override
+    public String getCapitalizedDisplayName() {
+        return getDisplayName();
     }
 
     @Override

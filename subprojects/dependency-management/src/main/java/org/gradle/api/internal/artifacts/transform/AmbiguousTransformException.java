@@ -37,7 +37,7 @@ public class AmbiguousTransformException extends RuntimeException {
         formatter.node("Found the following transforms");
         formatter.startChildren();
         for (Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> candidate : candidates) {
-            formatter.node("Transform from variant");
+            formatter.node("Transform from " + candidate.getLeft().asDescribable().getDisplayName());
             formatAttributes(formatter, candidate.getLeft().getAttributes());
         }
         formatter.endChildren();

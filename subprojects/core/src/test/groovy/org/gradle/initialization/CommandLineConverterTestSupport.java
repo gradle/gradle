@@ -24,7 +24,12 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -44,7 +49,7 @@ public class CommandLineConverterTestSupport {
     protected boolean expectedSearchUpwards = true;
     protected boolean expectedDryRun;
     protected ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
-    protected LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
+    protected LogLevel expectedLogLevel = LogLevel.WARN;
     protected ConsoleOutput expectedConsoleOutput = ConsoleOutput.Auto;
     protected StartParameter actualStartParameter;
     protected boolean expectedProfile;

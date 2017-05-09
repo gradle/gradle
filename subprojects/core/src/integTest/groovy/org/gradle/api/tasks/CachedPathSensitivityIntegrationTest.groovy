@@ -16,9 +16,9 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.LocalBuildCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements LocalBuildCacheFixture {
+class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
         buildFile << """
             task clean {

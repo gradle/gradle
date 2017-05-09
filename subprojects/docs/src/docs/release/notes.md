@@ -147,7 +147,7 @@ This is a _target_ size for the build cache. Gradle will periodically check if t
 
 ### Parallel download of dependencies
 
-Gradle will now download dependencies from remote repositories in parallel. It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
+Gradle will now download dependencies from remote repositories in parallel (both metadata and artifacts). It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
 
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
@@ -156,6 +156,23 @@ This will take advantage of performance optimizations in the latest [Zinc](https
 ### Ivy plugin repositories support patterns and layouts
 
 Ivy plugin repositories now support the same API for patterns and layouts that Ivy artifact repositories support.
+
+### Ignore classpath resources for up-to-date checks and the build cache
+
+It is now possible to ignore resources on the classpath for up-to-date checks and the build cache.
+Often a project has a file containing volatile data (like the `BUILD_ID` or a timestamp) which should be packaged to the jar for auditing reasons.
+As soon as such a file is present, the `test` task will never be up-to-date or from the build cache since on every Gradle invocation the contents of this file - and by this this the inputs to the task - would change.
+It is now possible to tell Gradle about these files by configuring [resource normalization](userguide/more_about_tasks.html#sec:custom_resource_normalization):
+
+    normalization {
+        runtimeClasspath {
+            ignore 'build-info.properties'
+        }
+    }
+
+The effect of this configuration would be that changes to build-info.properties would be ignored for up-to-date checks and build cache key calculations. Note that this will not change the runtime behavior of the Test task - i.e. any test is still able to load build-info.properties and the classpath is still the same as before.
+
+For more information on this feature see the corresponding section in the [userguide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
 
 <!--
 ### Example new and noteworthy
@@ -230,15 +247,27 @@ When using the `java` plugin, all `compile` and `runtime` dependencies will now 
  these legacy configurations work in multi-project builds. We strongly encourage you to use the `api`(java-library plugin only), `implementation` and `runtimeOnly` configurations instead. These
  are mapped as expected, with `api` being exposed to the consumer's compile classpath and `implementation` and `runtimeOnly` only available on the consumer's runtime classpath.
 
-### Memory settings and forking not tracked as inputs for JVM compilation
+### Memory settings not tracked as inputs for JVM compilation
 
-Previously Gradle would treat JVM compilation tasks as out-of-date whenever their memory settings changed compared to the previous execution. The same would happen if a forking compilation task was changed to non-forking, or vice versa. Since Gradle 4.0, these parameters are not treated as inputs anymore, and thus the compilation tasks will stay up-to-date when they are changed.
+Previously Gradle would treat JVM compilation tasks as out-of-date whenever their memory settings changed compared to the previous execution. Since Gradle 4.0, these parameters are not treated as inputs anymore, and thus the compilation tasks will stay up-to-date when they are changed.
 
 ### Groovy upgraded to 2.4.11
 
 The version of Groovy bundled with Gradle was changed from Groovy 2.4.10 to [Groovy 2.4.11](http://www.groovy-lang.org/changelogs/changelog-2.4.11.html).
 
 This release fixes several issues where Groovy compilation could produce different (but functionally equivalent) bytecode given the same source files due to nondeterministic ordering in the compiler. These problems could cause build cache misses in Gradle 3.5 when compiling Groovy and Gradle script sources.
+
+### Version of PMD has been upgraded
+
+By default, Gradle now uses [PMD 5.6.1](https://sourceforge.net/projects/pmd/files/pmd/5.6.1/). Previously, Gradle used PMD 5.5.1. 
+
+Newer versions of PMD usually bring new rules, better inspections and bug fixes. Your build may fail due to these changes.
+
+You can upgrade or downgrade the version of PMD with:
+
+    pmd {
+        toolVersion = '5.5.1'
+    }
 
 ### Changes to previously deprecated APIs
 
@@ -258,12 +287,11 @@ This release fixes several issues where Groovy compilation could produce differe
 - Removed the method `registerWatchPoints(FileSystemSubset.Builder)` from `FileCollectionDependency`.
 - Removed the method `getConfiguration()` from `ModuleDependency`.
 - Removed the method `getProjectConfiguration()` from `ProjectDependency`.
-- Removed class `BuildCache`.
-- Removed class `MapBasedBuildCache`.
-- Removed class `ActionBroadcast`.
+- Removed class `org.gradle.caching.BuildCache`.
+- Removed class `org.gradle.caching.MapBasedBuildCache`.
 - Removed the [Gradle GUI](https://docs.gradle.org/3.5/userguide/tutorial_gradle_gui.html). All classes for this feature have been removed as well as all leftovers supporting class from the Open API partly removed due to deprecation in Gradle 2.0.
 - Removed the annotation `@OrderSensitive` and the method `TaskInputFilePropertyBuilder.orderSensitive`.
-- Removed `dependencyCacheDir` getter and setters in java plugin, `JavaCompileSpec`, and `CompileOptions`
+- Removed `dependencyCacheDir` getter and setters in java plugin and `CompileOptions`
 - Removed Ant <depend> related classes `AntDepend`, `AntDependsStaleClassCleaner`, and `DependOptions`
 - Removed `Javadoc#setOptions`
 - Removed `Manifest.writeTo(Writer)`. Please use `Manifest.writeTo(Object)`
@@ -296,6 +324,17 @@ task copy(type: Copy) {
 }
 ```
 
+### Changes to how build cache configurations are described
+
+The (incubating) [`BuildCacheServiceFactory`](javadoc/org/gradle/caching/BuildCacheServiceFactory.html) and
+ [`BuildCacheService`](javadoc/org/gradle/caching/BuildCacheService.html) interfaces have changed in this release.
+This only affects custom build cache connector implementations.
+It does not affect usage of the build cache connectors that ship with Gradle.
+
+Previously, the `BuildCacheService` was responsible for providing a `getDescription()` method that returned a human friendly description of the cache.
+This responsibility has been moved to the associated `BuildCacheServiceFactory` implementation,
+that now receives an additional argument that can be used to supply a more structured description of the build cache.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -321,6 +360,7 @@ We would like to thank the following community members for making contributions 
 - [Bo Zhang](https://github.com/blindpirate) - Use Enum.getDeclaringClass() to avoid NPE in comparing enums ([gradle/gradle#1862](https://github.com/gradle/gradle/pull/1862))
 - [Danny Thomas](https://github.com/DanielThomas) - Improve performance of version parsing ([gradle/gradle#1659](https://github.com/gradle/gradle/pull/1659))
 - [Ethan Hall](https://github.com/ethankhall) - Pattern and layout support for Ivy plugin repositories ([gradle/gradle#1813](https://github.com/gradle/gradle/pull/1813))
+- [Sebastian Schuberth](https://github.com/sschuberth) - Upgrade default PMD version to 5.6.1 ([gradle/gradle#1858](https://github.com/gradle/gradle/pull/1858))
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

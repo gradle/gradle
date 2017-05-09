@@ -284,7 +284,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             assert result == [expected] as Set
         } catch (AmbiguousConfigurationSelectionException e) {
             if (expected == null) {
-                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following configurations on <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
+                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following configurations of <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
                 throw e
             }
@@ -363,7 +363,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             assert result == [expected] as Set
         } catch (AmbiguousConfigurationSelectionException e) {
             if (expected == null) {
-                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following configurations on <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
+                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following configurations of <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
                 throw e
             }

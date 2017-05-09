@@ -62,11 +62,6 @@ public interface BuildCacheService extends Closeable {
     void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException;
 
     /**
-     * Returns a description for the cache.
-     */
-    String getDescription();
-
-    /**
      * Clean up any resources held by the cache once it's not used anymore.
      *
      * @throws IOException if the cache fails to close cleanly.

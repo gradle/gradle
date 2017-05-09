@@ -17,19 +17,48 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.WithExternalRepository
 
-class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
+
+    private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
 
     def "merge exclude rules"() {
+        runner.testProject = TEST_PROJECT_NAME
+        startServer()
+
         given:
-        runner.testProject = "excludeRuleMergingBuild"
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.targetVersions = ["4.0-20170419000017+0000"]
+        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        cleanup:
+        stopServer()
+    }
+
+    def "merge exclude rules (parallel)"() {
+        runner.testProject = TEST_PROJECT_NAME
+        startServer()
+
+        given:
+        runner.tasksToRun = ['resolveDependencies']
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
+        runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", "--parallel"]
         runner.targetVersions = ["4.0-20170419000017+0000"]
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        cleanup:
+        stopServer()
     }
 }

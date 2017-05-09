@@ -614,7 +614,7 @@ Configuration 'bar':
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "Unable to find a matching configuration in project :b: None of the consumable configurations have attributes."
+        failure.assertHasCause "Unable to find a matching configuration of project :b: None of the consumable configurations have attributes."
     }
 
     def "does not select explicit configuration when it's not consumable"() {
@@ -713,7 +713,7 @@ Configuration 'bar':
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause '''Unable to find a matching configuration in project :b:
+        failure.assertHasCause '''Unable to find a matching configuration of project :b:
   - Configuration 'bar':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found incompatible value 'paid'.
@@ -841,7 +841,7 @@ Configuration 'bar':
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations on project :b:
+        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
@@ -955,7 +955,7 @@ All of them match the consumer attributes:
         fails ':a:check'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+        failure.assertHasCause """Cannot choose between the following configurations of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
@@ -1016,7 +1016,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+        failure.assertHasCause """Cannot choose between the following configurations of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
@@ -1098,7 +1098,7 @@ All of them match the consumer attributes:
         fails ':a:check'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations on project :b:
+        failure.assertHasCause """Cannot choose between the following configurations of project :b:
   - compile
   - debug
 All of them match the consumer attributes:
@@ -1442,7 +1442,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations on project :c:
+        failure.assertHasCause """Cannot choose between the following configurations of project :c:
   - foo
   - foo2
 All of them match the consumer attributes:
@@ -1459,7 +1459,7 @@ All of them match the consumer attributes:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations on project :c:
+        failure.assertHasCause """Cannot choose between the following configurations of project :c:
   - bar
   - bar2
 All of them match the consumer attributes:

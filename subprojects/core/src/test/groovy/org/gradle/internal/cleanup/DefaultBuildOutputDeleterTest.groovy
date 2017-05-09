@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cleanup
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.delete.Deleter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -27,7 +28,7 @@ class DefaultBuildOutputDeleterTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def deleter = Mock(Deleter)
-    def buildOutputDeleter = new DefaultBuildOutputDeleter(deleter)
+    def buildOutputDeleter = new DefaultBuildOutputDeleter(Stub(DocumentationRegistry), deleter)
 
     def "skips deletion operation if no directory or file is provided"() {
         when:

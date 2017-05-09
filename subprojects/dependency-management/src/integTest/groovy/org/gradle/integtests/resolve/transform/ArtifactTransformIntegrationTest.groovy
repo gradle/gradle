@@ -745,13 +745,12 @@ class FileSizer extends ArtifactTransform {
             project(':lib') {
                 task jar1(type: Jar) {
                     destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    baseName = 'a'
+                    extension = 'custom'
                 }
 
                 artifacts {
-                    compile(jar1) {
-                        type 'type1'
-                    }
+                    compile(jar1)
                 }
             }
 
@@ -762,12 +761,12 @@ class FileSizer extends ArtifactTransform {
 
                 dependencies {
                     registerTransform {
-                        from.attribute(artifactType, 'type1')
+                        from.attribute(artifactType, 'custom')
                         to.attribute(artifactType, 'transformed')
                         artifactTransform(BrokenTransform)
                     }
                     registerTransform {
-                        from.attribute(artifactType, 'type1')
+                        from.attribute(artifactType, 'custom')
                         to.attribute(artifactType, 'transformed')
                         artifactTransform(BrokenTransform)
                     }
@@ -797,11 +796,11 @@ class FileSizer extends ArtifactTransform {
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from variant:
-      - artifactType 'type1'
+  - Transform from configuration ':lib:compile':
+      - artifactType 'custom'
       - usage 'api'
-  - Transform from variant:
-      - artifactType 'type1'
+  - Transform from configuration ':lib:compile':
+      - artifactType 'custom'
       - usage 'api'"""
     }
 
@@ -887,17 +886,17 @@ Found the following transforms:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant1:
       - artifactType 'jar'
       - buildType 'release'
       - flavor 'free'
       - usage 'api'
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant2:
       - artifactType 'jar'
       - buildType 'release'
       - flavor 'paid'
       - usage 'api'
-  - Transform from variant:
+  - Transform from configuration ':lib:compile' variant variant3:
       - artifactType 'jar'
       - buildType 'debug'
       - usage 'api'"""

@@ -22,6 +22,7 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
+import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,10 +48,13 @@ class HttpBuildCacheServiceTest extends Specification {
         511 // network authentication required
     ]
 
-    @Rule HttpServer server = new HttpServer()
-    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    @Rule
+    HttpServer server = new HttpServer()
+    @Rule
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     BuildCacheService cache
+    BuildCacheServiceFactory.Describer buildCacheDescriber
 
     def key = new BuildCacheKey() {
         @Override
@@ -68,7 +72,8 @@ class HttpBuildCacheServiceTest extends Specification {
         server.start()
         def config = new HttpBuildCache()
         config.url = server.uri.resolve("/cache/")
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(config)
+        buildCacheDescriber = new NoopBuildCacheDescriber()
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(config, buildCacheDescriber)
     }
 
     def "can cache artifact"() {
@@ -85,7 +90,7 @@ class HttpBuildCacheServiceTest extends Specification {
 
     def "can cache artifact with redirect"() {
         def destFile = tempDir.file("cached.zip")
-        server.expectPutRedirected("/cache/${key.hashCode}","/redirect/cache/${key.hashCode}")
+        server.expectPutRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
         server.expectPut("/redirect/cache/${key.hashCode}", destFile)
 
         when:
@@ -136,7 +141,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         then:
-        ! fromCache
+        !fromCache
     }
 
     def "load reports recoverable error on http code #httpCode"(int httpCode) {
@@ -243,7 +248,7 @@ class HttpBuildCacheServiceTest extends Specification {
         configuration.url = server.uri.resolve("/cache/")
         configuration.credentials.username = 'user'
         configuration.credentials.password = 'password'
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(configuration) as HttpBuildCacheService
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(configuration, buildCacheDescriber) as HttpBuildCacheService
 
         server.authenticationScheme = AuthScheme.BASIC
 
@@ -277,5 +282,15 @@ class HttpBuildCacheServiceTest extends Specification {
                 response.sendError(httpCode, "broken")
             }
         })
+    }
+
+    private class NoopBuildCacheDescriber implements BuildCacheServiceFactory.Describer {
+
+        @Override
+        BuildCacheServiceFactory.Describer type(String type) { this }
+
+        @Override
+        BuildCacheServiceFactory.Describer config(String name, String value) { this }
+
     }
 }

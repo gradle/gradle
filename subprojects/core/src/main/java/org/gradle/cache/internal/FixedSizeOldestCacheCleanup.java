@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import org.apache.commons.io.FileUtils;
@@ -37,13 +38,12 @@ import java.util.List;
 
 public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache> {
     private static final Logger LOGGER = Logging.getLogger(FixedSizeOldestCacheCleanup.class);
-    private static final Comparator<File> NEWEST_FIRST = new Comparator<File>() {
+    private static final Comparator<File> NEWEST_FIRST = Ordering.natural().onResultOf(new Function<File, Comparable>() {
         @Override
-        public int compare(File o1, File o2) {
-            // Sort with the oldest last
-            return Ordering.natural().compare(o2.lastModified(), o1.lastModified());
+        public Comparable apply(File input) {
+            return input.lastModified();
         }
-    };
+    }).reverse();
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final long targetSizeInMB;
@@ -82,29 +82,33 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
             }
         });
 
-        final List<File> filesForDeletion = buildOperationExecutor.call(new CallableBuildOperation<List<File>>() {
-            @Override
-            public List<File> call(BuildOperationContext context) {
-                return findFilesToDelete(persistentCache, filesEligibleForCleanup);
-            }
+        if (filesEligibleForCleanup.length > 0) {
+            final List<File> filesForDeletion = buildOperationExecutor.call(new CallableBuildOperation<List<File>>() {
+                @Override
+                public List<File> call(BuildOperationContext context) {
+                    return findFilesToDelete(persistentCache, filesEligibleForCleanup);
+                }
 
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Choosing files to delete from " + persistentCache);
-            }
-        });
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Choosing files to delete from " + persistentCache);
+                }
+            });
 
-        buildOperationExecutor.run(new RunnableBuildOperation() {
-            @Override
-            public void run(BuildOperationContext context) {
-                cleanupFiles(persistentCache, filesForDeletion);
-            }
+            if (!filesForDeletion.isEmpty()) {
+                buildOperationExecutor.run(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) {
+                        cleanupFiles(persistentCache, filesForDeletion);
+                    }
 
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Deleting files for " + persistentCache);
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Deleting files for " + persistentCache);
+                    }
+                });
             }
-        });
+        }
     }
 
     List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup) {
@@ -140,14 +144,12 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
     }
 
     void cleanupFiles(final PersistentCache persistentCache, final List<File> filesForDeletion) {
-        if (!filesForDeletion.isEmpty()) {
-            // Need to remove some files
-            long removedSize = deleteFile(filesForDeletion);
-            LOGGER.info("{} removing {} cache entries ({} MB reclaimed).", persistentCache, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
-        }
+        // Need to remove some files
+        long removedSize = deleteFiles(filesForDeletion);
+        LOGGER.info("{} removing {} cache entries ({} MB reclaimed).", persistentCache, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
     }
 
-    private long deleteFile(List<File> files) {
+    private long deleteFiles(List<File> files) {
         long removedSize = 0;
         for (File file : files) {
             try {

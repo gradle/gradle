@@ -32,5 +32,5 @@ public interface ImmutableAttributesFactory {
     /**
      * Merges the second container into the first container and returns the result. Values in the second container win.
      */
-    ImmutableAttributes concat(ImmutableAttributes attributes, ImmutableAttributes state);
+    ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2);
 }

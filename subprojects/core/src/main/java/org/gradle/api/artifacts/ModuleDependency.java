@@ -26,8 +26,8 @@ import java.util.Set;
 import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
- * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
- * build.
+ * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current project.
+ *
  * <p>
  * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
  */
@@ -140,6 +140,12 @@ public interface ModuleDependency extends Dependency {
      */
     @Nullable
     String getTargetConfiguration();
+
+    /**
+     * Sets the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
+     * selecting the matching configuration. If {@code null}, a default configuration will be used.
+     */
+    void setTargetConfiguration(@Nullable String name);
 
     /**
      * {@inheritDoc}

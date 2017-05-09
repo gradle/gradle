@@ -81,7 +81,9 @@ class ProgressEvents implements ProgressListener {
                             || descriptor.displayName.startsWith('Configure project ')
                             || descriptor.displayName.startsWith('Cross-configure project ')
                             || descriptor.displayName.startsWith('Resolve artifacts')
-                            || descriptor.displayName.startsWith('Executing ')) {
+                            || descriptor.displayName.startsWith('Executing ')
+                            || descriptor.displayName.startsWith('Resolving ')
+                        ) {
                             // Ignore this for now
                         } else {
                             def duplicateName = operations.find({

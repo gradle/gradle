@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
+
 /**
  * Configuration object for the local directory build cache.
  *
@@ -50,9 +51,9 @@ public class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Returns the target maximum size of the build cache.
+     * Returns the target size of the build cache.
      *
-     * @return The target maximum size of the build cache in megabytes.
+     * @return The target size of the build cache in megabytes.
      *
      * @since 4.0
      */
@@ -64,9 +65,9 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      * Defaults to {@value DEFAULT_TARGET_CACHE_SIZE} MB.
      *
      * <p>
-     * Must be at least 1 MB in size.
+     * Must be greater than or equal to 1, although larger cache sizes will be more useful.
      *
-     * @param targetSizeInMB the new target maximum size of the build cache.
+     * @param targetSizeInMB the new target size of the build cache.
      *
      * @since 4.0
      */

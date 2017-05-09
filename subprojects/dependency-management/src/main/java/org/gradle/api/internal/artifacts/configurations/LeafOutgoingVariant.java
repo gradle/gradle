@@ -19,16 +19,24 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.DisplayName;
 
 import java.util.Set;
 
 class LeafOutgoingVariant implements OutgoingVariant {
     private final AttributeContainerInternal attributes;
     private final Set<? extends PublishArtifact> artifacts;
+    private final DisplayName displayName;
 
-    public LeafOutgoingVariant(AttributeContainerInternal attributes, Set<? extends PublishArtifact> artifacts) {
+    public LeafOutgoingVariant(DisplayName displayName, AttributeContainerInternal attributes, Set<? extends PublishArtifact> artifacts) {
+        this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
+    }
+
+    @Override
+    public DisplayName asDescribable() {
+        return displayName;
     }
 
     @Override
