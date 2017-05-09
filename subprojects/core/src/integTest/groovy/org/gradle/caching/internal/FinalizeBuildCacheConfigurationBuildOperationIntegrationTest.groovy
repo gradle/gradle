@@ -66,6 +66,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
+        result.enabled == true
+
+        result.local.enabled == true
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
         result.local.type == 'directory'
@@ -99,7 +102,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
+        result.enabled == true
 
+        result.remote.enabled == true
         result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
         result.remote.config.url == url
 
@@ -113,7 +118,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         result.remote.type == 'HTTP'
         result.remote.push == push
 
-        result.local == null
+        result.local.enabled == false
 
         where:
         authenticated | credentials            | push
@@ -178,6 +183,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
+        result.enabled == true
+
+        result.local.enabled == true
         result.local.className == 'CustomBuildCache'
         result.local.config.directory == directory
         result.local.type == type
@@ -190,8 +198,78 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
+        result.enabled == false
+
         result.local == null
         result.remote == null
+    }
+
+    def "disabled build cache configurations are exposed"() {
+        given:
+        def cacheDir = temporaryFolder.file("cache-dir").createDir()
+        httpBuildCache.start()
+        def url = "${httpBuildCache.uri}/"
+
+        settingsFile << """
+            buildCache {
+                local(DirectoryBuildCache) {
+                    enabled = false 
+                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    push = false 
+                }
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    enabled = false 
+                    url = "$url"   
+                    push = false 
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+
+        when:
+        succeeds("help")
+
+        then:
+        def result = result()
+        result.enabled == false
+
+        result.local.enabled == false
+        result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
+        result.local.config.location == cacheDir.absoluteFile.toString()
+        result.local.type == 'directory'
+        result.local.push == false
+
+        result.remote.enabled == false
+        result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
+        result.remote.config.url == url
+        result.remote.type == 'HTTP'
+        result.remote.push == false
+    }
+
+    def "remote build cache configuration is disabled when --offline is provided"() {
+        given:
+        httpBuildCache.start()
+        def url = "${httpBuildCache.uri}/"
+
+        settingsFile << """
+            buildCache {
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    enabled = true 
+                    url = "$url"   
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+
+        when:
+        succeeds("help", "--offline")
+
+        then:
+        def result = result()
+        result.enabled == true
+
+        result.remote.enabled == false
+        result.remote.config.url == url
     }
 
     Map<String, ?> result() {
