@@ -203,20 +203,28 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     protected LocallyAvailableResource entryAt(final String path) {
-        return new AbstractLocallyAvailableResource() {
-            public File getFile() {
-                // Calculated on demand to deal with moves
-                return new File(baseDir, path);
-            }
-        };
+        return new RelativeToBaseDirResource(path);
     }
 
     public LocallyAvailableResource get(String key) {
         final File file = getFileWhileCleaningInProgress(key);
         if (file.exists()) {
-            return entryAt(file);
+            return new RelativeToBaseDirResource(key);
         } else {
             return null;
+        }
+    }
+
+    private class RelativeToBaseDirResource extends AbstractLocallyAvailableResource {
+        private final String path;
+
+        public RelativeToBaseDirResource(String path) {
+            this.path = path;
+        }
+
+        public File getFile() {
+            // Calculated on demand to deal with moves
+            return new File(baseDir, path);
         }
     }
 }

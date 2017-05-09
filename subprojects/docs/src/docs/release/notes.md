@@ -147,7 +147,7 @@ This is a _target_ size for the build cache. Gradle will periodically check if t
 
 ### Parallel download of dependencies
 
-Gradle will now download dependencies from remote repositories in parallel. It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
+Gradle will now download dependencies from remote repositories in parallel (both metadata and artifacts). It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
 
 ### Default Zinc compiler upgraded from 0.3.7 to 0.3.13
 
@@ -156,6 +156,23 @@ This will take advantage of performance optimizations in the latest [Zinc](https
 ### Ivy plugin repositories support patterns and layouts
 
 Ivy plugin repositories now support the same API for patterns and layouts that Ivy artifact repositories support.
+
+### Ignore classpath resources for up-to-date checks and the build cache
+
+It is now possible to ignore resources on the classpath for up-to-date checks and the build cache.
+Often a project has a file containing volatile data (like the `BUILD_ID` or a timestamp) which should be packaged to the jar for auditing reasons.
+As soon as such a file is present, the `test` task will never be up-to-date or from the build cache since on every Gradle invocation the contents of this file - and by this this the inputs to the task - would change.
+It is now possible to tell Gradle about these files by configuring [resource normalization](userguide/more_about_tasks.html#sec:custom_resource_normalization):
+
+    normalization {
+        runtimeClasspath {
+            ignore 'build-info.properties'
+        }
+    }
+
+The effect of this configuration would be that changes to build-info.properties would be ignored for up-to-date checks and build cache key calculations. Note that this will not change the runtime behavior of the Test task - i.e. any test is still able to load build-info.properties and the classpath is still the same as before.
+
+For more information on this feature see the corresponding section in the [userguide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
 
 <!--
 ### Example new and noteworthy
@@ -230,9 +247,9 @@ When using the `java` plugin, all `compile` and `runtime` dependencies will now 
  these legacy configurations work in multi-project builds. We strongly encourage you to use the `api`(java-library plugin only), `implementation` and `runtimeOnly` configurations instead. These
  are mapped as expected, with `api` being exposed to the consumer's compile classpath and `implementation` and `runtimeOnly` only available on the consumer's runtime classpath.
 
-### Memory settings and forking not tracked as inputs for JVM compilation
+### Memory settings not tracked as inputs for JVM compilation
 
-Previously Gradle would treat JVM compilation tasks as out-of-date whenever their memory settings changed compared to the previous execution. The same would happen if a forking compilation task was changed to non-forking, or vice versa. Since Gradle 4.0, these parameters are not treated as inputs anymore, and thus the compilation tasks will stay up-to-date when they are changed.
+Previously Gradle would treat JVM compilation tasks as out-of-date whenever their memory settings changed compared to the previous execution. Since Gradle 4.0, these parameters are not treated as inputs anymore, and thus the compilation tasks will stay up-to-date when they are changed.
 
 ### Groovy upgraded to 2.4.11
 

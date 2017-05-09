@@ -65,6 +65,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
+    private final MavenLocalRepositoryAccess localAccess = new MavenLocalRepositoryAccess();
+    private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -206,11 +208,11 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {
-        return new MavenLocalRepositoryAccess();
+        return localAccess;
     }
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
-        return new MavenRemoteRepositoryAccess();
+        return remoteAccess;
     }
 
     public ComponentMetadataSupplier createMetadataSupplier() {

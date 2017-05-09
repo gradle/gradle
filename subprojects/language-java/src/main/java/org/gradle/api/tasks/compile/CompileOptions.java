@@ -204,7 +204,7 @@ public class CompileOptions extends AbstractOptions {
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
      */
-    @Internal
+    @Input
     public boolean isFork() {
         return fork;
     }

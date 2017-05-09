@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -58,10 +59,13 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
     private final List<String> repositoryNames = new ArrayList<String>();
     private final VersionedComponentChooser versionedComponentChooser;
     private final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory;
+    private final CacheLockingManager cacheLockingManager;
 
-    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory) {
+    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory,
+                                  CacheLockingManager cacheLockingManager) {
         this.versionedComponentChooser = versionedComponentChooser;
         this.metaDataFactory = metaDataFactory;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
     public void add(ModuleComponentRepository repository) {
@@ -201,7 +205,12 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
 
         void resolve() {
-            versionListingResult.resolve();
+            cacheLockingManager.useCache(new Runnable() {
+                @Override
+                public void run() {
+                    versionListingResult.resolve();
+                }
+            });
             switch (versionListingResult.result.getState()) {
                 case Failed:
                     resolveResult.failed(versionListingResult.result.getFailure());

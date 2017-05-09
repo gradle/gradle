@@ -599,7 +599,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:impl:1.3', 'org.stuff:foo:2.0', 'org.stuff:bar:2.0'
             }
 
-            List requested = []
+            List requested = [].asSynchronized()
 
             configurations.conf.resolutionStrategy {
                 eachDependency {
@@ -610,7 +610,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             task check {
                 doLast {
                     configurations.conf.resolve()
-                    assert requested == ['impl:1.3', 'foo:2.0', 'bar:2.0', 'api:1.3', 'api:1.5']
+                    requested = requested.sort()
+                    assert requested == ['api:1.3', 'api:1.5', 'bar:2.0', 'foo:2.0', 'impl:1.3']
                 }
             }
 """

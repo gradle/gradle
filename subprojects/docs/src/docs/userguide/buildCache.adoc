@@ -167,6 +167,8 @@ Wrongly declared task inputs can lead to cache misses especially when containing
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
 We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see `@api:org.gradle.api.tasks.PathSensitive[]`).
 
+In order to handle volatile inputs for your tasks consider configuring <<sec:custom_resource_normalization,resource normalization>>.
+
 [[sec:task_output_caching_known_issues]]
 ==== Feedback and known issues
 
@@ -245,13 +247,6 @@ These kinds of inputs will cause cache misses because not every developer or CI 
 | Modifying inputs or outputs during task execution.
 | It's possible to modify a task's inputs or outputs during execution in ways that change the output of a task. This breaks incremental builds and can cause problems with the build cache.
 | Use a configure task to finalize configuration for a given task. A configure task configures another task as part of its execution.
-
-| Files with volatile data.
-| If input files for a cacheable task change on every build, such as when they contain a timestamp, the task is unlikely to have very many build cache hits.
-If these files are contained in jars, it can affect the cacheability of Java compilation and test execution.
-Java compilation is only affected when the jar is found on the annotation processor classpath
-due to <<sec:java_compile_avoidance,compile avoidance>>.
-| You can produce consistently ordered properties files without a timestamp comment with api:org.gradle.api.tasks.WriteProperties[].
 
 | Order of input files affects outputs.
 | Some tools are sensitive to the order of its inputs and will produce slightly different output. Gradle will usually provide the order of files from the filesystem, which will be different across operating systems.

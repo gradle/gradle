@@ -18,6 +18,7 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.HashCode;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -36,6 +37,7 @@ public class BaseSerializerFactory {
     public static final Serializer<byte[]> BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
     public static final Serializer<Map<String, String>> NO_NULL_STRING_MAP_SERIALIZER = new StringMapSerializer();
     public static final Serializer<Throwable> THROWABLE_SERIALIZER = new ThrowableSerializer();
+    public static final Serializer<HashCode> HASHCODE_SERIALIZER = new HashCodeSerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
@@ -58,6 +60,9 @@ public class BaseSerializerFactory {
         }
         if (Throwable.class.isAssignableFrom(type)) {
             return (Serializer<T>) THROWABLE_SERIALIZER;
+        }
+        if (HashCode.class.isAssignableFrom(type)) {
+            return (Serializer<T>) HASHCODE_SERIALIZER;
         }
         return new DefaultSerializer<T>(type.getClassLoader());
     }

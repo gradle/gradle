@@ -217,8 +217,10 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             }
         """
 
-        server.expectSerialExecution(server.file(m1.pom.path, m1.pom.file))
-        server.expectSerialExecution(server.file(m2.pom.path, m2.pom.file))
+        server.expectConcurrentExecutionTo([
+            server.file(m1.pom.path, m1.pom.file),
+            server.file(m2.pom.path, m2.pom.file)
+        ])
 
         def handle = server.blockOnConcurrentExecutionAnyOfToResources(4, [
             server.resource("a.jar"),

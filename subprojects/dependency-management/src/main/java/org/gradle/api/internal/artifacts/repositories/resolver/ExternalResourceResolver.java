@@ -60,6 +60,7 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.internal.resolve.result.BuildableTypedResolveResult;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.ByteArrayLocalResource;
 import org.gradle.internal.resource.local.FileLocalResource;
 import org.gradle.internal.resource.local.FileStore;
@@ -99,6 +100,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final VersionLister versionLister;
 
     private String id;
+    private ExternalResourceArtifactResolver cachedArtifactResolver;
 
     protected ExternalResourceResolver(String name,
                                        boolean local,
@@ -295,7 +297,12 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver() {
-        return createArtifactResolver(ivyPatterns, artifactPatterns);
+        if (cachedArtifactResolver != null) {
+            return cachedArtifactResolver;
+        }
+        ExternalResourceArtifactResolver artifactResolver = createArtifactResolver(ivyPatterns, artifactPatterns);
+        cachedArtifactResolver = artifactResolver;
+        return artifactResolver;
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
@@ -349,12 +356,17 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     protected void addIvyPattern(ResourcePattern pattern) {
-        id = null;
+        invalidateCaches();
         ivyPatterns.add(pattern);
     }
 
-    protected void addArtifactPattern(ResourcePattern pattern) {
+    private void invalidateCaches() {
         id = null;
+        cachedArtifactResolver = null;
+    }
+
+    protected void addArtifactPattern(ResourcePattern pattern) {
+        invalidateCaches();
         artifactPatterns.add(pattern);
     }
 
@@ -375,13 +387,13 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     protected void setIvyPatterns(Iterable<? extends ResourcePattern> patterns) {
-        id = null;
+        invalidateCaches();
         ivyPatterns.clear();
         CollectionUtils.addAll(ivyPatterns, patterns);
     }
 
     protected void setArtifactPatterns(List<ResourcePattern> patterns) {
-        id = null;
+        invalidateCaches();
         artifactPatterns.clear();
         CollectionUtils.addAll(artifactPatterns, patterns);
     }
@@ -440,6 +452,11 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
 
         }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return MetadataFetchingCost.CHEAP;
+        }
     }
 
     protected abstract class RemoteRepositoryAccess extends AbstractRepositoryAccess {
@@ -486,6 +503,20 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             ExternalResourceResolver.this.resolveArtifact(artifact, moduleSource, result);
         }
+
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            if (ExternalResourceResolver.this.local) {
+                ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
+                if (createArtifactResolver().artifactExists(artifact, NoOpResourceAwareResolveResult.INSTANCE)) {
+                    return MetadataFetchingCost.FAST;
+                }
+                return MetadataFetchingCost.CHEAP;
+            }
+            return MetadataFetchingCost.EXPENSIVE;
+        }
+
     }
 
     private static String generateId(ExternalResourceResolver resolver) {
@@ -508,6 +539,31 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             if (i < len - 1) {
                 sb.append(",");
             }
+        }
+    }
+
+    private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {
+
+        private static final NoOpResourceAwareResolveResult INSTANCE = new NoOpResourceAwareResolveResult();
+
+        @Override
+        public List<String> getAttempted() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void attempted(String locationDescription) {
+
+        }
+
+        @Override
+        public void attempted(ExternalResourceName location) {
+
+        }
+
+        @Override
+        public void applyTo(ResourceAwareResolveResult target) {
+            throw new UnsupportedOperationException();
         }
     }
 }

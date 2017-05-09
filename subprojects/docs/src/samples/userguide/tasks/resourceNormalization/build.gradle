@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.internal.util
+apply plugin: 'java'
 
-import groovy.transform.CompileStatic
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.FirstParam
-
-@CompileStatic
-class Specification extends spock.lang.Specification {
-
-    public <T> void with(
-        @DelegatesTo.Target T t,
-        @DelegatesTo(strategy = Closure.DELEGATE_FIRST)
-        @ClosureParams(FirstParam.FirstGenericType) Closure<?> closure
-    ) {
-        super.with(t, closure)
+// START SNIPPET ignore-build-info-properties
+normalization {
+    runtimeClasspath {
+        ignore 'build-info.properties'
     }
-
 }
+// END SNIPPET ignore-build-info-properties
