@@ -109,10 +109,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         result.remote.config.url == url
 
         if (authenticated) {
-            result.remote.config.containsKey("authenticated")
-            result.remote.config.authenticated == null
+            result.remote.config.authenticated == "true"
         } else {
-            result.remote.config.containsKey("authenticated")
+            result.remote.config.authenticated == null
         }
 
         result.remote.type == 'HTTP'
@@ -148,8 +147,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def config = result().remote.config
         config.url == safeUri.toString() + '/'
-        config.containsKey("authenticated")
-        config.authenticated == null
+        config.authenticated == "true"
     }
 
     def "custom build cache connector configuration is exposed"() {

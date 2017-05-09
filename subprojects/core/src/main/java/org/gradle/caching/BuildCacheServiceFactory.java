@@ -17,7 +17,6 @@
 package org.gradle.caching;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.caching.configuration.BuildCache;
 
 /**
@@ -89,14 +88,14 @@ public interface BuildCacheServiceFactory<T extends BuildCache> {
          * Secrets (e.g. passwords) should not be declared with this method.
          * <p>
          * Describing config is not required.
-         * Implementations should describe their config where possible.
+         * Implementations should however describe their config where possible.
          * <p>
          * Subsequent calls to this method with the same {@code name} argument will replace
          * the previously supplied {@code value} argument.
          * <p>
          * Subsequent calls to this method with different {@code name} arguments will append values.
          */
-        Describer config(String name, @Nullable String value);
+        Describer config(String name, String value);
 
     }
 }

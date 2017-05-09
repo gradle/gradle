@@ -259,12 +259,23 @@ public class BuildCacheServiceProvider {
 
         @Override
         public BuildCacheServiceFactory.Describer type(String type) {
+            if (type == null) {
+                throw new IllegalArgumentException("'type' argument cannot be null");
+            }
+
             this.type = type;
             return this;
         }
 
         @Override
         public BuildCacheServiceFactory.Describer config(String name, String value) {
+            if (name == null) {
+                throw new IllegalArgumentException("'name' argument cannot be null");
+            }
+            if (value == null) {
+                throw new IllegalArgumentException("'value' argument cannot be null");
+            }
+
             configParams.put(name, value);
             return this;
         }
