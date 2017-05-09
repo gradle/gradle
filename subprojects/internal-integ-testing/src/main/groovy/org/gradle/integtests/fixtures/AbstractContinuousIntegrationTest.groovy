@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.continuous
+package org.gradle.integtests.fixtures
 
 import com.google.common.util.concurrent.SimpleTimeLimiter
 import com.google.common.util.concurrent.UncheckedTimeoutException
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -36,6 +34,7 @@ import java.util.concurrent.TimeUnit
 import static org.gradle.util.TestPrecondition.PULL_REQUEST_BUILD
 
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
+
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = PULL_REQUEST_BUILD.fulfilled ? 60 : 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 20
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
@@ -210,7 +209,7 @@ $lastOutput
     }
 
     void parseResults(String out, String err) {
-        if(!out) {
+        if (!out) {
             results << createExecutionResult(out, err)
             return
         }
@@ -317,7 +316,7 @@ $lastOutput
 
     void waitBeforeModification(File file) {
         long waitMillis = 100L
-        if(OS_IS_WINDOWS && file.exists()) {
+        if (OS_IS_WINDOWS && file.exists()) {
             // ensure that file modification time changes on windows
             long fileAge = System.currentTimeMillis() - file.lastModified()
             if (fileAge > 0L && fileAge < 900L) {
@@ -331,6 +330,7 @@ $lastOutput
         waitBeforeModification(file)
         file.text = text
     }
+
     private static class UnexpectedBuildStartedException extends Exception {
         UnexpectedBuildStartedException(String message) {
             super(message)

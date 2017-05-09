@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.BuildIdsFixture
 import org.gradle.integtests.fixtures.TaskOutputOriginBuildIdFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.id.UniqueId
-import org.gradle.launcher.continuous.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.junit.Rule
 
 class ContinuousIncrementalBuildOutputOriginTest extends AbstractContinuousIntegrationTest {
