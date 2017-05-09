@@ -72,9 +72,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
 
         then:
         def result = result()
-        result.enabled == true
 
-        result.remote.enabled == true
         result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
         result.remote.config.url == url
 
@@ -86,8 +84,6 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
 
         result.remote.type == 'HTTP'
         result.remote.push == push
-
-        result.local.enabled == false
 
         where:
         authenticated | credentials            | push

@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal
 
-import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.junit.Rule
@@ -45,9 +44,6 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
-        result.enabled == true
-
-        result.local.enabled == true
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
         result.local.type == 'directory'
@@ -87,16 +83,13 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
-        result.enabled == true
-
-        result.local.enabled == true
         result.local.className == 'CustomBuildCache'
         result.local.config.directory == directory
         result.local.type == type
 
     }
 
-    def "build cache configurations are exposed when build cache is not enabled"() {
+    def "build cache configurations are not exposed when build cache is not enabled"() {
         when:
         def cacheDir = temporaryFolder.file("cache-dir").createDir()
         def url = "http://locahost:8080/cache/"
@@ -131,73 +124,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
-        result.enabled == false
 
-        result.local.enabled == false
-        result.local.config.location == cacheDir.absoluteFile.toString()
-        result.remote.enabled == false
-        result.remote.config.url == url
-    }
-
-    def "disabled build cache configurations are exposed"() {
-        given:
-        def cacheDir = temporaryFolder.file("cache-dir").createDir()
-        settingsFile << """
-            buildCache {
-                local(DirectoryBuildCache) {
-                    enabled = false 
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
-                    push = false 
-                }
-                remote(DirectoryBuildCache) {
-                    enabled = false 
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'   
-                    push = false 
-                }
-            }
-        """
-        executer.withBuildCacheEnabled()
-
-        when:
-        succeeds("help")
-
-        then:
-        def result = result()
-        result.enabled == false
-
-        result.local.enabled == false
-        result.local.className == DirectoryBuildCache.name
-        result.local.config.location == cacheDir.absoluteFile.toString()
-        result.local.type == 'directory'
-        result.local.push == false
-
-        result.remote.enabled == false
-        result.remote.className == DirectoryBuildCache.name
-        result.remote.config.location == cacheDir.absoluteFile.toString()
-        result.remote.type == 'directory'
-        result.remote.push == false
-    }
-
-    def "remote build cache configuration is disabled when --offline is provided"() {
-        given:
-        settingsFile << """
-            buildCache {
-                remote(DirectoryBuildCache) {
-                    enabled = true 
-                }
-            }
-        """
-        executer.withBuildCacheEnabled()
-
-        when:
-        succeeds("help", "--offline")
-
-        then:
-        def result = result()
-        result.enabled == true
-
-        result.remote.enabled == false
-        result.remote.className == DirectoryBuildCache.name
+        result.local == null
+        result.remote == null
     }
 
     Map<String, ?> result() {
