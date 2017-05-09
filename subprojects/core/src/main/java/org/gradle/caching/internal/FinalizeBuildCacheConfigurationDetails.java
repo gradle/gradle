@@ -51,6 +51,11 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
         public interface BuildCacheDescription {
 
             /**
+             * Whether the build cache was enabled.
+             */
+            boolean isEnabled();
+
+            /**
              * The class name of the DSL configuration type.
              *
              * e.g. {@link org.gradle.caching.local.DirectoryBuildCache}
@@ -83,17 +88,24 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
 
         private final BuildCacheDescription remote;
 
-        public Result(@Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
+        private final boolean enabled;
+
+        public Result(boolean enabled, @Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
+            this.enabled = enabled;
             this.local = local;
             this.remote = remote;
         }
 
-        @Nullable // if not enabled
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        @Nullable // if not defined
         public BuildCacheDescription getLocal() {
             return local;
         }
 
-        @Nullable // if not enabled
+        @Nullable // if not defined
         public BuildCacheDescription getRemote() {
             return remote;
         }

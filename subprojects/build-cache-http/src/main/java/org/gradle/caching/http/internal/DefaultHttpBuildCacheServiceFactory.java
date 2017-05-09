@@ -60,10 +60,11 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             authentications = Collections.<Authentication>singleton(basicAuthentication);
         }
 
-        describer.type("HTTP").config("url", noUserInfoUrl.toASCIIString());
-        if (!authentications.isEmpty() || url.getUserInfo() != null) {
-            describer.config("authenticated", null);
-        }
+        boolean authenticated = !authentications.isEmpty() || url.getUserInfo() != null;
+
+        describer.type("HTTP")
+            .config("url", noUserInfoUrl.toASCIIString())
+            .config("authenticated", Boolean.toString(authenticated));
 
         HttpClientHelper httpClientHelper = new HttpClientHelper(new DefaultHttpSettings(authentications, sslContextFactory));
         return new HttpBuildCacheService(httpClientHelper, url);
