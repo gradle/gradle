@@ -87,8 +87,7 @@ public interface BuildCacheServiceFactory<T extends BuildCache> {
          * Values may be logged.
          * Secrets (e.g. passwords) should not be declared with this method.
          * <p>
-         * Describing config is not required.
-         * Implementations should however describe their config where possible.
+         * Implementations should describe their config where possible.
          * <p>
          * Subsequent calls to this method with the same {@code name} argument will replace
          * the previously supplied {@code value} argument.
