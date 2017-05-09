@@ -58,7 +58,7 @@ class KotlinBuildScriptCompiler(
     val classPathProvider: KotlinScriptClassPathProvider) {
 
     val scriptResource = scriptSource.resource!!
-    val scriptFile = scriptResource.file!!
+    val scriptPath = scriptSource.fileName!!
     val script = convertLineSeparators(scriptResource.text!!)
 
     val buildscriptBlockCompilationClassPath: ClassPath = classPathProvider.compilationClassPathOf(targetScope.parent)
@@ -202,7 +202,7 @@ class KotlinBuildScriptCompiler(
     private
     fun compileBuildscriptBlock(buildscriptRange: IntRange) =
         kotlinCompiler.compileBuildscriptBlockOf(
-            scriptFile,
+            scriptPath,
             script.linePreservingSubstring(buildscriptRange),
             buildscriptBlockCompilationClassPath,
             baseScope.exportClassLoader)
@@ -210,7 +210,7 @@ class KotlinBuildScriptCompiler(
     private
     fun compilePluginsBlock(pluginsRange: IntRange) =
         kotlinCompiler.compilePluginsBlockOf(
-            scriptFile,
+            scriptPath,
             script.linePreservingSubstring_(pluginsRange),
             pluginsBlockCompilationClassPath,
             baseScope.exportClassLoader)
@@ -218,7 +218,8 @@ class KotlinBuildScriptCompiler(
     private
     fun compileScriptFile(classPath: ClassPath) =
         kotlinCompiler.compileBuildScript(
-            scriptFile,
+            scriptPath,
+            script,
             classPath,
             targetScope.exportClassLoader)
 
@@ -265,7 +266,7 @@ class KotlinBuildScriptCompiler(
             action()
         } catch (unexpectedBlock: UnexpectedBlock) {
             val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
-            val message = compilerMessageFor(scriptFile.path, line, column, unexpectedBlockMessage(unexpectedBlock))
+            val message = compilerMessageFor(scriptPath, line, column, unexpectedBlockMessage(unexpectedBlock))
             throw IllegalStateException(message, unexpectedBlock)
         }
     }

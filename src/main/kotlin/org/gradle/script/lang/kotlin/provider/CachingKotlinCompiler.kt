@@ -55,19 +55,19 @@ class CachingKotlinCompiler(
     val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-script-kotlin")
 
     private
-    val cacheProperties = mapOf("version" to "5")
+    val cacheProperties = mapOf("version" to "6")
 
     fun compileBuildscriptBlockOf(
-        scriptFile: File,
+        scriptPath: String,
         buildscript: String,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
-        val scriptFileName = scriptFile.name
+        val scriptFileName = scriptFileNameFor(scriptPath)
         return compileScript(cacheKeyPrefix + scriptFileName + buildscript, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 KotlinBuildscriptBlock::class,
-                scriptFile,
+                scriptPath,
                 cacheFileFor(buildscript, cacheDir, scriptFileName),
                 scriptFileName + " buildscript block")
         }
@@ -76,18 +76,18 @@ class CachingKotlinCompiler(
     data class CompiledScript(val location: File, val className: String)
 
     fun compilePluginsBlockOf(
-        scriptFile: File,
+        scriptPath: String,
         lineNumberedPluginsBlock: Pair<Int, String>,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledPluginsBlock {
 
         val (lineNumber, plugins) = lineNumberedPluginsBlock
-        val scriptFileName = scriptFile.name
+        val scriptFileName = scriptFileNameFor(scriptPath)
         val compiledScript =
             compileScript(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
                 ScriptCompilationSpec(
                     KotlinPluginsBlock::class,
-                    scriptFile,
+                    scriptPath,
                     cacheFileFor(plugins, cacheDir, scriptFileName),
                     scriptFileName + " plugins block")
             }
@@ -97,19 +97,24 @@ class CachingKotlinCompiler(
     data class CompiledPluginsBlock(val lineNumber: Int, val compiledScript: CompiledScript)
 
     fun compileBuildScript(
-        scriptFile: File,
+        scriptPath: String,
+        script: String,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
-        val scriptFileName = scriptFile.name
-        return compileScript(cacheKeyPrefix + scriptFileName + scriptFile, classPath, parentClassLoader) {
+        val scriptFileName = scriptFileNameFor(scriptPath)
+        return compileScript(cacheKeyPrefix + scriptFileName + script, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
                 KotlinBuildScript::class,
-                scriptFile,
-                scriptFile,
+                scriptPath,
+                cacheFileFor(script, cacheDir, scriptFileName),
                 scriptFileName)
         }
     }
+
+    private
+    fun scriptFileNameFor(scriptPath: String) =
+        scriptPath.substringAfterLast(File.separatorChar)
 
     private
     fun compileScript(
@@ -128,7 +133,7 @@ class CachingKotlinCompiler(
 
     data class ScriptCompilationSpec(
         val scriptTemplate: KClass<out Any>,
-        val originalFile: File,
+        val originalPath: String,
         val scriptFile: File,
         val description: String)
 
@@ -149,7 +154,7 @@ class CachingKotlinCompiler(
                     classPath.asFiles,
                     parentClassLoader,
                     messageCollectorFor(logger) { path ->
-                        if (path == scriptFile.path) originalFile.path
+                        if (path == scriptFile.path) originalPath
                         else path
                     })
             }
