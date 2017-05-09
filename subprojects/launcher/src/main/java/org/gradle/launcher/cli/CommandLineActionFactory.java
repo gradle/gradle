@@ -44,7 +44,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
-import org.gradle.internal.scripts.DefaultScriptingLanguages;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
@@ -68,7 +67,7 @@ public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
-    private final ScriptFileResolver scriptFileResolver = DefaultScriptFileResolver.forScriptingLanguages(new DefaultScriptingLanguages());
+    private final ScriptFileResolver scriptFileResolver = DefaultScriptFileResolver.forDefaultScriptingLanguages();
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the

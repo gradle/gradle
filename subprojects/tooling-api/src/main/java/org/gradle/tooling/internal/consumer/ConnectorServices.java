@@ -22,7 +22,6 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
-import org.gradle.internal.scripts.DefaultScriptingLanguages;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
@@ -85,7 +84,7 @@ public class ConnectorServices {
         }
 
         protected DistributionFactory createDistributionFactory(Clock clock) {
-            return new DistributionFactory(clock, DefaultScriptFileResolver.forScriptingLanguages(new DefaultScriptingLanguages()));
+            return new DistributionFactory(clock, DefaultScriptFileResolver.forDefaultScriptingLanguages());
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {

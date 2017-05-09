@@ -28,6 +28,10 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
         return new DefaultScriptFileResolver(Collections.<String>emptyList());
     }
 
+    public static ScriptFileResolver forDefaultScriptingLanguages() {
+        return forScriptingLanguages(new DefaultScriptingLanguages());
+    }
+
     public static ScriptFileResolver forScriptingLanguages(Iterable<ScriptingLanguage> scriptingLanguages) {
         List<String> extensions = new ArrayList<String>();
         for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {
