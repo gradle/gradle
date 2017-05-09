@@ -27,11 +27,11 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.scripts.ScriptFileResolver;
 
 import java.io.File;
 import java.util.Set;
@@ -42,14 +42,14 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     private final NestedBuildFactory nestedBuildFactory;
     private final Set<GradleLauncher> launchers = Sets.newHashSet();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final ScriptFileResolver scriptFileResolver;
+    private final BuildLayoutFactory buildLayoutFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ScriptFileResolver scriptFileResolver) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildLayoutFactory buildLayoutFactory) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
         this.nestedBuildFactory = nestedBuildFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.scriptFileResolver = scriptFileResolver;
+        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -62,8 +62,8 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     }
 
     private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
-        File defaultSettingsFile = new File(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE);
-        if (!defaultSettingsFile.exists() && scriptFileResolver.resolveScriptFile(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE_BASENAME) == null) {
+        File settingsFile = buildLayoutFactory.findExistingSettingsFileIn(settings.getSettingsDir());
+        if (settingsFile == null) {
             throw new InvalidUserDataException(String.format("Included build '%s' must have a '%s.*' file.", includedBuild.getName(), Settings.DEFAULT_SETTINGS_FILE_BASENAME));
         }
         if (!settings.getIncludedBuilds().isEmpty()) {
