@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization.layout;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
@@ -59,6 +60,14 @@ public class BuildLayoutFactory {
         return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
     }
 
+    @Nullable
+    public File findExistingSettingsFileIn(File directory) {
+        File defaultSettingsFile = new File(directory, Settings.DEFAULT_SETTINGS_FILE);
+        return defaultSettingsFile.isFile()
+            ? defaultSettingsFile
+            : scriptFileResolver.resolveScriptFile(directory, Settings.DEFAULT_SETTINGS_FILE_BASENAME);
+    }
+
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
         File settingsFile = findExistingSettingsFileIn(currentDir);
         if (settingsFile != null) {
@@ -78,13 +87,5 @@ public class BuildLayoutFactory {
 
     private BuildLayout layout(File rootDir, File settingsDir, File settingsFile) {
         return new BuildLayout(rootDir, settingsDir, FileUtils.canonicalize(settingsFile));
-    }
-
-    private File findExistingSettingsFileIn(File directory) {
-        File defaultSettingsFile = new File(directory, Settings.DEFAULT_SETTINGS_FILE);
-        if (defaultSettingsFile.isFile()) {
-            return defaultSettingsFile;
-        }
-        return scriptFileResolver.resolveScriptFile(directory, Settings.DEFAULT_SETTINGS_FILE_BASENAME);
     }
 }

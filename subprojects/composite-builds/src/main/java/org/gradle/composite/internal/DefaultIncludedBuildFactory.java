@@ -23,9 +23,9 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
@@ -34,13 +34,13 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
     private final WorkerLeaseService workerLeaseService;
-    private final ScriptFileResolver scriptFileResolver;
+    private final BuildLayoutFactory buildLayoutFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, ScriptFileResolver scriptFileResolver) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, BuildLayoutFactory buildLayoutFactory) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
         this.workerLeaseService = workerLeaseService;
-        this.scriptFileResolver = scriptFileResolver;
+        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -53,8 +53,8 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
-        File defaultSettingsFile = new File(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE);
-        if (!defaultSettingsFile.exists() && scriptFileResolver.resolveScriptFile(settings.getSettingsDir(), Settings.DEFAULT_SETTINGS_FILE_BASENAME) == null) {
+        File settingsFile = buildLayoutFactory.findExistingSettingsFileIn(settings.getSettingsDir());
+        if (settingsFile == null) {
             throw new InvalidUserDataException(String.format("Included build '%s' must have a '%s.*' file.", includedBuild.getName(), Settings.DEFAULT_SETTINGS_FILE_BASENAME));
         }
     }
