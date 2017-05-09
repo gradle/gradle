@@ -66,18 +66,14 @@ public class BuildCacheServiceProvider {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheService>() {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
-                if (!startParameter.isBuildCacheEnabled()) {
-                    context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(false, null, null));
-                    return new NoOpBuildCacheService();
-                }
 
                 SingleMessageLogger.incubatingFeatureUsed("Build cache");
 
                 BuildCache local = buildCacheConfiguration.getLocal();
                 BuildCache remote = buildCacheConfiguration.getRemote();
 
-                boolean localEnabled = local != null && local.isEnabled();
-                boolean remoteEnabled = remote != null && remote.isEnabled();
+                boolean localEnabled = startParameter.isBuildCacheEnabled() && local != null && local.isEnabled();
+                boolean remoteEnabled = startParameter.isBuildCacheEnabled() && remote != null && remote.isEnabled();
 
                 if (remoteEnabled && startParameter.isOffline()) {
                     remoteEnabled = false;
@@ -114,6 +110,8 @@ public class BuildCacheServiceProvider {
                     return preventPushIfNecessary(localRoleAware, local.isPush());
                 } else if (remoteEnabled) {
                     return preventPushIfNecessary(remoteRoleAware, remote.isPush());
+                } else if (!startParameter.isBuildCacheEnabled()) {
+                    return new NoOpBuildCacheService();
                 } else {
                     LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
                     return new NoOpBuildCacheService();

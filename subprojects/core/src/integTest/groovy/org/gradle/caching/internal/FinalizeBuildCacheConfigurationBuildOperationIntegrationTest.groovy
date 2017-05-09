@@ -192,16 +192,33 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
     }
 
-    def "null build cache configurations are exposed when build cache is not enabled"() {
+    def "build cache configurations are exposed when build cache is not enabled"() {
         when:
+        def cacheDir = temporaryFolder.file("cache-dir").createDir()
+        httpBuildCache.start()
+        def url = "${httpBuildCache.uri}/"
+        settingsFile << """
+            buildCache {
+                local(DirectoryBuildCache) {
+                    enabled = true 
+                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                }
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    enabled = true 
+                    url = "$url"   
+                }
+            }
+        """
         succeeds("help")
 
         then:
         def result = result()
         result.enabled == false
 
-        result.local == null
-        result.remote == null
+        result.local.enabled == false
+        result.local.config.location == cacheDir.absoluteFile.toString()
+        result.remote.enabled == false
+        result.remote.config.url == url
     }
 
     def "disabled build cache configurations are exposed"() {
