@@ -393,6 +393,16 @@ class DefaultGradleSpec extends Specification {
         child2.identityPath == Path.path(":child1:child2")
     }
 
+    def "propagates build IDs to children"() {
+        when:
+        def child1 = classGenerator.newInstance(DefaultGradle, gradle, Stub(StartParameter), serviceRegistryFactory)
+        def child2 = classGenerator.newInstance(DefaultGradle, child1, Stub(StartParameter), serviceRegistryFactory)
+
+        then:
+        child1.buildIds.is(gradle.buildIds)
+        child2.buildIds.is(gradle.buildIds)
+    }
+
     def projectRegistry = new DefaultProjectRegistry()
 
     private ProjectInternal project(String name) {
