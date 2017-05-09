@@ -28,6 +28,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.Cast;
 import org.gradle.internal.jacoco.JacocoAgentJar;
+import org.gradle.internal.jacoco.JacocoConfigure;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
@@ -47,17 +48,20 @@ public class JacocoPluginExtension {
 
     private String toolVersion;
     private final PropertyState<File> reportsDir;
+    private final JacocoConfigure jacocoConfigure;
 
     /**
      * Creates a Jacoco plugin extension.
      *
      * @param project the project the extension is attached to
      * @param agent the agent JAR to be used by Jacoco
+     * @param jacocoConfigure configuration task to finalize tasks that use the JaCoCo Java agent
      */
-    public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
+    public JacocoPluginExtension(Project project, JacocoAgentJar agent, JacocoConfigure jacocoConfigure) {
         this.project = project;
         this.agent = agent;
         reportsDir = project.property(File.class);
+        this.jacocoConfigure = jacocoConfigure;
     }
 
     /**
@@ -136,14 +140,8 @@ public class JacocoPluginExtension {
                 return extension.getClassDumpDir();
             }
         }).optional().withPropertyName("jacoco.classDumpDir");
-        taskInternal.prependParallelSafeAction(new Action<Task>() {
-            @Override
-            public void execute(Task input) {
-                if (extension.isEnabled()) {
-                    task.jvmArgs(extension.getAsJvmArg());
-                }
-            }
-        });
+
+        jacocoConfigure.configureTask(task);
     }
 
     /**

@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.normalization;
+package org.gradle.api.resources.normalization.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.resources.normalization.RuntimeClasspathNormalization;
 
-/**
- * Configuration for the normalization strategy for the runtime classpath.
- *
- * @since 4.0
- */
-@Incubating
-@HasInternalProtocol
-public interface RuntimeClasspathNormalizationStrategy extends ResourceNormalizationStrategy {
-    /**
-     * Ignore resources in classpath entries matching the pattern.
-     */
-    void ignore(String pattern);
+public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
+    RuntimeClasspathNormalizationStrategy buildFinalStrategy();
 }

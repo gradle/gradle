@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.rules
 
 import com.google.common.collect.ImmutableSortedSet
+import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -29,18 +30,23 @@ import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNor
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.api.resources.normalization.internal.ResourceNormalizationHandlerInternal
 import spock.lang.Specification
 
-abstract public class AbstractTaskStateChangesTest extends Specification {
+abstract class AbstractTaskStateChangesTest extends Specification {
     protected mockInputs = Mock(TaskInputsInternal)
     protected mockOutputs = Mock(TaskOutputsInternal)
     protected TaskInternal stubTask
+    protected stubProject = Stub(Project) {
+        getNormalization() >> Stub(ResourceNormalizationHandlerInternal)
+    }
 
     def setup() {
         stubTask = Stub(TaskInternal) {
             getName() >> { "testTask" }
             getInputs() >> mockInputs
             getOutputs() >> mockOutputs
+            getProject() >> stubProject
         }
     }
 

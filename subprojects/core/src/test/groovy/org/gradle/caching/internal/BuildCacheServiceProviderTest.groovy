@@ -81,7 +81,7 @@ class BuildCacheServiceProviderTest extends Specification {
         with(buildOpResult()) {
             local.type == "directory"
             local.className == DirectoryBuildCache.name
-            !remote.enabled
+            remote == null
         }
     }
 
@@ -95,7 +95,7 @@ class BuildCacheServiceProviderTest extends Specification {
         then:
         c.role == "remote"
         with(buildOpResult()) {
-            !local.enabled
+            local == null
             remote.type == "remote"
             remote.className == TestRemoteBuildCache.name
         }
@@ -120,7 +120,7 @@ class BuildCacheServiceProviderTest extends Specification {
         expect:
         create(NoOpBuildCacheService)
         with(buildOpResult()) {
-            !local.enabled
+            local == null
             remote == null
         }
     }

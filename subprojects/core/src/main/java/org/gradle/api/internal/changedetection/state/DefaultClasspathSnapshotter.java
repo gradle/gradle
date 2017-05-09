@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
-import org.gradle.api.resources.normalization.internal.RuntimeClasspathNormalizationStrategyInternal;
+import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategies;
 
 public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshotter implements ClasspathSnapshotter {
     private final ResourceSnapshotterCacheService cacheService;
@@ -36,9 +36,9 @@ public class DefaultClasspathSnapshotter extends AbstractFileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationHandler normalizationHandler) {
-        MetadataFilter metadataFilter = ((RuntimeClasspathNormalizationStrategyInternal) normalizationHandler.getRuntimeClasspath()).getMetadataFilter();
-        ResourceHasher classpathResourceHasher = new MetadataFilterAdapter(metadataFilter, new RuntimeClasspathResourceHasher());
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, ResourceNormalizationStrategies normalizationStrategies) {
+        ImmutableSet<String> ignores = normalizationStrategies.getRuntimeClasspathNormalizationStrategy().getIgnores();
+        ResourceHasher classpathResourceHasher = new IgnoringResourceHasher(ignores, new RuntimeClasspathResourceHasher());
         return super.snapshot(files, new RuntimeClasspathSnapshotBuilder(classpathResourceHasher, cacheService, getStringInterner()));
     }
 }

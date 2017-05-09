@@ -324,10 +324,10 @@
                 <td>org.gradle.api.resources.normalization.ResourceNormalizationHandler</td>
             </tr>
             <tr>
-                <td>org.gradle.api.resources.normalization.ResourceNormalizationStrategy</td>
+                <td>org.gradle.api.resources.normalization.ResourceNormalization</td>
             </tr>
             <tr>
-                <td>org.gradle.api.resources.normalization.RuntimeClasspathNormalizationStrategy</td>
+                <td>org.gradle.api.resources.normalization.RuntimeClasspathNormalization</td>
             </tr>
         </table>
     </section>

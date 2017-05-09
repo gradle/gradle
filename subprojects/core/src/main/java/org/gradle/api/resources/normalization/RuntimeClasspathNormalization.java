@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-// START SNIPPET developer-ci-setup
-ext.isCiServer = System.getenv().containsKey("CI")
+package org.gradle.api.resources.normalization;
 
-buildCache {
-    local {
-        enabled = !isCiServer
-    }
-    remote(HttpBuildCache) {
-        url = 'https://example.com:8123/cache/'
-        push = isCiServer
-    }
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+
+/**
+ * Configuration of the resource normalization for the runtime classpath.
+ *
+ * @since 4.0
+ */
+@Incubating
+@HasInternalProtocol
+public interface RuntimeClasspathNormalization extends ResourceNormalization {
+    /**
+     * Ignore resources in classpath entries matching the pattern.
+     */
+    void ignore(String pattern);
 }
-// END SNIPPET developer-ci-setup

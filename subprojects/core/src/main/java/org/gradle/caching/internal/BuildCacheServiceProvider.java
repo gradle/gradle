@@ -66,6 +66,10 @@ public class BuildCacheServiceProvider {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheService>() {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
+                if (!startParameter.isBuildCacheEnabled()) {
+                    context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(null, null));
+                    return new NoOpBuildCacheService();
+                }
 
                 if(startParameter.isBuildCacheEnabled()) {
                     SingleMessageLogger.incubatingFeatureUsed("Build cache");
@@ -82,16 +86,15 @@ public class BuildCacheServiceProvider {
                     LOGGER.warn("Remote build cache is disabled when running with --offline.");
                 }
 
-                DescribedBuildCacheService localDescribedService = local != null
-                    ? createRawBuildCacheService(local, "local", localEnabled)
+                DescribedBuildCacheService localDescribedService = localEnabled
+                    ? createRawBuildCacheService(local, "local")
                     : null;
 
-                DescribedBuildCacheService remoteDescribedService = remote != null
-                    ? createRawBuildCacheService(remote, "remote", remoteEnabled)
+                DescribedBuildCacheService remoteDescribedService = remoteEnabled
+                    ? createRawBuildCacheService(remote, "remote")
                     : null;
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
-                    localEnabled || remoteEnabled,
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));
@@ -144,7 +147,7 @@ public class BuildCacheServiceProvider {
         return decoratedService;
     }
 
-    private <T extends BuildCache> DescribedBuildCacheService createRawBuildCacheService(final T configuration, String role, boolean enabled) {
+    private <T extends BuildCache> DescribedBuildCacheService createRawBuildCacheService(final T configuration, String role) {
         Class<? extends BuildCacheServiceFactory<T>> castFactoryType = Cast.uncheckedCast(
             buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
         );
@@ -152,11 +155,9 @@ public class BuildCacheServiceProvider {
         BuildCacheServiceFactory<T> factory = instantiator.newInstance(castFactoryType);
         Describer describer = new Describer();
         BuildCacheService service = factory.createBuildCacheService(configuration, describer);
-        BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams, enabled);
+        BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams);
 
-        if (enabled) {
-            logConfig(configuration, role, description);
-        }
+        logConfig(configuration, role, description);
 
         return new DescribedBuildCacheService(service, description);
     }
@@ -218,10 +219,10 @@ public class BuildCacheServiceProvider {
         private final String type;
         private final SortedMap<String, String> config;
 
-        private BuildCacheDescription(BuildCache buildCache, String type, Map<String, String> config, boolean enabled) {
+        private BuildCacheDescription(BuildCache buildCache, String type, Map<String, String> config) {
             this(
                 GeneratedSubclasses.unpack(buildCache.getClass()).getName(),
-                enabled,
+                buildCache.isEnabled(),
                 buildCache.isPush(),
                 type,
                 Collections.unmodifiableSortedMap(new TreeMap<String, String>(config))
