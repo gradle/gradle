@@ -23,6 +23,7 @@ import spock.lang.Subject
 
 @Subject(WorkInProgressRenderer)
 class WorkInProgressRendererTest extends OutputSpecification {
+    private static final String IDLE = "> IDLE"
     def listener = Mock(OutputEventListener)
     def console = new ConsoleStub();
     def metaData = Mock(ConsoleMetaData);
@@ -38,7 +39,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :bar"]
+        progressArea.display == ["> :bar", IDLE, IDLE, IDLE]
     }
 
     def "events are forwarded to the listener even if are ignored"() {
@@ -60,7 +61,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == []
+        progressArea.display == [IDLE, IDLE, IDLE, IDLE]
     }
 
     def "forward the event unmodified to the listener"() {
