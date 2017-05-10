@@ -16,21 +16,23 @@
 
 package org.gradle.api.resources.normalization.internal;
 
-import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
+import org.gradle.api.internal.changedetection.state.ResourceHasher;
+import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * Normalization strategy for the runtime classpath.
  */
 public class RuntimeClasspathNormalizationStrategy {
-    private final ImmutableSet<String> ignores;
+    private final ResourceHasher runtimeClasspathResourceHasher;
 
-    public RuntimeClasspathNormalizationStrategy(Collection<String> ignores) {
-        this.ignores = ImmutableSet.copyOf(ignores);
+    public RuntimeClasspathNormalizationStrategy(Set<String> ignores) {
+        this.runtimeClasspathResourceHasher = new IgnoringResourceHasher(ignores, new RuntimeClasspathResourceHasher());
     }
 
-    public ImmutableSet<String> getIgnores() {
-        return ignores;
+    public ResourceHasher getRuntimeClasspathResourceHasher() {
+        return runtimeClasspathResourceHasher;
     }
 }

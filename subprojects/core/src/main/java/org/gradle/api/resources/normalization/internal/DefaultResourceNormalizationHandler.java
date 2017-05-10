@@ -22,7 +22,7 @@ import org.gradle.api.resources.normalization.RuntimeClasspathNormalization;
 
 public class DefaultResourceNormalizationHandler implements ResourceNormalizationHandlerInternal {
     private final RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy;
-    private ResourceNormalizationStrategies finalStrategies;
+    private ResourceNormalizationStrategy finalStrategy;
 
     public DefaultResourceNormalizationHandler(RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
         this.runtimeClasspathNormalizationStrategy = runtimeClasspathNormalizationStrategy;
@@ -34,18 +34,18 @@ public class DefaultResourceNormalizationHandler implements ResourceNormalizatio
     }
 
     @Override
-    public synchronized void runtimeClasspath(Action<? super RuntimeClasspathNormalization> configuration) {
-        if (finalStrategies != null) {
+    public void runtimeClasspath(Action<? super RuntimeClasspathNormalization> configuration) {
+        if (finalStrategy != null) {
             throw new GradleException("Cannot configure resource normalization after execution started.");
         }
         configuration.execute(getRuntimeClasspath());
     }
 
     @Override
-    public synchronized ResourceNormalizationStrategies buildFinalStrategies() {
-        if (finalStrategies == null) {
-            finalStrategies = new ResourceNormalizationStrategies(runtimeClasspathNormalizationStrategy.buildFinalStrategy());
+    public ResourceNormalizationStrategy buildFinalStrategy() {
+        if (finalStrategy == null) {
+            finalStrategy = new ResourceNormalizationStrategy(runtimeClasspathNormalizationStrategy.buildFinalStrategy());
         }
-        return finalStrategies;
+        return finalStrategy;
     }
 }

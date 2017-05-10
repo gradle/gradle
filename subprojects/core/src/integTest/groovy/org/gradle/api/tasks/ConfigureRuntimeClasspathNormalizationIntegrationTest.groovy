@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 @Unroll
-class ConfigureRuntimeClasspathSnapshottingIntegrationTest extends AbstractIntegrationSpec {
+class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
     def "can ignore files on runtime classpath in #tree"() {
         def project = new ProjectWithRuntimeClasspathNormalization().withFilesIgnored()
 

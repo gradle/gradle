@@ -26,7 +26,7 @@ import java.util.zip.ZipEntry;
 /**
  * Hashes resources (e.g., a class file in a jar or a class file in a directory)
  */
-public interface ResourceHasher extends ConfigurableNormalizationStrategy, RegularFileHasher {
+public interface ResourceHasher extends ConfigurableNormalizer, RegularFileHasher {
     /**
      * Returns {@code null} if the zip entry should be ignored.
      */

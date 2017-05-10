@@ -24,7 +24,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.resources.normalization.internal.ResourceNormalizationHandlerInternal;
-import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategies;
+import org.gradle.api.resources.normalization.internal.ResourceNormalizationStrategy;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.File;
@@ -46,22 +46,22 @@ public class TaskUpToDateState {
                              FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ValueSnapshotter valueSnapshotter) {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
-        ResourceNormalizationStrategies resourceNormalizationStrategies = ((ResourceNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategies();
+        ResourceNormalizationStrategy resourceNormalizationStrategy = ((ResourceNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
 
         TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
         TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task.getPath(), task.getClass(), task.getActionClassLoaders(), classLoaderHierarchyHasher);
         TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task, valueSnapshotter);
 
         // Capture outputs state
-        TaskStateChanges outputFileChanges = caching(new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, outputFilesSnapshotter, resourceNormalizationStrategies));
+        TaskStateChanges outputFileChanges = caching(new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, outputFilesSnapshotter, resourceNormalizationStrategy));
 
         // Capture inputs state
-        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, resourceNormalizationStrategies);
+        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, resourceNormalizationStrategy);
         TaskStateChanges inputFileChanges = caching(directInputFileChanges);
         this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
 
         // Capture discovered inputs state from previous execution
-        DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution, fileCollectionSnapshotterRegistry, fileCollectionFactory, task, resourceNormalizationStrategies);
+        DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution, fileCollectionSnapshotterRegistry, fileCollectionFactory, task, resourceNormalizationStrategy);
         this.discoveredInputsListener = discoveredChanges;
         TaskStateChanges discoveredInputFilesChanges = caching(discoveredChanges);
 
