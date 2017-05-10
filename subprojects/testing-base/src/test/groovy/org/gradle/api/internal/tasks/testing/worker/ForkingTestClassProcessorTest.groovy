@@ -68,9 +68,9 @@ class ForkingTestClassProcessorTest extends Specification {
         processor.forkProcess()
 
         then:
-        10 * moduleRegistry.getModule(_) >> { module(it[0]) }
+        9 * moduleRegistry.getModule(_) >> { module(it[0]) }
         6 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
-        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 16 }
+        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 15 }
     }
 
     def module(String module) {

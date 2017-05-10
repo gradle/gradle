@@ -37,7 +37,7 @@ normalization {
 
 task wrapperBuildReceiptResource(type: Copy) {
     from {
-        project(':versionInfo').createBuildReceipt.outputs.files
+        tasks.getByPath(':createBuildReceipt').outputs.files
     }
     destinationDir = file("${generatedTestResourcesDir}")
 }

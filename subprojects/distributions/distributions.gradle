@@ -37,7 +37,6 @@ configurations {
 daemonIntegTest.enabled = false
 
 evaluationDependsOn ":docs"
-evaluationDependsOn ':versionInfo'
 
 ext {
     zipRootFolder = "gradle-$version"
@@ -113,7 +112,7 @@ task srcZip(type: Zip) {
 
 task outputsZip(type: Zip) {
     archiveName "outputs.zip"
-    from project(':versionInfo').createBuildReceipt
+    from tasks.getByPath(':createBuildReceipt')
     ["all", "bin", "src"].each { from(tasks["${it}Zip"]) }
 }
 
