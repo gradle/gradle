@@ -37,6 +37,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
+    private File checkstyleConfigDir;
 
     public CheckstyleExtension(Project project) {
         this.project = project;
@@ -79,6 +80,21 @@ public class CheckstyleExtension extends CodeQualityExtension {
 
     public void setConfigProperties(Map<String, Object> configProperties) {
         this.configProperties = configProperties;
+    }
+
+    /**
+     * Path to other Checkstyle configuration files. By default, this path is {@code $projectDir/config/checkstyle}
+     * <p>
+     * This path will be exposed as the variable {@code checkstyleConfigDir} in Checkstyle's configuration files.
+     * </p>
+     * @return path to other Checkstyle configuration files
+     */
+    public File getCheckstyleConfigDir() {
+        return checkstyleConfigDir;
+    }
+
+    public void setCheckstyleConfigDir(File checkstyleConfigDir) {
+        this.checkstyleConfigDir = checkstyleConfigDir;
     }
 
     /**

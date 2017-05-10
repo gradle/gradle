@@ -154,6 +154,14 @@ You can increase or decrease the size of the local build cache by configuring yo
 
 This is a _target_ size for the build cache. Gradle will periodically check if the local build cache has grown too large and trim it to below the target size. The least recently used build cache entries will be deleted first.
 
+### Checkstyle configuration directory conventions
+
+If you use additional configuration files with [Checkstyle](userguide/checkstyle_plugin.html), like `suppressions.xml`, these files need to be specified with an absolute path. Most projects use a variable like `config_loc` to build the path to these configuration files.
+ 
+Gradle now provides a `checkstyleConfigDir` variable that is available by default to use in your `checkstyle.xml`.  See the [sample](TODO) for more information.
+
+This change makes Checkstyle build cache friendly, so that your build does not need to depend on machine-specific paths and is more likely to keep track of all inputs to the Checkstyle task. 
+ 
 ### Parallel download of dependencies
 
 Gradle will now download dependencies from remote repositories in parallel (both metadata and artifacts). It will also make sure that if you build multiple projects in parallel (with `--parallel`) and that 2 projects try to download the same dependency at the same time, that dependency wouldn't be downloaded twice.
