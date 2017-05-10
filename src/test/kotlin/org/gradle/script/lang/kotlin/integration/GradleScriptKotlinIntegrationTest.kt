@@ -342,6 +342,14 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
             build(":sub-project:compute").output.contains("*42*"))
     }
 
+    @Test
+    fun `given non-existing build script file name set in settings do not fail`() {
+
+        withFile("settings.gradle", "rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
+
+        build("help")
+    }
+
     private
     val fixturesRepository: File
         get() = File("fixtures/repository").absoluteFile
