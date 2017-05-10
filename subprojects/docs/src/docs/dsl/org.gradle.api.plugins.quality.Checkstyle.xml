@@ -41,6 +41,10 @@
                 <td><literal>project.checkstyle.configProperties</literal></td>
             </tr>
             <tr>
+                <td>checkstyleConfigDir</td>
+                <td><literal>project.checkstyle.checkstyleConfigDir</literal></td>
+            </tr>
+            <tr>
                 <td>source</td>
                 <td><literal><replaceable>sourceSet</replaceable>.allJava</literal></td>
             </tr>

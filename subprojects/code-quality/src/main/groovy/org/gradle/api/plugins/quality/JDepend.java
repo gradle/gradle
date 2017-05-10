@@ -54,6 +54,8 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
 
     /**
      * The directories containing the classes to be analyzed.
+     *
+     * @since 4.0
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles

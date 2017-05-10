@@ -897,6 +897,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return All test class directories to be used.
      */
+    @Deprecated
     @Internal
     public File getTestClassesDir() {
         SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
@@ -911,6 +912,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @param testClassesDir The root folder
      */
+    @Deprecated
     public void setTestClassesDir(File testClassesDir) {
         SingleMessageLogger.nagUserOfReplacedMethod("setTestClassesDir(File)", "setTestClassesDirs(FileCollection)");
         setTestClassesDirs(getProject().files(testClassesDir));
@@ -920,6 +922,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Returns the directories for the compiled test sources.
      *
      * @return All test class directories to be used.
+     * @since 4.0
      */
     @Internal
     public FileCollection getTestClassesDirs() {
@@ -930,6 +933,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Sets the directories to scan for compiled test sources.
      *
      * @param testClassesDirs All test class directories to be used.
+     * @since 4.0
      */
     public void setTestClassesDirs(FileCollection testClassesDirs) {
         this.testClassesDirs = testClassesDirs;

@@ -19,6 +19,9 @@ package org.gradle.internal.logging.console;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.util.GUtil;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ProgressOperation {
 
     private final String shortDescription;
@@ -26,6 +29,7 @@ public class ProgressOperation {
     private final String category;
     private final OperationIdentifier operationId;
     private ProgressOperation parent;
+    private final Set<ProgressOperation> children = new HashSet<ProgressOperation>();
 
     public ProgressOperation(String shortDescription, String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
         this.shortDescription = shortDescription;
@@ -59,5 +63,9 @@ public class ProgressOperation {
 
     public ProgressOperation getParent() {
         return parent;
+    }
+
+    public Set<ProgressOperation> getChildren() {
+        return children;
     }
 }

@@ -42,8 +42,6 @@ if (finalRelease) {
     version += "-$buildTimestamp"
 }
 
-ext.testedVersion = isSnapshot ? "${baseVersion}-snapshot-1" : version
-
 if (buildTypes.promotionBuild.active) {
-    logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot, tested version: $testedVersion)"
+    logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot)"
 }

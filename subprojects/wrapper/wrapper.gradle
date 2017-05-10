@@ -29,14 +29,17 @@ ext {
     wrapperBuildReceipt = "build-receipt.properties"
 }
 
-task wrapperBuildReceiptResource() {
-    ext.destinationFile = file("${generatedTestResourcesDir}/${wrapperBuildReceipt}")
-    inputs.property("versionNumber") { testedVersion }
-    outputs.file(destinationFile)
-    doLast {
-        destinationFile.parentFile.mkdirs()
-        destinationFile.text = "versionNumber=${testedVersion}"
+normalization {
+    runtimeClasspath {
+        ignore wrapperBuildReceipt
     }
+}
+
+task wrapperBuildReceiptResource(type: Copy) {
+    from {
+        project(':versionInfo').createBuildReceipt.outputs.files
+    }
+    destinationDir = file("${generatedTestResourcesDir}")
 }
 sourceSets.test.output.dir generatedTestResourcesDir, builtBy: wrapperBuildReceiptResource
 

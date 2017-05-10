@@ -16,10 +16,6 @@
 
 import org.gradle.internal.os.OperatingSystem
 
-configurations {
-    testVersionInfo
-}
-
 task determineCommitId {
     ext.commitId = null
 
@@ -111,50 +107,10 @@ task createBuildReceipt(type: org.gradle.build.BuildReceipt) {
     destinationDir = file("${rootProject.buildDir}")
 }
 
-task createTestBuildReceipt(type: org.gradle.build.BuildReceipt) {
-    destinationDir = file("$generatedTestResourcesDir/org/gradle")
-    versionNumber = rootProject.testedVersion
-    baseVersion = rootProject.baseVersion
-    snapshot = rootProject.isSnapshot
-}
-// For IDE support we add the build-receipt to a directory with the right package layout
-sourceSets.test.output.dir generatedTestResourcesDir, builtBy: createTestBuildReceipt
-
 ext.buildReceiptPackage = '/org/gradle/'
 
-def libsDir = convention.getPlugin(BasePluginConvention).libsDir
 jar {
-    destinationDir = file("${libsDir}/prod")
     from(createBuildReceipt) {
         into buildReceiptPackage
-    }
-}
-
-task testVersionInfoJar(type: Jar) {
-    destinationDir = file("${libsDir}/test")
-    from(createTestBuildReceipt) {
-        into buildReceiptPackage
-    }
-    from classpathManifest
-}
-
-artifacts {
-    testVersionInfo testVersionInfoJar
-}
-
-idea {
-    module {
-        iml {
-            whenMerged { module ->
-                def testBuildReceipt = module.dependencies.find {
-                    it instanceof org.gradle.plugins.ide.idea.model.ModuleLibrary &&
-                        it.classes.any {
-                            it.url.contains('/build/generated-resources/test')
-                        }
-                }
-                // We need to have the test build receipt available for all tests. For IDEA we add it to the runtime classpath
-                testBuildReceipt.scope = 'RUNTIME'
-            }
-        }
     }
 }

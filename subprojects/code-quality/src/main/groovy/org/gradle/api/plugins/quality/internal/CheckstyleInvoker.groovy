@@ -40,6 +40,7 @@ abstract class CheckstyleInvoker {
         def logger = checkstyleTask.logger
         def config = checkstyleTask.config
         def xmlDestination = reports.xml.destination
+        def checkstyleConfigDir = checkstyleTask.checkstyleConfigDir
 
         if (isHtmlReportEnabledOnly(reports)) {
             xmlDestination = new File(checkstyleTask.temporaryDir, reports.xml.destination.name)
@@ -64,6 +65,12 @@ abstract class CheckstyleInvoker {
 
                 if (reports.xml.enabled || reports.html.enabled) {
                     formatter(type: 'xml', toFile: xmlDestination)
+                }
+
+                if (checkstyleConfigDir) {
+                    def checkstyleConfigDirStr = checkstyleConfigDir.toString()
+                    property(key: "checkstyleConfigDir", value: checkstyleConfigDirStr)
+                    property(key: "config_loc", value: checkstyleConfigDirStr)
                 }
 
                 configProperties.each { key, value ->

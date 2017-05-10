@@ -30,7 +30,8 @@ configurations.codenarc.resolutionStrategy.force(libraries.groovy)
 plugins.withType(GroovyBasePlugin) {
     sourceSets.all { sourceSet ->
         task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
-            configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
+            // TODO: Remove this once we've updated to a new nightly
+            configFile = new File(project.checkstyleConfigDir, "checkstyle-groovy.xml")
             source sourceSet.allGroovy
             classpath = sourceSet.compileClasspath
             reports.xml.destination new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
