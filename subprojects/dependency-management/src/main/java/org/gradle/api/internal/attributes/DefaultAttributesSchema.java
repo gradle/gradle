@@ -133,7 +133,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested) {
-            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(candidate, requested);
+            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
             effectiveSchema.matchValue(attribute, result);
             return result.isCompatible();
         }
@@ -160,7 +160,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+        public void disambiguate(Attribute<?> attribute, Object requested, MultipleCandidatesResult<Object> result) {
+            if (requested != null && result.getCandidateValues().contains(requested)) {
+                result.closestMatch(requested);
+                return;
+            }
+
             DisambiguationRule<Object> rules = disambiguationRules(attribute);
             rules.execute(result);
             if (result.hasResult()) {

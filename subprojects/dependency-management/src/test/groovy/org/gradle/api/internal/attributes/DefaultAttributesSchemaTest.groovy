@@ -68,7 +68,7 @@ class DefaultAttributesSchemaTest extends Specification {
         }
     }
 
-    def "is eventually incompatible by default when no rule expresses an opinion"() {
+    def "is incompatible when no rule expresses an opinion"() {
         given:
         def attribute = Attribute.of(String)
         schema.attribute(attribute).compatibilityRules.add(DoNothingRule)
@@ -127,7 +127,7 @@ class DefaultAttributesSchemaTest extends Specification {
         void execute(CompatibilityCheckDetails<Map> details) {
             def producerValue = details.producerValue
             def consumerValue = details.consumerValue
-            if (producerValue.size() == consumerValue.size()) {
+            if (producerValue.size() > consumerValue.size()) {
                 // arbitrary, just for testing purposes
                 details.compatible()
             }
@@ -149,25 +149,25 @@ class DefaultAttributesSchemaTest extends Specification {
             it.compatibilityRules.add(CustomCompatibilityRule)
         }
 
-        def value1 = [a: 'foo', b: 'bar']
-        def value2 = [c: 'foo', d: 'bar']
+        def consumerValue = [a: 'foo', b: 'bar']
+        def producerValue = [c: 'foo', d: 'bar', e: 'nothing']
 
         expect:
-        def checkDetails = new DefaultCompatibilityCheckResult<Map>(value1, value2)
+        def checkDetails = new DefaultCompatibilityCheckResult<Map>(consumerValue, producerValue)
         schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, checkDetails)
         checkDetails.isCompatible()
 
-        schema.matcher().isMatching(attr, value1, value2)
+        schema.matcher().isMatching(attr, producerValue, consumerValue)
     }
 
-    def "selects all candidates when no disambiguation rules"() {
-        def attr = Attribute.of(Map)
+    def "selects requested value when it is one of the candidate values"() {
+        def attr = Attribute.of(String)
 
         given:
         schema.attribute(attr)
 
-        def value1 = [a: 'foo', b: 'bar']
-        def value2 = [c: 'foo', d: 'bar']
+        def value1 = 'foo'
+        def value2 = 'bar'
 
         def best = []
         def candidates = LinkedListMultimap.create()
@@ -176,7 +176,29 @@ class DefaultAttributesSchemaTest extends Specification {
         def candidateDetails = new DefaultCandidateResult(candidates, best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, 'bar', candidateDetails)
+
+        then:
+        best == ["item2"]
+    }
+
+    def "selects all candidates when no disambiguation rules and requested is not one of the candidate values"() {
+        def attr = Attribute.of(String)
+
+        given:
+        schema.attribute(attr)
+
+        def value1 = 'foo'
+        def value2 = 'bar'
+
+        def best = []
+        def candidates = LinkedListMultimap.create()
+        candidates.put(value1, "item1")
+        candidates.put(value2, "item2")
+        def candidateDetails = new DefaultCandidateResult(candidates, best)
+
+        when:
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, 'other', candidateDetails)
 
         then:
         best == ["item1", "item2"]
@@ -200,7 +222,7 @@ class DefaultAttributesSchemaTest extends Specification {
         def candidateDetails = new DefaultCandidateResult(candidates, best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, [requested: 'abc'], candidateDetails)
 
         then:
         best == ["item1"]
@@ -223,5 +245,20 @@ class DefaultAttributesSchemaTest extends Specification {
         merged.hasAttribute(attr1)
         merged.hasAttribute(attr2)
         merged.hasAttribute(attr3)
+    }
+
+    def "uses the producers compatibility rules when the consumer does not express an opinion"() {
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+
+        def attr = Attribute.of("a", Map)
+
+        schema.attribute(attr)
+        producer.attribute(attr).compatibilityRules.add(CustomCompatibilityRule)
+
+        expect:
+        def merged = schema.mergeWith(producer)
+        def result = new DefaultCompatibilityCheckResult<Object>([a: 'value'], [a: 'value', b: 'value'])
+        merged.matchValue(attr, result)
+        result.compatible
     }
 }

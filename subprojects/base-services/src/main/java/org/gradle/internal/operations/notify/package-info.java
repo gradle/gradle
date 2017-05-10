@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
-
-import org.gradle.api.Nullable;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.CompatibilityCheckResult;
-import org.gradle.api.internal.attributes.MultipleCandidatesResult;
-
-public interface AttributeSelectionSchema {
-    boolean hasAttribute(Attribute<?> attribute);
-
-    void disambiguate(Attribute<?> attribute, @Nullable Object requested, MultipleCandidatesResult<Object> result);
-
-    void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result);
-}
+/**
+ * This package forms the basic contract between the build scan plugin
+ * and Gradle with regard to observing build operations.
+ *
+ * It has no dependencies to types outside of this package other than JDK types.
+ *
+ * Only binary compatible changes, from the caller's perspective,
+ * can be made to these types.
+ *
+ * It can be assumed that only Gradle implements these interfaces,
+ * except for {@link org.gradle.internal.operations.notify.BuildOperationNotificationListener}
+ * which is implemented by the build scan plugin.
+ */
+package org.gradle.internal.operations.notify;

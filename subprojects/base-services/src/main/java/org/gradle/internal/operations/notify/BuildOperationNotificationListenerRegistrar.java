@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.internal.operations.notify;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.CompatibilityCheckResult;
-import org.gradle.api.internal.attributes.MultipleCandidatesResult;
+/**
+ * Obtained by the build scan plugin via the root project's service registry.
+ * A single listener is registered.
+ *
+ * The listener is to be discarded after the build has completed.
+ *
+ * @since 4.0
+ */
+public interface BuildOperationNotificationListenerRegistrar {
 
-public interface AttributeSelectionSchema {
-    boolean hasAttribute(Attribute<?> attribute);
+    void registerBuildScopeListener(BuildOperationNotificationListener listener);
 
-    void disambiguate(Attribute<?> attribute, @Nullable Object requested, MultipleCandidatesResult<Object> result);
-
-    void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result);
 }

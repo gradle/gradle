@@ -93,8 +93,15 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-            if (listener.requireArtifactFiles() && !isFromIncludedBuild(artifact))  {
-                actions.add(new DownloadArtifactFile(artifact, this, listener));
+            if (listener.requireArtifactFiles())  {
+                if (isFromIncludedBuild(artifact)) {
+                    // Cannot currently build these artifacts asynchronously due to various locking problems
+                    // Build it now instead
+                    new DownloadArtifactFile(artifact, this, listener).run(null);
+                } else {
+                    // Resolve it later
+                    actions.add(new DownloadArtifactFile(artifact, this, listener));
+                }
             }
             return this;
         }

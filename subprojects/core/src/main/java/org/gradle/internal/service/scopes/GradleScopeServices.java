@@ -68,6 +68,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.buildids.BuildIds;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationNotificationBridge;
+import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
+import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -190,6 +193,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, GradleInternal gradle, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         return new DefaultBuildOutputCleanupCache(cacheRepository, gradle, buildOutputDeleter, buildOutputCleanupRegistry);
+    }
+
+    BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationService buildOperationService) {
+        return new BuildOperationNotificationBridge(buildOperationService);
+    }
+
+    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(BuildOperationNotificationBridge bridge) {
+        return bridge.notificationListenerRegistrar();
     }
 
     @Override

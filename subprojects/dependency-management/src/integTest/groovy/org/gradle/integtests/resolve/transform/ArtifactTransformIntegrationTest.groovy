@@ -907,14 +907,10 @@ Found the following transforms:
         buildFile << """
             project(':lib') {
                 projectDir.mkdirs()
-                def txt = file('lib.size')
-                txt.text = 'some text'
                 def jar = file('lib.jar')
                 jar.text = 'some text'
 
-                dependencies {
-                    compile files(txt, jar)
-                }
+                artifacts { compile jar }
             }
 
             project(':app') {
@@ -934,11 +930,15 @@ Found the following transforms:
                     }
                 }
                 ext.checkArtifacts = { artifacts ->
-                    assert artifacts.collect { it.id.displayName } == ['lib.size', 'lib.jar.txt (lib.jar)']
-                    assert artifacts.collect { it.file.name } == ['lib.size', 'lib.jar.txt']
+                    assert artifacts.collect { it.id.displayName } == ['lib.jar.txt (project :lib)']
+                    assert artifacts.collect { it.file.name } == ['lib.jar.txt']
+                }
+                ext.checkLegacyArtifacts = { artifacts ->
+                    assert artifacts.collect { it.id.displayName } == ['lib.jar.txt (project :lib)']
+                    assert artifacts.collect { it.file.name } == ['lib.jar.txt']
                 }
                 ext.checkFiles = { config ->
-                    assert config.collect { it.name } == ['lib.size', 'lib.jar.txt']
+                    assert config.collect { it.name } == ['lib.jar.txt']
                 }
                 task resolve {
                     doLast {
@@ -954,7 +954,11 @@ Found the following transforms:
                         checkFiles configurations.compile.resolvedConfiguration.getFiles { true }
                         checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }
 
+                        checkLegacyArtifacts configurations.compile.resolvedConfiguration.resolvedArtifacts
+                        checkLegacyArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts
+
                         checkArtifacts configurations.compile.incoming.artifacts
+                        checkArtifacts configurations.compile.incoming.artifactView { }.artifacts
                     }
                 }
             }
