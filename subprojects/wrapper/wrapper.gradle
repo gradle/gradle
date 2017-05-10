@@ -29,6 +29,12 @@ ext {
     wrapperBuildReceipt = "build-receipt.properties"
 }
 
+normalization {
+    runtimeClasspath {
+        ignore wrapperBuildReceipt
+    }
+}
+
 task wrapperBuildReceiptResource(type: Copy) {
     from {
         project(':versionInfo').createBuildReceipt.outputs.files

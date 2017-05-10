@@ -228,7 +228,7 @@ allprojects {
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
     normalization {
         runtimeClasspath {
-            ignore '**/build-receipt.properties'
+            ignore 'org/gradle/build-receipt.properties'
         }
     }
 }
