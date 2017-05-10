@@ -21,7 +21,7 @@ package org.gradle.api.internal.changedetection.state;
  *
  * @param <T>
  */
-public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
+public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot, Isolatable<T> {
     private final T value;
 
     public AbstractScalarValueSnapshot(T value) {
@@ -30,6 +30,10 @@ public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
 
     public T getValue() {
         return value;
+    }
+
+    public T isolate() {
+        return getValue();
     }
 
     @Override
