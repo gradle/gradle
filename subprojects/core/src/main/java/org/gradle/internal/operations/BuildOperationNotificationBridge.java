@@ -107,7 +107,7 @@ public class BuildOperationNotificationBridge implements Stoppable {
                 return;
             }
 
-            Finished notification = new Finished(buildOperation.getId(), finishEvent.getResult(), finishEvent.getFailure());
+            Finished notification = new Finished(buildOperation.getId(), finishEvent.getResult(), finishEvent.getFailure(), buildOperation.getDetails());
             try {
                 listener.finished(notification);
             } catch (Exception e) {
@@ -153,11 +153,13 @@ public class BuildOperationNotificationBridge implements Stoppable {
         private final Object id;
         private final Object result;
         private final Throwable failure;
+        private final Object details;
 
-        private Finished(Object id, Object result, Throwable failure) {
+        private Finished(Object id, Object result, Throwable failure, Object details) {
             this.id = id;
             this.result = result;
             this.failure = failure;
+            this.details = details;
         }
 
         @Override
@@ -176,8 +178,17 @@ public class BuildOperationNotificationBridge implements Stoppable {
         }
 
         @Override
+        public Object getNotificationOperationDetails() {
+            return details;
+        }
+
+        @Override
         public String toString() {
-            return "BuildOperationFinishedNotification{id=" + id + ", result=" + result + '}';
+            return "Finished{"
+                + "id=" + id
+                + ", result=" + result
+                + ", details=" + details
+                + '}';
         }
     }
 
