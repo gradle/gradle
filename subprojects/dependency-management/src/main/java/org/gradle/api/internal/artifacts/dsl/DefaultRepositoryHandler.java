@@ -85,6 +85,10 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME);
     }
 
+    public MavenArtifactRepository google() {
+        return addRepository(repositoryFactory.createGoogleRepository(), GOOGLE_URL);
+    }
+
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {
         return addRepository(repositoryFactory.createMavenRepository(), MAVEN_REPO_DEFAULT_NAME, action);
     }
