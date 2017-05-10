@@ -39,7 +39,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :bar", IDLE, IDLE, IDLE]
+        progressArea.display == ["> :bar"]
     }
 
     def "events are forwarded to the listener even if are not rendered"() {
@@ -61,7 +61,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == [IDLE, IDLE, IDLE, IDLE]
+        progressArea.display == []
     }
 
     def "forward the event unmodified to the listener"() {

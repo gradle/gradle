@@ -57,7 +57,7 @@ class ConsoleFunctionalTest extends Specification {
         then:
         ConcurrentTestUtil.poll(1) {
             assert statusBar.display == '<---> 0% INITIALIZING [0s]'
-            assert progressArea.display == [IDLE]
+            assert progressArea.display == []
         }
     }
 
@@ -289,7 +289,7 @@ class ConsoleFunctionalTest extends Specification {
 
         then:
         ConcurrentTestUtil.poll(1, 0.1) {
-            assert progressArea.display == [IDLE]
+            assert progressArea.display == []
         }
     }
 
