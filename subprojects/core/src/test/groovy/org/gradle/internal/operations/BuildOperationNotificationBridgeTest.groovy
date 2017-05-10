@@ -67,7 +67,6 @@ class BuildOperationNotificationBridgeTest extends Specification {
         def d1 = BuildOperationDescriptor.displayName("a").details([:] as BuildOperationDetails).build(1, null)
         def d2 = BuildOperationDescriptor.displayName("a").build(2, null)
         def d3 = BuildOperationDescriptor.displayName("a").details([:] as BuildOperationDetails).build(3, null)
-        def d4 = BuildOperationDescriptor.displayName("a").details([:] as BuildOperationDetails).build(4, null)
         def e1 = new Exception()
 
         when:
@@ -97,6 +96,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
             assert n.notificationOperationId == d1.id
             assert n.notificationOperationResult == 10
             assert n.notificationOperationFailure == null
+            assert n.notificationOperationDetails.is(d1.details)
         }
 
         // operation with no details
@@ -131,6 +131,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
             assert n.notificationOperationId == d3.id
             assert n.notificationOperationResult == null
             assert n.notificationOperationFailure == null
+            assert n.notificationOperationDetails.is(d3.details)
         }
 
 
@@ -152,6 +153,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
             assert n.notificationOperationId == d3.id
             assert n.notificationOperationResult == null
             assert n.notificationOperationFailure == e1
+            assert n.notificationOperationDetails.is(d3.details)
         }
     }
 
