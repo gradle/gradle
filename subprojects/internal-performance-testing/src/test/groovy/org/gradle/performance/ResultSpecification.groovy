@@ -38,6 +38,7 @@ abstract class ResultSpecification extends Specification {
         results.gradleOpts = []
         results.daemon = false
         results.operatingSystem = "some os"
+        results.host = "me"
         results.jvm = "java 6"
         results.versionUnderTest = "1.7-rc-1"
         results.vcsBranch = "master"
@@ -54,6 +55,7 @@ abstract class ResultSpecification extends Specification {
                 jvm: "java 7",
                 versionUnderTest: "Gradle 1.0",
                 operatingSystem: "windows",
+                host: "me",
                 startTime: 100,
                 vcsBranch: "master",
                 vcsCommits: ["abcdef"],
@@ -70,6 +72,7 @@ abstract class ResultSpecification extends Specification {
                 jvm: "java 7",
                 versionUnderTest: "Gradle 1.0",
                 operatingSystem: "windows",
+                host: "me",
                 startTime: 100,
                 vcsBranch: "master",
                 vcsCommits: ["abcdef"]

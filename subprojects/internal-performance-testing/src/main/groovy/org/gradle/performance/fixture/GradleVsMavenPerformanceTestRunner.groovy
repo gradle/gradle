@@ -116,6 +116,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
             testId: testId,
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
+            host: InetAddress.getLocalHost().getHostName(),
             operatingSystem: OperatingSystem.current().toString(),
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,

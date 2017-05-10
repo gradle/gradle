@@ -198,6 +198,11 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
         }
 
         @Override
+        public String getHost() {
+            return result.getHost();
+        }
+
+        @Override
         public String getJvm() {
             return result.getJvm();
         }

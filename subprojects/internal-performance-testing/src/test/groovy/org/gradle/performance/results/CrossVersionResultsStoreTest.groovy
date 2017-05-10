@@ -39,6 +39,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
                 gradleOpts: ["--opt-1", "--opt-2"],
                 daemon: true,
                 operatingSystem: "some-os",
+                host: "me",
                 jvm: "java 6",
                 startTime: now + 10000,
                 versionUnderTest: "1.7-rc-1",
@@ -105,6 +106,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].gradleOpts == ["--opt-1", "--opt-2"]
         results[0].daemon
         results[0].operatingSystem == "some-os"
+        results[0].host == "me"
         results[0].jvm == "java 6"
         results[0].startTime == now + 10000
         results[0].versionUnderTest == '1.7-rc-1'
