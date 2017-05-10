@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,5 +57,13 @@ public class PreviousCompilation {
     public DependentsSet getDependents(String className, Set<Integer> newConstants) {
         Set<Integer> constants = Sets.difference(analysis.getData().getConstants(className), newConstants);
         return analysis.getRelevantDependents(className, constants);
+    }
+
+    public Map<File, JarSnapshot> getJarSnapshots() {
+        if (jarSnapshots == null) {
+            JarClasspathSnapshotData data = classpathSnapshotStore.get();
+            jarSnapshots = jarSnapshotCache.getJarSnapshots(data.getJarHashes());
+        }
+        return Collections.unmodifiableMap(jarSnapshots);
     }
 }

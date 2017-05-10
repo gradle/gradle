@@ -292,7 +292,7 @@ project(':lib') {
                     }
                     var3 {
                         artifact file('a3.jar')
-                        attributes.attribute(buildType, 'debug')
+                        attributes.attribute(buildType, 'profile')
                         attributes.attribute(flavor, 'bland')
                     }
                 }

@@ -47,7 +47,7 @@ public class ServiceRegistryBuilder {
     }
 
     public ServiceRegistry build() {
-        DefaultServiceRegistry registry = new DefaultServiceRegistry(displayName, parents);
+        DefaultServiceRegistry registry = new DefaultServiceRegistry(displayName, parents.toArray(new ServiceRegistry[0]));
         for (Object provider : providers) {
             registry.addProvider(provider);
         }

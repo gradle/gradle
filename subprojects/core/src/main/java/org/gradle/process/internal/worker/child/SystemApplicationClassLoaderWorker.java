@@ -157,8 +157,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     }
 
     private static class WorkerServices extends DefaultServiceRegistry {
-        public WorkerServices(ServiceRegistry... parents) {
-            super(parents);
+        public WorkerServices(ServiceRegistry parent) {
+            super(parent);
         }
 
         ListenerManager createListenerManager() {

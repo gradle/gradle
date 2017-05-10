@@ -19,5 +19,5 @@ package org.gradle.api.resources.normalization.internal;
 import org.gradle.api.resources.normalization.ResourceNormalizationHandler;
 
 public interface ResourceNormalizationHandlerInternal extends ResourceNormalizationHandler {
-    ResourceNormalizationStrategies buildFinalStrategies();
+    ResourceNormalizationStrategy buildFinalStrategy();
 }

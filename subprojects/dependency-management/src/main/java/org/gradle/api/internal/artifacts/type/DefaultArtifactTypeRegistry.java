@@ -65,7 +65,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         ImmutableAttributes attributes = variant.getAttributes().asImmutable();
 
         // Add attributes to be applied given the extension
-        if (artifactTypeDefinitions != null) {
+        if (artifactTypeDefinitions != null && variant.getAttributes().isEmpty()) {
             String extension = null;
             for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
                 String candidateExtension = artifact.getName().getExtension();

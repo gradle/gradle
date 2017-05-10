@@ -20,7 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * Contains the set of known artifact types and related meta-data.
+ * Defines a set of known artifact types and related meta-data. This allows you to fine tune how dependency resolution handles artifacts of a specific type.
+ *
+ * Each entry in this container defines a particular artifact type, such as a JAR or an AAR, and some information about that artifact type.
  *
  * @since 4.0
  */

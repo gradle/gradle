@@ -17,6 +17,7 @@ package org.gradle.initialization.layout;
 
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.FileUtils;
 
 import java.io.File;
 
@@ -67,6 +68,6 @@ public class BuildLayoutFactory {
     }
 
     private BuildLayout layout(File rootDir, File settingsDir, File settingsFile) {
-        return new BuildLayout(rootDir, settingsDir, settingsFile);
+        return new BuildLayout(rootDir, settingsDir, FileUtils.canonicalize(settingsFile));
     }
 }

@@ -64,6 +64,7 @@ class BuildSessionScopeServicesTest extends Specification {
         parent.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         parent.get(FileResolver) >> Stub(FileResolver)
         parent.get(OutputEventListener) >> Stub(OutputEventListener)
+        parent.hasService(_) >> true
     }
 
     def "provides a DeploymentRegistry"() {

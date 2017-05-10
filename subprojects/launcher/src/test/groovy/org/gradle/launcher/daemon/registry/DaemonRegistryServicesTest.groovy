@@ -36,6 +36,7 @@ class DaemonRegistryServicesTest extends Specification {
     def parent = Mock(ServiceRegistry) {
         get(FileLockManager) >> new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler))
         get(Chmod) >> Stub(Chmod)
+        hasService(_) >> true
     }
 
     def registry(baseDir) {
