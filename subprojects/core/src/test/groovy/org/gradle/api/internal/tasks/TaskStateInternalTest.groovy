@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.GradleException
@@ -39,7 +35,7 @@ class TaskStateInternalTest {
         assertThat(state.getSkipMessage(), nullValue())
         assertFalse(state.upToDate)
         assertFalse(state.taskOutputCaching.enabled)
-        assertFalse(state.actionsWereExecuted)
+        assertTrue(state.actionable)
     }
 
     @Test

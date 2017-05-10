@@ -26,7 +26,8 @@ import org.gradle.api.tasks.TaskState;
 public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements BuildListener, TaskExecutionListener {
     private final TaskExecutionStatisticsListener listener;
     private int executedTasksCount;
-    private int avoidedTasksCount;
+    private int fromCacheTaskCount;
+    private int upToDateTaskCount;
 
     public TaskExecutionStatisticsEventAdapter(TaskExecutionStatisticsListener listener) {
         this.listener = listener;
@@ -36,7 +37,7 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
     public void buildFinished(BuildResult result) {
         // Do not report stats for nested builds
         if (result.getGradle().getParent() == null) {
-            listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, avoidedTasksCount));
+            listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, fromCacheTaskCount, upToDateTaskCount));
         }
     }
 
@@ -49,10 +50,21 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
     public void afterExecute(Task task, TaskState state) {
         if (!taskIsForNestedBuild(task)) {
             TaskStateInternal stateInternal = (TaskStateInternal) state;
-            if (stateInternal.isAvoided()) {
-                avoidedTasksCount++;
-            } else if (stateInternal.isActionsWereExecuted()) {
-                executedTasksCount++;
+            if (stateInternal.isActionable()) {
+                switch (stateInternal.getOutcome()) {
+                    case EXECUTED:
+                        executedTasksCount++;
+                        break;
+                    case FROM_CACHE:
+                        fromCacheTaskCount++;
+                        break;
+                    case UP_TO_DATE:
+                        upToDateTaskCount++;
+                        break;
+                    default:
+                        // Ignore any other outcome
+                        break;
+                }
             }
         }
     }

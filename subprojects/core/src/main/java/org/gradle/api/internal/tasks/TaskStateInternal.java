@@ -131,12 +131,8 @@ public class TaskStateInternal implements TaskState {
         return outcome == TaskExecutionOutcome.FROM_CACHE;
     }
 
-    public boolean isAvoided() {
-        return actionable && getUpToDate();
-    }
-
-    public boolean isActionsWereExecuted() {
-        return actionable && outcome == TaskExecutionOutcome.EXECUTED;
+    public boolean isActionable() {
+        return actionable;
     }
 
     public void setActionable(boolean actionable) {
