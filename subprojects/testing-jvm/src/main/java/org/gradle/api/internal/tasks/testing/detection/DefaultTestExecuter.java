@@ -110,7 +110,7 @@ public class DefaultTestExecuter implements TestExecuter {
     private int getMaxParallelForks(Test testTask) {
         int maxParallelForks = testTask.getMaxParallelForks();
         if (maxParallelForks > maxWorkerCount) {
-            LOGGER.warn("{}.maxParallelForks ({}) is larger than max-workers ({}), forcing it to {}", testTask.getName(), maxParallelForks, maxWorkerCount, maxWorkerCount);
+            LOGGER.info("{}.maxParallelForks ({}) is larger than max-workers ({}), forcing it to {}", testTask.getName(), maxParallelForks, maxWorkerCount, maxWorkerCount);
             maxParallelForks = maxWorkerCount;
         }
         return maxParallelForks;
