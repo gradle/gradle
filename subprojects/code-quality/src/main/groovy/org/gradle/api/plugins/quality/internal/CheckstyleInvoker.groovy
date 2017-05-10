@@ -69,7 +69,6 @@ abstract class CheckstyleInvoker {
 
                 if (checkstyleConfigDir) {
                     def checkstyleConfigDirStr = checkstyleConfigDir.toString()
-                    property(key: "checkstyleConfigDir", value: checkstyleConfigDirStr)
                     property(key: "config_loc", value: checkstyleConfigDirStr)
                 }
 

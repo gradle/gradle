@@ -118,7 +118,7 @@
         <section id="sec:checkstyle_built_in_variables">
             <title>Built-in variables</title>
             <para>
-                The Checkstyle plugin defines a <literal>checkstyleConfigDir</literal> and <literal>config_loc</literal> property that can be used in Checkstyle configuration files to define paths to other configuration files like <filename>suppressions.xml</filename>.
+                The Checkstyle plugin defines a <literal>config_loc</literal> property that can be used in Checkstyle configuration files to define paths to other configuration files like <filename>suppressions.xml</filename>.
             </para>
             <sample id="useConfigLoc" dir="codeQuality" title="Using the config_loc property">
                 <sourcefile file="config/checkstyle/checkstyle.xml" snippet="use-config-loc"/>
