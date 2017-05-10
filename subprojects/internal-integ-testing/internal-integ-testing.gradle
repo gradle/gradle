@@ -32,7 +32,6 @@ dependencies {
     compile libraries.jsch
     compile libraries.jcifs
     runtime project(':logging')
-    runtime project(path: ':versionInfo', configuration: 'testVersionInfo')
 }
 
 useTestFixtures(sourceSet: 'main')
