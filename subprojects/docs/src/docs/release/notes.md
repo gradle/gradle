@@ -287,21 +287,6 @@ You can upgrade or downgrade the version of PMD with:
         toolVersion = '5.5.1'
     }
 
-### Custom build cache service description
-
-The factory method used to create custom build cache services in `BuildCacheServiceFactory` now receives a `Describer` parameter. The custom service factory has to use this to declare the type of the service, and any config parameters that are relevant to the build cache service being created. With this change `BuildCacheService.getDescription()` is also removed.
-
-```java
-public class InMemoryBuildCacheServiceFactory implements BuildCacheServiceFactory<InMemoryBuildCache> {
-    @Override
-    public BuildCacheService createBuildCacheService(InMemoryBuildCache config, Describer describer) {
-        int maxSize = config.getMaxSize();
-        describer.type("in-memory").config("size", String.valueOf(maxSize));
-        return new InMemoryBuildCacheService(maxSize);
-    }
-}
-```
-
 ### Changes to previously deprecated APIs
 
 - The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
@@ -365,8 +350,22 @@ This only affects custom build cache connector implementations.
 It does not affect usage of the build cache connectors that ship with Gradle.
 
 Previously, the `BuildCacheService` was responsible for providing a `getDescription()` method that returned a human friendly description of the cache.
-This responsibility has been moved to the associated `BuildCacheServiceFactory` implementation,
-that now receives an additional argument that can be used to supply a more structured description of the build cache.
+This responsibility has been moved to the associated `BuildCacheServiceFactory` implementation, that now receives a `Describer` parameter. 
+The custom service factory can use this to declare the type of the service and configuration parameters that are relevant to the build cache connector being created. 
+`getDescription()` has been removed.
+
+An example of the factory method used to create a custom build cache connector with a `BuildCacheServiceFactory`: 
+
+```java
+public class InMemoryBuildCacheServiceFactory implements BuildCacheServiceFactory<InMemoryBuildCache> {
+    @Override
+    public BuildCacheService createBuildCacheService(InMemoryBuildCache config, Describer describer) {
+        int maxSize = config.getMaxSize();
+        describer.type("in-memory").config("size", String.valueOf(maxSize));
+        return new InMemoryBuildCacheService(maxSize);
+    }
+}
+```
 
 ## External contributions
 
