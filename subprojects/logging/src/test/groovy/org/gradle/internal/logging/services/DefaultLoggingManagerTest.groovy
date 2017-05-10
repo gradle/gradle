@@ -25,7 +25,6 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 public class DefaultLoggingManagerTest extends Specification {
     @Rule
@@ -524,39 +523,5 @@ public class DefaultLoggingManagerTest extends Specification {
         then:
         1 * loggingRouter.restore(snapshot)
         0 * loggingRouter._
-    }
-
-    def "changes default log level if no console is attached and default log level is configured"() {
-        when:
-        loggingManager.setLevelInternal(LogLevel.WARN)
-        loggingManager.start()
-
-        then:
-        1 * loggingRouter.configure(LogLevel.WARN)
-        1 * loggingRouter.configure(LogLevel.LIFECYCLE)
-        0 * loggingRouter.configure(_)
-    }
-
-    @Unroll
-    def "does not change default log level if no console is attached and log level is different than default [#logLevel]"() {
-        when:
-        loggingManager.setLevelInternal(logLevel)
-        loggingManager.start()
-
-        then:
-        1 * loggingRouter.configure(logLevel)
-        0 * loggingRouter.configure(_)
-
-        where:
-        logLevel << [LogLevel.QUIET, LogLevel.LIFECYCLE, LogLevel.ERROR, LogLevel.INFO, LogLevel.DEBUG]
-    }
-
-    def "does not change default log level if no console is attached and log level is null"() {
-        when:
-        loggingManager.setLevelInternal(null)
-        loggingManager.start()
-
-        then:
-        0 * loggingRouter.configure(_)
     }
 }

@@ -21,7 +21,6 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.config.LoggingRouter;
@@ -228,23 +227,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             }
             if (consoleOutputStream != null) {
                 loggingRouter.attachAnsiConsole(consoleOutputStream);
-            }
-
-            configureLifecycleLogLevelForNonTerminalEnvironments();
-        }
-
-        /**
-         * Environments without a terminal attached (e.g. IDEs, CI) need to use {@link org.gradle.api.logging.LogLevel#LIFECYCLE} log level for
-         * the purpose of capturing enough output for further processing. This behavior can be overridden by providing a custom log level for
-         * the build environment e.g. command line option or log level system property.
-         */
-        private void configureLifecycleLogLevelForNonTerminalEnvironments() {
-            if (consoleOutputStream == null && level != null) {
-                boolean defaultLogLevelConfigured = DefaultLoggingConfiguration.DEFAULT_LOG_LEVEL == level;
-
-                if (defaultLogLevelConfigured) {
-                    loggingRouter.configure(LogLevel.LIFECYCLE);
-                }
             }
         }
 
