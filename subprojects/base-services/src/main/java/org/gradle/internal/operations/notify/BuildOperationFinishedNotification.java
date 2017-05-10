@@ -43,7 +43,7 @@ public interface BuildOperationFinishedNotification {
 
     /**
      * The operation failure.
-     * Null if the operation did not fail.
+     * Null if the operation was successful.
      */
     Throwable getNotificationOperationFailure();
 
