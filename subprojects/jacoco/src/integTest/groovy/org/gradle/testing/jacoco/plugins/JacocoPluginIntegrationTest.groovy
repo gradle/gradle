@@ -32,6 +32,31 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
     }
 
+    def "adds configure task and Test depends on it"() {
+        buildFile << """
+            assert configureJacocoTasks
+            assert test.dependsOn.contains(configureJacocoTasks)
+        """
+        expect:
+        succeeds "test"
+    }
+
+    def "does not add jvmArgs if jacoco is disabled"() {
+        buildFile << """
+            test {
+                jacoco {
+                    enabled = false
+                }
+                
+                doLast {
+                    assert jvmArgs.every { !it.contains("javaagent") }
+                }                
+            }
+        """
+        expect:
+        succeeds "test"
+    }
+
     def "jacoco plugin adds coverage report for test task when java plugin applied"() {
         given:
         buildFile << '''

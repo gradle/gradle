@@ -18,23 +18,25 @@ package org.gradle.api.resources.normalization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Used to declare normalization strategies.
+ * Used to configure resource normalizations.
  *
- * Currently, it is only possible to configure normalization strategies for the runtime classpath.
+ * Currently, it is only possible to configure resource normalizations for the runtime classpath.
  *
  * @since 4.0
  */
 @Incubating
+@HasInternalProtocol
 public interface ResourceNormalizationHandler {
     /**
      * Returns the normalization strategy for the runtime classpath.
      */
-    RuntimeClasspathNormalizationStrategy getRuntimeClasspath();
+    RuntimeClasspathNormalization getRuntimeClasspath();
 
     /**
      * Configures the normalization strategy for the runtime classpath.
      */
-    void runtimeClasspath(Action<? super RuntimeClasspathNormalizationStrategy> configuration);
+    void runtimeClasspath(Action<? super RuntimeClasspathNormalization> configuration);
 }

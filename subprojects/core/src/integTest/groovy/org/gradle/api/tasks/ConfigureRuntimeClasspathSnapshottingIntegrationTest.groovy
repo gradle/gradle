@@ -92,7 +92,7 @@ class ConfigureRuntimeClasspathSnapshottingIntegrationTest extends AbstractInteg
 
     def "runtime classpath normalization cannot be changed after first usage"() {
         def project = new ProjectWithRuntimeClasspathNormalization()
-        project.buildFile << """
+        project.buildFile << """ 
             task configureNormalization() {
                 dependsOn '${project.customTask}'
                 doLast {
@@ -109,7 +109,7 @@ class ConfigureRuntimeClasspathSnapshottingIntegrationTest extends AbstractInteg
         fails 'configureNormalization'
 
         then:
-        failureHasCause 'Cannot configure runtime classpath normalization after execution started.'
+        failureHasCause 'Cannot configure resource normalization after execution started.'
     }
 
     class ProjectWithRuntimeClasspathNormalization {

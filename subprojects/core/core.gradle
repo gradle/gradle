@@ -71,7 +71,6 @@ dependencies {
     integTestImplementation project(":internalIntegTesting")
 
     integTestRuntimeOnly project(":plugins")
-    integTestRuntimeOnly project(":buildCacheHttp")
 }
 
 useTestFixtures()

@@ -20,7 +20,7 @@ buildCache {
         directory = new File(rootDir, 'build-cache')
     }
     remote(HttpBuildCache) {
-        url = 'http://example.com:8123/build-cache/'
+        url = 'http://example.com:8123/cache/'
         credentials {
             username = 'build-cache-user'
             password = 'some-complicated-password'

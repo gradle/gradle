@@ -18,34 +18,12 @@ package org.gradle.caching.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.test.fixtures.server.http.HttpBuildCache
 import org.junit.Rule
-import spock.lang.Unroll
 
 class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final SOME_CREDENTIALS =
-        """
-            remote.credentials {
-                username = "user"
-                password = "pass"
-            }
-        """
-
-    private static final NO_CREDENTIALS = ''
-
-    private static final INCOMPLETE_CREDENTIALS =
-        """
-            remote.credentials {
-                username = "user"
-            }
-        """
-
     @Rule
     BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
-
-    @Rule
-    HttpBuildCache httpBuildCache = new HttpBuildCache(testDirectoryProvider)
 
     def "local build cache configuration is exposed"() {
         given:
@@ -72,79 +50,6 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         result.local.push == true
 
         result.remote == null
-    }
-
-    @Unroll
-    def "remote build cache configuration is exposed"() {
-        given:
-        httpBuildCache.start()
-        def url = "${httpBuildCache.uri}/"
-        settingsFile << """
-            buildCache {  
-                local {
-                    enabled = false 
-                }
-                remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = true 
-                    url = "$url"   
-                    push = $push 
-                    $credentials
-                }
-            }
-        """
-        executer.withBuildCacheEnabled()
-
-        when:
-        succeeds("help")
-
-        then:
-        def result = result()
-
-        result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
-        result.remote.config.url == url
-
-        if (authenticated) {
-            result.remote.config.containsKey("authenticated")
-            result.remote.config.authenticated == null
-        } else {
-            result.remote.config.containsKey("authenticated")
-        }
-
-        result.remote.type == 'HTTP'
-        result.remote.push == push
-
-        result.local == null
-
-        where:
-        authenticated | credentials            | push
-        'true'        | SOME_CREDENTIALS       | true
-        'false'       | NO_CREDENTIALS         | false
-        'false'       | INCOMPLETE_CREDENTIALS | false
-    }
-
-    def "remote build cache configuration is exposed when basic auth is encoded on the url"() {
-        given:
-        httpBuildCache.start()
-        def safeUri = httpBuildCache.uri
-        def basicAuthUri = new URI(safeUri.getScheme(), 'user@pwd', safeUri.getHost(), safeUri.getPort(), safeUri.getPath(), safeUri.getQuery(), safeUri.getFragment())
-        settingsFile << """
-            buildCache {  
-                remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = true 
-                    url = "${basicAuthUri}/"   
-                }
-            }
-        """
-        executer.withBuildCacheEnabled()
-
-        when:
-        succeeds("help")
-
-        then:
-        def config = result().remote.config
-        config.url == safeUri.toString() + '/'
-        config.containsKey("authenticated")
-        config.authenticated == null
     }
 
     def "custom build cache connector configuration is exposed"() {
@@ -184,12 +89,42 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
     }
 
-    def "null build cache configurations are exposed when build cache is not enabled"() {
+    def "build cache configurations are not exposed when build cache is not enabled"() {
         when:
+        def cacheDir = temporaryFolder.file("cache-dir").createDir()
+        def url = "http://locahost:8080/cache/"
+        settingsFile << """
+            import org.gradle.caching.internal.NoOpBuildCacheService
+            class CustomBuildCache extends AbstractBuildCache {
+                private URI url
+                URI getUrl() {}
+                void setUrl(String url) { this.url = URI.create(url) }
+            }
+            
+            class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
+                    describer.config('url', '$url')
+                    new NoOpBuildCacheService() 
+                }
+            }
+            buildCache {
+                registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
+
+                local(DirectoryBuildCache) {
+                    enabled = true 
+                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                }
+                remote(CustomBuildCache) {
+                    enabled = true 
+                    url = "$url"   
+                }
+            }
+        """
         succeeds("help")
 
         then:
         def result = result()
+
         result.local == null
         result.remote == null
     }

@@ -85,7 +85,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
         }
     }
 
-    private class JarHasher implements RegularFileHasher, ConfigurableSnapshotter {
+    private class JarHasher implements RegularFileHasher, ConfigurableNormalizationStrategy {
         @Nullable
         @Override
         public HashCode hash(RegularFileSnapshot fileSnapshot) {

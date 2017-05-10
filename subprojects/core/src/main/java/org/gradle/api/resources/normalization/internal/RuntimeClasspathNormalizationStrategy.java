@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.resources.normalization.internal;
 
-import org.gradle.caching.internal.BuildCacheHasher;
+import com.google.common.collect.ImmutableSet;
 
-public interface ConfigurableSnapshotter {
+import java.util.Collection;
 
-    /**
-     * Appends the identification of the configuration of this object to a snapshotter.
-     * The contract is that, if two hashes agree, then the methods on this snapshotter return the same result whenever the arguments are the same.
-     */
-    void appendConfigurationToHasher(BuildCacheHasher hasher);
+/**
+ * Normalization strategy for the runtime classpath.
+ */
+public class RuntimeClasspathNormalizationStrategy {
+    private final ImmutableSet<String> ignores;
+
+    public RuntimeClasspathNormalizationStrategy(Collection<String> ignores) {
+        this.ignores = ImmutableSet.copyOf(ignores);
+    }
+
+    public ImmutableSet<String> getIgnores() {
+        return ignores;
+    }
 }

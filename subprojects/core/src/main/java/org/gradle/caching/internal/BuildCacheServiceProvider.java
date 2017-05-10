@@ -71,13 +71,15 @@ public class BuildCacheServiceProvider {
                     return new NoOpBuildCacheService();
                 }
 
-                SingleMessageLogger.incubatingFeatureUsed("Build cache");
+                if(startParameter.isBuildCacheEnabled()) {
+                    SingleMessageLogger.incubatingFeatureUsed("Build cache");
+                }
 
                 BuildCache local = buildCacheConfiguration.getLocal();
                 BuildCache remote = buildCacheConfiguration.getRemote();
 
-                boolean localEnabled = local != null && local.isEnabled();
-                boolean remoteEnabled = remote != null && remote.isEnabled();
+                boolean localEnabled = startParameter.isBuildCacheEnabled() && local != null && local.isEnabled();
+                boolean remoteEnabled = startParameter.isBuildCacheEnabled() && remote != null && remote.isEnabled();
 
                 if (remoteEnabled && startParameter.isOffline()) {
                     remoteEnabled = false;
@@ -89,7 +91,7 @@ public class BuildCacheServiceProvider {
                     : null;
 
                 DescribedBuildCacheService remoteDescribedService = remoteEnabled
-                    ? createRawBuildCacheService(remote, "local")
+                    ? createRawBuildCacheService(remote, "remote")
                     : null;
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
@@ -113,6 +115,8 @@ public class BuildCacheServiceProvider {
                     return preventPushIfNecessary(localRoleAware, local.isPush());
                 } else if (remoteEnabled) {
                     return preventPushIfNecessary(remoteRoleAware, remote.isPush());
+                } else if (!startParameter.isBuildCacheEnabled()) {
+                    return new NoOpBuildCacheService();
                 } else {
                     LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
                     return new NoOpBuildCacheService();
@@ -260,12 +264,23 @@ public class BuildCacheServiceProvider {
 
         @Override
         public BuildCacheServiceFactory.Describer type(String type) {
+            if (type == null) {
+                throw new IllegalArgumentException("'type' argument cannot be null");
+            }
+
             this.type = type;
             return this;
         }
 
         @Override
         public BuildCacheServiceFactory.Describer config(String name, String value) {
+            if (name == null) {
+                throw new IllegalArgumentException("'name' argument cannot be null");
+            }
+            if (value == null) {
+                throw new IllegalArgumentException("'value' argument cannot be null");
+            }
+
             configParams.put(name, value);
             return this;
         }

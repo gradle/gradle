@@ -132,7 +132,10 @@ class BuildCacheServiceProviderTest extends Specification {
     static class TestRemoteBuildCacheServiceFactory implements BuildCacheServiceFactory<TestRemoteBuildCache> {
         @Override
         BuildCacheService createBuildCacheService(TestRemoteBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
-            describer.type("remote").config("value", configuration.value)
+            def chain = describer.type("remote")
+            if (configuration.value != null) {
+                chain.config("value", configuration.value)
+            }
             new NoOpBuildCacheService()
         }
     }
@@ -140,7 +143,11 @@ class BuildCacheServiceProviderTest extends Specification {
     static class TestDirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
         @Override
         BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
-            describer.type("directory").config("location", configuration.directory?.toString())
+            def chain = describer.type("directory")
+            if (configuration.directory != null) {
+               chain.config("location", configuration.directory.toString())
+            }
+
             new NoOpBuildCacheService()
         }
     }

@@ -16,26 +16,37 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.pattern.PathMatcher;
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 
-public class MetadataFilterAdapter implements ResourceHasher {
-    private final MetadataFilter filter;
+public class IgnoringResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
+    private final Set<String> ignores;
+    private final ImmutableSet<PathMatcher> ignoreMatchers;
 
-    public MetadataFilterAdapter(MetadataFilter filter, ResourceHasher delegate) {
-        this.filter = filter;
+    public IgnoringResourceHasher(Set<String> ignores, ResourceHasher delegate) {
         this.delegate = delegate;
+        this.ignores = ImmutableSet.copyOf(ignores);
+        ImmutableSet.Builder<PathMatcher> builder = ImmutableSet.builder();
+        for (String ignore : ignores) {
+            PathMatcher matcher = PatternMatcherFactory.compile(true, ignore);
+            builder.add(matcher);
+        }
+        this.ignoreMatchers = builder.build();
     }
 
     @Override
     public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        if (filter.shouldBeIgnored(fileSnapshot.getRelativePath())) {
+        if (shouldBeIgnored(fileSnapshot.getRelativePath())) {
             return null;
         }
         return delegate.hash(fileSnapshot);
@@ -43,16 +54,30 @@ public class MetadataFilterAdapter implements ResourceHasher {
 
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        if (filter.shouldBeIgnored(RelativePath.parse(true, zipEntry.getName()))) {
+        if (shouldBeIgnored(RelativePath.parse(true, zipEntry.getName()))) {
             return null;
         }
         return delegate.hash(zipEntry, zipInput);
     }
 
+    private boolean shouldBeIgnored(RelativePath relativePath) {
+        if (ignoreMatchers.isEmpty()) {
+            return false;
+        }
+        for (PathMatcher ignoreSpec : ignoreMatchers) {
+            if (ignoreSpec.matches(relativePath.getSegments(), 0)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void appendConfigurationToHasher(BuildCacheHasher hasher) {
         hasher.putString(getClass().getName());
-        filter.appendConfigurationToHasher(hasher);
+        for (String ignore : ignores) {
+            hasher.putString(ignore);
+        }
         delegate.appendConfigurationToHasher(hasher);
     }
 }

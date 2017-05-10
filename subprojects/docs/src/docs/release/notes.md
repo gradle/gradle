@@ -112,15 +112,24 @@ When two tasks write into the same directory, Gradle will now disable task outpu
 
 You can diagnose overlapping task output issues by running Gradle at the `--info` log level. If you are using [Gradle Build Scans](https://gradle.com/scans/get-started), the same detailed reason for disabling task output caching will be included in the build timeline. 
 
+#### JaCoCo reporting, `Test` and Build Cache work together
+ 
+In Gradle 3.5, if you applied the [`jacoco` plugin](userguide/jacoco_plugin.html), the `Test` tasks would no longer be cacheable because it was possible to share a JaCoCo execution file between `Test` tasks.
+
+Now that Gradle detects overlapping outputs properly, `Test` tasks can be safely cached when used with JaCoCo. 
+
+If your project uses a single JaCoCo execution file for multiple `Test` tasks (n.b., this is not the default), you will need to use separate files to take advantage of the build cache for tests. You can use [`JacocoMerge`](dsl/org.gradle.testing.jacoco.tasks.JacocoMerge.html) to merge multiple JaCoCo data files into one. 
+
 #### Stricter validation of task properties
 
 When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin will go through validation. In Gradle 4.0, additional problems are now detected. 
 
 A warning is shown when:
-* a task has a property without an input or output annotation (this might indicate a forgotten input or output),
-* a task has `@Input` on a `File` property (instead of using `@InputFile` of `@InputDirectory`),
-* a task declares conflicting types for a property (say, both `@InputFile` and `@InputDirectory`),
-* a cacheable task declares a property without specifying `@PathSensitive`. In such a case, we default to `ABSOLUTE` path sensitivity, which will prevent the task's outputs from being shared across different users via a shared cache.
+
+- a task has a property without an input or output annotation (this might indicate a forgotten input or output),
+- a task has `@Input` on a `File` property (instead of using `@InputFile` of `@InputDirectory`),
+- a task declares conflicting types for a property (say, both `@InputFile` and `@InputDirectory`),
+- a cacheable task declares a property without specifying `@PathSensitive`. In such a case, we default to `ABSOLUTE` path sensitivity, which will prevent the task's outputs from being shared across different users via a shared cache.
 
 For more info on using task property annotations, see the [user guide chapter](userguide/more_about_tasks.html#sec:task_input_output_annotations).
 
@@ -143,7 +152,7 @@ You can increase or decrease the size of the local build cache by configuring yo
         }
     }
 
-This is a _target_ size for the build cache. Gradle will periodically check if the local build cache has grown too large and trim it to below the target size. The oldest build cache entries will be deleted first.
+This is a _target_ size for the build cache. Gradle will periodically check if the local build cache has grown too large and trim it to below the target size. The least recently used build cache entries will be deleted first.
 
 ### Parallel download of dependencies
 
@@ -160,7 +169,7 @@ Ivy plugin repositories now support the same API for patterns and layouts that I
 ### Ignore classpath resources for up-to-date checks and the build cache
 
 It is now possible to ignore resources on the classpath for up-to-date checks and the build cache.
-Often a project has a file containing volatile data (like the `BUILD_ID` or a timestamp) which should be packaged to the jar for auditing reasons.
+Often a project has a file containing volatile data (like some ID to identify the CI job that published the artifact or a timestamp) which should be packaged into the jar for auditing reasons.
 As soon as such a file is present, the `test` task will never be up-to-date or from the build cache since on every Gradle invocation the contents of this file - and by this this the inputs to the task - would change.
 It is now possible to tell Gradle about these files by configuring [resource normalization](userguide/more_about_tasks.html#sec:custom_resource_normalization):
 
@@ -170,7 +179,8 @@ It is now possible to tell Gradle about these files by configuring [resource nor
         }
     }
 
-The effect of this configuration would be that changes to build-info.properties would be ignored for up-to-date checks and build cache key calculations. Note that this will not change the runtime behavior of the Test task - i.e. any test is still able to load build-info.properties and the classpath is still the same as before.
+The effect of this configuration would be that changes to build-info.properties would be ignored for up-to-date checks and build cache key calculations.
+Note that this will not change the runtime behavior of the Test task - i.e. any test is still able to load build-info.properties and the classpath is still the same as before.
 
 For more information on this feature see the corresponding section in the [userguide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
 

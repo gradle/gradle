@@ -16,8 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.RelativePath;
+import org.gradle.caching.internal.BuildCacheHasher;
 
-public interface MetadataFilter extends ConfigurableSnapshotter {
-    boolean shouldBeIgnored(RelativePath path);
+/**
+ * A normalization strategy which is configurable.
+ *
+ * Allows tracking changes to its configuration.
+ */
+public interface ConfigurableNormalizationStrategy {
+    void appendConfigurationToHasher(BuildCacheHasher hasher);
 }
