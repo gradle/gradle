@@ -28,7 +28,8 @@ public enum PlayMajorVersion {
     PLAY_2_2_X("2.2.x", "2.10"),
     PLAY_2_3_X("2.3.x", "2.11", "2.10"),
     PLAY_2_4_X("2.4.x", "2.11", "2.10"),
-    PLAY_2_5_X("2.5.x", "2.11");
+    PLAY_2_5_X("2.5.x", "2.11"),
+    PLAY_2_6_X("2.6.x", "2.11", "2.12");
 
     private final String name;
     private final List<String> compatibleScalaVersions;
@@ -67,6 +68,8 @@ public enum PlayMajorVersion {
                     return PlayMajorVersion.PLAY_2_4_X;
                 case 5:
                     return PlayMajorVersion.PLAY_2_5_X;
+                case 6:
+                    return PlayMajorVersion.PLAY_2_6_X;
                 default:
                     throw invalidVersion(playVersion);
             }
@@ -76,7 +79,7 @@ public enum PlayMajorVersion {
 
     private static InvalidUserDataException invalidVersion(String playVersion) {
         return new InvalidUserDataException(String.format("Not a supported Play version: %s. "
-            + "This plugin is compatible with: [2.5.x, 2.4.x, 2.3.x, 2.2.x].", playVersion));
+            + "This plugin is compatible with: [2.6.x, 2.5.x, 2.4.x, 2.3.x, 2.2.x].", playVersion));
     }
 
 }
