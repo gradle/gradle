@@ -27,6 +27,7 @@ import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.progress.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
+import org.gradle.util.Path
 
 class BuildCacheServiceProviderTest extends Specification {
 
@@ -46,7 +47,7 @@ class BuildCacheServiceProviderTest extends Specification {
     def provider = new BuildCacheServiceProvider(config, startParameter, DirectInstantiator.INSTANCE, buildOperationExecuter, temporaryFileProvider)
 
     private <T extends BuildCacheService> T create(Class<? extends T> serviceType) {
-        def service = provider.createBuildCacheService()
+        def service = provider.createBuildCacheService(Path.path("test"))
         assert serviceType.isInstance(service)
         serviceType.cast(service)
     }
