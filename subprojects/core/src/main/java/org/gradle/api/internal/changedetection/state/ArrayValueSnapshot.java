@@ -20,7 +20,7 @@ import org.gradle.caching.internal.BuildCacheHasher;
 
 import java.util.Arrays;
 
-public class ArrayValueSnapshot implements ValueSnapshot {
+public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
     public static final ValueSnapshot EMPTY = new ArrayValueSnapshot(new ValueSnapshot[0]);
     private final ValueSnapshot[] elements;
 
@@ -68,5 +68,20 @@ public class ArrayValueSnapshot implements ValueSnapshot {
     @Override
     public int hashCode() {
         return Arrays.hashCode(elements);
+    }
+
+    @Override
+    public Object[] isolate() {
+        ValueSnapshot[] elements = getElements();
+        Object[] toReturn = new Object[elements.length];
+        for (int i = 0; i < elements.length; i++) {
+            ValueSnapshot snapshot = elements[i];
+            if (snapshot instanceof Isolatable) {
+                toReturn[i] = ((Isolatable) snapshot).isolate();
+            } else {
+                throw new IsolationException("Attempted to isolate an object which is not Isolatable.");
+            }
+        }
+        return toReturn;
     }
 }

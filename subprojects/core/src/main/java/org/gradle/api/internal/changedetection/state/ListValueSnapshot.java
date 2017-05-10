@@ -18,10 +18,11 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ListValueSnapshot implements ValueSnapshot {
+public class ListValueSnapshot implements ValueSnapshot, Isolatable<List> {
     public static final ValueSnapshot EMPTY = new ListValueSnapshot(new ValueSnapshot[0]);
 
     private final ValueSnapshot[] elements;
@@ -94,5 +95,20 @@ public class ListValueSnapshot implements ValueSnapshot {
     @Override
     public int hashCode() {
         return Arrays.hashCode(elements);
+    }
+
+    @Override
+    public List isolate() {
+        List list = new ArrayList();
+        ValueSnapshot[] elements = getElements();
+        for (int i = 0; i < elements.length; i++) {
+            ValueSnapshot snapshot = elements[i];
+            if (snapshot instanceof Isolatable) {
+                list.add(((Isolatable) snapshot).isolate());
+            } else {
+                throw new IsolationException("Attempted to isolate an object which is not Isolatable.");
+            }
+        }
+        return list;
     }
 }
