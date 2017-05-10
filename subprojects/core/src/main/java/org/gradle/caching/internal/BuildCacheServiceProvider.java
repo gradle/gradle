@@ -163,7 +163,7 @@ public class BuildCacheServiceProvider {
     }
 
     private static void logConfig(BuildCache configuration, String role, BuildCacheDescription description) {
-        if (LOGGER.isWarnEnabled()) {
+        if (LOGGER.isLifecycleEnabled()) {
             String config = "";
             if (!description.config.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
@@ -182,7 +182,7 @@ public class BuildCacheServiceProvider {
                 config = sb.toString();
             }
 
-            LOGGER.warn("Using {} {} build cache{}, push is {}.",
+            LOGGER.lifecycle("Using {} {} build cache{}, push is {}.",
                 role,
                 description.type == null ? description.className : description.type,
                 config,
