@@ -21,7 +21,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -35,8 +34,12 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginManager
+
 import org.gradle.api.provider.PropertyState
+
+import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.script.lang.kotlin.resolver.gradleScriptKotlinApiOf
 
@@ -44,6 +47,18 @@ import java.io.File
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+
+
+/**
+ * Applies zero or more plugins or scripts.
+ *
+ * @param block code to configure an [ObjectConfigurationAction] before executing it
+ *
+ * @see Project.apply
+ */
+inline
+fun Project.apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
+    apply({ it.block() })
 
 
 /**

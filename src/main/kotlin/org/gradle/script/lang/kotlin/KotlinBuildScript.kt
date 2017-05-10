@@ -16,24 +16,14 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptDependenciesResolver
-
 import org.gradle.api.Project
-import org.gradle.api.plugins.ObjectConfigurationAction
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 
+import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptDependenciesResolver
+
 import org.jetbrains.kotlin.script.SamWithReceiverAnnotations
 import org.jetbrains.kotlin.script.ScriptTemplateDefinition
-
-
-/**
- * Delimits a Gradle DSL.
- *
- * See [DslMarker]
- */
-@DslMarker
-annotation class GradleDsl
 
 
 /**
@@ -61,16 +51,5 @@ abstract class KotlinBuildScript(project: Project) : Project by project {
      */
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit) = Unit
-
-    /**
-     * Applies zero or more plugins or scripts.
-     *
-     * @param block code to configure an [ObjectConfigurationAction] before executing it
-     *
-     * @see Project.apply
-     */
-    inline
-    fun apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
-        project.apply({ it.block() })
 }
 
