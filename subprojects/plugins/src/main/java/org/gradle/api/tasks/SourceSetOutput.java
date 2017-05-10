@@ -119,12 +119,14 @@ public interface SourceSetOutput extends FileCollection {
      * Returns the directories containing compiled classes.
      *
      * @return The classes directories. Never returns null.
+     * @since 4.0
      */
     FileCollection getClassesDirs();
 
     /**
      * Source set uses the legacy layout (single classes directory for the entire source set).
      * @return true if the source set has a single classes directory
+     * @since 4.0
      */
     boolean isLegacyLayout();
 

@@ -88,6 +88,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * This path will be exposed as the variable {@code checkstyleConfigDir} in Checkstyle's configuration files.
      * </p>
      * @return path to other Checkstyle configuration files
+     * @since 4.0
      */
     public File getCheckstyleConfigDir() {
         return checkstyleConfigDir;
