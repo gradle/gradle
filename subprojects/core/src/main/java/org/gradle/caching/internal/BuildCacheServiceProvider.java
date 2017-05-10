@@ -68,7 +68,7 @@ public class BuildCacheServiceProvider {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
                 if (!startParameter.isBuildCacheEnabled()) {
-                    context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(true, true, null, null));
+                    context.setResult(FinalizeBuildCacheConfigurationDetails.Result.buildCacheConfigurationDisabled());
                     return new NoOpBuildCacheService();
                 }
 
@@ -96,6 +96,7 @@ public class BuildCacheServiceProvider {
                     : null;
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
+                    false,
                     !localEnabled,
                     !remoteEnabled,
                     localDescribedService == null ? null : localDescribedService.description,

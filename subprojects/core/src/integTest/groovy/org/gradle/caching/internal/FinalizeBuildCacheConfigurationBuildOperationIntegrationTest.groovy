@@ -45,6 +45,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
 
+        !result.disabled
         !result.localDisabled
         result.remoteDisabled
 
@@ -88,6 +89,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
 
+        !result.disabled
         !result.localDisabled
         result.remoteDisabled
 
@@ -133,6 +135,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
 
+        result.disabled
         result.localDisabled
         result.remoteDisabled
 
@@ -159,7 +162,10 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
+
+        !result.disabled
         result.localDisabled
+
         result.local == null
     }
 
