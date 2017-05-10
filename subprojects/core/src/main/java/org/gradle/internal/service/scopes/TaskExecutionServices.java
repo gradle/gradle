@@ -43,6 +43,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.taskfactory.FileSnapshottingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ClearTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
@@ -56,6 +57,7 @@ import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.VerifyNoInputChangesTaskExecuter;
+import org.gradle.api.internal.tasks.execution.WrapTaskArtifactAndOutputCachingStatesExecuter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.caching.BuildCacheService;
@@ -132,13 +134,25 @@ public class TaskExecutionServices {
             );
         }
         executer = new SkipUpToDateTaskExecuter(executer);
-        executer = new ResolveTaskOutputCachingStateExecuter(taskOutputCacheEnabled, executer);
-        if (verifyInputsEnabled || taskOutputCacheEnabled) {
-            executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer);
+
+        if (taskOutputCacheEnabled) {
+            TaskExecuter wrappedExecuter = new ResolveTaskOutputCachingStateExecuter(true, null);
+            wrappedExecuter = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), wrappedExecuter);
+            wrappedExecuter = new ValidatingTaskExecuter(wrappedExecuter);
+            wrappedExecuter = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, wrappedExecuter);
+            wrappedExecuter = new ResolveTaskArtifactStateTaskExecuter(repository, wrappedExecuter);
+            executer = new WrapTaskArtifactAndOutputCachingStatesExecuter(executer, wrappedExecuter, buildOperationExecutor);
+        } else {
+            executer = new ResolveTaskOutputCachingStateExecuter(false, executer);
+            if (verifyInputsEnabled) {
+                executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer);
+            }
+            executer = new ValidatingTaskExecuter(executer);
+            executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executer);
+            executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
         }
-        executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executer);
-        executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
+
+        executer = new ClearTaskArtifactStateTaskExecuter(executer);
         executer = new SkipTaskWithNoActionsExecuter(executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new ExecuteAtMostOnceTaskExecuter(executer);

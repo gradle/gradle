@@ -104,15 +104,19 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
     }
 
     boolean hasOperation(String displayName) {
-        return operation(displayName) != null
+        operation(displayName) != null
     }
 
-    Map<String, ?> operation(String displayName) {
-        return operations.find { it.value.displayName == displayName }.value
+    Map.Entry<Object, Map<String, ?>> operation(String displayName) {
+        operations.find { it.value.displayName == displayName }
     }
 
     Map<String, ?> result(String displayName) {
-        operation(displayName).result as Map<String, ?>
+        operation(displayName).value.result as Map<String, ?>
+    }
+
+    String failure(String displayName) {
+        operation(displayName).value.failure
     }
 
 }

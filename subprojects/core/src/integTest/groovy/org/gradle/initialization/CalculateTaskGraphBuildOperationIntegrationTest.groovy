@@ -43,36 +43,36 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('help')
 
         then:
-        operation().result.requestedTaskPaths == [":help"]
-        operation().result.excludedTaskPaths == []
+        result().requestedTaskPaths == [":help"]
+        result().excludedTaskPaths == []
 
         when:
         succeeds('someTask')
 
         then:
-        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":b:someTask", ":a:someTask"] as Set
-        operation().result.excludedTaskPaths == []
+        result().requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":b:someTask", ":a:someTask"] as Set
+        result().excludedTaskPaths == []
 
         when:
         succeeds('someTask', '-x', ':b:someTask')
 
         then:
-        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
-        operation().result.excludedTaskPaths as Set == [":b:someTask"] as Set
+        result().requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
+        result().excludedTaskPaths as Set == [":b:someTask"] as Set
 
         when:
         succeeds('someTask', '-x', 'otherTask')
 
         then:
-        operation().result.requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
-        operation().result.excludedTaskPaths as Set == [":b:otherTask", ":a:c:otherTask", ":otherTask", ":a:otherTask"] as Set
+        result().requestedTaskPaths as Set == [":someTask", ":a:c:someTask", ":a:someTask", ":b:someTask"] as Set
+        result().excludedTaskPaths as Set == [":b:otherTask", ":a:c:otherTask", ":otherTask", ":a:otherTask"] as Set
 
         when:
         succeeds(':a:someTask')
 
         then:
-        operation().result.requestedTaskPaths == [":a:someTask"]
-        operation().result.excludedTaskPaths == []
+        result().requestedTaskPaths == [":a:someTask"]
+        result().excludedTaskPaths == []
     }
 
     def "errors in calculating task graph are exposed"() {
@@ -80,11 +80,15 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         fails('someNonExisting')
 
         then:
-        operation().failure.contains("Task 'someNonExisting' not found in root project")
+        failure().contains("Task 'someNonExisting' not found in root project")
     }
 
-    private Map<String, ?> operation() {
-        buildOperations.operation("Calculate task graph")
+    private Map<String, ?> result() {
+        buildOperations.result("Calculate task graph")
+    }
+
+    private String failure() {
+        buildOperations.failure("Calculate task graph")
     }
 
 }
