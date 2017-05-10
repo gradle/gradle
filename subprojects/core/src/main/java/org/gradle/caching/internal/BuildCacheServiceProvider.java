@@ -67,7 +67,7 @@ public class BuildCacheServiceProvider {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
                 if (!startParameter.isBuildCacheEnabled()) {
-                    context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(null, null));
+                    context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(true, true, null, null));
                     return new NoOpBuildCacheService();
                 }
 
@@ -78,8 +78,8 @@ public class BuildCacheServiceProvider {
                 BuildCache local = buildCacheConfiguration.getLocal();
                 BuildCache remote = buildCacheConfiguration.getRemote();
 
-                boolean localEnabled = startParameter.isBuildCacheEnabled() && local != null && local.isEnabled();
-                boolean remoteEnabled = startParameter.isBuildCacheEnabled() && remote != null && remote.isEnabled();
+                boolean localEnabled = local != null && local.isEnabled();
+                boolean remoteEnabled = remote != null && remote.isEnabled();
 
                 if (remoteEnabled && startParameter.isOffline()) {
                     remoteEnabled = false;
@@ -95,6 +95,8 @@ public class BuildCacheServiceProvider {
                     : null;
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
+                    !localEnabled,
+                    !remoteEnabled,
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));
@@ -214,7 +216,6 @@ public class BuildCacheServiceProvider {
     private static final class BuildCacheDescription implements FinalizeBuildCacheConfigurationDetails.Result.BuildCacheDescription {
 
         private final String className;
-        private final boolean enabled;
         private final boolean push;
         private final String type;
         private final SortedMap<String, String> config;
@@ -222,16 +223,14 @@ public class BuildCacheServiceProvider {
         private BuildCacheDescription(BuildCache buildCache, String type, Map<String, String> config) {
             this(
                 GeneratedSubclasses.unpack(buildCache.getClass()).getName(),
-                buildCache.isEnabled(),
                 buildCache.isPush(),
                 type,
                 Collections.unmodifiableSortedMap(new TreeMap<String, String>(config))
             );
         }
 
-        private BuildCacheDescription(String className, boolean enabled, boolean push, String type, SortedMap<String, String> config) {
+        private BuildCacheDescription(String className, boolean push, String type, SortedMap<String, String> config) {
             this.className = className;
-            this.enabled = enabled;
             this.push = push;
             this.type = type;
             this.config = config;
@@ -239,10 +238,6 @@ public class BuildCacheServiceProvider {
 
         public String getClassName() {
             return className;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
         }
 
         public boolean isPush() {
