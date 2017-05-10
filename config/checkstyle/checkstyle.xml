@@ -18,7 +18,7 @@
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
     <module name="SuppressionFilter">
-        <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
+        <property name="file" value="${config_loc}/suppressions.xml"/>
     </module>
     <module name="TreeWalker">
         <!-- Blocks -->
@@ -113,7 +113,7 @@
     </module>
     </module>
     <module name="RegexpHeader">
-        <property name="headerFile" value="${checkstyleConfigDir}/required-header.txt"/>
+        <property name="headerFile" value="${config_loc}/required-header.txt"/>
     </module>
     <module name="FileTabCharacter"/>
     <module name="RegexpSingleline">
