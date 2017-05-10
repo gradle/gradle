@@ -41,7 +41,6 @@ evaluationDependsOn ':versionInfo'
 
 ext {
     zipRootFolder = "gradle-$version"
-    testZipRootFolder = "gradle-$testedVersion"
 
     binDistImage = copySpec {
         from("$rootDir/LICENSE")
