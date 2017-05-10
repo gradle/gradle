@@ -15,10 +15,22 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.internal.UncheckedException;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 class MethodHandleBasedServiceMethodFactory implements ServiceMethodFactory {
+
+    public MethodHandleBasedServiceMethodFactory() {
+        try {
+            // Force loading to check if method handle is supported
+            Class.forName("java.lang.invoke.MethodHandle");
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
     @Override
     public ServiceMethod toServiceMethod(Method method) {
         if (Modifier.isPublic(method.getModifiers()) && Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
