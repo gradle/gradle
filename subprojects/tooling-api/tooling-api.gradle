@@ -97,11 +97,19 @@ artifacts {
 }
 
 task publishLocalArchives(type: Upload) {
+    ext.repoBaseDir = rootProject.file('build/repo')
     configuration = configurations.publishRuntime
     uploadDescriptor = false
     repositories {
         ivy {
-            artifactPattern "${rootProject.file('build/repo')}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+            artifactPattern "${repoBaseDir}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        }
+    }
+
+    doFirst {
+        if (repoBaseDir.exists()) {
+            // Make sure tooling API artifacts do not pile up
+            GFileUtils.forceDelete(repoBaseDir)
         }
     }
 }
