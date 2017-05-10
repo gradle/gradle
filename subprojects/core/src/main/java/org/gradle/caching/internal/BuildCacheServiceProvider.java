@@ -40,6 +40,7 @@ import org.gradle.util.SingleMessageLogger;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -160,18 +161,27 @@ public class BuildCacheServiceProvider {
         BuildCacheService service = factory.createBuildCacheService(configuration, describer);
         BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams);
 
-        logConfig(buildIdentityPath, configuration, role, description);
+        logConfig(buildIdentityPath, role, description);
 
         return new DescribedBuildCacheService(service, description);
     }
 
-    private static void logConfig(Path buildIdentityPath, BuildCache configuration, String role, BuildCacheDescription description) {
+    private static void logConfig(Path buildIdentityPath, String role, BuildCacheDescription description) {
         if (LOGGER.isLifecycleEnabled()) {
-            String config = "";
-            if (!description.config.isEmpty()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(" (");
-                Joiner.on(", ").appendTo(sb, Iterables.transform(description.config.entrySet(), new Function<Map.Entry<String, String>, String>() {
+            StringBuilder config = new StringBuilder();
+            boolean pullOnly = !description.isPush();
+            if (!description.config.isEmpty() || pullOnly) {
+                Map<String, String> configMap;
+                if (pullOnly) {
+                    configMap = new LinkedHashMap<String, String>();
+                    // Pull-only always comes first
+                    configMap.put("pull-only", null);
+                    configMap.putAll(description.config);
+                } else {
+                    configMap = description.config;
+                }
+                config.append(" (");
+                Joiner.on(", ").appendTo(config, Iterables.transform(configMap.entrySet(), new Function<Map.Entry<String, String>, String>() {
                     @Override
                     public String apply(Map.Entry<String, String> input) {
                         if (input.getValue() == null) {
@@ -181,16 +191,21 @@ public class BuildCacheServiceProvider {
                         }
                     }
                 }));
-                sb.append(")");
-                config = sb.toString();
+                config.append(")");
             }
 
-            LOGGER.lifecycle("Using {} {} build cache{} for build '{}', push is {}.",
+            String buildDescription;
+            if (buildIdentityPath.equals(Path.ROOT)) {
+                buildDescription = "the root build";
+            } else {
+                buildDescription = "build '" + buildIdentityPath + "'";
+            }
+
+            LOGGER.lifecycle("Using {} {} build cache for {}{}.",
                 role,
                 description.type == null ? description.className : description.type,
-                config,
-                buildIdentityPath,
-                configuration.isPush() ? "enabled" : "disabled"
+                buildDescription,
+                config
             );
         }
     }

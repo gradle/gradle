@@ -150,7 +150,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedTasks.contains ":compileJava"
         output.contains "Build cache is an incubating feature."
-        output.contains "Using remote in-memory build cache for build ':', push is enabled."
+        output.contains "Using remote in-memory build cache for the root build."
 
         expect:
         succeeds "clean"
