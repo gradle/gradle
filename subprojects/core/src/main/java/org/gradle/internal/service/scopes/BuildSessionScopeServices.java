@@ -75,6 +75,7 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -171,8 +172,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         }
     }
 
-    CacheLayout createCacheLayout(StartParameter startParameter) {
-        BuildLayout buildLayout = new BuildLayoutFactory().getLayoutFor(new BuildLayoutConfiguration(startParameter));
+    CacheLayout createCacheLayout(StartParameter startParameter, ScriptFileResolver scriptFileResolver) {
+        BuildLayout buildLayout = new BuildLayoutFactory(scriptFileResolver).getLayoutFor(new BuildLayoutConfiguration(startParameter));
         File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
         return new CacheLayout(cacheDir);
     }

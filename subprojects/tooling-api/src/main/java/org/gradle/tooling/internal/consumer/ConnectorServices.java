@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
@@ -75,7 +76,7 @@ public class ConnectorServices {
         }
 
         protected DistributionFactory createDistributionFactory() {
-            return new DistributionFactory();
+            return new DistributionFactory(DefaultScriptFileResolver.forDefaultScriptingLanguages());
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {

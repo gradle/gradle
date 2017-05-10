@@ -151,6 +151,7 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scan.BuildScanRequest;
 import org.gradle.internal.scan.DefaultBuildScanRequest;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -315,13 +316,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ProviderFactory.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, ScriptFileResolver scriptFileResolver, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
                                                                 ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator) {
         return new DefaultSettingsLoaderFactory(
-            new DefaultSettingsFinder(new BuildLayoutFactory()),
+            new DefaultSettingsFinder(new BuildLayoutFactory(scriptFileResolver)),
             settingsProcessor,
             new BuildSourceBuilder(
                 nestedBuildFactory,
