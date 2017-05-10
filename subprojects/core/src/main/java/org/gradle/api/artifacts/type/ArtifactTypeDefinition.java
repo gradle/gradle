@@ -18,7 +18,10 @@ package org.gradle.api.artifacts.type;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
+
+import java.util.Set;
 
 /**
  * Meta-data about a particular type of artifacts.
@@ -27,5 +30,14 @@ import org.gradle.api.attributes.HasAttributes;
  */
 @Incubating
 public interface ArtifactTypeDefinition extends HasAttributes, Named {
+    /**
+     * Returns the set of file name extensions that should be mapped to this artifact type. Defaults to the name of this type.
+     */
+    Set<String> getFileNameExtensions();
 
+    /**
+     * Defines the set of attributes to apply to a component that is packaged as an artifact of this type, when no other attributes are defined. For example, these attributes are applied when a Maven module contains an artifact with one of the extensions listed in {@link #getFileNameExtensions()}.
+     */
+    @Override
+    AttributeContainer getAttributes();
 }

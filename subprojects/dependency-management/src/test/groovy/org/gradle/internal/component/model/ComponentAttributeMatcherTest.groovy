@@ -316,7 +316,7 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         @Override
-        void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+        void disambiguate(Attribute<?> attribute, Object requested, MultipleCandidatesResult<Object> result) {
             def preferred = preferredValue.get(attribute)
             if (preferred != null && result.candidateValues.contains(preferred)) {
                 result.closestMatch(preferred)

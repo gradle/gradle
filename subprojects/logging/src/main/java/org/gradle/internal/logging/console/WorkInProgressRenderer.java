@@ -16,6 +16,9 @@
 
 package org.gradle.internal.logging.console;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
@@ -32,6 +35,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.internal.logging.console.BuildStatusRenderer.BUILD_PROGRESS_CATEGORY;
 
 public class WorkInProgressRenderer extends BatchOutputEventListener {
     private final OutputEventListener listener;
@@ -86,8 +91,31 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
 
     @Override
     public void onOutput(Iterable<OutputEvent> events) {
-        super.onOutput(events);
+        Set<OperationIdentifier> completeEventOperationIds = toOperationIdSet(Iterables.filter(events, ProgressCompleteEvent.class));
+        Set<OperationIdentifier> operationIdsToSkip = new HashSet<OperationIdentifier>();
+
+        for (OutputEvent event : events) {
+            if (event instanceof ProgressStartEvent && completeEventOperationIds.contains(((ProgressStartEvent) event).getProgressOperationId())) {
+                operationIdsToSkip.add(((ProgressStartEvent) event).getProgressOperationId());
+                listener.onOutput(event);
+            } else if ((event instanceof ProgressCompleteEvent && operationIdsToSkip.contains(((ProgressCompleteEvent) event).getProgressOperationId()))
+                || (event instanceof ProgressEvent && operationIdsToSkip.contains(((ProgressEvent) event).getProgressOperationId()))) {
+                listener.onOutput(event);
+            } else {
+                onOutput(event);
+            }
+        }
         renderNow();
+    }
+
+    // Transform ProgressCompleteEvent into their corresponding progress OperationIdentifier.
+    private Set<OperationIdentifier> toOperationIdSet(Iterable<ProgressCompleteEvent> events) {
+        return Sets.newHashSet(Iterables.transform(events, new Function<ProgressCompleteEvent, OperationIdentifier>() {
+            @Override
+            public OperationIdentifier apply(ProgressCompleteEvent event) {
+                return event.getProgressOperationId();
+            }
+        }));
     }
 
     private void resizeTo(int newBuildProgressLabelCount) {
@@ -128,6 +156,10 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
             }
         }
 
+        if (!isRenderable(operation)) {
+            return;
+        }
+
         // No parent? Try to use a new label
         if (!unusedProgressLabels.isEmpty()) {
             association = new AssociationLabel(operation, unusedProgressLabels.pop());
@@ -143,6 +175,10 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     private void detach(ProgressOperation operation) {
         if (operation.getParent() != null) {
             removeDirectChildOperationId(operation.getParent().getOperationId(), operation.getOperationId());
+        }
+
+        if (!isRenderable(operation)) {
+            return;
         }
 
         AssociationLabel association = operationIdToAssignedLabels.remove(operation.getOperationId());
@@ -183,6 +219,20 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
         if (children != null && !children.isEmpty()) {
             return true;
         }
+
+        return false;
+    }
+
+    // Any ProgressOperation in the parent chain has a message, the operation is considered renderable.
+    private boolean isRenderable(ProgressOperation operation) {
+        for (ProgressOperation current = operation;
+             current != null && !BUILD_PROGRESS_CATEGORY.equals(current.getCategory());
+             current = current.getParent()) {
+            if (current.getMessage() != null) {
+                return true;
+            }
+        }
+
         return false;
     }
 

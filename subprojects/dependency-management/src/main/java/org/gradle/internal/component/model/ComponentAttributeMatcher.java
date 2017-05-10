@@ -177,7 +177,7 @@ public class ComponentAttributeMatcher {
                     Object val = matchedAttributes.get(attribute);
                     candidatesByValue.put(val, details);
                 }
-                disambiguate(attribute, remainingMatches, candidatesByValue, schema, best);
+                disambiguate(attribute, requested.getAttribute(attribute), remainingMatches, candidatesByValue, schema, best);
                 if (remainingMatches.isEmpty()) {
                     // the intersection is empty, so we cannot choose
                     return compatible;
@@ -190,6 +190,7 @@ public class ComponentAttributeMatcher {
         }
 
         private void disambiguate(Attribute<?> attribute,
+                                  Object requested,
                                   List<MatchDetails<T>> remainingMatches,
                                   Multimap<Object, MatchDetails<T>> candidatesByValue,
                                   AttributeSelectionSchema schema,
@@ -199,7 +200,7 @@ public class ComponentAttributeMatcher {
                 return;
             }
             MultipleCandidatesResult<Object> details = new DefaultCandidateResult<MatchDetails<T>>(candidatesByValue, best);
-            schema.disambiguate(attribute, details);
+            schema.disambiguate(attribute, requested, details);
             remainingMatches.retainAll(best);
         }
     }

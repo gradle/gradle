@@ -48,23 +48,29 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     public void buildStarted(Gradle gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         logger.info("Starting Build");
-        logger.debug("Gradle user home: {}", startParameter.getGradleUserHomeDir());
-        logger.debug("Current dir: {}", startParameter.getCurrentDir());
-        logger.debug("Settings file: {}", startParameter.getSettingsFile());
-        logger.debug("Build file: {}", startParameter.getBuildFile());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Gradle user home: {}", startParameter.getGradleUserHomeDir());
+            logger.debug("Current dir: {}", startParameter.getCurrentDir());
+            logger.debug("Settings file: {}", startParameter.getSettingsFile());
+            logger.debug("Build file: {}", startParameter.getBuildFile());
+        }
     }
 
     public void settingsEvaluated(Settings settings) {
         SettingsInternal settingsInternal = (SettingsInternal) settings;
-        logger.info("Settings evaluated using {}.",
+        if (logger.isInfoEnabled()) {
+            logger.info("Settings evaluated using {}.",
                 settingsInternal.getSettingsScript().getDisplayName());
+        }
     }
 
     public void projectsLoaded(Gradle gradle) {
-        ProjectInternal projectInternal = (ProjectInternal) gradle.getRootProject();
-        logger.info("Projects loaded. Root project using {}.",
+        if (logger.isInfoEnabled()) {
+            ProjectInternal projectInternal = (ProjectInternal) gradle.getRootProject();
+            logger.info("Projects loaded. Root project using {}.",
                 projectInternal.getBuildScriptSource().getDisplayName());
-        logger.info("Included projects: {}", projectInternal.getAllprojects());
+            logger.info("Included projects: {}", projectInternal.getAllprojects());
+        }
     }
 
     public void projectsEvaluated(Gradle gradle) {
@@ -72,7 +78,9 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     }
 
     public void graphPopulated(TaskExecutionGraph graph) {
-        logger.info("Tasks to be executed: {}", graph.getAllTasks());
+        if (logger.isInfoEnabled()) {
+            logger.info("Tasks to be executed: {}", graph.getAllTasks());
+        }
     }
 
     public void buildFinished(BuildResult result) {

@@ -19,10 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 /**
- * A normalization strategy which is configurable.
+ * A resource normalizer which is configurable.
  *
  * Allows tracking changes to its configuration.
  */
-public interface ConfigurableNormalizationStrategy {
+public interface ConfigurableNormalizer {
     void appendConfigurationToHasher(BuildCacheHasher hasher);
 }

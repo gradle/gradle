@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.CompatibilityCheckResult;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
@@ -23,7 +24,7 @@ import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 public interface AttributeSelectionSchema {
     boolean hasAttribute(Attribute<?> attribute);
 
-    void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result);
+    void disambiguate(Attribute<?> attribute, @Nullable Object requested, MultipleCandidatesResult<Object> result);
 
     void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result);
 }

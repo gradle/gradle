@@ -108,6 +108,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DependencyInjectingInstantiator.ConstructorCache) >> Stub(DependencyInjectingInstantiator.ConstructorCache)
         parent.get(ToolingModelBuilderRegistry) >> Mock(ToolingModelBuilderRegistry)
         parent.get(InstantiatorFactory) >> instantiatorFactory
+        parent.hasService(_) >> true
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 

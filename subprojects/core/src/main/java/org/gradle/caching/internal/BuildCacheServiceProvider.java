@@ -34,6 +34,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -62,10 +63,14 @@ public class BuildCacheServiceProvider {
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
-    public BuildCacheService createBuildCacheService() {
+    public BuildCacheService createBuildCacheService(final Path buildIdentityPath) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheService>() {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
+                if (!startParameter.isBuildCacheEnabled()) {
+                    context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(null, null));
+                    return new NoOpBuildCacheService();
+                }
 
                 if(startParameter.isBuildCacheEnabled()) {
                     SingleMessageLogger.incubatingFeatureUsed("Build cache");
@@ -82,16 +87,15 @@ public class BuildCacheServiceProvider {
                     LOGGER.warn("Remote build cache is disabled when running with --offline.");
                 }
 
-                DescribedBuildCacheService localDescribedService = local != null
-                    ? createRawBuildCacheService(local, "local", localEnabled)
+                DescribedBuildCacheService localDescribedService = localEnabled
+                    ? createRawBuildCacheService(local, "local", buildIdentityPath)
                     : null;
 
-                DescribedBuildCacheService remoteDescribedService = remote != null
-                    ? createRawBuildCacheService(remote, "remote", remoteEnabled)
+                DescribedBuildCacheService remoteDescribedService = remoteEnabled
+                    ? createRawBuildCacheService(remote, "remote", buildIdentityPath)
                     : null;
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
-                    localEnabled || remoteEnabled,
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));
@@ -144,7 +148,7 @@ public class BuildCacheServiceProvider {
         return decoratedService;
     }
 
-    private <T extends BuildCache> DescribedBuildCacheService createRawBuildCacheService(final T configuration, String role, boolean enabled) {
+    private <T extends BuildCache> DescribedBuildCacheService createRawBuildCacheService(final T configuration, String role, Path buildIdentityPath) {
         Class<? extends BuildCacheServiceFactory<T>> castFactoryType = Cast.uncheckedCast(
             buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
         );
@@ -152,17 +156,15 @@ public class BuildCacheServiceProvider {
         BuildCacheServiceFactory<T> factory = instantiator.newInstance(castFactoryType);
         Describer describer = new Describer();
         BuildCacheService service = factory.createBuildCacheService(configuration, describer);
-        BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams, enabled);
+        BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams);
 
-        if (enabled) {
-            logConfig(configuration, role, description);
-        }
+        logConfig(buildIdentityPath, configuration, role, description);
 
         return new DescribedBuildCacheService(service, description);
     }
 
-    private static void logConfig(BuildCache configuration, String role, BuildCacheDescription description) {
-        if (LOGGER.isWarnEnabled()) {
+    private static void logConfig(Path buildIdentityPath, BuildCache configuration, String role, BuildCacheDescription description) {
+        if (LOGGER.isLifecycleEnabled()) {
             String config = "";
             if (!description.config.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
@@ -181,10 +183,11 @@ public class BuildCacheServiceProvider {
                 config = sb.toString();
             }
 
-            LOGGER.warn("Using {} {} build cache{}, push is {}.",
+            LOGGER.lifecycle("Using {} {} build cache{} for build '{}', push is {}.",
                 role,
                 description.type == null ? description.className : description.type,
                 config,
+                buildIdentityPath,
                 configuration.isPush() ? "enabled" : "disabled"
             );
         }
@@ -218,10 +221,10 @@ public class BuildCacheServiceProvider {
         private final String type;
         private final SortedMap<String, String> config;
 
-        private BuildCacheDescription(BuildCache buildCache, String type, Map<String, String> config, boolean enabled) {
+        private BuildCacheDescription(BuildCache buildCache, String type, Map<String, String> config) {
             this(
                 GeneratedSubclasses.unpack(buildCache.getClass()).getName(),
-                enabled,
+                buildCache.isEnabled(),
                 buildCache.isPush(),
                 type,
                 Collections.unmodifiableSortedMap(new TreeMap<String, String>(config))
