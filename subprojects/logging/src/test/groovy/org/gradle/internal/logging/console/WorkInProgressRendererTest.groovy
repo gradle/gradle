@@ -23,14 +23,13 @@ import spock.lang.Subject
 
 @Subject(WorkInProgressRenderer)
 class WorkInProgressRendererTest extends OutputSpecification {
-    private static final String IDLE = "> IDLE"
     def listener = Mock(OutputEventListener)
     def console = new ConsoleStub();
     def metaData = Mock(ConsoleMetaData);
     def renderer = new WorkInProgressRenderer(listener, console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(metaData), new ConsoleLayoutCalculator(metaData))
 
     def setup() {
-        metaData.getRows() >> 10
+        metaData.getRows() >> 2
     }
 
     def "start and complete events in the same batch are ignored"() {
@@ -62,6 +61,22 @@ class WorkInProgressRendererTest extends OutputSpecification {
 
         then:
         progressArea.display == []
+    }
+
+    def "parent progress operation without message is ignored when renderable child completes"() {
+        when:
+        renderer.onOutput([start(1), start(id: 2, parentId: 1, shortDescription: ":foo"), start(id: 3, parentId: null, shortDescription: ":bar")])
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo"]
+
+        and:
+        renderer.onOutput([complete(2)])
+        console.flush()
+
+        then:
+        progressArea.display == ["> :bar"]
     }
 
     def "forward the event unmodified to the listener"() {
