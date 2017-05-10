@@ -19,9 +19,7 @@ import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 
-import java.util.Arrays;
 import java.util.Set;
 
 public class DynamicModulesClassPathProvider implements ClassPathProvider {
@@ -35,10 +33,10 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
 
     public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_EXTENSIONS")) {
-            Set<Module> coreModules = moduleRegistry.getModule("gradle-core").getAllRequiredModules();
-            ClassPath classpath = new DefaultClassPath();
-            for (String moduleName : Arrays.asList("gradle-workers", "gradle-dependency-management", "gradle-plugin-use")) {
-                for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
+            Set<Module> coreModules = allRequiredModulesOf("gradle-core");
+            ClassPath classpath = ClassPath.EMPTY;
+            for (String moduleName : GRADLE_EXTENSION_MODULES) {
+                for (Module module : allRequiredModulesOf(moduleName)) {
                     if (!coreModules.contains(module)) {
                         classpath = classpath.plus(module.getClasspath());
                     }
@@ -55,4 +53,14 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
 
         return null;
     }
+
+    private Set<Module> allRequiredModulesOf(String name) {
+        return moduleRegistry.getModule(name).getAllRequiredModules();
+    }
+
+    private static final String[] GRADLE_EXTENSION_MODULES = {
+        "gradle-workers",
+        "gradle-dependency-management",
+        "gradle-plugin-use"
+    };
 }
