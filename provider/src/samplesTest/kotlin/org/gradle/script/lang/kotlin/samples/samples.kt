@@ -1,11 +1,12 @@
 package org.gradle.script.lang.kotlin.samples
 
+import org.gradle.script.lang.kotlin.fixtures.rootProjectDir
+
 import java.io.File
-import java.nio.file.Paths
 
 
 internal
-val samplesRootDir = Paths.get("samples").toFile()
+val samplesRootDir = File(rootProjectDir, "samples")
 
 
 internal

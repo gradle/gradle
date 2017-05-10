@@ -9,8 +9,10 @@ import org.junit.rules.TemporaryFolder
 import org.junit.rules.TestName
 import java.io.File
 
+
 internal
 val isCI by lazy { !System.getenv("CI").isNullOrEmpty() }
+
 
 open class AbstractIntegrationTest {
 
@@ -134,12 +136,19 @@ fun gradleRunnerFor(projectDir: File): GradleRunner = GradleRunner.create().run 
     return this
 }
 
+
 fun customInstallation() =
-    File("build/custom").listFiles()?.let {
+    customInstallationBuildDir.listFiles()?.let {
         it.singleOrNull { it.name.startsWith("gradle") } ?:
             throw IllegalStateException(
                 "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
     } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
+
+
+val rootProjectDir = File("..")
+
+
+val customInstallationBuildDir = File(rootProjectDir, "build/custom")
 
 
 inline

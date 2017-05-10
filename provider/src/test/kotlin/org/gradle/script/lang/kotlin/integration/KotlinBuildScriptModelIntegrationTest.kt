@@ -5,6 +5,7 @@ import org.gradle.script.lang.kotlin.concurrent.future
 import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
 import org.gradle.script.lang.kotlin.fixtures.DeepThought
 import org.gradle.script.lang.kotlin.fixtures.customInstallation
+import org.gradle.script.lang.kotlin.fixtures.customInstallationBuildDir
 import org.gradle.script.lang.kotlin.fixtures.withDaemonRegistry
 import org.gradle.script.lang.kotlin.fixtures.matching
 
@@ -229,4 +230,4 @@ fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): Kotli
 
 private
 fun customDaemonRegistry() =
-    File("build/custom/daemon-registry")
+    File(customInstallationBuildDir, "daemon-registry")

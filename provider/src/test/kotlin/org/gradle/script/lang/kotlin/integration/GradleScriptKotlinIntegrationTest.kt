@@ -3,6 +3,7 @@ package org.gradle.script.lang.kotlin.integration
 import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import org.gradle.script.lang.kotlin.fixtures.AbstractIntegrationTest
 import org.gradle.script.lang.kotlin.fixtures.DeepThought
+import org.gradle.script.lang.kotlin.fixtures.rootProjectDir
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -352,6 +353,6 @@ class GradleScriptKotlinIntegrationTest : AbstractIntegrationTest() {
 
     private
     val fixturesRepository: File
-        get() = File("fixtures/repository").absoluteFile
+        get() = File(rootProjectDir, "fixtures/repository").absoluteFile
 }
 

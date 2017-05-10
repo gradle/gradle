@@ -18,6 +18,8 @@ package codegen
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.plugins.BasePluginConvention
+
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -28,15 +30,16 @@ open class GenerateClasspathManifest : DefaultTask() {
 
     var outputDirectory: File? = null
 
-    @Input
+    @get:Input
     val compileOnly = project.configurations.getByName("compileOnly")!!
 
-    @Input
+    @get:Input
     val runtime = project.configurations.getByName("runtime")!!
 
-    val outputFile: File
-        @OutputFile
-        get() = File(outputDirectory!!, "${project.name}-classpath.properties")
+    @get:OutputFile
+    val outputFile by lazy {
+        File(outputDirectory!!, "${moduleName()}-classpath.properties")
+    }
 
     @Suppress("unused")
     @TaskAction
@@ -53,5 +56,14 @@ open class GenerateClasspathManifest : DefaultTask() {
     private
     fun write(text: String) {
         outputFile.writeText(text)
+    }
+
+    private
+    fun moduleName(): String =
+        base.archivesBaseName
+
+    private
+    val base by lazy {
+        project.convention.getPlugin(BasePluginConvention::class.java)!!
     }
 }
