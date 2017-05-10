@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.execution.statistics
 import org.gradle.BuildResult
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
 import spock.lang.Specification
@@ -33,7 +34,7 @@ class TaskExecutionStatisticsEventAdapterTest extends Specification {
     def project = Stub(Project) { getGradle() >> gradle }
     def result = Stub(BuildResult) { getGradle() >> gradle }
     def task = Stub(Task) { getProject() >> project }
-    def taskState = Stub(TaskStateInternal) { isAvoided() >> true }
+    def taskState = Stub(TaskStateInternal) { getOutcome() >> TaskExecutionOutcome.UP_TO_DATE }
 
     def "delegates to reporter when building root project"() {
         given:

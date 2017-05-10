@@ -15,25 +15,35 @@
  */
 package org.gradle.api.internal.tasks.execution.statistics;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class TaskExecutionStatistics {
-    private final int avoidedTasksCount;
     private final int executedTasksCount;
+    private final int fromCacheTaskCount;
+    private final int upToDateTaskCount;
 
-    public TaskExecutionStatistics(int executedTasksCount, int avoidedTasksCount) {
-        Preconditions.checkArgument(avoidedTasksCount >= 0, "numAvoidedTasks must be non-negative");
-        Preconditions.checkArgument(executedTasksCount >= 0, "numExecutedTasks must be non-negative");
-
-        this.avoidedTasksCount = avoidedTasksCount;
+    public TaskExecutionStatistics(int executedTasksCount, int fromCacheTaskCount, int upToDateTaskCount) {
+        checkArgument(executedTasksCount >= 0, "executedTasksCount must be non-negative");
+        checkArgument(fromCacheTaskCount >= 0, "fromCacheTaskCount must be non-negative");
+        checkArgument(upToDateTaskCount >= 0, "upToDateTaskCount must be non-negative");
         this.executedTasksCount = executedTasksCount;
-    }
-
-    public int getAvoidedTasksCount() {
-        return avoidedTasksCount;
+        this.fromCacheTaskCount = fromCacheTaskCount;
+        this.upToDateTaskCount = upToDateTaskCount;
     }
 
     public int getExecutedTasksCount() {
         return executedTasksCount;
+    }
+
+    public int getFromCacheTaskCount() {
+        return fromCacheTaskCount;
+    }
+
+    public int getUpToDateTaskCount() {
+        return upToDateTaskCount;
+    }
+
+    public int getTotalTaskCount() {
+        return executedTasksCount + fromCacheTaskCount + upToDateTaskCount;
     }
 }
