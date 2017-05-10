@@ -287,6 +287,21 @@ You can upgrade or downgrade the version of PMD with:
         toolVersion = '5.5.1'
     }
 
+### Custom build cache service description
+
+The factory method used to create custom build cache services in `BuildCacheServiceFactory` now receives a `Describer` parameter. The custom service factory has to use this to declare the type of the service, and any config parameters that are relevant to the build cache service being created. With this change `BuildCacheService.getDescription()` is also removed.
+
+```java
+public class InMemoryBuildCacheServiceFactory implements BuildCacheServiceFactory<InMemoryBuildCache> {
+    @Override
+    public BuildCacheService createBuildCacheService(InMemoryBuildCache config, Describer describer) {
+        int maxSize = config.getMaxSize();
+        describer.type("in-memory").config("size", String.valueOf(maxSize));
+        return new InMemoryBuildCacheService(maxSize);
+    }
+}
+```
+
 ### Changes to previously deprecated APIs
 
 - The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
