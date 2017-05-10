@@ -412,11 +412,8 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
                 testCompile 'junit:junit:4.12'
             }
             test {
-                
                 testLogging {
-                    lifecycle {
-                        events "passed", "skipped", "failed"
-                    }
+                    events "passed", "skipped", "failed"
                 }
             }
         """

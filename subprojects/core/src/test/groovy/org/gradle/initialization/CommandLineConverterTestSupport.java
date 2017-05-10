@@ -49,7 +49,7 @@ public class CommandLineConverterTestSupport {
     protected boolean expectedSearchUpwards = true;
     protected boolean expectedDryRun;
     protected ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
-    protected LogLevel expectedLogLevel = LogLevel.WARN;
+    protected LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     protected ConsoleOutput expectedConsoleOutput = ConsoleOutput.Auto;
     protected StartParameter actualStartParameter;
     protected boolean expectedProfile;
