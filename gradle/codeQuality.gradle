@@ -10,15 +10,12 @@ plugins.withType(JavaBasePlugin) {
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
 
-ext.checkstyleConfigDir = "$configDir/checkstyle"
-
-checkstyle {
-    configFile = new File(checkstyleConfigDir, "checkstyle.xml")
-    configProperties.checkstyleConfigDir = checkstyleConfigDir
-}
-
 codenarc {
     configFile = new File(configDir, "codenarc.xml")
+}
+
+checkstyle {
+    checkstyleConfigDir = new File(configDir, "checkstyle")
 }
 
 tasks.withType(CodeNarc) {
@@ -30,8 +27,7 @@ configurations.codenarc.resolutionStrategy.force(libraries.groovy)
 plugins.withType(GroovyBasePlugin) {
     sourceSets.all { sourceSet ->
         task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
-            // TODO: Remove this once we've updated to a new nightly
-            configFile = new File(project.checkstyleConfigDir, "checkstyle-groovy.xml")
+            configFile = new File(checkstyle.checkstyleConfigDir, "checkstyle-groovy.xml")
             source sourceSet.allGroovy
             classpath = sourceSet.compileClasspath
             reports.xml.destination new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
@@ -41,18 +37,6 @@ plugins.withType(GroovyBasePlugin) {
 
 def codeQualityTasks = tasks.matching { task ->
     [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle, org.gradle.plugin.devel.tasks.ValidateTaskProperties].any { it.isInstance(task) }
-}
-
-tasks.withType(Checkstyle) { task ->
-    // We add an absolute path to configProperties for every checkstyle path
-    // In order to make the task relocatable and therefore cacheable between machines
-    // we need to remove the absolute path from the input and "do the right thing",
-    // which in this case is adding the directory as an input with relative path sensitivity
-    String configDirPropertyName = 'checkstyleConfigDir'
-    task.inputs.property('configProperties') { task.configProperties - [(configDirPropertyName): task.configProperties[configDirPropertyName]] }
-    task.inputs.dir(checkstyleConfigDir)
-        .withPropertyName(configDirPropertyName)
-        .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 task codeQuality {
