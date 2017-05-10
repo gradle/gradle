@@ -73,6 +73,9 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         then:
         def result = result()
 
+        !result.remoteDisabled
+        result.localDisabled
+
         result.remote.className == 'org.gradle.caching.http.HttpBuildCache'
         result.remote.config.url == url
 
@@ -84,6 +87,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
 
         result.remote.type == 'HTTP'
         result.remote.push == push
+
 
         where:
         authenticated | credentials            | push
@@ -114,6 +118,50 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         def config = result().remote.config
         config.url == safeUri.toString() + '/'
         config.authenticated == "true"
+    }
+
+    def "--offline wins over DSL configuration when exposing remote enabled configuration"() {
+        given:
+        httpBuildCache.start()
+        def url = "${httpBuildCache.uri}/"
+        settingsFile << """
+            buildCache {  
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    enabled = true 
+                    url = "$url/"   
+                }
+            }
+        """
+        executer.withBuildCacheEnabled().withArgument('--offline')
+
+        when:
+        succeeds("help")
+
+        then:
+        result().remoteDisabled
+    }
+
+    def "remote build cache configuration details is not exposed when disabled"() {
+        given:
+        httpBuildCache.start()
+        def url = "${httpBuildCache.uri}/"
+        settingsFile << """
+            buildCache {  
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    enabled = false 
+                    url = "$url/"   
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+
+        when:
+        succeeds("help")
+
+        then:
+        def result = result()
+        result.remoteDisabled
+        result.remote == null
     }
 
     Map<String, ?> result() {

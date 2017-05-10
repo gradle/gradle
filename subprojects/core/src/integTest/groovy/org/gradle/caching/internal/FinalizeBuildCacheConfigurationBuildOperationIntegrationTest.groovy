@@ -44,6 +44,10 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
+
+        !result.localDisabled
+        result.remoteDisabled
+
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
         result.local.type == 'directory'
@@ -83,6 +87,10 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         then:
         def result = result()
+
+        !result.localDisabled
+        result.remoteDisabled
+
         result.local.className == 'CustomBuildCache'
         result.local.config.directory == directory
         result.local.type == type
@@ -125,8 +133,34 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
 
+        result.localDisabled
+        result.remoteDisabled
+
         result.local == null
         result.remote == null
+    }
+
+    def "local build cache configuration is not exposed when disabled"() {
+        given:
+        def cacheDir = temporaryFolder.file("cache-dir").createDir()
+        settingsFile << """
+            buildCache {
+                local(DirectoryBuildCache) {
+                    enabled = false
+                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    push = true 
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+
+        when:
+        succeeds("help")
+
+        then:
+        def result = result()
+        result.localDisabled
+        result.local == null
     }
 
     Map<String, ?> result() {
