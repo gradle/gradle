@@ -30,8 +30,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
  * A {@link org.gradle.BuildListener} which logs the final result of the build.
  */
 public class BuildResultLogger extends BuildAdapter {
-    public final static String BUILD_FINISHED_HEADER = "<=============>";
-
     private final StyledTextOutputFactory textOutputFactory;
     private final Clock buildTimeClock;
     private final DurationFormatter durationFormatter;
@@ -46,7 +44,6 @@ public class BuildResultLogger extends BuildAdapter {
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.WARN);
         textOutput.println();
         // Try to match the progress bar exactly, as it makes for the smoothest transition
-        textOutput.println(BUILD_FINISHED_HEADER);
         String action = result.getAction().toUpperCase();
         if (result.getFailure() == null) {
             textOutput.withStyle(Success).text(action + " SUCCESSFUL");
@@ -55,6 +52,5 @@ public class BuildResultLogger extends BuildAdapter {
         }
 
         textOutput.formatln(" in %s", durationFormatter.format(buildTimeClock.getElapsedMillis()));
-        textOutput.println();
     }
 }
