@@ -2,6 +2,7 @@ import groovy.lang.GroovyObject
 
 import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
+import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask
 
 buildscript {
 
@@ -81,12 +82,24 @@ val benchmark by task<integration.Benchmark> {
 
 
 // --- Configure publications ------------------------------------------
-fun buildTagFor(version: String): String =
-    when (version.substringAfterLast('-')) {
-        "SNAPSHOT" -> "snapshot"
-        in Regex("""M\d+[a-z]*$""") -> "milestone"
-        else -> "release"
+subprojects {
+    // Enable artifactory publication on each sub-project
+    apply {
+        plugin("com.jfrog.artifactory")
     }
+    tasks {
+        "artifactoryPublish" {
+            dependsOn("jar")
+        }
+    }
+}
+
+tasks {
+    // Disable publication on root project
+    "artifactoryPublish"(ArtifactoryTask::class) {
+        skip = true
+    }
+}
 
 artifactory {
     setContextUrl("https://repo.gradle.org/gradle")
@@ -106,6 +119,13 @@ artifactory {
         setProperty("repoKey", "repo")
     })
 }
+
+fun buildTagFor(version: String): String =
+    when (version.substringAfterLast('-')) {
+        "SNAPSHOT" -> "snapshot"
+        in Regex("""M\d+[a-z]*$""") -> "milestone"
+        else -> "release"
+    }
 
 
 // --- Utility functions -----------------------------------------------
