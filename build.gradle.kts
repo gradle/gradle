@@ -83,12 +83,17 @@ val benchmark by task<integration.Benchmark> {
 
 
 // --- Configure publications ------------------------------------------
-subprojects {
-    // Enable artifactory publication on each sub-project
-    apply {
+val publishedProjects = listOf(
+    project(":provider"),
+    project(":tooling-models"),
+    project(":tooling-builders"))
+
+// Enable artifactory publication on each published sub-project
+publishedProjects.forEach {
+    it.apply {
         plugin("com.jfrog.artifactory")
     }
-    tasks {
+    it.tasks {
         "artifactoryPublish" {
             dependsOn("jar")
         }

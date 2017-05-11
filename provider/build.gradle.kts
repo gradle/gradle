@@ -26,6 +26,8 @@ dependencies {
     compile(kotlin("stdlib"))
     compile(kotlin("reflect"))
     compile(kotlin("compiler-embeddable"))
+
+    testCompile(project(":test-fixtures"))
 }
 
 configure<KotlinProjectExtension> {
@@ -86,54 +88,6 @@ compileKotlin.dependsOn(generateExtensions)
 
 // -- Testing ----------------------------------------------------------
 val check by tasks
-
-
-// -- Test fixtures ----------------------------------------------------
-val fixturesCompile by configurations.creating {
-    extendsFrom(configurations.compile)
-}
-val fixturesRuntime by configurations.creating {
-    extendsFrom(configurations.runtime)
-}
-
-val fixturesSourceSet = sourceSets.create("fixtures") {
-    compileClasspath += mainSourceSet.output
-    runtimeClasspath += mainSourceSet.output
-    (this as HasConvention).convention.getPlugin<KotlinSourceSet>().apply {
-        kotlin.srcDirs("src/fixtures/kotlin")
-    }
-}
-
-dependencies {
-    fixturesCompile(gradleTestKit())
-    fixturesCompile("junit:junit:4.12")
-    fixturesCompile("com.nhaarman:mockito-kotlin:1.2.0")
-    fixturesCompile("com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5")
-    fixturesCompile("org.ow2.asm:asm-all:5.1")
-}
-
-fun SourceSet.configureForTesting() {
-    configurations["${name}Compile"].extendsFrom(fixturesCompile)
-    configurations["${name}Runtime"].extendsFrom(configurations.runtime)
-    compileClasspath += mainSourceSet.output + fixturesSourceSet.output
-    runtimeClasspath += mainSourceSet.output + fixturesSourceSet.output
-    (this as HasConvention).convention.getPlugin<KotlinSourceSet>().apply {
-        kotlin.srcDirs("src/$name/kotlin")
-    }
-}
-
-fun createTestTaskFor(sourceSet: SourceSet) =
-    task<Test>(sourceSet.name) {
-        group = "verification"
-        description = "Runs tests on ${sourceSet.name}."
-        classpath = sourceSet.runtimeClasspath
-        testClassesDir = sourceSet.output.classesDir
-    }
-
-
-// -- Unit testing ----------------------------------------------------
-
-sourceSets["test"].configureForTesting()
 val test by tasks
 
 val prepareIntegrationTestFixtures by rootProject.tasks
@@ -141,14 +95,6 @@ val customInstallation by rootProject.tasks
 
 test.dependsOn(prepareIntegrationTestFixtures)
 test.dependsOn(customInstallation)
-
-
-// -- Samples testing --------------------------------------------------
-val samplesTestSourceSet = sourceSets.create("samplesTest").apply { configureForTesting() }
-val samplesTest = createTestTaskFor(samplesTestSourceSet)
-samplesTest.dependsOn(customInstallation)
-samplesTest.mustRunAfter(test)
-check.dependsOn(samplesTest)
 
 
 tasks.withType<Test> {
