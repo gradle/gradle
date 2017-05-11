@@ -132,12 +132,10 @@ public class TaskExecutionServices {
             );
         }
         executer = new SkipUpToDateTaskExecuter(executer);
-
-        executer = new ResolveTaskOutputCachingStateExecuter(false, executer);
+        executer = new ResolveTaskOutputCachingStateExecuter(taskOutputCacheEnabled, executer);
         if (verifyInputsEnabled || taskOutputCacheEnabled) {
             executer = new ResolveBuildCacheKeyExecuter(listenerManager.getBroadcaster(TaskOutputCachingListener.class), executer, buildOperationExecutor);
         }
-
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
