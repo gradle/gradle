@@ -433,7 +433,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             
             task processDependency {
                 def lazyInputs = configurations.runtimeClasspath.incoming.artifactView { 
-                    attributes { it.attribute(Attribute.of('artifactType', String), JavaPlugin.${token}) }
+                    attributes{ attribute(Usage.USAGE_ATTRIBUTE, org.gradle.api.internal.attributes.Usages.usage(Usage.${token})) }
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
@@ -455,9 +455,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":b:$notExec"
 
         where:
-        scenario              | token                 | expectedDirName     | executed           | notExec
-        'class directory'     | 'CLASS_DIRECTORY'     | 'classes/java/main' | 'compileJava'      | 'processResources'
-        'resources directory' | 'RESOURCES_DIRECTORY' | 'resources/main'    | 'processResources' | 'compileJava'
+        scenario              | token                    | expectedDirName     | executed           | notExec
+        'class directory'     | 'JAVA_RUNTIME_CLASSES'   | 'classes/java/main' | 'compileJava'      | 'processResources'
+        'resources directory' | 'JAVA_RUNTIME_RESOURCES' | 'resources/main'    | 'processResources' | 'compileJava'
     }
 
     @Issue("gradle/gradle#1347")
