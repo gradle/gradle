@@ -148,6 +148,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         return originalStdErr;
     }
 
+    public LogLevel getLogLevel() {
+        return logLevel.get();
+    }
+
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
         synchronized (lock) {
             ConsoleConfigureAction.execute(this, consoleOutput);

@@ -16,7 +16,9 @@
 
 package org.gradle.internal.logging.sink;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
@@ -30,6 +32,7 @@ import java.io.OutputStreamWriter;
 public class ConsoleConfigureAction {
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
         if (consoleOutput == ConsoleOutput.Plain) {
+            configureLifecycleLogLevelForNonTerminalEnvironments(renderer);
             return;
         }
 
@@ -38,6 +41,7 @@ public class ConsoleConfigureAction {
         boolean force = false;
         if (consoleMetaData == null) {
             if (consoleOutput == ConsoleOutput.Auto) {
+                configureLifecycleLogLevelForNonTerminalEnvironments(renderer);
                 return;
             }
             assert consoleOutput == ConsoleOutput.Rich;
@@ -58,6 +62,17 @@ public class ConsoleConfigureAction {
             OutputStreamWriter errStr = new OutputStreamWriter(force ? originalStdErr : AnsiConsoleUtil.wrapOutputStream(originalStdErr));
             Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), consoleMetaData, force);
             renderer.addConsole(console, false, true, consoleMetaData);
+        }
+    }
+
+    /**
+     * Environments without a terminal attached (e.g. IDEs, CI) need to use {@link org.gradle.api.logging.LogLevel#LIFECYCLE} log level for
+     * the purpose of capturing enough output for further processing. This behavior can be overridden by providing a custom log level for
+     * the build environment e.g. command line option or log level system property.
+     */
+    private static void configureLifecycleLogLevelForNonTerminalEnvironments(OutputEventRenderer renderer) {
+        if (DefaultLoggingConfiguration.DEFAULT_LOG_LEVEL == renderer.getLogLevel()) {
+            renderer.configure(LogLevel.LIFECYCLE);
         }
     }
 }
