@@ -67,6 +67,7 @@ class MavenGoogleDependencyResolveIntegrationTest extends AbstractDependencyReso
         succeeds 'copyLibs'
 
         then:
-        file('build/libs').listFiles()*.name == ['constraint-layout-1.0.2.aar', 'constraint-layout-solver-1.0.2.jar']
+        def libFileNames = file('build/libs').listFiles()*.name as Set
+        libFileNames == ['constraint-layout-1.0.2.aar', 'constraint-layout-solver-1.0.2.jar'] as Set
     }
 }
