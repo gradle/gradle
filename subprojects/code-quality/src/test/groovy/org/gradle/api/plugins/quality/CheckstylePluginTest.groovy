@@ -29,6 +29,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.pluginManager.apply(CheckstylePlugin)
+        project.file("config/checkstyle").mkdirs()
+        project.file("custom").mkdirs()
     }
 
     def "applies reporting-base plugin"() {

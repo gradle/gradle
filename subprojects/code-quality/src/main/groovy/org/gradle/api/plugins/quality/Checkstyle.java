@@ -33,7 +33,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -223,11 +223,15 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return path to other Checkstyle configuration files
      * @since 4.0
      */
-    @InputFiles
+    @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
     public File getConfigDir() {
-        return configDir.getOrNull();
+        File configDirectory = configDir.getOrNull();
+        if (configDirectory!=null && configDirectory.exists()) {
+            return configDirectory;
+        }
+        return null;
     }
 
     public void setConfigDir(Provider<File> configDir) {
