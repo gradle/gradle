@@ -22,14 +22,14 @@ import org.gradle.api.logging.LogLevel;
 /**
  * Container for all test logging related options. Different options
  * can be set for each log level. Options that are set directly (without
- * specifying a log level) apply to log level WARN. Example:
+ * specifying a log level) apply to log level LIFECYCLE. Example:
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
  *
  * test {
  *     testLogging {
- *         // set options for log level WARN
+ *         // set options for log level LIFECYCLE
  *         events "failed"
  *         exceptionFormat "short"
  *

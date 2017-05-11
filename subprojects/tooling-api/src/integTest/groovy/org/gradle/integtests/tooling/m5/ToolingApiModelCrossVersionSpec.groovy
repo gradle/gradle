@@ -31,7 +31,7 @@ System.err.println 'this is stderr'
         progress.pop()
 
         then:
-        progress.size() >= 1
+        progress.size() >= 2
         progress.every { it }
     }
 

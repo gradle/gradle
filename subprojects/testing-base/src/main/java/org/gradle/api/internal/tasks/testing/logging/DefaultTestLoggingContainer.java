@@ -41,9 +41,6 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         setEvents(EnumSet.of(TestLogEvent.FAILED));
         setExceptionFormat(TestExceptionFormat.SHORT);
 
-        getLifecycle().setEvents(EnumSet.of(TestLogEvent.FAILED));
-        getLifecycle().setExceptionFormat(TestExceptionFormat.SHORT);
-
         getInfo().setEvents(EnumSet.of(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
         getInfo().setStackTraceFilters(EnumSet.of(TestStackTraceFilter.TRUNCATE));
 
@@ -274,6 +271,6 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     private TestLogging getDefaultTestLogging() {
-        return getWarn();
+        return getLifecycle();
     }
 }

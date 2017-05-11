@@ -158,11 +158,6 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void warnLogging() {
-        checkOutput(this.&run, logOutput.warn)
-    }
-
-    @Test
     public void lifecycleLogging() {
         checkOutput(this.&run, logOutput.lifecycle)
     }
@@ -370,14 +365,8 @@ class LogOutput {
             errorMessages: [errorMessages],
             allMessages: allOuts
     )
-    final LogLevel warn = new LogLevel(
-            args: [],
-            infoMessages: [quietMessages, warningMessages],
-            errorMessages: [errorMessages],
-            allMessages: allOuts
-    )
     final LogLevel lifecycle = new LogLevel(
-            args: ['-l'],
+            args: [],
             infoMessages: [quietMessages, warningMessages, lifecycleMessages],
             errorMessages: [errorMessages],
             allMessages: allOuts
