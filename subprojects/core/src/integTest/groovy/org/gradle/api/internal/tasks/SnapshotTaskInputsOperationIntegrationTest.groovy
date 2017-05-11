@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.tasks.SnapshotTaskInputsOperationDetails
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.junit.Rule
