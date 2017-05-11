@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveTaskOutputCachingStateExecuter.class);
-
     private final boolean taskOutputCacheEnabled;
     private final TaskExecuter delegate;
 
@@ -52,8 +51,6 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
         } else {
             state.setTaskOutputCaching(DefaultTaskOutputs.DISABLED);
         }
-        if (delegate != null) {
-            delegate.execute(task, state, context);
-        }
+        delegate.execute(task, state, context);
     }
 }

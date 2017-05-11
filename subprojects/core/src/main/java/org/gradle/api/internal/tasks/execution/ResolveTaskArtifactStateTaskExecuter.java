@@ -35,8 +35,8 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
     private final TaskArtifactStateRepository repository;
 
     public ResolveTaskArtifactStateTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter executer) {
-        this.repository = repository;
         this.executer = executer;
+        this.repository = repository;
     }
 
     @Override
@@ -48,6 +48,12 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         context.setTaskArtifactState(taskArtifactState);
         outputs.setHistory(taskArtifactState.getExecutionHistory());
         LOGGER.info("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
-        executer.execute(task, state, context);
+        try {
+            executer.execute(task, state, context);
+        } finally {
+            outputs.setHistory(null);
+            context.setTaskArtifactState(null);
+            LOGGER.debug("Removed task artifact state for {} from context.");
+        }
     }
 }

@@ -22,12 +22,15 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.caching.internal.ComputeTaskInputsHashesAndBuildCacheKeyDetails
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputCachingListener
+import org.gradle.internal.progress.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class ResolveBuildCacheKeyExecuterTest extends Specification {
+
     def taskState = Mock(TaskStateInternal)
     def task = Mock(TaskInternal)
     def taskContext = Mock(TaskExecutionContext)
@@ -35,7 +38,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def taskOutputs = Mock(TaskOutputsInternal)
     def delegate = Mock(TaskExecuter)
     def listener = Mock(TaskOutputCachingListener)
-    def executer = new ResolveBuildCacheKeyExecuter(listener, delegate)
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def executer = new ResolveBuildCacheKeyExecuter(listener, delegate, buildOperationExecutor)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
 
     def "notifies listener after calculating cache key"() {
@@ -47,9 +51,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
 
         then:
-        1 * taskContext.setBuildCacheKey(cacheKey)
-
-        then:
         1 * task.getOutputs() >> taskOutputs
         1 * taskOutputs.getHasOutput() >> true
         1 * listener.cacheKeyEvaluated(task, cacheKey)
@@ -57,8 +58,14 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * cacheKey.getHashCode() >> "0123456789abcdef"
 
         then:
+        1 * taskContext.setBuildCacheKey(cacheKey)
+
+        then:
         1 * delegate.execute(task, taskState, taskContext)
         0 * _
+
+        and:
+        buildOpResult() == cacheKey
     }
 
     def "propagates exceptions if cache key cannot be calculated"() {
@@ -76,6 +83,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         def ex = thrown RuntimeException
         ex.is(failure)
+        buildOpFailure().is(failure)
     }
 
     def "does not call listener if task has no outputs"() {
@@ -87,14 +95,26 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskArtifactState.calculateCacheKey() >> DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
 
         then:
-        1 * taskContext.setBuildCacheKey(DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY)
-
-        then:
         1 * task.getOutputs() >> taskOutputs
         1 * taskOutputs.getHasOutput() >> false
 
         then:
+        1 * taskContext.setBuildCacheKey(DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY)
+
+        then:
         1 * delegate.execute(task, taskState, taskContext)
         0 * _
+
+        and:
+        buildOpResult() == DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
     }
+
+    private TaskOutputCachingBuildCacheKey buildOpResult() {
+        buildOperationExecutor.log.mostRecentResult(ComputeTaskInputsHashesAndBuildCacheKeyDetails)
+    }
+
+    private Throwable buildOpFailure() {
+        buildOperationExecutor.log.mostRecentFailure(ComputeTaskInputsHashesAndBuildCacheKeyDetails)
+    }
+
 }

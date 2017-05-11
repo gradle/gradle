@@ -43,7 +43,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
 
     final executer = new ResolveTaskArtifactStateTaskExecuter(repository, delegate)
 
-    def 'taskContext is initialized as expected'() {
+    def 'taskContext is initialized and cleaned as expected'() {
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -56,6 +56,10 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
 
         then: 'delegate is executed'
         1 * delegate.execute(task, taskState, taskContext)
+
+        then: 'task artifact state is removed from taskContext'
+        1 * outputs.setHistory(null)
+        1 * taskContext.setTaskArtifactState(null)
 
         and: 'nothing else'
         0 * _
