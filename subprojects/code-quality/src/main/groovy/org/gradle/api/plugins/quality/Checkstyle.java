@@ -64,7 +64,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private PropertyState<File> checkstyleConfigDir;
+    private PropertyState<File> configDir;
 
 
     /**
@@ -83,7 +83,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     public Checkstyle() {
-        checkstyleConfigDir = getProject().property(File.class);
+        configDir = getProject().property(File.class);
         reports = getInstantiator().newInstance(CheckstyleReportsImpl.class, this);
     }
 
@@ -226,12 +226,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
-    public File getCheckstyleConfigDir() {
-        return checkstyleConfigDir.getOrNull();
+    public File getConfigDir() {
+        return configDir.getOrNull();
     }
 
-    public void setCheckstyleConfigDir(Provider<File> checkstyleConfigDir) {
-        this.checkstyleConfigDir.set(checkstyleConfigDir);
+    public void setConfigDir(Provider<File> configDir) {
+        this.configDir.set(configDir);
     }
 
     /**
