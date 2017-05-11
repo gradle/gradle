@@ -158,7 +158,7 @@ This is a _target_ size for the build cache. Gradle will periodically check if t
 
 If you use additional configuration files with [Checkstyle](userguide/checkstyle_plugin.html), like `suppressions.xml`, these files need to be specified with an absolute path. Most projects use a variable like `config_loc` to build the path to these configuration files.
  
-Gradle now defines a `config_loc` property that can be used in your `checkstyle.xml`.  See the [sample](TODO) for more information.
+Gradle now defines a `config_loc` property that can be used in your `checkstyle.xml`.  See the [user guide](userguide/checkstyle_plugin.html#sec:checkstyle_built_in_variables) for more information.
 
 This change makes Checkstyle build cache friendly, so that your build does not need to depend on machine-specific paths and is more likely to keep track of all inputs to the `Checkstyle` task. 
  
