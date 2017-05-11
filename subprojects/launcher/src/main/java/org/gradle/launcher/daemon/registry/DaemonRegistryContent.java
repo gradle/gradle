@@ -52,10 +52,6 @@ public class DaemonRegistryContent implements Serializable {
         this.stopEvents = stopEvents;
     }
 
-    public DaemonRegistryContent dataSharingCopy() {
-        return new DaemonRegistryContent(infosMap, stopEvents);
-    }
-
     /**
      * returns all statuses. May be empty.
      */
@@ -129,7 +125,7 @@ public class DaemonRegistryContent implements Serializable {
         private List<DaemonStopEvent> readStopEvents(Decoder decoder) throws Exception {
             int len = decoder.readInt();
             List<DaemonStopEvent> out = new ArrayList<DaemonStopEvent>(len);
-            for (int i = 0; i < len; i++) {
+            for (int i=0; i<len; i++) {
                 out.add(DaemonStopEvent.SERIALIZER.read(decoder));
             }
             return out;
@@ -202,7 +198,7 @@ public class DaemonRegistryContent implements Serializable {
             int infosSize = decoder.readInt();
             List<Address> out = new ArrayList<Address>();
             ObjectInputStream ois = new ObjectInputStream(decoder.getInputStream());
-            for (int i = 0; i < infosSize; i++) {
+            for (int i=0; i<infosSize; i++) {
                 byte type = decoder.readByte();
                 switch (type) {
                     case 0:

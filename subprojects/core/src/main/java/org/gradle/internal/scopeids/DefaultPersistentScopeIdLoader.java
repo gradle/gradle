@@ -74,7 +74,7 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
     private UniqueId get(ScopeParams params) {
         PersistentStateCache<UniqueId> store = store(params);
 
-        return store.update(new PersistentStateCache.UpdateAction<UniqueId>() {
+        return store.maybeUpdate(new PersistentStateCache.UpdateAction<UniqueId>() {
             @Override
             public UniqueId update(UniqueId oldValue) {
                 if (oldValue == null) {

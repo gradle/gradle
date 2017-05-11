@@ -150,8 +150,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     }
                     // Else, has been removed by something else - ignore
                     return oldValue;
-                }
-            });
+                }});
         } finally {
             lock.unlock();
         }
@@ -220,15 +219,13 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                    DaemonRegistryContent newValue;
                     if (oldValue == null) {
-                        newValue = new DaemonRegistryContent();
-                    } else {
-                        newValue = oldValue.dataSharingCopy();
+                        //it means the registry didn't exist yet
+                        oldValue = new DaemonRegistryContent();
                     }
                     DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, token, state);
-                    newValue.setStatus(address, daemonInfo);
-                    return newValue;
+                    oldValue.setStatus(address, daemonInfo);
+                    return oldValue;
                 }
             });
         } finally {

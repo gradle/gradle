@@ -79,5 +79,10 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         public CompilationState update(UpdateAction<CompilationState> updateAction) {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public CompilationState maybeUpdate(UpdateAction<CompilationState> updateAction) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

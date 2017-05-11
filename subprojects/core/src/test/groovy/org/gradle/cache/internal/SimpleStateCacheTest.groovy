@@ -137,7 +137,7 @@ class SimpleStateCacheTest extends Specification {
         cache.get() == "b"
     }
 
-    def "only writes back changes from update"() {
+    def "maybeUpdate only writes back changes from update"() {
         given:
         // Note: we are using invocation of the serializer as an indicator of
         // file read/write activity.
@@ -151,7 +151,7 @@ class SimpleStateCacheTest extends Specification {
         1 * serializer.write(_, "a")
 
         when: // same value is not written
-        def r = cache.update { it }
+        def r = cache.maybeUpdate { it }
 
         then:
         r == "a"
@@ -161,7 +161,7 @@ class SimpleStateCacheTest extends Specification {
         0 * serializer.write(_, _)
 
         when: // different value is written back
-        r = cache.update { "b" }
+        r = cache.maybeUpdate { "b" }
 
         then:
         1 * serializer.read(_)
@@ -173,7 +173,7 @@ class SimpleStateCacheTest extends Specification {
         r == "b"
 
         when: // same logical value, but different object is written back
-        r = cache.update { new String("b") }
+        r = cache.maybeUpdate { new String("b") }
 
         then:
         1 * serializer.read(_)

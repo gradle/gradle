@@ -60,9 +60,50 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public T update(final UpdateAction<T> updateAction) {
-        Updater action = new Updater(updateAction);
-        fileAccess.updateFile(action);
-        return action.result;
+        class Updater implements Runnable {
+            private final UpdateAction<T> updateAction;
+
+            private T result;
+
+            private Updater(UpdateAction<T> updateAction) {
+                this.updateAction = updateAction;
+            }
+
+            public void run() {
+                T oldValue = deserialize();
+                result = updateAction.update(oldValue);
+                serialize(result);
+            }
+        }
+
+        Updater updater = new Updater(updateAction);
+        fileAccess.updateFile(updater);
+        return updater.result;
+    }
+
+    @Override
+    public T maybeUpdate(UpdateAction<T> updateAction) {
+        class MaybeUpdater implements Runnable {
+            private final UpdateAction<T> updateAction;
+
+            private T result;
+
+            private MaybeUpdater(UpdateAction<T> updateAction) {
+                this.updateAction = updateAction;
+            }
+
+            public void run() {
+                T oldValue = deserialize();
+                result = updateAction.update(oldValue);
+                if (oldValue != result) { // note: intentional pointer comparison
+                    serialize(result);
+                }
+            }
+        }
+
+        MaybeUpdater maybeUpdater = new MaybeUpdater(updateAction);
+        fileAccess.updateFile(maybeUpdater);
+        return maybeUpdater.result;
     }
 
     private void serialize(T newValue) {
@@ -99,21 +140,4 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
         }
     }
 
-    private class Updater implements Runnable {
-        private final UpdateAction<T> updateAction;
-
-        private T result;
-
-        private Updater(UpdateAction<T> updateAction) {
-            this.updateAction = updateAction;
-        }
-
-        public void run() {
-            T oldValue = deserialize();
-            result = updateAction.update(oldValue);
-            if (oldValue != result) { // note: intentional pointer comparison
-                serialize(result);
-            }
-        }
-    }
 }

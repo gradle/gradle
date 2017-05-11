@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.internal.Factory;
 
 public class FileIntegrityViolationSuppressingPersistentStateCacheDecorator<T> implements PersistentStateCache<T> {
 
@@ -39,8 +40,27 @@ public class FileIntegrityViolationSuppressingPersistentStateCacheDecorator<T> i
     }
 
     public T update(final UpdateAction<T> updateAction) {
+        return doUpdate(updateAction, new Factory<T>() {
+            @Override
+            public T create() {
+                return delegate.update(updateAction);
+            }
+        });
+    }
+
+    @Override
+    public T maybeUpdate(final UpdateAction<T> updateAction) {
+        return doUpdate(updateAction, new Factory<T>() {
+            @Override
+            public T create() {
+                return delegate.maybeUpdate(updateAction);
+            }
+        });
+    }
+
+    private T doUpdate(UpdateAction<T> updateAction, Factory<T> work) {
         try {
-            return delegate.update(updateAction);
+            return work.create();
         } catch (FileIntegrityViolationException e) {
             T newValue = updateAction.update(null);
             set(newValue);

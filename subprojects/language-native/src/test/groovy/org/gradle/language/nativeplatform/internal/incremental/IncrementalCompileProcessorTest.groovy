@@ -433,5 +433,10 @@ class IncrementalCompileProcessorTest extends Specification {
         CompilationState update(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
             throw new UnsupportedOperationException()
         }
+
+        @Override
+        CompilationState maybeUpdate(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+            throw new UnsupportedOperationException()
+        }
     }
 }

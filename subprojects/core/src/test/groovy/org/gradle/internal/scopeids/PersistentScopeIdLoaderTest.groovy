@@ -52,7 +52,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         1 * storeFactory.create(storeFile, _) >> store
 
         and:
-        1 * store.update(_) >> { PersistentStateCache.UpdateAction action ->
+        1 * store.maybeUpdate(_) >> { PersistentStateCache.UpdateAction action ->
             action.update(null)
         }
 
@@ -77,7 +77,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         1 * storeFactory.create(storeFile, _) >> store
 
         and:
-        1 * store.update(_) >> { PersistentStateCache.UpdateAction action ->
+        1 * store.maybeUpdate(_) >> { PersistentStateCache.UpdateAction action ->
             action.update(null)
         }
 
@@ -102,7 +102,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         1 * storeFactory.create(storeFile, _) >> store
 
         and:
-        1 * store.update(_) >> { PersistentStateCache.UpdateAction action ->
+        1 * store.maybeUpdate(_) >> { PersistentStateCache.UpdateAction action ->
             action.update(existingId)
         }
 
