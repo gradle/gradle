@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.tasks.SourceSet;
@@ -34,12 +33,11 @@ public class SourceSetUtil {
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
         compile.setSource(sourceSet.getJava());
 
-        compile.setClasspath(target.provider(new Callable<FileCollection>() {
-            @Override
-            public FileCollection call() {
+        compile.getConventionMapping().map("classpath", new Callable<Object>() {
+            public Object call() throws Exception {
                 return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
             }
-        }));
+        });
 
         configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, compile, target);
     }
