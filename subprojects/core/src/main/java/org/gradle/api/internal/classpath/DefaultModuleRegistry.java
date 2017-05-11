@@ -80,7 +80,31 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         return module;
     }
 
+    @Override
+    @Nullable
+    public Module findModule(String name) {
+        Module module = modules.get(name);
+        if (module == null) {
+            module = loadOptionalModule(name);
+            if (module != null) {
+                modules.put(name, module);
+            }
+        }
+        return module;
+    }
+
     private Module loadModule(String moduleName) {
+        Module module = loadOptionalModule(moduleName);
+        if (module != null) {
+            return module;
+        }
+        if (gradleInstallation == null) {
+            throw new UnknownModuleException(String.format("Cannot locate manifest for module '%s' in classpath: %s.", moduleName, classpath));
+        }
+        throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, gradleInstallation.getGradleHome()));
+    }
+
+    private Module loadOptionalModule(String moduleName) {
         File jarFile = findJar(moduleName);
         if (jarFile != null) {
             Set<File> implementationClasspath = new LinkedHashSet<File>();
@@ -101,11 +125,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
                 }
             }
         }
-
-        if (gradleInstallation == null) {
-            throw new UnknownModuleException(String.format("Cannot locate manifest for module '%s' in classpath: %s.", moduleName, classpath));
-        }
-        throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, gradleInstallation.getGradleHome()));
+        return null;
     }
 
     private Module module(String moduleName, Properties properties, Set<File> implementationClasspath) {

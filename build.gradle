@@ -287,7 +287,8 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.8.0'
+    externalModules 'org.gradle:gradle-script-kotlin:0.9.0'
+    externalModules 'org.gradle:gradle-script-kotlin-tooling-builders:0.9.0'
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')

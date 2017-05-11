@@ -66,7 +66,7 @@ class GradleScriptKotlinIntegrationTest extends AbstractIntegrationSpec {
         // of internal APIs is not broken by refactorings on the Gradle side
         buildFile << """
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel
+import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
 task("dumpKotlinBuildScriptModelClassPath") {
