@@ -21,6 +21,7 @@ buildscript {
 }
 
 plugins {
+    base
     `maven-publish`
     id("com.jfrog.artifactory") version "4.1.1"
 }
