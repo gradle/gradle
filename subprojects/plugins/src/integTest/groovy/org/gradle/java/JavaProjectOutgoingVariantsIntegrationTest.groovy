@@ -17,6 +17,7 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -29,6 +30,8 @@ class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec
 
         settingsFile << "include 'other-java', 'java', 'consumer'"
         buildFile << """
+import org.gradle.api.internal.attributes.Usages
+
 def artifactType = Attribute.of('artifactType', String)
 
 allprojects {
@@ -78,10 +81,11 @@ project(':consumer') {
         result.assertOutputContains("java.jar (project :java) {artifactType=jar}")
     }
 
-    def "provides API variant"() {
+    @Unroll
+    def "provides API variant - #usage"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE)
+                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, ${usage})
             }
 """
         when:
@@ -90,14 +94,20 @@ project(':consumer') {
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         result.assertOutputContains("files: [java.jar, compile-1.0.jar, other-java.jar, runtime-1.0.jar]")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.api.attributes.Usage=for compile}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=for compile}")
+        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.api.attributes.Usage=java-api}")
+        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=java-api}")
+
+        where:
+        usage                          | _
+        "Usage.FOR_COMPILE"            | _
+        "Usages.usage(Usage.JAVA_API)" | _
     }
 
-    def "provides runtime variant"() {
+    @Unroll
+    def "provides runtime variant - #usage"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_RUNTIME)
+                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, ${usage})
             }
 """
         when:
@@ -106,11 +116,17 @@ project(':consumer') {
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         result.assertOutputContains("files: [java.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.api.attributes.Usage=for runtime}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=for runtime}")
+        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
+        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
+
+        where:
+        usage                                   | _
+        "Usage.FOR_RUNTIME"                     | _
+        "Usages.usage(Usage.JAVA_RUNTIME)"      | _
+        "Usages.usage(Usage.JAVA_RUNTIME_JARS)" | _
     }
 
-    def "provides runtime JAR variant"() {
+    def "provides runtime JAR variant using artifactType"() {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_RUNTIME)
@@ -123,28 +139,14 @@ project(':consumer') {
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         result.assertOutputContains("files: [java.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.api.attributes.Usage=for runtime}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=for runtime}")
+        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
+        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
     }
 
     def "provides runtime classes variant"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_RUNTIME)
-                configurations.consume.attributes.attribute(artifactType, JavaPlugin.CLASS_DIRECTORY)
-                
-                // TODO - should not require this
-                dependencies.attributesSchema.attribute(artifactType).compatibilityRules.add(JavaArtifactTypesRule)
-            }
-            class JavaArtifactTypesRule implements AttributeCompatibilityRule<String> {
-                void execute(CompatibilityCheckDetails<String> details) {
-                    if (details.consumerValue == JavaPlugin.CLASS_DIRECTORY && details.producerValue == 'jar') {
-                        details.compatible()
-                    }
-                    if (details.consumerValue == JavaPlugin.RESOURCES_DIRECTORY && details.producerValue == 'jar') {
-                        details.compatible()
-                    }
-                }
+                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_CLASSES))
             }
 """
         when:
@@ -153,28 +155,14 @@ project(':consumer') {
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":consumer:resolve")
         result.assertOutputContains("files: [main, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("main (project :other-java) {artifactType=org.gradle.java.classes.directory, org.gradle.api.attributes.Usage=for runtime}")
-        result.assertOutputContains("main (project :java) {artifactType=org.gradle.java.classes.directory, org.gradle.api.attributes.Usage=for runtime}")
+        result.assertOutputContains("main (project :other-java) {artifactType=org.gradle.java.classes.directory, org.gradle.api.attributes.Usage=java-runtime-classes}")
+        result.assertOutputContains("main (project :java) {artifactType=org.gradle.java.classes.directory, org.gradle.api.attributes.Usage=java-runtime-classes}")
     }
 
     def "provides runtime resources variant"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_RUNTIME)
-                configurations.consume.attributes.attribute(artifactType, JavaPlugin.RESOURCES_DIRECTORY)
-
-                // TODO - should not require this
-                dependencies.attributesSchema.attribute(artifactType).compatibilityRules.add(JavaArtifactTypesRule)
-            }
-            class JavaArtifactTypesRule implements AttributeCompatibilityRule<String> {
-                void execute(CompatibilityCheckDetails<String> details) {
-                    if (details.consumerValue == JavaPlugin.CLASS_DIRECTORY && details.producerValue == 'jar') {
-                        details.compatible()
-                    }
-                    if (details.consumerValue == JavaPlugin.RESOURCES_DIRECTORY && details.producerValue == 'jar') {
-                        details.compatible()
-                    }
-                }
+                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_RESOURCES))
             }
 """
 
@@ -184,7 +172,7 @@ project(':consumer') {
         then:
         result.assertTasksExecuted(":other-java:processResources", ":java:processResources", ":consumer:resolve")
         result.assertOutputContains("files: [main, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("main (project :other-java) {artifactType=org.gradle.java.resources.directory, org.gradle.api.attributes.Usage=for runtime}")
-        result.assertOutputContains("main (project :java) {artifactType=org.gradle.java.resources.directory, org.gradle.api.attributes.Usage=for runtime}")
+        result.assertOutputContains("main (project :other-java) {artifactType=org.gradle.java.resources.directory, org.gradle.api.attributes.Usage=java-runtime-resources}")
+        result.assertOutputContains("main (project :java) {artifactType=org.gradle.java.resources.directory, org.gradle.api.attributes.Usage=java-runtime-resources}")
     }
 }

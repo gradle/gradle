@@ -33,4 +33,38 @@ public interface Usage extends Named {
     Usage FOR_COMPILE = Usages.usage("for compile");
     Usage FOR_RUNTIME = Usages.usage("for runtime");
 
+    /**
+     * The Java API of a library, packaged as class path elements, either a JAR or a classes directory.
+     *
+     * @since 4.0
+     */
+    String JAVA_API = "java-api";
+
+    /**
+     * The Java runtime of a component, packaged as class path elements, either a JAR or a classes directory.
+     *
+     * @since 4.0
+     */
+    String JAVA_RUNTIME = "java-runtime";
+
+    /**
+     * The Java runtime of a component, packaged as JAR only. Must not include classes directories.
+     *
+     * @since 4.0
+     */
+    String JAVA_RUNTIME_JARS = "java-runtime-jars";
+
+    /**
+     * The Java runtime classes of a component, packaged as class path elements, either a JAR or a classes directory. Should not include resources, but may.
+     *
+     * @since 4.0
+     */
+    String JAVA_RUNTIME_CLASSES = "java-runtime-classes";
+
+    /**
+     * The Java runtime resources of a component, packaged as class path elements, either a JAR or a classes directory. Should not include classes, but may.
+     *
+     * @since 4.0
+     */
+    String JAVA_RUNTIME_RESOURCES = "java-runtime-resources";
 }

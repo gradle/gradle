@@ -24,11 +24,14 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeCompatibilityRule;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.attributes.Usages;
 import org.gradle.api.internal.java.DefaultJavaSourceSet;
 import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
@@ -73,7 +76,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.attributes.Usage.*;
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -125,7 +128,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureSchema(ProjectInternal project) {
-        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().assumeCompatibleWhenMissing();
+        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(UsageCompatibilityRules.class);
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -254,7 +257,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
-        compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, FOR_COMPILE);
+        compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_API));
 
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
@@ -268,7 +271,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
-        runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME));
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
@@ -466,4 +469,24 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
+    static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage> {
+        @Override
+        public void execute(CompatibilityCheckDetails<Usage> details) {
+            if (details.getConsumerValue().equals(Usage.FOR_COMPILE) && details.getProducerValue().getName().equals(Usage.JAVA_API)) {
+                details.compatible();
+            }
+            if (details.getConsumerValue().equals(Usage.FOR_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                details.compatible();
+            }
+            if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                details.compatible();
+            }
+            if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                details.compatible();
+            }
+            if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_RESOURCES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                details.compatible();
+            }
+        }
+    }
 }

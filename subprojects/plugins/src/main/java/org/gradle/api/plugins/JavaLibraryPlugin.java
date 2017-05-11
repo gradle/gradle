@@ -16,12 +16,22 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationPublications;
+import org.gradle.api.artifacts.ConfigurationVariant;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.attributes.Usages;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.compile.JavaCompile;
+
+import java.io.File;
+
+import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
 
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
@@ -38,10 +48,10 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         JavaPluginConvention convention = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
         ConfigurationContainer configurations = project.getConfigurations();
-        addApiToMainSourceSet(convention, configurations);
+        addApiToMainSourceSet(project, convention, configurations);
     }
 
-    private void addApiToMainSourceSet(JavaPluginConvention convention, ConfigurationContainer configurations) {
+    private void addApiToMainSourceSet(Project project, JavaPluginConvention convention, ConfigurationContainer configurations) {
         SourceSet sourceSet = convention.getSourceSets().getByName("main");
 
         Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
@@ -53,8 +63,22 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         apiElementsConfiguration.extendsFrom(apiConfiguration);
 
-        // Use a magic type to move the Jar variants out of the way so that the classes variant is used instead
-        apiElementsConfiguration.getOutgoing().getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.NON_DEFAULT_JAR_TYPE);
+        final JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
+
+        // Define a classes variant to use for compilation
+        ConfigurationPublications publications = apiElementsConfiguration.getOutgoing();
+        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
+        ConfigurationVariant variant = publications.getVariants().create("classes");
+        variant.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.CLASS_DIRECTORY);
+        variant.artifact(new JavaPlugin.IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+            @Override
+            public File getFile() {
+                return javaCompile.getDestinationDir();
+            }
+        });
+
+        // Use a magic usage to move the Jar variant out of the way so that the classes variant is used instead for compilation
+        apiElementsConfiguration.getOutgoing().getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(JavaPlugin.NON_DEFAULT_JAR_TYPE));
 
         Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
         implementationConfiguration.extendsFrom(apiConfiguration);

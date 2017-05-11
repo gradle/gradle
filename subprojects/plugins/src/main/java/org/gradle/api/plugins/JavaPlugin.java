@@ -34,6 +34,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.attributes.Usages;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
@@ -54,7 +55,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.attributes.Usage.FOR_RUNTIME;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
@@ -322,14 +322,22 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
         ProcessResources processResources = (ProcessResources) project.getTasks().getByPath(PROCESS_RESOURCES_TASK_NAME);
 
-        addVariants(apiElementConfiguration, jarArtifact, javaCompile, processResources);
-        addVariants(runtimeConfiguration, jarArtifact, javaCompile, processResources);
-        addVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
+        addJar(apiElementConfiguration, jarArtifact);
+        addJar(runtimeConfiguration, jarArtifact);
+        addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
 
         project.getComponents().add(new JavaLibrary(project.getConfigurations(), jarArtifact));
     }
 
-    private void addVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
+    private void addJar(Configuration configuration, ArchivePublishArtifact jarArtifact) {
+        ConfigurationPublications publications = configuration.getOutgoing();
+
+        // Configure an implicit variant
+        publications.getArtifacts().add(jarArtifact);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+    }
+
+    private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -338,13 +346,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         // Define some additional variants
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
-        createVariant(runtimeVariants, "classes", JavaPlugin.CLASS_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+        createVariant(runtimeVariants, "classes", JavaPlugin.CLASS_DIRECTORY, Usage.JAVA_RUNTIME_CLASSES, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.getDestinationDir();
             }
         });
-        createVariant(runtimeVariants, "resources", JavaPlugin.RESOURCES_DIRECTORY, new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
+        createVariant(runtimeVariants, "resources", JavaPlugin.RESOURCES_DIRECTORY, Usage.JAVA_RUNTIME_RESOURCES, new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.getDestinationDir();
@@ -352,9 +360,10 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, String artifactType, PublishArtifact artifact) {
+    private void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, String artifactType, String usage, PublishArtifact artifact) {
         ConfigurationVariant variant = variants.create(name);
         variant.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, artifactType);
+        variant.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(usage));
         variant.artifact(artifact);
     }
 
@@ -405,7 +414,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.setDescription("API elements for main.");
         apiElementsConfiguration.setCanBeResolved(false);
         apiElementsConfiguration.setCanBeConsumed(true);
-        apiElementsConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_COMPILE);
+        apiElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_API));
         apiElementsConfiguration.extendsFrom(compileConfiguration, runtimeConfiguration);
 
         Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
@@ -413,7 +422,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         runtimeElementsConfiguration.setCanBeConsumed(true);
         runtimeElementsConfiguration.setCanBeResolved(false);
         runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
-        runtimeElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, FOR_RUNTIME);
+        runtimeElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_JARS));
         runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration);
 
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
@@ -473,7 +482,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * A custom artifact type which allows the getFile call to be done lazily only when the
      * artifact is actually needed.
      */
-    private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
+    abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
         IntermediateJavaArtifact(String type, Task task) {
