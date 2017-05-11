@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TaskOutputOriginBuildIdFixture
 import org.gradle.internal.id.UniqueId
 import org.junit.Rule
 
-class IncrementalBuildOutputOriginTest extends AbstractIntegrationSpec {
+class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final ScopeIdsFixture buildIdFixture = new ScopeIdsFixture(executer, temporaryFolder)

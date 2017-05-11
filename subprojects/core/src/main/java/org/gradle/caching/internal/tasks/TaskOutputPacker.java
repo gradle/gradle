@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 
@@ -35,5 +36,5 @@ public interface TaskOutputPacker {
 
     void pack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
 
-    void unpack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
+    TaskOutputOriginMetadata unpack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
 }

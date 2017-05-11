@@ -30,6 +30,7 @@ import org.apache.tools.zip.UnixStat;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -40,6 +41,7 @@ import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputT
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.specs.Specs;
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 import org.gradle.internal.IoActions;
@@ -202,12 +204,12 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(final SortedSet<TaskOutputFilePropertySpec> propertySpecs, InputStream input, final TaskOutputOriginReader readOrigin) {
-        IoActions.withResource(new TarInputStream(input), new Action<TarInputStream>() {
+    public TaskOutputOriginMetadata unpack(final SortedSet<TaskOutputFilePropertySpec> propertySpecs, InputStream input, final TaskOutputOriginReader readOrigin) {
+        return IoActions.withResource(new TarInputStream(input), new Transformer<TaskOutputOriginMetadata, TarInputStream>() {
             @Override
-            public void execute(TarInputStream tarInput) {
+            public TaskOutputOriginMetadata transform(TarInputStream tarInput) {
                 try {
-                    unpack(propertySpecs, tarInput, readOrigin);
+                    return unpack(propertySpecs, tarInput, readOrigin);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -215,22 +217,21 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         });
     }
 
-    private void unpack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
+    private TaskOutputOriginMetadata unpack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
         Map<String, TaskOutputFilePropertySpec> propertySpecsMap = Maps.uniqueIndex(propertySpecs, new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
             }
         });
-        boolean originSeen = false;
         TarEntry entry;
+        TaskOutputOriginMetadata originMetadata = null;
         while ((entry = tarInput.getNextEntry()) != null) {
             String name = entry.getName();
 
             if (name.equals(METADATA_PATH)) {
                 // handle origin metadata
-                originSeen = true;
-                readOriginAction.execute(new CloseShieldInputStream(tarInput));
+                originMetadata = readOriginAction.execute(new CloseShieldInputStream(tarInput));
             } else {
                 // handle output property
                 Matcher matcher = PROPERTY_PATH.matcher(name);
@@ -249,9 +250,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 unpackPropertyEntry(propertySpec, tarInput, entry, childPath, outputMissing);
             }
         }
-        if (!originSeen) {
+        if (originMetadata == null) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
+
+        return originMetadata;
     }
 
     private void unpackPropertyEntry(CacheableTaskOutputFilePropertySpec propertySpec, InputStream input, TarEntry entry, String childPath, boolean missing) throws IOException {

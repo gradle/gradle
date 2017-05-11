@@ -210,9 +210,9 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskOutputOriginFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
+    TaskOutputOriginFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal, BuildScopeId buildScopeId) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
-        return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
+        return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildScopeId);
     }
 
     BuildCacheService createBuildCacheService(BuildCacheServiceProvider provider, ListenerManager listenerManager) {

@@ -25,7 +25,7 @@ import org.gradle.internal.id.UniqueId
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.junit.Rule
 
-class ContinuousIncrementalBuildOutputOriginTest extends AbstractContinuousIntegrationTest {
+class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractContinuousIntegrationTest {
 
     final List<Action<GradleExecuter>> afterExecute = []
 

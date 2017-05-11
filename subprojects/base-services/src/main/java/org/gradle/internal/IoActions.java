@@ -17,6 +17,7 @@
 package org.gradle.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.BufferedWriter;
@@ -69,10 +70,6 @@ public abstract class IoActions {
     /**
      * Performs the given action against the given resource, then closes the resource. Ignores failure to close the resource when
      * the action throws an exception.
-     *
-     * @param resource
-     * @param action
-     * @param <T>
      */
     public static <T extends Closeable> void withResource(T resource, Action<? super T> action) {
         try {
@@ -82,6 +79,18 @@ public abstract class IoActions {
             throw UncheckedException.throwAsUncheckedException(t);
         }
         uncheckedClose(resource);
+    }
+
+    public static <T extends Closeable, R> R withResource(T resource, Transformer<R, ? super T> action) {
+        R result;
+        try {
+            result = action.transform(resource);
+        } catch (Throwable t) {
+            closeQuietly(resource);
+            throw UncheckedException.throwAsUncheckedException(t);
+        }
+        uncheckedClose(resource);
+        return result;
     }
 
     /**

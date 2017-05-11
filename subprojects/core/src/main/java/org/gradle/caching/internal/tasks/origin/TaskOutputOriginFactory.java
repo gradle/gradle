@@ -18,7 +18,9 @@ package org.gradle.caching.internal.tasks.origin;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.scopeids.id.BuildScopeId;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -33,23 +35,28 @@ import java.util.List;
 import java.util.Properties;
 
 public class TaskOutputOriginFactory {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskOutputOriginFactory.class);
-    private static final List<String> METADATA_KEYS = Arrays.asList("type", "path", "gradleVersion", "creationTime", "executionTime", "rootPath", "operatingSystem", "hostName", "userName");
+
+    private static final String BUILD_ID_KEY = "buildId";
+    private static final List<String> METADATA_KEYS = Arrays.asList(BUILD_ID_KEY, "type", "path", "gradleVersion", "creationTime", "executionTime", "rootPath", "operatingSystem", "hostName", "userName");
 
     private final InetAddressFactory inetAddressFactory;
     private final String userName;
     private final String operatingSystem;
     private final TimeProvider timeProvider;
     private final GradleVersion gradleVersion;
+    private final BuildScopeId buildScopeId;
     private final File rootDir;
 
-    public TaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion) {
+    public TaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion, BuildScopeId buildScopeId) {
         this.inetAddressFactory = inetAddressFactory;
         this.rootDir = rootDir;
         this.userName = userName;
         this.operatingSystem = operatingSystem;
         this.timeProvider = timeProvider;
         this.gradleVersion = gradleVersion;
+        this.buildScopeId = buildScopeId;
     }
 
     public TaskOutputOriginWriter createWriter(final TaskInternal task, final long elapsedTime) {
@@ -58,6 +65,7 @@ public class TaskOutputOriginFactory {
             public void execute(OutputStream outputStream) {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
+                properties.setProperty(BUILD_ID_KEY, buildScopeId.getId().asString());
                 properties.setProperty("type", task.getClass().getCanonicalName());
                 properties.setProperty("path", task.getPath());
                 properties.setProperty("gradleVersion", gradleVersion.getVersion());
@@ -80,7 +88,7 @@ public class TaskOutputOriginFactory {
     public TaskOutputOriginReader createReader(final TaskInternal task) {
         return new TaskOutputOriginReader() {
             @Override
-            public void execute(InputStream inputStream) {
+            public TaskOutputOriginMetadata execute(InputStream inputStream) {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
                 try {
@@ -92,6 +100,10 @@ public class TaskOutputOriginFactory {
                     throw new IllegalStateException("Cached result format error, corrupted origin metadata.");
                 }
                 LOGGER.info("Origin for {}: {}", task, properties);
+
+                String originBuildIdString = properties.getProperty(BUILD_ID_KEY);
+                UniqueId originBuildId = UniqueId.from(originBuildIdString);
+                return new TaskOutputOriginMetadata(originBuildId);
             }
         };
     }
