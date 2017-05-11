@@ -31,7 +31,7 @@ import org.gradle.util.TextUtil
 @SuppressWarnings("UnusedImport")
 class BuildOperationsFixture extends InitScriptExecuterFixture {
     private final TestFile operationsDir
-    private Map<Object, Map<String, ?>> operations
+    private Map<Object, CompleteBuildOperation> operations
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
         super(executer, projectDir)
@@ -52,14 +52,17 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                 
                 void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
                     operations[buildOperation.id] = [
-                        id: "\${buildOperation.id}",
-                        displayName: "\${buildOperation.displayName}",
-                        parentId: "\${buildOperation.parentId}",
-                        name: "\${buildOperation.name}",
+                        id: buildOperation.id.toString(),
+                        parentId: buildOperation.parentId?.toString(),
+                        displayName: buildOperation.displayName,
+                        name: buildOperation.name,
                         startTime: startEvent.startTime
                     ]
                     if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.TaskOperationDetails) {
-                        operations[buildOperation.id].details = buildOperation.details
+                        operations[buildOperation.id].putAll(
+                            detailsType: buildOperation.details.class.name,
+                            details: buildOperation.details
+                        )
                     }
                 }
 
@@ -76,7 +79,10 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                     if (finishEvent.failure != null) {
                         operations[buildOperation.id].failure = finishEvent.failure.message
                     } else if (finishEvent.result != null) {
-                        operations[buildOperation.id].result = finishEvent.result
+                        operations[buildOperation.id].putAll(
+                            resultType: finishEvent.result.class.name, 
+                            result: finishEvent.result
+                        )
                     }
                 }
             }
@@ -100,23 +106,77 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
     void afterBuild() {
         def jsonFile = new File(operationsDir, "operations.json")
         def slurper = new JsonSlurper()
-        operations = slurper.parseText(jsonFile.text).operations
+        Map<Object, Map<String, ?>> rawOperations = slurper.parseText(jsonFile.text).operations
+        operations = [:]
+        rawOperations.each { id, value ->
+            operations[id] = new CompleteBuildOperation(
+                id,
+                value.parentId,
+                value.name as String,
+                value.displayName as String,
+                value.startTime == null ? -1L as Long : value.startTime as Long,
+                value.endTime as long,
+                value.detailsType ? getClass().classLoader.loadClass(value.detailsType.toString()) : null,
+                value.details as Map<String, ?>,
+                value.resultType ? getClass().classLoader.loadClass(value.resultType.toString()) : null,
+                value.result as Map<String, ?>,
+                value.failure as String
+            )
+        }
     }
 
     boolean hasOperation(String displayName) {
         operation(displayName) != null
     }
 
-    Map<String, ?> operation(String displayName) {
+    CompleteBuildOperation operation(Class<?> detailsType) {
+        operations.values().find { it.detailsType && detailsType.isAssignableFrom(it.detailsType as Class<?>) }
+    }
+
+    CompleteBuildOperation operation(String displayName) {
         operations.values().find { it.displayName == displayName }
     }
 
     Map<String, ?> result(String displayName) {
-        operation(displayName).result as Map<String, ?>
+        operation(displayName).result
     }
 
     String failure(String displayName) {
         operation(displayName).failure
     }
+
+    static class CompleteBuildOperation {
+
+        final Object id
+        final Object parentId
+
+        final String name
+        final String displayName
+
+        final long startTime
+        final long endTime
+
+        final Class<?> detailsType
+        final Map<String, ?> details
+        final Class<?> resultType
+        final Map<String, ?> result
+
+        final String failure
+
+        CompleteBuildOperation(Object id, Object parentId, String name, String displayName, long startTime, long endTime, Class<?> detailsType, Map<String, ?> details, Class<?> resultType, Map<String, ?> result, String failure) {
+            this.id = id
+            this.parentId = parentId
+            this.name = name
+            this.displayName = displayName
+            this.startTime = startTime
+            this.endTime = endTime
+            this.detailsType = detailsType
+            this.details = details
+            this.resultType = resultType
+            this.result = result
+            this.failure = failure
+        }
+    }
+
 
 }

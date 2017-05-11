@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.api.internal.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.junit.Rule
 
-class TaskArtifactAndOutputCachingStatesBuildOperationIntegrationTest extends AbstractIntegrationSpec {
+class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String BUILD_OPERATION = 'Compute task input hashes and build cache key'
 
@@ -36,14 +36,12 @@ class TaskArtifactAndOutputCachingStatesBuildOperationIntegrationTest extends Ab
         succeeds('customTask')
 
         then:
-        buildOperations.hasOperation(BUILD_OPERATION)
         def result = buildOperationResult()
 
         then:
-        result.valid
-        result.hashCode
-        result.inputs.inputHashes.keySet() == ['input1', 'input2'] as Set
-        result.inputs.outputPropertyNames == ['outputFile1', 'outputFile2']
+        result.containsKey("buildCacheKey")
+        result.inputHashes.keySet() == ['input1', 'input2'] as Set
+        result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
     def "task output caching key is not exposed when build cache is disabled"() {
@@ -60,13 +58,13 @@ class TaskArtifactAndOutputCachingStatesBuildOperationIntegrationTest extends Ab
             @CacheableTask
             class CustomTask extends DefaultTask {
                 @Input
-                String input1
-                @Input
                 String input2
-                @OutputFile
-                File outputFile1 = new File(temporaryDir, "output1.txt")
+                @Input
+                String input1
                 @OutputFile
                 File outputFile2 = new File(temporaryDir, "output2.txt")
+                @OutputFile
+                File outputFile1 = new File(temporaryDir, "output1.txt")
 
                 @TaskAction
                 void generate() {
@@ -83,7 +81,7 @@ class TaskArtifactAndOutputCachingStatesBuildOperationIntegrationTest extends Ab
     }
 
     Map<String, ?> buildOperationResult() {
-        buildOperations.result(BUILD_OPERATION)
+        buildOperations.operation(SnapshotTaskInputsOperationDetails).result
     }
 
 }
