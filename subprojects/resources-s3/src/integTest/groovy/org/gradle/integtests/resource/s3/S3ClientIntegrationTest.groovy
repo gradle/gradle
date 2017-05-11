@@ -26,6 +26,7 @@ import com.amazonaws.services.s3.model.S3Object
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.IoActions
@@ -113,9 +114,9 @@ class S3ClientIntegrationTest extends Specification {
         server.stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
         S3Object data = s3Client.getMetaData(uri)
         def metadata = null
-        IoActions.withResource(data) {
+        IoActions.withResource(data, {
             metadata = data.getObjectMetadata()
-        }
+        } as Action)
 
         then:
         metadata.getContentLength() == 0
@@ -126,13 +127,13 @@ class S3ClientIntegrationTest extends Specification {
 
         then:
         S3Object object = s3Client.getResource(uri)
-        IoActions.withResource(object) {
+        IoActions.withResource(object, {
             object.metadata.getContentLength() == fileContents.length()
             object.metadata.getETag() ==~ /\w{32}/
             ByteArrayOutputStream outStream = new ByteArrayOutputStream()
             IOUtils.copyLarge(object.getObjectContent(), outStream);
             outStream.toString() == fileContents
-        }
+        } as Action)
 
         when:
         server.stubListFile(temporaryFolder.testDirectory, bucketName)
