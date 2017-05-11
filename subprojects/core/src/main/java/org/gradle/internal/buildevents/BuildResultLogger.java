@@ -44,12 +44,31 @@ public class BuildResultLogger extends BuildAdapter {
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.WARN);
         textOutput.println();
         String action = result.getAction().toUpperCase();
-        if (result.getFailure() == null) {
-            textOutput.withStyle(Success).text(action + " SUCCESSFUL");
-        } else {
-            textOutput.withStyle(Failure).text(action + " FAILED");
+        StyledTextOutput.Style style = Success;
+        String resultMessage = "SUCCESSFUL";
+        if (result.getFailure() != null) {
+            style = Failure;
+            resultMessage = "FAILED";
         }
 
+        if (isGradlephantEnabled()) {
+            String[] gradlephant = new String[]{
+                "     ____%n",
+                "  __/   .\\  _%n",
+                " /  \\_/   \\//%n",
+                "/|  __ / \\_/%n",
+                " |_| |_|    ",
+            };
+
+            for (String line : gradlephant) {
+                textOutput.withStyle(style).format(line);
+            }
+        }
+        textOutput.withStyle(style).format("%s %s",action, resultMessage);
         textOutput.formatln(" in %s", durationFormatter.format(buildTimeClock.getElapsedMillis()));
+    }
+
+    private boolean isGradlephantEnabled() {
+        return true;
     }
 }
