@@ -140,6 +140,10 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type, constructor)) {
                     return constructor;
                 }
+                if (constructor.getAnnotation(Inject.class) != null) {
+                    return constructor;
+                }
+                throw new IllegalArgumentException(String.format("The constructor for class %s should be public or package protected or annotated with @Inject.", type.getName()));
             }
 
             List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
