@@ -8,14 +8,14 @@ plugins.withType(JavaBasePlugin) {
     }
 }
 
-def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
+def codeQualityConfigDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
 
 codenarc {
-    configFile = new File(configDir, "codenarc.xml")
+    configFile = new File(codeQualityConfigDir, "codenarc.xml")
 }
 
 checkstyle {
-    checkstyleConfigDir = new File(configDir, "checkstyle")
+    configDir = new File(codeQualityConfigDir, "checkstyle")
 }
 
 tasks.withType(CodeNarc) {
@@ -27,7 +27,7 @@ configurations.codenarc.resolutionStrategy.force(libraries.groovy)
 plugins.withType(GroovyBasePlugin) {
     sourceSets.all { sourceSet ->
         task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
-            configFile = new File(checkstyle.checkstyleConfigDir, "checkstyle-groovy.xml")
+            configFile = new File(checkstyle.configDir, "checkstyle-groovy.xml")
             source sourceSet.allGroovy
             classpath = sourceSet.compileClasspath
             reports.xml.destination new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")

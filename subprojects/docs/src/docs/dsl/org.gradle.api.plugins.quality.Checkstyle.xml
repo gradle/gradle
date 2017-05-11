@@ -22,7 +22,7 @@
             </tr>
             <tr>
                 <td>configDir</td>
-                <td><literal>project.checkstyle.checkstyleConfigDir</literal></td>
+                <td><literal>project.checkstyle.configDir</literal></td>
             </tr>
             <tr>
                 <td>ignoreFailures</td>
