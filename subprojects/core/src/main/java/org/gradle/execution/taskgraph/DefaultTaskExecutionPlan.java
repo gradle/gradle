@@ -817,9 +817,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void recordTaskCompleted(TaskInfo taskInfo) {
         runningTasks.remove(taskInfo);
-        for (TaskMutationInfo taskMutationInfo : taskMutations.values()) {
-            taskMutationInfo.consumingTasks.remove(taskInfo);
+        Iterator<TaskMutationInfo> iterator = taskMutations.values().iterator();
+        while (iterator.hasNext()) {
+            TaskMutationInfo taskMutationInfo = iterator.next();
+            if (taskMutationInfo.consumingTasks.remove(taskInfo) && canRemoveTaskMutation(taskMutationInfo)) {
+                iterator.remove();
+            }
         }
+
+        if (canRemoveTaskMutation(taskMutations.get(taskInfo))) {
+            taskMutations.remove(taskInfo);
+        }
+    }
+
+    private boolean canRemoveTaskMutation(TaskMutationInfo taskMutationInfo) {
+        return taskMutationInfo != null && taskMutationInfo.producerTask.isComplete() && taskMutationInfo.consumingTasks.isEmpty();
     }
 
     public void taskComplete(final TaskInfo taskInfo) {
