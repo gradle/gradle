@@ -83,7 +83,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().failure.contains("Task 'someNonExisting' not found in root project")
     }
 
-    private Map<String, ?> operation() {
+    private BuildOperationsFixture.CompleteBuildOperation operation() {
         buildOperations.operation("Calculate task graph")
     }
 

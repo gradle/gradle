@@ -37,6 +37,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             import javax.inject.Inject
             import org.gradle.workers.WorkerExecutor
+            import org.gradle.workers.IsolationMode
 
             class SerialPing extends DefaultTask {
                 @TaskAction
@@ -68,6 +69,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 void ping() {
                     workerExecutor.submit(TestParallelRunnable) { config ->
                         config.params = [ path ]
+                        config.isolationMode = IsolationMode.NONE
                     }
                 }
             }

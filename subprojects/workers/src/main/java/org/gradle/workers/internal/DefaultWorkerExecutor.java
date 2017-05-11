@@ -37,7 +37,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
-import org.gradle.workers.ForkMode;
+import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
@@ -50,16 +50,18 @@ import java.util.concurrent.Future;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ListeningExecutorService executor;
-    private final WorkerFactory workerDaemonFactory;
-    private final WorkerFactory workerInProcessFactory;
+    private final WorkerFactory daemonWorkerFactory;
+    private final WorkerFactory isolatedClassloaderWorkerFactory;
+    private final WorkerFactory noIsolationWorkerFactory;
     private final FileResolver fileResolver;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
 
-    public DefaultWorkerExecutor(WorkerFactory workerDaemonFactory, WorkerFactory workerInProcessFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
-        this.workerDaemonFactory = workerDaemonFactory;
-        this.workerInProcessFactory = workerInProcessFactory;
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+        this.daemonWorkerFactory = daemonWorkerFactory;
+        this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
+        this.noIsolationWorkerFactory = noIsolationWorkerFactory;
         this.fileResolver = fileResolver;
         this.executor = MoreExecutors.listeningDecorator(executorFactory.create("Worker Daemon Execution"));
         this.workerLeaseRegistry = workerLeaseRegistry;
@@ -81,17 +83,17 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             throw new WorkExecutionException(description, t);
         }
 
-        submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getForkMode(), getDaemonForkOptions(actionClass, configuration));
+        submit(spec, configuration.getForkOptions().getWorkingDir(), configuration.getIsolationMode(), getDaemonForkOptions(actionClass, configuration));
     }
 
-    private void submit(final ActionExecutionSpec spec, final File workingDir, final ForkMode fork, final DaemonForkOptions daemonForkOptions) {
+    private void submit(final ActionExecutionSpec spec, final File workingDir, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
         final WorkerLease currentWorkerWorkerLease = workerLeaseRegistry.getCurrentWorkerLease();
         final BuildOperationState currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
-                    WorkerFactory workerFactory = fork == ForkMode.ALWAYS ? workerDaemonFactory : workerInProcessFactory;
+                    WorkerFactory workerFactory = getWorkerFactory(isolationMode);
                     Worker<ActionExecutionSpec> worker = workerFactory.getWorker(WorkerDaemonServer.class, workingDir, daemonForkOptions);
                     return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
                 } catch (Throwable t) {
@@ -100,6 +102,20 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             }
         });
         registerAsyncWork(spec.getDisplayName(), workerDaemonResult);
+    }
+
+    private WorkerFactory getWorkerFactory(IsolationMode isolationMode) {
+        switch(isolationMode) {
+            case AUTO:
+            case CLASSLOADER:
+                return isolatedClassloaderWorkerFactory;
+            case NONE:
+                return noIsolationWorkerFactory;
+            case PROCESS:
+                return daemonWorkerFactory;
+            default:
+                throw new IllegalArgumentException("Unknown isolation mode: " + isolationMode);
+        }
     }
 
     void registerAsyncWork(final String description, final Future<DefaultWorkResult> workItem) {
@@ -144,6 +160,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     DaemonForkOptions getDaemonForkOptions(Class<?> actionClass, WorkerConfiguration configuration) {
+        validateWorkerConfiguration(configuration);
         Iterable<Class<?>> paramTypes = CollectionUtils.collect(configuration.getParams(), new Transformer<Class<?>, Object>() {
             @Override
             public Class<?> transform(Object o) {
@@ -151,6 +168,40 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             }
         });
         return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath());
+    }
+
+    private void validateWorkerConfiguration(WorkerConfiguration configuration) {
+        if (configuration.getIsolationMode() == IsolationMode.NONE) {
+            if (configuration.getClasspath().iterator().hasNext()) {
+                throw unsupportedWorkerConfigurationException("classpath", configuration.getIsolationMode());
+            }
+        }
+
+        if (configuration.getIsolationMode() == IsolationMode.NONE || configuration.getIsolationMode() == IsolationMode.CLASSLOADER) {
+            if (!configuration.getForkOptions().getBootstrapClasspath().isEmpty()) {
+                throw unsupportedWorkerConfigurationException("bootstrap classpath", configuration.getIsolationMode());
+            }
+
+            if (!configuration.getForkOptions().getJvmArgs().isEmpty()) {
+                throw unsupportedWorkerConfigurationException("jvm arguments", configuration.getIsolationMode());
+            }
+
+            if (configuration.getForkOptions().getMaxHeapSize() != null) {
+                throw unsupportedWorkerConfigurationException("maximum heap size", configuration.getIsolationMode());
+            }
+
+            if (configuration.getForkOptions().getMinHeapSize() != null) {
+                throw unsupportedWorkerConfigurationException("minimum heap size", configuration.getIsolationMode());
+            }
+
+            if (!configuration.getForkOptions().getSystemProperties().isEmpty()) {
+                throw unsupportedWorkerConfigurationException("system properties", configuration.getIsolationMode());
+            }
+        }
+    }
+
+    private RuntimeException unsupportedWorkerConfigurationException(String propertyDescription, IsolationMode isolationMode) {
+        return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
     private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions forkOptions, Iterable<File> classpath) {

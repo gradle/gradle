@@ -23,6 +23,7 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.operations.BuildOperation;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -156,38 +157,36 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             });
         }
 
-        public <D extends BuildOperationDetails<?>> D mostRecentDetails(Class<D> detailsType) {
+        private <D extends BuildOperationDetails<?>> Record mostRecent(Class<D> detailsType) {
             ImmutableList<Record> copy = ImmutableList.copyOf(this.records).reverse();
             for (Record record : copy) {
                 Object details = record.descriptor.getDetails();
                 if (detailsType.isInstance(details)) {
-                    return detailsType.cast(details);
+                    return record;
                 }
             }
 
             throw new AssertionError("Did not find operation with details of type: " + detailsType.getName());
         }
 
+        public <D extends BuildOperationDetails<?>> D mostRecentDetails(Class<D> detailsType) {
+            return detailsType.cast(mostRecent(detailsType));
+        }
+
         public <R, D extends BuildOperationDetails<R>> R mostRecentResult(Class<D> detailsType) {
-            ImmutableList<Record> copy = ImmutableList.copyOf(this.records).reverse();
-            for (Record record : copy) {
-                Object details = record.descriptor.getDetails();
-                if (detailsType.isInstance(details)) {
-                    Object result = record.result;
-                    if (result == null) {
-                        return null;
-                    }
+            Record record = mostRecent(detailsType);
+            Object result = record.result;
 
-                    Class<R> resultType = extractResultType(detailsType);
-                    if (resultType.isInstance(result)) {
-                        return resultType.cast(result);
-                    } else {
-                        throw new AssertionError("Expected result type " + resultType.getName() + ", got " + result.getClass().getName());
-                    }
-                }
+            Class<R> resultType = extractResultType(detailsType);
+            if (resultType.isInstance(result)) {
+                return resultType.cast(result);
+            } else {
+                throw new AssertionError("Expected result type " + resultType.getName() + ", got " + result.getClass().getName());
             }
+        }
 
-            throw new AssertionError("Did not find operation with details of type: " + detailsType.getName());
+        public <D extends BuildOperationDetails<?>> Throwable mostRecentFailure(Class<D> detailsType) {
+            return mostRecent(detailsType).failure;
         }
 
         private static <R, D extends BuildOperationDetails<R>> Class<R> extractResultType(Class<D> detailsType) {
@@ -200,6 +199,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             public final BuildOperationDescriptor descriptor;
 
             public Object result;
+            public Throwable failure;
 
             private Record(BuildOperationDescriptor descriptor) {
                 this.descriptor = descriptor;
@@ -217,7 +217,12 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
             TestBuildOperationContext context = new TestBuildOperationContext();
-            buildOperation.run(context);
+            try {
+                buildOperation.run(context);
+            } catch (Throwable failure) {
+                record.failure = failure;
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
             record.result = context.result;
         }
 
@@ -225,7 +230,13 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
             TestBuildOperationContext context = new TestBuildOperationContext();
-            T t = buildOperation.call(context);
+            T t;
+            try {
+                t = buildOperation.call(context);
+            } catch (Throwable failure) {
+                record.failure = failure;
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
             record.result = context.result;
             return t;
         }

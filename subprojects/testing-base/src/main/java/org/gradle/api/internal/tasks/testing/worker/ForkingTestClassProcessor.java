@@ -90,7 +90,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     List<URL> getTestWorkerImplementationClasspath() {
         return CollectionUtils.flattenCollections(URL.class,
-            moduleRegistry.getModule("gradle-version-info").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-core").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-logging").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-messaging").getImplementationClasspath().getAsURLs(),

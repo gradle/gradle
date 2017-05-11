@@ -103,6 +103,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         crossBuildPerformanceResults.jvm == "java 7"
         crossBuildPerformanceResults.versionUnderTest == "Gradle 1.0"
         crossBuildPerformanceResults.operatingSystem == "windows"
+        crossBuildPerformanceResults.host == "me"
         crossBuildPerformanceResults.startTime == 100
         crossBuildPerformanceResults.vcsBranch == "master"
         crossBuildPerformanceResults.vcsCommits[0] == "abcdef"

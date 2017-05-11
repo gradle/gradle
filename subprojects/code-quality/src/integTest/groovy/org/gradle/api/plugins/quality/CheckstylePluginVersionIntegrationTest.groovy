@@ -243,6 +243,71 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !file("build/tmp/checkstyleMain/main.xml").exists()
     }
 
+    def "changes to files in configDir make the task out-of-date"() {
+        given:
+        goodCode()
+        succeeds "checkstyleMain"
+        when:
+        succeeds "checkstyleMain"
+        then:
+        result.skippedTasks.contains(":checkstyleMain")
+
+        when:
+        file("config/checkstyle/suppressions.xml") << "<!-- This is a change -->"
+        and:
+        succeeds "checkstyleMain"
+        then:
+        result.executedTasks.contains(":checkstyleMain")
+    }
+
+    def "can change built-in config_loc"() {
+        given:
+        goodCode()
+        def suppressionsXml = file("config/checkstyle/suppressions.xml")
+        suppressionsXml.moveToDirectory(file("custom"))
+
+        buildFile << """
+            checkstyle {
+                configFile = file("config/checkstyle/checkstyle.xml")
+                configDir = file("custom")
+            }
+        """
+        when:
+        succeeds "checkstyleMain"
+        then:
+        suppressionsXml.assertDoesNotExist()
+        result.executedTasks.contains(":checkstyleMain")
+
+        when:
+        file("config/checkstyle/newFile.xml") << "<!-- This is a new file -->"
+        and:
+        succeeds "checkstyleMain"
+        then:
+        result.skippedTasks.contains(":checkstyleMain")
+    }
+
+    def "behaves if config_loc is already defined"() {
+        given:
+        goodCode()
+        def suppressionsXml = file("config/checkstyle/suppressions.xml")
+        suppressionsXml.moveToDirectory(file("custom"))
+
+        buildFile << """
+            checkstyle {
+                configProperties['config_loc'] = file("custom") 
+            }
+        """
+        when:
+        // config_loc points to the correct location
+        // while the default configDir does not.
+        // The build should be successful anyways
+        executer.expectDeprecationWarning()
+        succeeds "checkstyleMain"
+        then:
+        result.assertOutputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated and is scheduled to be removed in Gradle 5.0. Use checkstyle.configDir instead as this will behave better with up-to-date checks.")
+        result.executedTasks.contains(":checkstyleMain")
+    }
+
     private goodCode() {
         file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
@@ -309,10 +374,24 @@ checkstyle {
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
+    <module name="SuppressionFilter">
+        <property name="file" value="\${config_loc}/suppressions.xml"/>
+    </module>
     <module name="TreeWalker">
         <module name="TypeName"/>
     </module>
 </module>
+        """
+
+        file("config/checkstyle/suppressions.xml") << """
+<!DOCTYPE suppressions PUBLIC
+    "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+    "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+    <suppress checks="TypeName"
+          files="bad_name.java"/>
+</suppressions>
         """
     }
 

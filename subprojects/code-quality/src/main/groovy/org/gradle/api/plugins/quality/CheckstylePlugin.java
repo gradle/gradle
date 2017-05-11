@@ -52,11 +52,11 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
 
-        extension.setCheckstyleConfigDir(project.file("config/checkstyle"));
+        extension.setConfigDir(project.file("config/checkstyle"));
         extension.setConfig(project.getResources().getText().fromFile(new Callable<File>() {
             @Override
             public File call() throws Exception {
-                return new File(extension.getCheckstyleConfigDir(), "checkstyle.xml");
+                return new File(extension.getConfigDir(), "checkstyle.xml");
             }
         }));
         return extension;
@@ -119,10 +119,10 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             }
         });
 
-        task.setCheckstyleConfigDir(project.provider(new Callable<File>() {
+        task.setConfigDir(project.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
-                return extension.getCheckstyleConfigDir();
+                return extension.getConfigDir();
             }
         }));
     }

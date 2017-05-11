@@ -112,14 +112,6 @@ When two tasks write into the same directory, Gradle will now disable task outpu
 
 You can diagnose overlapping task output issues by running Gradle at the `--info` log level. If you are using [Gradle Build Scans](https://gradle.com/scans/get-started), the same detailed reason for disabling task output caching will be included in the build timeline. 
 
-#### JaCoCo reporting, `Test` and Build Cache work together
- 
-In Gradle 3.5, if you applied the [`jacoco` plugin](userguide/jacoco_plugin.html), the `Test` tasks would no longer be cacheable because it was possible to share a JaCoCo execution file between `Test` tasks.
-
-Now that Gradle detects overlapping outputs properly, `Test` tasks can be safely cached when used with JaCoCo. 
-
-If your project uses a single JaCoCo execution file for multiple `Test` tasks (n.b., this is not the default), you will need to use separate files to take advantage of the build cache for tests. You can use [`JacocoMerge`](dsl/org.gradle.testing.jacoco.tasks.JacocoMerge.html) to merge multiple JaCoCo data files into one. 
-
 #### Stricter validation of task properties
 
 When a plugin is built with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html), custom task types declared in the plugin will go through validation. In Gradle 4.0, additional problems are now detected. 
@@ -158,7 +150,7 @@ This is a _target_ size for the build cache. Gradle will periodically check if t
 
 If you use additional configuration files with [Checkstyle](userguide/checkstyle_plugin.html), like `suppressions.xml`, these files need to be specified with an absolute path. Most projects use a variable like `config_loc` to build the path to these configuration files.
  
-Gradle now defines a `config_loc` property that can be used in your `checkstyle.xml`.  See the [sample](TODO) for more information.
+Gradle now defines a `config_loc` property that can be used in your `checkstyle.xml`.  See the [user guide](userguide/checkstyle_plugin.html#sec:checkstyle_built_in_variables) for more information.
 
 This change makes Checkstyle build cache friendly, so that your build does not need to depend on machine-specific paths and is more likely to keep track of all inputs to the `Checkstyle` task. 
  
@@ -287,21 +279,6 @@ You can upgrade or downgrade the version of PMD with:
         toolVersion = '5.5.1'
     }
 
-### Custom build cache service description
-
-The factory method used to create custom build cache services in `BuildCacheServiceFactory` now receives a `Describer` parameter. The custom service factory has to use this to declare the type of the service, and any config parameters that are relevant to the build cache service being created. With this change `BuildCacheService.getDescription()` is also removed.
-
-```java
-public class InMemoryBuildCacheServiceFactory implements BuildCacheServiceFactory<InMemoryBuildCache> {
-    @Override
-    public BuildCacheService createBuildCacheService(InMemoryBuildCache config, Describer describer) {
-        int maxSize = config.getMaxSize();
-        describer.type("in-memory").config("size", String.valueOf(maxSize));
-        return new InMemoryBuildCacheService(maxSize);
-    }
-}
-```
-
 ### Changes to previously deprecated APIs
 
 - The `JacocoPluginExtension` methods `getLogger()`, `setLogger(Logger)` are removed.
@@ -365,8 +342,22 @@ This only affects custom build cache connector implementations.
 It does not affect usage of the build cache connectors that ship with Gradle.
 
 Previously, the `BuildCacheService` was responsible for providing a `getDescription()` method that returned a human friendly description of the cache.
-This responsibility has been moved to the associated `BuildCacheServiceFactory` implementation,
-that now receives an additional argument that can be used to supply a more structured description of the build cache.
+This responsibility has been moved to the associated `BuildCacheServiceFactory` implementation, that now receives a `Describer` parameter. 
+The custom service factory can use this to declare the type of the service and configuration parameters that are relevant to the build cache connector being created. 
+`getDescription()` has been removed.
+
+An example of the factory method used to create a custom build cache connector with a `BuildCacheServiceFactory`: 
+
+```java
+public class InMemoryBuildCacheServiceFactory implements BuildCacheServiceFactory<InMemoryBuildCache> {
+    @Override
+    public BuildCacheService createBuildCacheService(InMemoryBuildCache config, Describer describer) {
+        int maxSize = config.getMaxSize();
+        describer.type("in-memory").config("size", String.valueOf(maxSize));
+        return new InMemoryBuildCacheService(maxSize);
+    }
+}
+```
 
 ## External contributions
 

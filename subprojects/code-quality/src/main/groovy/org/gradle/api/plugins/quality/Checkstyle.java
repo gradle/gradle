@@ -33,7 +33,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -64,7 +64,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private PropertyState<File> checkstyleConfigDir;
+    private PropertyState<File> configDir;
 
 
     /**
@@ -83,7 +83,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     public Checkstyle() {
-        checkstyleConfigDir = getProject().property(File.class);
+        configDir = getProject().property(File.class);
         reports = getInstantiator().newInstance(CheckstyleReportsImpl.class, this);
     }
 
@@ -223,19 +223,15 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return path to other Checkstyle configuration files
      * @since 4.0
      */
-    @InputDirectory
+    @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
-    public File getCheckstyleConfigDir() {
-        File dir = checkstyleConfigDir.getOrNull();
-        if (dir != null && dir.exists()) {
-            return dir;
-        }
-        return null;
+    public File getConfigDir() {
+        return configDir.getOrNull();
     }
 
-    public void setCheckstyleConfigDir(Provider<File> checkstyleConfigDir) {
-        this.checkstyleConfigDir.set(checkstyleConfigDir);
+    public void setConfigDir(Provider<File> configDir) {
+        this.configDir.set(configDir);
     }
 
     /**

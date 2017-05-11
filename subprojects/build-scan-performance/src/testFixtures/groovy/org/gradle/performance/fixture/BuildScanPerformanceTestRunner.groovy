@@ -39,6 +39,7 @@ class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
             operatingSystem: OperatingSystem.current().toString(),
+            host: InetAddress.getLocalHost().getHostName(),
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId, pluginCommitSha],

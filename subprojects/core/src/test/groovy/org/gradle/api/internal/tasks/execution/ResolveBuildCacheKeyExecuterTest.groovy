@@ -16,18 +16,24 @@
 
 package org.gradle.api.internal.tasks.execution
 
+import com.google.common.hash.HashCode
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.tasks.SnapshotTaskInputsOperationDetails
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputCachingListener
-import spock.lang.Specification
+import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.testing.internal.util.Specification
+import org.gradle.util.Path
 
 class ResolveBuildCacheKeyExecuterTest extends Specification {
+
     def taskState = Mock(TaskStateInternal)
     def task = Mock(TaskInternal)
     def taskContext = Mock(TaskExecutionContext)
@@ -35,7 +41,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def taskOutputs = Mock(TaskOutputsInternal)
     def delegate = Mock(TaskExecuter)
     def listener = Mock(TaskOutputCachingListener)
-    def executer = new ResolveBuildCacheKeyExecuter(listener, delegate)
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def executer = new ResolveBuildCacheKeyExecuter(listener, delegate, buildOperationExecutor)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
 
     def "notifies listener after calculating cache key"() {
@@ -43,11 +50,10 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
+        1 * task.getPath() >> ":foo"
+        1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
-
-        then:
-        1 * taskContext.setBuildCacheKey(cacheKey)
 
         then:
         1 * task.getOutputs() >> taskOutputs
@@ -57,8 +63,16 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * cacheKey.getHashCode() >> "0123456789abcdef"
 
         then:
+        1 * taskContext.setBuildCacheKey(cacheKey)
+
+        then:
         1 * delegate.execute(task, taskState, taskContext)
         0 * _
+
+        and:
+        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultAdapter) {
+            key == cacheKey
+        }
     }
 
     def "propagates exceptions if cache key cannot be calculated"() {
@@ -68,6 +82,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
+        1 * task.getPath() >> ":foo"
+        1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> {
             throw failure
@@ -76,6 +92,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         def ex = thrown RuntimeException
         ex.is(failure)
+        buildOpFailure().is(failure)
     }
 
     def "does not call listener if task has no outputs"() {
@@ -83,18 +100,73 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
+        1 * task.getPath() >> ":foo"
+        1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
-
-        then:
-        1 * taskContext.setBuildCacheKey(DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY)
 
         then:
         1 * task.getOutputs() >> taskOutputs
         1 * taskOutputs.getHasOutput() >> false
 
         then:
+        1 * taskContext.setBuildCacheKey(DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY)
+
+        then:
         1 * delegate.execute(task, taskState, taskContext)
         0 * _
+
+        and:
+        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultAdapter) {
+            key == DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
+        }
     }
+
+    def "adapts key to result interface"() {
+        given:
+        def inputs = Mock(BuildCacheKeyInputs)
+        def key = Mock(TaskOutputCachingBuildCacheKey) {
+            getInputs() >> inputs
+        }
+        def adapter = new ResolveBuildCacheKeyExecuter.OperationResultAdapter(key)
+
+        when:
+        inputs.inputHashes >> [b: HashCode.fromString("bb"), a: HashCode.fromString("aa")]
+
+        then:
+        adapter.inputHashes == [a: "aa", b: "bb"]
+
+        when:
+        inputs.classLoaderHash >> HashCode.fromString("cc")
+
+        then:
+        adapter.classLoaderHash == "cc"
+
+        when:
+        inputs.actionClassLoaderHashes >> [HashCode.fromString("ee"), HashCode.fromString("dd")]
+
+        then:
+        adapter.actionClassLoaderHashes == ["ee", "dd"]
+
+        when:
+        inputs.outputPropertyNames >> ["2", "1"].toSet()
+
+        then:
+        adapter.outputPropertyNames == new TreeSet(["1", "2"])
+
+        when:
+        key.hashCode >> HashCode.fromString("ff")
+
+        then:
+        adapter.buildCacheKey == "ff"
+    }
+
+    private SnapshotTaskInputsOperationDetails.Result buildOpResult() {
+        buildOperationExecutor.log.mostRecentResult(SnapshotTaskInputsOperationDetails)
+    }
+
+    private Throwable buildOpFailure() {
+        buildOperationExecutor.log.mostRecentFailure(SnapshotTaskInputsOperationDetails)
+    }
+
 }

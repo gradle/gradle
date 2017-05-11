@@ -22,9 +22,11 @@ import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CheckstyleReports
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.GFileUtils
+import org.gradle.util.SingleMessageLogger
 
 abstract class CheckstyleInvoker {
     private final static String FAILURE_PROPERTY_NAME = 'org.gradle.checkstyle.violations'
+    private final static String CONFIG_LOC_PROPERTY = "config_loc"
 
     static void invoke(Checkstyle checkstyleTask) {
         def antBuilder = checkstyleTask.antBuilder
@@ -39,8 +41,8 @@ abstract class CheckstyleInvoker {
         def ignoreFailures = checkstyleTask.ignoreFailures
         def logger = checkstyleTask.logger
         def config = checkstyleTask.config
+        def configDir = checkstyleTask.configDir
         def xmlDestination = reports.xml.destination
-        def checkstyleConfigDir = checkstyleTask.checkstyleConfigDir
 
         if (isHtmlReportEnabledOnly(reports)) {
             xmlDestination = new File(checkstyleTask.temporaryDir, reports.xml.destination.name)
@@ -67,9 +69,14 @@ abstract class CheckstyleInvoker {
                     formatter(type: 'xml', toFile: xmlDestination)
                 }
 
-                if (checkstyleConfigDir) {
-                    def checkstyleConfigDirStr = checkstyleConfigDir.toString()
-                    property(key: "config_loc", value: checkstyleConfigDirStr)
+                // User provided their own config_loc
+                def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
+
+                if (userProvidedConfigLoc) {
+                    SingleMessageLogger.nagUserOfDeprecated("Adding 'config_loc' to checkstyle.configProperties", "Use checkstyle.configDir instead as this will behave better with up-to-date checks")
+                } else if (configDir) {
+                    // Use configDir for config_loc
+                    property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())
                 }
 
                 configProperties.each { key, value ->
@@ -108,6 +115,6 @@ abstract class CheckstyleInvoker {
     }
 
     private static boolean isHtmlReportEnabledOnly(CheckstyleReports reports) {
-        return !reports.xml.enabled && reports.html.enabled;
+        return !reports.xml.enabled && reports.html.enabled
     }
 }

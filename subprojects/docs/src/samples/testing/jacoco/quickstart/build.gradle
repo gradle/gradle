@@ -39,7 +39,7 @@ dependencies {
 // START SNIPPET testtask-configuration
 test {
     jacoco {
-        // These are automatically set by the JaCoCo plugin
+        append = false
         destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
         classDumpDir = file("$buildDir/jacoco/classpathdumps")
     }

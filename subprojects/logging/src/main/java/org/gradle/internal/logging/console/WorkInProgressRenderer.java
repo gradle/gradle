@@ -141,6 +141,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
         if (unusedProgressLabels.isEmpty()) {
             int newValue = operationIdToAssignedLabels.size() + 1;
             resizeTo(newValue);
+            // At this point, the work-in-progress area may or may not have been resized due to maximum size constraint.
         }
 
         // Try to use a new label
