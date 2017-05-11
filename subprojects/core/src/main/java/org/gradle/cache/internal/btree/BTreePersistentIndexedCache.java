@@ -282,7 +282,7 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private class IndexRoot {
-        private BlockPointer rootPos = new BlockPointer();
+        private BlockPointer rootPos = BlockPointer.start();
         private HeaderBlock owner;
 
         private IndexRoot(HeaderBlock owner) {
@@ -325,7 +325,7 @@ public class BTreePersistentIndexedCache<K, V> {
 
         @Override
         protected void read(DataInputStream instr) throws Exception {
-            index.rootPos = new BlockPointer(instr.readLong());
+            index.rootPos = BlockPointer.pos(instr.readLong());
 
             short actualChildIndexEntries = instr.readShort();
             if (actualChildIndexEntries != maxChildIndexEntries) {
@@ -346,7 +346,7 @@ public class BTreePersistentIndexedCache<K, V> {
 
     private class IndexBlock extends BlockPayload {
         private final List<IndexEntry> entries = new ArrayList<IndexEntry>();
-        private BlockPointer tailPos = new BlockPointer();
+        private BlockPointer tailPos = BlockPointer.start();
         // Transient fields
         private IndexBlock parent;
         private int parentEntryIndex;
@@ -368,11 +368,11 @@ public class BTreePersistentIndexedCache<K, V> {
             for (int i = 0; i < count; i++) {
                 IndexEntry entry = new IndexEntry();
                 entry.hashCode = instr.readLong();
-                entry.dataBlock = new BlockPointer(instr.readLong());
-                entry.childIndexBlock = new BlockPointer(instr.readLong());
+                entry.dataBlock = BlockPointer.pos(instr.readLong());
+                entry.childIndexBlock = BlockPointer.pos(instr.readLong());
                 entries.add(entry);
             }
-            tailPos = new BlockPointer(instr.readLong());
+            tailPos = BlockPointer.pos(instr.readLong());
         }
 
         public void write(DataOutputStream outstr) throws IOException {
@@ -394,7 +394,7 @@ public class BTreePersistentIndexedCache<K, V> {
                 assert tailPos.isNull();
                 entry = new IndexEntry();
                 entry.hashCode = hashCode;
-                entry.childIndexBlock = new BlockPointer();
+                entry.childIndexBlock = BlockPointer.start();
                 index = -index - 1;
                 entries.add(index, entry);
             }
@@ -419,7 +419,7 @@ public class BTreePersistentIndexedCache<K, V> {
                 siblingEntries.clear();
                 sibling.tailPos = tailPos;
                 tailPos = splitEntry.childIndexBlock;
-                splitEntry.childIndexBlock = new BlockPointer();
+                splitEntry.childIndexBlock = BlockPointer.start();
                 parent.add(this, splitEntry, sibling);
             }
         }
