@@ -98,6 +98,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             }
             th().text("Test version").end();
             th().text("Operating System").end();
+            th().text("Host").end();
             th().text("JVM").end();
             th().text("Test project").end();
             th().text("Tasks").end();
@@ -125,6 +126,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 });
                 textCell(results.getVersionUnderTest());
                 textCell(results.getOperatingSystem());
+                textCell(results.getHost());
                 textCell(results.getJvm());
                 textCell(results.getTestProject());
                 textCell(results.getTasks());
