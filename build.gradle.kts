@@ -32,6 +32,7 @@ allprojects {
     version = "0.9.0-SNAPSHOT"
 }
 
+// For documentation and meaningful `./gradlew dependencies` output only
 val distribution by configurations.creating
 
 dependencies {
