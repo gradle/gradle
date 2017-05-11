@@ -43,7 +43,6 @@ public class BuildResultLogger extends BuildAdapter {
     public void buildFinished(BuildResult result) {
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.WARN);
         textOutput.println();
-        // Try to match the progress bar exactly, as it makes for the smoothest transition
         String action = result.getAction().toUpperCase();
         if (result.getFailure() == null) {
             textOutput.withStyle(Success).text(action + " SUCCESSFUL");
