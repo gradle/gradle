@@ -47,7 +47,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         !result.disabled
         !result.localDisabled
-        result.remoteDisabled
+        !result.remoteDisabled
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
@@ -91,7 +91,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         !result.disabled
         !result.localDisabled
-        result.remoteDisabled
+        !result.remoteDisabled
 
         result.local.className == 'CustomBuildCache'
         result.local.config.directory == directory
