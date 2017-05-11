@@ -59,14 +59,10 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
         });
     }
 
-    public void update(final UpdateAction<T> updateAction) {
-        fileAccess.updateFile(new Runnable() {
-            public void run() {
-                T oldValue = deserialize();
-                T newValue = updateAction.update(oldValue);
-                serialize(newValue);
-            }
-        });
+    public T update(final UpdateAction<T> updateAction) {
+        Updater action = new Updater(updateAction);
+        fileAccess.updateFile(action);
+        return action.result;
     }
 
     private void serialize(T newValue) {
@@ -100,6 +96,24 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
             }
         } catch (Exception e) {
             throw new GradleException(String.format("Could not read cache value from '%s'.", cacheFile), e);
+        }
+    }
+
+    private class Updater implements Runnable {
+        private final UpdateAction<T> updateAction;
+
+        private T result;
+
+        private Updater(UpdateAction<T> updateAction) {
+            this.updateAction = updateAction;
+        }
+
+        public void run() {
+            T oldValue = deserialize();
+            result = updateAction.update(oldValue);
+            if (oldValue != result) { // note: intentional pointer comparison
+                serialize(result);
+            }
         }
     }
 }

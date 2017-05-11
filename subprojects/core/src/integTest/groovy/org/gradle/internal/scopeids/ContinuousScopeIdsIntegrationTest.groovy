@@ -14,51 +14,37 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.outputorigin
+
+package org.gradle.internal.scopeids
 
 import org.gradle.api.Action
 import org.gradle.api.internal.ClosureBackedAction
-import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.integtests.fixtures.TaskOutputOriginBuildIdFixture
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.id.UniqueId
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ScopeIdsFixture
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.junit.Rule
 
-class ContinuousIncrementalBuildOutputOriginTest extends AbstractContinuousIntegrationTest {
+class ContinuousScopeIdsIntegrationTest extends AbstractContinuousIntegrationTest {
 
     final List<Action<GradleExecuter>> afterExecute = []
 
     final GradleExecuter delegatingExecuter = new GradleExecuter() {
-
         @Delegate
         GradleExecuter delegate = executer
 
         void afterExecute(Closure action) {
             afterExecute << new ClosureBackedAction<GradleExecuter>(action)
         }
-
     }
 
     @Rule
     public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(delegatingExecuter, temporaryFolder)
 
-    @Rule
-    public final TaskOutputOriginBuildIdFixture originBuildIdFixture = new TaskOutputOriginBuildIdFixture(delegatingExecuter, temporaryFolder)
-
-    UniqueId getBuildId() {
-        scopeIds.buildId
-    }
-
-    UniqueId originBuildId(String taskPath) {
-        originBuildIdFixture.originId(taskPath)
-    }
-
     void afterBuild() {
         afterExecute*.execute(executer)
     }
 
-    def "new ID is assigned for each execution"() {
+    def "ids are assigned for each invocation"() {
         given:
         def i1 = file("i1")
         def i2 = file("i2")
@@ -96,7 +82,6 @@ class ContinuousIncrementalBuildOutputOriginTest extends AbstractContinuousInteg
         then:
         succeeds("t")
         afterBuild()
-        scopeIds.buildId != null
 
         when:
         update(i1, "2")
@@ -104,8 +89,6 @@ class ContinuousIncrementalBuildOutputOriginTest extends AbstractContinuousInteg
         then:
         succeeds()
         afterBuild()
-        originBuildId(":t1") == null
-        originBuildId(":t2") == scopeIds.buildIds[0]
 
         when:
         update(i2, "2")
@@ -113,20 +96,13 @@ class ContinuousIncrementalBuildOutputOriginTest extends AbstractContinuousInteg
         then:
         succeeds()
         afterBuild()
-        originBuildId(":t1") == scopeIds.buildIds[1]
-        originBuildId(":t2") == null
 
         and:
-        with(scopeIds.workspaceIds) {
-            size() == 3
-            unique().size() == 1
-        }
-
-        and:
-        with(scopeIds.userIds) {
-            size() == 3
-            unique().size() == 1
-        }
+        // This fixture tests that each build invocation has a unique build scope ID
+        // and that each invocation shares the user and workspace scope IDs,
+        // which is really what we are testing here.
+        scopeIds.buildCount == 3
     }
 
 }
+

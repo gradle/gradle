@@ -30,8 +30,8 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.buildids.BuildIds;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.scopeids.id.BuildScopeId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -48,9 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Note: use of {@link BuildIds} requires this implementation to be build scoped, or more granular.
- */
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static final int MAX_HISTORY_ENTRIES = 3;
@@ -58,19 +55,19 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final FileSnapshotRepository snapshotRepository;
     private final PersistentIndexedCache<String, ImmutableList<TaskExecutionSnapshot>> taskHistoryCache;
     private final StringInterner stringInterner;
-    private final BuildIds buildIds;
+    private final BuildScopeId buildScopeId;
 
-    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner, BuildIds buildIds) {
+    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner, BuildScopeId buildScopeId) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
-        this.buildIds = buildIds;
+        this.buildScopeId = buildScopeId;
         TaskExecutionListSerializer serializer = new TaskExecutionListSerializer(stringInterner);
         taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
 
     public History getHistory(final TaskInternal task) {
         final TaskExecutionList previousExecutions = loadPreviousExecutions(task);
-        final LazyTaskExecution currentExecution = new LazyTaskExecution(buildIds.getBuildId());
+        final LazyTaskExecution currentExecution = new LazyTaskExecution(buildScopeId.getId());
         currentExecution.snapshotRepository = snapshotRepository;
         currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
         currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));

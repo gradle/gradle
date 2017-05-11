@@ -14,31 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildids;
+package org.gradle.internal.scopeids;
 
-import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.scopeids.id.UserScopeId;
+import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 
-/**
- * IDs for the current build.
- *
- * @since 4.0
- */
-public class BuildIds {
+public interface PersistentScopeIdLoader {
 
-    private final UniqueId buildId;
+    UserScopeId getUser();
 
-    public BuildIds(UniqueId buildId) {
-        this.buildId = buildId;
-    }
-
-    /**
-     * An ID for the current build invocation/execution.
-     *
-     * All nested builds in the same invocation share the same ID.
-     * Each execution that is part of a continuous build is assigned a new ID.
-     */
-    public UniqueId getBuildId() {
-        return buildId;
-    }
+    WorkspaceScopeId getWorkspace();
 
 }

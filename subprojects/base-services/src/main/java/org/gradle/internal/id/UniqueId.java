@@ -17,6 +17,7 @@
 package org.gradle.internal.id;
 
 import com.google.common.io.BaseEncoding;
+import org.gradle.internal.Factory;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -34,6 +35,13 @@ public final class UniqueId {
 
     private static final BaseEncoding ENCODING = BaseEncoding.base32().lowerCase().omitPadding();
     private static final Pattern PATTERN = Pattern.compile("[a-z2-7]{26}");
+
+    private static final Factory<UniqueId> FACTORY = new Factory<UniqueId>() {
+        @Override
+        public UniqueId create() {
+            return generate();
+        }
+    };
 
     private final String value;
 
@@ -58,6 +66,10 @@ public final class UniqueId {
 
     public static UniqueId generate() {
         return from(UUID.randomUUID());
+    }
+
+    public static Factory<UniqueId> factory() {
+        return FACTORY;
     }
 
     private UniqueId(String value) {
@@ -91,4 +103,5 @@ public final class UniqueId {
     public int hashCode() {
         return value.hashCode();
     }
+
 }

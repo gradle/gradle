@@ -43,12 +43,12 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
-import org.gradle.internal.buildids.BuildIds
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.id.RandomLongIdGenerator
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.scopeids.id.BuildScopeId
 import org.gradle.internal.serialize.DefaultSerializerRegistry
 import org.gradle.internal.serialize.SerializerRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -71,7 +71,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     final inputFiles = [file: [inputFile], dir: [inputDir], missingFile: [missingInputFile]]
     final outputFiles = [file: [outputFile], dir: [outputDir], emptyDir: [emptyOutputDir], missingFile: [missingOutputFile]]
     final createFiles = [outputFile, outputDirFile, outputDirFile2] as Set
-    def buildIds = new BuildIds(UniqueId.generate())
+    def buildScopeId = new BuildScopeId(UniqueId.generate())
 
     TaskInternal task
     def mapping = Stub(CacheScopeMapping) {
@@ -100,7 +100,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         }
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         fileCollectionSnapshotter.registerSerializers(serializerRegistry);
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner, buildIds)
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner, buildScopeId)
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter]), TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher, cacheKeyCalculator, new ValueSnapshotter())
     }
 
@@ -596,7 +596,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task)
 
         then:
-        repository.getStateFor(task).originBuildId == buildIds.buildId
+        repository.getStateFor(task).originBuildId == buildScopeId.id
     }
 
     def "has no origin build ID if outputs are not usable"() {
@@ -605,7 +605,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
         then:
         def state1 = repository.getStateFor(task)
-        state1.originBuildId == buildIds.buildId
+        state1.originBuildId == buildScopeId.id
         state1.isUpToDate([])
 
         when:

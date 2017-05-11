@@ -23,7 +23,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.internal.buildids.BuildIds;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.Path;
@@ -41,6 +40,8 @@ public interface GradleInternal extends Gradle {
     ProjectInternal getRootProject();
 
     GradleInternal getParent();
+
+    GradleInternal getRoot();
 
     /**
      * {@inheritDoc}
@@ -60,6 +61,7 @@ public interface GradleInternal extends Gradle {
     /**
      * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
      * is executed, {@link #getDefaultProject()} will return null.
+     *
      * @param defaultProject The default project for this build.
      */
     void setDefaultProject(ProjectInternal defaultProject);
@@ -67,7 +69,8 @@ public interface GradleInternal extends Gradle {
     /**
      * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
      * is executed, {@link #getRootProject()} will return null.
-     @param rootProject The root project for this build.
+     *
+     * @param rootProject The root project for this build.
      */
     void setRootProject(ProjectInternal rootProject);
 
@@ -99,5 +102,4 @@ public interface GradleInternal extends Gradle {
 
     void setIdentityPath(Path path);
 
-    BuildIds getBuildIds();
 }

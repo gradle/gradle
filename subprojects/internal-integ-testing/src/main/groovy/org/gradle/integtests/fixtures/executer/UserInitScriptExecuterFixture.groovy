@@ -38,11 +38,15 @@ abstract class UserInitScriptExecuterFixture implements MethodRule {
     }
 
     Statement apply(Statement base, FrameworkMethod method, Object target) {
+        configureExecuter(executer)
+        return base
+    }
+
+    void configureExecuter(GradleExecuter executer) {
         executer.requireOwnGradleUserHomeDir()
         def temporaryFolder = executer.gradleUserHomeDir.file("init.d")
         def initFile = temporaryFolder.file(this.getClass().getSimpleName() + "-init.gradle")
         initFile.text = initScriptContent()
         executer.afterExecute { afterBuild() }
-        return base
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 /**
  * Tests for generating IDEA metadata for projects within a composite build.
  */
-class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildScopeIdeaProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
 
     def setup() {
