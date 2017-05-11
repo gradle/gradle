@@ -23,7 +23,6 @@ import org.gradle.script.lang.kotlin.support.filter
 import java.io.File
 
 
-internal
 object SourcePathProvider {
 
     fun sourcePathFor(

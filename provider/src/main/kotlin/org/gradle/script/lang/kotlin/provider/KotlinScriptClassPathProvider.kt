@@ -52,7 +52,6 @@ internal
 typealias JarsProvider = () -> Collection<File>
 
 
-internal
 class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
     val gradleApiJarsProvider: JarsProvider,

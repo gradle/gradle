@@ -34,7 +34,6 @@ import java.io.BufferedWriter
 import java.io.File
 
 
-internal
 fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
     project.getOrCreateSingletonProperty {
         buildAccessorsClassPathFor(project, classPath)
@@ -42,7 +41,6 @@ fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
     }
 
 
-internal
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath)
 
 

@@ -24,7 +24,6 @@ import org.gradle.internal.progress.PercentageProgressFormatter
 
 import java.io.File
 
-internal
 interface JarGenerationProgressMonitorProvider {
     fun progressMonitorFor(outputJar: File, totalWork: Int): ProgressMonitor
 }

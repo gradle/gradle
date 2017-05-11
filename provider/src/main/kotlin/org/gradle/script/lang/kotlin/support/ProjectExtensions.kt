@@ -20,6 +20,6 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 
 
-internal inline
+inline
 fun <reified T : Any> Project.serviceOf(): T =
     (this as ProjectInternal).services[T::class.java]!!

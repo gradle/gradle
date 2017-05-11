@@ -18,7 +18,6 @@ package org.gradle.script.lang.kotlin.support
 
 import java.io.Closeable
 
-internal
 interface ProgressMonitor : Closeable {
     fun onProgress()
 }
