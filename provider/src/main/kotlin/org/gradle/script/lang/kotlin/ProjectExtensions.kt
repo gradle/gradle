@@ -41,7 +41,7 @@ import org.gradle.api.provider.PropertyState
 
 import org.gradle.api.tasks.TaskContainer
 
-import org.gradle.script.lang.kotlin.resolver.gradleScriptKotlinApiOf
+import org.gradle.script.lang.kotlin.provider.gradleScriptKotlinApiOf
 
 import java.io.File
 

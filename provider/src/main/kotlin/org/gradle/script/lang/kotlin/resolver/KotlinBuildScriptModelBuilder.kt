@@ -24,7 +24,8 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
-import org.gradle.script.lang.kotlin.provider.KotlinScriptClassPathProvider
+import org.gradle.script.lang.kotlin.provider.gradleScriptKotlinApiOf
+import org.gradle.script.lang.kotlin.provider.kotlinScriptClassPathProviderOf
 import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.serviceOf
 
@@ -130,15 +131,3 @@ data class StandardKotlinBuildScriptModel(
     override val classPath: List<File>,
     override val sourcePath: List<File>,
     override val implicitImports: List<String>) : KotlinBuildScriptModel, Serializable
-
-
-internal
-fun gradleScriptKotlinApiOf(project: Project): List<File> =
-    kotlinScriptClassPathProviderOf(project).run {
-        gradleScriptKotlinApi.asFiles
-    }
-
-
-internal
-fun kotlinScriptClassPathProviderOf(project: Project) =
-    project.serviceOf<KotlinScriptClassPathProvider>()

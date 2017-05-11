@@ -20,6 +20,7 @@ import org.gradle.script.lang.kotlin.codegen.generateApiExtensionsJar
 
 import org.gradle.script.lang.kotlin.support.ProgressMonitor
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 
@@ -30,10 +31,21 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.script.lang.kotlin.support.exportClassPathFromHierarchyOf
+import org.gradle.script.lang.kotlin.support.serviceOf
 
 import org.gradle.util.GFileUtils.moveFile
 
 import java.io.File
+
+
+fun gradleScriptKotlinApiOf(project: Project): List<File> =
+    kotlinScriptClassPathProviderOf(project).run {
+        gradleScriptKotlinApi.asFiles
+    }
+
+
+fun kotlinScriptClassPathProviderOf(project: Project) =
+    project.serviceOf<KotlinScriptClassPathProvider>()
 
 
 internal
