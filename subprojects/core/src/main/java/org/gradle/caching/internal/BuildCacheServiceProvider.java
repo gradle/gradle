@@ -34,11 +34,13 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -62,12 +64,12 @@ public class BuildCacheServiceProvider {
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
-    public BuildCacheService createBuildCacheService() {
+    public BuildCacheService createBuildCacheService(final Path buildIdentityPath) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheService>() {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
                 if (!startParameter.isBuildCacheEnabled()) {
-                    context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(null, null));
+                    context.setResult(FinalizeBuildCacheConfigurationDetails.Result.buildCacheConfigurationDisabled());
                     return new NoOpBuildCacheService();
                 }
 
@@ -78,8 +80,8 @@ public class BuildCacheServiceProvider {
                 BuildCache local = buildCacheConfiguration.getLocal();
                 BuildCache remote = buildCacheConfiguration.getRemote();
 
-                boolean localEnabled = startParameter.isBuildCacheEnabled() && local != null && local.isEnabled();
-                boolean remoteEnabled = startParameter.isBuildCacheEnabled() && remote != null && remote.isEnabled();
+                boolean localEnabled = local != null && local.isEnabled();
+                boolean remoteEnabled = remote != null && remote.isEnabled();
 
                 if (remoteEnabled && startParameter.isOffline()) {
                     remoteEnabled = false;
@@ -87,14 +89,17 @@ public class BuildCacheServiceProvider {
                 }
 
                 DescribedBuildCacheService localDescribedService = localEnabled
-                    ? createRawBuildCacheService(local, "local")
+                    ? createRawBuildCacheService(local, "local", buildIdentityPath)
                     : null;
 
                 DescribedBuildCacheService remoteDescribedService = remoteEnabled
-                    ? createRawBuildCacheService(remote, "remote")
+                    ? createRawBuildCacheService(remote, "remote", buildIdentityPath)
                     : null;
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
+                    false,
+                    !localEnabled,
+                    !remoteEnabled,
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));
@@ -147,7 +152,7 @@ public class BuildCacheServiceProvider {
         return decoratedService;
     }
 
-    private <T extends BuildCache> DescribedBuildCacheService createRawBuildCacheService(final T configuration, String role) {
+    private <T extends BuildCache> DescribedBuildCacheService createRawBuildCacheService(final T configuration, String role, Path buildIdentityPath) {
         Class<? extends BuildCacheServiceFactory<T>> castFactoryType = Cast.uncheckedCast(
             buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
         );
@@ -157,18 +162,27 @@ public class BuildCacheServiceProvider {
         BuildCacheService service = factory.createBuildCacheService(configuration, describer);
         BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, describer.configParams);
 
-        logConfig(configuration, role, description);
+        logConfig(buildIdentityPath, role, description);
 
         return new DescribedBuildCacheService(service, description);
     }
 
-    private static void logConfig(BuildCache configuration, String role, BuildCacheDescription description) {
-        if (LOGGER.isWarnEnabled()) {
-            String config = "";
-            if (!description.config.isEmpty()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(" (");
-                Joiner.on(", ").appendTo(sb, Iterables.transform(description.config.entrySet(), new Function<Map.Entry<String, String>, String>() {
+    private static void logConfig(Path buildIdentityPath, String role, BuildCacheDescription description) {
+        if (LOGGER.isLifecycleEnabled()) {
+            StringBuilder config = new StringBuilder();
+            boolean pullOnly = !description.isPush();
+            if (!description.config.isEmpty() || pullOnly) {
+                Map<String, String> configMap;
+                if (pullOnly) {
+                    configMap = new LinkedHashMap<String, String>();
+                    // Pull-only always comes first
+                    configMap.put("pull-only", null);
+                    configMap.putAll(description.config);
+                } else {
+                    configMap = description.config;
+                }
+                config.append(" (");
+                Joiner.on(", ").appendTo(config, Iterables.transform(configMap.entrySet(), new Function<Map.Entry<String, String>, String>() {
                     @Override
                     public String apply(Map.Entry<String, String> input) {
                         if (input.getValue() == null) {
@@ -178,15 +192,21 @@ public class BuildCacheServiceProvider {
                         }
                     }
                 }));
-                sb.append(")");
-                config = sb.toString();
+                config.append(")");
             }
 
-            LOGGER.warn("Using {} {} build cache{}, push is {}.",
+            String buildDescription;
+            if (buildIdentityPath.equals(Path.ROOT)) {
+                buildDescription = "the root build";
+            } else {
+                buildDescription = "build '" + buildIdentityPath + "'";
+            }
+
+            LOGGER.lifecycle("Using {} {} build cache for {}{}.",
                 role,
                 description.type == null ? description.className : description.type,
-                config,
-                configuration.isPush() ? "enabled" : "disabled"
+                buildDescription,
+                config
             );
         }
     }
@@ -214,7 +234,6 @@ public class BuildCacheServiceProvider {
     private static final class BuildCacheDescription implements FinalizeBuildCacheConfigurationDetails.Result.BuildCacheDescription {
 
         private final String className;
-        private final boolean enabled;
         private final boolean push;
         private final String type;
         private final SortedMap<String, String> config;
@@ -222,16 +241,14 @@ public class BuildCacheServiceProvider {
         private BuildCacheDescription(BuildCache buildCache, String type, Map<String, String> config) {
             this(
                 GeneratedSubclasses.unpack(buildCache.getClass()).getName(),
-                buildCache.isEnabled(),
                 buildCache.isPush(),
                 type,
                 Collections.unmodifiableSortedMap(new TreeMap<String, String>(config))
             );
         }
 
-        private BuildCacheDescription(String className, boolean enabled, boolean push, String type, SortedMap<String, String> config) {
+        private BuildCacheDescription(String className, boolean push, String type, SortedMap<String, String> config) {
             this.className = className;
-            this.enabled = enabled;
             this.push = push;
             this.type = type;
             this.config = config;
@@ -239,10 +256,6 @@ public class BuildCacheServiceProvider {
 
         public String getClassName() {
             return className;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
         }
 
         public boolean isPush() {

@@ -123,6 +123,7 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.get(ListenerManager) >> parentListenerManager
         parentListenerManager.createChild() >> listenerManager
         sessionServices.getAll(_) >> []
+        sessionServices.hasService(_) >> true
 
         registry = new BuildScopeServices(sessionServices, startParameter)
     }
@@ -146,6 +147,7 @@ class BuildScopeServicesTest extends Specification {
         given:
         def sessionServices = Mock(BuildSessionScopeServices) {
             getAll(PluginServiceRegistry) >> [plugin1, plugin2]
+            hasService(_) >> true
         }
 
         when:

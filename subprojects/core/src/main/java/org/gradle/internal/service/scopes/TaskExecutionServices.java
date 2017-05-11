@@ -215,8 +215,8 @@ public class TaskExecutionServices {
         return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildScopeId);
     }
 
-    BuildCacheService createBuildCacheService(BuildCacheServiceProvider provider, ListenerManager listenerManager) {
-        final BuildCacheService buildCacheService = provider.createBuildCacheService();
+    BuildCacheService createBuildCacheService(BuildCacheServiceProvider provider, GradleInternal gradle, ListenerManager listenerManager) {
+        final BuildCacheService buildCacheService = provider.createBuildCacheService(gradle.getIdentityPath());
         // Stop the build cache at the end of the build vs waiting for the service registry to shut it down.
         listenerManager.addListener(new BuildAdapter() {
             @Override

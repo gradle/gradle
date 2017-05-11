@@ -26,7 +26,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     private RuntimeClasspathNormalizationStrategy finalizedStrategy;
 
     @Override
-    public synchronized void ignore(String pattern) {
+    public void ignore(String pattern) {
         if (finalizedStrategy != null) {
             throw new GradleException("Cannot configure runtime classpath normalization after execution started.");
         }
@@ -34,7 +34,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     }
 
     @Override
-    public synchronized RuntimeClasspathNormalizationStrategy buildFinalStrategy() {
+    public RuntimeClasspathNormalizationStrategy buildFinalStrategy() {
         if (finalizedStrategy == null) {
             finalizedStrategy = new RuntimeClasspathNormalizationStrategy(ignores);
         }

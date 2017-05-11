@@ -68,7 +68,7 @@
 
     <section id="sec:checkstyle_project_layout">
         <title>Project layout</title>
-        <para>The Checkstyle plugin expects the following project layout:</para>
+        <para>By default, the Checkstyle plugin expects the following project layout, but this can be changed:</para>
         <table>
             <title>Checkstyle plugin - project layout</title>
             <thead>
@@ -77,6 +77,12 @@
                     <td>Meaning</td>
                 </tr>
             </thead>
+            <tr>
+                <td>
+                    <filename>config/checkstyle</filename>
+                </td>
+                <td>Other Checkstyle configuration files (e.g., <filename>suppressions.xml</filename>)</td>
+            </tr>
             <tr>
                 <td>
                     <filename>config/checkstyle/checkstyle.xml</filename>
@@ -109,6 +115,15 @@
     <section id="sec:checkstyle_configuration">
         <title>Configuration</title>
         <para>See the <apilink class="org.gradle.api.plugins.quality.CheckstyleExtension"/> class in the API documentation.</para>
+        <section id="sec:checkstyle_built_in_variables">
+            <title>Built-in variables</title>
+            <para>
+                The Checkstyle plugin defines a <literal>config_loc</literal> property that can be used in Checkstyle configuration files to define paths to other configuration files like <filename>suppressions.xml</filename>.
+            </para>
+            <sample id="useConfigLoc" dir="codeQuality" title="Using the config_loc property">
+                <sourcefile file="config/checkstyle/checkstyle.xml" snippet="use-config-loc"/>
+            </sample>
+        </section>
     </section>
 
     <section id="sec:checkstyle_customize_xsl">

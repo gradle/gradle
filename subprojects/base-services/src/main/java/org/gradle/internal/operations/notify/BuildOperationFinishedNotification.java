@@ -47,4 +47,9 @@ public interface BuildOperationFinishedNotification {
      */
     Throwable getNotificationOperationFailure();
 
+    /**
+     * A structured object providing details about the operation that was performed.
+     */
+    Object getNotificationOperationDetails();
+
 }

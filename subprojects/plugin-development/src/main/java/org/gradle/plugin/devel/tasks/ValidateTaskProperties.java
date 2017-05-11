@@ -265,6 +265,8 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
 
     /**
      * The classes to validate.
+     *
+     * @since 4.0
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles

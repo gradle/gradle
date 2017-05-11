@@ -173,7 +173,30 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("tasks")
         then:
-        localCacheEnabled()
+        result.assertOutputContains("Using local directory build cache")
+    }
+
+    def "emits cache descriptions for buildSrc and main build"() {
+        settingsFile << """
+            buildCache {
+                local(DirectoryBuildCache) {
+                    directory = file("local-cache")
+                }
+            }
+        """
+        file("buildSrc/settings.gradle") << """
+            buildCache {
+                local(DirectoryBuildCache) {
+                    directory = file("local-cache")
+                }
+            }
+        """
+        when:
+        executer.withBuildCacheEnabled()
+        succeeds("tasks")
+        then:
+        result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${file("buildSrc/local-cache")})."
+        result.assertOutputContains "Using local directory build cache for the root build (location = ${file("local-cache")})."
     }
 
     def "command-line --no-build-cache wins over system property"() {
@@ -195,7 +218,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("tasks")
         then:
-        localCacheEnabled()
+        result.assertOutputContains("Using local directory build cache")
     }
 
     def "does not use the build cache when it is not enabled"() {
@@ -235,7 +258,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("customTask")
         then:
-        result.assertOutputContains("Using local directory build cache (location = ${file("local-cache")}), push is disabled")
+        result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}).")
         and:
         !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/}
     }
@@ -255,9 +278,5 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
             task customTask(type: CustomTask)
         """
-    }
-
-    void localCacheEnabled() {
-        result.assertOutputContains("Using local directory build cache")
     }
 }

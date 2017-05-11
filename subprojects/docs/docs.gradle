@@ -96,7 +96,6 @@ dependencies {
     testCompile libraries.commons_httpclient
     testCompile 'org.apache.httpcomponents:httpmime:4.4.1'
     testCompile project(":core")
-    testRuntime project(path: ":versionInfo", configuration: "testVersionInfo")
 }
 
 ext {
@@ -461,7 +460,7 @@ task javadocAll(type: Javadoc) {
 
 task checkstyleApi(type: Checkstyle) {
     source javadocAll.source
-    configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
+    configFile = new File(checkstyle.checkstyleConfigDir, "checkstyle-api.xml")
     classpath = files()
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }

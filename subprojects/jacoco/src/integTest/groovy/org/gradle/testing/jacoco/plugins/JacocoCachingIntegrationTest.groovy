@@ -71,7 +71,6 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         """
         when:
         withBuildCache().succeeds "jacocoTestReport"
-        def snapshot = reportFile.snapshot()
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertIsFile()

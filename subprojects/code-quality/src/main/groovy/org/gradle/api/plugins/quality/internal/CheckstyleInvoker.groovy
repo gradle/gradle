@@ -22,6 +22,7 @@ import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CheckstyleReports
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.GFileUtils
+import org.gradle.util.SingleMessageLogger
 
 abstract class CheckstyleInvoker {
     private final static String FAILURE_PROPERTY_NAME = 'org.gradle.checkstyle.violations'
@@ -39,6 +40,7 @@ abstract class CheckstyleInvoker {
         def ignoreFailures = checkstyleTask.ignoreFailures
         def logger = checkstyleTask.logger
         def config = checkstyleTask.config
+        def configDir = checkstyleTask.configDir
         def xmlDestination = reports.xml.destination
 
         if (isHtmlReportEnabledOnly(reports)) {
@@ -64,6 +66,19 @@ abstract class CheckstyleInvoker {
 
                 if (reports.xml.enabled || reports.html.enabled) {
                     formatter(type: 'xml', toFile: xmlDestination)
+                }
+
+                if (configDir) {
+                    def configDirAsString = configDir.toString()
+                    // User provided their own config_loc
+                    def userProvidedConfigLoc = configProperties["config_loc"]
+                    if (userProvidedConfigLoc && userProvidedConfigLoc!=configDirAsString) {
+                        SingleMessageLogger.nagUserOfDeprecated("Adding 'config_loc' to checkstyle.configProperties", "Use checkstyle.configDir instead as this will behave better with up-to-date checks")
+                        // Use user-provided config_loc
+                    } else {
+                        // Use configDir for config_loc
+                        property(key: "config_loc", value: configDirAsString)
+                    }
                 }
 
                 configProperties.each { key, value ->

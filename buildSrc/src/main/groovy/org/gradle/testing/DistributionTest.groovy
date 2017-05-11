@@ -36,8 +36,8 @@ import org.gradle.internal.os.OperatingSystem
 class DistributionTest extends Test {
 
     DistributionTest() {
-        dependsOn { requiresDists  ? ['all', 'bin', 'testBin', 'src'].collect { ":distributions:${it}Zip" } : null }
-        dependsOn { requiresBinZip ? ':distributions:testBinZip' : null }
+        dependsOn { requiresDists  ? ['all', 'bin', 'src'].collect { ":distributions:${it}Zip" } : null }
+        dependsOn { requiresBinZip ? ':distributions:binZip' : null }
         dependsOn { requiresLibsRepo ? ':toolingApi:publishLocalArchives' : null }
     }
 

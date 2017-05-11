@@ -14,10 +14,7 @@ dependencies {
     implementation libraries.slf4j_api
     implementation libraries.commons_lang
     implementation libraries.jcip
-}
-
-classpathManifest {
-    additionalProjects = [project(':versionInfo')]
+    implementation project(':versionInfo')
 }
 
 useTestFixtures()

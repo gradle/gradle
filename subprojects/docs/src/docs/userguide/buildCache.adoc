@@ -69,7 +69,7 @@ Let us start with a project using the Java plugin which has a few Java source fi
 ----
 $> gradle --build-cache compileJava
 Build cache is an incubating feature.
-Using local directory build cache (location = /home/user/.gradle/caches/build-cache-1), push is enabled.
+Using local directory build cache for the root build (location = /home/user/.gradle/caches/build-cache-1).
 :compileJava
 :processResources
 :classes
@@ -92,7 +92,7 @@ BUILD SUCCESSFUL
 ----
 $> gradle --build-cache assemble
 Build cache is an incubating feature.
-Using local directory build cache (location = /home/user/.gradle/caches/build-cache-1), push is enabled.
+Using local directory build cache for the root build (location = /home/user/.gradle/caches/build-cache-1).
 :compileJava FROM-CACHE
 :processResources
 :classes
@@ -202,6 +202,10 @@ These issues may affect the correctness of your build when using the build cache
 | Gradle currently tracks the major version of Java (6 vs 7 vs 8) that is used for compilation and test execution. If your build expects to use several minor releases (1.8.0_102 vs 1.8.0_25), Gradle will treat all of these as equivalent and re-use outputs from any minor version. In our experience, bytecode produced by each major version is functionally equivalent.
 | Manually add the full Java version as an input to compilation and test execution tasks by using <<sec:task_input_output_runtime_api,the runtime api>> for adding task inputs.
 
+| Environment variables are not tracked as inputs.
+| For tasks that fork processes (like `Test`), Gradle does not track any of the environment variables visible to the process. This can allow undeclared inputs to affect the outputs of the task.
+| Declare environment variables as inputs to the task with api:org.gradle.api.tasks.TaskInputs#property(java.lang.String,java.lang.Object)[].
+
 | Changes in Gradle's file encoding that affect the build script
 | Gradle can produce different task output based on the file encoding used by the JVM. Gradle will use a default file encoding based on the operating system if `file.encoding` is not explicitly set.
 | Set the UTF-8 file encoding on all tasks which allow setting the encoding. Use UTF-8 file encoding everywhere by setting `file.encoding` to `UTF-8` for the Gradle JVM.
@@ -238,7 +242,8 @@ Gradle disables caching for a task when it detects stale outputs.
 | Gradle provides ways of specifying the path sensitivity for individual task properties (see `@api:org.gradle.api.tasks.PathSensitive[]`);
 however, it is common to need to pass absolute paths to tools or to tests via system properties or command line arguments.
 These kinds of inputs will cause cache misses because not every developer or CI server uses an identical absolute path to the root of a build.
-| None.
+Tasks like `Test` include system properties and JVM arguments as inputs to the build cache key.
+| If possible, use relative paths (via api:org.gradle.api.Project#relativePath(java.lang.Object)[]). Further tooling will be provided later.
 
 | Adding new actions to cacheable tasks in a build file makes that task sensitive to unrelated changes to the build file.
 | Actions added by a plugin (from buildSrc or externally) do not have this problem because their classloader is restricted to the classpath of the plugin.

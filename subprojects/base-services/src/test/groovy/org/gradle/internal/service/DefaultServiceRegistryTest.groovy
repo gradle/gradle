@@ -50,6 +50,7 @@ class DefaultServiceRegistryTest extends Specification {
         result == value
 
         and:
+        _ * parent.hasService(BigDecimal) >> true
         1 * parent.get(BigDecimal) >> value
     }
 
@@ -67,6 +68,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         and:
         1 * parent1.get(BigDecimal) >> { throw new UnknownServiceException(BigDecimal, "fail") }
+        _ * parent2.hasService(BigDecimal) >> true
         1 * parent2.get(BigDecimal) >> value
     }
 
@@ -214,6 +216,7 @@ class DefaultServiceRegistryTest extends Specification {
         result == '123'
 
         and:
+        _ * parent.hasService(Number) >> true
         1 * parent.get(Number) >> 123
     }
 
@@ -722,6 +725,8 @@ class DefaultServiceRegistryTest extends Specification {
         });
 
         given:
+        _ * parent1.hasService(Number) >> true
+        _ * parent2.hasService(Number) >> true
         _ * parent1.getAll(Number) >> [123L]
         _ * parent2.getAll(Number) >> [456]
 

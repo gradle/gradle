@@ -19,6 +19,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 public class ConsoleLayoutCalculator {
     private final ConsoleMetaData consoleMetaData;
+    private int maximumAvailableLines = -1;
 
     /**
      * @param consoleMetaData used to get console dimensions
@@ -34,7 +35,9 @@ public class ConsoleLayoutCalculator {
      */
     public int calculateNumWorkersForConsoleDisplay(int ideal) {
         // Disallow work-in-progress to take up more than half of the console display
-        int maximumAvailableLines = consoleMetaData.getRows() / 2;
+        if (maximumAvailableLines == -1) {
+            maximumAvailableLines = consoleMetaData.getRows() / 2;
+        }
 
         return Math.min(ideal, maximumAvailableLines);
     }

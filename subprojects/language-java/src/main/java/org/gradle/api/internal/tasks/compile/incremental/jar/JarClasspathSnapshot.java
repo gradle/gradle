@@ -37,6 +37,14 @@ public class JarClasspathSnapshot {
         return jarSnapshots.get(jarArchive.file);
     }
 
+    public JarSnapshot getSnapshot(File file) {
+        return jarSnapshots.get(file);
+    }
+
+    public Set<File> getJars() {
+        return jarSnapshots.keySet();
+    }
+
     public boolean isAnyClassDuplicated(Set<String> classNames) {
         boolean noCommonElements = Collections.disjoint(data.getDuplicateClasses(), classNames);
         return !noCommonElements;
