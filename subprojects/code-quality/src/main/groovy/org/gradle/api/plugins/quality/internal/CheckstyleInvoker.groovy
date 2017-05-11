@@ -68,17 +68,14 @@ abstract class CheckstyleInvoker {
                     formatter(type: 'xml', toFile: xmlDestination)
                 }
 
-                if (configDir) {
-                    def configDirAsString = configDir.toString()
-                    // User provided their own config_loc
-                    def userProvidedConfigLoc = configProperties["config_loc"]
-                    if (userProvidedConfigLoc && userProvidedConfigLoc!=configDirAsString) {
-                        SingleMessageLogger.nagUserOfDeprecated("Adding 'config_loc' to checkstyle.configProperties", "Use checkstyle.configDir instead as this will behave better with up-to-date checks")
-                        // Use user-provided config_loc
-                    } else {
-                        // Use configDir for config_loc
-                        property(key: "config_loc", value: configDirAsString)
-                    }
+                // User provided their own config_loc
+                def userProvidedConfigLoc = configProperties["config_loc"]
+
+                if (userProvidedConfigLoc) {
+                    SingleMessageLogger.nagUserOfDeprecated("Adding 'config_loc' to checkstyle.configProperties", "Use checkstyle.configDir instead as this will behave better with up-to-date checks")
+                } else if (configDir) {
+                    // Use configDir for config_loc
+                    property(key: "config_loc", value: configDir.toString())
                 }
 
                 configProperties.each { key, value ->
@@ -117,6 +114,6 @@ abstract class CheckstyleInvoker {
     }
 
     private static boolean isHtmlReportEnabledOnly(CheckstyleReports reports) {
-        return !reports.xml.enabled && reports.html.enabled;
+        return !reports.xml.enabled && reports.html.enabled
     }
 }
