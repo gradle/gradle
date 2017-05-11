@@ -164,12 +164,6 @@ class PersistentDaemonRegistryTest extends Specification {
         int hashCode() {
             displayName.hashCode()
         }
-
-
-        @Override
-        public String toString() {
-            return "TestAddress{" + "displayName='" + displayName + '\'' + '}'
-        }
     }
 
 }
