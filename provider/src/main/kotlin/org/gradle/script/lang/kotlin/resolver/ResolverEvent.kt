@@ -18,6 +18,8 @@ package org.gradle.script.lang.kotlin.resolver
 
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 
+import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
+
 import java.io.File
 
 

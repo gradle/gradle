@@ -1,23 +1,18 @@
 import codegen.GenerateClasspathManifest
-
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
-import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.gradle.api.internal.HasConvention
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
     `maven-publish`
-    java // so we can benefit from the `java` accessor below
+    java
 }
 
 apply {
     plugin("kotlin")
 }
 
-configure<KotlinProjectExtension> {
-    experimental.coroutines = Coroutines.ENABLE
-}
-
 base {
-    archivesBaseName = "gradle-script-kotlin-tooling-builders"
+    archivesBaseName = "gradle-script-kotlin-tooling-models"
 }
 
 publishing {
@@ -39,12 +34,14 @@ java {
             output.dir(
                 mapOf("builtBy" to generateClasspathManifest),
                 generatedResourcesDir)
+            /*
+            java.setSrcDirs(emptyList<String>())
+            (this as HasConvention).run {
+                convention.getPlugin<KotlinSourceSet>().apply {
+                    kotlin.setSrcDirs(listOf("src/main/java", "src/main/kotlin"))
+                }
+            }
+            */
         }
     }
-}
-
-dependencies {
-    compileOnly(gradleApi())
-
-    compile(project(":provider"))
 }

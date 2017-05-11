@@ -22,6 +22,7 @@ apply {
 dependencies {
     compileOnly(gradleApi())
 
+    compile(project(":tooling-models"))
     compile(kotlin("stdlib"))
     compile(kotlin("reflect"))
     compile(kotlin("compiler-embeddable"))

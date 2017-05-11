@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.script.lang.kotlin.provider
+package org.gradle.script.lang.kotlin.tooling.builders
 
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.configuration.project.ProjectConfigureAction
 
-import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModelBuilder
-
 import org.gradle.script.lang.kotlin.support.serviceOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
-
-class KotlinBuildScriptModelBuilderRegistrationAction : ProjectConfigureAction {
+class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
 
     override fun execute(project: ProjectInternal) {
         project

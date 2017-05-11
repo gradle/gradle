@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.resolver
+package org.gradle.script.lang.kotlin.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
@@ -26,8 +26,11 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.script.lang.kotlin.accessors.accessorsClassPathFor
 import org.gradle.script.lang.kotlin.provider.gradleScriptKotlinApiOf
 import org.gradle.script.lang.kotlin.provider.kotlinScriptClassPathProviderOf
+import org.gradle.script.lang.kotlin.resolver.SourcePathProvider
+import org.gradle.script.lang.kotlin.resolver.kotlinBuildScriptModelTarget
 import org.gradle.script.lang.kotlin.support.ImplicitImports
 import org.gradle.script.lang.kotlin.support.serviceOf
+import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -35,20 +38,13 @@ import java.io.File
 import java.io.Serializable
 
 
-interface KotlinBuildScriptModel {
-    val classPath: List<File>
-    val sourcePath: List<File>
-    val implicitImports: List<String>
-}
-
-
 internal
 object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
 
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel"
+        modelName == "org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel"
 
-    override fun buildAll(modelName: String, project: Project): Any {
+    override fun buildAll(modelName: String, project: Project): KotlinBuildScriptModel {
         val classPath = scriptClassPathOf(project)
         val sourcePath = sourcePathFor(classPath.bin, project)
         val implicitImports = implicitImportsOf(project)

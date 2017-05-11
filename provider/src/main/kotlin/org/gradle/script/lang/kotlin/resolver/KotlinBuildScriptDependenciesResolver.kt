@@ -16,6 +16,8 @@
 
 package org.gradle.script.lang.kotlin.resolver
 
+import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
+
 import org.gradle.script.lang.kotlin.concurrent.future
 
 import org.gradle.tooling.ProgressListener

@@ -19,6 +19,8 @@ package org.gradle.script.lang.kotlin.resolver
 import org.gradle.script.lang.kotlin.concurrent.tapi
 import org.gradle.script.lang.kotlin.provider.KotlinScriptPluginFactory
 
+import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
+
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection

@@ -10,9 +10,9 @@ import org.gradle.script.lang.kotlin.fixtures.withDaemonRegistry
 import org.gradle.script.lang.kotlin.fixtures.matching
 
 import org.gradle.script.lang.kotlin.resolver.GradleInstallation
-import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModel
 import org.gradle.script.lang.kotlin.resolver.KotlinBuildScriptModelRequest
 import org.gradle.script.lang.kotlin.resolver.fetchKotlinBuildScriptModelFor
+import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.util.TextUtil.normaliseFileSeparators
 

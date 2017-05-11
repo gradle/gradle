@@ -19,6 +19,8 @@ package org.gradle.script.lang.kotlin.resolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.script.lang.kotlin.support.userHome
 
+import org.gradle.script.lang.kotlin.tooling.models.KotlinBuildScriptModel
+
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
