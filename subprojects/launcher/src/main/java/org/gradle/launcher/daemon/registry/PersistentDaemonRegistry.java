@@ -52,15 +52,15 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
         cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
-                new SimpleStateCache<DaemonRegistryContent>(
-                        registryFile,
-                        new OnDemandFileAccess(
-                                registryFile,
-                                "daemon addresses registry",
-                                fileLockManager),
-                        DaemonRegistryContent.SERIALIZER,
-                        chmod
-                ));
+            new SimpleStateCache<DaemonRegistryContent>(
+                registryFile,
+                new OnDemandFileAccess(
+                    registryFile,
+                    "daemon addresses registry",
+                    fileLockManager),
+                DaemonRegistryContent.SERIALIZER,
+                chmod
+            ));
     }
 
     public List<DaemonInfo> getAll() {
@@ -150,7 +150,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     }
                     // Else, has been removed by something else - ignore
                     return oldValue;
-                }});
+                }
+            });
         } finally {
             lock.unlock();
         }
@@ -219,13 +220,15 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
+                    DaemonRegistryContent newValue;
                     if (oldValue == null) {
-                        //it means the registry didn't exist yet
-                        oldValue = new DaemonRegistryContent();
+                        newValue = new DaemonRegistryContent();
+                    } else {
+                        newValue = oldValue.dataSharingCopy();
                     }
                     DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, token, state);
-                    oldValue.setStatus(address, daemonInfo);
-                    return oldValue;
+                    newValue.setStatus(address, daemonInfo);
+                    return newValue;
                 }
             });
         } finally {
