@@ -112,4 +112,29 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         skippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertHasNotChangedSince(snapshot)
     }
+
+    def "test is cached when jacoco is disabled"() {
+        buildFile << """
+            test {
+                jacoco {
+                    enabled = false
+                }
+            }
+        """
+        when:
+        withBuildCache().succeeds "test"
+        then:
+        nonSkippedTasks.containsAll ":test"
+
+        when:
+        succeeds "clean"
+        then:
+        reportFile.assertDoesNotExist()
+
+        when:
+        executer.requireOwnGradleUserHomeDir()
+        withBuildCache().succeeds "test"
+        then:
+        skippedTasks.containsAll ":test"
+    }
 }
