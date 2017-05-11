@@ -27,7 +27,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
-import org.gradle.workers.ForkMode
+import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutionException
 import spock.lang.Unroll
 
@@ -35,6 +35,7 @@ import spock.lang.Unroll
 class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def workerDaemonFactory = Mock(WorkerFactory)
     def workerInProcessFactory = Mock(WorkerFactory)
+    def workerNoIsolationFactory = Mock(WorkerFactory)
     def workerExecutorFactory = Mock(ExecutorFactory)
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
@@ -48,18 +49,18 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * fileResolver.resolveLater(_) >> fileFactory()
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * workerExecutorFactory.create(_ as String) >> stoppableExecutor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker)
     }
 
     @Unroll
-    def "work can be submitted concurrently in ForkMode.#forkMode"() {
+    def "work can be submitted concurrently in IsolationMode.#isolationMode"() {
         when:
         async {
             5.times {
                 start {
                     thread.blockUntil.allStarted
                     workerExecutor.submit(TestRunnable.class) { config ->
-                        config.forkMode = forkMode
+                        config.isolationMode = isolationMode
                         config.params = []
                     }
                 }
@@ -72,7 +73,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         5 * stoppableExecutor.execute(_ as ListenableFutureTask)
 
         where:
-        forkMode << [ForkMode.ALWAYS, ForkMode.NEVER]
+        isolationMode << IsolationMode.values()
     }
 
     def "can wait on results to complete"() {

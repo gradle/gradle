@@ -14,19 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.workers;
 
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.api.Incubating;
 
 /**
- * Represents the computation of the task artifact state and the task output caching state.
- *
- * This operation is executed only when the build cache is enabled.
- *
- * This class is intentionally internal and consumed by the build scan plugin.
+ * Isolation mode for workers.
  *
  * @since 4.0
  */
-public final class ComputeTaskInputsHashesAndBuildCacheKeyDetails implements BuildOperationDetails<TaskOutputCachingBuildCacheKey> {
+@Incubating
+public enum IsolationMode {
+    /**
+     * Let Gradle decide, this is the default.
+     */
+    AUTO,
+    /**
+     * Don't attempt to isolate the work, use in-process workers.
+     */
+    NONE,
+    /**
+     * Isolate the work in it's own classloader, use in-process workers.
+     */
+    CLASSLOADER,
+    /**
+     * Isolate the work in a separate process, use out-of-process workers.
+     */
+    PROCESS
 }

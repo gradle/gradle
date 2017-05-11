@@ -21,7 +21,7 @@ import spock.lang.Unroll
 class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Unroll
-    def "worker lifecycle is logged in #forkMode"() {
+    def "worker lifecycle is logged in #isolationMode"() {
         def runnableJarName = "runnable.jar"
         withRunnableClassInExternalJar(file(runnableJarName))
 
@@ -33,7 +33,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
             }
 
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
             }
         """.stripIndent()
 
@@ -49,15 +49,15 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         gradle.standardOutput.contains("Build operation 'org.gradle.test.TestRunnable' completed")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     @Unroll
-    def "stdout, stderr and logging output of worker is redirected in #forkMode"() {
+    def "stdout, stderr and logging output of worker is redirected in #isolationMode"() {
         buildFile << """
             ${runnableWithLogging}
             task runInWorker(type: WorkerTask) {
-                forkMode = $forkMode
+                isolationMode = $isolationMode
             }
         """.stripIndent()
 
@@ -84,7 +84,7 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         !gradle.errorOutput.contains("debug")
 
         where:
-        forkMode << ['ForkMode.ALWAYS', 'ForkMode.NEVER']
+        isolationMode << ISOLATION_MODES
     }
 
     String getRunnableWithLogging() {

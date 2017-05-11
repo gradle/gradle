@@ -16,12 +16,20 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.hash.HashCode;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsOperationDetails;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.caching.internal.ComputeTaskInputsHashesAndBuildCacheKeyDetails;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.TaskOutputCachingListener;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -30,6 +38,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
@@ -72,15 +84,15 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             @Override
             public void run(BuildOperationContext buildOperationContext) {
                 TaskOutputCachingBuildCacheKey cacheKey = doResolve(task, context);
-                buildOperationContext.setResult(cacheKey);
+                buildOperationContext.setResult(new OperationResultAdapter(cacheKey));
                 context.setBuildCacheKey(cacheKey);
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
-                    .displayName("Compute task input hashes and build cache key")
-                    .details(new ComputeTaskInputsHashesAndBuildCacheKeyDetails());
+                    .displayName("Snapshot task inputs for " + task.getIdentityPath())
+                    .details(new SnapshotTaskInputsOperationDetails(task.getPath()));
             }
         });
     }
@@ -96,4 +108,54 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
         return cacheKey;
     }
+
+    @VisibleForTesting
+    static class OperationResultAdapter implements SnapshotTaskInputsOperationDetails.Result {
+
+        @VisibleForTesting
+        final TaskOutputCachingBuildCacheKey key;
+
+        OperationResultAdapter(TaskOutputCachingBuildCacheKey key) {
+            this.key = key;
+        }
+
+        @Override
+        public SortedMap<String, String> getInputHashes() {
+            SortedMap<String, HashCode> inputHashes = ImmutableSortedMap.copyOf(key.getInputs().getInputHashes());
+            return Maps.transformValues(inputHashes, new Function<HashCode, String>() {
+                @Override
+                public String apply(HashCode input) {
+                    return input.toString();
+                }
+            });
+        }
+
+        @Override
+        @Nullable
+        public String getClassLoaderHash() {
+            return key.getInputs().getClassLoaderHash() == null ? null : key.getInputs().getClassLoaderHash().toString();
+        }
+
+        @Override
+        public List<String> getActionClassLoaderHashes() {
+            return Lists.transform(key.getInputs().getActionClassLoaderHashes(), new Function<HashCode, String>() {
+                @Override
+                public String apply(HashCode input) {
+                    return input.toString();
+                }
+            });
+        }
+
+        @Override
+        public SortedSet<String> getOutputPropertyNames() {
+            return ImmutableSortedSet.copyOf(key.getInputs().getOutputPropertyNames());
+        }
+
+        @Nullable
+        @Override
+        public String getBuildCacheKey() {
+            return key.getHashCode();
+        }
+    }
+
 }

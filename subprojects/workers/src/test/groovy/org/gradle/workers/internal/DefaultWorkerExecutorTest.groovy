@@ -26,10 +26,11 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
-import org.gradle.workers.ForkMode
+import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @UsesNativeServices
 class DefaultWorkerExecutorTest extends Specification {
@@ -37,6 +38,7 @@ class DefaultWorkerExecutorTest extends Specification {
 
     def workerDaemonFactory = Mock(WorkerFactory)
     def inProcessWorkerFactory = Mock(WorkerFactory)
+    def noIsolationWorkerFactory = Mock(WorkerFactory)
     def executorFactory = Mock(ExecutorFactory)
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
@@ -53,7 +55,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * fileResolver.resolveLater(_) >> factory
         _ * fileResolver.resolve(_) >> { files -> files[0] }
         _ * executorFactory.create(_ as String) >> executor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
@@ -61,25 +63,31 @@ class DefaultWorkerExecutorTest extends Specification {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver)
 
         expect:
-        configuration.forkMode == ForkMode.AUTO
+        configuration.isolationMode == IsolationMode.AUTO
 
         when:
-        configuration.forkMode = ForkMode.ALWAYS
+        configuration.isolationMode = IsolationMode.PROCESS
 
         then:
-        configuration.forkMode == ForkMode.ALWAYS
+        configuration.isolationMode == IsolationMode.PROCESS
 
         when:
-        configuration.forkMode = ForkMode.NEVER
+        configuration.isolationMode = IsolationMode.CLASSLOADER
 
         then:
-        configuration.forkMode == ForkMode.NEVER
+        configuration.isolationMode == IsolationMode.CLASSLOADER
 
         when:
-        configuration.forkMode = null
+        configuration.isolationMode = IsolationMode.NONE
 
         then:
-        configuration.forkMode == ForkMode.AUTO
+        configuration.isolationMode == IsolationMode.NONE
+
+        when:
+        configuration.isolationMode = null
+
+        then:
+        configuration.isolationMode == IsolationMode.AUTO
     }
 
     def "can convert javaForkOptions to daemonForkOptions"() {
@@ -123,7 +131,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def "executor executes a given runnable in a daemon"() {
         when:
         workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
-            configuration.forkMode = ForkMode.ALWAYS
+            configuration.isolationMode = IsolationMode.PROCESS
             configuration.params = []
         }
 
@@ -145,7 +153,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def "executor executes a given runnable in-process"() {
         when:
         workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
-            configuration.forkMode = ForkMode.NEVER
+            configuration.isolationMode = IsolationMode.CLASSLOADER
             configuration.params = []
         }
 
@@ -162,6 +170,126 @@ class DefaultWorkerExecutorTest extends Specification {
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }
+    }
+
+    def "executor executes a given runnable with no isolation"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = IsolationMode.NONE
+            configuration.params = []
+        }
+
+        then:
+        1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
+        1 * executor.execute(_ as ListenableFutureTask) >> { args -> task = args[0] }
+
+        when:
+        task.run()
+
+        then:
+        1 * noIsolationWorkerFactory.getWorker(_, _, _) >> worker
+        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+            assert spec.implementationClass == TestRunnable
+            return new DefaultWorkResult(true, null)
+        }
+    }
+
+    def "cannot set classpath in isolation mode NONE"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = IsolationMode.NONE
+            configuration.params = []
+            configuration.classpath([new File("foo")])
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker classpath cannot be set when using isolation mode NONE"
+    }
+
+    @Unroll
+    def "cannot set bootstrap classpath in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.bootstrapClasspath new File("foo")
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker bootstrap classpath cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
+    @Unroll
+    def "cannot set jvm arguments in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.jvmArgs "foo"
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker jvm arguments cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
+    @Unroll
+    def "cannot set system properties in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.systemProperty "FOO", "bar"
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker system properties cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
+    @Unroll
+    def "cannot set maximum heap in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.maxHeapSize = "foo"
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker maximum heap size cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
+    }
+
+    @Unroll
+    def "cannot set minimum heap in isolation mode #isolationMode"() {
+        when:
+        workerExecutor.submit(TestRunnable.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = isolationMode
+            configuration.params = []
+            configuration.forkOptions.minHeapSize = "foo"
+        }
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "The worker minimum heap size cannot be set when using isolation mode $isolationMode".toString()
+
+        where:
+        isolationMode << [IsolationMode.NONE, IsolationMode.CLASSLOADER]
     }
 
     static class TestRunnable implements Runnable {

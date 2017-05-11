@@ -107,7 +107,7 @@ public class BuildOperationNotificationBridge implements Stoppable {
                 return;
             }
 
-            Finished notification = new Finished(buildOperation.getId(), finishEvent.getResult(), finishEvent.getFailure(), buildOperation.getDetails());
+            Finished notification = new Finished(buildOperation.getId(), buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
             try {
                 listener.finished(notification);
             } catch (Exception e) {
@@ -144,27 +144,35 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
         @Override
         public String toString() {
-            return "BuildOperationStartedNotification{id=" + id + ", details=" + details + '}';
+            return "BuildOperationStartedNotification{"
+                + "id=" + id
+                + ", details=" + details
+                + '}';
         }
     }
 
     private static class Finished implements BuildOperationFinishedNotification {
 
         private final Object id;
+        private final Object details;
         private final Object result;
         private final Throwable failure;
-        private final Object details;
 
-        private Finished(Object id, Object result, Throwable failure, Object details) {
+        private Finished(Object id, Object details, Object result, Throwable failure) {
             this.id = id;
+            this.details = details;
             this.result = result;
             this.failure = failure;
-            this.details = details;
         }
 
         @Override
         public Object getNotificationOperationId() {
             return id;
+        }
+
+        @Override
+        public Object getNotificationOperationDetails() {
+            return details;
         }
 
         @Override
@@ -178,16 +186,12 @@ public class BuildOperationNotificationBridge implements Stoppable {
         }
 
         @Override
-        public Object getNotificationOperationDetails() {
-            return details;
-        }
-
-        @Override
         public String toString() {
-            return "Finished{"
+            return "BuildOperationFinishedNotification{"
                 + "id=" + id
-                + ", result=" + result
                 + ", details=" + details
+                + ", result=" + result
+                + ", failure=" + failure
                 + '}';
         }
     }

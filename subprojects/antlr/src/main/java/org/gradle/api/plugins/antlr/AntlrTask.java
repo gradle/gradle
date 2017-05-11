@@ -234,7 +234,7 @@ public class AntlrTask extends SourceTask {
     }
 
     /**
-     * Sets the source for this task. Delegates to {@link SourceTask#setSource(FileTree)}.
+     * Sets the source for this task. Delegates to {@link #setSource(Object)}.
      *
      * If the source is of type {@link SourceDirectorySet}, then the relative path of each source grammar files
      * is used to determine the relative output path of the generated source

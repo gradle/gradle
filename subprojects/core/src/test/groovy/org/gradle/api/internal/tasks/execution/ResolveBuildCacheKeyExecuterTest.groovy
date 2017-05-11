@@ -16,18 +16,21 @@
 
 package org.gradle.api.internal.tasks.execution
 
+import com.google.common.hash.HashCode
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.tasks.SnapshotTaskInputsOperationDetails
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.caching.internal.ComputeTaskInputsHashesAndBuildCacheKeyDetails
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputCachingListener
 import org.gradle.internal.progress.TestBuildOperationExecutor
-import spock.lang.Specification
+import org.gradle.testing.internal.util.Specification
+import org.gradle.util.Path
 
 class ResolveBuildCacheKeyExecuterTest extends Specification {
 
@@ -47,6 +50,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
+        1 * task.getPath() >> ":foo"
+        1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
 
@@ -65,7 +70,9 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         0 * _
 
         and:
-        buildOpResult() == cacheKey
+        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultAdapter) {
+            key == cacheKey
+        }
     }
 
     def "propagates exceptions if cache key cannot be calculated"() {
@@ -75,6 +82,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
+        1 * task.getPath() >> ":foo"
+        1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> {
             throw failure
@@ -91,6 +100,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
+        1 * task.getPath() >> ":foo"
+        1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
 
@@ -106,15 +117,56 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         0 * _
 
         and:
-        buildOpResult() == DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
+        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultAdapter) {
+            key == DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
+        }
     }
 
-    private TaskOutputCachingBuildCacheKey buildOpResult() {
-        buildOperationExecutor.log.mostRecentResult(ComputeTaskInputsHashesAndBuildCacheKeyDetails)
+    def "adapts key to result interface"() {
+        given:
+        def inputs = Mock(BuildCacheKeyInputs)
+        def key = Mock(TaskOutputCachingBuildCacheKey) {
+            getInputs() >> inputs
+        }
+        def adapter = new ResolveBuildCacheKeyExecuter.OperationResultAdapter(key)
+
+        when:
+        inputs.inputHashes >> [b: HashCode.fromString("bb"), a: HashCode.fromString("aa")]
+
+        then:
+        adapter.inputHashes == [a: "aa", b: "bb"]
+
+        when:
+        inputs.classLoaderHash >> HashCode.fromString("cc")
+
+        then:
+        adapter.classLoaderHash == "cc"
+
+        when:
+        inputs.actionClassLoaderHashes >> [HashCode.fromString("ee"), HashCode.fromString("dd")]
+
+        then:
+        adapter.actionClassLoaderHashes == ["ee", "dd"]
+
+        when:
+        inputs.outputPropertyNames >> ["2", "1"].toSet()
+
+        then:
+        adapter.outputPropertyNames == new TreeSet(["1", "2"])
+
+        when:
+        key.hashCode >> HashCode.fromString("ff")
+
+        then:
+        adapter.buildCacheKey == "ff"
+    }
+
+    private SnapshotTaskInputsOperationDetails.Result buildOpResult() {
+        buildOperationExecutor.log.mostRecentResult(SnapshotTaskInputsOperationDetails)
     }
 
     private Throwable buildOpFailure() {
-        buildOperationExecutor.log.mostRecentFailure(ComputeTaskInputsHashesAndBuildCacheKeyDetails)
+        buildOperationExecutor.log.mostRecentFailure(SnapshotTaskInputsOperationDetails)
     }
 
 }
