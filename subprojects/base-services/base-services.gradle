@@ -14,8 +14,15 @@ dependencies {
     implementation libraries.slf4j_api
     implementation libraries.commons_lang
     implementation libraries.jcip
-    implementation project(':versionInfo')
 }
+
+task buildReceiptResource(type: Copy) {
+    from {
+        tasks.getByPath(':createBuildReceipt').outputs.files
+    }
+    destinationDir = file("${generatedTestResourcesDir}/${buildReceiptPackage}")
+}
+sourceSets.main.output.dir generatedTestResourcesDir, builtBy: buildReceiptResource
 
 useTestFixtures()
 useClassycle()

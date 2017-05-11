@@ -59,10 +59,8 @@ task shadedJarWithoutVersion(type: ShadedJar) {
 }
 
 task toolingApiShadedJar(type: Zip) {
-    ext.buildReceipt = project(':versionInfo').createBuildReceipt
+    ext.buildReceipt = tasks.getByPath(':createBuildReceipt')
     destinationDir file("$buildDir/shaded-jar")
-}
-configure([toolingApiShadedJar]) {
     dependsOn shadedJarWithoutVersion, buildReceipt
     from zipTree(shadedJarWithoutVersion.jarFile)
     baseName = 'gradle-tooling-api-shaded'

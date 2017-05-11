@@ -95,6 +95,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.versionUnderTest
         results.jvm
         results.operatingSystem
+        results.host
         results.current.size() == 4
         results.current.totalTime.average == Duration.seconds(10)
         results.baselineVersions*.version == ['1.0', '1.1', MOST_RECENT_RELEASE]

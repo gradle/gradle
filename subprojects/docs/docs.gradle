@@ -460,7 +460,7 @@ task javadocAll(type: Javadoc) {
 
 task checkstyleApi(type: Checkstyle) {
     source javadocAll.source
-    configFile = new File(checkstyle.checkstyleConfigDir, "checkstyle-api.xml")
+    configFile = new File(checkstyle.configDir, "checkstyle-api.xml")
     classpath = files()
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }

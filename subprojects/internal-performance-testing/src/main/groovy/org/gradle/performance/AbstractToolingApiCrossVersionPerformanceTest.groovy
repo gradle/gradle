@@ -167,6 +167,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 testProject: experimentSpec.projectName,
                 jvm: Jvm.current().toString(),
                 operatingSystem: OperatingSystem.current().toString(),
+                host: InetAddress.getLocalHost().getHostName(),
                 versionUnderTest: GradleVersion.current().getVersion(),
                 vcsBranch: Git.current().branchName,
                 vcsCommits: [Git.current().commitId],

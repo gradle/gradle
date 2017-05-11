@@ -94,8 +94,7 @@ def buckets = [
         ":resourcesSftp",
         ":messaging",
         ":logging",
-        ":resourcesHttp",
-        ":versionInfo"
+        ":resourcesHttp"
     ],
 
     "8": [
