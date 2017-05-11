@@ -36,6 +36,11 @@ public interface BuildOperationFinishedNotification {
     Object getNotificationOperationId();
 
     /**
+     * A structured object providing details about the operation that was performed.
+     */
+    Object getNotificationOperationDetails();
+
+    /**
      * A structured object representing the outcome of the operation.
      * Null if the operation failed, or if no result details are produced for the type of operation.
      */
@@ -46,10 +51,5 @@ public interface BuildOperationFinishedNotification {
      * Null if the operation was successful.
      */
     Throwable getNotificationOperationFailure();
-
-    /**
-     * A structured object providing details about the operation that was performed.
-     */
-    Object getNotificationOperationDetails();
 
 }
