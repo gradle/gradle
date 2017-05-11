@@ -98,8 +98,8 @@ public class BuildCacheServiceProvider {
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
                     false,
-                    !localEnabled,
-                    !remoteEnabled,
+                    local != null && !local.isEnabled(),
+                    remote != null && (!remote.isEnabled() || startParameter.isOffline()),
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));
