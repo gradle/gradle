@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.api.Nullable;
 import org.gradle.internal.progress.BuildOperationDetails;
+
+import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 /**
  * Represents the computation of the task artifact state and the task output caching state.
@@ -28,5 +32,31 @@ import org.gradle.internal.progress.BuildOperationDetails;
  *
  * @since 4.0
  */
-public final class ComputeTaskInputsHashesAndBuildCacheKeyDetails implements BuildOperationDetails<TaskOutputCachingBuildCacheKey> {
+public final class SnapshotTaskInputsOperationDetails implements BuildOperationDetails<SnapshotTaskInputsOperationDetails.Result> {
+
+    private final String taskPath;
+
+    public SnapshotTaskInputsOperationDetails(String taskPath) {
+        this.taskPath = taskPath;
+    }
+
+    public String getTaskPath() {
+        return taskPath;
+    }
+
+    public interface Result {
+
+        @Nullable
+        String getClassLoaderHash();
+
+        // Order corresponds to task action order
+        List<String> getActionClassLoaderHashes();
+
+        SortedMap<String, String> getInputHashes();
+
+        SortedSet<String> getOutputPropertyNames();
+
+        String getBuildCacheKey();
+
+    }
 }
