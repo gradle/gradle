@@ -212,8 +212,4 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return version.isSameOrNewer("1.0-milestone-7");
     }
 
-    public boolean isLifecycleLogLevelFlagSupported() {
-        return version.isSameOrNewer("4.0");
-    }
-
 }
