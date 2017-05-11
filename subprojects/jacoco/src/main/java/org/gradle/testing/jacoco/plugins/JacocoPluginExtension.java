@@ -104,52 +104,51 @@ public class JacocoPluginExtension {
                 return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");
             }
         }));
-        task.getInputs().property("jacoco.enabled", new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                return extension.isEnabled();
-            }
-        });
+
+        // Capture some of the JaCoCo contributed inputs to the task
         task.getInputs().property("jacoco.jvmArgs", new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return extension.getAsJvmArg();
+                return extension.isEnabled() ? extension.getAsJvmArg() : "";
             }
         });
-        TaskInternal taskInternal = (TaskInternal) task;
-        taskInternal.getOutputs().doNotCacheIf("Jacoco configured to not produce its output as a file", new Spec<Task>() {
+        task.getOutputs().file(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return extension.isEnabled() ? extension.getDestinationFile() : null;
+            }
+        }).optional().withPropertyName("jacoco.destinationFile");
+        task.getOutputs().dir(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return extension.isEnabled() ? extension.getClassDumpDir() : null;
+            }
+        }).optional().withPropertyName("jacoco.classDumpDir");
+
+        // Do not cache the task if we are not writing execution data to a file
+        task.getOutputs().doNotCacheIf("JaCoCo configured to not produce its output as a file", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 // Do not cache Test task if Jacoco doesn't produce its output as files
                 return extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE;
             }
         });
-        taskInternal.getOutputs().file(new Callable<File>() {
+
+        // Do not cache the Test task if we are appending to the Jacoco output
+        task.getOutputs().doNotCacheIf("JaCoCo agent configured with `append = true`", new Spec<Task>() {
             @Override
-            public File call() throws Exception {
-                return extension.getDestinationFile();
+            public boolean isSatisfiedBy(Task element) {
+                return extension.isEnabled() && extension.isAppend();
             }
-        }).optional().withPropertyName("jacoco.destinationFile");
-        taskInternal.getOutputs().dir(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return extension.getClassDumpDir();
-            }
-        }).optional().withPropertyName("jacoco.classDumpDir");
+        });
+
+        TaskInternal taskInternal = (TaskInternal) task;
         taskInternal.prependParallelSafeAction(new Action<Task>() {
             @Override
             public void execute(Task input) {
                 if (extension.isEnabled()) {
                     task.jvmArgs(extension.getAsJvmArg());
                 }
-            }
-        });
-
-        // Do not cache the Test task if we are appending to the Jacoco output
-        taskInternal.getOutputs().doNotCacheIf("Jacoco agent configured with `append = true`", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return extension.isAppend();
             }
         });
     }
