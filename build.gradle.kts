@@ -34,6 +34,7 @@ val distribution by configurations.creating
 
 dependencies {
     distribution(project(":provider"))
+    distribution(project(":tooling-builders"))
 }
 
 val prepareIntegrationTestFixtures by task<GradleBuild> {

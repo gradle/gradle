@@ -1,3 +1,4 @@
 rootProject.name = 'gradle-script-kotlin'
 
-include 'provider'
+include 'provider',
+        'tooling-builders'
