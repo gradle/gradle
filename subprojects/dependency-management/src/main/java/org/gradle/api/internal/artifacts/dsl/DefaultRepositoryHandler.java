@@ -36,6 +36,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
     public static final String BINTRAY_JCENTER_URL = "https://jcenter.bintray.com/";
+    public static final String GOOGLE_REPO_NAME = "Google";
 
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
     private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
@@ -86,7 +87,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public MavenArtifactRepository google() {
-        return addRepository(repositoryFactory.createGoogleRepository(), GOOGLE_URL);
+        return addRepository(repositoryFactory.createGoogleRepository(), GOOGLE_REPO_NAME);
     }
 
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {
