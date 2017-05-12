@@ -96,7 +96,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         String expectedLogStatement = "[[INFO] [org.gradle.process.internal.LogSerializableLogAction] info log statement]"
 
         when:
-        workerFactory = new DefaultWorkerProcessFactory(LogLevel.WARN, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener, Stub(MemoryManager))
+        workerFactory = new DefaultWorkerProcessFactory(LogLevel.LIFECYCLE, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener, Stub(MemoryManager))
         and:
         execute(worker(loggingProcess))
 

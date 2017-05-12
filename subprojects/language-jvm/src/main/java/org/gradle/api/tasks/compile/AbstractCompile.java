@@ -30,13 +30,12 @@ import java.io.File;
  */
 public abstract class AbstractCompile extends SourceTask {
     private final PropertyState<File> destinationDir;
-    private final PropertyState<FileCollection> classpath;
+    private FileCollection classpath;
     private String sourceCompatibility;
     private String targetCompatibility;
 
     public AbstractCompile() {
         this.destinationDir = getProject().property(File.class);
-        this.classpath = getProject().property(FileCollection.class);
     }
 
     protected abstract void compile();
@@ -48,7 +47,7 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @Classpath
     public FileCollection getClasspath() {
-        return classpath.getOrNull();
+        return classpath;
     }
 
     /**
@@ -57,18 +56,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @param configuration The classpath. Must not be null, but may be empty.
      */
     public void setClasspath(FileCollection configuration) {
-        this.classpath.set(configuration);
-    }
-
-    /**
-     * Sets the classpath to use to compile the source files.
-     *
-     * @param configuration The classpath. Must not be null, but may be empty.
-     *
-     * @since 4.0
-     */
-    public void setClasspath(Provider<? extends FileCollection> configuration) {
-        this.classpath.set(configuration);
+        this.classpath = configuration;
     }
 
     /**

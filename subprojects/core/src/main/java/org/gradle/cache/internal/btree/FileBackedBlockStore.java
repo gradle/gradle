@@ -91,7 +91,7 @@ public class FileBackedBlockStore implements BlockStore {
     }
 
     public <T extends BlockPayload> T readFirst(Class<T> payloadType) {
-        return read(new BlockPointer(0), payloadType);
+        return read(BlockPointer.pos(0), payloadType);
     }
 
     public <T extends BlockPayload> T read(BlockPointer pos, Class<T> payloadType) {
@@ -151,7 +151,7 @@ public class FileBackedBlockStore implements BlockStore {
         @Override
         public BlockPointer getPos() {
             if (pos == null) {
-                pos = new BlockPointer(alloc(getSize()));
+                pos = BlockPointer.pos(alloc(getSize()));
             }
             return pos;
         }

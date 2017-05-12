@@ -51,6 +51,13 @@ public class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
+     * The Checkstyle configuration file to use.
+     */
+    public void setConfigFile(File configFile) {
+        setConfig(project.getResources().getText().fromFile(configFile));
+    }
+
+    /**
      * The Checkstyle configuration to use. Replaces the {@code configFile} property.
      *
      * @since 2.2
@@ -61,12 +68,11 @@ public class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
-     * The Checkstyle configuration file to use.
+     * The Checkstyle configuration to use. Replaces the {@code configFile} property.
+     *
+     * @since 2.2
      */
-    public void setConfigFile(File configFile) {
-        setConfig(project.getResources().getText().fromFile(configFile));
-    }
-
+    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }
@@ -78,6 +84,9 @@ public class CheckstyleExtension extends CodeQualityExtension {
         return configProperties;
     }
 
+    /**
+     * The properties available for use in the configuration file. These are substituted into the configuration file.
+     */
     public void setConfigProperties(Map<String, Object> configProperties) {
         this.configProperties = configProperties;
     }
@@ -90,10 +99,19 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * @return path to other Checkstyle configuration files
      * @since 4.0
      */
+    @Incubating
     public File getConfigDir() {
         return configDir;
     }
 
+    /**
+     * Path to other Checkstyle configuration files. By default, this path is {@code $projectDir/config/checkstyle}
+     * <p>
+     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
+     * </p>
+     * @since 4.0
+     */
+    @Incubating
     public void setConfigDir(File configDir) {
         this.configDir = configDir;
     }
@@ -145,7 +163,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
-     * Whether or not rule violations are to be displayed on the console. Defaults to <tt>true</tt>.
+     * Whether rule violations are to be displayed on the console. Defaults to <tt>true</tt>.
      *
      * Example: showViolations = false
      */
@@ -153,6 +171,11 @@ public class CheckstyleExtension extends CodeQualityExtension {
         return showViolations;
     }
 
+    /**
+     * Whether rule violations are to be displayed on the console. Defaults to <tt>true</tt>.
+     *
+     * Example: showViolations = false
+     */
     public void setShowViolations(boolean showViolations) {
         this.showViolations = showViolations;
     }

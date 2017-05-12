@@ -55,6 +55,12 @@ public class CodeNarcExtension extends CodeQualityExtension {
         return config;
     }
 
+    /**
+     * The CodeNarc configuration to use. Replaces the {@code configFile} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }
@@ -80,6 +86,9 @@ public class CodeNarcExtension extends CodeQualityExtension {
         return maxPriority1Violations;
     }
 
+    /**
+     * The maximum number of priority 1 violations allowed before failing the build.
+     */
     public void setMaxPriority1Violations(int maxPriority1Violations) {
         this.maxPriority1Violations = maxPriority1Violations;
     }
@@ -91,6 +100,9 @@ public class CodeNarcExtension extends CodeQualityExtension {
         return maxPriority2Violations;
     }
 
+    /**
+     * The maximum number of priority 2 violations allowed before failing the build.
+     */
     public void setMaxPriority2Violations(int maxPriority2Violations) {
         this.maxPriority2Violations = maxPriority2Violations;
     }
@@ -102,6 +114,9 @@ public class CodeNarcExtension extends CodeQualityExtension {
         return maxPriority3Violations;
     }
 
+    /**
+     * The maximum number of priority 3 violations allowed before failing the build.
+     */
     public void setMaxPriority3Violations(int maxPriority3Violations) {
         this.maxPriority3Violations = maxPriority3Violations;
     }
@@ -113,6 +128,9 @@ public class CodeNarcExtension extends CodeQualityExtension {
         return reportFormat;
     }
 
+    /**
+     * The format type of the CodeNarc report. One of <tt>html</tt>, <tt>xml</tt>, <tt>text</tt>, <tt>console</tt>.
+     */
     public void setReportFormat(String reportFormat) {
         if (REPORT_FORMATS.contains(reportFormat)) {
             this.reportFormat = reportFormat;

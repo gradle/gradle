@@ -55,8 +55,6 @@ public interface GradleExecuter extends Stoppable {
 
     GradleExecuter withQuietLogging();
 
-    GradleExecuter withLifecycleLoggingDisabled();
-
     /**
      * Sets the additional command-line arguments to use when executing the build. Defaults to an empty list.
      */
@@ -127,8 +125,6 @@ public interface GradleExecuter extends Stoppable {
 
     /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.
-     * <p>
-     * Uses the log level {@code LIFECYCLE} by default. The log level can be overridden by providing a different log level as argument for executor.
      *
      * @return The result.
      */
@@ -136,8 +132,6 @@ public interface GradleExecuter extends Stoppable {
 
     /**
      * Executes the requested build, asserting that the build fails. Resets the configuration of this executer.
-     * <p>
-     * Uses the log level {@code LIFECYCLE} by default. The log level can be overridden by providing a different log level as argument for executor.
      *
      * @return The result.
      */
@@ -145,8 +139,6 @@ public interface GradleExecuter extends Stoppable {
 
     /**
      * Starts executing the build asynchronously.
-     * <p>
-     * Uses the log level {@code LIFECYCLE} by default. The log level can be overridden by providing a different log level as argument for executor.
      *
      * @return the handle, never null.
      */

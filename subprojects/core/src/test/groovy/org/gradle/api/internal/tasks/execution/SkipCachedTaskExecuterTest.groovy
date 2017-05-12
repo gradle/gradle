@@ -32,7 +32,9 @@ import org.gradle.caching.BuildCacheService
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputPacker
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
+import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
 class SkipCachedTaskExecuterTest extends Specification {
@@ -60,6 +62,8 @@ class SkipCachedTaskExecuterTest extends Specification {
 
     def "skip task when cached results exist"() {
         def inputStream = Mock(InputStream)
+        def originId = UniqueId.generate()
+
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -80,10 +84,11 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
         1 * taskOutputOriginFactory.createReader(task) >> originReader
         1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
-        1 * taskOutputPacker.unpack(_, inputStream, originReader)
+        1 * taskOutputPacker.unpack(_, inputStream, originReader) >> new TaskOutputOriginMetadata(originId)
 
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
+        1 * taskState.setOriginBuildId(originId)
         0 * _
     }
 

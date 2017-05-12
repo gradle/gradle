@@ -17,32 +17,21 @@
 package org.gradle.internal.scan;
 
 /**
- * This interface is used to mark that gradle build scan is requested.
- *
- * Usually initiated by done via passing `--scan` from commandline.
- * This interface is intentionally internal and consumed by the build scan plugin.
+ * This interface was used by scan plugin versions 1.6, 1.7 and 1.7.1.
+ * These versions are no longer supported as of Gradle 4.0.
+ * Therefore, any invocation of the collect* methods imply an unsupported version.
+ * The current implementation will error accordingly.
  *
  * @since 3.4
- * */
+ */
+@UsedByScanPlugin("versions 1.6, 1.7 and 1.7.1")
 public interface BuildScanRequest {
 
-    /**
-     * Called by Gradle if --scan is present
-     * */
     void markRequested();
 
-    /**
-     * Called by Gradle if --no-scan is present
-     * */
     void markDisabled();
 
-    /***
-     *  Called by the build scan plugin to determine if --scan is present
-     */
     boolean collectRequested();
 
-    /***
-     *  Called by the build scan plugin to determine if --no-scan is present
-     */
     boolean collectDisabled();
 }

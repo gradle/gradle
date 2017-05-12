@@ -242,6 +242,7 @@ public class AntlrTask extends SourceTask {
      * flattened in the specified output directory.
      *
      * @param source The source.
+     * @since 4.0
      */
     @Override
     public void setSource(FileTree source) {

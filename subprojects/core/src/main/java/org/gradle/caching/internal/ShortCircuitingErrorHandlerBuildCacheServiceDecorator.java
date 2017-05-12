@@ -17,6 +17,8 @@
 package org.gradle.caching.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -37,18 +39,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends AbstractRoleAwareBuildCacheServiceDecorator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitingErrorHandlerBuildCacheServiceDecorator.class);
-    private static final String COULD_NOT_STORE_ENTRY_IN_BUILD_CACHE_LOG_MESSAGE = "Could not store entry {} in {} build cache";
 
     private boolean closed;
     private final int maxErrorCount;
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicInteger remainingErrorCount;
+    private final LoggingConfiguration loggingConfiguration;
     private String disableMessage;
 
-    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, RoleAwareBuildCacheService delegate) {
+    public ShortCircuitingErrorHandlerBuildCacheServiceDecorator(int maxErrorCount, LoggingConfiguration loggingConfiguration, RoleAwareBuildCacheService delegate) {
         super(delegate);
         this.maxErrorCount = maxErrorCount;
         this.remainingErrorCount = new AtomicInteger(maxErrorCount);
+        this.loggingConfiguration = loggingConfiguration;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
                 LOGGER.debug("Loading entry {} from {} build cache", key, getRole());
                 return super.load(key, reader);
             } catch (BuildCacheException e) {
-                LOGGER.warn("Could not load entry {} from {} build cache", key, getRole(), e);
+                reportFailure("load", "from", key, e);
                 recordFailure();
                 // Assume cache didn't have it.
             } catch (RuntimeException e) {
@@ -75,11 +78,11 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
                 LOGGER.debug("Storing entry {} in {} build cache", key, getRole());
                 super.store(key, writer);
             } catch (BuildCacheException e) {
-                LOGGER.warn(COULD_NOT_STORE_ENTRY_IN_BUILD_CACHE_LOG_MESSAGE, key, getRole(), e);
+                reportFailure("store", "in", key, e);
                 recordFailure();
                 // Assume its OK to not push anything.
             } catch (Exception e) {
-                LOGGER.warn(COULD_NOT_STORE_ENTRY_IN_BUILD_CACHE_LOG_MESSAGE, key, getRole(), e);
+                reportFailure("store", "in", key, e);
                 disableBuildCache("a non-recoverable error was encountered.");
             }
         }
@@ -95,6 +98,17 @@ public class ShortCircuitingErrorHandlerBuildCacheServiceDecorator extends Abstr
             super.close();
         }
         closed = true;
+    }
+
+    private void reportFailure(String verb, String preposition, BuildCacheKey key, Exception e) {
+        if (!LOGGER.isWarnEnabled()) {
+            return;
+        }
+        if (loggingConfiguration.getShowStacktrace() == ShowStacktrace.INTERNAL_EXCEPTIONS) {
+            LOGGER.warn("Could not {} entry {} {} {} build cache: {}", verb, key, preposition, getRole(), e.getMessage());
+        } else {
+            LOGGER.warn("Could not {} entry {} {} {} build cache", verb, key, preposition, getRole(), e);
+        }
     }
 
     private void recordFailure() {

@@ -184,6 +184,12 @@ Note that this will not change the runtime behavior of the Test task - i.e. any 
 
 For more information on this feature see the corresponding section in the [userguide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
 
+## Track Groovy Compiler JVM Java version
+
+The Java version of the JVM the Groovy compiler runs on influences the compiler output.
+Gradle now track this Java version and the Groovy compilation tasks will re-run when this version changes.
+Currently, the version of this JVM is always the same as the version of the Gradle JVM.
+
 <!--
 ### Example new and noteworthy
 -->

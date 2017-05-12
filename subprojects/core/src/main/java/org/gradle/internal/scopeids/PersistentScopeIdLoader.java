@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.scopeids;
 
-/**
- * <p>
- *     This package contains internal api to integrate with build scan plugin.
- *     Interfaces in this package are likely consumed by the build scan plugin and
- *     changes should be done carefully in coordination with the build scan plugin authors.
- * </p>
- */
-package org.gradle.internal.scan;
+import org.gradle.internal.scopeids.id.UserScopeId;
+import org.gradle.internal.scopeids.id.WorkspaceScopeId;
+
+public interface PersistentScopeIdLoader {
+
+    UserScopeId getUser();
+
+    WorkspaceScopeId getWorkspace();
+
+}

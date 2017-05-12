@@ -64,6 +64,11 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
         return classesDirs;
     }
 
+    /**
+     * The directories containing the classes to be analyzed.
+     *
+     * @since 4.0
+     */
     public void setClassesDirs(FileCollection classesDirs) {
         this.classesDirs = classesDirs;
     }
@@ -141,6 +146,9 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
         return jdependClasspath;
     }
 
+    /**
+     * The class path containing the JDepend library to be used.
+     */
     public void setJdependClasspath(FileCollection jdependClasspath) {
         this.jdependClasspath = jdependClasspath;
     }
@@ -165,6 +173,11 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
         return CollectionUtils.single(getClassesDirs());
     }
 
+    /**
+     * The directory containing the classes to be analyzed.
+     *
+     * @deprecated Replaced by {@link #getClassesDirs()}.
+     */
     @Deprecated
     public void setClassesDir(File classesDir) {
         SingleMessageLogger.nagUserOfReplacedMethod("setClassesDir(File)", "setClassesDirs(Set<File>)");

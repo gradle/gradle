@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Writer;
 
 public class BinaryResultBackedTestResultsProvider extends TestOutputStoreBackedResultsProvider {
@@ -81,9 +80,5 @@ public class BinaryResultBackedTestResultsProvider extends TestOutputStoreBacked
     @Override
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         resultSerializer.read(visitor);
-    }
-
-    @Override
-    public void close() throws IOException {
     }
 }

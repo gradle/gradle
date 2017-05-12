@@ -19,6 +19,7 @@ package org.gradle.caching.internal.tasks;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 
@@ -58,10 +59,10 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void unpack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) {
+    public TaskOutputOriginMetadata unpack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) {
         GZIPInputStream gzipInput = createGzipInputStream(input);
         try {
-            delegate.unpack(propertySpecs, gzipInput, readOrigin);
+            return delegate.unpack(propertySpecs, gzipInput, readOrigin);
         } finally {
             IOUtils.closeQuietly(gzipInput);
         }

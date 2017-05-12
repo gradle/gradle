@@ -97,9 +97,9 @@ public class BuildCacheServiceProvider {
                     : null;
 
                 context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
-                    false,
-                    local != null && !local.isEnabled(),
-                    remote != null && (!remote.isEnabled() || startParameter.isOffline()),
+                    true,
+                    local != null && local.isEnabled(),
+                    remote != null && remote.isEnabled() && !startParameter.isOffline(),
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));
@@ -148,7 +148,7 @@ public class BuildCacheServiceProvider {
     private RoleAwareBuildCacheService decorate(BuildCacheService rawService, String role) {
         RoleAwareBuildCacheService decoratedService = new BuildCacheServiceWithRole(role, rawService);
         decoratedService = new BuildOperationFiringBuildCacheServiceDecorator(buildOperationExecutor, decoratedService);
-        decoratedService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(MAX_ERROR_COUNT_FOR_BUILD_CACHE, decoratedService);
+        decoratedService = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(MAX_ERROR_COUNT_FOR_BUILD_CACHE, startParameter, decoratedService);
         return decoratedService;
     }
 

@@ -58,6 +58,19 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         repo instanceof DefaultFlatDirArtifactRepository
     }
 
+    def testCreateGoogleRepo() {
+        given:
+        def googleUrl = new URI(DefaultRepositoryHandler.GOOGLE_URL)
+
+        when:
+        fileResolver.resolveUri(DefaultRepositoryHandler.GOOGLE_URL) >> googleUrl
+
+        then:
+        def repo = factory.createGoogleRepository()
+        repo instanceof DefaultMavenArtifactRepository
+        repo.url == googleUrl
+    }
+
     def testCreateLocalMavenRepo() {
         given:
         File repoDir = new File(".m2/repository")

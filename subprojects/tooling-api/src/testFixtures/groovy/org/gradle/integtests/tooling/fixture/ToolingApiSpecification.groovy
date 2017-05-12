@@ -30,7 +30,6 @@ import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
-import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -40,6 +39,7 @@ import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
+
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -154,7 +154,7 @@ abstract class ToolingApiSpecification extends Specification {
 
     public ConfigurableOperation withBuild(Closure cl = {}) {
         withConnection {
-            def build = newBuildWithLifecycleLogging(it)
+            def build = it.newBuild()
             cl(build)
             def out = new ConfigurableOperation(build)
             build.run()
@@ -242,20 +242,5 @@ abstract class ToolingApiSpecification extends Specification {
 
     protected static GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)
-    }
-
-    /**
-     * Creates a new build launcher. Initializes with lifecycle log level argument if support by target version.
-     */
-    protected BuildLauncher newBuildWithLifecycleLogging(ProjectConnection connection) {
-        BuildLauncher build = connection.newBuild()
-        enableLifecycleLogging(build)
-        build
-    }
-
-    protected void enableLifecycleLogging(BuildLauncher build) {
-        if (targetDist.isLifecycleLogLevelFlagSupported()) {
-            build.withArguments('-l')
-        }
     }
 }

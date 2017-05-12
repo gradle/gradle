@@ -122,7 +122,7 @@ public class FreeListBlockStore implements BlockStore {
     public class FreeListBlock extends BlockPayload {
         private List<FreeListEntry> entries = new ArrayList<FreeListEntry>();
         private int largestInNextBlock;
-        private BlockPointer nextBlock = new BlockPointer();
+        private BlockPointer nextBlock = BlockPointer.start();
         // Transient fields
         private FreeListBlock prev;
         private FreeListBlock next;
@@ -140,11 +140,11 @@ public class FreeListBlockStore implements BlockStore {
 
         @Override
         protected void read(DataInputStream inputStream) throws Exception {
-            nextBlock = new BlockPointer(inputStream.readLong());
+            nextBlock = BlockPointer.pos(inputStream.readLong());
             largestInNextBlock = inputStream.readInt();
             int count = inputStream.readInt();
             for (int i = 0; i < count; i++) {
-                BlockPointer pos = new BlockPointer(inputStream.readLong());
+                BlockPointer pos = BlockPointer.pos(inputStream.readLong());
                 int size = inputStream.readInt();
                 entries.add(new FreeListEntry(pos, size));
             }

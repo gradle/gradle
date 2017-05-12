@@ -47,7 +47,7 @@ task log {
 
         when:
         withConnection { ProjectConnection connection ->
-            def build = newBuildWithLifecycleLogging(connection)
+            def build = connection.newBuild()
             build.forTasks("log")
             build.run()
         }
@@ -78,7 +78,7 @@ task log {
         def output = new TestOutputStream()
         def error = new TestOutputStream()
         withConnection { ProjectConnection connection ->
-            def build = newBuildWithLifecycleLogging(connection)
+            def build = connection.newBuild()
             build.standardOutput = output
             build.standardError = error
             build.forTasks("log")
@@ -109,7 +109,7 @@ task log {
         when:
         def output = new TestOutputStream()
         withConnection { ProjectConnection connection ->
-            def build = newBuildWithLifecycleLogging(connection)
+            def build = connection.newBuild()
             build.standardOutput = output
             build.colorOutput = true
             build.forTasks("log")
@@ -136,7 +136,7 @@ task log {
         when:
         def output = new TestOutputStream()
         withConnection { ProjectConnection connection ->
-            def build = newBuildWithLifecycleLogging(connection)
+            def build = connection.newBuild()
             build.standardOutput = output
             build.colorOutput = true
             build.forTasks("log")
@@ -161,7 +161,7 @@ task log {
 
         when:
         withConnection { ProjectConnection connection ->
-            def build = newBuildWithLifecycleLogging(connection)
+            def build = connection.newBuild()
             build.colorOutput = true
             build.forTasks("log")
             build.run()

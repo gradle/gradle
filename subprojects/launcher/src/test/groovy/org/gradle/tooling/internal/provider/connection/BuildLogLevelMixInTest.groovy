@@ -56,16 +56,16 @@ class BuildLogLevelMixInTest extends Specification {
         ['-q']                  | false   | LogLevel.QUIET
         ['-q']                  | true    | LogLevel.QUIET
         ['noLogLevelArguments'] | true    | LogLevel.DEBUG
-        null                    | false   | LogLevel.WARN
+        null                    | false   | LogLevel.LIFECYCLE
         null                    | true    | LogLevel.DEBUG
     }
 
-    def "default log level is warn"() {
+    def "default log level is lifecycle"() {
         when:
         parameters.getArguments() >> ['no log level arguments']
         parameters.getVerboseLogging() >> false
 
         then:
-        mixin.getBuildLogLevel() == LogLevel.WARN
+        mixin.getBuildLogLevel() == LogLevel.LIFECYCLE
     }
 }

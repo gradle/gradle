@@ -179,20 +179,22 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    public GradleHandle doStart() {
-        return createGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<DefaultExecHandleBuilder>() {
+    public GradleHandle createGradleHandle() {
+        return createForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<DefaultExecHandleBuilder>() {
             public DefaultExecHandleBuilder create() {
                 return createExecHandleBuilder();
             }
         }).start();
     }
 
-    protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
     }
 
     protected ExecutionResult doRun() {
-        return start().waitForFinish();
+        ExecutionResult result = startHandle().waitForFinish();
+        finished();
+        return result;
     }
 
     protected ExecutionFailure doRunWithFailure() {

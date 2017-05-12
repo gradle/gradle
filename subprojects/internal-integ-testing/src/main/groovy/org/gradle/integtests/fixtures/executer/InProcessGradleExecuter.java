@@ -113,7 +113,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected ExecutionResult doRun() {
         if (isForkRequired()) {
-            return doStart().waitForFinish();
+            return createGradleHandle().waitForFinish();
         }
 
         StandardOutputListener outputListener = new OutputListenerImpl();
@@ -132,7 +132,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected ExecutionFailure doRunWithFailure() {
         if (isForkRequired()) {
-            return doStart().waitForFailure();
+            return createGradleHandle().waitForFailure();
         }
 
         StandardOutputListener outputListener = new OutputListenerImpl();
@@ -168,7 +168,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    protected GradleHandle doStart() {
+    protected GradleHandle createGradleHandle() {
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
     }
 

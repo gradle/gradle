@@ -20,7 +20,8 @@ import org.gradle.internal.SystemProperties;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.LinkedList;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * <p>A streaming markup writer. Encodes characters and CDATA. Provides only basic state validation, and some simple indentation.</p>
@@ -37,7 +38,7 @@ public class SimpleMarkupWriter extends Writer {
     }
 
     private final Writer output;
-    private final LinkedList<String> elements = new LinkedList<String>();
+    private final Deque<String> elements = new ArrayDeque<String>();
     private Context context = Context.Outside;
     private int squareBrackets;
     private final String indent;

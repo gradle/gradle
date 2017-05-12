@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure

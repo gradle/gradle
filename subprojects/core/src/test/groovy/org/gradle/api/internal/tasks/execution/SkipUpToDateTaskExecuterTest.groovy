@@ -24,9 +24,11 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
 class SkipUpToDateTaskExecuterTest extends Specification {
+
     def delegate = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
     def taskState = Mock(TaskStateInternal)
@@ -37,13 +39,18 @@ class SkipUpToDateTaskExecuterTest extends Specification {
     def executer = new SkipUpToDateTaskExecuter(delegate)
 
     def skipsTaskWhenOutputsAreUpToDate() {
+        given:
+        def originBuildId = UniqueId.generate()
+
         when:
-        executer.execute(task, taskState, taskContext);
+        executer.execute(task, taskState, taskContext)
 
         then:
-        1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.isUpToDate(_) >> true
+        1 * taskArtifactState.getOriginBuildId() >> originBuildId
+        1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskState.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
+        1 * taskState.setOriginBuildId(originBuildId)
         1 * taskArtifactState.finished()
         0 * _
     }
