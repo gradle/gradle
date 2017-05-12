@@ -14,30 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan;
+package org.gradle.internal.scan.config;
 
-public final class DefaultBuildScanRequest implements BuildScanRequest {
+/**
+ * Initializes the build scan config so that it can be later collected by the plugin.
+ *
+ * This is not used by the scan plugin.
+ * This is available as a build scoped service, and should be invoked for
+ * all top level builds before configuration starts.
+ */
+public interface BuildScanConfigInit {
 
-    private boolean buildScanRequested;
-    private boolean buildScanDisabled;
+    void init();
 
-    @Override
-    public void markRequested() {
-        buildScanRequested = true;
-    }
-
-    @Override
-    public void markDisabled() {
-        buildScanDisabled = true;
-    }
-
-    @Override
-    public boolean collectRequested() {
-        return buildScanRequested;
-    }
-
-    @Override
-    public boolean collectDisabled() {
-        return buildScanDisabled;
-    }
 }
