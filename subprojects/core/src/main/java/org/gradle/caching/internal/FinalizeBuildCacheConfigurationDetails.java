@@ -79,38 +79,38 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
 
         }
 
-        private final boolean disabled;
+        private final boolean enabled;
 
-        private final boolean localDisabled;
+        private final boolean localEnabled;
 
         private final BuildCacheDescription local;
 
-        private final boolean remoteDisabled;
+        private final boolean remoteEnabled;
 
         private final BuildCacheDescription remote;
 
-        public Result(boolean disabled, boolean localDisabled, boolean remoteDisabled, @Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
-            this.disabled = disabled;
-            this.localDisabled = localDisabled;
-            this.remoteDisabled = remoteDisabled;
+        public Result(boolean enabled, boolean localEnabled, boolean remoteEnabled, @Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
+            this.enabled = enabled;
+            this.localEnabled = localEnabled;
+            this.remoteEnabled = remoteEnabled;
             this.local = local;
             this.remote = remote;
         }
 
         public static Result buildCacheConfigurationDisabled() {
-            return new FinalizeBuildCacheConfigurationDetails.Result(true, true, true, null, null);
+            return new FinalizeBuildCacheConfigurationDetails.Result(false, false, false, null, null);
         }
 
-        public boolean isDisabled() {
-            return disabled;
+        public boolean isEnabled() {
+            return enabled;
         }
 
-        public boolean isLocalDisabled() {
-            return localDisabled;
+        public boolean isLocalEnabled() {
+            return localEnabled;
         }
 
-        public boolean isRemoteDisabled() {
-            return remoteDisabled;
+        public boolean isRemoteEnabled() {
+            return remoteEnabled;
         }
 
         @Nullable // if not enabled
