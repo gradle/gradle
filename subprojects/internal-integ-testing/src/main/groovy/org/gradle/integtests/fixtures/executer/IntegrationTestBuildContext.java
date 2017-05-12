@@ -73,6 +73,10 @@ public class IntegrationTestBuildContext {
         return GradleVersion.current();
     }
 
+    public boolean isCi() {
+        return System.getenv().containsKey("CI");
+    }
+
     /**
      * The timestamped version used in the docs and the bin and all zips. This should be different to {@link GradleVersion#getVersion()}.
      * Note that the binary distribution used for testing (testBinZip and intTestImage) has {@link GradleVersion#getVersion()} as version.

@@ -42,6 +42,7 @@ testTasks.all { task ->
         inputs.property('systemProperties') {
             systemProperties - ciProperties
         }
+        environment "CI", "1"
     }
     if (javaVersion.java7) {
         // enable class unloading

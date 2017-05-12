@@ -16,11 +16,14 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.IgnoreIf
 
 /**
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
  */
+@IgnoreIf({ !IntegrationTestBuildContext.INSTANCE.ci && !AndroidPluginsSmokeTest.androidHomeSet() })
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     public static final ANDROID_PLUGIN_VERSION = '2.3.1'
     public static final ANDROID_BUILD_TOOLS_VERSION = '25.0.0'
@@ -30,11 +33,15 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     static void assertAndroidHomeSet() {
-        assert System.getenv().containsKey('ANDROID_HOME'): '''
+        assert androidHomeSet(): '''
             In order to run these tests the ANDROID_HOME directory must be set.
             It is not necessary to install the whole android SDK via Android Studio - it is enough if there is a $ANDROID_HOME/licenses/android-sdk-license containing the license keys from an Android Studio installation.
             The Gradle Android plugin will then download the SDK by itself, see https://developer.android.com/studio/intro/update.html#download-with-gradle
         '''.stripIndent()
+    }
+
+    static boolean androidHomeSet() {
+        System.getenv().containsKey('ANDROID_HOME')
     }
 
     def "android application plugin"() {

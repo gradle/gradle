@@ -16,10 +16,14 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import spock.lang.IgnoreIf
+
 import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
+
     private kotlinVersion = '1.1.1'
     private androidPluginVersion = AndroidPluginsSmokeTest.ANDROID_PLUGIN_VERSION
     private androidBuildToolsVersion = AndroidPluginsSmokeTest.ANDROID_BUILD_TOOLS_VERSION
@@ -36,6 +40,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         result.task(':compileKotlin').outcome == SUCCESS
     }
 
+    @IgnoreIf({ !IntegrationTestBuildContext.INSTANCE.ci && !AndroidPluginsSmokeTest.androidHomeSet() })
     def 'kotlin android plugin'() {
         given:
         assertAndroidHomeSet()
