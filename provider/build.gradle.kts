@@ -87,7 +87,6 @@ compileKotlin.dependsOn(generateExtensions)
 }
 
 // -- Testing ----------------------------------------------------------
-val check by tasks
 val test by tasks
 
 val prepareIntegrationTestFixtures by rootProject.tasks
