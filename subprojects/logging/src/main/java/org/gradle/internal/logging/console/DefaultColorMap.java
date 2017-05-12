@@ -34,6 +34,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
 public class DefaultColorMap implements ColorMap {
     private static final String STATUSBAR = "statusbar";
     private static final String BOLD = "bold";
+    private static final String GREEN_AND_BOLD = "greenAndBold";
     private final Map<String, String> defaults = new HashMap<String, String>();
     private final Map<String, Color> colors = new HashMap<String, Color>();
     private final Color noDecoration = new Color() {
@@ -52,7 +53,7 @@ public class DefaultColorMap implements ColorMap {
         addDefault(ProgressStatus, "yellow");
         addDefault(Identifier, "green");
         addDefault(UserInput, "bold");
-        addDefault(Success, "default");
+        addDefault(Success, GREEN_AND_BOLD);
         addDefault(Failure, "red");
         addDefault(STATUSBAR, "bold");
     }
@@ -120,6 +121,9 @@ public class DefaultColorMap implements ColorMap {
             }
             if (colorSpec.equalsIgnoreCase("italic")) {
                 return newItalicColor();
+            }
+            if (GREEN_AND_BOLD.equalsIgnoreCase(colorSpec)) {
+                return getColourFor(Style.of(Style.Emphasis.BOLD, Style.Color.GREEN));
             }
 
             Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase());
