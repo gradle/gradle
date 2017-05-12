@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
@@ -25,7 +26,10 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
+import org.gradle.api.attributes.AttributeDisambiguationRule;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.SourceDirectorySet;
@@ -76,7 +80,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
+import static org.gradle.api.attributes.Usage.*;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -128,7 +132,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureSchema(ProjectInternal project) {
-        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(UsageCompatibilityRules.class);
+        AttributeMatchingStrategy<Usage> matchingStrategy = project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
+        matchingStrategy.getCompatibilityRules().add(UsageCompatibilityRules.class);
+        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class);
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -469,10 +475,28 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
+    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {
+        @Override
+        public void execute(MultipleCandidatesDetails<Usage> details) {
+            if (details.getCandidateValues().equals(ImmutableSet.of(Usages.usage(JAVA_API), Usages.usage(JAVA_API_CLASSES)))) {
+                details.closestMatch(Usages.usage(JAVA_API_CLASSES));
+            }
+        }
+    }
+
     static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage> {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             if (details.getConsumerValue().equals(Usage.FOR_COMPILE) && details.getProducerValue().getName().equals(Usage.JAVA_API)) {
+                details.compatible();
+            }
+            if (details.getConsumerValue().equals(Usage.FOR_COMPILE) && details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
+                details.compatible();
+            }
+            if (details.getConsumerValue().getName().equals(Usage.JAVA_API_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_API)) {
+                details.compatible();
+            }
+            if (details.getConsumerValue().getName().equals(Usage.JAVA_API) && details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
                 details.compatible();
             }
             if (details.getConsumerValue().equals(Usage.FOR_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {

@@ -67,16 +67,13 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = apiElementsConfiguration.getOutgoing();
         ConfigurationVariant variant = publications.getVariants().create("classes");
-        variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_API));
+        variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_API_CLASSES));
         variant.artifact(new JavaPlugin.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.getDestinationDir();
             }
         });
-
-        // Use a magic usage to move the Jar variant out of the way so that the classes variant is used instead for compilation
-        apiElementsConfiguration.getOutgoing().getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(JavaPlugin.NON_DEFAULT_JAR_TYPE));
 
         Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
         implementationConfiguration.extendsFrom(apiConfiguration);

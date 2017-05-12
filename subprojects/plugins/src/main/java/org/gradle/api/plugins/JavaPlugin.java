@@ -233,9 +233,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     @Incubating
     public static final String JAR_TYPE = ArtifactTypeDefinition.JAR_TYPE;
 
-    // this is a workaround to force the classes variant to be used at compile time when using the Java library
-    public static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
-
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 

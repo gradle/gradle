@@ -44,7 +44,7 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
      * @since 4.0
      */
     @Incubating
-    String JVM_CLASS_DIRECTORY = "org.gradle.java.classes.directory";
+    String JVM_CLASS_DIRECTORY = "java-classes-directory";
 
     /**
      * Represents a directory tree containing jvm classpath resource files.
@@ -52,7 +52,7 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
      * @since 4.0
      */
     @Incubating
-    String JVM_RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
+    String JVM_RESOURCES_DIRECTORY = "java-resources-directory";
 
     /**
      * Returns the set of file name extensions that should be mapped to this artifact type. Defaults to the name of this type.

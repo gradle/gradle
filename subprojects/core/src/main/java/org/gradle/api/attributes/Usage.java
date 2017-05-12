@@ -41,6 +41,13 @@ public interface Usage extends Named {
     String JAVA_API = "java-api";
 
     /**
+     * The Java API of a library, packaged as class path elements, either a JAR or a classes directory. Should not include resources, but may.
+     *
+     * @since 4.0
+     */
+    String JAVA_API_CLASSES = "java-api-classes";
+
+    /**
      * The Java runtime of a component, packaged as class path elements, either a JAR or a classes directory.
      *
      * @since 4.0
