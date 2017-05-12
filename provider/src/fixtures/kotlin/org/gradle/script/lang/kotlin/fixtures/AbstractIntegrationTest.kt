@@ -1,5 +1,6 @@
 package org.gradle.script.lang.kotlin.fixtures
 
+import org.gradle.internal.FileUtils.toSafeFileName
 import org.gradle.script.lang.kotlin.support.zipTo
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -24,7 +25,7 @@ open class AbstractIntegrationTest {
 
     protected
     val projectRoot: File
-        get() = File(temporaryFolder.root, testName.methodName).apply { mkdirs() }
+        get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
 
     protected
     fun withBuildScript(script: String, produceFile: (String) -> File = this::newFile): File =
