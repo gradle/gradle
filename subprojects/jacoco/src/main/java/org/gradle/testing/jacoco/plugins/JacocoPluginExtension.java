@@ -106,7 +106,7 @@ public class JacocoPluginExtension {
         }));
 
         // Capture some of the JaCoCo contributed inputs to the task
-        task.getInputs().property("jacoco.jvmArgs", new Callable<String>() {
+        task.getInputs().property("jacoco.jvmArg", new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return extension.isEnabled() ? extension.getAsJvmArg() : null;
