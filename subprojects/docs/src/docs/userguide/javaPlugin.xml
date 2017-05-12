@@ -375,6 +375,14 @@
                 </tr>
             </thead>
             <tr>
+                <td>implementation</td>
+                <td>api</td>
+                <td>-</td>
+                <td>
+                    Dependencies which are purely internal implementation details and not meant to be exposed to consumers.
+                </td>
+            </tr>
+            <tr>
                 <td>compile</td>
                 <td>-</td>
                 <td>-</td>
@@ -396,12 +404,28 @@
                 <td>Compile classpath, used when compiling source</td>
             </tr>
             <tr>
+                <td>runtimeOnly</td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    Dependencies which are only required at runtime, and not at compile time.
+                </td>
+            </tr>
+            <tr>
                 <td>runtime</td>
                 <td>compile</td>
                 <td>-</td>
-                <td>Runtime dependencies. This configuration is weakly deprecated in favor of the <code>implementation</code>, <code>runtimeElements</code>
+                <td>Runtime dependencies. This configuration is weakly deprecated in favor of the <code>runtimeOnly</code>, <code>runtimeElements</code>
                     or <code>runtimeClasspath</code> configuration described in <xref linkend="sec:java_library_configurations_graph"/> depending on whether you are
                     declaring dependencies, consuming the dependencies from another project, or resolving dependencies within the current project respectively.
+                </td>
+            </tr>
+            <tr>
+                <td>testImplementation</td>
+                <td>implementation</td>
+                <td>-</td>
+                <td>
+                    Dependencies which are used to compile tests.
                 </td>
             </tr>
             <tr>
@@ -426,7 +450,7 @@
                 <td>testRuntime</td>
                 <td>runtime, testCompile</td>
                 <td>test</td>
-                <td>Additional dependencies for running tests only. This configuration is weakly deprecated in favor of the <code>testImplementation</code> or <code>testRuntimeClasspath</code>
+                <td>Additional dependencies for running tests only. This configuration is weakly deprecated in favor of the <code>testRuntimeOnly</code> or <code>testRuntimeClasspath</code>
                     configuration described in <xref linkend="sec:java_library_configurations_graph"/> depending on whether you are declaring dependencies or
                     resolving dependencies within the current project respectively.</td>
             </tr>
@@ -448,7 +472,7 @@
         <figure>
             <title>Java plugin - dependency configurations</title>
             <imageobject>
-                <imagedata fileref="img/javaPluginConfigurations.png"/>
+                <imagedata fileref="img/java-library-ignore-deprecated-main.png"/>
             </imageobject>
         </figure>
         <para>For each source set you add to the project, the Java plugins adds the following dependency configurations:</para>

@@ -71,14 +71,7 @@
 
     <section id="configurations">
         <title>Dependency configurations</title>
-        <para>In Gradle dependencies are grouped into <firstterm>configurations</firstterm>. A configuration is a named set of dependencies.
-            We will sometimes refer to them as <firstterm>dependency configurations</firstterm>. You can use them to declare the external dependencies of your project.
-            As we will see later, they are also used to declare what your project publishes.
-        </para>
-        <para>
-            Configurations should be thought of as a type of data structure or container for describing sets of dependencies or artifacts for your projects and subprojects.
-            They are a core data structure in Gradle which exist independently from the business logic of your build. That business logic is typically captured in the form of
-            a Gradle plugin. Gradle plugins use configurations for three main purposes:
+        <para>A Configuration is a named set of dependencies and artifacts. There are three main purposes for a Configuration:
             <variablelist>
                 <varlistentry>
                     <term>Declaring Dependencies</term>
@@ -122,8 +115,8 @@
                     <para>
                         The dependencies required by the production classes at runtime. By default, this includes the
                         dependencies declared in the <code>api</code>, <code>implementation</code>, and <code>runtimeOnly</code> configurations.
-                        This configuration is an example of a configuration used for Resolving Dependencies, and as such, it should be unusual for
-                        users to declare dependencies directly in the <code>runtimeClasspath</code> configuration.
+                        This configuration is an example of a configuration used for Resolving Dependencies, and as such, users should never declare
+                        dependencies directly in the <code>runtimeClasspath</code> configuration.
                     </para>
                 </listitem>
             </varlistentry>
