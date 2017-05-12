@@ -326,10 +326,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 Project project = taskNode.getTask().getProject();
                 projectLocks.put(project, getOrCreateProjectLock(project));
 
-                getOrCreateMutationsOf(taskNode);
+                TaskMutationInfo taskMutationInfo = getOrCreateMutationsOf(taskNode);
 
                 for (TaskInfo dependency : taskNode.getDependencySuccessors()) {
                     getOrCreateMutationsOf(dependency).consumingTasks.add(taskNode);
+                    taskMutationInfo.consumesOutputOf.add(dependency);
                 }
 
                 // Add any finalizers to the queue
@@ -728,18 +729,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             Iterator<TaskMutationInfo> iterator = taskMutations.values().iterator();
             while (iterator.hasNext()) {
                 TaskMutationInfo taskMutationInfo = iterator.next();
-                if (taskMutationInfo.producerTask.isComplete()) {
-                    if (taskMutationInfo.consumingTasks.isEmpty()) {
-                        // If the task is complete and has no more consuming tasks, then we no
-                        // longer need to consider it.
-                        continue;
-                    } else {
-                        String firstOverlap = findFirstOverlap(destroyablePaths, taskMutationInfo.outputPaths);
-                        if (firstOverlap != null) {
-                            for (TaskInfo consumingTask : taskMutationInfo.consumingTasks) {
-                                if (consumingTask != taskInfo && !isReachableFrom(consumingTask, taskInfo)) {
-                                    return Pair.of(consumingTask, firstOverlap);
-                                }
+                if (taskMutationInfo.task.isComplete() && !taskMutationInfo.consumingTasks.isEmpty()) {
+                    String firstOverlap = findFirstOverlap(destroyablePaths, taskMutationInfo.outputPaths);
+                    if (firstOverlap != null) {
+                        for (TaskInfo consumingTask : taskMutationInfo.consumingTasks) {
+                            if (consumingTask != taskInfo && !isReachableFrom(consumingTask, taskInfo)) {
+                                return Pair.of(consumingTask, firstOverlap);
                             }
                         }
                     }
@@ -817,21 +812,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void recordTaskCompleted(TaskInfo taskInfo) {
         runningTasks.remove(taskInfo);
-        Iterator<TaskMutationInfo> iterator = taskMutations.values().iterator();
-        while (iterator.hasNext()) {
-            TaskMutationInfo taskMutationInfo = iterator.next();
-            if (taskMutationInfo.consumingTasks.remove(taskInfo) && canRemoveTaskMutation(taskMutationInfo)) {
-                iterator.remove();
+        TaskMutationInfo taskMutationInfo = taskMutations.get(taskInfo);
+        for (TaskInfo producerTask : taskMutationInfo.consumesOutputOf) {
+            TaskMutationInfo producerTaskMutationInfo = taskMutations.get(producerTask);
+            if (producerTaskMutationInfo.consumingTasks.remove(taskInfo) && canRemoveTaskMutation(producerTaskMutationInfo)) {
+                taskMutations.remove(producerTask);
             }
         }
 
-        if (canRemoveTaskMutation(taskMutations.get(taskInfo))) {
+        if (canRemoveTaskMutation(taskMutationInfo)) {
             taskMutations.remove(taskInfo);
         }
     }
 
     private boolean canRemoveTaskMutation(TaskMutationInfo taskMutationInfo) {
-        return taskMutationInfo != null && taskMutationInfo.producerTask.isComplete() && taskMutationInfo.consumingTasks.isEmpty();
+        return taskMutationInfo != null && taskMutationInfo.task.isComplete() && taskMutationInfo.consumingTasks.isEmpty();
     }
 
     public void taskComplete(final TaskInfo taskInfo) {
@@ -987,13 +982,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private static class TaskMutationInfo {
-        final TaskInfo producerTask;
+        final TaskInfo task;
         final Set<TaskInfo> consumingTasks = Sets.newHashSet();
+        final Set<TaskInfo> consumesOutputOf = Sets.newHashSet();
         final Set<String> outputPaths = Sets.newHashSet();
         final Set<String> destroyablePaths = Sets.newHashSet();
 
-        TaskMutationInfo(TaskInfo producerTask) {
-            this.producerTask = producerTask;
+        TaskMutationInfo(TaskInfo task) {
+            this.task = task;
         }
     }
 }
