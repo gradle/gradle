@@ -31,6 +31,8 @@ public interface BaseRepositoryFactory {
 
     MavenArtifactRepository createMavenCentralRepository();
 
+    MavenArtifactRepository createGoogleRepository();
+
     IvyArtifactRepository createIvyRepository();
 
     MavenArtifactRepository createMavenRepository();

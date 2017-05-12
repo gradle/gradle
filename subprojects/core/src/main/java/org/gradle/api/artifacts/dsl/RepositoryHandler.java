@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -198,6 +199,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      */
     MavenArtifactRepository mavenLocal();
+
+    @Incubating
+    MavenArtifactRepository google();
 
     /**
      * Adds and configures a Maven repository. Newly created instance of {@code MavenArtifactRepository} is passed as an argument to the closure.
