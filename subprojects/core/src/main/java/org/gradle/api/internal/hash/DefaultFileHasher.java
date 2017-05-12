@@ -25,9 +25,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -54,7 +54,7 @@ public class DefaultFileHasher implements FileHasher {
     @Override
     public HashCode hash(File file) {
         try {
-            InputStream inputStream = new FileInputStream(file);
+            InputStream inputStream = Files.newInputStream(file.toPath());
             return doHash(inputStream);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.", file), e);

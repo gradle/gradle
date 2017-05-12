@@ -20,8 +20,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
@@ -296,7 +298,13 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
         } else {
-            Files.asByteSink(outputFile).writeFrom(input);
+            OutputStream outputStream = null;
+            try {
+                outputStream = java.nio.file.Files.newOutputStream(outputFile.toPath());
+                ByteStreams.copy(input, outputStream);
+            } finally {
+                IOUtils.closeQuietly(outputStream);
+            }
         }
 
         //noinspection OctalInteger

@@ -25,12 +25,12 @@ import org.gradle.util.internal.LimitedDescription;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,9 +44,9 @@ import static org.gradle.util.GUtil.uncheckedCall;
 
 public class GFileUtils {
 
-    public static FileInputStream openInputStream(File file) {
+    public static InputStream openInputStream(File file) {
         try {
-            return FileUtils.openInputStream(file);
+            return Files.newInputStream(file.toPath());
         } catch (IOException e) {
             throw new RuntimeException("Problems opening file input stream for file: " + file, e);
         }
