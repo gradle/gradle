@@ -32,12 +32,25 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
 
 public class DefaultColorMap implements ColorMap {
-    private static final String STATUSBAR = "statusbar";
+    private static final String STATUS_BAR = "statusbar";
     private static final String BOLD = "bold";
-    private static final String BOLD_GREEN = "bold-green";
-    private static final String BOLD_RED = "bold-red";
+    private static final String COLOR_DIVIDER = "-";
+
+    /**
+     * Maps a {@link StyledTextOutput.Style} to the default color spec (that can be overridden by system properties)
+     */
     private final Map<String, String> defaults = new HashMap<String, String>();
-    private final Map<String, Color> colors = new HashMap<String, Color>();
+
+    /**
+     * Maps a {@link StyledTextOutput.Style} to the {@link org.gradle.internal.logging.console.ColorMap.Color} that has been created for it
+     */
+    private final Map<String, Color> colorByStyle = new HashMap<String, Color>();
+
+    /**
+     * Maps a color spec to the {@link org.gradle.internal.logging.console.ColorMap.Color} that has been created for it
+     */
+    private final Map<String, Color> colorBySpec = new HashMap<String, Color>();
+
     private final Color noDecoration = new Color() {
         public void on(Ansi ansi) {
         }
@@ -54,23 +67,32 @@ public class DefaultColorMap implements ColorMap {
         addDefault(ProgressStatus, "yellow");
         addDefault(Identifier, "green");
         addDefault(UserInput, "bold");
-        addDefault(Success, "default");
-        addDefault(SuccessHeader, BOLD_GREEN);
+        addDefault(Success, "green");
+        addDefault(SuccessHeader, Success, Header);
         addDefault(Failure, "red");
-        addDefault(FailureHeader, BOLD_RED);
-        addDefault(STATUSBAR, "bold");
+        addDefault(FailureHeader, Failure, Header);
+        addDefault(STATUS_BAR, "bold");
     }
 
-    private void addDefault(StyledTextOutput.Style style, String color) {
-        addDefault(style.name().toLowerCase(), color);
+
+    private void addDefault(StyledTextOutput.Style style, String colorSpec) {
+        addDefault(style.name().toLowerCase(), colorSpec);
     }
 
     private void addDefault(String style, String color) {
         defaults.put(style, color);
     }
 
+    private void addDefault(StyledTextOutput.Style style, StyledTextOutput.Style... styles) {
+        String colorSpec = getColorSpecForStyle(styles[0]);
+        for (int i = 1; i < styles.length; i++) {
+            colorSpec += COLOR_DIVIDER + getColorSpecForStyle(styles[i]);
+        }
+        addDefault(style.name().toLowerCase(), colorSpec);
+    }
+
     public Color getStatusBarColor() {
-        return getColor(STATUSBAR);
+        return getColor(STATUS_BAR);
     }
 
     public Color getColourFor(StyledTextOutput.Style style) {
@@ -103,39 +125,60 @@ public class DefaultColorMap implements ColorMap {
     }
 
     private Color getColor(String style) {
-        Color color = colors.get(style);
+        Color color = colorByStyle.get(style);
         if (color == null) {
             color = createColor(style);
-            colors.put(style, color);
+            colorByStyle.put(style, color);
         }
 
         return color;
     }
 
+    private String getColorSpecForStyle(StyledTextOutput.Style style) {
+        String lowerCase = style.name().toLowerCase();
+        return System.getProperty("org.gradle.color." + lowerCase, defaults.get(lowerCase));
+    }
+
     private Color createColor(String style) {
         String colorSpec = System.getProperty("org.gradle.color." + style, defaults.get(style));
 
+        Color color = noDecoration;
         if (colorSpec != null) {
-            if (colorSpec.equalsIgnoreCase(BOLD)) {
-                return newBoldColor();
-            }
-            if (colorSpec.equalsIgnoreCase("reverse")) {
-                return newReverseColor();
-            }
-            if (colorSpec.equalsIgnoreCase("italic")) {
-                return newItalicColor();
-            }
-            if (BOLD_GREEN.equalsIgnoreCase(colorSpec)) {
-                return getColourFor(Style.of(Style.Emphasis.BOLD, Style.Color.GREEN));
-            }
-            if (BOLD_RED.equalsIgnoreCase(colorSpec)) {
-                return getColourFor(Style.of(Style.Emphasis.BOLD, Style.Color.RED));
-            }
+            color = createColorFromSpec(colorSpec);
+            colorBySpec.put(colorSpec, color);
+        }
 
-            Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase());
-            if (ansiColor != DEFAULT) {
-                return new ForegroundColor(ansiColor);
+        return color;
+    }
+
+    private Color createColorFromSpec(String colorSpec) {
+        Color cachedColor = colorBySpec.get(colorSpec);
+        if (cachedColor != null) {
+            return cachedColor;
+        }
+
+        if (colorSpec.equalsIgnoreCase(BOLD)) {
+            return newBoldColor();
+        }
+        if (colorSpec.equalsIgnoreCase("reverse")) {
+            return newReverseColor();
+        }
+        if (colorSpec.equalsIgnoreCase("italic")) {
+            return newItalicColor();
+        }
+
+        if (colorSpec.contains("-")) {
+            String[] colors = colorSpec.split("-");
+            ArrayList<Color> colorList = new ArrayList(colors.length);
+            for (String color : colors) {
+                colorList.add(createColorFromSpec(color));
             }
+            return new CompositeColor(colorList);
+        }
+
+        Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase());
+        if (ansiColor != DEFAULT) {
+            return new ForegroundColor(ansiColor);
         }
 
         return noDecoration;

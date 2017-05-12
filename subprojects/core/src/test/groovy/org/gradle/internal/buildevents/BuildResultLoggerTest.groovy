@@ -39,7 +39,7 @@ class BuildResultLoggerTest extends Specification {
         then:
         1 * clock.getElapsedMillis() >> { 10L }
         1 * durationFormatter.format(10L) >> { "10s" }
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{WARN}\n{success}ACTION SUCCESSFUL{normal} in 10s\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{WARN}\n{successheader}ACTION SUCCESSFUL{normal} in 10s\n"
     }
 
     def "logs build failure with total time"() {
@@ -49,6 +49,6 @@ class BuildResultLoggerTest extends Specification {
         then:
         1 * clock.getElapsedMillis() >> { 10L }
         1 * durationFormatter.format(10L) >> { "10s" }
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{WARN}\n{failure}ACTION FAILED{normal} in 10s\n"
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{WARN}\n{failureheader}ACTION FAILED{normal} in 10s\n"
     }
 }
