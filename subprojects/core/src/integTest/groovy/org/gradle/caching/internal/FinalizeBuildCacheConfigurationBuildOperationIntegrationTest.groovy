@@ -45,9 +45,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
 
-        !result.disabled
-        !result.localDisabled
-        !result.remoteDisabled
+        result.enabled
+        result.localEnabled
+        !result.remoteEnabled
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
@@ -89,9 +89,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
 
-        !result.disabled
-        !result.localDisabled
-        !result.remoteDisabled
+        result.enabled
+        result.localEnabled
+        !result.remoteEnabled
 
         result.local.className == 'CustomBuildCache'
         result.local.config.directory == directory
@@ -135,9 +135,9 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
 
-        result.disabled
-        result.localDisabled
-        result.remoteDisabled
+        !result.enabled
+        !result.localEnabled
+        !result.remoteEnabled
 
         result.local == null
         result.remote == null
@@ -163,8 +163,8 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         then:
         def result = result()
 
-        !result.disabled
-        result.localDisabled
+        result.enabled
+        !result.localEnabled
 
         result.local == null
     }
