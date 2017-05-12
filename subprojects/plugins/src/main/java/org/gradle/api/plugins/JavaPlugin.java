@@ -40,7 +40,6 @@ import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.internal.VariantDisambiguationRule;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -263,17 +262,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
-        configureCompatibilityRules(project);
         configureConfigurations(project);
 
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
-    }
-
-    private void configureCompatibilityRules(ProjectInternal project) {
-        project.getDependencies().getAttributesSchema().attribute(ArtifactAttributes.ARTIFACT_FORMAT).getDisambiguationRules().add(VariantDisambiguationRule.class);
     }
 
     private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
@@ -346,13 +340,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         // Define some additional variants
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
-        createVariant(runtimeVariants, "classes", JavaPlugin.CLASS_DIRECTORY, Usage.JAVA_RUNTIME_CLASSES, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+        createVariant(runtimeVariants, "classes", Usage.JAVA_RUNTIME_CLASSES, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.getDestinationDir();
             }
         });
-        createVariant(runtimeVariants, "resources", JavaPlugin.RESOURCES_DIRECTORY, Usage.JAVA_RUNTIME_RESOURCES, new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
+        createVariant(runtimeVariants, "resources", Usage.JAVA_RUNTIME_RESOURCES, new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.getDestinationDir();
@@ -360,9 +354,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, String artifactType, String usage, PublishArtifact artifact) {
+    private void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, String usage, PublishArtifact artifact) {
         ConfigurationVariant variant = variants.create(name);
-        variant.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, artifactType);
         variant.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(usage));
         variant.artifact(artifact);
     }

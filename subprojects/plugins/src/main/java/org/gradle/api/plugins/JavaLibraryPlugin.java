@@ -16,7 +16,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -67,7 +66,6 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = apiElementsConfiguration.getOutgoing();
-        NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
         ConfigurationVariant variant = publications.getVariants().create("classes");
         variant.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.CLASS_DIRECTORY);
         variant.artifact(new JavaPlugin.IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
