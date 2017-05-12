@@ -25,7 +25,6 @@ class BuildScanConfigManagerTest extends Specification {
 
     boolean scanEnabled
     boolean scanDisabled
-    boolean scanDisabledViaSysProp
 
     String maxUnsupportedVersion = "0.9"
     String minSupportedVersion = "1.0"
@@ -43,7 +42,6 @@ class BuildScanConfigManagerTest extends Specification {
 
         when:
         scanEnabled = true
-        scanDisabledViaSysProp = true
 
         then:
         with(config()) {
@@ -54,29 +52,6 @@ class BuildScanConfigManagerTest extends Specification {
         when:
         scanEnabled = false
         scanDisabled = true
-        scanDisabledViaSysProp = false
-
-        then:
-        with(config()) {
-            !enabled
-            disabled
-        }
-
-        when:
-        scanEnabled = true
-        scanDisabled = true
-        scanDisabledViaSysProp = true
-
-        then:
-        with(config()) {
-            enabled
-            !disabled
-        }
-
-        when:
-        scanEnabled = false
-        scanDisabled = false
-        scanDisabledViaSysProp = true
 
         then:
         with(config()) {
@@ -112,7 +87,7 @@ class BuildScanConfigManagerTest extends Specification {
         def startParameter = Mock(StartParameter) {
             isBuildScan() >> scanEnabled
             isNoBuildScan() >> scanDisabled
-            getSystemPropertiesArgs() >> { scanDisabledViaSysProp ? ["scan": "false"] : [:] }
+            getSystemPropertiesArgs() >> { [:] }
         }
 
         new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibilityEnforcer(VersionNumber.parse(maxUnsupportedVersion), VersionNumber.parse(minSupportedVersion)))

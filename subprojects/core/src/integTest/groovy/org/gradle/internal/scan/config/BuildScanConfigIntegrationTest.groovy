@@ -17,6 +17,7 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
@@ -64,22 +65,23 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         output.contains("buildScan.disabled: true")
     }
 
-    def "enabled with -Dscan"() {
+    def "not enabled with -Dscan"() {
+        // build scan plugin will treat this as enabled
         when:
         succeeds "t", "-Dscan"
 
         then:
-        output.contains("buildScan.enabled: true")
+        output.contains("buildScan.enabled: false")
         output.contains("buildScan.disabled: false")
     }
 
-    def "disabled with -Dscan=false"() {
+    def "not disabled with -Dscan=false"() {
         when:
         succeeds "t", "-Dscan=false"
 
         then:
         output.contains("buildScan.enabled: false")
-        output.contains("buildScan.disabled: true")
+        output.contains("buildScan.disabled: false")
     }
 
     def "warns if scan requested but no scan plugin applied"() {
@@ -91,6 +93,21 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         issuedNoPluginWarning()
+    }
+
+    @Unroll
+    def "warns if scan requested by sys prop value #value but no scan plugin applied"() {
+        given:
+        collect = false
+
+        when:
+        succeeds "t", value == null ? "-Dscan" : "-Dscan=$value"
+
+        then:
+        issuedNoPluginWarning()
+
+        where:
+        value << [null, "", "true", "yes"]
     }
 
     def "does not warn if no scan requested but no scan plugin applied"() {

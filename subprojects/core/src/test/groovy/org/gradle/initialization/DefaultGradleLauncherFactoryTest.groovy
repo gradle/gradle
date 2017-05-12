@@ -118,6 +118,17 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         c.disabled
     }
 
+    def "marks BuildScanRequest as neither enabled or disabled when no parameter is set"() {
+        when:
+        def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        def c = buildScanConfig(launcher)
+
+        then:
+        !c.enabled
+        !c.disabled
+    }
+
+
     BuildScanConfig buildScanConfig(GradleLauncher launcher) {
         launcher.gradle.services.get(BuildScanConfigProvider).collect([getVersion: { "2.0" }] as BuildScanPluginMetadata)
     }

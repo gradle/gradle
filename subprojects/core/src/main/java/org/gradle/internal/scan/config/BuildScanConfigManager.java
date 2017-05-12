@@ -51,26 +51,23 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
 
     @Override
     public void init() {
-
-        boolean disabledViaSysProp = false;
-        boolean enabledViaSysProp = false;
-        Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
-        if (sysProps.containsKey(SYSPROP_KEY)) {
-            String sysProp = sysProps.get(SYSPROP_KEY);
-            if ("false".equals(sysProp)) {
-                disabledViaSysProp = true;
-            } else {
-                enabledViaSysProp = true;
+        boolean checkForPlugin = false;
+        if (startParameter.isBuildScan()) {
+            checkForPlugin = true;
+            state = State.ENABLED;
+        } else if (startParameter.isNoBuildScan()) {
+            state = State.DISABLED;
+        } else {
+            // Before there was --scan, there was -Dscan or -Dscan=true or -Dscan=yes
+            Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
+            if (sysProps.containsKey(SYSPROP_KEY)) {
+                String sysProp = sysProps.get(SYSPROP_KEY);
+                checkForPlugin = sysProp.equals("") || sysProp.equals("yes") || sysProp.equals("true");
             }
         }
 
-        // Note: if -Dscan was used, the scan plugin will issue a deprecation warning.
-
-        if (startParameter.isBuildScan() || enabledViaSysProp) {
-            state = State.ENABLED;
+        if (checkForPlugin) {
             warnIfBuildScanPluginNotApplied();
-        } else if (startParameter.isNoBuildScan() || disabledViaSysProp) {
-            state = State.DISABLED;
         }
     }
 
@@ -91,7 +88,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
     @Override
     public BuildScanConfig collect(BuildScanPluginMetadata pluginMetadata) {
         if (collected) {
-            throw new IllegalStateException("configuration has already been collected");
+            throw new IllegalStateException("Configuration has already been collected.");
         }
 
         collected = true;
@@ -116,7 +113,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         private final boolean enabled;
         private final boolean disabled;
 
-        Config(boolean enabled, boolean disabled) {
+        private Config(boolean enabled, boolean disabled) {
             this.enabled = enabled;
             this.disabled = disabled;
         }
