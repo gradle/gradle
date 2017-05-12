@@ -16,8 +16,10 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import spock.lang.Unroll
 
 class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -108,14 +110,19 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             assemble.dependsOn customTask, anotherCustomTask
         """
 
-        // We require a distribution here so that we can capture
-        // the output produced after the build has finished
-        executer.requireGradleDistribution()
         executer.withBuildCacheEnabled()
-        executer.withStackTraceChecksDisabled()
     }
 
-    def "cache switches off after third recoverable error for the current build"() {
+    @Unroll
+    def "cache switches off after third recoverable error for the current build (stacktraces: #showStractrace)"() {
+        // Need to do it like this because stacktraces are always enabled for integration tests
+        settingsFile << """
+            gradle.startParameter.setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.$showStractrace)
+        """
+        if (expectStacktrace) {
+            executer.withStackTraceChecksDisabled()
+        }
+
         when:
         succeeds "assemble", "-Dfail", "-Drecoverable"
         then:
@@ -123,6 +130,9 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         output.count("Could not store entry") == 1
         output.count("The remote build cache is now disabled because 3 recoverable errors were encountered.") == 1
         output.count("The remote build cache was disabled during the build because 3 recoverable errors were encountered.") == 1
+        if (expectStacktrace) {
+            output.contains("\tat ")
+        }
 
         when:
         succeeds "clean", "assemble"
@@ -130,17 +140,39 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         then: "build cache is still enabled during next build"
         !output.contains("The remote build cache is now disabled")
         !output.contains("The remote build cache was disabled during the build")
+        if (expectStacktrace) {
+            output.contains("\tat ")
+        }
         skippedTasks.empty
+
+        where:
+        showStractrace                     | expectStacktrace
+        ShowStacktrace.INTERNAL_EXCEPTIONS | false
+        ShowStacktrace.ALWAYS              | true
+        ShowStacktrace.ALWAYS_FULL         | true
     }
 
-    def "cache switches off after first non-recoverable error for the current build"() {
+    @Unroll
+    def "cache switches off after first non-recoverable error for the current build (stacktraces: #showStractrace)"() {
+        // Need to do it like this because stacktraces are always enabled for integration tests
+        settingsFile << """
+            gradle.startParameter.setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.$showStractrace)
+        """
+        if (expectStacktrace) {
+            executer.withStackTraceChecksDisabled()
+        }
+
         when:
         succeeds "assemble", "-Dfail"
         then:
         output.count("Could not load entry") == 1
+        output.count("Could not store entry") == 1
         output.count("Failure while packing") == 1
         output.count("The remote build cache is now disabled because a non-recoverable error was encountered.") == 1
         output.count("The remote build cache was disabled during the build because a non-recoverable error was encountered.") == 1
+        if (expectStacktrace) {
+            output.contains("\tat ")
+        }
 
         when:
         succeeds "clean", "assemble"
@@ -148,6 +180,15 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         then: "build cache is still enabled during next build"
         !output.contains("The remote build cache is now disabled")
         !output.contains("The remote build cache was disabled during the build")
+        if (expectStacktrace) {
+            output.contains("\tat ")
+        }
         skippedTasks.empty
+
+        where:
+        showStractrace                     | expectStacktrace
+        ShowStacktrace.INTERNAL_EXCEPTIONS | false
+        ShowStacktrace.ALWAYS              | true
+        ShowStacktrace.ALWAYS_FULL         | true
     }
 }
