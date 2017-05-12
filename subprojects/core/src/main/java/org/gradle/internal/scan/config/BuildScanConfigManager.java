@@ -23,6 +23,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.event.ListenerManager;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,6 +37,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
 
     private static final String HELP_LINK = "https://gradle.com/scans/help/gradle-cli";
     private static final String SYSPROP_KEY = "scan";
+    public static final List<String> ENABLED_SYS_PROP_VALUES = Arrays.asList(null, "", "yes", "true");
 
     private final StartParameter startParameter;
     private final ListenerManager listenerManager;
@@ -62,7 +65,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
             Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
             if (sysProps.containsKey(SYSPROP_KEY)) {
                 String sysProp = sysProps.get(SYSPROP_KEY);
-                checkForPlugin = sysProp.equals("") || sysProp.equals("yes") || sysProp.equals("true");
+                checkForPlugin = ENABLED_SYS_PROP_VALUES.contains(sysProp);
             }
         }
 
