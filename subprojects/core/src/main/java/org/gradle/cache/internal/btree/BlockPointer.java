@@ -15,14 +15,29 @@
  */
 package org.gradle.cache.internal.btree;
 
-public class BlockPointer implements Comparable<BlockPointer> {
-    private final long pos;
+import com.google.common.primitives.Longs;
 
-    public BlockPointer() {
-        pos = -1;
+public class BlockPointer implements Comparable<BlockPointer> {
+
+    private static final BlockPointer NULL = new BlockPointer(-1);
+
+    public static BlockPointer start() {
+        return NULL;
     }
 
-    public BlockPointer(long pos) {
+    public static BlockPointer pos(long pos) {
+        if (pos < -1) {
+            throw new IllegalArgumentException("pos must be >= -1");
+        }
+        if (pos == -1) {
+            return NULL;
+        }
+        return new BlockPointer(pos);
+    }
+
+    private final long pos;
+
+    private BlockPointer(long pos) {
         this.pos = pos;
     }
 
@@ -41,9 +56,6 @@ public class BlockPointer implements Comparable<BlockPointer> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return true;
-        }
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
@@ -53,16 +65,10 @@ public class BlockPointer implements Comparable<BlockPointer> {
 
     @Override
     public int hashCode() {
-        return (int) pos;
+        return Longs.hashCode(pos);
     }
 
     public int compareTo(BlockPointer o) {
-        if (pos > o.pos) {
-            return 1;
-        }
-        if (pos < o.pos) {
-            return -1;
-        }
-        return 0;
+        return Longs.compare(pos, o.pos);
     }
 }
