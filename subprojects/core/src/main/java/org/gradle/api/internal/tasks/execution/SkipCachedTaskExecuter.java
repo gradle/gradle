@@ -19,9 +19,11 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
+import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -37,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 
 public class SkipCachedTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
@@ -68,7 +71,9 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         final TaskOutputsInternal taskOutputs = task.getOutputs();
         TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
-
+        // TODO: This is really something we should at an earlier/higher level so that the output property values
+        // are locked in at this point.
+        final Set<ResolvedTaskOutputFilePropertySpec> outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
         if (taskOutputCachingEnabled) {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
@@ -76,7 +81,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             if (cacheKey.isValid()) {
                 TaskArtifactState taskState = context.getTaskArtifactState();
                 if (taskState.isAllowedToUseCachedResults()) {
-                    EntryReader reader = new EntryReader(taskOutputs, task, clock);
+                    EntryReader reader = new EntryReader(outputProperties, task, clock);
                     boolean found = buildCache.load(cacheKey, reader);
                     if (found) {
                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
@@ -100,7 +105,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         @Override
                         public void writeTo(OutputStream output) {
                             LOGGER.info("Packing {}", task.getPath());
-                            packer.pack(taskOutputs.getFileProperties(), output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+                            packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
                         }
                     });
                 } else {
@@ -114,14 +119,14 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     private class EntryReader implements BuildCacheEntryReader {
 
-        private final TaskOutputsInternal taskOutputs;
+        private final Set<ResolvedTaskOutputFilePropertySpec> outputProperties;
         private final TaskInternal task;
         private final Timer clock;
 
         private TaskOutputOriginMetadata originMetadata;
 
-        private EntryReader(TaskOutputsInternal taskOutputs, TaskInternal task, Timer clock) {
-            this.taskOutputs = taskOutputs;
+        private EntryReader(Set<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
+            this.outputProperties = outputProperties;
             this.task = task;
             this.clock = clock;
         }
@@ -129,7 +134,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         @Override
         public void readFrom(final InputStream input) {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-            originMetadata = packer.unpack(taskOutputs.getFileProperties(), input, taskOutputOriginFactory.createReader(task));
+            originMetadata = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
         }
     }
