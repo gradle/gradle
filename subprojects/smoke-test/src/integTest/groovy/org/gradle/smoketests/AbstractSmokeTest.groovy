@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -40,19 +41,12 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     GradleRunner runner(String... tasks) {
+        def context = IntegrationTestBuildContext.INSTANCE
         GradleRunner.create()
-            .withGradleInstallation(fileFromSystemProperty('integTest.gradleHomeDir'))
-            .withTestKitDir(fileFromSystemProperty('integTest.gradleUserHomeDir'))
+            .withGradleInstallation(context.gradleHomeDir)
+            .withTestKitDir(context.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
             .withArguments(tasks.toList() + ['-s'])
-    }
-
-    private File fileFromSystemProperty(String propertyName) {
-        String path = System.getProperty(propertyName)
-        if (path == null) {
-            throw new RuntimeException(String.format("You must set the '%s' property to run the smoke tests.", propertyName))
-        }
-        new File(path)
     }
 
     protected void useSample(String sampleDirectory) {
