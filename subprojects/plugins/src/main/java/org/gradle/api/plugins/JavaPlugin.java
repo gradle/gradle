@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
@@ -227,29 +227,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
     /**
-     * Represents the "classes directory" format of a variant of a Java component. This can be used
-     * when querying artifacts to only get the class directories, instead of, typically, a jar dependency.
-     *
-     * @since 3.4
-     */
-    @Incubating
-    public static final String CLASS_DIRECTORY = "org.gradle.java.classes.directory";
-
-    /**
-     * Represents the "resources directory" format of a variant of a Java component. This can be used
-     * when querying artifacts to only get the resources directories, instead of, typically, a jar dependency.
-     *
-     * @since 3.4
-     */
-    @Incubating
-    public static final String RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
-
-    /**
      * Represents the "jar" format of a variant of a Java component.
      * @since 3.5
      */
     @Incubating
-    public static final String JAR_TYPE = "jar";
+    public static final String JAR_TYPE = ArtifactTypeDefinition.JAR_TYPE;
 
     // this is a workaround to force the classes variant to be used at compile time when using the Java library
     public static final String NON_DEFAULT_JAR_TYPE = "org.gradle.java.implicit";
@@ -340,24 +322,22 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         // Define some additional variants
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
-        createVariant(runtimeVariants, "classes", Usage.JAVA_RUNTIME_CLASSES, new IntermediateJavaArtifact(JavaPlugin.CLASS_DIRECTORY, javaCompile) {
+        ConfigurationVariant classesVariant = runtimeVariants.create("classes");
+        classesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_CLASSES));
+        classesVariant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.getDestinationDir();
             }
         });
-        createVariant(runtimeVariants, "resources", Usage.JAVA_RUNTIME_RESOURCES, new IntermediateJavaArtifact(JavaPlugin.RESOURCES_DIRECTORY, processResources) {
+        ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
+        resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_RESOURCES));
+        resourcesVariant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.getDestinationDir();
             }
         });
-    }
-
-    private void createVariant(NamedDomainObjectContainer<ConfigurationVariant> variants, String name, String usage, PublishArtifact artifact) {
-        ConfigurationVariant variant = variants.create(name);
-        variant.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(usage));
-        variant.artifact(artifact);
     }
 
     private void configureBuild(Project project) {

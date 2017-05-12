@@ -31,6 +31,30 @@ import java.util.Set;
 @Incubating
 public interface ArtifactTypeDefinition extends HasAttributes, Named {
     /**
+     * Represents a JAR file.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    String JAR_TYPE = "jar";
+
+    /**
+     * Represents a directory tree containing class files.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    String JVM_CLASS_DIRECTORY = "org.gradle.java.classes.directory";
+
+    /**
+     * Represents a directory tree containing jvm classpath resource files.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    String JVM_RESOURCES_DIRECTORY = "org.gradle.java.resources.directory";
+
+    /**
      * Returns the set of file name extensions that should be mapped to this artifact type. Defaults to the name of this type.
      */
     Set<String> getFileNameExtensions();
