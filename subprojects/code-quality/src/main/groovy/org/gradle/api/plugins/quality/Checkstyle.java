@@ -171,6 +171,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return checkstyleClasspath;
     }
 
+    /**
+     * The class path containing the Checkstyle library to be used.
+     */
     public void setCheckstyleClasspath(FileCollection checkstyleClasspath) {
         this.checkstyleClasspath = checkstyleClasspath;
     }
@@ -183,6 +186,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return classpath;
     }
 
+    /**
+     * The class path containing the compiled classes for the source files to be analyzed.
+     */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
@@ -198,6 +204,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return config;
     }
 
+    /**
+     * The Checkstyle configuration to use. Replaces the {@code configFile} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }
@@ -211,6 +223,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return configProperties;
     }
 
+    /**
+     * The properties available for use in the configuration file. These are substituted into the configuration file.
+     */
     public void setConfigProperties(Map<String, Object> configProperties) {
         this.configProperties = configProperties;
     }
@@ -223,6 +238,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return path to other Checkstyle configuration files
      * @since 4.0
      */
+    @Incubating
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     @Optional
@@ -234,6 +250,14 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return null;
     }
 
+    /**
+     * Path to other Checkstyle configuration files.
+     * <p>
+     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
+     * </p>
+     * @since 4.0
+     */
+    @Incubating
     public void setConfigDir(Provider<File> configDir) {
         this.configDir.set(configDir);
     }
@@ -257,7 +281,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     /**
-     * Whether or not this task will ignore failures and continue running the build.
+     * Whether this task will ignore failures and continue running the build.
      *
      * @return true if failures should be ignored
      */
@@ -265,6 +289,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return ignoreFailures;
     }
 
+    /**
+     * Whether this task will ignore failures and continue running the build.
+     */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
@@ -314,7 +341,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     /**
-     * Whether or not rule violations are to be displayed on the console.
+     * Whether rule violations are to be displayed on the console.
      *
      * @return true if violations should be displayed on console
      */
@@ -323,6 +350,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return showViolations;
     }
 
+    /**
+     * Whether rule violations are to be displayed on the console.
+     */
     public void setShowViolations(boolean showViolations) {
         this.showViolations = showViolations;
     }
