@@ -59,6 +59,7 @@ import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -75,6 +76,10 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scopeids.PersistentScopeIdLoader;
+import org.gradle.internal.scopeids.ScopeIdsServices;
+import org.gradle.internal.scopeids.id.UserScopeId;
+import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -112,6 +117,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         });
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
+
+        // Must be no higher than this scope as needs cache repository services.
+        addProvider(new ScopeIdsServices());
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
@@ -145,8 +153,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     ClassPathRegistry createClassPathRegistry() {
         return new DefaultClassPathRegistry(
-                new DefaultClassPathProvider(get(ModuleRegistry.class)),
-                get(WorkerProcessClassPathProvider.class)
+            new DefaultClassPathProvider(get(ModuleRegistry.class)),
+            get(WorkerProcessClassPathProvider.class)
         );
     }
 
@@ -163,29 +171,21 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
     }
 
-    static class CacheLayout {
-        final File cacheDir;
-
-        public CacheLayout(File cacheDir) {
-            this.cacheDir = cacheDir;
-        }
-    }
-
-    CacheLayout createCacheLayout(StartParameter startParameter) {
+    ProjectCacheDir createCacheLayout(StartParameter startParameter) {
         BuildLayout buildLayout = new BuildLayoutFactory().getLayoutFor(new BuildLayoutConfiguration(startParameter));
         File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
-        return new CacheLayout(cacheDir);
+        return new ProjectCacheDir(cacheDir);
     }
 
-    BuildScopeFileTimeStampInspector createFileTimeStampInspector(CacheLayout cacheLayout, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
-        File workDir = cacheScopeMapping.getBaseDirectory(cacheLayout.cacheDir, "fileChanges", VersionStrategy.CachePerVersion);
+    BuildScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
+        File workDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileChanges", VersionStrategy.CachePerVersion);
         BuildScopeFileTimeStampInspector timeStampInspector = new BuildScopeFileTimeStampInspector(workDir);
         listenerManager.addListener(timeStampInspector);
         return timeStampInspector;
     }
 
-    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheLayout cacheLayout, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        File cacheDir = cacheScopeMapping.getBaseDirectory(cacheLayout.cacheDir, "fileHashes", VersionStrategy.CachePerVersion);
+    CrossBuildFileHashCache createCrossBuildFileHashCache(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileHashes", VersionStrategy.CachePerVersion);
         return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
@@ -229,4 +229,13 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService coordinationService, StartParameter startParameter) {
         return new DefaultWorkerLeaseService(coordinationService, startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
     }
+
+    UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
+        return persistentScopeIdLoader.getUser();
+    }
+
+    protected WorkspaceScopeId createWorkspaceScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
+        return persistentScopeIdLoader.getWorkspace();
+    }
+
 }

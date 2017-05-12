@@ -17,6 +17,8 @@
 package org.gradle.caching.internal
 
 import org.gradle.api.GradleException
+import org.gradle.api.logging.configuration.LoggingConfiguration
+import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
@@ -28,9 +30,12 @@ class ShortCircuitingErrorHandlerBuildCacheServiceDecoratorTest extends Specific
     def key = Mock(BuildCacheKey)
     def reader = Mock(BuildCacheEntryReader)
     def writer = Mock(BuildCacheEntryWriter)
+    def loggingConfiguration = Stub(LoggingConfiguration) {
+        getShowStacktrace() >> ShowStacktrace.INTERNAL_EXCEPTIONS
+    }
     def delegate = Mock(RoleAwareBuildCacheService)
     def maxFailures = 2
-    def decorator = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(maxFailures, delegate)
+    def decorator = new ShortCircuitingErrorHandlerBuildCacheServiceDecorator(maxFailures, loggingConfiguration, delegate)
 
     BuildCacheService getDecorator() {
         return decorator

@@ -30,6 +30,8 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.scopeids.id.BuildScopeId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -47,22 +49,25 @@ import java.util.Map;
 import java.util.Set;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
+
     private static final int MAX_HISTORY_ENTRIES = 3;
 
     private final FileSnapshotRepository snapshotRepository;
     private final PersistentIndexedCache<String, ImmutableList<TaskExecutionSnapshot>> taskHistoryCache;
     private final StringInterner stringInterner;
+    private final BuildScopeId buildScopeId;
 
-    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner) {
+    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner, BuildScopeId buildScopeId) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
+        this.buildScopeId = buildScopeId;
         TaskExecutionListSerializer serializer = new TaskExecutionListSerializer(stringInterner);
         taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
 
     public History getHistory(final TaskInternal task) {
         final TaskExecutionList previousExecutions = loadPreviousExecutions(task);
-        final LazyTaskExecution currentExecution = new LazyTaskExecution();
+        final LazyTaskExecution currentExecution = new LazyTaskExecution(buildScopeId.getId());
         currentExecution.snapshotRepository = snapshotRepository;
         currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
         currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
@@ -138,12 +143,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 @Override
                 public boolean apply(TaskOutputFilePropertySpec propertySpec) {
                     if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
-                        CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec)propertySpec;
+                        CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec) propertySpec;
                         return cacheablePropertySpec.getOutputFile() != null;
                     }
                     return false;
                 }
-        });
+            });
         // Extract the output property names
         return Iterables.transform(outputPropertiesForCacheKey, new Function<TaskOutputFilePropertySpec, String>() {
             @Override
@@ -242,6 +247,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
          * Creates a mutable copy of the given snapshot.
          */
         LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot) {
+            setBuildId(taskExecutionSnapshot.getBuildId());
             setTaskClass(taskExecutionSnapshot.getTaskClass());
             setTaskClassLoaderHash(taskExecutionSnapshot.getTaskClassLoaderHash());
             setTaskActionsClassLoaderHashes(taskExecutionSnapshot.getTaskActionsClassLoaderHashes());
@@ -253,7 +259,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             discoveredFilesSnapshotId = taskExecutionSnapshot.getDiscoveredFilesSnapshotId();
         }
 
-        LazyTaskExecution() {
+        LazyTaskExecution(UniqueId buildId) {
+            setBuildId(buildId);
         }
 
         @Override
@@ -309,6 +316,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
         public TaskExecutionSnapshot snapshot() {
             return new TaskExecutionSnapshot(
+                getBuildId(),
                 getTaskClass(),
                 getOutputPropertyNamesForCacheKey(),
                 getDeclaredOutputFilePaths(),
@@ -317,7 +325,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 getInputProperties(),
                 inputFilesSnapshotIds,
                 discoveredFilesSnapshotId,
-                outputFilesSnapshotIds);
+                outputFilesSnapshotIds
+            );
         }
 
         static class TaskExecutionSnapshotSerializer implements Serializer<TaskExecutionSnapshot> {
@@ -330,6 +339,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public TaskExecutionSnapshot read(Decoder decoder) throws Exception {
+                UniqueId buildId = UniqueId.from(decoder.readString());
+
                 ImmutableSortedMap<String, Long> inputFilesSnapshotIds = readSnapshotIds(decoder);
                 ImmutableSortedMap<String, Long> outputFilesSnapshotIds = readSnapshotIds(decoder);
                 Long discoveredFilesSnapshotId = decoder.readLong();
@@ -368,6 +379,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
                 return new TaskExecutionSnapshot(
+                    buildId,
                     taskClass,
                     cacheableOutputProperties,
                     declaredOutputFilePaths,
@@ -381,6 +393,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public void write(Encoder encoder, TaskExecutionSnapshot execution) throws Exception {
+                encoder.writeString(execution.getBuildId().asString());
                 writeSnapshotIds(encoder, execution.getInputFilesSnapshotIds());
                 writeSnapshotIds(encoder, execution.getOutputFilesSnapshotIds());
                 encoder.writeLong(execution.getDiscoveredFilesSnapshotId());

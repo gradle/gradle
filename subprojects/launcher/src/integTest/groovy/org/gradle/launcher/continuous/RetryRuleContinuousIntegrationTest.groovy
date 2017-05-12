@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+
 class RetryRuleContinuousIntegrationTest extends AbstractContinuousIntegrationTest{
 
     def iteration = 0

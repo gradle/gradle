@@ -16,6 +16,7 @@
 
 package org.gradle.testing.jacoco.plugins
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -36,6 +37,8 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
             
             test {
                 jacoco {
+                    // No caching when append is enabled
+                    append = false
                     classDumpDir = file("\$buildDir/tmp/jacoco/classpathdumps")
                 }
             }
@@ -86,5 +89,52 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         withBuildCache().succeeds "jacocoTestReport"
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
+    }
+
+    @NotYetImplemented
+    def "test execution is cached with different gradle user home"() {
+        when:
+        withBuildCache().succeeds "test", "jacocoTestReport"
+        def snapshot = reportFile.snapshot()
+        then:
+        nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
+        reportFile.assertIsFile()
+
+        when:
+        succeeds "clean"
+        then:
+        reportFile.assertDoesNotExist()
+
+        when:
+        executer.requireOwnGradleUserHomeDir()
+        withBuildCache().succeeds "jacocoTestReport"
+        then:
+        skippedTasks.containsAll ":test", ":jacocoTestReport"
+        reportFile.assertHasNotChangedSince(snapshot)
+    }
+
+    def "test is cached when jacoco is disabled"() {
+        buildFile << """
+            test {
+                jacoco {
+                    enabled = false
+                }
+            }
+        """
+        when:
+        withBuildCache().succeeds "test"
+        then:
+        nonSkippedTasks.containsAll ":test"
+
+        when:
+        succeeds "clean"
+        then:
+        reportFile.assertDoesNotExist()
+
+        when:
+        executer.requireOwnGradleUserHomeDir()
+        withBuildCache().succeeds "test"
+        then:
+        skippedTasks.containsAll ":test"
     }
 }

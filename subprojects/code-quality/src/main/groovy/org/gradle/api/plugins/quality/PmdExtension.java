@@ -52,6 +52,11 @@ public class PmdExtension extends CodeQualityExtension {
         return ruleSets;
     }
 
+    /**
+     * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
+     *
+     * Example: ruleSets = ["basic", "braces"]
+     */
     public void setRuleSets(List<String> ruleSets) {
         this.ruleSets = ruleSets;
     }
@@ -130,6 +135,15 @@ public class PmdExtension extends CodeQualityExtension {
         return ruleSetConfig;
     }
 
+    /**
+     * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
+     *
+     * See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set.
+     *
+     * Example: ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
+     *
+     * @since 2.2
+     */
     @Incubating
     public void setRuleSetConfig(TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
@@ -144,6 +158,11 @@ public class PmdExtension extends CodeQualityExtension {
         return ruleSetFiles;
     }
 
+    /**
+     * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set file.
+     *
+     * Example: ruleSetFiles = files("config/pmd/myRuleSet.xml")
+     */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
         this.ruleSetFiles = ruleSetFiles;
     }
@@ -167,6 +186,9 @@ public class PmdExtension extends CodeQualityExtension {
         return consoleOutput;
     }
 
+    /**
+     * Whether or not to write PMD results to {@code System.out}.
+     */
     @Incubating
     public void setConsoleOutput(boolean consoleOutput) {
         this.consoleOutput = consoleOutput;

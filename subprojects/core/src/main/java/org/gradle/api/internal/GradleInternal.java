@@ -41,6 +41,8 @@ public interface GradleInternal extends Gradle {
 
     GradleInternal getParent();
 
+    GradleInternal getRoot();
+
     /**
      * {@inheritDoc}
      */
@@ -59,6 +61,7 @@ public interface GradleInternal extends Gradle {
     /**
      * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
      * is executed, {@link #getDefaultProject()} will return null.
+     *
      * @param defaultProject The default project for this build.
      */
     void setDefaultProject(ProjectInternal defaultProject);
@@ -66,7 +69,8 @@ public interface GradleInternal extends Gradle {
     /**
      * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
      * is executed, {@link #getRootProject()} will return null.
-     @param rootProject The root project for this build.
+     *
+     * @param rootProject The root project for this build.
      */
     void setRootProject(ProjectInternal rootProject);
 
@@ -97,4 +101,5 @@ public interface GradleInternal extends Gradle {
     Path findIdentityPath();
 
     void setIdentityPath(Path path);
+
 }

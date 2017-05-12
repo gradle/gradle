@@ -58,7 +58,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
 
         then:
-        javaProject.assertBuildTasksExecuted(result)
         javaProject.assertDoesNotHaveCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertIsFile()
@@ -69,7 +68,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         succeeds JAR_TASK_NAME
 
         then:
-        javaProject.assertBuildTasksExecuted(result)
         javaProject.assertHasCleanupMessage(result)
         javaProject.mainClassFile.assertIsFile()
         javaProject.redundantClassFile.assertDoesNotExist()
@@ -195,7 +193,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertBuildTasksExecuted(result)
             javaProject.assertDoesNotHaveCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertIsFile()
@@ -210,7 +207,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertBuildTasksExecuted(result)
             javaProject.assertHasCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertDoesNotExist()
@@ -222,7 +218,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertBuildTasksSkipped(result)
             javaProject.assertDoesNotHaveCleanupMessage(result)
         }
 
@@ -255,7 +250,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         javaProjects.each { javaProject ->
-            javaProject.assertBuildTasksExecuted(result)
             javaProject.assertDoesNotHaveCleanupMessage(result)
             javaProject.mainClassFile.assertIsFile()
             javaProject.redundantClassFile.assertIsFile()
@@ -359,7 +353,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.executedTasks.containsAll(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 

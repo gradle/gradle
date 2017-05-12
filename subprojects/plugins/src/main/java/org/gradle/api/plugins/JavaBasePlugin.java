@@ -277,7 +277,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     @Deprecated
     public void configureForSourceSet(final SourceSet sourceSet, final AbstractCompile compile) {
-        SingleMessageLogger.nagUserOfReplacedMethod("configureForSourceSet(SourceSet, AbstractCompile)", "configureForSourceSet(SourceSet, SourceDirectorySet, AbstractCompile, Project)");
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("configureForSourceSet(SourceSet, AbstractCompile)");
         ConventionMapping conventionMapping;
         compile.setDescription("Compiles the " + sourceSet.getJava() + ".");
         conventionMapping = compile.getConventionMapping();

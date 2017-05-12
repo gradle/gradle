@@ -80,6 +80,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.scopeids.id.BuildScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -160,7 +161,7 @@ public class TaskExecutionServices {
         return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter) {
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskHistoryStore cacheAccess, StartParameter startParameter, StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter, BuildScopeId buildScopeId) {
         OutputFilesSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter();
 
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
@@ -168,11 +169,15 @@ public class TaskExecutionServices {
             snapshotter.registerSerializers(serializerRegistry);
         }
 
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
+            cacheAccess,
             new CacheBackedFileSnapshotRepository(cacheAccess,
                 serializerRegistry.build(FileCollectionSnapshot.class),
-                new RandomLongIdGenerator()),
-            stringInterner);
+                new RandomLongIdGenerator()
+            ),
+            stringInterner,
+            buildScopeId
+        );
 
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
@@ -205,9 +210,9 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskOutputOriginFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal) {
+    TaskOutputOriginFactory createTaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, GradleInternal gradleInternal, BuildScopeId buildScopeId) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
-        return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current());
+        return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildScopeId);
     }
 
     BuildCacheService createBuildCacheService(BuildCacheServiceProvider provider, GradleInternal gradle, ListenerManager listenerManager) {

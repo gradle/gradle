@@ -51,7 +51,7 @@ abstract class CrossVersionIntegrationSpec extends Specification {
     }
 
     void requireOwnGradleUserHomeDir() {
-        gradleUserHomeDir = file("user-home-dir")
+        gradleUserHomeDir = file("user-home")
     }
 
     GradleDistribution getPrevious() {
