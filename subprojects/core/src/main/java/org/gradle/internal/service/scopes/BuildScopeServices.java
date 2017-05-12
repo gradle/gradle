@@ -149,8 +149,7 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.scan.BuildScanRequest;
-import org.gradle.internal.scan.DefaultBuildScanRequest;
+import org.gradle.internal.scan.config.BuildScanConfigServices;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -181,6 +180,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     private BuildScopeServices(final BuildSessionScopeServices sessionServices) {
         super(sessionServices);
+        addProvider(new BuildScanConfigServices());
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : sessionServices.getAll(PluginServiceRegistry.class)) {
@@ -446,10 +446,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildOutputCleanupListener createBuildOutputCleanupListener() {
         return new BuildOutputCleanupListener();
-    }
-
-    BuildScanRequest createBuildScanRequest() {
-        return new DefaultBuildScanRequest();
     }
 
     BuildCacheConfigurationInternal createBuildCacheConfiguration(Instantiator instantiator, StartParameter startParameter, List<BuildCacheServiceRegistration> allBuildCacheServiceFactories) {

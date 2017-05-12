@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan;
+package org.gradle.internal.scan.config;
+
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * This interface was used by scan plugin versions 1.6, 1.7 and 1.7.1.
- * These versions are no longer supported as of Gradle 4.0.
- * Therefore, any invocation of the collect* methods imply an unsupported version.
- * The current implementation will error accordingly.
+ * Information about the build scan plugin in use.
  *
- * @since 3.4
+ * @since 4.0
  */
-@UsedByScanPlugin("versions 1.6, 1.7 and 1.7.1")
-public interface BuildScanRequest {
+@UsedByScanPlugin("Implemented by the scan plugin")
+public interface BuildScanPluginMetadata {
 
-    void markRequested();
+    /**
+     * The full version string of the build scan plugin.
+     */
+    String getVersion();
 
-    void markDisabled();
-
-    boolean collectRequested();
-
-    boolean collectDisabled();
 }

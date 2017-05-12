@@ -44,8 +44,7 @@ import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.scan.BuildScanRequest;
-import org.gradle.internal.scan.BuildScanRequestListener;
+import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
@@ -135,20 +134,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             listenerManager.addListener(new ReportGeneratingProfileListener(serviceRegistry.get(StyledTextOutputFactory.class)));
         }
 
-        BuildScanRequest buildScanRequest = serviceRegistry.get(BuildScanRequest.class);
-        if (startParameter.isBuildScan()) {
-            if(!startParameter.getSystemPropertiesArgs().containsKey("scan")){
-                startParameter.getSystemPropertiesArgs().put("scan", "true");
-            }
-            buildScanRequest.markRequested();
-            listenerManager.addListener(new BuildScanRequestListener());
-        }
-        if (startParameter.isNoBuildScan()) {
-            if(!startParameter.getSystemPropertiesArgs().containsKey("scan")){
-                startParameter.getSystemPropertiesArgs().put("scan", "false");
-            }
-            buildScanRequest.markDisabled();
-        }
+        serviceRegistry.get(BuildScanConfigInit.class).init();
+
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
         BuildOutputCleanupListener buildOutputCleanupListener = serviceRegistry.get(BuildOutputCleanupListener.class);
@@ -209,7 +196,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 @Override
                 public void stop() {
                     userHomeDirServiceRegistry.release(userHomeServices);
-                }}));
+                }
+            }));
         }
 
         public void setParent(DefaultGradleLauncher parent) {

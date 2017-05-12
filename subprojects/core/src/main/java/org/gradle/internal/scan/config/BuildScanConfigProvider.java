@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.scan.config;
+
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * <p>
- *     This package contains internal api to integrate with build scan plugin.
- *     Interfaces in this package are likely consumed by the build scan plugin and
- *     changes should be done carefully in coordination with the build scan plugin authors.
- * </p>
+ * A service that provides the build scan configuration.
+ *
+ * @since 4.0
  */
-package org.gradle.internal.scan;
+@UsedByScanPlugin("Obtained via the root project's gradle object's service registry")
+public interface BuildScanConfigProvider {
+
+    /**
+     * Invoked by the scan plugin to “collect” the configuration.
+     *
+     * Will only be called once per build.
+     */
+    BuildScanConfig collect(BuildScanPluginMetadata pluginMetadata);
+
+}
