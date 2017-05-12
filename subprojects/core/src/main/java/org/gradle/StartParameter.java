@@ -114,6 +114,14 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * {@inheritDoc}
      */
     @Override
+    public boolean isLogLevelSet() {
+        return loggingConfiguration.isLogLevelSet();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public ShowStacktrace getShowStacktrace() {
         return loggingConfiguration.getShowStacktrace();
     }

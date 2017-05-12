@@ -64,25 +64,26 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     def convertsWarnLevel() {
-         expectedConfig.logLevel = LogLevel.WARN
+        expectedConfig.logLevel = LogLevel.WARN
 
-         expect:
-         checkConversion(['-w'])
-         checkConversion(['--warn'])
-     }
+        expect:
+        checkConversion(['-w'])
+        checkConversion(['--warn'])
+    }
 
     def convertsConsole() {
         expectedConfig.consoleOutput = consoleOutput
+        expectedConfig.logLevel = logLevel
 
         expect:
-        checkConversion([arg])
+        ([arg])
 
         where:
-        arg               | consoleOutput
-        "--console=plain" | ConsoleOutput.Plain
-        "--console=auto"  | ConsoleOutput.Auto
-        "--console=AUTO"  | ConsoleOutput.Auto
-        "--console=rich"  | ConsoleOutput.Rich
+        arg               | consoleOutput       | logLevel
+        "--console=plain" | ConsoleOutput.Plain | LogLevel.LIFECYCLE
+        "--console=auto"  | ConsoleOutput.Auto  | LogLevel.WARN
+        "--console=AUTO"  | ConsoleOutput.Auto  | LogLevel.WARN
+        "--console=rich"  | ConsoleOutput.Rich  | LogLevel.WARN
     }
 
     def reportsUnknownConsoleOption() {

@@ -34,6 +34,11 @@ public interface LoggingConfiguration {
     void setLogLevel(LogLevel logLevel);
 
     /**
+     * Returns true if the log level has been explicitly set (as opposed to simply relying on the default value)
+     */
+    boolean isLogLevelSet();
+
+    /**
      * Returns the style of logging output that should be written to the console.
      * Defaults to {@link ConsoleOutput#Auto}
      */
