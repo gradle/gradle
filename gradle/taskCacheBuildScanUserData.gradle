@@ -39,6 +39,7 @@ pluginManager.withPlugin("com.gradle.build-scan") {
             ':compileTestFixtures',
             ':compileTestGroovy',
             ':compileIntegTestGroovy',
+            'compileGroovy'
         ]
         ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
             ':baseServices:classpathManifest',
