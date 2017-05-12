@@ -161,11 +161,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public void disambiguate(Attribute<?> attribute, Object requested, MultipleCandidatesResult<Object> result) {
-            if (requested != null && result.getCandidateValues().contains(requested)) {
-                result.closestMatch(requested);
-                return;
-            }
-
             DisambiguationRule<Object> rules = disambiguationRules(attribute);
             rules.execute(result);
             if (result.hasResult()) {
@@ -175,6 +170,11 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             rules = producerSchema.disambiguationRules(attribute);
             rules.execute(result);
             if (result.hasResult()) {
+                return;
+            }
+
+            if (requested != null && result.getCandidateValues().contains(requested)) {
+                result.closestMatch(requested);
                 return;
             }
 
