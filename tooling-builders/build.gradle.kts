@@ -1,4 +1,5 @@
 import codegen.GenerateClasspathManifest
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
@@ -47,4 +48,21 @@ dependencies {
     compileOnly(gradleApi())
 
     compile(project(":provider"))
+
+    testCompile(project(":test-fixtures"))
+}
+
+// -- Testing ----------------------------------------------------------
+val test by tasks
+
+val customInstallation by rootProject.tasks
+
+test.dependsOn(customInstallation)
+
+tasks.withType<Test> {
+    testLogging {
+        events("failed")
+        exceptionFormat = TestExceptionFormat.FULL
+        maxParallelForks = gradle.startParameter.maxWorkerCount / 2 + 1
+    }
 }
