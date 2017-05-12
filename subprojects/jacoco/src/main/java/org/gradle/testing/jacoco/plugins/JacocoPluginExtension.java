@@ -109,7 +109,7 @@ public class JacocoPluginExtension {
         task.getInputs().property("jacoco.jvmArgs", new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return extension.isEnabled() ? extension.getAsJvmArg() : "";
+                return extension.isEnabled() ? extension.getAsJvmArg() : null;
             }
         });
         task.getOutputs().file(new Callable<File>() {
