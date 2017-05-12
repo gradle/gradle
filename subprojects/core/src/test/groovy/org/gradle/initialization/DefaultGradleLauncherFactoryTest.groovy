@@ -20,7 +20,9 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
-import org.gradle.internal.scan.BuildScanRequest
+import org.gradle.internal.scan.config.BuildScanConfig
+import org.gradle.internal.scan.config.BuildScanConfigProvider
+import org.gradle.internal.scan.config.BuildScanPluginMetadata
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
@@ -90,21 +92,33 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 
-    def "marks BuildScanRequest as requested when build scan startparameter is set"() {
+    def "initializes build scan config"() {
         given:
         startParameter.setBuildScan(true)
+
         when:
         def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        def c = buildScanConfig(launcher)
+
         then:
-        launcher.gradle.getServices().get(BuildScanRequest).collectRequested()
+        c.enabled
+        !c.disabled
     }
 
     def "marks BuildScanRequest as disabled when no build scan startparameter is set"() {
         given:
         startParameter.setNoBuildScan(true)
+
         when:
         def launcher = factory.newInstance(startParameter, Stub(BuildRequestContext), sessionServices)
+        def c = buildScanConfig(launcher)
+
         then:
-        launcher.gradle.getServices().get(BuildScanRequest).collectDisabled()
+        !c.enabled
+        c.disabled
+    }
+
+    BuildScanConfig buildScanConfig(GradleLauncher launcher) {
+        launcher.gradle.services.get(BuildScanConfigProvider).collect([getVersion: { "2.0" }] as BuildScanPluginMetadata)
     }
 }
