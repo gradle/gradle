@@ -78,6 +78,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
+
         buildListenerBroadcast.add(new BuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
@@ -137,6 +138,15 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public GradleInternal getParent() {
         return parent;
+    }
+
+    @Override
+    public GradleInternal getRoot() {
+        GradleInternal root = this;
+        while (root.getParent() != null) {
+            root = root.getParent();
+        }
+        return root;
     }
 
     @Override

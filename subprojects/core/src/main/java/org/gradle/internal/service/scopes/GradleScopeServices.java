@@ -65,6 +65,7 @@ import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputDeleter;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationNotificationBridge;
@@ -72,6 +73,7 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationListenerR
 import org.gradle.internal.progress.BuildOperationService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scopeids.id.BuildScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -190,6 +192,16 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildOutputCleanupCache(cacheRepository, gradle, buildOutputDeleter, buildOutputCleanupRegistry);
     }
 
+    // Note: This would be better housed in a scope that encapsulated the tree of Gradle objects.
+    // as we don't have this right now we simulate it by reaching up the tree.
+    protected BuildScopeId createBuildScopeId(GradleInternal gradle) {
+        if (gradle.getParent() == null) {
+            return new BuildScopeId(UniqueId.generate());
+        } else {
+            return gradle.getRoot().getServices().get(BuildScopeId.class);
+        }
+    }
+
     BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationService buildOperationService) {
         return new BuildOperationNotificationBridge(buildOperationService);
     }
@@ -203,4 +215,5 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         registries.stop();
         super.close();
     }
+
 }

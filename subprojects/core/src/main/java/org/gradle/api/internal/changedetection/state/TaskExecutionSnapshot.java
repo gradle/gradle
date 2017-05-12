@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
+import org.gradle.internal.id.UniqueId;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ import java.util.List;
  * Immutable snapshot of the state of a task when it was executed.
  */
 public class TaskExecutionSnapshot {
+    private final UniqueId buildId;
     private final String taskClass;
     private final HashCode taskClassLoaderHash;
     private final List<HashCode> taskActionsClassLoaderHashes;
@@ -37,7 +39,8 @@ public class TaskExecutionSnapshot {
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(String taskClass, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(UniqueId buildId, String taskClass, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+        this.buildId = buildId;
         this.taskClass = taskClass;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
@@ -47,6 +50,10 @@ public class TaskExecutionSnapshot {
         this.inputFilesSnapshotIds = inputFilesSnapshotIds;
         this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
         this.outputFilesSnapshotIds = outputFilesSnapshotIds;
+    }
+
+    public UniqueId getBuildId() {
+        return buildId;
     }
 
     public ImmutableSortedSet<String> getCacheableOutputProperties() {

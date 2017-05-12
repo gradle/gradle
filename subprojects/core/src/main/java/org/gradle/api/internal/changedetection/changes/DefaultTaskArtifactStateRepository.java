@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -151,6 +153,17 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         public TaskExecutionHistory getExecutionHistory() {
             return this;
+        }
+
+        @Nullable
+        @Override
+        public UniqueId getOriginBuildId() {
+            TaskExecution previousExecution = history.getPreviousExecution();
+            if (previousExecution == null) {
+                return null;
+            } else {
+                return previousExecution.getBuildId();
+            }
         }
 
         public void beforeTask() {

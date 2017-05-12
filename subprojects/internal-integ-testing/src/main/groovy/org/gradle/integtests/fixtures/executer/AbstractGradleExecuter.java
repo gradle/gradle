@@ -833,11 +833,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public final GradleHandle start() {
         assert afterExecute.isEmpty() : "afterExecute actions are not implemented for async execution";
+        return startHandle();
+    }
+
+    protected GradleHandle startHandle() {
         fireBeforeExecute();
         assertCanExecute();
         collectStateBeforeExecution();
         try {
-            GradleHandle handle = doStart();
+            GradleHandle handle = createGradleHandle();
             running.add(handle);
             return handle;
         } finally {
@@ -856,7 +860,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
     }
 
-    private void finished() {
+    protected void finished() {
         try {
             afterExecute.execute(this);
         } finally {
@@ -885,7 +889,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         beforeExecute.execute(this);
     }
 
-    protected GradleHandle doStart() {
+    protected GradleHandle createGradleHandle() {
         throw new UnsupportedOperationException(String.format("%s does not support running asynchronously.", getClass().getSimpleName()));
     }
 

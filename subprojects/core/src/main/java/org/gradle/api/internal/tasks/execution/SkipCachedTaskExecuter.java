@@ -29,6 +29,7 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
@@ -75,16 +76,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             if (cacheKey.isValid()) {
                 TaskArtifactState taskState = context.getTaskArtifactState();
                 if (taskState.isAllowedToUseCachedResults()) {
-                    boolean found = buildCache.load(cacheKey, new BuildCacheEntryReader() {
-                        @Override
-                        public void readFrom(final InputStream input) {
-                            taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-                            packer.unpack(taskOutputs.getFileProperties(), input, taskOutputOriginFactory.createReader(task));
-                            LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
-                        }
-                    });
+                    EntryReader reader = new EntryReader(taskOutputs, task, clock);
+                    boolean found = buildCache.load(cacheKey, reader);
                     if (found) {
                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                        state.setOriginBuildId(reader.originMetadata.getBuildId());
                         return;
                     }
                 } else {
@@ -113,6 +109,28 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             } else {
                 LOGGER.info("Not pushing results from {} to cache because no valid cache key was generated", task);
             }
+        }
+    }
+
+    private class EntryReader implements BuildCacheEntryReader {
+
+        private final TaskOutputsInternal taskOutputs;
+        private final TaskInternal task;
+        private final Timer clock;
+
+        private TaskOutputOriginMetadata originMetadata;
+
+        private EntryReader(TaskOutputsInternal taskOutputs, TaskInternal task, Timer clock) {
+            this.taskOutputs = taskOutputs;
+            this.task = task;
+            this.clock = clock;
+        }
+
+        @Override
+        public void readFrom(final InputStream input) {
+            taskOutputsGenerationListener.beforeTaskOutputsGenerated();
+            originMetadata = packer.unpack(taskOutputs.getFileProperties(), input, taskOutputOriginFactory.createReader(task));
+            LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
         }
     }
 }
