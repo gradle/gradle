@@ -16,27 +16,13 @@
 
 package org.gradle.caching.internal.tasks
 
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.ToString
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
-import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
-import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
 @CleanupTestDirectory(fieldName = "tempDir")
 abstract class AbstractTaskOutputPackerSpec extends Specification {
@@ -47,53 +33,19 @@ abstract class AbstractTaskOutputPackerSpec extends Specification {
 
     abstract TaskOutputPacker getPacker()
 
-    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, TaskOutputFilePropertySpec... propertySpecs) {
+    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, ResolvedTaskOutputFilePropertySpec... propertySpecs) {
         pack(output, writeOrigin, propertySpecs as SortedSet)
     }
 
-    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, SortedSet<TaskOutputFilePropertySpec> propertySpecs) {
+    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs) {
         packer.pack(propertySpecs, output, writeOrigin)
     }
 
-    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, TaskOutputFilePropertySpec... propertySpecs) {
+    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, ResolvedTaskOutputFilePropertySpec... propertySpecs) {
         unpack(input, readOrigin, propertySpecs as SortedSet)
     }
 
-    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, SortedSet<TaskOutputFilePropertySpec> propertySpecs) {
+    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs) {
         packer.unpack(propertySpecs, input, readOrigin)
-    }
-
-    @ToString
-    @EqualsAndHashCode
-    protected static class TestProperty implements CacheableTaskOutputFilePropertySpec {
-        String propertyName
-        File outputFile
-        CacheableTaskOutputFilePropertySpec.OutputType outputType
-        Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter
-
-        @Override
-        FileCollection getPropertyFiles() {
-            new SimpleFileCollection(outputFile)
-        }
-
-        @Override
-        CacheableTaskOutputFilePropertySpec.OutputType getOutputType() {
-            return outputType ?: outputFile.directory ? DIRECTORY : FILE
-        }
-
-        @Override
-        TaskFilePropertyCompareStrategy getCompareStrategy() {
-            TaskFilePropertyCompareStrategy.OUTPUT
-        }
-
-        @Override
-        SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
-            TaskFilePropertySnapshotNormalizationStrategy.RELATIVE
-        }
-
-        @Override
-        int compareTo(TaskPropertySpec o) {
-            propertyName <=> o.propertyName
-        }
     }
 }

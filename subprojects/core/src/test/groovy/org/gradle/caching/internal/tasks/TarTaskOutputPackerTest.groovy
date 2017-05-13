@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.tasks
 
+import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import spock.lang.Unroll
 
@@ -41,7 +42,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         pack output,
-            new TestProperty(propertyName: "test", outputFile: sourceOutputFile)
+            new ResolvedTaskOutputFilePropertySpec("test", FILE, sourceOutputFile)
 
         then:
         1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
@@ -52,7 +53,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
         unpack input,
-            new TestProperty(propertyName: "test", outputFile: targetOutputFile)
+            new ResolvedTaskOutputFilePropertySpec("test", FILE, targetOutputFile)
 
         then:
         1 * fileSystem.chmod(targetOutputFile, unixMode)
@@ -81,8 +82,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def targetDataFile = targetSubDir.file("data.txt")
         def output = new ByteArrayOutputStream()
         when:
-        pack output,
-            new TestProperty(propertyName: "test", outputFile: sourceOutputDir)
+        pack output, new ResolvedTaskOutputFilePropertySpec("test", DIRECTORY, sourceOutputDir)
 
         then:
         1 * fileSystem.getUnixMode(sourceSubDir) >> 0711
@@ -91,8 +91,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input,
-            new TestProperty(propertyName: "test", outputFile: targetOutputDir)
+        unpack input, new ResolvedTaskOutputFilePropertySpec("test", DIRECTORY, targetOutputDir)
 
         then:
         1 * fileSystem.chmod(targetOutputDir, 0755)
@@ -119,16 +118,14 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         }
         def output = new ByteArrayOutputStream()
         when:
-        pack output,
-            new TestProperty(propertyName: "test", outputFile: sourceOutput, outputType: type)
+        pack output, new ResolvedTaskOutputFilePropertySpec("test", type, sourceOutput)
 
         then:
         0 * _
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input,
-            new TestProperty(propertyName: "test", outputFile: targetOutput, outputType: type)
+        unpack input, new ResolvedTaskOutputFilePropertySpec("test", type, targetOutput)
 
         then:
         !targetOutput.exists()
@@ -151,8 +148,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def targetOutputFile = tempDir.file("target.txt")
         def output = new ByteArrayOutputStream()
         when:
-        pack output,
-            new TestProperty(propertyName: propertyName, outputFile: sourceOutputFile)
+        pack output, new ResolvedTaskOutputFilePropertySpec(propertyName, FILE, sourceOutputFile)
 
         then:
         noExceptionThrown()
@@ -161,8 +157,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input,
-            new TestProperty(propertyName: propertyName, outputFile: targetOutputFile)
+        unpack input, new ResolvedTaskOutputFilePropertySpec(propertyName, FILE, targetOutputFile)
 
         then:
         1 * fileSystem.chmod(targetOutputFile, 0644)
@@ -175,8 +170,8 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def output = new ByteArrayOutputStream()
         when:
         pack output,
-            new TestProperty(propertyName: "out1", outputFile: null, outputType: FILE),
-            new TestProperty(propertyName: "out2", outputFile: null, outputType: DIRECTORY)
+            new ResolvedTaskOutputFilePropertySpec("out1", FILE, null),
+            new ResolvedTaskOutputFilePropertySpec("out2", DIRECTORY, null)
 
         then:
         0 * _
@@ -184,8 +179,8 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
         unpack input,
-            new TestProperty(propertyName: "out1", outputFile: null, outputType: FILE),
-            new TestProperty(propertyName: "out2", outputFile: null, outputType: DIRECTORY)
+            new ResolvedTaskOutputFilePropertySpec("out1", FILE, null),
+            new ResolvedTaskOutputFilePropertySpec("out2", DIRECTORY, null)
 
         then:
         noExceptionThrown()
@@ -203,8 +198,8 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         pack output,
-            new TestProperty(propertyName: "missingFile", outputFile: missingSourceFile, outputType: FILE),
-            new TestProperty(propertyName: "missingDir", outputFile: missingSourceDir, outputType: DIRECTORY)
+            new ResolvedTaskOutputFilePropertySpec("missingFile", FILE, missingSourceFile),
+            new ResolvedTaskOutputFilePropertySpec("missingDir", DIRECTORY, missingSourceDir)
 
         then:
         noExceptionThrown()
@@ -213,8 +208,8 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
         unpack input,
-            new TestProperty(propertyName: "missingFile", outputFile: missingTargetFile, outputType: FILE),
-            new TestProperty(propertyName: "missingDir", outputFile: missingTargetDir, outputType: DIRECTORY)
+            new ResolvedTaskOutputFilePropertySpec("missingFile", FILE, missingTargetFile),
+            new ResolvedTaskOutputFilePropertySpec("missingDir", DIRECTORY, missingTargetDir)
 
         then:
         noExceptionThrown()
@@ -226,8 +221,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
         def targetDir = tempDir.file("target")
         def output = new ByteArrayOutputStream()
         when:
-        pack output,
-            new TestProperty(propertyName: "empty", outputFile: sourceDir, outputType: DIRECTORY)
+        pack output, new ResolvedTaskOutputFilePropertySpec("empty", DIRECTORY, sourceDir)
 
         then:
         noExceptionThrown()
@@ -235,8 +229,7 @@ class TarTaskOutputPackerTest extends AbstractTaskOutputPackerSpec {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input,
-            new TestProperty(propertyName: "empty", outputFile: targetDir, outputType: DIRECTORY)
+        unpack input, new ResolvedTaskOutputFilePropertySpec("empty", DIRECTORY, targetDir)
 
         then:
         noExceptionThrown()

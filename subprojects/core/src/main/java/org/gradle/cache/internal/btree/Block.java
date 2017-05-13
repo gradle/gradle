@@ -48,7 +48,7 @@ public abstract class Block {
     }
 
     public BlockPointer getNextPos() {
-        return new BlockPointer(getPos().getPos() + getSize());
+        return BlockPointer.pos(getPos().getPos() + getSize());
     }
 
     public abstract boolean hasPos();

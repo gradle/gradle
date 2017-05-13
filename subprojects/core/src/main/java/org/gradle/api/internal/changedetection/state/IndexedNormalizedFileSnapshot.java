@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
     private final String absolutePath;
     private final int index;
+    private String normalizedPath;
 
     public IndexedNormalizedFileSnapshot(String absolutePath, int index, FileContentSnapshot snapshot) {
         super(snapshot);
@@ -28,7 +29,10 @@ public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
 
     @Override
     public String getNormalizedPath() {
-        return absolutePath.substring(index);
+        if (normalizedPath == null) {
+            normalizedPath = absolutePath.substring(index);
+        }
+        return normalizedPath;
     }
 
     public String getAbsolutePath() {

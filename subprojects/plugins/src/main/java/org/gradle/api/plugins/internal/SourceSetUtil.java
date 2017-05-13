@@ -43,13 +43,14 @@ public class SourceSetUtil {
     }
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
+        final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         sourceDirectorySet.setOutputDir(target.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
                 if (sourceSet.getOutput().isLegacyLayout()) {
                     return sourceSet.getOutput().getClassesDir();
                 }
-                return new File(target.getBuildDir(), "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName());
+                return new File(target.getBuildDir(), sourceSetChildPath);
             }
         }));
 

@@ -72,6 +72,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * cacheKey.isValid() >> true
@@ -83,7 +84,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         }
         1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
         1 * taskOutputOriginFactory.createReader(task) >> originReader
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskOutputPacker.unpack(_, inputStream, originReader) >> new TaskOutputOriginMetadata(originId)
 
         then:
@@ -101,6 +101,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * cacheKey.isValid() >> true
@@ -127,6 +128,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> false
         1 * cacheKey.isValid() >> true
@@ -152,6 +154,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * cacheKey.isValid() >> true
@@ -175,6 +178,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         interaction { cachingEnabled() }
         1 * taskContext.buildCacheKey >> cacheKey
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
 
         then:
         1 * cacheKey.isValid() >> false
@@ -192,6 +196,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.buildCacheKey >> cacheKey
         interaction { cachingDisabled() }
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -210,6 +215,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
 
         then:
         1 * buildCache.load(cacheKey, _) >> { throw new RuntimeException("unknown error") }
@@ -231,6 +237,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
         1 * cacheKey.isValid() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 

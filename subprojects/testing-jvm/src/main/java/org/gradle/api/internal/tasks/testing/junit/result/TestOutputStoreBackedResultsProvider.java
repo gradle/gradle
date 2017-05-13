@@ -16,28 +16,38 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentMap;
 
 abstract public class TestOutputStoreBackedResultsProvider implements TestResultsProvider {
     private final TestOutputStore outputStore;
+    private final ConcurrentMap<Thread, TestOutputStore.Reader> readers;
 
     public TestOutputStoreBackedResultsProvider(TestOutputStore outputStore) {
         this.outputStore = outputStore;
+        this.readers = Maps.newConcurrentMap();
     }
 
     protected void withReader(Action<TestOutputStore.Reader> action) {
-        try {
-            TestOutputStore.Reader reader = outputStore.reader();
-            try {
-                action.execute(reader);
-            } finally {
-                reader.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        action.execute(getReader());
+    }
+
+    private TestOutputStore.Reader getReader() {
+        Thread thread = Thread.currentThread();
+        TestOutputStore.Reader reader = readers.get(thread);
+        if (reader == null) {
+            reader = outputStore.reader();
+            readers.put(thread, reader);
         }
+        return reader;
+    }
+
+    @Override
+    public void close() throws IOException {
+        CompositeStoppable.stoppable(readers.values()).stop();
     }
 }

@@ -16,14 +16,14 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.SortedSet;
+import java.util.Set;
 
 public interface TaskOutputPacker {
     // Initial format version
@@ -34,7 +34,7 @@ public interface TaskOutputPacker {
     // - any major changes of the layout of a cache entry
     int CACHE_ENTRY_FORMAT = 1;
 
-    void pack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
+    void pack(Set<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
 
-    TaskOutputOriginMetadata unpack(SortedSet<TaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
+    TaskOutputOriginMetadata unpack(Set<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
 }
