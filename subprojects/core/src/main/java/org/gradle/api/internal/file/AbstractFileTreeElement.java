@@ -24,7 +24,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.GFileUtils;
 
 import java.io.*;
-import java.nio.file.Files;
 
 public abstract class AbstractFileTreeElement implements FileTreeElement {
     private final Chmod chmod;
@@ -89,7 +88,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     }
 
     private void copyFile(File target) throws IOException {
-        OutputStream outputStream = Files.newOutputStream(target.toPath());
+        FileOutputStream outputStream = new FileOutputStream(target);
         try {
             copyTo(outputStream);
         } finally {
