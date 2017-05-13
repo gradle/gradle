@@ -9,6 +9,7 @@ dependencies {
     api project(':baseServices')
     api project(':messaging')
     api project(':native')
+    api project(':modelCore')
 
     implementation libraries.guava
     implementation libraries.commons_io
