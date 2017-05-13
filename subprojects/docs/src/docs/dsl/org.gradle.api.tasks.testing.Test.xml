@@ -186,6 +186,9 @@
             <tr>
                 <td>options</td>
             </tr>
+            <tr>
+                <td>filterForFailed</td>
+            </tr>
         </table>
     </section>
 </section>

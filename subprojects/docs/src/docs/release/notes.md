@@ -23,6 +23,12 @@ codenarc {
 
 The Gradle command line client now starts up ~200ms faster, speeding up every build.
 
+### Filtering Java test execution based on test failures
+
+When executing `Test` tasks, you can now pass the [`--failed` command-line option](userguide/java_plugin.html#test_filtering). This option will filter test execution to only the test classes that failed in the last execution.
+
+If there are no previous results, the previous results cannot be read or no tests failed in the last execution, all tests will be executed instead.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
