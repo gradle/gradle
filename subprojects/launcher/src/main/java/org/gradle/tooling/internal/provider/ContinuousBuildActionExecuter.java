@@ -97,7 +97,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         while (!cancellationToken.isCancellationRequested()) {
             if (++counter != 1) {
                 // reset the time the build started so the total time makes sense
-                requestContext.getBuildTimeClock().reset();
+                requestContext.getBuildTimer().reset();
                 logger.println("Change detected, executing build...").println();
             }
 

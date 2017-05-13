@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.time.Timer;
 import org.gradle.util.Clock;
 
 public class DefaultBuildRequestContext implements BuildRequestContext {
@@ -47,5 +48,10 @@ public class DefaultBuildRequestContext implements BuildRequestContext {
     @Override
     public Clock getBuildTimeClock() {
         return metaData.getBuildTimeClock();
+    }
+
+    @Override
+    public Timer getBuildTimer() {
+        return metaData.getBuildTimer();
     }
 }

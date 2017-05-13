@@ -32,7 +32,7 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.util.Clock
+import org.gradle.internal.time.Timer
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.util.RedirectStdIn
@@ -48,7 +48,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def delegate = Mock(BuildActionExecuter)
     def action = Mock(BuildAction)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def clock = Mock(Clock)
+    def timer = Mock(Timer)
     def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
@@ -63,7 +63,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     private File file = new File('file')
 
     def setup() {
-        requestMetadata.getBuildTimeClock() >> clock
+        requestMetadata.getBuildTimer() >> timer
         waiterFactory.createChangeWaiter(_) >> waiter
         waiter.isWatching() >> true
     }

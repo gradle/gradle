@@ -126,7 +126,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
             try {
-                Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
+                Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getBuildTimer().getStartTime(), parameters);
                 return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
                 // this exception means that we want to try again.

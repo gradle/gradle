@@ -42,7 +42,7 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     public BuildLogger(Logger logger, StyledTextOutputFactory textOutputFactory, StartParameter startParameter, BuildRequestMetaData requestMetaData) {
         this.logger = logger;
         resultLoggers.add(new BuildExceptionReporter(textOutputFactory, startParameter, requestMetaData.getClient()));
-        resultLoggers.add(new BuildResultLogger(textOutputFactory, requestMetaData.getBuildTimeClock(), new TersePrettyDurationFormatter()));
+        resultLoggers.add(new BuildResultLogger(textOutputFactory, requestMetaData.getBuildTimer(), new TersePrettyDurationFormatter()));
     }
 
     public void buildStarted(Gradle gradle) {

@@ -56,11 +56,13 @@ public class Clock implements Timer {
         return Math.max(timeProvider.getCurrentTimeForDuration() - startInstant, 0);
     }
 
+    @Override
     public void reset() {
         startTime = timeProvider.getCurrentTime();
         startInstant = timeProvider.getCurrentTimeForDuration();
     }
 
+    @Override
     public long getStartTime() {
         return startTime;
     }

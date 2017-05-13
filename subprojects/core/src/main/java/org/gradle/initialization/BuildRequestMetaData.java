@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.time.Timer;
 import org.gradle.util.Clock;
 
 /**
@@ -28,7 +29,17 @@ public interface BuildRequestMetaData {
 
     /**
      * Returns a clock measuring the time since the request was made by the user of the client.
+     *
+     * @deprecated Use the method {@link #getBuildTimer()} instead.
      */
     @Deprecated
     Clock getBuildTimeClock();
+
+    /**
+     * Returns a timer measuring the time since the request was made by the user of the client.
+     *
+     * @return Timer
+     * @since 4.0
+     */
+    Timer getBuildTimer();
 }

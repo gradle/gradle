@@ -51,7 +51,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
         long now = timeProvider.getCurrentTime();
         buildProfile = new BuildProfile(gradle.getStartParameter());
         buildProfile.setBuildStarted(now);
-        buildProfile.setProfilingStarted(buildMetaData.getBuildTimeClock().getStartTime());
+        buildProfile.setProfilingStarted(buildMetaData.getBuildTimer().getStartTime());
     }
 
     public void settingsEvaluated(Settings settings) {
