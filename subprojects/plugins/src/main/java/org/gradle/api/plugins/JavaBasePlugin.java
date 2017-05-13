@@ -25,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -135,6 +136,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         AttributeMatchingStrategy<Usage> matchingStrategy = project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
         matchingStrategy.getCompatibilityRules().add(UsageCompatibilityRules.class);
         matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class);
+
+        project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_JARS));
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -480,6 +483,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         public void execute(MultipleCandidatesDetails<Usage> details) {
             if (details.getCandidateValues().equals(ImmutableSet.of(Usages.usage(JAVA_API), Usages.usage(JAVA_API_CLASSES)))) {
                 details.closestMatch(Usages.usage(JAVA_API_CLASSES));
+            } else if (details.getCandidateValues().equals(ImmutableSet.of(Usages.usage(JAVA_API), Usages.usage(JAVA_RUNTIME_JARS)))) {
+                details.closestMatch(Usages.usage(JAVA_API));
             }
         }
     }
@@ -487,28 +492,39 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage> {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
-            if (details.getConsumerValue().equals(Usage.FOR_COMPILE) && details.getProducerValue().getName().equals(Usage.JAVA_API)) {
+            if (details.getConsumerValue().equals(Usage.FOR_COMPILE)) {
+                if (details.getProducerValue().getName().equals(Usage.JAVA_API)) {
+                    details.compatible();
+                } else if (details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
+                    details.compatible();
+                } else if (details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                    // Can use the runtime Jars if present, but prefer Java API
+                    details.compatible();
+                }
+            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_API)) {
+                if (details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
+                    details.compatible();
+                } else if (details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                    // Can use the runtime Jars if present, but prefer Java API
+                    details.compatible();
+                }
+            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
+                if (details.getProducerValue().getName().equals(Usage.JAVA_API)) {
+                    // Can use the Java API if present, but prefer Java API classes
+                    details.compatible();
+                } else if (details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                    // Can use the Java runtime jars if present, but prefer Java API classes
+                    details.compatible();
+                }
+            } else if (details.getConsumerValue().equals(Usage.FOR_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
                 details.compatible();
-            }
-            if (details.getConsumerValue().equals(Usage.FOR_COMPILE) && details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
+            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
                 details.compatible();
-            }
-            if (details.getConsumerValue().getName().equals(Usage.JAVA_API_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_API)) {
+            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                // Can use the Java runtime jars if present, but prefer Java runtime classes
                 details.compatible();
-            }
-            if (details.getConsumerValue().getName().equals(Usage.JAVA_API) && details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
-                details.compatible();
-            }
-            if (details.getConsumerValue().equals(Usage.FOR_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                details.compatible();
-            }
-            if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                details.compatible();
-            }
-            if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                details.compatible();
-            }
-            if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_RESOURCES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_RESOURCES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                // Can use the Java runtime jars if present, but prefer Java runtime resources
                 details.compatible();
             }
         }
