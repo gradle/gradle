@@ -30,8 +30,6 @@ class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec
 
         settingsFile << "include 'other-java', 'java', 'consumer'"
         buildFile << """
-import org.gradle.api.internal.attributes.Usages
-
 def artifactType = Attribute.of('artifactType', String)
 
 allprojects {
@@ -134,10 +132,10 @@ project(':consumer') {
         result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=java-api}")
 
         where:
-        usage                                  | _
-        "Usage.FOR_COMPILE"                    | _
-        "Usages.usage(Usage.JAVA_API)"         | _
-        "Usages.usage(Usage.JAVA_API_CLASSES)" | _
+        usage                                          | _
+        "Usage.FOR_COMPILE"                            | _
+        "objects.named(Usage, Usage.JAVA_API)"         | _
+        "objects.named(Usage, Usage.JAVA_API_CLASSES)" | _
     }
 
     @Unroll
@@ -175,10 +173,10 @@ project(':consumer') {
         result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
 
         where:
-        usage                                   | _
-        "Usage.FOR_RUNTIME"                     | _
-        "Usages.usage(Usage.JAVA_RUNTIME)"      | _
-        "Usages.usage(Usage.JAVA_RUNTIME_JARS)" | _
+        usage                                           | _
+        "Usage.FOR_RUNTIME"                             | _
+        "objects.named(Usage, Usage.JAVA_RUNTIME)"      | _
+        "objects.named(Usage, Usage.JAVA_RUNTIME_JARS)" | _
     }
 
     def "provides runtime JAR variant using artifactType"() {
@@ -201,7 +199,7 @@ project(':consumer') {
     def "provides runtime classes variant"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_CLASSES))
+                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME_CLASSES))
             }
 """
         when:
@@ -235,7 +233,7 @@ project(':consumer') {
     def "provides runtime resources variant"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_RESOURCES))
+                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME_RESOURCES))
             }
 """
 

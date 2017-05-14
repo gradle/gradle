@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -36,7 +37,6 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.attributes.Usages;
 import org.gradle.api.internal.java.DefaultJavaSourceSet;
 import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
@@ -46,6 +46,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
@@ -81,7 +82,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.attributes.Usage.*;
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -99,13 +100,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private final JavaToolChain javaToolChain;
     private final ITaskFactory taskFactory;
     private final ModelRegistry modelRegistry;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator, JavaToolChain javaToolChain, ITaskFactory taskFactory, ModelRegistry modelRegistry) {
+    public JavaBasePlugin(Instantiator instantiator, JavaToolChain javaToolChain, ITaskFactory taskFactory, ModelRegistry modelRegistry, ObjectFactory objectFactory) {
         this.instantiator = instantiator;
         this.javaToolChain = javaToolChain;
         this.taskFactory = taskFactory;
         this.modelRegistry = modelRegistry;
+        this.objectFactory = objectFactory;
     }
 
     public void apply(ProjectInternal project) {
@@ -135,9 +138,16 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void configureSchema(ProjectInternal project) {
         AttributeMatchingStrategy<Usage> matchingStrategy = project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
         matchingStrategy.getCompatibilityRules().add(UsageCompatibilityRules.class);
-        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class);
+        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
+            @Override
+            public void execute(ActionConfiguration actionConfiguration) {
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API_CLASSES));
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
+            }
+        });
 
-        project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME_JARS));
+        project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
     }
 
     private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -266,7 +276,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
-        compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_API));
+        compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
 
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
@@ -280,7 +290,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
-        runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_RUNTIME));
+        runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
@@ -479,12 +489,23 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {
+        final Usage javaApi;
+        final Usage javaApiClasses;
+        final Usage javaRuntimeJars;
+
+        @Inject
+        UsageDisambiguationRules(Usage javaApi, Usage javaApiClasses, Usage javaRuntimeJars) {
+            this.javaApi = javaApi;
+            this.javaApiClasses = javaApiClasses;
+            this.javaRuntimeJars = javaRuntimeJars;
+        }
+
         @Override
         public void execute(MultipleCandidatesDetails<Usage> details) {
-            if (details.getCandidateValues().equals(ImmutableSet.of(Usages.usage(JAVA_API), Usages.usage(JAVA_API_CLASSES)))) {
-                details.closestMatch(Usages.usage(JAVA_API_CLASSES));
-            } else if (details.getCandidateValues().equals(ImmutableSet.of(Usages.usage(JAVA_API), Usages.usage(JAVA_RUNTIME_JARS)))) {
-                details.closestMatch(Usages.usage(JAVA_API));
+            if (details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaApiClasses))) {
+                details.closestMatch(javaApiClasses);
+            } else if (details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaRuntimeJars))) {
+                details.closestMatch(javaApi);
             }
         }
     }

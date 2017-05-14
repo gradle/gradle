@@ -24,10 +24,11 @@ import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.attributes.Usages;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 
+import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
@@ -40,6 +41,12 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
  */
 @Incubating
 public class JavaLibraryPlugin implements Plugin<Project> {
+    private final ObjectFactory objectFactory;
+
+    @Inject
+    public JavaLibraryPlugin(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
+    }
 
     @Override
     public void apply(Project project) {
@@ -67,7 +74,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = apiElementsConfiguration.getOutgoing();
         ConfigurationVariant variant = publications.getVariants().create("classes");
-        variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, Usages.usage(Usage.JAVA_API_CLASSES));
+        variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API_CLASSES));
         variant.artifact(new JavaPlugin.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
