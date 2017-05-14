@@ -38,8 +38,12 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      * <p>You can add multiple such predicates. The task outputs are considered out-of-date when any predicate returns
      * false.<p>
      *
+     * @deprecated Use {@link #upToDateWhen(Spec)}
+
      * @param upToDateClosure The closure to use to determine whether the task outputs are up-to-date.
+     *
      */
+    @Deprecated
     void upToDateWhen(Closure upToDateClosure);
 
     /**

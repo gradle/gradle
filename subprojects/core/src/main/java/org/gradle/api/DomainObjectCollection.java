@@ -23,7 +23,7 @@ import java.util.Collection;
 /**
  * <p>A {@code DomainObjectCollection} is a specialised {@link Collection} that adds the ability to modification notifications and live filtered sub collections.</p>
  *
- * <p>The filtered collections returned by the filtering methods, such as {@link #matching(Closure)}, return collections that are <em>live</em>. That is, they reflect 
+ * <p>The filtered collections returned by the filtering methods, such as {@link #matching(Closure)}, return collections that are <em>live</em>. That is, they reflect
  * changes made to the source collection that they were created from. This is true for filtered collections made from filtered collections etc.</p>
  * <p>
  * You can also add actions which are executed as elements are added to the collection. Actions added to filtered collections will be fired if an addition/removal
@@ -57,10 +57,13 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * Returns a collection containing the objects in this collection of the given type. Equivalent to calling
      * {@code withType(type).all(configureClosure)}.
      *
+     * @deprecated Use {@link #withType(Class, Action)}
+     *
      * @param type The type of objects to find.
      * @param configureClosure The closure to execute for each object in the resulting collection.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
+    @Deprecated
     <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure);
 
     /**
@@ -79,10 +82,13 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * returned collection is live, so that when matching objects are added to this collection, they are also visible in
      * the filtered collection.
      *
+     * @deprecated Use {@link #matching(Spec)}
+     *
      * @param spec The specification to use. The closure gets a collection element as an argument.
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
      */
+    @Deprecated
     DomainObjectCollection<T> matching(Closure spec);
 
     /**
@@ -97,8 +103,11 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * Adds a closure to be called when an object is added to this collection. The newly added object is passed to the
      * closure as the parameter.
      *
+     * @deprecated Use {@link #whenObjectAdded(Action)}
+     *
      * @param action The closure to be called
      */
+    @Deprecated
     void whenObjectAdded(Closure action);
 
     /**
@@ -113,8 +122,11 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * Adds a closure to be called when an object is removed from this collection. The removed object is passed to the
      * closure as the parameter.
      *
+     * @deprecated Use {@link #whenObjectRemoved(Action)}
+     *
      * @param action The closure to be called
      */
+    @Deprecated
     void whenObjectRemoved(Closure action);
 
     /**
@@ -129,8 +141,11 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * Executes the given closure against all objects in this collection, and any objects subsequently added to this collection. The object is passed to the closure as the closure
      * delegate. Alternatively, it is also passed as a parameter.
      *
+     * @deprecated Use {@link #all(Action)}
+     *
      * @param action The action to be executed
      */
+    @Deprecated
     void all(Closure action);
 
     // note: this is here to override the default Groovy Collection.findAll { } method.
