@@ -24,8 +24,8 @@ import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperation;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
-import org.gradle.api.execution.internal.TaskOperationDetails;
 import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -253,7 +253,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    TaskOperationDetails taskOperation = new TaskOperationDetails(task);
+                    ExecuteTaskBuildOperation.Details taskOperation = new ExecuteTaskBuildOperation.DetailsImpl(task);
                     return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
                         .name(task.getIdentityPath().toString())
                         .parent(parentOperation)

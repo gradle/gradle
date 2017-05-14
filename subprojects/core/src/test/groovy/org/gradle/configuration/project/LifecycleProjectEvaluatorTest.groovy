@@ -22,7 +22,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.internal.progress.BuildOperationDescriptor
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
 import spock.lang.Specification
 
@@ -179,7 +179,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         then:
         buildOperationExecutor.operations.size() == 1
         BuildOperationDescriptor descriptor = buildOperationExecutor.operations[0]
-        ConfigureProjectBuildOperationDetails details = descriptor.details
+        ConfigureProjectBuildOperation details = descriptor.details
 
         and:
         descriptor.name == 'Configure project :project1'

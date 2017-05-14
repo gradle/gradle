@@ -46,7 +46,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             return;
         }
 
-        buildOperationExecutor.run(new ConfigureProjectBuildOperation(project, state));
+        buildOperationExecutor.run(new ConfigureProject(project, state));
     }
 
     private void doConfigure(ProjectInternal project, ProjectStateInternal state) {
@@ -88,11 +88,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         state.executed(failure);
     }
 
-    private class ConfigureProjectBuildOperation implements RunnableBuildOperation {
+    private class ConfigureProject implements RunnableBuildOperation {
+
         private ProjectInternal project;
         private ProjectStateInternal state;
 
-        public ConfigureProjectBuildOperation(ProjectInternal project, ProjectStateInternal state) {
+        private ConfigureProject(ProjectInternal project, ProjectStateInternal state) {
             this.project = project;
             this.state = state;
         }
@@ -108,7 +109,8 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             String name = "Configure project " + project.getIdentityPath().toString();
             return BuildOperationDescriptor.displayName(name)
                 .operationType(BuildOperationType.CONFIGURE_PROJECT)
-                .details(new ConfigureProjectBuildOperationDetails(project.getProjectPath(), project.getGradle().getIdentityPath()));
+                .details(new ConfigureProjectBuildOperation.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
+
     }
 }

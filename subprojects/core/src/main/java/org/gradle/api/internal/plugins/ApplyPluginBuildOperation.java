@@ -17,32 +17,44 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.progress.NoResultBuildOperationDetails;
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.plugin.use.PluginId;
 
 /**
  * Details about a plugin being applied.
  *
- * This class is intentionally internal and consumed by the build scan plugin.
- *
  * @since 4.0
  */
-public final class ApplyPluginBuildOperationDetails implements NoResultBuildOperationDetails {
-    private PluginId pluginId;
-    private String className;
+public final class ApplyPluginBuildOperation implements BuildOperationType<ApplyPluginBuildOperation.Details, Void> {
 
-    ApplyPluginBuildOperationDetails(@Nullable PluginId pluginId, String className) {
-        this.pluginId = pluginId;
-        this.className = className;
+    @UsedByScanPlugin
+    public interface Details {
+
+        @Nullable
+        PluginId getPluginId();
+
+        String getClassName();
+
     }
 
-    @Nullable
-    public PluginId getPluginId() {
-        return pluginId;
-    }
+    static class DetailsImpl {
+        private PluginId pluginId;
+        private String className;
 
-    public String getClassName() {
-        return className;
+        DetailsImpl(@Nullable PluginId pluginId, String className) {
+            this.pluginId = pluginId;
+            this.className = className;
+        }
+
+        @Nullable
+        public PluginId getPluginId() {
+            return pluginId;
+        }
+
+        public String getClassName() {
+            return className;
+        }
     }
 
 }

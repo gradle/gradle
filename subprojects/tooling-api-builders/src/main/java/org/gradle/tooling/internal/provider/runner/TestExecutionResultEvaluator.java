@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.execution.internal.TaskOperationDetails;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.Task;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperation;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -88,9 +88,9 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
         for (InternalJvmTestRequest internalJvmTestRequest : internalJvmTestRequests) {
             final String className = internalJvmTestRequest.getClassName();
             final String methodName = internalJvmTestRequest.getMethodName();
-            if(methodName == null){
+            if (methodName == null) {
                 requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(className);
-            }else{
+            } else {
                 requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(className).append(".").append(methodName).append("()");
             }
         }
@@ -130,16 +130,16 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getDetails() instanceof TaskOperationDetails)) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details)) {
             return;
         }
-        TaskInternal task = ((TaskOperationDetails) buildOperation.getDetails()).getTask();
+        Task task = ((ExecuteTaskBuildOperation.Details) buildOperation.getDetails()).getTask();
         runningTasks.put(buildOperation.getId(), task.getPath());
     }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (!(buildOperation.getDetails() instanceof TaskOperationDetails)) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details)) {
             return;
         }
         runningTasks.remove(buildOperation.getId());

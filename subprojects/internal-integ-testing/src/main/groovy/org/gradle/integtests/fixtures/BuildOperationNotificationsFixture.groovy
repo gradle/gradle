@@ -17,7 +17,8 @@
 package org.gradle.integtests.fixtures
 
 import groovy.json.JsonSlurper
-import org.gradle.api.execution.internal.TaskOperationDetails
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperation
+
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
 import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
@@ -50,7 +51,7 @@ class BuildOperationNotificationsFixture extends InitScriptExecuterFixture {
             def operations = new ${ConcurrentHashMap.name}()
             def listener = new BuildOperationNotificationListener() {
                 void started(BuildOperationStartedNotification notification) {
-                    if (notification.notificationOperationDetails instanceof ${TaskOperationDetails.name}) {
+                    if (notification.notificationOperationDetails instanceof ${ExecuteTaskBuildOperation.Details.name}) {
                         return // this type is not serializable
                     }
                     

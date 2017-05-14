@@ -17,14 +17,13 @@
 package org.gradle.caching.internal;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.SortedMap;
 
-import static org.gradle.caching.BuildCacheServiceFactory.Describer;
-
 /**
- * Represents the transformation of the user's build cache config, to the effective configuration.
+ * The transformation of the user's build cache config, to the effective configuration.
  *
  * This operation should occur some time after the configuration phase.
  * In practice, it will fire as part of bootstrapping the execution of the first task to execute.
@@ -34,21 +33,33 @@ import static org.gradle.caching.BuildCacheServiceFactory.Describer;
  * However, if the build fails during configuration or task graph assembly, it will not be emitted.
  * It must fire before any build cache is used.
  *
- * This class is intentionally internal and consumed by the build scan plugin.
+ * See BuildCacheServiceProvider.
  *
- * @see BuildCacheServiceProvider
  * @since 4.0
  */
-public final class FinalizeBuildCacheConfigurationDetails implements BuildOperationDetails<FinalizeBuildCacheConfigurationDetails.Result> {
+public final class FinalizeBuildCacheConfigurationBuildOperation implements BuildOperationType<FinalizeBuildCacheConfigurationBuildOperation.Details, FinalizeBuildCacheConfigurationBuildOperation.Result> {
 
-    /**
-     * Represents the effective build cache configuration.
-     *
-     * Null values for local and remote represent a completely disabled state.
-     */
-    public static class Result {
+    @UsedByScanPlugin
+    public interface Details {
 
-        public interface BuildCacheDescription {
+    }
+
+    @UsedByScanPlugin
+    public interface Result {
+
+        boolean isEnabled();
+
+        boolean isLocalEnabled();
+
+        boolean isRemoteEnabled();
+
+        @Nullable
+        BuildCacheDescription getLocal();
+
+        @Nullable
+        BuildCacheDescription getRemote();
+
+        interface BuildCacheDescription {
 
             /**
              * The class name of the DSL configuration type.
@@ -60,7 +71,7 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
             /**
              * The human friendly description of the type (e.g. "HTTP", "directory")
              *
-             * @see Describer#type(String)
+             * @see org.gradle.caching.BuildCacheServiceFactory.Describer#type(String)
              */
             String getType();
 
@@ -73,11 +84,18 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
              * May contain null values.
              * Entries with null values are to be treated as {@code true} flag values.
              *
-             * @see Describer#config(String, String)
+             * @see org.gradle.caching.BuildCacheServiceFactory.Describer#config(String, String)
              */
             SortedMap<String, String> getConfig();
 
         }
+    }
+
+    static class DetailsImpl implements Details {
+
+    }
+
+    static class ResultImpl implements Result {
 
         private final boolean enabled;
 
@@ -89,7 +107,7 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
 
         private final BuildCacheDescription remote;
 
-        public Result(boolean enabled, boolean localEnabled, boolean remoteEnabled, @Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
+        ResultImpl(boolean enabled, boolean localEnabled, boolean remoteEnabled, @Nullable BuildCacheDescription local, @Nullable BuildCacheDescription remote) {
             this.enabled = enabled;
             this.localEnabled = localEnabled;
             this.remoteEnabled = remoteEnabled;
@@ -97,31 +115,39 @@ public final class FinalizeBuildCacheConfigurationDetails implements BuildOperat
             this.remote = remote;
         }
 
-        public static Result buildCacheConfigurationDisabled() {
-            return new FinalizeBuildCacheConfigurationDetails.Result(false, false, false, null, null);
+        static Result disabled() {
+            return new ResultImpl(false, false, false, null, null);
         }
 
+        @Override
         public boolean isEnabled() {
             return enabled;
         }
 
+        @Override
         public boolean isLocalEnabled() {
             return localEnabled;
         }
 
+        @Override
         public boolean isRemoteEnabled() {
             return remoteEnabled;
         }
 
-        @Nullable // if not enabled
+        @Override
+        @Nullable
         public BuildCacheDescription getLocal() {
             return local;
         }
 
-        @Nullable // if not enabled
+        @Override
+        @Nullable
         public BuildCacheDescription getRemote() {
             return remote;
         }
+
     }
 
+    private FinalizeBuildCacheConfigurationBuildOperation() {
+    }
 }

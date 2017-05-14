@@ -24,7 +24,7 @@ import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.local.DirectoryBuildCache
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Path
@@ -52,8 +52,8 @@ class BuildCacheServiceProviderTest extends Specification {
         serviceType.cast(service)
     }
 
-    private FinalizeBuildCacheConfigurationDetails.Result buildOpResult() {
-        buildOperationExecuter.log.mostRecentResult(FinalizeBuildCacheConfigurationDetails)
+    private FinalizeBuildCacheConfigurationBuildOperation.ResultImpl buildOpResult() {
+        buildOperationExecuter.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperation)
     }
 
     def 'local cache service is created when remote is not configured'() {

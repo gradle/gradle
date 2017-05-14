@@ -16,7 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.execution.internal.TaskOperationDetails;
+import org.gradle.api.Task;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperation;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
@@ -62,10 +63,10 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
             return;
         }
 
-        if (buildOperation.getDetails() instanceof TaskOperationDetails) {
+        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details) {
             if (clientSubscriptions.isSendTaskProgressEvents()) {
-                TaskInternal task = ((TaskOperationDetails) buildOperation.getDetails()).getTask();
-                eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, task)));
+                Task task = ((ExecuteTaskBuildOperation.Details) buildOperation.getDetails()).getTask();
+                eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, (TaskInternal) task)));
             } else {
                 // Discard this operation and all children
                 skipEvents.add(buildOperation.getId());
@@ -81,9 +82,10 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
             return;
         }
 
-        if (buildOperation.getDetails() instanceof TaskOperationDetails) {
-            TaskInternal task = ((TaskOperationDetails) buildOperation.getDetails()).getTask();
-            eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, task), toTaskResult(task, finishEvent)));
+        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details) {
+            Task task = ((ExecuteTaskBuildOperation.Details) buildOperation.getDetails()).getTask();
+            TaskInternal taskInternal = (TaskInternal) task;
+            eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, taskInternal), toTaskResult(taskInternal, finishEvent)));
         } else {
             delegate.finished(buildOperation, finishEvent);
         }

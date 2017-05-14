@@ -17,33 +17,47 @@
 package org.gradle.configuration;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.progress.NoResultBuildOperationDetails;
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.File;
 
 /**
  * Details about a script plugin being applied.
  *
- * This class is intentionally internal and consumed by the build scan plugin.
- *
  * @since 4.0
  */
-public final class ApplyScriptPluginBuildOperationDetails implements NoResultBuildOperationDetails {
-    private File file;
-    private String displayName;
+public final class ApplyScriptPluginBuildOperation implements BuildOperationType<ApplyScriptPluginBuildOperation.Details, Void> {
 
-    ApplyScriptPluginBuildOperationDetails(@Nullable File file, String displayName) {
-        this.file = file;
-        this.displayName = displayName;
+    @UsedByScanPlugin
+    public interface Details {
+
+        @Nullable
+        File getFile();
+
+        String getDisplayName();
+
     }
 
-    @Nullable
-    public File getFile() {
-        return file;
-    }
+    public static class DetailsImpl {
 
-    public String getDisplayName() {
-        return displayName;
+        private File file;
+        private String displayName;
+
+        public DetailsImpl(@Nullable File file, String displayName) {
+            this.file = file;
+            this.displayName = displayName;
+        }
+
+        @Nullable
+        public File getFile() {
+            return file;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
     }
 
 }

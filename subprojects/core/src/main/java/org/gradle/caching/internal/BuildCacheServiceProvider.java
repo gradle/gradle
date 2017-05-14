@@ -69,11 +69,11 @@ public class BuildCacheServiceProvider {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
                 if (!startParameter.isBuildCacheEnabled()) {
-                    context.setResult(FinalizeBuildCacheConfigurationDetails.Result.buildCacheConfigurationDisabled());
+                    context.setResult(FinalizeBuildCacheConfigurationBuildOperation.ResultImpl.disabled());
                     return new NoOpBuildCacheService();
                 }
 
-                if(startParameter.isBuildCacheEnabled()) {
+                if (startParameter.isBuildCacheEnabled()) {
                     SingleMessageLogger.incubatingFeatureUsed("Build cache");
                 }
 
@@ -96,7 +96,7 @@ public class BuildCacheServiceProvider {
                     ? createRawBuildCacheService(remote, "remote", buildIdentityPath)
                     : null;
 
-                context.setResult(new FinalizeBuildCacheConfigurationDetails.Result(
+                context.setResult(new FinalizeBuildCacheConfigurationBuildOperation.ResultImpl(
                     true,
                     local != null && local.isEnabled(),
                     remote != null && remote.isEnabled() && !startParameter.isOffline(),
@@ -131,7 +131,7 @@ public class BuildCacheServiceProvider {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Finalize build cache configuration")
-                    .details(new FinalizeBuildCacheConfigurationDetails());
+                    .details(new FinalizeBuildCacheConfigurationBuildOperation.DetailsImpl());
             }
         });
     }
@@ -231,7 +231,7 @@ public class BuildCacheServiceProvider {
         }
     }
 
-    private static final class BuildCacheDescription implements FinalizeBuildCacheConfigurationDetails.Result.BuildCacheDescription {
+    private static final class BuildCacheDescription implements FinalizeBuildCacheConfigurationBuildOperation.ResultImpl.BuildCacheDescription {
 
         private final String className;
         private final boolean push;

@@ -58,7 +58,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                         name: buildOperation.name,
                         startTime: startEvent.startTime
                     ]
-                    if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.TaskOperationDetails) {
+                    if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.ExecuteTaskBuildOperation.DetailsImpl) {
                         operations[buildOperation.id].putAll(
                             detailsType: buildOperation.details.class.name,
                             details: buildOperation.details
