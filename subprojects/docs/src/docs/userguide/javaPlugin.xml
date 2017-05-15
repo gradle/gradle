@@ -18,7 +18,9 @@
     <title>The Java Plugin</title>
 
     <para>The Java plugin adds Java compilation along with testing and bundling capabilities to a project. It serves as the basis
-        for many of the other Gradle plugins.
+        for many of the other Gradle plugins. Most Java developers should migrate to <xref linkend="java_library_plugin"/> which
+        adds the ability to model your api separately from your implementation for better compilation performance and architectural
+        modularization.
     </para>
 
     <section id="sec:java_usage">
@@ -376,7 +378,7 @@
             </thead>
             <tr>
                 <td>implementation</td>
-                <td>api</td>
+                <td>-</td>
                 <td>-</td>
                 <td>
                     Dependencies which are purely internal implementation details and not meant to be exposed to consumers.
@@ -387,8 +389,7 @@
                 <td>-</td>
                 <td>-</td>
                 <td>
-                    Compile time dependencies. This configuration is weakly deprecated in favor of the <code>implementation</code> configuration defined
-                    in <xref linkend="sec:java_library_configurations_graph"/>
+                    Compile time dependencies. This configuration is weakly deprecated in favor of the <code>implementation</code> configuration.
                 </td>
             </tr>
             <tr>
@@ -472,7 +473,7 @@
         <figure>
             <title>Java plugin - dependency configurations</title>
             <imageobject>
-                <imagedata fileref="img/java-library-ignore-deprecated-main.png"/>
+                <imagedata fileref="img/java-configurations.png"/>
             </imageobject>
         </figure>
         <para>For each source set you add to the project, the Java plugins adds the following dependency configurations:</para>

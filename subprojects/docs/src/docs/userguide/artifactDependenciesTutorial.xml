@@ -83,14 +83,13 @@
                 <varlistentry>
                     <term>Resolving Dependencies</term>
                     <listitem>
-                        <para>The plugin uses configurations to find (and possibly download) the files it needs from outside the project to perform the work of its tasks,
-                            and the tasks of plugins which coordinate with the plugin by using the configurations it defines to reason about the project.</para>
+                        <para>The plugin uses configurations to find (and possibly download) inputs to to the tasks it defines.</para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
                     <term>Exposing Artifacts for Consumption</term>
                     <listitem>
-                        <para>The plugin uses configurations to define what <firstterm>artifacts</firstterm> it generates for other projects or subprojects to consume.</para>
+                        <para>The plugin uses configurations to define what <firstterm>artifacts</firstterm> it generates for other projects to consume.</para>
                     </listitem>
                 </varlistentry>
             </variablelist>
@@ -124,7 +123,7 @@
                 <term>apiElements</term>
                 <listitem>
                     <para>
-                        The external dependencies which are part of this project's externally consumable API as well as the classes which are defined in this project which should be
+                        The dependencies which are part of this project's externally consumable API as well as the classes which are defined in this project which should be
                         consumable by other projects. This configuration is an example of Exposing Artifacts for Consumption.
                     </para>
                 </listitem>
