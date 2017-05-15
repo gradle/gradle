@@ -22,7 +22,7 @@ import org.junit.Rule
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String BUILD_OPERATION = 'Compute task input hashes and build cache key'
+    private static final String BUILD_OPERATION = "Snapshot task inputs for :customTask"
 
     @Rule
     BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
@@ -36,10 +36,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         succeeds('customTask')
 
         then:
-        def result = buildOperationResult()
+        def result = buildOperations.operation(BUILD_OPERATION).result
 
         then:
-        result.containsKey("buildCacheKey")
+        result.buildCacheKey != null
         result.inputHashes.keySet() == ['input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
@@ -78,10 +78,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 input2 = '$input2'
             }
         """
-    }
-
-    Map<String, ?> buildOperationResult() {
-        buildOperations.operation(SnapshotTaskInputsOperationDetails).result
     }
 
 }

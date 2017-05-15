@@ -92,7 +92,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Snapshot task inputs for " + task.getIdentityPath())
-                    .details(new SnapshotTaskInputsOperationDetails(task.getPath()));
+                    .details(new SnapshotTaskInputsOperationDetails(task));
             }
         });
     }

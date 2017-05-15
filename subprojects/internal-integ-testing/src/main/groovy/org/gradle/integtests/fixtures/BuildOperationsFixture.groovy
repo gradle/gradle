@@ -17,6 +17,8 @@
 package org.gradle.integtests.fixtures
 
 import groovy.json.JsonSlurper
+import org.gradle.api.execution.internal.TaskOperationDetails
+import org.gradle.api.internal.tasks.SnapshotTaskInputsOperationDetails
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
 import org.gradle.internal.progress.BuildOperationDescriptor
@@ -48,6 +50,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
             import ${OperationFinishEvent.name}
 
             def operations = [:]
+            def unserializable = [$TaskOperationDetails.name, $SnapshotTaskInputsOperationDetails.name]
             def operationListener = new BuildOperationListener() {
                 
                 void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
@@ -58,7 +61,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                         name: buildOperation.name,
                         startTime: startEvent.startTime
                     ]
-                    if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.TaskOperationDetails) {
+                    if (buildOperation.details != null && !unserializable.contains(buildOperation.details.class)) {
                         operations[buildOperation.id].putAll(
                             detailsType: buildOperation.details.class.name,
                             details: buildOperation.details
