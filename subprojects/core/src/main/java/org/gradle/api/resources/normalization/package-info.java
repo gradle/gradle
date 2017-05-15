@@ -16,5 +16,8 @@
 
 /**
  * Interfaces and API for resource normalization.
+ *
+ * @since 4.0
  */
+@org.gradle.api.Incubating
 package org.gradle.api.resources.normalization;
