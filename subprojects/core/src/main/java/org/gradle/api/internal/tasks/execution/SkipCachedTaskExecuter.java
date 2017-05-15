@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Set;
 
 public class SkipCachedTaskExecuter implements TaskExecuter {
@@ -71,15 +72,17 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         final TaskOutputsInternal taskOutputs = task.getOutputs();
         TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
-        // TODO: This is really something we should at an earlier/higher level so that the output property values
-        // are locked in at this point.
-        final Set<ResolvedTaskOutputFilePropertySpec> outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
+
+        Set<ResolvedTaskOutputFilePropertySpec> outputProperties = Collections.emptySet();
         if (taskOutputCachingEnabled) {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
             }
             if (cacheKey.isValid()) {
                 TaskArtifactState taskState = context.getTaskArtifactState();
+                // TODO: This is really something we should do at an earlier/higher level so that the input and output
+                // property values are locked in at this point.
+                outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
                     EntryReader reader = new EntryReader(outputProperties, task, clock);
                     boolean found = buildCache.load(cacheKey, reader);
@@ -101,13 +104,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (taskOutputCachingEnabled) {
             if (cacheKey.isValid()) {
                 if (state.getFailure() == null) {
-                    buildCache.store(cacheKey, new BuildCacheEntryWriter() {
-                        @Override
-                        public void writeTo(OutputStream output) {
-                            LOGGER.info("Packing {}", task.getPath());
-                            packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
-                        }
-                    });
+                    buildCache.store(cacheKey, new EntryWriter(task, outputProperties, clock));
                 } else {
                     LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
                 }
@@ -136,6 +133,24 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
             originMetadata = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
+        }
+    }
+
+    private class EntryWriter implements BuildCacheEntryWriter {
+        private final TaskInternal task;
+        private final Set<ResolvedTaskOutputFilePropertySpec> outputProperties;
+        private final Timer clock;
+
+        public EntryWriter(TaskInternal task, Set<ResolvedTaskOutputFilePropertySpec> outputProperties, Timer clock) {
+            this.task = task;
+            this.outputProperties = outputProperties;
+            this.clock = clock;
+        }
+
+        @Override
+        public void writeTo(OutputStream output) {
+            LOGGER.info("Packing {}", task.getPath());
+            packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
         }
     }
 }

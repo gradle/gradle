@@ -58,13 +58,8 @@ public class TaskPropertyUtils {
         return CollectionUtils.collect(properties, new Transformer<ResolvedTaskOutputFilePropertySpec, T>() {
             @Override
             public ResolvedTaskOutputFilePropertySpec transform(T t) {
-                if (t instanceof CacheableTaskOutputFilePropertySpec) {
-                    CacheableTaskOutputFilePropertySpec cacheableProperty = Cast.uncheckedCast(t);
-                    return new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile());
-                } else {
-                    // TODO:
-                    return new ResolvedTaskOutputFilePropertySpec(t.getPropertyName(), null, null);
-                }
+                CacheableTaskOutputFilePropertySpec cacheableProperty = Cast.uncheckedCast(t);
+                return new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile());
             }
         });
     }

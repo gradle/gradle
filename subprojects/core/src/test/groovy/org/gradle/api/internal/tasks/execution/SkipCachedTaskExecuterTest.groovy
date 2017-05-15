@@ -178,7 +178,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         interaction { cachingEnabled() }
         1 * taskContext.buildCacheKey >> cacheKey
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
 
         then:
         1 * cacheKey.isValid() >> false
@@ -196,7 +195,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.buildCacheKey >> cacheKey
         interaction { cachingDisabled() }
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
