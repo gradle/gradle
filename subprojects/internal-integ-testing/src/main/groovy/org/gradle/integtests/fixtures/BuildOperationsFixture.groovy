@@ -16,124 +16,53 @@
 
 package org.gradle.integtests.fixtures
 
-import groovy.json.JsonSlurper
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
-import org.gradle.internal.progress.BuildOperationDescriptor
-import org.gradle.internal.progress.BuildOperationListener
-import org.gradle.internal.progress.BuildOperationService
-import org.gradle.internal.progress.OperationFinishEvent
-import org.gradle.internal.progress.OperationStartEvent
+import org.gradle.internal.operations.BuildOperationType
+import org.gradle.internal.operations.BuildOperationTypes
+import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
 
-@SuppressWarnings("UnusedImport")
-class BuildOperationsFixture extends InitScriptExecuterFixture {
-    private final TestFile operationsDir
-    private Map<Object, CompleteBuildOperation> operations
+import java.util.concurrent.ConcurrentLinkedQueue
+
+class BuildOperationsFixture {
+
+    private final TestFile traceFile
+
+    private Map<Object, BuildOperationRecord> operations
+    private Map<Object, List<BuildOperationRecord>> children
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
-        super(executer, projectDir)
-        this.operationsDir = projectDir.testDirectory.file("operations")
-    }
-
-    @Override
-    String initScriptContent() {
-        return """
-            import ${BuildOperationService.name}
-            import ${BuildOperationListener.name}
-            import ${BuildOperationDescriptor.name}
-            import ${OperationStartEvent.name}
-            import ${OperationFinishEvent.name}
-
-            def operations = [:]
-            def operationListener = new BuildOperationListener() {
-                
-                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                    operations[buildOperation.id] = [
-                        id: buildOperation.id.toString(),
-                        parentId: buildOperation.parentId?.toString(),
-                        displayName: buildOperation.displayName,
-                        name: buildOperation.name,
-                        startTime: startEvent.startTime
-                    ]
-                    if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.TaskOperationDetails) {
-                        operations[buildOperation.id].putAll(
-                            detailsType: buildOperation.details.class.name,
-                            details: buildOperation.details
-                        )
-                    }
-                }
-
-                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-                    if (!operations[buildOperation.id]) {
-                        operations[buildOperation.id] = [
-                            id: "\${buildOperation.id}",
-                            displayName: "\${buildOperation.displayName}",
-                            parentId: "\${buildOperation.parentId}",
-                            name: "\${buildOperation.name}"
-                        ]
-                    }
-                    operations[buildOperation.id].endTime = finishEvent.endTime
-                    if (finishEvent.failure != null) {
-                        operations[buildOperation.id].failure = finishEvent.failure.message
-                    } else if (finishEvent.result != null) {
-                        operations[buildOperation.id].putAll(
-                            resultType: finishEvent.result.class.name, 
-                            result: finishEvent.result
-                        )
-                    }
-                }
+        this.traceFile = projectDir.testDirectory.file("operations.txt")
+        executer.beforeExecute {
+            executer.withArgument("-D$BuildOperationTrace.SYSPROP=$traceFile.absolutePath")
+        }
+        executer.afterExecute {
+            traceFile.withInputStream {
+                operations = BuildOperationTrace.read(it)
             }
 
-            gradle.services.get(${BuildOperationService.name}).addListener(operationListener)
-
-            gradle.buildFinished {
-                gradle.services.get(${BuildOperationService.name}).removeListener(operationListener)
-
-                def operationsDir = new File("${TextUtil.normaliseFileSeparators(operationsDir.absolutePath)}")
-                operationsDir.mkdirs()
-                def jsonFile = new File(operationsDir, "operations.json")
-                def json = new groovy.json.JsonBuilder()
-                json.operations(operations)
-                jsonFile.text = json.toPrettyString()
+            children = [:].withDefault { [] }
+            operations.values().each {
+                if (it.parentId != null) {
+                    children[it.parentId] << it
+                }
             }
-        """
-    }
-
-    @Override
-    void afterBuild() {
-        def jsonFile = new File(operationsDir, "operations.json")
-        def slurper = new JsonSlurper()
-        Map<Object, Map<String, ?>> rawOperations = slurper.parseText(jsonFile.text).operations
-        operations = [:]
-        rawOperations.each { id, value ->
-            operations[id] = new CompleteBuildOperation(
-                id,
-                value.parentId,
-                value.name as String,
-                value.displayName as String,
-                value.startTime == null ? -1L as Long : value.startTime as Long,
-                value.endTime as long,
-                value.detailsType ? getClass().classLoader.loadClass(value.detailsType.toString()) : null,
-                value.details as Map<String, ?>,
-                value.resultType ? getClass().classLoader.loadClass(value.resultType.toString()) : null,
-                value.result as Map<String, ?>,
-                value.failure as String
-            )
         }
     }
 
-    boolean hasOperation(String displayName) {
-        operation(displayName) != null
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord operation(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        operations.values().find {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
     }
 
-    CompleteBuildOperation operation(Class<?> detailsType) {
-        operations.values().find { it.detailsType && detailsType.isAssignableFrom(it.detailsType as Class<?>) }
-    }
-
-    CompleteBuildOperation operation(String displayName) {
+    BuildOperationRecord operation(String displayName) {
         operations.values().find { it.displayName == displayName }
     }
 
@@ -145,38 +74,28 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
         operation(displayName).failure
     }
 
-    static class CompleteBuildOperation {
-
-        final Object id
-        final Object parentId
-
-        final String name
-        final String displayName
-
-        final long startTime
-        final long endTime
-
-        final Class<?> detailsType
-        final Map<String, ?> details
-        final Class<?> resultType
-        final Map<String, ?> result
-
-        final String failure
-
-        CompleteBuildOperation(Object id, Object parentId, String name, String displayName, long startTime, long endTime, Class<?> detailsType, Map<String, ?> details, Class<?> resultType, Map<String, ?> result, String failure) {
-            this.id = id
-            this.parentId = parentId
-            this.name = name
-            this.displayName = displayName
-            this.startTime = startTime
-            this.endTime = endTime
-            this.detailsType = detailsType
-            this.details = details
-            this.resultType = resultType
-            this.result = result
-            this.failure = failure
-        }
+    boolean hasOperation(String displayName) {
+        operation(displayName) != null
     }
 
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> boolean hasOperation(Class<T> type) {
+        operation(type) != null
+    }
 
+    List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate) {
+        def matches = []
+        def search = new ConcurrentLinkedQueue<BuildOperationRecord>()
+
+        def operation = parent
+        while (operation != null) {
+            if (predicate.isSatisfiedBy(operation)) {
+                matches << operation
+            }
+            search.addAll(children[operation.id])
+            operation = search.poll()
+        }
+
+        matches
+    }
 }

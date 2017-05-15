@@ -31,15 +31,15 @@ import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.notNullValue
 
 class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     private final String fooPath = TextUtil.normaliseFileSeparators(file('foo').absolutePath)
 
     @Rule
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()
-    @Rule
-    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Unroll
     def "can create and use a worker runnable defined in buildSrc in #isolationMode"() {

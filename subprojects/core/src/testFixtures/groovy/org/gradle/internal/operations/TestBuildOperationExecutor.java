@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.progress;
+package org.gradle.internal.operations;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -25,14 +25,8 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.operations.BuildOperation;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.BuildOperationWorker;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.MultipleBuildOperationFailures;
-import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.progress.BuildOperationState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +102,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             this(new BuildOperationLog());
         }
 
-        public TestBuildOperationQueue(BuildOperationLog log) {
+        private TestBuildOperationQueue(BuildOperationLog log) {
             this.log = log;
         }
 
@@ -136,18 +130,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     public static class BuildOperationLog {
         private final List<Record> records = new CopyOnWriteArrayList<Record>();
 
-        public static class Entry<R, D extends BuildOperationDetails<R>> {
-            public final BuildOperationDescriptor descriptor;
-            public final D details;
-            public final R result;
-
-            private Entry(BuildOperationDescriptor descriptor, D details, R result) {
-                this.descriptor = descriptor;
-                this.details = details;
-                this.result = result;
-            }
-        }
-
         public List<BuildOperationDescriptor> getDescriptors() {
             return Lists.transform(new ArrayList<Record>(records), new Function<Record, BuildOperationDescriptor>() {
                 @Override
@@ -157,7 +139,8 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             });
         }
 
-        private <D extends BuildOperationDetails<?>> Record mostRecent(Class<D> detailsType) {
+        private <D, R, T extends BuildOperationType<D, R>> Record mostRecent(Class<T> type) {
+            Class<D> detailsType = extractDetailsType(type);
             ImmutableList<Record> copy = ImmutableList.copyOf(this.records).reverse();
             for (Record record : copy) {
                 Object details = record.descriptor.getDetails();
@@ -169,15 +152,15 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             throw new AssertionError("Did not find operation with details of type: " + detailsType.getName());
         }
 
-        public <D extends BuildOperationDetails<?>> D mostRecentDetails(Class<D> detailsType) {
-            return detailsType.cast(mostRecent(detailsType));
+        public <R, D, T extends BuildOperationType<D, R>> D mostRecentDetails(Class<T> type) {
+            return extractDetailsType(type).cast(mostRecent(type).descriptor.getDetails());
         }
 
-        public <R, D extends BuildOperationDetails<R>> R mostRecentResult(Class<D> detailsType) {
-            Record record = mostRecent(detailsType);
+        public <R, D, T extends BuildOperationType<D, R>> R mostRecentResult(Class<T> type) {
+            Record record = mostRecent(type);
             Object result = record.result;
 
-            Class<R> resultType = extractResultType(detailsType);
+            Class<R> resultType = extractResultType(type);
             if (resultType.isInstance(result)) {
                 return resultType.cast(result);
             } else {
@@ -185,12 +168,17 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             }
         }
 
-        public <D extends BuildOperationDetails<?>> Throwable mostRecentFailure(Class<D> detailsType) {
-            return mostRecent(detailsType).failure;
+        public <D, R, T extends BuildOperationType<D, R>> Throwable mostRecentFailure(Class<T> type) {
+            return mostRecent(type).failure;
         }
 
-        private static <R, D extends BuildOperationDetails<R>> Class<R> extractResultType(Class<D> detailsType) {
-            return Cast.uncheckedCast(new TypeToken<R>(detailsType) {
+        private static <D, R, T extends BuildOperationType<D, R>> Class<R> extractResultType(Class<T> type) {
+            return Cast.uncheckedCast(new TypeToken<R>(type) {
+            }.getRawType());
+        }
+
+        private static <D, T extends BuildOperationType<D, ?>> Class<D> extractDetailsType(Class<T> type) {
+            return Cast.uncheckedCast(new TypeToken<D>(type) {
             }.getRawType());
         }
 
@@ -203,12 +191,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
             private Record(BuildOperationDescriptor descriptor) {
                 this.descriptor = descriptor;
-            }
-
-            <R, D extends BuildOperationDetails<R>> Entry<R, D> toEntry(Class<D> detailsType) {
-                D details = detailsType.cast(descriptor.getDetails());
-                R castResult = Cast.uncheckedCast(result);
-                return new Entry<R, D>(descriptor, details, castResult);
             }
 
         }

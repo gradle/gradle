@@ -17,7 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentCache
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

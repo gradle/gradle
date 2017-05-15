@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport
+package org.gradle.internal.resource
 
 import org.apache.commons.io.input.NullInputStream
 import org.gradle.api.Action
@@ -23,20 +23,12 @@ import org.gradle.api.resources.ResourceException
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
-import org.gradle.internal.resource.ExternalResource
-import org.gradle.internal.resource.ExternalResourceReadResult
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
-import org.gradle.internal.resource.transfer.DownloadBuildOperationDetails
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class BuildOperationExternalResourceTest extends Specification {
-
-    @Shared
-    def tmpDir = new TestNameTestDirectoryProvider()
+class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specification {
 
     @Unroll
     def "delegates method call #methodName"() {
@@ -44,7 +36,7 @@ class BuildOperationExternalResourceTest extends Specification {
         def delegate = Mock(ExternalResource)
         def buildOperationExecutor = Mock(BuildOperationExecutor)
 
-        def resource = new BuildOperationExternalResource(buildOperationExecutor, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecutor, delegate)
 
         when:
         resource."$methodName"()
@@ -130,10 +122,10 @@ class BuildOperationExternalResourceTest extends Specification {
         def delegateMock = Mock(ExternalResource)
         def delegate = new TestExternalResource(delegateMock)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
-        def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecuter, delegate)
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
-                1 * setResult(_) >> { DownloadBuildOperationDetails.Result result ->
+                1 * setResult(_) >> { ExternalResourceDownloadBuildOperationType.ResultImpl result ->
                     assert result.readContentLength == TestExternalResource.READ_CONTENT_LENGTH
                 }
             }
@@ -145,8 +137,8 @@ class BuildOperationExternalResourceTest extends Specification {
             assert descriptor.displayName == "Download http://some/uri"
 
             def details = descriptor.details
-            assert details instanceof DownloadBuildOperationDetails
-            assert details.location == TestExternalResource.METADATA.location
+            assert details instanceof ExternalResourceDownloadBuildOperationType.Details
+            assert details.location == TestExternalResource.METADATA.location.toASCIIString()
             assert details.contentLength == TestExternalResource.METADATA.contentLength
             assert details.contentType == TestExternalResource.METADATA.contentType
         }
@@ -159,7 +151,7 @@ class BuildOperationExternalResourceTest extends Specification {
 
         where:
         methodName    | parameter                            | methodSignature
-        'writeTo'     | tmpDir.createFile("tempFile")        | "writeTo(File)"
+        'writeTo'     | Mock(File)                           | "writeTo(File)"
         'writeTo'     | Mock(OutputStream)                   | "writeTo(OutputStream)"
         'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
         'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
@@ -171,8 +163,7 @@ class BuildOperationExternalResourceTest extends Specification {
         given:
         def delegate = Mock(ExternalResource)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
-        def uri = new URI("http://some/uri")
-        def resource = new BuildOperationExternalResource(buildOperationExecuter, delegate)
+        def resource = new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecuter, delegate)
         def buildOperationContext = Mock(BuildOperationContext)
 
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
@@ -189,7 +180,7 @@ class BuildOperationExternalResourceTest extends Specification {
 
         where:
         methodName    | parameter                            | methodSignature
-        'writeTo'     | tmpDir.createFile("tempFile")        | "writeTo(File)"
+        'writeTo'     | Mock(File)                           | "writeTo(File)"
         'writeTo'     | Mock(OutputStream)                   | "writeTo(OutputStream)"
         'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
         'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"

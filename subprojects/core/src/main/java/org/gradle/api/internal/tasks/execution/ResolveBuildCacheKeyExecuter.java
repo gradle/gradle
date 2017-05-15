@@ -26,7 +26,7 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.tasks.SnapshotTaskInputsOperationDetails;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -84,7 +84,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             @Override
             public void run(BuildOperationContext buildOperationContext) {
                 TaskOutputCachingBuildCacheKey cacheKey = doResolve(task, context);
-                buildOperationContext.setResult(new OperationResultAdapter(cacheKey));
+                buildOperationContext.setResult(new OperationResultImpl(cacheKey));
                 context.setBuildCacheKey(cacheKey);
             }
 
@@ -92,7 +92,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Snapshot task inputs for " + task.getIdentityPath())
-                    .details(new SnapshotTaskInputsOperationDetails(task.getPath()));
+                    .details(new OperationDetailsImpl(task));
             }
         });
     }
@@ -109,13 +109,31 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         return cacheKey;
     }
 
+    private static class OperationDetailsImpl implements SnapshotTaskInputsBuildOperationType.Details {
+        private final TaskInternal task;
+
+        private OperationDetailsImpl(TaskInternal task) {
+            this.task = task;
+        }
+
+        @Override
+        public String getTaskPath() {
+            return task.getIdentityPath().getPath();
+        }
+
+        @Override
+        public long getTaskId() {
+            return System.identityHashCode(task);
+        }
+    }
+
     @VisibleForTesting
-    static class OperationResultAdapter implements SnapshotTaskInputsOperationDetails.Result {
+    static class OperationResultImpl implements SnapshotTaskInputsBuildOperationType.Result {
 
         @VisibleForTesting
         final TaskOutputCachingBuildCacheKey key;
 
-        OperationResultAdapter(TaskOutputCachingBuildCacheKey key) {
+        OperationResultImpl(TaskOutputCachingBuildCacheKey key) {
             this.key = key;
         }
 

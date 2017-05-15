@@ -17,7 +17,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 import java.util.SortedMap;
@@ -28,22 +29,35 @@ import java.util.SortedSet;
  *
  * This operation is executed only when the build cache is enabled.
  *
- * This class is intentionally internal and consumed by the build scan plugin.
- *
  * @since 4.0
  */
-public final class SnapshotTaskInputsOperationDetails implements BuildOperationDetails<SnapshotTaskInputsOperationDetails.Result> {
+@UsedByScanPlugin
+public final class SnapshotTaskInputsBuildOperationType implements BuildOperationType<SnapshotTaskInputsBuildOperationType.Details, SnapshotTaskInputsBuildOperationType.Result> {
 
-    private final String taskPath;
+    @UsedByScanPlugin
+    public interface Details {
 
-    public SnapshotTaskInputsOperationDetails(String taskPath) {
-        this.taskPath = taskPath;
+        /**
+         * The identity path of the task.
+         */
+        String getTaskPath();
+
+        /**
+         * An ID for the task, that disambiguates it from other tasks with the same path.
+         *
+         * Due to a bug in Gradle, two tasks with the same path can be executed.
+         * This is very problematic for build scans.
+         * As such, scans need to be able to differentiate between different tasks with the same path.
+         * The combination of the path and ID does this.
+         *
+         * In later versions of Gradle, executing two tasks with the same path will be prevented
+         * and this value can be noop-ed.
+         */
+        long getTaskId();
+
     }
 
-    public String getTaskPath() {
-        return taskPath;
-    }
-
+    @UsedByScanPlugin
     public interface Result {
 
         @Nullable
@@ -59,4 +73,8 @@ public final class SnapshotTaskInputsOperationDetails implements BuildOperationD
         String getBuildCacheKey();
 
     }
+
+    private SnapshotTaskInputsBuildOperationType() {
+    }
+
 }

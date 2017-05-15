@@ -20,7 +20,6 @@ import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
 import org.gradle.internal.operations.notify.BuildOperationNotificationListener
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import org.gradle.internal.progress.BuildOperationDescriptor
-import org.gradle.internal.progress.BuildOperationDetails
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationService
 import org.gradle.internal.progress.OperationFinishEvent
@@ -64,9 +63,9 @@ class BuildOperationNotificationBridgeTest extends Specification {
     def "forwards operations with details"() {
         given:
         BuildOperationListener buildOperationListener
-        def d1 = BuildOperationDescriptor.displayName("a").details([:] as BuildOperationDetails).build(1, null)
+        def d1 = BuildOperationDescriptor.displayName("a").details(1).build(1, null)
         def d2 = BuildOperationDescriptor.displayName("a").build(2, null)
-        def d3 = BuildOperationDescriptor.displayName("a").details([:] as BuildOperationDetails).build(3, null)
+        def d3 = BuildOperationDescriptor.displayName("a").details(1).build(3, null)
         def e1 = new Exception()
 
         when:
@@ -76,7 +75,6 @@ class BuildOperationNotificationBridgeTest extends Specification {
         1 * buildOperationService.addListener(_) >> {
             buildOperationListener = it[0]
         }
-
 
         // operation with details and non null result
         when:
@@ -112,7 +110,6 @@ class BuildOperationNotificationBridgeTest extends Specification {
         then:
         0 * listener.finished(_)
 
-
         // operation with details and null result
         when:
         buildOperationListener.started(d3, null)
@@ -133,7 +130,6 @@ class BuildOperationNotificationBridgeTest extends Specification {
             assert n.notificationOperationFailure == null
             assert n.notificationOperationDetails.is(d3.details)
         }
-
 
         // operation with details and failure
         when:

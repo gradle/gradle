@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,13 @@
 package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.progress.NoResultBuildOperationDetails;
 
+public class ExecuteTaskBuildOperationDetails {
 
-/**
- * Details about a task being run.
- *
- * This class is intentionally internal and consumed by the build scan plugin.
- */
-public final class TaskOperationDetails implements NoResultBuildOperationDetails {
     // TODO: do not reference mutable state
     private final TaskInternal task;
 
-    public TaskOperationDetails(TaskInternal task) {
+    public ExecuteTaskBuildOperationDetails(TaskInternal task) {
         this.task = task;
     }
 

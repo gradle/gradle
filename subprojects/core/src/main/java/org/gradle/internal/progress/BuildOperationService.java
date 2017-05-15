@@ -19,8 +19,6 @@ package org.gradle.internal.progress;
 /**
  * A service to register listeners for BuildOperation start and stop events.
  *
- * This interface is intentionally internal and consumed by the build scan plugin.
- *
  * The implementor of the listener is responsible for removing the listener when finished.
  *
  * Listeners are not automatically removed when build is finished.

@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class DefaultResolvedDependencySpec extends Specification {
