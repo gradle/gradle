@@ -32,7 +32,7 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
     public interface Details {
 
         @Nullable
-        PluginId getPluginId();
+        String getPluginId();
 
         String getClassName();
 
@@ -48,8 +48,8 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
         }
 
         @Nullable
-        public PluginId getPluginId() {
-            return pluginId;
+        public String getPluginId() {
+            return pluginId.getId();
         }
 
         public String getClassName() {
