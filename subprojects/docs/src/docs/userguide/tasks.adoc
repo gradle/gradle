@@ -475,11 +475,11 @@ Now that you have seen some of the input and output annotations in practice, let
 | `@api:org.gradle.api.tasks.Classpath[]`
 | `Iterable&lt;File&gt;`*
 | An iterable of input files and directories that represent a Java classpath. This allows the task to ignore irrelevant changes to the property, such as different names for the same files. It is similar to annotating the property `@PathSensitive(RELATIVE)` but it will ignore the names of JAR files directly added to the classpath, and it will consider changes in the order of the files as a change in the classpath. Gradle will inspect the contents of jar files on the classpath and ignore changes that do not affect the semantics of the classpath (such as file dates and entry order).
+
 [NOTE]
 ====
-To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`.
+The `@Classpath` annotation was introduced in Gradle 3.2. To stay compatible with earlier Gradle versions, classpath properties should also be annotated with `@InputFiles`.
 ====
-
 
 | `@api:org.gradle.api.tasks.CompileClasspath[]`
 | `Iterable&lt;File&gt;`*
@@ -495,9 +495,8 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 
 [NOTE]
 ====
-To stay compatible with Gradle versions before 3.2, classpath properties should also be annotated with `@InputFiles`.
+The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compatible with Gradle 3.3 and 3.2, compile classpath properties should also be annotated with `@Classpath`. For compatibility with Gradle versions before 3.2 the property should also be annotated with `@InputFiles`.
 ====
-
 
 | `@api:org.gradle.api.tasks.OutputFile[]`
 | `File`*
