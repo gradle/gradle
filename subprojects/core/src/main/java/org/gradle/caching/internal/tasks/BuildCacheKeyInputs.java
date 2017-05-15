@@ -76,7 +76,6 @@ public class BuildCacheKeyInputs {
             + "classLoaderHash=" + classLoaderHash
             + ", actionsClassLoaderHash=" + actionClassLoaderHashes
             + ", actionsTypes=" + actionsTypes
-            + ", actionsHash=" + actionClassLoaderHashes
             + ", inputHashes=" + inputHashes
             + ", outputPropertyNames=" + outputPropertyNames
             + '}';
