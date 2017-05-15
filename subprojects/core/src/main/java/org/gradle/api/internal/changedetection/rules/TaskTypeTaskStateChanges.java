@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,15 +37,18 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
     private final String taskClass;
     private final HashCode taskClassLoaderHash;
     private final List<HashCode> taskActionsClassLoaderHashes;
+    private final List<String> taskActionsTypes;
     private final TaskExecution previousExecution;
 
-    public TaskTypeTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    public TaskTypeTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         String taskClassName = taskClass.getName();
         currentExecution.setTaskClass(taskClassName);
         HashCode taskClassLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader());
         currentExecution.setTaskClassLoaderHash(taskClassLoaderHash);
-        List<HashCode> taskActionsClassLoaderHashes = collectActionClassLoaderHashes(taskActionClassLoaders, classLoaderHierarchyHasher);
+        List<HashCode> taskActionsClassLoaderHashes = collectActionClassLoaderHashes(taskActions, classLoaderHierarchyHasher);
         currentExecution.setTaskActionsClassLoaderHashes(taskActionsClassLoaderHashes);
+        ImmutableList<String> taskActionsTypes = collectActionTypes(taskActions);
+        currentExecution.setTaskActionsTypes(taskActionsTypes);
         LOGGER.debug("Task {} class loader hash: {}", taskPath, taskClassLoaderHash);
         LOGGER.debug("Task {} actions class loader hashes: {}", taskPath, taskActionsClassLoaderHashes);
 
@@ -51,19 +56,31 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         this.taskClass = taskClassName;
         this.taskClassLoaderHash = taskClassLoaderHash;
         this.taskActionsClassLoaderHashes = taskActionsClassLoaderHashes;
+        this.taskActionsTypes = taskActionsTypes;
         this.previousExecution = previousExecution;
     }
 
-    private static List<HashCode> collectActionClassLoaderHashes(Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        if (taskActionClassLoaders.isEmpty()) {
+    private static List<HashCode> collectActionClassLoaderHashes(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        if (taskActions.isEmpty()) {
             return Collections.emptyList();
         }
-        List<HashCode> hashCodes = Lists.newArrayListWithCapacity(taskActionClassLoaders.size());
-        for (ClassLoader taskActionClassLoader : taskActionClassLoaders) {
-            HashCode actionLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskActionClassLoader);
+        List<HashCode> hashCodes = Lists.newArrayListWithCapacity(taskActions.size());
+        for (ContextAwareTaskAction taskAction : taskActions) {
+            HashCode actionLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
             hashCodes.add(actionLoaderHash);
         }
         return Collections.unmodifiableList(hashCodes);
+    }
+
+    private static ImmutableList<String> collectActionTypes(Collection<ContextAwareTaskAction> taskActions) {
+        if (taskActions.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<String> types = ImmutableList.builder();
+        for (ContextAwareTaskAction taskAction : taskActions) {
+            types.add(taskAction.getActionType().getName());
+        }
+        return types.build();
     }
 
     @Override
@@ -95,6 +112,9 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         }
         if (!taskActionsClassLoaderHashes.equals(previousExecution.getTaskActionsClassLoaderHashes())) {
             changes.add(new DescriptiveChange("Task '%s' additional action class paths have changed from %s to %s.", taskPath, previousExecution.getTaskActionsClassLoaderHashes(), taskActionsClassLoaderHashes));
+        }
+        if (!taskActionsTypes.equals(previousExecution.getTaskActionsTypes())) {
+            changes.add(new DescriptiveChange("Task '%s' additional action types have changed from %s to %s.", taskPath, previousExecution.getTaskActionsTypes(), taskActionsTypes));
         }
     }
 }

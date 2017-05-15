@@ -37,6 +37,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     private String taskClass;
     private HashCode classLoaderHash;
     private List<HashCode> actionsClassLoaderHashes;
+    private List<String> actionsTypes;
     private final ImmutableSortedMap.Builder<String, HashCode> inputHashes = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
@@ -67,6 +68,15 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         return this;
     }
 
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendActionsTypes(List<String> actionsTypes) {
+        this.actionsTypes = actionsTypes;
+        for (String actionsType : actionsTypes) {
+            hasher.putString(actionsType);
+            log("actionsType", actionsType);
+        }
+        return this;
+    }
+
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendInputPropertyHash(String propertyName, HashCode hashCode) {
         hasher.putString(propertyName);
         hasher.putBytes(hashCode.asBytes());
@@ -87,7 +97,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     }
 
     public TaskOutputCachingBuildCacheKey build() {
-        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionsClassLoaderHashes, inputHashes.build(), outputPropertyNames.build());
+        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionsClassLoaderHashes, actionsTypes, inputHashes.build(), outputPropertyNames.build());
         if (classLoaderHash == null || actionsClassLoaderHashes.contains(null)) {
             return new DefaultTaskOutputCachingBuildCacheKey(null, inputs);
         }

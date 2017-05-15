@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -32,6 +33,7 @@ public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private List<HashCode> taskActionsClassLoaderHashes;
+    private ImmutableList<String> taskActionsTypes;
     private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
@@ -94,6 +96,14 @@ public abstract class TaskExecution {
 
     public void setTaskActionsClassLoaderHashes(List<HashCode> taskActionsClassLoaderHashes) {
         this.taskActionsClassLoaderHashes = taskActionsClassLoaderHashes;
+    }
+
+    public ImmutableList<String> getTaskActionsTypes() {
+        return taskActionsTypes;
+    }
+
+    public void setTaskActionsTypes(ImmutableList<String> taskActionsTypes) {
+        this.taskActionsTypes = taskActionsTypes;
     }
 
     public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {

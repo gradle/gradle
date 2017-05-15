@@ -33,10 +33,12 @@ public class TaskCacheKeyCalculator {
         DefaultTaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder();
         HashCode taskClassLoaderHash = execution.getTaskClassLoaderHash();
         List<HashCode> taskActionsClassLoaderHashes = execution.getTaskActionsClassLoaderHashes();
+        List<String> taskActionsTypes = execution.getTaskActionsTypes();
 
         builder.appendTaskClass(execution.getTaskClass());
         builder.appendClassloaderHash(taskClassLoaderHash);
         builder.appendActionsClassloaderHashes(taskActionsClassLoaderHashes);
+        builder.appendActionsTypes(taskActionsTypes);
 
         SortedMap<String, ValueSnapshot> inputProperties = execution.getInputProperties();
         for (Map.Entry<String, ValueSnapshot> entry : inputProperties.entrySet()) {

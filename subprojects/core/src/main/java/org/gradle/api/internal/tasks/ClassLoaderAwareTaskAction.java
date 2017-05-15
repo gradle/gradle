@@ -25,4 +25,6 @@ public interface ClassLoaderAwareTaskAction extends Action<Task> {
      * of the implementing class, or the classloader of some delegate action.
      */
     ClassLoader getClassLoader();
+
+    Class<?> getActionType();
 }

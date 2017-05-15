@@ -251,6 +251,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             setTaskClass(taskExecutionSnapshot.getTaskClass());
             setTaskClassLoaderHash(taskExecutionSnapshot.getTaskClassLoaderHash());
             setTaskActionsClassLoaderHashes(taskExecutionSnapshot.getTaskActionsClassLoaderHashes());
+            setTaskActionsTypes(taskExecutionSnapshot.getTaskActionsTypes());
             setInputProperties(taskExecutionSnapshot.getInputProperties());
             setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
@@ -322,6 +323,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 getDeclaredOutputFilePaths(),
                 getTaskClassLoaderHash(),
                 getTaskActionsClassLoaderHashes(),
+                getTaskActionsTypes(),
                 getInputProperties(),
                 inputFilesSnapshotIds,
                 discoveredFilesSnapshotId,
@@ -362,6 +364,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
                 List<HashCode> taskActionsClassLoaderHashes = Collections.unmodifiableList(mutableTaskActionsClassLoaderHashes);
 
+                int taskActionsTypeCount = decoder.readSmallInt();
+                ImmutableList.Builder<String> taskActionsTypesBuilder = ImmutableList.builder();
+                for (int j = 0; j < taskActionsTypeCount; j++) {
+                    taskActionsTypesBuilder.add(decoder.readString());
+                }
+                ImmutableList<String> taskActionsTypes = taskActionsTypesBuilder.build();
+
                 int cacheableOutputPropertiesCount = decoder.readSmallInt();
                 ImmutableSortedSet.Builder<String> cacheableOutputPropertiesBuilder = ImmutableSortedSet.naturalOrder();
                 for (int j = 0; j < cacheableOutputPropertiesCount; j++) {
@@ -385,6 +394,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     declaredOutputFilePaths,
                     taskClassLoaderHash,
                     taskActionsClassLoaderHashes,
+                    taskActionsTypes,
                     inputProperties,
                     inputFilesSnapshotIds,
                     discoveredFilesSnapshotId,
@@ -413,6 +423,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                         encoder.writeBoolean(true);
                         encoder.writeBinary(actionsClassLoaderHash.asBytes());
                     }
+                }
+                encoder.writeSmallInt(execution.getTaskActionsTypes().size());
+                for (String taskActionType : execution.getTaskActionsTypes()) {
+                    encoder.writeString(taskActionType);
                 }
                 encoder.writeSmallInt(execution.getCacheableOutputProperties().size());
                 for (String outputFile : execution.getCacheableOutputProperties()) {

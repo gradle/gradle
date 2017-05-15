@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -32,6 +33,7 @@ public class TaskExecutionSnapshot {
     private final String taskClass;
     private final HashCode taskClassLoaderHash;
     private final List<HashCode> taskActionsClassLoaderHashes;
+    private final ImmutableList<String> taskActionsTypes;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private final ImmutableSortedSet<String> cacheableOutputProperties;
     private final ImmutableSet<String> declaredOutputFilePaths;
@@ -39,13 +41,14 @@ public class TaskExecutionSnapshot {
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(UniqueId buildId, String taskClass, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(UniqueId buildId, String taskClass, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableList<String> taskActionsTypes, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
         this.buildId = buildId;
         this.taskClass = taskClass;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
         this.taskClassLoaderHash = taskClassLoaderHash;
         this.taskActionsClassLoaderHashes = taskActionsClassLoaderHashes;
+        this.taskActionsTypes = taskActionsTypes;
         this.inputProperties = inputProperties;
         this.inputFilesSnapshotIds = inputFilesSnapshotIds;
         this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
@@ -82,6 +85,10 @@ public class TaskExecutionSnapshot {
 
     public List<HashCode> getTaskActionsClassLoaderHashes() {
         return taskActionsClassLoaderHashes;
+    }
+
+    public ImmutableList<String> getTaskActionsTypes() {
+        return taskActionsTypes;
     }
 
     public String getTaskClass() {

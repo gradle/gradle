@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -216,15 +215,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             actions = new ArrayList<ContextAwareTaskAction>();
         }
         return actions;
-    }
-
-    @Override
-    public Set<ClassLoader> getActionClassLoaders() {
-        Set<ClassLoader> actionLoaders = Sets.newLinkedHashSet();
-        for (ContextAwareTaskAction action : getTaskActions()) {
-            actionLoaders.add(action.getClassLoader());
-        }
-        return actionLoaders;
     }
 
     @Override
@@ -693,6 +683,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         public ClassLoader getClassLoader() {
             return closure.getClass().getClassLoader();
         }
+
+        @Override
+        public Class<?> getActionType() {
+            return closure.getClass();
+        }
     }
 
     private static class TaskActionWrapper implements ContextAwareTaskAction {
@@ -724,6 +719,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 return ((ClassLoaderAwareTaskAction) action).getClassLoader();
             } else {
                 return action.getClass().getClassLoader();
+            }
+        }
+
+        @Override
+        public Class<?> getActionType() {
+            if (action instanceof ClassLoaderAwareTaskAction) {
+                return ((ClassLoaderAwareTaskAction) action).getActionType();
+            } else {
+                return action.getClass();
             }
         }
 
