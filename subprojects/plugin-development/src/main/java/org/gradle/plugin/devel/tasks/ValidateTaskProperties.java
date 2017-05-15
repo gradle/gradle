@@ -277,6 +277,8 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
 
     /**
      * Sets the classes to validate.
+     *
+     * @since 4.0
      */
     public void setClasses(FileCollection classes) {
         this.classes = classes;

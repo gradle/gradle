@@ -221,6 +221,18 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 In Gradle 3.5 `ForkOptions.executable` has been deprecated. In Gradle 4.0 it is not deprecated anymore, but using it to fork a compiler will disable task output caching for the compile task.
 
+### Deprecated APIs
+
+- `JDepend`
+    - `File getClassesDir()` - Use `FileCollection getClassesDirs()`
+    - `setClassesDir(File)` - Use `setClassesDirs(FileCollection)`
+- `Test`
+    - `File getTestClassesDir()` - Use `FileCollection getTestClassesDirs()`
+    - `setTestClassesDir(File)` - Use `setTestClassesDirs(FileCollection)`
+- `SourceSetOutput`
+    - `File getClassesDir()` -  Use `FileCollection getClassesDirs()` or `SourceDirectorySet.getOutputDir()`
+    - `setClassesDir(File)` -  Use `SourceDirectorySet.setOutputDir(File)`
+
 ## Potential breaking changes
 
 ### Build Scan 1.7.1 or newer is required when used with Gradle 4.0
@@ -313,6 +325,7 @@ You can upgrade or downgrade the version of PMD with:
 - Removed `TaskInputs.source()` and `sourceDir()`. Please use `TaskInputs.file().skipWhenEmpty()`, `files().skipWhenEmpty()` and `dir().skipWhenEmpty()`.
 - Chaining calls to `TaskInputs.file()`, `files()`, `dir()` and `TaskOutputs.file()`, `files()` and `dir()` are not supported anymore.
 - Removed `TaskOutputs.doNotCacheIf(Spec)`, use `doNotCacheIf(String, Spec)` instead.
+- Removed `ValidateTaskProperties.classesDir`, use `ValidateTaskProperties.classes`.
 
 The deprecated `jetty` plugin has been removed. We recommend using the [Gretty plugin](https://github.com/akhikhl/gretty) for developing Java web applications.
 The deprecated `pluginRepositories` block for declaring custom plugin repositories has been removed in favor of `pluginManagement.repositories`.
