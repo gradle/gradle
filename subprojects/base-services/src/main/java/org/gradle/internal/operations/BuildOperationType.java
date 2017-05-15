@@ -55,6 +55,10 @@ package org.gradle.internal.operations;
  * It can be assumed that the objects are not held longer than is necessary to process/transform them
  * into detached representations suitable for the build scan event stream.
  *
+ * Consideration should be given to the package space of the details and result types.
+ * They should be housed in a logical package space, which may not be the same as the class
+ * that executes the actual operation being represented, as often that is internal detail that may change.
+ *
  * @param <D> the type of details object for the operation
  * @param <R> the type of result object for the operation
  * @since 4.0

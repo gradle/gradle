@@ -36,7 +36,7 @@ public final class ConfigureProjectBuildOperation implements BuildOperationType<
 
     }
 
-    static class DetailsImpl {
+    static class DetailsImpl implements Details {
 
         private final Path buildPath;
         private final Path projectPath;

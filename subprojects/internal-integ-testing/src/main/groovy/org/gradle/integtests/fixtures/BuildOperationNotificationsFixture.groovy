@@ -18,9 +18,9 @@ package org.gradle.integtests.fixtures
 
 import groovy.json.JsonSlurper
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperation
-
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
+import org.gradle.internal.operations.BuildOperationTypes
 import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
 import org.gradle.internal.operations.notify.BuildOperationNotificationListener
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar
@@ -98,8 +98,9 @@ class BuildOperationNotificationsFixture extends InitScriptExecuterFixture {
         }
     }
 
-    CompleteBuildOperation first(Class<?> detailsType) {
-        def operation = operations.values().find { it.detailsType == detailsType }
+    CompleteBuildOperation first(Class<?> type) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        def operation = operations.values().find { detailsType.isAssignableFrom(it.detailsType) }
         if (operation == null) {
             throw new AssertionError("No operation with details type $detailsType found (found types: ${operations.values().detailsType.toSet()*.name.join(", ")})")
         }
@@ -128,5 +129,6 @@ class BuildOperationNotificationsFixture extends InitScriptExecuterFixture {
         }
 
     }
+
 
 }

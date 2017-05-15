@@ -179,14 +179,14 @@ class LifecycleProjectEvaluatorTest extends Specification {
         then:
         buildOperationExecutor.operations.size() == 1
         BuildOperationDescriptor descriptor = buildOperationExecutor.operations[0]
-        ConfigureProjectBuildOperation details = descriptor.details
+        ConfigureProjectBuildOperation.Details details = descriptor.details
 
         and:
         descriptor.name == 'Configure project :project1'
         descriptor.displayName == 'Configure project :project1'
         descriptor.progressDisplayName == null
-        details.buildPath == Path.path(':')
-        details.projectPath == Path.path(':project1')
+        details.buildPath == Path.path(':').path
+        details.projectPath == Path.path(':project1').path
     }
 
 }

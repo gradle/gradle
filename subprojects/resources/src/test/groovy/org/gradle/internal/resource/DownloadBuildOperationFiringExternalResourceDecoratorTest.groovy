@@ -142,7 +142,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
             assert descriptor.displayName == "Download http://some/uri"
 
             def details = descriptor.details
-            assert details instanceof ExternalResourceDownloadBuildOperation
+            assert details instanceof ExternalResourceDownloadBuildOperation.Details
             assert details.location == TestExternalResource.METADATA.location
             assert details.contentLength == TestExternalResource.METADATA.contentLength
             assert details.contentType == TestExternalResource.METADATA.contentType
