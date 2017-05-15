@@ -24,6 +24,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -41,11 +42,13 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 
@@ -133,6 +136,17 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     /**
+     * We need to track the toolchain used by the Groovy compiler to compile Java sources.
+     *
+     * @since 4.0
+     */
+    @Nested
+    @Incubating
+    protected JavaToolChain getJavaToolChain() {
+        return getJavaToolChainFactory().forCompileOptions(getOptions());
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -188,5 +202,16 @@ public class GroovyCompile extends AbstractCompile {
 
     public void setCompiler(Compiler<GroovyJavaJointCompileSpec> compiler) {
         this.compiler = compiler;
+    }
+
+    /**
+     * Factory for creating the Java toolchain.
+     *
+     * @since 4.0
+     */
+    @Incubating
+    @Inject
+    protected JavaToolChainFactory getJavaToolChainFactory() {
+        throw new UnsupportedOperationException();
     }
 }

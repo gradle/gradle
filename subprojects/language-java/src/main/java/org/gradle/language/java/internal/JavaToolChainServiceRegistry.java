@@ -18,15 +18,17 @@ package org.gradle.language.java.internal;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
+import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
-import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.tools.JavaCompiler;
 
@@ -66,6 +68,10 @@ public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
 
         JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
             return new CurrentJvmJavaToolChain(compilerFactory, execActionFactory);
+        }
+
+        JavaToolChainFactory createJavaToolChainFactory(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory, JvmVersionDetector jvmVersionDetector) {
+            return new JavaToolChainFactory(compilerFactory, execActionFactory, jvmVersionDetector);
         }
     }
 }
