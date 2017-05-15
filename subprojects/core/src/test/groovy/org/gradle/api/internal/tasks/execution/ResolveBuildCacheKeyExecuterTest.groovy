@@ -50,7 +50,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getPath() >> ":foo"
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
@@ -82,7 +81,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getPath() >> ":foo"
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> {
@@ -100,7 +98,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getPath() >> ":foo"
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY

@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.Task;
 import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 import java.util.SortedMap;
@@ -28,20 +30,19 @@ import java.util.SortedSet;
  *
  * This operation is executed only when the build cache is enabled.
  *
- * This class is intentionally internal and consumed by the build scan plugin.
- *
  * @since 4.0
  */
+@UsedByScanPlugin
 public final class SnapshotTaskInputsOperationDetails implements BuildOperationDetails<SnapshotTaskInputsOperationDetails.Result> {
 
-    private final String taskPath;
+    private final Task task;
 
-    public SnapshotTaskInputsOperationDetails(String taskPath) {
-        this.taskPath = taskPath;
+    public SnapshotTaskInputsOperationDetails(Task task) {
+        this.task = task;
     }
 
-    public String getTaskPath() {
-        return taskPath;
+    public Task getTask() {
+        return task;
     }
 
     public interface Result {
