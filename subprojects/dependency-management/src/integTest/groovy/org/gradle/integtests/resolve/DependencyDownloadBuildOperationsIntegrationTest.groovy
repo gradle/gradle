@@ -65,7 +65,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         buildOp.details.contentLength == chunked ? -1 : actualFileLength
         buildOp.details.location.path == m.pomPath
         buildOp.result.readContentLength == actualFileLength
-        false
 
         where:
         chunked << [true, false]
