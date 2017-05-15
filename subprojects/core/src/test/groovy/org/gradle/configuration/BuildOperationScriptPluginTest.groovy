@@ -17,7 +17,7 @@
 package org.gradle.configuration
 
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.TextResource
 import spock.lang.Specification
 
@@ -43,7 +43,7 @@ class BuildOperationScriptPluginTest extends Specification {
         1 * scriptSource.getDisplayName() >> "test.source"
         1 * decoratedScriptPlugin.apply(target)
         0 * decoratedScriptPlugin._
-        
+
         buildOperationExecutor.operations.size() == 1
         buildOperationExecutor.operations.get(0).displayName == "Apply script test.source to Test Target"
         buildOperationExecutor.operations.get(0).name == "Apply script test.source"

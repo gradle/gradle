@@ -21,7 +21,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.DependencyInjectingServiceLoader
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.scripts.ScriptingLanguages
 import org.gradle.scripts.ScriptingLanguage

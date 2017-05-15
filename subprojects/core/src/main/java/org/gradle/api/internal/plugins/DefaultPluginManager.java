@@ -32,9 +32,9 @@ import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.plugin.use.PluginId;
@@ -265,7 +265,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             String name = "Apply plugin " + identifier;
             return BuildOperationDescriptor.displayName(name + " to " + target.toString())
                 .name(name)
-                .details(new ApplyPluginBuildOperationDetails(pluginImplementation.getPluginId(), pluginImplementation.getClass().getName()));
+                .details(new ApplyPluginBuildOperationType.DetailsImpl(pluginImplementation.getPluginId(), pluginImplementation.getClass().getName()));
         }
     }
 }

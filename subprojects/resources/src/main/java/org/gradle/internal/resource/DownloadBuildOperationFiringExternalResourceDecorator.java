@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport;
+package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -23,22 +23,19 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.DownloadBuildOperationDetails;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 
-public class BuildOperationExternalResource implements ExternalResource {
+public class DownloadBuildOperationFiringExternalResourceDecorator implements ExternalResource {
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final ExternalResource delegate;
 
-    public BuildOperationExternalResource(BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
+    public DownloadBuildOperationFiringExternalResourceDecorator(BuildOperationExecutor buildOperationExecutor, ExternalResource delegate) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
     }
@@ -144,15 +141,15 @@ public class BuildOperationExternalResource implements ExternalResource {
     }
 
     private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
-        buildOperationContext.setResult(new DownloadBuildOperationDetails.Result(result.getReadContentLength()));
+        buildOperationContext.setResult(new ExternalResourceDownloadBuildOperationType.ResultImpl(result.getReadContentLength()));
         return result;
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails() {
         ExternalResourceMetaData metaData = getMetaData();
-        DownloadBuildOperationDetails downloadBuildOperationDetails = new DownloadBuildOperationDetails(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
+        ExternalResourceDownloadBuildOperationType.Details operationDetails = new ExternalResourceDownloadBuildOperationType.DetailsImpl(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
         return BuildOperationDescriptor
             .displayName("Download " + metaData.getLocation().toString())
-            .details(downloadBuildOperationDetails);
+            .details(operationDetails);
     }
 }

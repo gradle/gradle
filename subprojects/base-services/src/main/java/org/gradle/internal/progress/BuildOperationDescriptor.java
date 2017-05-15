@@ -20,8 +20,6 @@ import org.gradle.api.Nullable;
 
 /**
  * Meta-data about a build operation.
- *
- * This interface is intentionally internal and consumed by the build scan plugin.
  */
 public final class BuildOperationDescriptor {
     private final Object id;
@@ -29,10 +27,10 @@ public final class BuildOperationDescriptor {
     private final String displayName;
     private final String name;
     private final String progressDisplayName;
-    private final BuildOperationDetails<?> details;
+    private final Object details;
     private final BuildOperationType operationType;
 
-    private BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, BuildOperationDetails<?> details, BuildOperationType operationType) {
+    private BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details, BuildOperationType operationType) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -102,7 +100,7 @@ public final class BuildOperationDescriptor {
         private final String displayName;
         private String name;
         private String progressDisplayName;
-        private BuildOperationDetails<?> details;
+        private Object details;
         private BuildOperationState parent;
         private BuildOperationType operationType = BuildOperationType.UNCATEGORIZED;
 
@@ -121,7 +119,7 @@ public final class BuildOperationDescriptor {
             return this;
         }
 
-        public Builder details(BuildOperationDetails<?> details) {
+        public Builder details(Object details) {
             this.details = details;
             return this;
         }

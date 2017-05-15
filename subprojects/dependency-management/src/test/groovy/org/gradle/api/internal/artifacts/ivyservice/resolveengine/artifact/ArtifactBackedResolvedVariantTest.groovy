@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Describables
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class ArtifactBackedResolvedVariantTest extends Specification {

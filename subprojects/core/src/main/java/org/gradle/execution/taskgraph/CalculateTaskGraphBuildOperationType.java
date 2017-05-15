@@ -16,55 +16,53 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.TaskExecutionRequest;
-import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.List;
 import java.util.Set;
 
 /**
- * Details about the task graph of a build.
- *
- * This class is intentionally internal and consumed by the build scan plugin.
+ * Computing the task graph based on the inputs and build configuration.
  *
  * @since 4.0
  */
-public final class CalculateTaskGraphDetails implements BuildOperationDetails<CalculateTaskGraphDetails.Result> {
+public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
-    private final List<TaskExecutionRequest> taskRequests;
-    private final Set<String> excludedTaskNames;
-
-    public CalculateTaskGraphDetails(List<TaskExecutionRequest> taskRequests, Set<String> excludedTaskNames) {
-        this.taskRequests = taskRequests;
-        this.excludedTaskNames = excludedTaskNames;
+    public static class Details {
     }
 
-    public List<TaskExecutionRequest> getTaskRequests() {
-        return taskRequests;
+    @UsedByScanPlugin
+    public interface Result {
+
+        Set<String> getRequestedTaskPaths();
+
+        Set<String> getExcludedTaskPaths();
+
     }
 
-    public Set<String> getExcludedTaskNames() {
-        return excludedTaskNames;
-    }
-
-    public static class Result {
+    public static class ResultImpl implements Result {
 
         private final Set<String> requestedTaskPaths;
         private final Set<String> excludedTaskPaths;
 
-        public Result(Set<String> requestedTaskPaths, Set<String> excludedTaskPaths) {
+        public ResultImpl(Set<String> requestedTaskPaths, Set<String> excludedTaskPaths) {
             this.requestedTaskPaths = requestedTaskPaths;
             this.excludedTaskPaths = excludedTaskPaths;
         }
 
+        @Override
         public Set<String> getRequestedTaskPaths() {
             return requestedTaskPaths;
         }
 
+        @Override
         public Set<String> getExcludedTaskPaths() {
             return excludedTaskPaths;
         }
 
+    }
+
+    private CalculateTaskGraphBuildOperationType() {
     }
 
 }
