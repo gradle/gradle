@@ -69,7 +69,7 @@ public class BuildCacheServiceProvider {
             @Override
             public BuildCacheService call(BuildOperationContext context) {
                 if (!startParameter.isBuildCacheEnabled()) {
-                    context.setResult(FinalizeBuildCacheConfigurationBuildOperation.ResultImpl.disabled());
+                    context.setResult(FinalizeBuildCacheConfigurationBuildOperationType.ResultImpl.disabled());
                     return new NoOpBuildCacheService();
                 }
 
@@ -96,7 +96,7 @@ public class BuildCacheServiceProvider {
                     ? createRawBuildCacheService(remote, "remote", buildIdentityPath)
                     : null;
 
-                context.setResult(new FinalizeBuildCacheConfigurationBuildOperation.ResultImpl(
+                context.setResult(new FinalizeBuildCacheConfigurationBuildOperationType.ResultImpl(
                     true,
                     local != null && local.isEnabled(),
                     remote != null && remote.isEnabled() && !startParameter.isOffline(),
@@ -131,7 +131,7 @@ public class BuildCacheServiceProvider {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Finalize build cache configuration")
-                    .details(new FinalizeBuildCacheConfigurationBuildOperation.DetailsImpl());
+                    .details(new FinalizeBuildCacheConfigurationBuildOperationType.DetailsImpl());
             }
         });
     }
@@ -231,7 +231,7 @@ public class BuildCacheServiceProvider {
         }
     }
 
-    private static final class BuildCacheDescription implements FinalizeBuildCacheConfigurationBuildOperation.ResultImpl.BuildCacheDescription {
+    private static final class BuildCacheDescription implements FinalizeBuildCacheConfigurationBuildOperationType.ResultImpl.BuildCacheDescription {
 
         private final String className;
         private final boolean push;

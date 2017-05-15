@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Task;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperation;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperationType;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -148,10 +148,10 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details)) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationType.Details)) {
             return;
         }
-        Task task = ((ExecuteTaskBuildOperation.Details) buildOperation.getDetails()).getTask();
+        Task task = ((ExecuteTaskBuildOperationType.Details) buildOperation.getDetails()).getTask();
         if (!(task instanceof Test)) {
             return;
         }
@@ -160,7 +160,7 @@ class ClientForwardingTestOperationListener implements TestListenerInternal, Bui
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details)) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationType.Details)) {
             return;
         }
         runningTasks.remove(buildOperation.getId());

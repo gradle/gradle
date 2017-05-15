@@ -109,7 +109,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             String name = "Configure project " + project.getIdentityPath().toString();
             return BuildOperationDescriptor.displayName(name)
                 .operationType(BuildOperationType.CONFIGURE_PROJECT)
-                .details(new ConfigureProjectBuildOperation.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
+                .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
 
     }

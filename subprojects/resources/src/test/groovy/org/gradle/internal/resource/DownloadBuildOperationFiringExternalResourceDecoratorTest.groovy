@@ -130,7 +130,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         def resource = new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecuter, delegate)
         1 * buildOperationExecuter.call(_) >> { CallableBuildOperation op ->
             def operationContextMock = Mock(BuildOperationContext) {
-                1 * setResult(_) >> { ExternalResourceDownloadBuildOperation.ResultImpl result ->
+                1 * setResult(_) >> { ExternalResourceDownloadBuildOperationType.ResultImpl result ->
                     assert result.readContentLength == TestExternalResource.READ_CONTENT_LENGTH
                 }
             }
@@ -142,7 +142,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
             assert descriptor.displayName == "Download http://some/uri"
 
             def details = descriptor.details
-            assert details instanceof ExternalResourceDownloadBuildOperation.Details
+            assert details instanceof ExternalResourceDownloadBuildOperationType.Details
             assert details.location == TestExternalResource.METADATA.location
             assert details.contentLength == TestExternalResource.METADATA.contentLength
             assert details.contentType == TestExternalResource.METADATA.contentType

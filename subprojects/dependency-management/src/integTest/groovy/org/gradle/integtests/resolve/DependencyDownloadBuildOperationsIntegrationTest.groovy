@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
-import org.gradle.internal.resource.ExternalResourceDownloadBuildOperation
+import org.gradle.internal.resource.ExternalResourceDownloadBuildOperationType
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -62,7 +62,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def actualFileLength = m.pom.file.bytes.length
-        def buildOp = buildOperations.first(ExternalResourceDownloadBuildOperation)
+        def buildOp = buildOperations.first(ExternalResourceDownloadBuildOperationType)
         buildOp.details.contentType == 'null'
         buildOp.details.contentLength == chunked ? -1 : actualFileLength
         buildOp.details.location.path == m.pomPath

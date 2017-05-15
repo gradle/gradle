@@ -26,7 +26,7 @@ import org.gradle.plugin.use.PluginId;
  *
  * @since 4.0
  */
-public final class ApplyPluginBuildOperation implements BuildOperationType<ApplyPluginBuildOperation.Details, Void> {
+public final class ApplyPluginBuildOperationType implements BuildOperationType<ApplyPluginBuildOperationType.Details, Void> {
 
     @UsedByScanPlugin
     public interface Details {

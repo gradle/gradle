@@ -14,39 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.execution.internal;
 
-
+import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-/**
- * Details about an artifact set being resolved.
- *
- * @since 4.0
- */
-public final class ResolveArtifactsBuildOperation implements BuildOperationType<ResolveArtifactsBuildOperation.Details, Void> {
+public final class ExecuteTaskBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, Void> {
 
     @UsedByScanPlugin
     public interface Details {
-        String getConfigurationPath();
+
+        Task getTask();
+
     }
 
-    public static class DetailsImpl {
+    public static class DetailsImpl implements Details {
 
-        public String getConfigurationPath() {
-            return configuration;
+        // TODO: do not reference mutable state
+        private final TaskInternal task;
+
+        public DetailsImpl(TaskInternal task) {
+            this.task = task;
         }
 
-        private String configuration;
-
-        public DetailsImpl(String configuration) {
-            this.configuration = configuration;
+        @Override
+        public TaskInternal getTask() {
+            return task;
         }
 
-        public String getConfiguration() {
-            return configuration;
-        }
     }
 
+    private ExecuteTaskBuildOperationType() {
+    }
 }

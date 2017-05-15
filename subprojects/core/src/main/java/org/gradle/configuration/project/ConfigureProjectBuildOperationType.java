@@ -14,48 +14,44 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration;
+package org.gradle.configuration.project;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import java.io.File;
+import org.gradle.util.Path;
 
 /**
- * Details about a script plugin being applied.
+ * Configuration of a project.
  *
  * @since 4.0
  */
-public final class ApplyScriptPluginBuildOperation implements BuildOperationType<ApplyScriptPluginBuildOperation.Details, Void> {
+public final class ConfigureProjectBuildOperationType implements BuildOperationType<ConfigureProjectBuildOperationType.Details, Void> {
 
     @UsedByScanPlugin
     public interface Details {
 
-        @Nullable
-        File getFile();
+        String getProjectPath();
 
-        String getDisplayName();
+        String getBuildPath();
 
     }
 
-    public static class DetailsImpl {
+    static class DetailsImpl implements Details {
 
-        private File file;
-        private String displayName;
+        private final Path buildPath;
+        private final Path projectPath;
 
-        public DetailsImpl(@Nullable File file, String displayName) {
-            this.file = file;
-            this.displayName = displayName;
+        DetailsImpl(Path projectPath, Path buildPath) {
+            this.projectPath = projectPath;
+            this.buildPath = buildPath;
         }
 
-        @Nullable
-        public File getFile() {
-            return file;
+        public String getProjectPath() {
+            return projectPath.getPath();
         }
 
-        public String getDisplayName() {
-            return displayName;
+        public String getBuildPath() {
+            return buildPath.getPath();
         }
 
     }

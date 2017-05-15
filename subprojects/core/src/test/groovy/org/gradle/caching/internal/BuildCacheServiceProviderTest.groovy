@@ -52,8 +52,8 @@ class BuildCacheServiceProviderTest extends Specification {
         serviceType.cast(service)
     }
 
-    private FinalizeBuildCacheConfigurationBuildOperation.ResultImpl buildOpResult() {
-        buildOperationExecuter.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperation)
+    private FinalizeBuildCacheConfigurationBuildOperationType.ResultImpl buildOpResult() {
+        buildOperationExecuter.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperationType)
     }
 
     def 'local cache service is created when remote is not configured'() {

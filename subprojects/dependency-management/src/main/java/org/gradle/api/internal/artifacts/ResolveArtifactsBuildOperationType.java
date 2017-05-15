@@ -14,46 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.project;
+package org.gradle.api.internal.artifacts;
+
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.Path;
 
 /**
- * Configuration of a project.
+ * Details about an artifact set being resolved.
  *
  * @since 4.0
  */
-public final class ConfigureProjectBuildOperation implements BuildOperationType<ConfigureProjectBuildOperation.Details, Void> {
+public final class ResolveArtifactsBuildOperationType implements BuildOperationType<ResolveArtifactsBuildOperationType.Details, Void> {
 
     @UsedByScanPlugin
     public interface Details {
-
-        String getProjectPath();
-
-        String getBuildPath();
-
+        String getConfigurationPath();
     }
 
-    static class DetailsImpl implements Details {
+    public static class DetailsImpl {
 
-        private final Path buildPath;
-        private final Path projectPath;
-
-        DetailsImpl(Path projectPath, Path buildPath) {
-            this.projectPath = projectPath;
-            this.buildPath = buildPath;
+        public String getConfigurationPath() {
+            return configuration;
         }
 
-        public String getProjectPath() {
-            return projectPath.getPath();
+        private String configuration;
+
+        public DetailsImpl(String configuration) {
+            this.configuration = configuration;
         }
 
-        public String getBuildPath() {
-            return buildPath.getPath();
+        public String getConfiguration() {
+            return configuration;
         }
-
     }
 
 }

@@ -20,7 +20,7 @@ import com.google.common.hash.HashCode
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperation
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -161,12 +161,12 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.buildCacheKey == "ff"
     }
 
-    private SnapshotTaskInputsBuildOperation.Result buildOpResult() {
-        buildOperationExecutor.log.mostRecentResult(SnapshotTaskInputsBuildOperation)
+    private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {
+        buildOperationExecutor.log.mostRecentResult(SnapshotTaskInputsBuildOperationType)
     }
 
     private Throwable buildOpFailure() {
-        buildOperationExecutor.log.mostRecentFailure(SnapshotTaskInputsBuildOperation)
+        buildOperationExecutor.log.mostRecentFailure(SnapshotTaskInputsBuildOperationType)
     }
 
 }

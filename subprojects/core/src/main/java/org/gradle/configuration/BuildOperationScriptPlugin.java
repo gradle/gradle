@@ -67,7 +67,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
                     String displayName = name + " to " + target;
                     return BuildOperationDescriptor.displayName(displayName)
                         .name(name)
-                        .details(new ApplyScriptPluginBuildOperation.DetailsImpl(file, displayName));
+                        .details(new ApplyScriptPluginBuildOperationType.DetailsImpl(file, displayName));
                 }
             });
         }

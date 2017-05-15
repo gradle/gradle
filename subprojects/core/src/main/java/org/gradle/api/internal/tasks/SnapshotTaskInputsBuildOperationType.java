@@ -31,7 +31,7 @@ import java.util.SortedSet;
  *
  * @since 4.0
  */
-public final class SnapshotTaskInputsBuildOperation implements BuildOperationType<SnapshotTaskInputsBuildOperation.Details, SnapshotTaskInputsBuildOperation.Result> {
+public final class SnapshotTaskInputsBuildOperationType implements BuildOperationType<SnapshotTaskInputsBuildOperationType.Details, SnapshotTaskInputsBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -57,6 +57,6 @@ public final class SnapshotTaskInputsBuildOperation implements BuildOperationTyp
 
     }
 
-    private SnapshotTaskInputsBuildOperation() {
+    private SnapshotTaskInputsBuildOperationType() {
     }
 }

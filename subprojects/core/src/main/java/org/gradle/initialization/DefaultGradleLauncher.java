@@ -27,7 +27,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.execution.taskgraph.CalculateTaskGraphBuildOperation;
+import org.gradle.execution.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -218,14 +218,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             // make requested tasks available from according build operation.
             TaskGraphExecuter taskGraph = gradle.getTaskGraph();
-            buildOperationContext.setResult(new CalculateTaskGraphBuildOperation.ResultImpl(toTaskPaths(taskGraph.getRequestedTasks()), toTaskPaths(taskGraph.getFilteredTasks())));
+            buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.ResultImpl(toTaskPaths(taskGraph.getRequestedTasks()), toTaskPaths(taskGraph.getFilteredTasks())));
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
             StartParameter startParameter = gradle.getStartParameter();
             return BuildOperationDescriptor.displayName("Calculate task graph")
-                .details(new CalculateTaskGraphBuildOperation.DetailsImpl(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames()));
+                .details(new CalculateTaskGraphBuildOperationType.DetailsImpl(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames()));
         }
     }
 

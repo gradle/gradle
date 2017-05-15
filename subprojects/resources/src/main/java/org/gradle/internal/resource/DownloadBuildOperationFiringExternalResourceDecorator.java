@@ -141,13 +141,13 @@ public class DownloadBuildOperationFiringExternalResourceDecorator implements Ex
     }
 
     private static <T> ExternalResourceReadResult<T> result(BuildOperationContext buildOperationContext, ExternalResourceReadResult<T> result) {
-        buildOperationContext.setResult(new ExternalResourceDownloadBuildOperation.ResultImpl(result.getReadContentLength()));
+        buildOperationContext.setResult(new ExternalResourceDownloadBuildOperationType.ResultImpl(result.getReadContentLength()));
         return result;
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails() {
         ExternalResourceMetaData metaData = getMetaData();
-        ExternalResourceDownloadBuildOperation.Details operationDetails = new ExternalResourceDownloadBuildOperation.DetailsImpl(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
+        ExternalResourceDownloadBuildOperationType.Details operationDetails = new ExternalResourceDownloadBuildOperationType.DetailsImpl(metaData.getLocation(), metaData.getContentLength(), metaData.getContentType());
         return BuildOperationDescriptor
             .displayName("Download " + metaData.getLocation().toString())
             .details(operationDetails);

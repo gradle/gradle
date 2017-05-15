@@ -20,7 +20,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Task;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperation;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperationType;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -130,16 +130,16 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details)) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationType.Details)) {
             return;
         }
-        Task task = ((ExecuteTaskBuildOperation.Details) buildOperation.getDetails()).getTask();
+        Task task = ((ExecuteTaskBuildOperationType.Details) buildOperation.getDetails()).getTask();
         runningTasks.put(buildOperation.getId(), task.getPath());
     }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details)) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationType.Details)) {
             return;
         }
         runningTasks.remove(buildOperation.getId());

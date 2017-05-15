@@ -14,38 +14,50 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution.internal;
+package org.gradle.configuration;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.Nullable;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-public final class ExecuteTaskBuildOperation implements BuildOperationType<ExecuteTaskBuildOperation.Details, Void> {
+import java.io.File;
+
+/**
+ * Details about a script plugin being applied.
+ *
+ * @since 4.0
+ */
+public final class ApplyScriptPluginBuildOperationType implements BuildOperationType<ApplyScriptPluginBuildOperationType.Details, Void> {
 
     @UsedByScanPlugin
     public interface Details {
 
-        Task getTask();
+        @Nullable
+        File getFile();
+
+        String getDisplayName();
 
     }
 
-    public static class DetailsImpl implements Details {
+    public static class DetailsImpl {
 
-        // TODO: do not reference mutable state
-        private final TaskInternal task;
+        private File file;
+        private String displayName;
 
-        public DetailsImpl(TaskInternal task) {
-            this.task = task;
+        public DetailsImpl(@Nullable File file, String displayName) {
+            this.file = file;
+            this.displayName = displayName;
         }
 
-        @Override
-        public TaskInternal getTask() {
-            return task;
+        @Nullable
+        public File getFile() {
+            return file;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
 
     }
 
-    private ExecuteTaskBuildOperation() {
-    }
 }

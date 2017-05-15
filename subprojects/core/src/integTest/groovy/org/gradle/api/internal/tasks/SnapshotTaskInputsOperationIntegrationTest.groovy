@@ -81,7 +81,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     }
 
     Map<String, ?> buildOperationResult() {
-        buildOperations.operation(SnapshotTaskInputsBuildOperation).result
+        buildOperations.operation(SnapshotTaskInputsBuildOperationType).result
     }
 
 }

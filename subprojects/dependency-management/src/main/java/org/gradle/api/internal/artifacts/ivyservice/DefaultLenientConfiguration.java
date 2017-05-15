@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
-import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperation;
+import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
@@ -97,7 +97,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         String displayName = "Resolve artifacts "
             + (requestedAttributes == null || requestedAttributes.isEmpty() ? "of " : "view of ") + configuration.getPath();
         return BuildOperationDescriptor.displayName(displayName)
-            .details(new ResolveArtifactsBuildOperation.DetailsImpl(configuration.getPath()));
+            .details(new ResolveArtifactsBuildOperationType.DetailsImpl(configuration.getPath()));
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {

@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Task;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperation;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperationType;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
@@ -63,9 +63,9 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
             return;
         }
 
-        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details) {
+        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationType.Details) {
             if (clientSubscriptions.isSendTaskProgressEvents()) {
-                Task task = ((ExecuteTaskBuildOperation.Details) buildOperation.getDetails()).getTask();
+                Task task = ((ExecuteTaskBuildOperationType.Details) buildOperation.getDetails()).getTask();
                 eventConsumer.dispatch(new DefaultTaskStartedProgressEvent(startEvent.getStartTime(), toTaskDescriptor(buildOperation, (TaskInternal) task)));
             } else {
                 // Discard this operation and all children
@@ -82,8 +82,8 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
             return;
         }
 
-        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperation.Details) {
-            Task task = ((ExecuteTaskBuildOperation.Details) buildOperation.getDetails()).getTask();
+        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationType.Details) {
+            Task task = ((ExecuteTaskBuildOperationType.Details) buildOperation.getDetails()).getTask();
             TaskInternal taskInternal = (TaskInternal) task;
             eventConsumer.dispatch(new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), toTaskDescriptor(buildOperation, taskInternal), toTaskResult(taskInternal, finishEvent)));
         } else {

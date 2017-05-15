@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperation;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -26,7 +26,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-public final class DownloadArtifactBuildOperation implements BuildOperationType<ExecuteTaskBuildOperation.Details, Void> {
+public final class DownloadArtifactBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, Void> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -49,6 +49,6 @@ public final class DownloadArtifactBuildOperation implements BuildOperationType<
 
     }
 
-    private DownloadArtifactBuildOperation() {
+    private DownloadArtifactBuildOperationType() {
     }
 }

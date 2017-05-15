@@ -28,7 +28,7 @@ import java.util.Set;
  *
  * @since 4.0
  */
-public final class CalculateTaskGraphBuildOperation implements BuildOperationType<CalculateTaskGraphBuildOperation.Details, CalculateTaskGraphBuildOperation.Result> {
+public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -90,6 +90,6 @@ public final class CalculateTaskGraphBuildOperation implements BuildOperationTyp
 
     }
 
-    private CalculateTaskGraphBuildOperation() {
+    private CalculateTaskGraphBuildOperationType() {
     }
 }

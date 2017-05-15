@@ -26,7 +26,7 @@ import java.net.URI;
  *
  * @since 4.0
  */
-public final class ExternalResourceDownloadBuildOperation implements BuildOperationType<ExternalResourceDownloadBuildOperation.Details, ExternalResourceDownloadBuildOperation.Result> {
+public final class ExternalResourceDownloadBuildOperationType implements BuildOperationType<ExternalResourceDownloadBuildOperationType.Details, ExternalResourceDownloadBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -50,7 +50,7 @@ public final class ExternalResourceDownloadBuildOperation implements BuildOperat
         /**
          * The actual length of the received content.
          * <p>
-         * Should be equal to {@link ExternalResourceDownloadBuildOperation.Details#getContentLength()} if it was not -1.
+         * Should be equal to {@link ExternalResourceDownloadBuildOperationType.Details#getContentLength()} if it was not -1.
          * See {@link ExternalResourceReadResult#getReadContentLength()} for the semantics of this value.
          */
         long getReadContentLength();
@@ -84,7 +84,7 @@ public final class ExternalResourceDownloadBuildOperation implements BuildOperat
 
         @Override
         public String toString() {
-            return "ExternalResourceDownloadBuildOperation.Details{"
+            return "ExternalResourceDownloadBuildOperationType.Details{"
                 + "location=" + location + ", "
                 + "contentLength=" + contentLength + ", "
                 + "contentType='" + contentType + '\''
@@ -108,13 +108,13 @@ public final class ExternalResourceDownloadBuildOperation implements BuildOperat
 
         @Override
         public String toString() {
-            return "ExternalResourceDownloadBuildOperation.Result{"
+            return "ExternalResourceDownloadBuildOperationType.Result{"
                 + "readContentLength=" + readContentLength
                 + '}';
         }
 
     }
 
-    private ExternalResourceDownloadBuildOperation() {
+    private ExternalResourceDownloadBuildOperationType() {
     }
 }
