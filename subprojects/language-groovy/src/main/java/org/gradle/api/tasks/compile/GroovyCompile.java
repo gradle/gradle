@@ -204,12 +204,6 @@ public class GroovyCompile extends AbstractCompile {
         this.compiler = compiler;
     }
 
-    /**
-     * Factory for creating the Java toolchain.
-     *
-     * @since 4.0
-     */
-    @Incubating
     @Inject
     protected JavaToolChainFactory getJavaToolChainFactory() {
         throw new UnsupportedOperationException();
