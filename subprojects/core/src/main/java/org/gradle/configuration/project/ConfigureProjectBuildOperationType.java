@@ -56,4 +56,7 @@ public final class ConfigureProjectBuildOperationType implements BuildOperationT
 
     }
 
+    private ConfigureProjectBuildOperationType() {
+    }
+
 }

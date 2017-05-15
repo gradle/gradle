@@ -59,6 +59,12 @@ package org.gradle.internal.operations;
  * They should be housed in a logical package space, which may not be the same as the class
  * that executes the actual operation being represented, as often that is internal detail that may change.
  *
+ * Note, some types currently have empty detail objects.
+ * This is because the presence of a detail object is the heuristic we use to
+ * decide whether to forward an operation notification to the build scan plugin.
+ * In such cases the build scan plugin does not use the empty type so we can change this
+ * later and use a more definitive signal of whether to emit a notification.
+ *
  * @param <D> the type of details object for the operation
  * @param <R> the type of result object for the operation
  * @since 4.0

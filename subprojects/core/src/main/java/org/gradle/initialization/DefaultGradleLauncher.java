@@ -17,7 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
@@ -216,16 +215,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
                 projectsEvaluated();
             }
 
-            // make requested tasks available from according build operation.
             TaskGraphExecuter taskGraph = gradle.getTaskGraph();
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.ResultImpl(toTaskPaths(taskGraph.getRequestedTasks()), toTaskPaths(taskGraph.getFilteredTasks())));
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            StartParameter startParameter = gradle.getStartParameter();
             return BuildOperationDescriptor.displayName("Calculate task graph")
-                .details(new CalculateTaskGraphBuildOperationType.DetailsImpl(startParameter.getTaskRequests(), startParameter.getExcludedTaskNames()));
+                .details(new CalculateTaskGraphBuildOperationType.Details());
         }
     }
 

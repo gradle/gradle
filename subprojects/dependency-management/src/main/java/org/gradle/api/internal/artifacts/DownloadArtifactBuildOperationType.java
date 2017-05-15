@@ -49,4 +49,5 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
 
     private DownloadArtifactBuildOperationType() {
     }
+
 }

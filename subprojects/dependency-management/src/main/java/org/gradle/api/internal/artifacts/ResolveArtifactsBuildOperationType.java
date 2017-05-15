@@ -29,14 +29,12 @@ public final class ResolveArtifactsBuildOperationType implements BuildOperationT
 
     @UsedByScanPlugin
     public interface Details {
+
         String getConfigurationPath();
+
     }
 
-    public static class DetailsImpl {
-
-        public String getConfigurationPath() {
-            return configuration;
-        }
+    public static class DetailsImpl implements Details {
 
         private String configuration;
 
@@ -44,9 +42,13 @@ public final class ResolveArtifactsBuildOperationType implements BuildOperationT
             this.configuration = configuration;
         }
 
-        public String getConfiguration() {
+        public String getConfigurationPath() {
             return configuration;
         }
+
+    }
+
+    private ResolveArtifactsBuildOperationType() {
     }
 
 }

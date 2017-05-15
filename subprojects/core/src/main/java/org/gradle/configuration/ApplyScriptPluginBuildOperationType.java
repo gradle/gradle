@@ -33,13 +33,13 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
     public interface Details {
 
         @Nullable
-        File getFile();
+        String getFilePath();
 
         String getDisplayName();
 
     }
 
-    public static class DetailsImpl {
+    public static class DetailsImpl implements Details {
 
         private File file;
         private String displayName;
@@ -50,8 +50,8 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
         }
 
         @Nullable
-        public File getFile() {
-            return file;
+        public String getFilePath() {
+            return file.getAbsolutePath();
         }
 
         public String getDisplayName() {
@@ -60,4 +60,6 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
 
     }
 
+    private ApplyScriptPluginBuildOperationType() {
+    }
 }

@@ -31,7 +31,7 @@ public final class ExternalResourceDownloadBuildOperationType implements BuildOp
     @UsedByScanPlugin
     public interface Details {
 
-        URI getLocation();
+        String getLocation();
 
         /**
          * The advertised length of the resource, prior to transfer.
@@ -70,8 +70,8 @@ public final class ExternalResourceDownloadBuildOperationType implements BuildOp
             this.contentType = contentType;
         }
 
-        public URI getLocation() {
-            return location;
+        public String getLocation() {
+            return location.toASCIIString();
         }
 
         public long getContentLength() {
@@ -117,4 +117,5 @@ public final class ExternalResourceDownloadBuildOperationType implements BuildOp
 
     private ExternalResourceDownloadBuildOperationType() {
     }
+
 }

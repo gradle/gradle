@@ -16,11 +16,9 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -30,13 +28,7 @@ import java.util.Set;
  */
 public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
-    @UsedByScanPlugin
-    public interface Details {
-
-        List<TaskExecutionRequest> getTaskRequests();
-
-        Set<String> getExcludedTaskNames();
-
+    public static class Details {
     }
 
     @UsedByScanPlugin
@@ -45,26 +37,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         Set<String> getRequestedTaskPaths();
 
         Set<String> getExcludedTaskPaths();
-
-    }
-
-    public static class DetailsImpl implements Details {
-
-        private final List<TaskExecutionRequest> taskRequests;
-        private final Set<String> excludedTaskNames;
-
-        public DetailsImpl(List<TaskExecutionRequest> taskRequests, Set<String> excludedTaskNames) {
-            this.taskRequests = taskRequests;
-            this.excludedTaskNames = excludedTaskNames;
-        }
-
-        public List<TaskExecutionRequest> getTaskRequests() {
-            return taskRequests;
-        }
-
-        public Set<String> getExcludedTaskNames() {
-            return excludedTaskNames;
-        }
 
     }
 
@@ -92,4 +64,5 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
     private CalculateTaskGraphBuildOperationType() {
     }
+
 }

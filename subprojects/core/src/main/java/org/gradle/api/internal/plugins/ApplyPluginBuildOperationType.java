@@ -38,7 +38,7 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
 
     }
 
-    static class DetailsImpl {
+    static class DetailsImpl implements Details {
         private PluginId pluginId;
         private String className;
 
@@ -57,4 +57,6 @@ public final class ApplyPluginBuildOperationType implements BuildOperationType<A
         }
     }
 
+    private ApplyPluginBuildOperationType() {
+    }
 }

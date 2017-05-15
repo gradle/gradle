@@ -59,4 +59,5 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
     private SnapshotTaskInputsBuildOperationType() {
     }
+
 }
