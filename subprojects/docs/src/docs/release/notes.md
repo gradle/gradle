@@ -166,12 +166,15 @@ This will take advantage of performance optimizations in the latest [Zinc](https
 
 Ivy plugin repositories now support the same API for patterns and layouts that Ivy artifact repositories support.
 
-### Ignore classpath resources for up-to-date checks and the build cache
+### Smart Normalization: Ignore classpath resources for up-to-date checks and the build cache
 
-It is now possible to ignore resources on the classpath for up-to-date checks and the build cache.
-Often a project has a file containing volatile data (like some ID to identify the CI job that published the artifact or a timestamp) which should be packaged into the jar for auditing reasons.
-As soon as such a file is present, the `test` task will never be up-to-date or from the build cache since on every Gradle invocation the contents of this file - and by this this the inputs to the task - would change.
-It is now possible to tell Gradle about these files by configuring [resource normalization](userguide/more_about_tasks.html#sec:custom_resource_normalization):
+Gradle 4.0 supports ignoring particular resources on a runtime classpath. This affects up-to-date checks and the calculation of build cache keys.
+
+It's common for a project to have a file that contains volatile data that frequently changes without affecting runtime behavior. This information can be used to audit artifacts, identify the CI job that published the artifact or identify when an artifact was produced.
+
+Including files like this on your runtime classpath can cause tasks like the `test` task to never be up-to-date or cause build cache misses since every build can have a different build cache key.
+
+It is now possible to tell Gradle about these files by configuring a project level [resource normalization strategy](userguide/more_about_tasks.html#sec:custom_resource_normalization):
 
     normalization {
         runtimeClasspath {
@@ -179,10 +182,10 @@ It is now possible to tell Gradle about these files by configuring [resource nor
         }
     }
 
-The effect of this configuration would be that changes to build-info.properties would be ignored for up-to-date checks and build cache key calculations.
-Note that this will not change the runtime behavior of the Test task - i.e. any test is still able to load build-info.properties and the classpath is still the same as before.
+This configuration tells Gradle to ignore changes to files named `build-info.properties` on the runtime classpath.
+Please note that this will not affect the runtime classpath that the `Test` task will use. In other words, any test is still free to load `build-info.properties` as it is still available on the classpath.
 
-For more information on this feature see the corresponding section in the [userguide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
+For more information about this feature, see the corresponding section in the [user guide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
 
 ## Track Java version for Groovy compilation
 
