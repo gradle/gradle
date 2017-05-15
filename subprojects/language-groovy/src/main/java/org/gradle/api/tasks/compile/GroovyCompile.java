@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
@@ -126,9 +125,8 @@ public class GroovyCompile extends AbstractCompile {
      *
      * @since 4.0
      */
-    @Incubating
     @Input
-    protected String getGroovyCompilerJvmJavaVersion() {
+    private String getGroovyCompilerJvmJavaVersion() {
         return JavaVersion.current().getMajorVersion();
     }
 

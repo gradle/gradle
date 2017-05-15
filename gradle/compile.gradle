@@ -42,6 +42,9 @@ tasks.withType(GroovyCompile) {
     options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
     groovyOptions.encoding = 'utf-8'
     inputs.property('javaToolchain.version') {
+        // This is the version of the Java compiler the Groovy compiler will use
+        // to compile Java files. We do not track this, yet, as opposed to the JVM version
+        // the Groovy compiler is running on.
         tasks.getByPath('compileJava').toolChain.version
     }
 }

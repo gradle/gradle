@@ -56,10 +56,9 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
 
         when:
         executer.withJavaHome jdk7.javaHome
-        succeeds ":compileGroovy", "--info"
+        succeeds ":compileGroovy"
         then:
         nonSkippedTasks.contains ":compileGroovy"
-        output.contains "Value of input property 'groovyCompilerJvmJavaVersion' has changed for task ':compileGroovy'"
     }
 
     @NotYetImplemented
