@@ -152,6 +152,12 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.actionClassLoaderHashes == ["ee", "dd"]
 
         when:
+        inputs.actionsTypes >> ["foo", "bar"]
+
+        then:
+        adapter.actionTypes == ["foo", "bar"]
+
+        when:
         inputs.outputPropertyNames >> ["2", "1"].toSet()
 
         then:
