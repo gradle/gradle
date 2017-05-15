@@ -19,13 +19,15 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
+import org.gradle.api.internal.changedetection.state.TypeImplementation;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
@@ -41,45 +43,45 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     private final ImmutableSortedMap.Builder<String, HashCode> inputHashes = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskClass(String taskClass) {
-        this.taskClass = taskClass;
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskImplementation(TypeImplementation taskImplementation) {
+        this.taskClass = taskImplementation.getTypeName();
         hasher.putString(taskClass);
         log("taskClass", taskClass);
-        return this;
-    }
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendClassloaderHash(@Nullable HashCode hashCode) {
-        classLoaderHash = hashCode;
+        HashCode hashCode = taskImplementation.getClassLoaderHash();
+        this.classLoaderHash = hashCode;
         if (hashCode != null) {
-            hasher.putBytes(hashCode.asBytes());
+            hasher.putHash(hashCode);
         }
         log("classLoaderHash", hashCode);
         return this;
     }
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendActionsClassloaderHashes(List<HashCode> actionsClassLoaderHashes) {
-        this.actionsClassLoaderHashes = actionsClassLoaderHashes;
-        for (HashCode hashCode : actionsClassLoaderHashes) {
-            if (hashCode != null) {
-                hasher.putBytes(hashCode.asBytes());
-            }
-            log("actionsClassLoaderHash", hashCode);
-        }
-        return this;
-    }
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskActionImplementations(Collection<TypeImplementation> taskActionImplementations) {
+        int actionCount = taskActionImplementations.size();
+        List<String> actionsTypes = Lists.newArrayListWithCapacity(actionCount);
+        List<HashCode> actionsClassLoaderHashes = Lists.newArrayListWithCapacity(actionCount);
+        for (TypeImplementation actionImpl : taskActionImplementations) {
+            String actionType = actionImpl.getTypeName();
+            actionsTypes.add(actionType);
+            hasher.putString(actionType);
+            log("actionsType", actionType);
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder appendActionsTypes(List<String> actionsTypes) {
-        this.actionsTypes = actionsTypes;
-        for (String actionsType : actionsTypes) {
-            hasher.putString(actionsType);
-            log("actionsType", actionsType);
+            if (!actionImpl.hasUnknownClassLoader()) {
+                HashCode hashCode = actionImpl.getClassLoaderHash();
+                hasher.putHash(hashCode);
+                log("actionsClassLoaderHash", hashCode);
+            }
         }
+
+        this.actionsTypes = actionsTypes;
+        this.actionsClassLoaderHashes = actionsClassLoaderHashes;
         return this;
     }
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendInputPropertyHash(String propertyName, HashCode hashCode) {
         hasher.putString(propertyName);
-        hasher.putBytes(hashCode.asBytes());
+        hasher.putHash(hashCode);
         inputHashes.put(propertyName, hashCode);
         LOGGER.debug("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
         return this;

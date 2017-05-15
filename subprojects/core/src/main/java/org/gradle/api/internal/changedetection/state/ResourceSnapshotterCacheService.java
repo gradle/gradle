@@ -55,7 +55,7 @@ public class ResourceSnapshotterCacheService {
     private HashCode resourceHashCacheKey(RegularFileSnapshot fileSnapshot, byte[] configurationHash) {
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putBytes(configurationHash);
-        hasher.putBytes(fileSnapshot.getContent().getContentMd5().asBytes());
+        hasher.putHash(fileSnapshot.getContent().getContentMd5());
         return hasher.hash();
     }
 }

@@ -306,7 +306,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
     def snapshot(HashCode hashCode) {
         FileCollectionSnapshot snapshot = Stub(FileCollectionSnapshot)
-        snapshot.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putBytes(hashCode.asBytes()) }
+        snapshot.appendToHasher(_) >> { BuildCacheHasher hasher -> hasher.putHash(hashCode) }
         snapshot
     }
 }

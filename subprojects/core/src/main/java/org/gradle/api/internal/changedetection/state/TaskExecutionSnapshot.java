@@ -20,20 +20,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.hash.HashCode;
 import org.gradle.internal.id.UniqueId;
-
-import java.util.List;
 
 /**
  * Immutable snapshot of the state of a task when it was executed.
  */
 public class TaskExecutionSnapshot {
     private final UniqueId buildId;
-    private final String taskClass;
-    private final HashCode taskClassLoaderHash;
-    private final List<HashCode> taskActionsClassLoaderHashes;
-    private final ImmutableList<String> taskActionsTypes;
+    private final TypeImplementation taskImplementation;
+    private final ImmutableList<TypeImplementation> taskActionsImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private final ImmutableSortedSet<String> cacheableOutputProperties;
     private final ImmutableSet<String> declaredOutputFilePaths;
@@ -41,14 +36,12 @@ public class TaskExecutionSnapshot {
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(UniqueId buildId, String taskClass, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, List<HashCode> taskActionsClassLoaderHashes, ImmutableList<String> taskActionsTypes, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(UniqueId buildId, TypeImplementation taskImplementation, ImmutableList<TypeImplementation> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
         this.buildId = buildId;
-        this.taskClass = taskClass;
+        this.taskImplementation = taskImplementation;
+        this.taskActionsImplementations = taskActionsImplementations;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
-        this.taskClassLoaderHash = taskClassLoaderHash;
-        this.taskActionsClassLoaderHashes = taskActionsClassLoaderHashes;
-        this.taskActionsTypes = taskActionsTypes;
         this.inputProperties = inputProperties;
         this.inputFilesSnapshotIds = inputFilesSnapshotIds;
         this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
@@ -57,6 +50,14 @@ public class TaskExecutionSnapshot {
 
     public UniqueId getBuildId() {
         return buildId;
+    }
+
+    public TypeImplementation getTaskImplementation() {
+        return taskImplementation;
+    }
+
+    public ImmutableList<TypeImplementation> getTaskActionsImplementations() {
+        return taskActionsImplementations;
     }
 
     public ImmutableSortedSet<String> getCacheableOutputProperties() {
@@ -81,21 +82,5 @@ public class TaskExecutionSnapshot {
 
     public ImmutableSortedMap<String, Long> getOutputFilesSnapshotIds() {
         return outputFilesSnapshotIds;
-    }
-
-    public List<HashCode> getTaskActionsClassLoaderHashes() {
-        return taskActionsClassLoaderHashes;
-    }
-
-    public ImmutableList<String> getTaskActionsTypes() {
-        return taskActionsTypes;
-    }
-
-    public String getTaskClass() {
-        return taskClass;
-    }
-
-    public HashCode getTaskClassLoaderHash() {
-        return taskClassLoaderHash;
     }
 }

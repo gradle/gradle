@@ -52,6 +52,13 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     }
 
     @Override
+    public BuildCacheHasher putHash(HashCode hashCode) {
+        hasher.putInt(hashCode.bits() / 8);
+        hasher.putBytes(hashCode.asBytes());
+        return this;
+    }
+
+    @Override
     public DefaultBuildCacheHasher putInt(int i) {
         hasher.putInt(4);
         hasher.putInt(i);

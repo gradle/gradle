@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 
-import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -31,14 +30,8 @@ public class TaskCacheKeyCalculator {
 
     public TaskOutputCachingBuildCacheKey calculate(TaskExecution execution) {
         DefaultTaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder();
-        HashCode taskClassLoaderHash = execution.getTaskClassLoaderHash();
-        List<HashCode> taskActionsClassLoaderHashes = execution.getTaskActionsClassLoaderHashes();
-        List<String> taskActionsTypes = execution.getTaskActionsTypes();
-
-        builder.appendTaskClass(execution.getTaskClass());
-        builder.appendClassloaderHash(taskClassLoaderHash);
-        builder.appendActionsClassloaderHashes(taskActionsClassLoaderHashes);
-        builder.appendActionsTypes(taskActionsTypes);
+        builder.appendTaskImplementation(execution.getTaskImplementation());
+        builder.appendTaskActionImplementations(execution.getTaskActionImplementations());
 
         SortedMap<String, ValueSnapshot> inputProperties = execution.getInputProperties();
         for (Map.Entry<String, ValueSnapshot> entry : inputProperties.entrySet()) {
