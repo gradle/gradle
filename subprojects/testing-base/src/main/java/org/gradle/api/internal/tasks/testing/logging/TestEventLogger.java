@@ -44,12 +44,12 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationState parentOperation;
 
-    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter, BuildOperationExecutor buildOperationExecutor, BuildOperationState parentOperation) {
+    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter, BuildOperationExecutor buildOperationExecutor) {
         super(textOutputFactory, logLevel, testLogging.getDisplayGranularity());
         this.exceptionFormatter = exceptionFormatter;
         this.testLogging = testLogging;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.parentOperation = parentOperation;
+        this.parentOperation = buildOperationExecutor.getCurrentOperation();
     }
 
     @Override

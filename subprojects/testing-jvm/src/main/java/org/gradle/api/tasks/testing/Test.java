@@ -619,7 +619,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = testLogging.get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter, getBuildOperationExecutor(), getBuildOperationExecutor().getCurrentOperation());
+        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter, getBuildOperationExecutor());
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
         if (getFilter().isFailOnNoMatchingTests() && !getFilter().getIncludePatterns().isEmpty()) {

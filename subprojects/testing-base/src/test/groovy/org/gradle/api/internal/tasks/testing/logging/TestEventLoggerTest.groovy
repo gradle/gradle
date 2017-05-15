@@ -20,31 +20,17 @@ import org.gradle.api.internal.tasks.testing.SimpleTestResult
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
-import org.gradle.internal.progress.BuildOperationDescriptor
-import org.gradle.internal.progress.BuildOperationListener
-import org.gradle.internal.progress.BuildOperationState
-import org.gradle.internal.progress.BuildOperationType
-import org.gradle.internal.progress.DefaultBuildOperationExecutor
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
-import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
-
-import java.util.concurrent.Executor
 
 class TestEventLoggerTest extends Specification {
     def textOutputFactory = new TestStyledTextOutputFactory()
 
     def testLogging = new DefaultTestLogging()
     def exceptionFormatter = Mock(TestExceptionFormatter)
-    WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
-    def buildOperationExecutor = createBuildOperationExecutor()
-    def parentOperation = createParentOperation()
-    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter, buildOperationExecutor, parentOperation)
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter, buildOperationExecutor)
 
     def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
     def workerDescriptor = new SimpleTestDescriptor(name: "worker", composite: true, parent: rootDescriptor)
@@ -54,30 +40,6 @@ class TestEventLoggerTest extends Specification {
     def methodDescriptor = new SimpleTestDescriptor(name: "testMethod", className: "foo.bar.TestClass", parent: classDescriptor)
 
     def result = new SimpleTestResult()
-
-    private BuildOperationExecutor createBuildOperationExecutor() {
-        new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), 1)
-    }
-
-    private BuildOperationState createParentOperation() {
-        BuildOperationDescriptor buildOperationDescriptor = new BuildOperationDescriptor(123, 456, 'parent', 'Parent Operation', 'Parent Operation', null, BuildOperationType.TASK)
-        def parentOperation = new DefaultBuildOperationExecutor.DefaultBuildOperationState(buildOperationDescriptor, new Date().time)
-        parentOperation.setRunning(true)
-        parentOperation
-    }
-
-    def setup() {
-        _ * workerLeaseService.withLocks(_) >> { args ->
-            new Executor() {
-                @Override
-                void execute(Runnable runnable) {
-                    runnable.run()
-                }
-            }
-        }
-    }
 
     def "logs event if event type matches"() {
         testLogging.events(TestLogEvent.PASSED, TestLogEvent.SKIPPED)
