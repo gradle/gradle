@@ -127,8 +127,7 @@ public class WorkInProgressRenderer extends BatchOutputEventListener {
     }
 
     private void attach(ProgressOperation operation) {
-        // Skip attach if a children is already present
-        if (!operation.getChildren().isEmpty() || !isRenderable(operation)) {
+        if (operation.hasChildren() || !isRenderable(operation)) {
             return;
         }
 
