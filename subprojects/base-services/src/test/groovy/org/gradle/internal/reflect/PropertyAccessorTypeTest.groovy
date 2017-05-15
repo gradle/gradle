@@ -106,7 +106,8 @@ class PropertyAccessorTypeTest extends Specification {
         void settings(String value) {}
         String getccCompiler() { "CC" }
 
-        Boolean isNot() { return true }
+        String isNotString() { return "string" }
+        Boolean isNotBoolean() { return true }
     }
 
     def "deviant bean properties are considered as such by Gradle"() {
@@ -145,10 +146,21 @@ class PropertyAccessorTypeTest extends Specification {
         def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
 
         expect:
-        bean.not == true
-        !propertyNames.contains("not")
-        PropertyAccessorType.fromName('isNot') == PropertyAccessorType.IS_GETTER
-        PropertyAccessorType.of(DeviantBean.class.getMethod("isNot")) == PropertyAccessorType.IS_GETTER
+        bean.notBoolean == true
+        try {
+            bean.notString
+            assert false
+        } catch (MissingPropertyException e) {
+            assert e.property == "notString"
+        }
+
+        PropertyAccessorType.fromName('isNotBoolean') == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotBoolean")) == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.fromName('isNotString') == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotString")) == null
+
+        !propertyNames.contains("notBoolean")
+        !propertyNames.contains("notString")
     }
 
     static class StaticMethods {

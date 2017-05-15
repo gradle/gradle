@@ -27,8 +27,9 @@ import java.util.List;
 import java.util.Set;
 
 public class ClassInspector {
+
     /**
-     * Extracts a view of the given class.
+     * Extracts a view of the given class. Ignores private methods.
      */
     public static ClassDetails inspect(Class<?> type) {
         MutableClassDetails classDetails = new MutableClassDetails(type);
