@@ -131,7 +131,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Incubating
     @Input
-    protected String getGroovyCompilerJvmJavaVersion() {
+    protected String getGroovyCompilerJvmVersion() {
         return JavaVersion.current().getMajorVersion();
     }
 

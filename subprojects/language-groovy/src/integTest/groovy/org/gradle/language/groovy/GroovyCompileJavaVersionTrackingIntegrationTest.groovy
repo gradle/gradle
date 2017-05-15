@@ -58,7 +58,7 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         succeeds ":compileGroovy", "--info"
         then:
         nonSkippedTasks.contains ":compileGroovy"
-        output.contains "Value of input property 'groovyCompilerJvmJavaVersion' has changed for task ':compileGroovy'"
+        output.contains "Value of input property 'groovyCompilerJvmVersion' has changed for task ':compileGroovy'"
     }
 
     def "tracks changes to the Java toolchain used for cross compilation"() {
