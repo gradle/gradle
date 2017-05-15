@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.json.JsonSlurper
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
 import org.gradle.internal.operations.BuildOperationTypes
@@ -59,7 +60,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                         name: buildOperation.name,
                         startTime: startEvent.startTime
                     ]
-                    if (buildOperation.details != null && buildOperation.details.class != org.gradle.api.execution.internal.ExecuteTaskBuildOperationType.DetailsImpl) {
+                    if (buildOperation.details != null && buildOperation.details.class != ${ExecuteTaskBuildOperationDetails.name}) {
                         operations[buildOperation.id].putAll(
                             detailsType: buildOperation.details.class.name,
                             details: buildOperation.details

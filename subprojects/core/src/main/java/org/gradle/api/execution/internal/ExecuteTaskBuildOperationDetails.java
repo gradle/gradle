@@ -16,36 +16,19 @@
 
 package org.gradle.api.execution.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
-public final class ExecuteTaskBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, Void> {
+public class ExecuteTaskBuildOperationDetails {
 
-    @UsedByScanPlugin
-    public interface Details {
+    // TODO: do not reference mutable state
+    private final TaskInternal task;
 
-        Task getTask();
-
+    public ExecuteTaskBuildOperationDetails(TaskInternal task) {
+        this.task = task;
     }
 
-    public static class DetailsImpl implements Details {
-
-        // TODO: do not reference mutable state
-        private final TaskInternal task;
-
-        public DetailsImpl(TaskInternal task) {
-            this.task = task;
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            return task;
-        }
-
+    public TaskInternal getTask() {
+        return task;
     }
 
-    private ExecuteTaskBuildOperationType() {
-    }
 }

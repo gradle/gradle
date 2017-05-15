@@ -16,17 +16,15 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
 
 /**
  * Details about an artifact being downloaded.
  *
  * @since 4.0
  */
-public final class DownloadArtifactBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, Void> {
+public final class DownloadArtifactBuildOperationType implements BuildOperationType<DownloadArtifactBuildOperationType.Details, Void> {
 
     @UsedByScanPlugin
     public interface Details {
