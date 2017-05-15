@@ -18,9 +18,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.resource.transfer.DownloadBuildOperationDetails
-import org.junit.Rule
 import spock.lang.Unroll
 
 /**
@@ -29,8 +28,7 @@ import spock.lang.Unroll
  */
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @Rule
-    public final BuildOperationNotificationsFixture buildOperations = new BuildOperationNotificationsFixture(executer, temporaryFolder)
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Unroll
     void "emits events for dependency resolution downloads - chunked: #chunked"() {
@@ -62,7 +60,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         then:
         def actualFileLength = m.pom.file.bytes.length
-        def buildOp = buildOperations.first(DownloadBuildOperationDetails)
+        def buildOp = buildOperations.operation(DownloadBuildOperationDetails)
         buildOp.details.contentType == 'null'
         buildOp.details.contentLength == chunked ? -1 : actualFileLength
         buildOp.details.location.path == m.pomPath

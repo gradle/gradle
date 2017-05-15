@@ -70,6 +70,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
+import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.DefaultBuildOperationExecutor;
 import org.gradle.internal.remote.MessagingServer;
@@ -122,16 +123,34 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         addProvider(new ScopeIdsServices());
     }
 
-    ListenerManager createListenerManager(ListenerManager parent) {
-        return parent.createChild();
-    }
-
     DeploymentRegistry createDeploymentRegistry() {
         return new DefaultDeploymentRegistry();
     }
 
-    BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory, WorkerLeaseService workerLeaseService, StartParameter startParameter, ExecutorFactory executorFactory) {
-        return new DefaultBuildOperationExecutor(listenerManager.getBroadcaster(BuildOperationListener.class), timeProvider, progressLoggerFactory, new DefaultBuildOperationQueueFactory(workerLeaseService), executorFactory, startParameter.getMaxWorkerCount());
+    ListenerManager createListenerManager(ListenerManager parent) {
+        return parent.createChild();
+    }
+
+    BuildOperationTrace createLoggingBuildOperationListener(ListenerManager listenerManager, StartParameter startParameter) {
+        return new BuildOperationTrace(startParameter, listenerManager);
+    }
+
+    BuildOperationExecutor createBuildOperationExecutor(
+        ListenerManager listenerManager,
+        TimeProvider timeProvider,
+        ProgressLoggerFactory progressLoggerFactory,
+        WorkerLeaseService workerLeaseService,
+        StartParameter startParameter,
+        ExecutorFactory executorFactory,
+        @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
+    ) {
+        return new DefaultBuildOperationExecutor(
+            listenerManager.getBroadcaster(BuildOperationListener.class),
+            timeProvider, progressLoggerFactory,
+            new DefaultBuildOperationQueueFactory(workerLeaseService),
+            executorFactory,
+            startParameter.getMaxWorkerCount()
+        );
     }
 
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,

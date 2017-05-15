@@ -18,14 +18,12 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.junit.Rule
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String BUILD_OPERATION = 'Compute task input hashes and build cache key'
 
-    @Rule
-    BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "task output caching key is exposed when build cache is enabled"() {
         given:

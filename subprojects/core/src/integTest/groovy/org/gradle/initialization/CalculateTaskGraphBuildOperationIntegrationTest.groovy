@@ -18,12 +18,11 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.junit.Rule
+import org.gradle.internal.operations.trace.CompleteBuildOperation
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule
-    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
         settingsFile << """
@@ -83,7 +82,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().failure.contains("Task 'someNonExisting' not found in root project")
     }
 
-    private BuildOperationsFixture.CompleteBuildOperation operation() {
+    private CompleteBuildOperation operation() {
         buildOperations.operation("Calculate task graph")
     }
 
