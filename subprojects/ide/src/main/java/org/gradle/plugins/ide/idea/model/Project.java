@@ -65,6 +65,13 @@ public class Project extends XmlPersistableConfigurationObject {
         this.modulePaths = modulePaths;
     }
 
+    /**
+     * Adds a module to the module paths included in the Project.
+     *
+     * @param moduleFile path to the module's module file
+     *
+     * @since 4.0
+     */
     public void addModulePath(File moduleFile) {
         modulePaths.add(pathFactory.relativePath("PROJECT_DIR", moduleFile));
     }

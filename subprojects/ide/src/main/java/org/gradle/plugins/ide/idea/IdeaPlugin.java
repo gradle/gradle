@@ -58,6 +58,7 @@ import org.gradle.plugins.ide.idea.model.PathFactory;
 import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -129,6 +130,12 @@ public class IdeaPlugin extends IdePlugin {
         configureForWarPlugin(project);
         configureForScalaPlugin();
         registerImlArtifact(project);
+    }
+
+    // No one should be calling this.
+    @Deprecated
+    public void performPostEvaluationActions() {
+        SingleMessageLogger.nagUserOfDiscontinuedMethod("performPostEvaluationActions");
     }
 
     private void registerImlArtifact(Project project) {
