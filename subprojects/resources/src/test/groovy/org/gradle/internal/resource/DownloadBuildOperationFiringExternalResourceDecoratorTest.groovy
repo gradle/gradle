@@ -25,15 +25,10 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specification {
-
-    @Shared
-    def tmpDir = new TestNameTestDirectoryProvider()
 
     @Unroll
     def "delegates method call #methodName"() {
@@ -156,7 +151,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
 
         where:
         methodName    | parameter                            | methodSignature
-        'writeTo'     | tmpDir.createFile("tempFile")        | "writeTo(File)"
+        'writeTo'     | Mock(File)                           | "writeTo(File)"
         'writeTo'     | Mock(OutputStream)                   | "writeTo(OutputStream)"
         'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
         'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
@@ -168,7 +163,6 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
         given:
         def delegate = Mock(ExternalResource)
         def buildOperationExecuter = Mock(BuildOperationExecutor)
-        def uri = new URI("http://some/uri")
         def resource = new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecuter, delegate)
         def buildOperationContext = Mock(BuildOperationContext)
 
@@ -186,7 +180,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
 
         where:
         methodName    | parameter                            | methodSignature
-        'writeTo'     | tmpDir.createFile("tempFile")        | "writeTo(File)"
+        'writeTo'     | Mock(File)                           | "writeTo(File)"
         'writeTo'     | Mock(OutputStream)                   | "writeTo(OutputStream)"
         'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
         'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
