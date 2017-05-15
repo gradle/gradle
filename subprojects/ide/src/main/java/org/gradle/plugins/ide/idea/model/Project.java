@@ -72,6 +72,7 @@ public class Project extends XmlPersistableConfigurationObject {
      *
      * @since 4.0
      */
+    @Incubating
     public void addModulePath(File moduleFile) {
         modulePaths.add(pathFactory.relativePath("PROJECT_DIR", moduleFile));
     }
