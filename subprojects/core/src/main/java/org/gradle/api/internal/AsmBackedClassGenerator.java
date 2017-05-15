@@ -120,7 +120,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         private final ClassWriter visitor;
         private final Class<T> type;
-        private final String typeName;
         private final Type generatedType;
         private final Type superclassType;
         private final Map<java.lang.reflect.Type, ReturnTypeEntry> genericReturnTypeConstantsIndex = Maps.newHashMap();
@@ -135,7 +134,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             classGenerator = new AsmClassGenerator(type, "_Decorated");
             visitor = classGenerator.getVisitor();
-            typeName = classGenerator.getGeneratedTypeName();
             generatedType = classGenerator.getGeneratedType();
             superclassType = Type.getType(type);
             extensible = classMetaData.isExtensible();
