@@ -24,6 +24,10 @@ import java.util.Collection;
 
 /**
  * Distinguishes "get" getters, "is" getters and setters from non-property methods.
+ *
+ * Generally follows the JavaBean conventions, with 2 exceptions: is methods can return `Boolean` (in addition to `boolean`) and setter methods can return non-void values.
+ *
+ * This is essentially a superset of the conventions supported by Java, Groovy and Kotlin.
  */
 public enum PropertyAccessorType {
     IS_GETTER(2) {
@@ -82,7 +86,7 @@ public enum PropertyAccessorType {
                 return IS_GETTER;
             }
         }
-        if (hasVoidReturnType(method) && takesSingleParameter(method) && isSetterName(methodName)) {
+        if (takesSingleParameter(method) && isSetterName(methodName)) {
             return SETTER;
         }
         return null;

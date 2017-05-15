@@ -360,10 +360,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "non void setter"() {
-        when: extract NonVoidSetter
-        then: def ex = thrown InvalidManagedTypeException
-        ex.message == """Type ${fullyQualifiedNameOf(NonVoidSetter)} is not a valid managed type:
-- Method setName(java.lang.String) is not a valid property accessor method: setter method must have void return type"""
+        def bindings = extract(NonVoidSetter)
+
+        expect:
+        bindings.getManagedProperty("name") != null
     }
 
     @Managed
@@ -413,7 +413,7 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "misaligned setter type"() {
-        when: def bindings = extract MisalignedSetterType
+        when: extract MisalignedSetterType
         then: def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(MisalignedSetterType)} is not a valid managed type:
 - Method setThing(java.lang.Object) is not a valid method: it should take parameter with type 'String'"""

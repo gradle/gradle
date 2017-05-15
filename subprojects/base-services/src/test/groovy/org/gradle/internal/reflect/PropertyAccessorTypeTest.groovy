@@ -108,6 +108,10 @@ class PropertyAccessorTypeTest extends Specification {
 
         String isNotString() { return "string" }
         Boolean isNotBoolean() { return true }
+
+        DeviantBean setWriteOnly(String s) {
+            return this
+        }
     }
 
     def "deviant bean properties are considered as such by Gradle"() {
@@ -141,7 +145,7 @@ class PropertyAccessorTypeTest extends Specification {
         bean.idore == true
     }
 
-    def "is methods with Boolean return type are considers as such by Gradle and Groovy but not Java"() {
+    def "is methods with Boolean return type are considered as such by Gradle and Groovy but not Java"() {
         def bean = new DeviantBean()
         def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
 
@@ -161,6 +165,20 @@ class PropertyAccessorTypeTest extends Specification {
 
         !propertyNames.contains("notBoolean")
         !propertyNames.contains("notString")
+    }
+
+    def "setter methods with non-void return type are considered as such by Gradle and Groovy but not Java"() {
+        def bean = new DeviantBean()
+        def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
+
+        when:
+        bean.writeOnly = "ok"
+
+        then:
+        PropertyAccessorType.fromName('setWriteOnly') == PropertyAccessorType.SETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("setWriteOnly", String)) == PropertyAccessorType.SETTER
+
+        !propertyNames.contains("writeOnly")
     }
 
     static class StaticMethods {
