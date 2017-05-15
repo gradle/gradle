@@ -380,8 +380,8 @@ public class InMemoryBuildCacheServiceFactory implements BuildCacheServiceFactor
 ### Changes to IDE plugins
 
 - New constructor parameter for `EclipsePlugin` and `IdeaPlugin`. Note that these types are not designed to be directly instantiated.
-- Removed `EclipsePlugin.performPostEvaluationActions()` and `IdeaPlugin.performPostEvaluationActions()`. Post-evaluation actions are
-  no longer required.
+- Deprecated `EclipsePlugin.performPostEvaluationActions()` and `IdeaPlugin.performPostEvaluationActions()`. 
+  Post-evaluation actions are no longer used.
 
 ## External contributions
 
