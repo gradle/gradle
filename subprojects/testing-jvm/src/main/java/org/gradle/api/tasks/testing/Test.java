@@ -177,6 +177,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private int maxParallelForks = 1;
     private TestReporter testReporter;
     private final TestTaskReports reports;
+    private BuildOperationExecutor buildOperationExecutor;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -619,7 +620,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = testLogging.get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter, getBuildOperationExecutor());
+
+        if (buildOperationExecutor == null) {
+            buildOperationExecutor = getBuildOperationExecutor();
+        }
+
+        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter, buildOperationExecutor);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
         if (getFilter().isFailOnNoMatchingTests() && !getFilter().getIncludePatterns().isEmpty()) {
@@ -682,7 +688,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                         ? TestOutputAssociation.WITH_TESTCASE
                         : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, buildOperationExecutor, getInetAddressFactory().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 
@@ -1362,5 +1368,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         } else {
             throw new GradleException(message);
         }
+    }
+
+    void setBuildOperationExecutor(BuildOperationExecutor buildOperationExecutor) {
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 }
