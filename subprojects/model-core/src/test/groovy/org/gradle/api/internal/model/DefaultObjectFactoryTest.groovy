@@ -147,6 +147,41 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
 
         !n1.is(factory.named(Named, "a"))
         !n2.is(factory.named(Named, "b"))
+
+        AbstractNamed.counter == 2
+    }
+
+    def "creates instance of class with dummy getName() implementation"() {
+        expect:
+        def n1 = factory.named(DummyNamed, "a")
+        def n2 = factory.named(DummyNamed, "b")
+
+        n1.is(n1)
+        !n1.is(n2)
+
+        n1.name == "a"
+        n2.name == "b"
+
+        n1.calculatedValue == "[a]"
+        n2.calculatedValue == "[b]"
+
+        Matchers.strictlyEquals(n1, n1)
+        n2 != n1
+        !n2.equals(n1)
+
+        n1.hashCode() == n1.hashCode()
+        n1.hashCode() != n2.hashCode()
+
+        n1.toString() == "a"
+        n2.toString() == "b"
+
+        n1.is(factory.named(DummyNamed, "a"))
+        n2.is(factory.named(DummyNamed, "b"))
+
+        !n1.is(factory.named(Named, "a"))
+        !n2.is(factory.named(Named, "b"))
+
+        DummyNamed.counter == 2
     }
 
     @Ignore
