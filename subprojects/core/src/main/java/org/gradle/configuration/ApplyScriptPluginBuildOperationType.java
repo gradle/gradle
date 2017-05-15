@@ -32,8 +32,11 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
     @UsedByScanPlugin
     public interface Details {
 
+        /**
+         * The absolute path to the file.
+         */
         @Nullable
-        String getFilePath();
+        String getFile();
 
         String getDisplayName();
 
@@ -50,7 +53,7 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
         }
 
         @Nullable
-        public String getFilePath() {
+        public String getFile() {
             return file.getAbsolutePath();
         }
 

@@ -36,7 +36,7 @@ public final class BuildOperationTypes {
     }
 
     private static <T extends BuildOperationType<?, ?>> Class<?> extract(Class<T> type, int index) {
-        assert BuildOperationType.class.isAssignableFrom(type);
+        assert BuildOperationType.class.isAssignableFrom(type) : type.getName() + " is not a " + BuildOperationType.class.getName();
 
         for (Type superType : type.getGenericInterfaces()) {
             if (superType instanceof ParameterizedType && ((ParameterizedType) superType).getRawType().equals(BuildOperationType.class)) {

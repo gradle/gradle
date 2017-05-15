@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.BuildOperationTypes
@@ -24,11 +26,14 @@ import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
+import java.util.concurrent.ConcurrentLinkedQueue
+
 class BuildOperationsFixture {
 
     private final TestFile traceFile
 
     private Map<Object, BuildOperationRecord> operations
+    private Map<Object, List<BuildOperationRecord>> children
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
         this.traceFile = projectDir.testDirectory.file("operations.txt")
@@ -39,13 +44,22 @@ class BuildOperationsFixture {
             traceFile.withInputStream {
                 operations = BuildOperationTrace.read(it)
             }
+
+            children = [:].withDefault { [] }
+            operations.values().each {
+                if (it.parentId != null) {
+                    children[it.parentId] << it
+                }
+            }
         }
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> BuildOperationRecord operation(Class<T> type) {
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord operation(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
-        operations.values().find { it.detailsType && detailsType.isAssignableFrom(it.detailsType as Class<?>) }
+        operations.values().find {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
     }
 
     BuildOperationRecord operation(String displayName) {
@@ -69,4 +83,19 @@ class BuildOperationsFixture {
         operation(type) != null
     }
 
+    List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate) {
+        def matches = []
+        def search = new ConcurrentLinkedQueue<BuildOperationRecord>()
+
+        def operation = parent
+        while (operation != null) {
+            if (predicate.isSatisfiedBy(operation)) {
+                matches << operation
+            }
+            search.addAll(children[operation.id])
+            operation = search.poll()
+        }
+
+        matches
+    }
 }
