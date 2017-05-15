@@ -31,6 +31,9 @@ public final class ExternalResourceDownloadBuildOperationType implements BuildOp
     @UsedByScanPlugin
     public interface Details {
 
+        /**
+         * Value is a valid URI.
+         */
         String getLocation();
 
         /**

@@ -143,7 +143,7 @@ class DownloadBuildOperationFiringExternalResourceDecoratorTest extends Specific
 
             def details = descriptor.details
             assert details instanceof ExternalResourceDownloadBuildOperationType.Details
-            assert details.location == TestExternalResource.METADATA.location
+            assert details.location == TestExternalResource.METADATA.location.toASCIIString()
             assert details.contentLength == TestExternalResource.METADATA.contentLength
             assert details.contentType == TestExternalResource.METADATA.contentType
         }
