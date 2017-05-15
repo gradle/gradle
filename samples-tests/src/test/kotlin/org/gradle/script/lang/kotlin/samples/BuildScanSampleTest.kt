@@ -10,6 +10,8 @@ class BuildScanSampleTest : AbstractSampleTest("build-scan") {
 
     @Test
     fun `publishes build scan`() {
-        assertThat(build("tasks", "--scan").output, containsString("Publishing build information..."))
+        assertThat(
+            build("tasks", "--scan").output,
+            containsString("Publishing build information..."))
     }
 }
