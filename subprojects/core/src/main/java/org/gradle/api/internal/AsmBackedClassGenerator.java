@@ -32,9 +32,9 @@ import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.PropertyAccess;
-import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.objectweb.asm.AnnotationVisitor;
@@ -61,9 +61,6 @@ import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
-
-    private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
-
     @Override
     protected <T> ClassBuilder<T> start(Class<T> type, ClassMetaData classMetaData) {
         return new ClassBuilderImpl<T>(type, classMetaData);
@@ -127,6 +124,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final Type generatedType;
         private final Type superclassType;
         private final Map<java.lang.reflect.Type, ReturnTypeEntry> genericReturnTypeConstantsIndex = Maps.newHashMap();
+        private final AsmClassGenerator classGenerator;
         private boolean hasMappingField;
         private final boolean conventionAware;
         private final boolean extensible;
@@ -135,9 +133,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private ClassBuilderImpl(Class<T> type, ClassMetaData classMetaData) {
             this.type = type;
 
-            visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-            typeName = type.getName() + "_Decorated";
-            generatedType = Type.getType("L" + typeName.replaceAll("\\.", "/") + ";");
+            classGenerator = new AsmClassGenerator(type, "_Decorated");
+            visitor = classGenerator.getVisitor();
+            typeName = classGenerator.getGeneratedTypeName();
+            generatedType = classGenerator.getGeneratedType();
             superclassType = Type.getType(type);
             extensible = classMetaData.isExtensible();
             conventionAware = classMetaData.isConventionAware();
@@ -947,8 +946,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             writeGenericReturnTypeFields();
             visitor.visitEnd();
 
-            byte[] bytecode = visitor.toByteArray();
-            return DEFINE_CLASS_METHOD.invoke(type.getClassLoader(), typeName, bytecode, 0, bytecode.length);
+            return classGenerator.define().asSubclass(type);
         }
 
         private void writeGenericReturnTypeFields() {

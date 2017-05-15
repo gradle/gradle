@@ -22,7 +22,7 @@ import spock.lang.Ignore
 import spock.lang.Specification
 
 class DefaultObjectFactoryTest extends Specification {
-    def factory = new DefaultObjectFactory()
+    def factory = DefaultObjectFactory.INSTANCE
 
     def "creates instance of Named"() {
         expect:
