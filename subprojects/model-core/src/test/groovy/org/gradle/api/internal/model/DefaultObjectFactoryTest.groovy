@@ -17,11 +17,14 @@
 package org.gradle.api.internal.model
 
 import org.gradle.api.Named
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Matchers
 import spock.lang.Ignore
-import spock.lang.Specification
 
-class DefaultObjectFactoryTest extends Specification {
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CyclicBarrier
+
+class DefaultObjectFactoryTest extends ConcurrentSpec {
     def factory = DefaultObjectFactory.INSTANCE
 
     def "creates instance of Named"() {
@@ -75,6 +78,44 @@ class DefaultObjectFactoryTest extends Specification {
 
         !n1.is(factory.named(Named, "a"))
         !n2.is(factory.named(Named, "b"))
+    }
+
+    def "multiple threads can create different instances of same type"() {
+        def results = new CopyOnWriteArrayList()
+        def barrier = new CyclicBarrier(10)
+
+        when:
+        async {
+            10.times { n ->
+                start {
+                    barrier.await()
+                    results.add(factory.named(CustomNamed, n as String))
+                }
+            }
+        }
+
+        then:
+        results.size() == 10
+        results.unique().size() == 10
+    }
+
+    def "multiple threads can create same instance"() {
+        def results = new CopyOnWriteArrayList()
+        def barrier = new CyclicBarrier(10)
+
+        when:
+        async {
+            10.times { n ->
+                start {
+                    barrier.await()
+                    results.add(factory.named(CustomNamed, "value"))
+                }
+            }
+        }
+
+        then:
+        results.size() == 10
+        results.unique().size() == 1
     }
 
     @Ignore

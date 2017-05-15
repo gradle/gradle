@@ -29,8 +29,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import java.lang.reflect.Constructor;
-
 import static org.objectweb.asm.Opcodes.*;
 
 public class DefaultObjectFactory implements ObjectFactory {
@@ -42,7 +40,7 @@ public class DefaultObjectFactory implements ObjectFactory {
     private static final String RETURN_VOID_FROM_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, STRING);
     private static final String NAME_FIELD = "__name__";
     private static final String[] EMPTY_STRINGS = new String[0];
-    private static final String CONSTRUCTOR = "<init>";
+    private static final String CONSTRUCTOR_NAME = "<init>";
     private static final String RETURN_VOID = Type.getMethodDescriptor(Type.VOID_TYPE);
 
     private DefaultObjectFactory() {
@@ -51,8 +49,8 @@ public class DefaultObjectFactory implements ObjectFactory {
     // Currently retains strong references
     private final LoadingCache<Class<?>, LoadingCache<String, Object>> values = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, LoadingCache<String, Object>>() {
         @Override
-        public LoadingCache<String, Object> load(final Class<?> type) throws Exception {
-            return CacheBuilder.newBuilder().build(new ClassGeneratingLoader(type));
+        public LoadingCache<String, Object> load(Class<?> type) {
+            return CacheBuilder.newBuilder().build(loaderFor(type));
         }
     });
 
@@ -65,78 +63,119 @@ public class DefaultObjectFactory implements ObjectFactory {
         }
     }
 
-    private static class ClassGeneratingLoader extends CacheLoader<String, Object> {
-        private final Constructor<?> constructor;
+    private ClassGeneratingLoader loaderFor(Class<?> publicClass) {
+        //
+        // Generate implementation class
+        //
 
-        ClassGeneratingLoader(Class<?> publicClass) {
-            AsmClassGenerator generator = new AsmClassGenerator(publicClass, "$Impl");
-            ClassWriter visitor = generator.getVisitor();
-            Type publicType = Type.getType(publicClass);
+        AsmClassGenerator generator = new AsmClassGenerator(publicClass, "$Impl");
+        Type implementationType = generator.getGeneratedType();
+        ClassWriter visitor = generator.getVisitor();
+        Type publicType = Type.getType(publicClass);
 
-            visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generator.getGeneratedType().getInternalName(), null, OBJECT.getInternalName(), new String[]{publicType.getInternalName()});
+        visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, implementationType.getInternalName(), null, OBJECT.getInternalName(), new String[]{publicType.getInternalName()});
 
-            //
-            // Add name field
-            //
+        //
+        // Add name field
+        //
 
-            visitor.visitField(ACC_PRIVATE, NAME_FIELD, STRING.getDescriptor(), null, null);
+        visitor.visitField(ACC_PRIVATE, NAME_FIELD, STRING.getDescriptor(), null, null);
 
-            //
-            // Add constructor
-            //
+        //
+        // Add constructor
+        //
 
-            MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, CONSTRUCTOR, RETURN_VOID_FROM_STRING, null, EMPTY_STRINGS);
-            methodVisitor.visitCode();
-            // Call this.super()
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT.getInternalName(), CONSTRUCTOR, RETURN_VOID, false);
-            // Set this.name = param1
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
-            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generator.getGeneratedType().getInternalName(), NAME_FIELD, STRING.getDescriptor());
-            // Done
-            methodVisitor.visitInsn(Opcodes.RETURN);
-            methodVisitor.visitMaxs(0, 0);
-            methodVisitor.visitEnd();
+        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, CONSTRUCTOR_NAME, RETURN_VOID_FROM_STRING, null, EMPTY_STRINGS);
+        methodVisitor.visitCode();
+        // Call this.super()
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT.getInternalName(), CONSTRUCTOR_NAME, RETURN_VOID, false);
+        // Set this.name = param1
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+        methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, implementationType.getInternalName(), NAME_FIELD, STRING.getDescriptor());
+        // Done
+        methodVisitor.visitInsn(Opcodes.RETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
 
-            //
-            // Add `getName()`
-            //
+        //
+        // Add `getName()`
+        //
 
-            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "getName", RETURN_STRING, null, EMPTY_STRINGS);
-            methodVisitor.visitCode();
-            // return this.name
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generator.getGeneratedType().getInternalName(), NAME_FIELD, STRING.getDescriptor());
-            methodVisitor.visitInsn(Opcodes.ARETURN);
-            methodVisitor.visitMaxs(0, 0);
-            methodVisitor.visitEnd();
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "getName", RETURN_STRING, null, EMPTY_STRINGS);
+        methodVisitor.visitCode();
+        // return this.name
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+        methodVisitor.visitFieldInsn(Opcodes.GETFIELD, implementationType.getInternalName(), NAME_FIELD, STRING.getDescriptor());
+        methodVisitor.visitInsn(Opcodes.ARETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
 
-            //
-            // Add `toString()`
-            //
+        //
+        // Add `toString()`
+        //
 
-            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "toString", RETURN_STRING, null, EMPTY_STRINGS);
-            methodVisitor.visitCode();
-            // return this.name
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generator.getGeneratedType().getInternalName(), NAME_FIELD, STRING.getDescriptor());
-            methodVisitor.visitInsn(Opcodes.ARETURN);
-            methodVisitor.visitMaxs(0, 0);
-            methodVisitor.visitEnd();
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "toString", RETURN_STRING, null, EMPTY_STRINGS);
+        methodVisitor.visitCode();
+        // return this.name
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+        methodVisitor.visitFieldInsn(Opcodes.GETFIELD, implementationType.getInternalName(), NAME_FIELD, STRING.getDescriptor());
+        methodVisitor.visitInsn(Opcodes.ARETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
 
-            visitor.visitEnd();
-            Class<?> generatedType = generator.define();
-            try {
-                constructor = generatedType.getConstructor(String.class);
-            } catch (NoSuchMethodException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+        visitor.visitEnd();
+        generator.define();
+
+        //
+        // Generate factory class
+        //
+
+        generator = new AsmClassGenerator(publicClass, "$Factory");
+        visitor = generator.getVisitor();
+        visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, generator.getGeneratedType().getInternalName(), null, Type.getType(ClassGeneratingLoader.class).getInternalName(), EMPTY_STRINGS);
+
+        //
+        // Add constructor
+        //
+
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, CONSTRUCTOR_NAME, RETURN_VOID, null, EMPTY_STRINGS);
+        methodVisitor.visitCode();
+        // Call this.super()
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(ClassGeneratingLoader.class).getInternalName(), CONSTRUCTOR_NAME, RETURN_VOID, false);
+        // Done
+        methodVisitor.visitInsn(Opcodes.RETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
+
+        //
+        // Add factory method
+        //
+
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "load", Type.getMethodDescriptor(OBJECT, STRING), null, EMPTY_STRINGS);
+        methodVisitor.visitCode();
+        // Call return new <implClass>(param1)
+        methodVisitor.visitTypeInsn(Opcodes.NEW, implementationType.getInternalName());
+        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, implementationType.getInternalName(), CONSTRUCTOR_NAME, RETURN_VOID_FROM_STRING, false);
+        methodVisitor.visitInsn(Opcodes.ARETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
+
+        visitor.visitEnd();
+        Class<Object> factoryClass = generator.define();
+        try {
+            return (ClassGeneratingLoader) (factoryClass.newInstance());
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
 
+    protected abstract static class ClassGeneratingLoader extends CacheLoader<String, Object> {
         @Override
-        public Object load(String name) throws Exception {
-            return constructor.newInstance(name);
-        }
+        public abstract Object load(String name);
     }
 }
