@@ -410,12 +410,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             private static void writeImplementation(Encoder encoder, TypeImplementation implementation) throws IOException {
                 encoder.writeString(implementation.getTypeName());
-                HashCode classLoaderHash = implementation.getClassLoaderHash();
-                if (classLoaderHash == null) {
+                if (implementation.hasUnknownClassLoader()) {
                     encoder.writeBoolean(false);
                 } else {
                     encoder.writeBoolean(true);
-                    encoder.writeBinary(classLoaderHash.asBytes());
+                    encoder.writeBinary(implementation.getClassLoaderHash().asBytes());
                 }
             }
 

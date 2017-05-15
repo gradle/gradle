@@ -1141,7 +1141,7 @@ task generate(type: TransformerTask) {
         succeeds "customTask", "--info"
         then:
         skippedTasks.empty
-        output.contains "Task ':customTask' has a custom action that was loaded with an unknown classloader"
+        output.contains "Task ':customTask' has an additional action that was loaded with an unknown classloader"
     }
 
     @Ignore("This reproduces the issue and fails right now")
