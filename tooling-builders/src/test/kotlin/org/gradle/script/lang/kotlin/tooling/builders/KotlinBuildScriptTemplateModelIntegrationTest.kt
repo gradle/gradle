@@ -15,6 +15,7 @@ import org.gradle.script.lang.kotlin.fixtures.customInstallation
 import org.gradle.script.lang.kotlin.fixtures.withDaemonRegistry
 
 import org.junit.Test
+
 import java.io.File
 
 
@@ -27,9 +28,10 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() 
 
         val model = fetchKotlinScriptTemplateClassPathModelFor(projectRoot)
 
-        loadClasses(model.classPath,
-                    KotlinBuildScript::class.qualifiedName!!,
-                    KotlinBuildScriptDependenciesResolver::class.qualifiedName!!)
+        loadClassesFrom(
+            model.classPath,
+            KotlinBuildScript::class.qualifiedName!!,
+            KotlinBuildScriptDependenciesResolver::class.qualifiedName!!)
     }
 
 
@@ -50,14 +52,23 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() 
 
 
     private
-    fun loadClasses(classPath: List<File>, vararg classNames: String) {
-        val loader = DefaultClassLoaderFactory().createIsolatedClassLoader(DefaultClassPath(classPath))
+    fun loadClassesFrom(classPath: List<File>, vararg classNames: String) {
+        val loader = isolatedClassLoaderFor(classPath)
         try {
             classNames.forEach {
                 loader.loadClass(it)
             }
         } finally {
-            CompositeStoppable().add(loader).stop()
+            stop(loader)
         }
+    }
+
+    private
+    fun isolatedClassLoaderFor(classPath: List<File>) =
+        DefaultClassLoaderFactory().createIsolatedClassLoader(DefaultClassPath(classPath))
+
+    private
+    fun stop(loader: ClassLoader) {
+        CompositeStoppable().add(loader).stop()
     }
 }
