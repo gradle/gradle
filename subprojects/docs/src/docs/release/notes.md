@@ -187,7 +187,7 @@ For more information on this feature see the corresponding section in the [userg
 ## Track Java version for Groovy compilation
 
 The Java version used by Groovy compilation influences the compiled Groovy and Java classes for the `GroovyCompile` task.
-Gradle now tracks changes to this version and recompiles whenever it changes.
+Gradle now tracks changes to this version and recompiles whenever necessary.
 
 <!--
 ### Example new and noteworthy
