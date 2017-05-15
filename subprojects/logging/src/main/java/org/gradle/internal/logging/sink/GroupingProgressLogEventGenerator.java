@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
@@ -33,9 +32,9 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.progress.BuildOperationType;
-import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,19 +47,17 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
     static final String EOL = SystemProperties.getInstance().getLineSeparator();
 
     private final OutputEventListener listener;
-    private final TimeProvider timeProvider;
 
     // Maintain a hierarchy of all build operation ids — heads up: this is a *forest*, not just 1 tree
-    private final Map<Object, Object> buildOpIdHierarchy = new LinkedHashMap<Object, Object>();
+    private final Map<Object, Object> buildOpIdHierarchy = new HashMap<Object, Object>();
     private final Map<Object, OperationGroup> operationsInProgress = new LinkedHashMap<Object, OperationGroup>();
-    private final Map<OperationIdentifier, Object> progressToBuildOpIdMap = new LinkedHashMap<OperationIdentifier, Object>();
+    private final Map<OperationIdentifier, Object> progressToBuildOpIdMap = new HashMap<OperationIdentifier, Object>();
 
     private Object lastRenderedBuildOpId;
     private boolean needsHeader;
 
-    public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider) {
+    public GroupingProgressLogEventGenerator(OutputEventListener listener) {
         this.listener = listener;
-        this.timeProvider = timeProvider;
     }
 
     public void onOutput(OutputEvent event) {
@@ -105,9 +102,11 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
     }
 
     private void onComplete(ProgressCompleteEvent completeEvent) {
-        Object buildOpId = progressToBuildOpIdMap.get(completeEvent.getProgressOperationId());
-        if (operationsInProgress.containsKey(buildOpId)) {
-            operationsInProgress.remove(buildOpId).flushOutput();
+        Object buildOpId = progressToBuildOpIdMap.remove(completeEvent.getProgressOperationId());
+        buildOpIdHierarchy.remove(buildOpId);
+        OperationGroup group = operationsInProgress.remove(buildOpId);
+        if (group != null) {
+            group.flushOutput();
         }
     }
 
@@ -136,21 +135,6 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             current = buildOpIdHierarchy.get(current);
         }
         return null;
-    }
-
-    @VisibleForTesting
-    Map<Object, Object> getBuildOpIdHierarchy() {
-        return buildOpIdHierarchy;
-    }
-
-    @VisibleForTesting
-    Map<Object, OperationGroup> getOperationsInProgress() {
-        return operationsInProgress;
-    }
-
-    @VisibleForTesting
-    Map<OperationIdentifier, Object> getProgressToBuildOpIdMap() {
-        return progressToBuildOpIdMap;
     }
 
     private class OperationGroup {
