@@ -20,7 +20,7 @@ import com.google.common.hash.HashCode
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.tasks.SnapshotTaskInputsOperationDetails
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -28,7 +28,7 @@ import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.TaskOutputCachingListener
-import org.gradle.internal.progress.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Path
 
@@ -70,7 +70,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         0 * _
 
         and:
-        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultAdapter) {
+        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
             key == cacheKey
         }
     }
@@ -117,7 +117,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         0 * _
 
         and:
-        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultAdapter) {
+        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
             key == DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
         }
     }
@@ -128,7 +128,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         def key = Mock(TaskOutputCachingBuildCacheKey) {
             getInputs() >> inputs
         }
-        def adapter = new ResolveBuildCacheKeyExecuter.OperationResultAdapter(key)
+        def adapter = new ResolveBuildCacheKeyExecuter.OperationResultImpl(key)
 
         when:
         inputs.inputHashes >> [b: HashCode.fromString("bb"), a: HashCode.fromString("aa")]
@@ -161,12 +161,12 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.buildCacheKey == "ff"
     }
 
-    private SnapshotTaskInputsOperationDetails.Result buildOpResult() {
-        buildOperationExecutor.log.mostRecentResult(SnapshotTaskInputsOperationDetails)
+    private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {
+        buildOperationExecutor.log.mostRecentResult(SnapshotTaskInputsBuildOperationType)
     }
 
     private Throwable buildOpFailure() {
-        buildOperationExecutor.log.mostRecentFailure(SnapshotTaskInputsOperationDetails)
+        buildOperationExecutor.log.mostRecentFailure(SnapshotTaskInputsBuildOperationType)
     }
 
 }

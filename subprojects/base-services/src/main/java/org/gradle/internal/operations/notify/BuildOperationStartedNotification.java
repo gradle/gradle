@@ -16,6 +16,8 @@
 
 package org.gradle.internal.operations.notify;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 /**
  * A notification that a build operation has started.
  *
@@ -25,6 +27,7 @@ package org.gradle.internal.operations.notify;
  *
  * @since 4.0
  */
+@UsedByScanPlugin
 public interface BuildOperationStartedNotification {
 
     /**

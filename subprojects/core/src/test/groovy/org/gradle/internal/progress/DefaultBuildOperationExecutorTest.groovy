@@ -40,7 +40,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         and:
         def buildOperation = Mock(CallableBuildOperation)
         def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
-        def details = Mock(BuildOperationDetails)
+        def details = Mock(Object)
         def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").details(details)
         def id
 
@@ -253,6 +253,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
                             instant.action1Started
                             thread.blockUntil.action2Started
                         }
+
                         BuildOperationDescriptor.Builder description() {
                             displayName("<thread-1>").parent(parent)
                         }
@@ -265,6 +266,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
                             instant.action2Started
                             thread.blockUntil.action1Finished
                         }
+
                         BuildOperationDescriptor.Builder description() {
                             displayName("<thread-2>").parent(parent)
                         }
@@ -319,7 +321,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         when:
         operationExecutor.run(new RunnableBuildOperation() {
-            void run(BuildOperationContext context) {  }
+            void run(BuildOperationContext context) {}
+
             BuildOperationDescriptor.Builder description() {
                 displayName("child").parent(parent)
             }
@@ -637,7 +640,9 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
     static class TestRunnableBuildOperation implements RunnableBuildOperation {
         BuildOperationDescriptor.Builder description() { displayName("test") }
+
         String toString() { getClass().simpleName }
+
         void run(BuildOperationContext buildOperationContext) {}
     }
 }

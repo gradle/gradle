@@ -16,6 +16,8 @@
 
 package org.gradle.internal.operations.notify;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 /**
  * A listener to notifications about build events.
  *
@@ -33,6 +35,7 @@ package org.gradle.internal.operations.notify;
  *
  * @since 4.0
  */
+@UsedByScanPlugin("implemented by the scan plugin")
 public interface BuildOperationNotificationListener {
 
     void started(BuildOperationStartedNotification notification);

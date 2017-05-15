@@ -18,14 +18,19 @@ package org.gradle.internal.resource.transport;
 
 
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resource.DownloadBuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.*;
+import org.gradle.internal.resource.transfer.DefaultExternalResource;
+import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ExternalResourceLister;
+import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -65,7 +70,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     public ExternalResource getResource(URI source, boolean revalidate) {
         ExternalResourceReadResponse response = accessor.openResource(source, revalidate);
-        return response == null ? null : new BuildOperationExternalResource(buildOperationExecutor, new DefaultExternalResource(source, response));
+        return response == null ? null : new DownloadBuildOperationFiringExternalResourceDecorator(buildOperationExecutor, new DefaultExternalResource(source, response));
     }
 
     public ExternalResourceMetaData getResourceMetaData(URI source, boolean revalidate) {
