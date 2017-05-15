@@ -1,4 +1,4 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import extensions.*
 
 apply {
     plugin("kotlin")
@@ -9,13 +9,10 @@ dependencies {
 }
 
 val customInstallation by rootProject.tasks
-val test by tasks
-test.dependsOn(customInstallation)
-
-tasks.withType<Test> {
-    testLogging {
-        events("failed")
-        exceptionFormat = TestExceptionFormat.FULL
-        maxParallelForks = gradle.startParameter.maxWorkerCount / 2 + 1
+tasks {
+    "test" {
+        dependsOn(customInstallation)
     }
 }
+
+withParallelTests()

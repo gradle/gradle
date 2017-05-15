@@ -23,7 +23,6 @@ buildscript {
 
 plugins {
     base
-    `maven-publish`
     id("com.jfrog.artifactory") version "4.1.1"
 }
 
@@ -32,14 +31,60 @@ allprojects {
     version = "0.9.0-SNAPSHOT"
 }
 
-// For documentation and meaningful `./gradlew dependencies` output only
-val distribution by configurations.creating
+// --- Configure publications ------------------------------------------
+val publishedProjects =
+    listOf(
+        project(":provider"),
+        project(":tooling-models"),
+        project(":tooling-builders"))
 
+// For documentation and meaningful `./gradlew dependencies` output
+val distribution by configurations.creating
 dependencies {
-    distribution(project(":provider"))
-    distribution(project(":tooling-builders"))
+    publishedProjects.forEach {
+        distribution(it)
+    }
 }
 
+configure(publishedProjects) {
+    apply<plugins.GskModule>()
+}
+
+tasks {
+    // Disable publication on root project
+    "artifactoryPublish"(ArtifactoryTask::class) {
+        skip = true
+    }
+}
+
+artifactory {
+    setContextUrl("https://repo.gradle.org/gradle")
+    publish(delegateClosureOf<PublisherConfig> {
+        repository(delegateClosureOf<GroovyObject> {
+            val targetRepoKey = "libs-${buildTagFor(project.version as String)}s-local"
+            setProperty("repoKey", targetRepoKey)
+            setProperty("username", project.findProperty("artifactory_user") ?: "nouser")
+            setProperty("password", project.findProperty("artifactory_password") ?: "nopass")
+            setProperty("maven", true)
+        })
+        defaults(delegateClosureOf<GroovyObject> {
+            invokeMethod("publications", "mavenJava")
+        })
+    })
+    resolve(delegateClosureOf<ResolverConfig> {
+        setProperty("repoKey", "repo")
+    })
+}
+
+fun buildTagFor(version: String): String =
+    when (version.substringAfterLast('-')) {
+        "SNAPSHOT"                  -> "snapshot"
+        in Regex("""M\d+[a-z]*$""") -> "milestone"
+        else                        -> "release"
+    }
+
+
+// -- Integration testing ----------------------------------------------
 val prepareIntegrationTestFixtures by task<GradleBuild> {
     dir = file("fixtures")
 }
@@ -80,58 +125,6 @@ val benchmark by task<integration.Benchmark> {
     dependsOn(customInstallation)
     latestInstallation = customInstallationDir
 }
-
-
-// --- Configure publications ------------------------------------------
-val publishedProjects = listOf(
-    project(":provider"),
-    project(":tooling-models"),
-    project(":tooling-builders"))
-
-// Enable artifactory publication on each published sub-project
-publishedProjects.forEach {
-    it.apply {
-        plugin("com.jfrog.artifactory")
-    }
-    it.tasks {
-        "artifactoryPublish" {
-            dependsOn("jar")
-        }
-    }
-}
-
-tasks {
-    // Disable publication on root project
-    "artifactoryPublish"(ArtifactoryTask::class) {
-        skip = true
-    }
-}
-
-artifactory {
-    setContextUrl("https://repo.gradle.org/gradle")
-    publish(delegateClosureOf<PublisherConfig> {
-        repository(delegateClosureOf<GroovyObject> {
-            val targetRepoKey = "libs-${buildTagFor(project.version as String)}s-local"
-            setProperty("repoKey", targetRepoKey)
-            setProperty("username", project.findProperty("artifactory_user") ?: "nouser")
-            setProperty("password", project.findProperty("artifactory_password") ?: "nopass")
-            setProperty("maven", true)
-        })
-        defaults(delegateClosureOf<GroovyObject> {
-            invokeMethod("publications", "mavenJava")
-        })
-    })
-    resolve(delegateClosureOf<ResolverConfig> {
-        setProperty("repoKey", "repo")
-    })
-}
-
-fun buildTagFor(version: String): String =
-    when (version.substringAfterLast('-')) {
-        "SNAPSHOT" -> "snapshot"
-        in Regex("""M\d+[a-z]*$""") -> "milestone"
-        else -> "release"
-    }
 
 
 // --- Utility functions -----------------------------------------------
