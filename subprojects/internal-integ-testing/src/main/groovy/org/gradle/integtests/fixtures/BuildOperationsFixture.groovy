@@ -17,6 +17,9 @@
 package org.gradle.integtests.fixtures
 
 import groovy.json.JsonSlurper
+import groovy.transform.ToString
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
 import org.gradle.internal.progress.BuildOperationDescriptor
@@ -27,6 +30,8 @@ import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
+
+import java.util.concurrent.ConcurrentLinkedQueue
 
 @SuppressWarnings("UnusedImport")
 class BuildOperationsFixture extends InitScriptExecuterFixture {
@@ -123,18 +128,36 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
                 value.failure as String
             )
         }
+
+        operations.values().each {
+            if (it.parentId != null && operations.containsKey(it.parentId)) {
+                operations[it.parentId].mutableChildren.add(it)
+            }
+        }
     }
 
     boolean hasOperation(String displayName) {
         operation(displayName) != null
     }
 
+    CompleteBuildOperation find(Spec<? super CompleteBuildOperation> predicate) {
+        operations.values().find { predicate.isSatisfiedBy(it) }
+    }
+
+    List<CompleteBuildOperation> findAll(Spec<? super CompleteBuildOperation> predicate) {
+        operations.values().findAll { predicate.isSatisfiedBy(it) }
+    }
+
     CompleteBuildOperation operation(Class<?> detailsType) {
-        operations.values().find { it.detailsType && detailsType.isAssignableFrom(it.detailsType as Class<?>) }
+        operation(detailsType, Specs.satisfyAll())
+    }
+
+    CompleteBuildOperation operation(Class<?> detailsType, Spec<? super CompleteBuildOperation> predicate) {
+        find({ it.detailsType && detailsType.isAssignableFrom(it.detailsType as Class<?>) && predicate.isSatisfiedBy(it) } as Spec)
     }
 
     CompleteBuildOperation operation(String displayName) {
-        operations.values().find { it.displayName == displayName }
+        find { it.displayName == displayName }
     }
 
     Map<String, ?> result(String displayName) {
@@ -145,6 +168,7 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
         operation(displayName).failure
     }
 
+    @ToString
     static class CompleteBuildOperation {
 
         final Object id
@@ -163,6 +187,9 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
 
         final String failure
 
+        private final List<CompleteBuildOperation> mutableChildren = []
+        final List<CompleteBuildOperation> children = Collections.unmodifiableList(mutableChildren)
+
         CompleteBuildOperation(Object id, Object parentId, String name, String displayName, long startTime, long endTime, Class<?> detailsType, Map<String, ?> details, Class<?> resultType, Map<String, ?> result, String failure) {
             this.id = id
             this.parentId = parentId
@@ -176,6 +203,23 @@ class BuildOperationsFixture extends InitScriptExecuterFixture {
             this.result = result
             this.failure = failure
         }
+
+        List<CompleteBuildOperation> children(Spec<? super CompleteBuildOperation> predicate) {
+            def matches = []
+            def search = new ConcurrentLinkedQueue<CompleteBuildOperation>()
+
+            def operation = this
+            while (operation != null) {
+                if (predicate.isSatisfiedBy(operation)) {
+                    matches << operation
+                }
+                search.addAll(operation.children)
+                operation = search.poll()
+            }
+
+            matches
+        }
+
     }
 
 
