@@ -169,8 +169,9 @@ fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
 }
 
 
-fun setOrClearProperty(key: String, value: String?) =
+fun setOrClearProperty(key: String, value: String?) {
     when (value) {
         null -> System.clearProperty(key)
         else -> System.setProperty(key, value)
     }
+}
