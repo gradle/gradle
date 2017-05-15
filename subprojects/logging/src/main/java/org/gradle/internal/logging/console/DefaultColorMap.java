@@ -135,12 +135,15 @@ public class DefaultColorMap implements ColorMap {
     }
 
     private String getColorSpecForStyle(StyledTextOutput.Style style) {
-        String lowerCase = style.name().toLowerCase();
-        return System.getProperty("org.gradle.color." + lowerCase, defaults.get(lowerCase));
+        return getColorSpecForStyle(style.name().toLowerCase());
+    }
+
+    private String getColorSpecForStyle(String style) {
+        return System.getProperty("org.gradle.color." + style, defaults.get(style));
     }
 
     private Color createColor(String style) {
-        String colorSpec = System.getProperty("org.gradle.color." + style, defaults.get(style));
+        String colorSpec = getColorSpecForStyle(style);
 
         Color color = noDecoration;
         if (colorSpec != null) {
