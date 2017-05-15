@@ -146,6 +146,33 @@ You can increase or decrease the size of the local build cache by configuring yo
 
 This is a _target_ size for the build cache. Gradle will periodically check if the local build cache has grown too large and trim it to below the target size. The least recently used build cache entries will be deleted first.
 
+### Better modeling of tasks that delete files
+
+A task can now annotate properties with `@Destroys`  to explicitly model that a task deletes a file or collection of files.
+
+    class RemoveTempDirs extends DefaultTask {
+        @Destroys
+        FileCollection tempDirs
+        
+        @TaskAction
+        void removeDirs() {
+            project.delete(tempDirs)
+        }
+    }
+
+A task can also programmatically declare files it will delete using the API on [`Task.getDestroyables()`](javadoc/org/gradle/api/Task.html#getDestroyables--).  
+
+By explicitly modeling the files that a task deletes, this allows Gradle to take this information into account when selecting tasks to execute from the task graph while running with `--parallel`.  Gradle can use this information to avoid starting a deletion task when:
+
+* A task is currently running that creates the same files as the deletion task would remove.
+* A task has created a set of files that the deletion task would remove and there is another task that will consume those files but has not yet executed. 
+
+Conversely, Gradle will also avoid starting tasks that create or consume a set of files while a deletion task that removes those files is currently running.
+  
+The `Delete` task automatically uses the `@Destroys` annotation, so any files added via its `delete()` API will be safe when running in parallel.  For instance, it is safe to run `clean build` or `build clean` while using `--parallel` now.
+
+To read more about this feature, see [the userguide section on Incremental Build](userguide/more_about_tasks.html#sec:up_to_date_checks).
+
 ### Checkstyle configuration directory conventions
 
 If you use additional configuration files with [Checkstyle](userguide/checkstyle_plugin.html), like `suppressions.xml`, these files need to be specified with an absolute path. Most projects use a variable like `config_loc` to build the path to these configuration files.
