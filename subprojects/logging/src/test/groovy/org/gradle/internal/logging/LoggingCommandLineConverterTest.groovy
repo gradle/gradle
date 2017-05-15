@@ -47,14 +47,6 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion(['--info'])
     }
 
-    def convertsLifecycleLevel() {
-        expectedConfig.logLevel = LogLevel.LIFECYCLE
-
-        expect:
-        checkConversion(['-l'])
-        checkConversion(['--lifecycle'])
-    }
-
     def convertsQuietLevel() {
         expectedConfig.logLevel = LogLevel.QUIET
 
@@ -120,7 +112,7 @@ class LoggingCommandLineConverterTest extends Specification {
 
     def providesLogLevelOptions() {
         expect:
-        converter.logLevelOptions == ['d', 'q', 'i', 'l', 'w'] as Set
+        converter.logLevelOptions == ['d', 'q', 'i', 'w'] as Set
         converter.logLevels == [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET, LogLevel.WARN] as Set
     }
 

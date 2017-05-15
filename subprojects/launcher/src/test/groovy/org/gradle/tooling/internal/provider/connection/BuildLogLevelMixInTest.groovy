@@ -36,7 +36,6 @@ class BuildLogLevelMixInTest extends Specification {
         args                     | logLevel
         ['-i']                   | LogLevel.INFO
         ['-q']                   | LogLevel.QUIET
-        ['-l']                   | LogLevel.LIFECYCLE
         ['-w']                   | LogLevel.WARN
         ['foo', '--info', 'bar'] | LogLevel.INFO
         ['-i', 'foo', 'bar']     | LogLevel.INFO
