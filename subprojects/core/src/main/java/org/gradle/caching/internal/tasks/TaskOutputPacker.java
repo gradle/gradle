@@ -23,7 +23,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Set;
+import java.util.SortedSet;
 
 public interface TaskOutputPacker {
     // Initial format version
@@ -34,7 +34,7 @@ public interface TaskOutputPacker {
     // - any major changes of the layout of a cache entry
     int CACHE_ENTRY_FORMAT = 1;
 
-    void pack(Set<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
+    void pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
 
-    TaskOutputOriginMetadata unpack(Set<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
+    TaskOutputOriginMetadata unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
 }

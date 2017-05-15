@@ -54,7 +54,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -79,7 +79,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public void pack(final Set<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, final TaskOutputOriginWriter writeOrigin) {
+    public void pack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, final TaskOutputOriginWriter writeOrigin) {
         IoActions.withResource(new TarOutputStream(output, "utf-8"), new Action<TarOutputStream>() {
             @Override
             public void execute(TarOutputStream outputStream) {
@@ -204,7 +204,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public TaskOutputOriginMetadata unpack(final Set<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, final TaskOutputOriginReader readOrigin) {
+    public TaskOutputOriginMetadata unpack(final SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, final TaskOutputOriginReader readOrigin) {
         return IoActions.withResource(new TarInputStream(input), new Transformer<TaskOutputOriginMetadata, TarInputStream>() {
             @Override
             public TaskOutputOriginMetadata transform(TarInputStream tarInput) {
@@ -217,7 +217,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         });
     }
 
-    private TaskOutputOriginMetadata unpack(Set<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
+    private TaskOutputOriginMetadata unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarInputStream tarInput, TaskOutputOriginReader readOriginAction) throws IOException {
         Map<String, ResolvedTaskOutputFilePropertySpec> propertySpecsMap = Maps.uniqueIndex(propertySpecs, new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
