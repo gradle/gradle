@@ -184,6 +184,11 @@ Note that this will not change the runtime behavior of the Test task - i.e. any 
 
 For more information on this feature see the corresponding section in the [userguide](userguide/more_about_tasks.html#sec:custom_resource_normalization).
 
+## Track Java version for Groovy compilation
+
+The Java version used by Groovy compilation influences the compiled Groovy and Java classes for the `GroovyCompile` task.
+Gradle now tracks changes to this version and recompiles whenever it changes.
+
 <!--
 ### Example new and noteworthy
 -->
