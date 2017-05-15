@@ -17,7 +17,11 @@
 package org.gradle.model.internal.manage.binding
 
 import org.gradle.api.Named
-import org.gradle.model.*
+import org.gradle.model.Managed
+import org.gradle.model.ModelMap
+import org.gradle.model.ModelSet
+import org.gradle.model.NamedThingInterface
+import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
@@ -403,54 +407,6 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     @Managed
-    interface HasTwoFirstsCharLowercaseGetter {
-        String getccCompiler()
-    }
-
-    def "reject two firsts char lowercase getters"() {
-        when: extract HasTwoFirstsCharLowercaseGetter
-        then: def ex = thrown InvalidManagedTypeException
-        ex.message == """Type ${fullyQualifiedNameOf(HasTwoFirstsCharLowercaseGetter)} is not a valid managed type:
-- Method getccCompiler() is not a valid managed type method: it must have an implementation"""
-    }
-
-    @Managed
-    interface HasGetGetterLikeMethod {
-        String gettingStarted()
-    }
-
-    def "get-getters-like methods not considered as getters"() {
-        when: extract HasGetGetterLikeMethod
-        then: def ex = thrown InvalidManagedTypeException
-        ex.message == """Type ${fullyQualifiedNameOf(HasGetGetterLikeMethod)} is not a valid managed type:
-- Method gettingStarted() is not a valid managed type method: it must have an implementation"""
-    }
-
-    @Managed
-    interface HasIsGetterLikeMethod {
-        boolean isidore()
-    }
-
-    def "is-getters-like methods not considered as getters"() {
-        when: extract HasIsGetterLikeMethod
-        then: def ex = thrown InvalidManagedTypeException
-        ex.message == """Type ${fullyQualifiedNameOf(HasIsGetterLikeMethod)} is not a valid managed type:
-- Method isidore() is not a valid managed type method: it must have an implementation"""
-    }
-
-    @Managed
-    interface HasSetterLikeMethod {
-        void settings(String settings)
-    }
-
-    def "setters-like methods not considered as setters"() {
-        when: extract HasSetterLikeMethod
-        then: def ex = thrown InvalidManagedTypeException
-        ex.message == """Type ${fullyQualifiedNameOf(HasSetterLikeMethod)} is not a valid managed type:
-- Method settings(java.lang.String) is not a valid managed type method: it must have an implementation"""
-    }
-
-    @Managed
     static interface MisalignedSetterType {
         String getThing()
         void setThing(Object name)
@@ -574,20 +530,23 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     @Managed
-    interface IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean {
+    interface IsAllowedWithBoxedBoolean {
         Boolean isThing()
         void setThing(Boolean thing)
     }
 
-    @Unroll
-    def "should not allow 'is' as a prefix for getter on non primitive boolean in #managedType"() {
-        when: extract type
+    def "should not allow 'is' as a prefix for getter on non boolean in #type"() {
+        when: extract IsNotAllowedForOtherTypeThanBoolean
         then: def ex = thrown InvalidManagedTypeException
-        ex.message == """Type ${fullyQualifiedNameOf(type)} is not a valid managed type:
-- Method isThing() is not a valid method: it should either return 'boolean', or its name should be 'getThing()'"""
+        ex.message == """Type ${fullyQualifiedNameOf(IsNotAllowedForOtherTypeThanBoolean)} is not a valid managed type:
+- Property 'thing' is not valid: it must both have an abstract getter and a setter"""
+    }
 
-        where:
-        type << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
+    def "allows 'is' as a prefix for getter on non primitive Boolean in #type"() {
+        def bindings = extract(IsAllowedWithBoxedBoolean)
+
+        expect:
+        bindings.getManagedProperty("thing")
     }
 
     @Managed

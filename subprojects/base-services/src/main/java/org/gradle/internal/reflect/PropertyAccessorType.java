@@ -77,7 +77,8 @@ public enum PropertyAccessorType {
             if (isGetGetterName(methodName)) {
                 return GET_GETTER;
             }
-            if (isIsGetterName(methodName)) {
+            // is method that returns Boolean is not a getter according to JavaBeans, but include it for compatibility with Groovy
+            if (isIsGetterName(methodName) && (method.getReturnType().equals(Boolean.TYPE) || method.getReturnType().equals(Boolean.class))) {
                 return IS_GETTER;
             }
         }
@@ -116,27 +117,16 @@ public enum PropertyAccessorType {
         return method.getParameterTypes().length == 1;
     }
 
-    public static boolean isGetterName(String methodName) {
-        return isGetGetterName(methodName) || isIsGetterName(methodName);
-    }
-
     private static boolean isGetGetterName(String methodName) {
-        return methodName.startsWith("get") && !"get".equals(methodName) && hasAtMostOneFirstLowerCaseCharStartingFrom(methodName, 4);
+        return methodName.startsWith("get") && methodName.length() > 3;
     }
 
     private static boolean isIsGetterName(String methodName) {
-        return methodName.startsWith("is") && !"is".equals(methodName) && hasAtMostOneFirstLowerCaseCharStartingFrom(methodName, 3);
+        return methodName.startsWith("is") && methodName.length() > 2;
     }
 
-    public static boolean isSetterName(String methodName) {
-        return methodName.startsWith("set") && !"set".equals(methodName) && hasAtMostOneFirstLowerCaseCharStartingFrom(methodName, 4);
-    }
-
-    private static boolean hasAtMostOneFirstLowerCaseCharStartingFrom(String methodName, int position) {
-        if (methodName.length() <= position || Character.isUpperCase(methodName.charAt(position - 1))) {
-            return true;
-        }
-        return Character.isUpperCase(methodName.charAt(position));
+    private static boolean isSetterName(String methodName) {
+        return methodName.startsWith("set") && methodName.length() > 3;
     }
 
     public static boolean hasGetter(Collection<PropertyAccessorType> accessorTypes) {
