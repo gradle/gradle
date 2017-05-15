@@ -16,13 +16,11 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
 class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @NotYetImplemented
     def "ad hoc tasks with different actions don't share results"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -91,7 +89,6 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         skippedTasks as List == [":taskB"]
     }
 
-    @NotYetImplemented
     def "built-in tasks with different actions don't share results"() {
         file("src/main/java/Main.java").text = "public class Main {}"
         buildFile << """

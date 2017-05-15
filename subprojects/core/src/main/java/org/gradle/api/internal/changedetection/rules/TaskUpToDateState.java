@@ -49,7 +49,7 @@ public class TaskUpToDateState {
         ResourceNormalizationStrategy resourceNormalizationStrategy = ((ResourceNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
 
         TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
-        TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task.getPath(), task.getClass(), task.getActionClassLoaders(), classLoaderHierarchyHasher);
+        TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task.getPath(), task.getClass(), task.getTaskActions(), classLoaderHierarchyHasher);
         TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task, valueSnapshotter);
 
         // Capture outputs state

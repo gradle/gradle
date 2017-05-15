@@ -16,11 +16,15 @@
 
 package org.gradle.api.internal.changedetection.rules
 
+import com.google.common.collect.ImmutableList
 import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.state.TaskExecution
+import org.gradle.api.internal.tasks.ContextAwareTaskAction
+import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.internal.Cast
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Specification
@@ -37,10 +41,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
             getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction()], hasher))
 
         expect:
         changes.empty
@@ -51,10 +56,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> PreviousTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
             getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction()], hasher))
 
         expect:
         changes == ["Task ':test' has changed type from '$PreviousTask.name' to '$SimpleTask.name'." as String]
@@ -66,10 +72,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> previousHash
             getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction()], hasher))
 
         expect:
         changes == ["Task ':test' class path has changed from ${previousHash} to ${taskLoaderHash}." as String]
@@ -81,10 +88,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
             getTaskActionsClassLoaderHashes() >> [previousHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction()], hasher))
 
         expect:
         changes == ["Task ':test' additional action class paths have changed from [${previousHash}] to [${taskLoaderHash}]." as String]
@@ -95,13 +103,17 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
             getTaskActionsClassLoaderHashes() >> []
+            getTaskActionsTypes() >> ImmutableList.of()
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction()], hasher))
 
         expect:
-        changes == ["Task ':test' additional action class paths have changed from [] to [${taskLoaderHash}]." as String]
+        changes == [
+            "Task ':test' additional action class paths have changed from [] to [${taskLoaderHash}]." as String,
+            "Task ':test' additional action types have changed from [] to [${TestAction.name}]." as String
+        ]
     }
 
     def "not up-to-date when action is removed"() {
@@ -109,13 +121,17 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
             getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [], hasher))
 
         expect:
-        changes == ["Task ':test' additional action class paths have changed from [${taskLoaderHash}] to []." as String]
+        changes == [
+            "Task ':test' additional action class paths have changed from [${taskLoaderHash}] to []." as String,
+            "Task ':test' additional action types have changed from [${TestAction.name}] to []." as String
+        ]
     }
 
     def "not up-to-date when action with same class-loader is added"() {
@@ -123,13 +139,17 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
             getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader, taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction(), new TestAction()], hasher))
 
         expect:
-        changes == ["Task ':test' additional action class paths have changed from [${taskLoaderHash}] to [${taskLoaderHash}, ${taskLoaderHash}]." as String]
+        changes == [
+            "Task ':test' additional action class paths have changed from [${taskLoaderHash}] to [${taskLoaderHash}, ${taskLoaderHash}]." as String,
+            "Task ':test' additional action types have changed from [${TestAction.name}] to [${TestAction.name}, ${TestAction.name}]." as String
+        ]
     }
 
     def "not up-to-date when task is loaded with an unknown classloader"() {
@@ -144,10 +164,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> simpleTaskClass.name
             getTaskClassLoaderHash() >> null
             getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", simpleTaskClass, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", simpleTaskClass, [new TestAction()], hasher))
 
         expect:
         changes == ["Task ':test' was loaded with an unknown classloader"]
@@ -160,10 +181,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
             getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskActionLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction(TestAction, taskActionLoader)], hasher))
 
         expect:
         changes == ["Task ':test' has a custom action that was loaded with an unknown classloader"]
@@ -174,10 +196,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> null
             getTaskActionsClassLoaderHashes() >> [taskLoaderHash]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction()], hasher))
 
         expect:
         changes == ["Task ':test' was loaded with an unknown classloader during the previous execution"]
@@ -188,10 +211,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
             getTaskClass() >> SimpleTask.name
             getTaskClassLoaderHash() >> taskLoaderHash
             getTaskActionsClassLoaderHashes() >> [null]
+            getTaskActionsTypes() >> ImmutableList.of(TestAction.name)
         }
         def current = Mock(TaskExecution)
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [new TestAction()], hasher))
 
         expect:
         changes == ["Task ':test' had a custom action that was loaded with an unknown classloader during the previous execution"]
@@ -208,6 +232,28 @@ class TaskTypeTaskStateChangesTest extends Specification {
     private class SimpleAction implements Action<Void> {
         @Override
         void execute(Void value) {
+        }
+    }
+
+    private static class TestAction implements ContextAwareTaskAction {
+        final ClassLoader classLoader
+        final Class<?> actionType
+
+        TestAction() {
+            this(TestAction, TestAction.classLoader)
+        }
+
+        TestAction(Class<?> actionType, ClassLoader classLoader) {
+            this.actionType = actionType
+            this.classLoader = classLoader
+        }
+
+        @Override
+        void contextualise(TaskExecutionContext context) {
+        }
+
+        @Override
+        void execute(Task task) {
         }
     }
 }
