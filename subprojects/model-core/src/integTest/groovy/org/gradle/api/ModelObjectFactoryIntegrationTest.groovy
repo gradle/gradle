@@ -19,7 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
-    def "plugin can create named instances using injected factory"() {
+    def "plugin can create named instances of interface using injected factory"() {
         buildFile << """
             interface Thing extends Named { }
             
@@ -62,5 +62,77 @@ class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("thing1: thing1")
         outputContains("thing2: thing2")
+    }
+
+    def "plugin can create named instances of abstract class"() {
+        buildFile << """
+            abstract class Thing implements Named { }
+            
+            class CustomPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.create('thing1', CustomTask) { 
+                        thing = project.objects.named(Thing, 'thing1')
+                    }
+                }
+            }
+            
+            class CustomTask extends DefaultTask {
+                Thing thing
+                
+                @TaskAction
+                void run() {
+                    println thing.toString() + ": " + thing.name
+                }
+            }
+            
+            apply plugin: CustomPlugin
+"""
+
+        when:
+        run "thing1"
+
+        then:
+        outputContains("thing1: thing1")
+    }
+
+    def "cannot mutate named instance from groovy"() {
+        buildFile << """
+            interface Thing extends Named { }
+            
+            def t1 = objects.named(Thing, "t1")
+            task changeProp {
+                doLast {
+                    t1.name = "123"
+                }
+            }
+            task changeDynProp {
+                doLast {
+                    t1.setProperty("name", "123")
+                }
+            }
+            task changeField {
+                doLast {
+                    t1.@name = "123"
+                }
+            }
+"""
+
+        when:
+        fails("changeProp")
+
+        then:
+        failure.assertHasCause("Cannot set readonly property: name for class: Thing\$Impl")
+
+        when:
+        fails("changeDynProp")
+
+        then:
+        failure.assertHasCause("No signature of method: Thing\$Impl.setProperty() is applicable for argument types: (java.lang.String, java.lang.String) values: [name, 123]")
+
+        when:
+        fails("changeField")
+
+        then:
+        failure.assertHasCause("No such field: name for class: Thing\$Impl")
     }
 }

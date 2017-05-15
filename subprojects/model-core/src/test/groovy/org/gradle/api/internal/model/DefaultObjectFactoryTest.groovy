@@ -118,9 +118,35 @@ class DefaultObjectFactoryTest extends ConcurrentSpec {
         results.unique().size() == 1
     }
 
-    @Ignore
     def "creates instance of abstract class"() {
-        expect: false
+        expect:
+        def n1 = factory.named(AbstractNamed, "a")
+        def n2 = factory.named(AbstractNamed, "b")
+
+        n1.is(n1)
+        !n1.is(n2)
+
+        n1.name == "a"
+        n2.name == "b"
+
+        n1.calculatedValue == "[a]"
+        n2.calculatedValue == "[b]"
+
+        Matchers.strictlyEquals(n1, n1)
+        n2 != n1
+        !n2.equals(n1)
+
+        n1.hashCode() == n1.hashCode()
+        n1.hashCode() != n2.hashCode()
+
+        n1.toString() == "a"
+        n2.toString() == "b"
+
+        n1.is(factory.named(AbstractNamed, "a"))
+        n2.is(factory.named(AbstractNamed, "b"))
+
+        !n1.is(factory.named(Named, "a"))
+        !n2.is(factory.named(Named, "b"))
     }
 
     @Ignore

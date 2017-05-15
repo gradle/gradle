@@ -73,7 +73,17 @@ public class DefaultObjectFactory implements ObjectFactory {
         ClassWriter visitor = generator.getVisitor();
         Type publicType = Type.getType(publicClass);
 
-        visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, implementationType.getInternalName(), null, OBJECT.getInternalName(), new String[]{publicType.getInternalName()});
+        Type superClass;
+        String[] interfaces;
+        if (publicClass.isInterface()) {
+            superClass = OBJECT;
+            interfaces = new String[]{publicType.getInternalName()};
+        } else {
+            superClass = publicType;
+            interfaces = EMPTY_STRINGS;
+        }
+
+        visitor.visit(V1_5, ACC_PUBLIC | ACC_SYNTHETIC, implementationType.getInternalName(), null, superClass.getInternalName(), interfaces);
 
         //
         // Add name field
@@ -89,7 +99,7 @@ public class DefaultObjectFactory implements ObjectFactory {
         methodVisitor.visitCode();
         // Call this.super()
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT.getInternalName(), CONSTRUCTOR_NAME, RETURN_VOID, false);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superClass.getInternalName(), CONSTRUCTOR_NAME, RETURN_VOID, false);
         // Set this.name = param1
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);

@@ -22,7 +22,7 @@ import org.gradle.api.Named;
 /**
  * A factory for creating various kinds of model objects.
  * <p>
- * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}.
+ * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
  *
  * @since 4.0
  */
@@ -30,6 +30,10 @@ import org.gradle.api.Named;
 public interface ObjectFactory {
     /**
      * Creates a simple immutable {@link Named} object of the given type and name.
+     *
+     * <p>The given type can be an interface that extends {@link Named} or an abstract class that implements {@link Named}. An abstract class must provide a zero-args constructor and should not provide an implementation for {@link Named#getName()}.</p>
+     *
+     * <p>Objects created using this method are not decorated or extensible.</p>
      */
     <T extends Named> T named(Class<T> type, String name);
 }
