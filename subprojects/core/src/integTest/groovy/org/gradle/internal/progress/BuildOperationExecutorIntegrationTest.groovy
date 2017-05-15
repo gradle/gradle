@@ -18,12 +18,10 @@ package org.gradle.internal.progress
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.junit.Rule
 
 class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule
-    public final BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "can be used at configuration time"() {
         given:
