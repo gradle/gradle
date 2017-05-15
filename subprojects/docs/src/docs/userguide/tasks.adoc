@@ -515,6 +515,10 @@ To stay compatible with Gradle versions before 3.2, classpath properties should 
 | `Map&lt;String, File&gt;`\** or `Iterable&lt;File&gt;`*
 | An iterable of output directories (no files)
 
+| `@api:org.gradle.api.tasks.Destroys[]`
+| `File` or `Iterable&lt;File&gt;`*
+| Specifies one or more files that are removed by this task.  Note that a task can define either inputs/outputs or destroyables, but not both.
+
 | `@api:org.gradle.api.tasks.Nested[]`
 | Any custom type
 | A custom type that may not implement `Serializable` but does have at least one field or property marked with one of the annotations in this table. It could even be another `@Nested`.
@@ -571,6 +575,7 @@ This runtime API is provided through a couple of aptly named properties that are
 
 * api:org.gradle.api.Task#getInputs()[] of type api:org.gradle.api.tasks.TaskInputs[]
 * api:org.gradle.api.Task#getOutputs()[] of type api:org.gradle.api.tasks.TaskOutputs[]
+* api:org.gradle.api.Task#getDestroyables()[] of type api:org.gradle.api.tasks.TaskDestroyables[]
 
 These objects have methods that allow you to specify files, directories and values which constitute the task’s inputs and outputs. In fact, the runtime API has almost feature parity with the annotations. All it lacks is validation of whether declared files are actually files and declared directories are directories. Nor will it create output directories if they don't exist. But that's it.
 
@@ -587,7 +592,15 @@ As before, there’s much to talk about. To begin with, you should really write 
 
 All the input and output definitions are done through the methods on `inputs` and `outputs`, such as `property()`, `files()`, and `dir()`. Gradle performs up-to-date checks on the argument values to determine whether the task needs to run again or not. Each method corresponds to one of the incremental build annotations, for example `inputs.property()` maps to `@Input` and `outputs.dir()` maps to `@OutputDirectory`. The only difference is that the `file()`, `files()`, `dir()` and `dirs()` methods don’t validate the type of file object at the given path (file or directory), unlike the annotations.
 
-One notable difference between the runtime API and the annotations is the lack of a method that corresponds directly to `@Nested`. That’s why the example uses two `property()` declarations for the template data, one for each `TemplateData` property. You should utilize the same technique when using the runtime API with nested values.
+The files that a task removes can be specified through the methods on `destroyables`.  For example, both individual files and directories can be specified using the `destroyables.file()` method, while a collection of files can be specified using the `destroyables.files()` method.
+
+++++
+<sample id="destroyableAdHocTask" dir="userguide/tasks/incrementalBuild/customTaskClass" title="Ad-hoc task declaring a destroyable">
+    <sourcefile file="build.gradle" snippet="adhoc-destroyable-task"/>
+</sample>
+++++
+
+One notable difference between the runtime API and the annotations is the lack of a method that corresponds directly to `@Nested`. That’s why the example uses two `property()` declarations for the template data, one for each `TemplateData` property. You should utilize the same technique when using the runtime API with nested values.  Any given task can either declare destroyables or inputs/outputs, but cannot declare both.
 
 [[sec:runtime_api_for_custom_tasks]]
 ====== Using it for custom task types
@@ -675,9 +688,15 @@ You will occasionally want to disable some of this validation, specifically when
 [[sec:task_input_output_continuous_build]]
 ====== Continuous build
 
-One last benefit of defining task inputs and outputs is continuous build. Since Gradle knows what files a task depends on, it can automatically run a task again if any of its inputs change. By activating continuous build when you run Gradle - through the `--continuous` or `-t` options - you will put Gradle into a state in which it continually checks for changes and executes the requested tasks when it encounters such changes.
+Another benefit of defining task inputs and outputs is continuous build. Since Gradle knows what files a task depends on, it can automatically run a task again if any of its inputs change. By activating continuous build when you run Gradle - through the `--continuous` or `-t` options - you will put Gradle into a state in which it continually checks for changes and executes the requested tasks when it encounters such changes.
 
 You can find out more about this feature in <<continuous_build>>.
+
+
+[[sec:task_input_output_parallelism]]
+====== Task parallelism
+
+One last benefit of defining task inputs and outputs is that Gradle can use this information to make decisions about how to run tasks when the "--parallel" option is used.  For instance, Gradle will inspect the outputs of tasks when selecting the  next task to run and will avoid concurrent execution of tasks that write to the same output directory.  Similarly, Gradle will use the information about what files a task destroys (e.g. specified by the `Destroys` annotation) and avoid running a task that removes a set of files while another task is running that consumes or creates those same files (and vice versa).  It can also determine that a task that creates a set of files has already run and that a task that consumes those files has yet to run and will avoid running a task that removes those files in between.  By providing task input and output information in this way, Gradle can infer creation/consumption/destruction relationships between tasks and can ensure that task execution does not violate those relationships.
 
 [[sec:how_does_it_work]]
 ==== How does it work?

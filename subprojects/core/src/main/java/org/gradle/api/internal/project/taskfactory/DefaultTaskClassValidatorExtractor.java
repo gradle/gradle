@@ -74,6 +74,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         new OutputDirectoryPropertyAnnotationHandler(),
         new OutputDirectoriesPropertyAnnotationHandler(),
         new InputPropertyAnnotationHandler(),
+        new DestroysPropertyAnnotationHandler(),
         new NestedBeanPropertyAnnotationHandler(),
         new NoOpPropertyAnnotationHandler(Inject.class),
         new NoOpPropertyAnnotationHandler(Console.class),
