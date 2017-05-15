@@ -53,7 +53,7 @@ open class Benchmark : DefaultTask() {
     @TaskAction
     fun run() {
         val config = BenchmarkConfig(warmUpRuns, observationRuns)
-        val quotients = project.sampleDirs().filter { !it.name.contains("android") }.map {
+        val quotients = sampleDirs().map {
             benchmark(it, config)
         }
         val result = QuotientResult(quotients)
@@ -63,6 +63,16 @@ open class Benchmark : DefaultTask() {
                     quotientToPercentage(result.median)))
         }
     }
+
+    private
+    fun sampleDirs() =
+        project
+            .sampleDirs()
+            .filter {
+                !it.name.run {
+                    contains("android") || contains("build-scan")
+                }
+            }
 
     private
     fun quotientToPercentage(quotient: Double) = (quotient - 1) * 100
