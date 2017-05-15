@@ -48,12 +48,12 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
         hasher.putString(taskClass);
         log("taskClass", taskClass);
 
-        HashCode hashCode = taskImplementation.getClassLoaderHash();
-        this.classLoaderHash = hashCode;
-        if (hashCode != null) {
+        if (!taskImplementation.hasUnknownClassLoader()) {
+            HashCode hashCode = taskImplementation.getClassLoaderHash();
+            this.classLoaderHash = hashCode;
             hasher.putHash(hashCode);
+            log("classLoaderHash", hashCode);
         }
-        log("classLoaderHash", hashCode);
         return this;
     }
 
@@ -67,11 +67,15 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
             hasher.putString(actionType);
             log("actionsType", actionType);
 
-            if (!actionImpl.hasUnknownClassLoader()) {
-                HashCode hashCode = actionImpl.getClassLoaderHash();
+            HashCode hashCode;
+            if (actionImpl.hasUnknownClassLoader()) {
+                hashCode = null;
+            } else {
+                hashCode = actionImpl.getClassLoaderHash();
                 hasher.putHash(hashCode);
-                log("actionsClassLoaderHash", hashCode);
             }
+            actionsClassLoaderHashes.add(hashCode);
+            log("actionsClassLoaderHash", hashCode);
         }
 
         this.actionsTypes = actionsTypes;
