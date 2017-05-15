@@ -83,16 +83,6 @@ public class TaskStateInternal implements TaskState {
         return taskOutputCaching;
     }
 
-    /**
-     * @deprecated Use {@link #getTaskOutputCaching()} instead.
-     *
-     * Older versions of the build-scan plugin use this method, so leave it around longer.
-     */
-    @Deprecated
-    public boolean isCacheable() {
-        return getTaskOutputCaching().isEnabled();
-    }
-
     public Throwable getFailure() {
         return failure;
     }
