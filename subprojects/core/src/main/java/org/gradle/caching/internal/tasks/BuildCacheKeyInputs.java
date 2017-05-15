@@ -16,32 +16,32 @@
 
 package org.gradle.caching.internal.tasks;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Records the inputs which constitute the {@link TaskOutputCachingBuildCacheKey}.
  */
 public class BuildCacheKeyInputs {
+
     private final String taskClass;
     private final HashCode classLoaderHash;
-    private final List<HashCode> actionClassLoaderHashes;
-    private final List<String> actionTypes;
+    private final ImmutableList<HashCode> actionClassLoaderHashes;
+    private final ImmutableList<String> actionClassNames;
     private final ImmutableSortedMap<String, HashCode> inputHashes;
     private final ImmutableSortedSet<String> outputPropertyNames;
 
-    public BuildCacheKeyInputs(String taskClass, HashCode classLoaderHash, List<HashCode> actionClassLoaderHashes, List<String> actionTypes, ImmutableSortedMap<String, HashCode> inputHashes, ImmutableSortedSet<String> outputPropertyNames) {
+    public BuildCacheKeyInputs(String taskClass, HashCode classLoaderHash, ImmutableList<HashCode> actionClassLoaderHashes, ImmutableList<String> actionClassNames, ImmutableSortedMap<String, HashCode> inputHashes, ImmutableSortedSet<String> outputPropertyNames) {
         this.taskClass = taskClass;
         this.inputHashes = inputHashes;
         this.classLoaderHash = classLoaderHash;
         this.actionClassLoaderHashes = actionClassLoaderHashes;
-        this.actionTypes = actionTypes;
+        this.actionClassNames = actionClassNames;
         this.outputPropertyNames = outputPropertyNames;
     }
 
@@ -58,15 +58,15 @@ public class BuildCacheKeyInputs {
         return classLoaderHash;
     }
 
-    public List<HashCode> getActionClassLoaderHashes() {
+    public ImmutableList<HashCode> getActionClassLoaderHashes() {
         return actionClassLoaderHashes;
     }
 
-    public List<String> getActionTypes() {
-        return actionTypes;
+    public ImmutableList<String> getActionClassNames() {
+        return actionClassNames;
     }
 
-    public Set<String> getOutputPropertyNames() {
+    public ImmutableSortedSet<String> getOutputPropertyNames() {
         return outputPropertyNames;
     }
 
@@ -75,7 +75,7 @@ public class BuildCacheKeyInputs {
         return "BuildCacheKeyInputs{"
             + "classLoaderHash=" + classLoaderHash
             + ", actionClassLoaderHashes=" + actionClassLoaderHashes
-            + ", actionTypes=" + actionTypes
+            + ", actionClassNames=" + actionClassNames
             + ", inputHashes=" + inputHashes
             + ", outputPropertyNames=" + outputPropertyNames
             + '}';

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.execution
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSortedSet
 import com.google.common.hash.HashCode
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
@@ -146,13 +148,19 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.classLoaderHash == "cc"
 
         when:
-        inputs.actionClassLoaderHashes >> [HashCode.fromString("ee"), HashCode.fromString("dd")]
+        inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromString("ee"), HashCode.fromString("dd")])
 
         then:
         adapter.actionClassLoaderHashes == ["ee", "dd"]
 
         when:
-        inputs.outputPropertyNames >> ["2", "1"].toSet()
+        inputs.actionClassNames >> ImmutableList.copyOf(["foo", "bar"])
+
+        then:
+        adapter.actionClassNames == ["foo", "bar"]
+
+        when:
+        inputs.outputPropertyNames >> ImmutableSortedSet.copyOf(["2", "1"])
 
         then:
         adapter.outputPropertyNames == ["1", "2"]

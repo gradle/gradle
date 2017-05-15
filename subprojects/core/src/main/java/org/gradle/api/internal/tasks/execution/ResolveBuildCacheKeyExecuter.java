@@ -165,6 +165,11 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
+        public List<String> getActionClassNames() {
+            return key.getInputs().getActionClassNames();
+        }
+
+        @Override
         public List<String> getOutputPropertyNames() {
             // Copy should be a NOOP as this is an immutable sorted set upstream.
             return ImmutableSortedSet.copyOf(key.getInputs().getOutputPropertyNames()).asList();

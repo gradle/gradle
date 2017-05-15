@@ -17,9 +17,9 @@
 package org.gradle.caching.internal.tasks;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.TypeImplementation;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.List;
 
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskOutputCachingBuildCacheKeyBuilder.class);
@@ -38,8 +37,8 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     private BuildCacheHasher hasher = new DefaultBuildCacheHasher();
     private String taskClass;
     private HashCode classLoaderHash;
-    private List<HashCode> actionClassLoaderHashes;
-    private List<String> actionTypes;
+    private ImmutableList<HashCode> actionClassLoaderHashes;
+    private ImmutableList<String> actionTypes;
     private final ImmutableSortedMap.Builder<String, HashCode> inputHashes = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
@@ -58,9 +57,8 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     }
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskActionImplementations(Collection<TypeImplementation> taskActionImplementations) {
-        int actionCount = taskActionImplementations.size();
-        List<String> actionTypes = Lists.newArrayListWithCapacity(actionCount);
-        List<HashCode> actionClassLoaderHashes = Lists.newArrayListWithCapacity(actionCount);
+        ImmutableList.Builder<String> actionTypes = ImmutableList.builder();
+        ImmutableList.Builder<HashCode> actionClassLoaderHashes = ImmutableList.builder();
         for (TypeImplementation actionImpl : taskActionImplementations) {
             String actionType = actionImpl.getTypeName();
             actionTypes.add(actionType);
@@ -78,8 +76,8 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
             log("actionClassLoaderHash", hashCode);
         }
 
-        this.actionTypes = actionTypes;
-        this.actionClassLoaderHashes = actionClassLoaderHashes;
+        this.actionTypes = actionTypes.build();
+        this.actionClassLoaderHashes = actionClassLoaderHashes.build();
         return this;
     }
 

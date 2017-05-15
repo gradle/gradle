@@ -66,12 +66,20 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         String getClassLoaderHash();
 
         /**
-         * The hash of the the classloader that loaded each of the task's actions.
+         * The hashes of the classloader that loaded each of the task's actions.
          *
          * May contain duplicates.
          * Order corresponds to execution order of the actions.
          */
         List<String> getActionClassLoaderHashes();
+
+        /**
+         * The class names of each of the task's actions.
+         *
+         * May contain duplicates.
+         * Order corresponds to execution order of the actions.
+         */
+        List<String> getActionClassNames();
 
         /**
          * Hashes of each of the input properties.
