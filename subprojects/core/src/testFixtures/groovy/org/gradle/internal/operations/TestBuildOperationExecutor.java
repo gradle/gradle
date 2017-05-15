@@ -153,7 +153,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         }
 
         public <R, D, T extends BuildOperationType<D, R>> D mostRecentDetails(Class<T> type) {
-            return extractDetailsType(type).cast(mostRecent(type));
+            return extractDetailsType(type).cast(mostRecent(type).descriptor.getDetails());
         }
 
         public <R, D, T extends BuildOperationType<D, R>> R mostRecentResult(Class<T> type) {

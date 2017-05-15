@@ -50,7 +50,16 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getPath() >> ":foo"
+        with(buildOpDetails()) {
+            taskPath == ":foo"
+            taskId != 0
+        }
+
+        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
+            key == cacheKey
+        }
+
+        then:
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
@@ -67,12 +76,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
+        1 * task.getIdentityPath() >> Path.path(":foo")
         0 * _
-
-        and:
-        with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
-            key == cacheKey
-        }
     }
 
     def "propagates exceptions if cache key cannot be calculated"() {
@@ -82,7 +87,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getPath() >> ":foo"
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> {
@@ -100,7 +104,6 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * task.getPath() >> ":foo"
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
@@ -159,6 +162,10 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         then:
         adapter.buildCacheKey == "ff"
+    }
+
+    private SnapshotTaskInputsBuildOperationType.Details buildOpDetails() {
+        buildOperationExecutor.log.mostRecentDetails(SnapshotTaskInputsBuildOperationType)
     }
 
     private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {

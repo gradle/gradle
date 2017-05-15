@@ -17,9 +17,10 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.BuildOperationTypes
-import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
@@ -41,11 +42,8 @@ class BuildOperationsFixture {
         }
     }
 
-    boolean hasOperation(String displayName) {
-        operation(displayName) != null
-    }
-
-    BuildOperationRecord operation(Class<?> type) {
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord operation(Class<T> type) {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.values().find { it.detailsType && detailsType.isAssignableFrom(it.detailsType as Class<?>) }
     }
@@ -60,6 +58,15 @@ class BuildOperationsFixture {
 
     String failure(String displayName) {
         operation(displayName).failure
+    }
+
+    boolean hasOperation(String displayName) {
+        operation(displayName) != null
+    }
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> boolean hasOperation(Class<T> type) {
+        operation(type) != null
     }
 
 }

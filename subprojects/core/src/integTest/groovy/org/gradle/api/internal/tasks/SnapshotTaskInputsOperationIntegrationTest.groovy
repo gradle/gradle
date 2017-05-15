@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String BUILD_OPERATION = 'Compute task input hashes and build cache key'
-
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "task output caching key is exposed when build cache is enabled"() {
@@ -34,10 +32,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         succeeds('customTask')
 
         then:
-        def result = buildOperationResult()
+        def result = buildOperations.operation(SnapshotTaskInputsBuildOperationType).result
 
         then:
-        result.containsKey("buildCacheKey")
+        result.buildCacheKey != null
         result.inputHashes.keySet() == ['input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
@@ -48,7 +46,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         succeeds('customTask')
 
         then:
-        !buildOperations.hasOperation(BUILD_OPERATION)
+        !buildOperations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
     private static String customTaskCode(String input1, String input2) {
@@ -76,10 +74,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 input2 = '$input2'
             }
         """
-    }
-
-    Map<String, ?> buildOperationResult() {
-        buildOperations.operation(SnapshotTaskInputsBuildOperationType).result
     }
 
 }
