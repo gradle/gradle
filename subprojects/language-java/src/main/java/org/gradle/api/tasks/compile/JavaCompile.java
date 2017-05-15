@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
@@ -51,7 +50,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
-import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -192,11 +190,6 @@ public class JavaCompile extends AbstractCompile {
     }
 
     @Inject
-    protected Factory<AntBuilder> getAntBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
     protected JvmVersionDetector getJvmVersionDetector() {
         throw new UnsupportedOperationException();
     }
@@ -215,7 +208,7 @@ public class JavaCompile extends AbstractCompile {
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
-        return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
+        return new CleaningJavaCompiler(javaCompiler, getOutputs());
     }
 
     @Nested
