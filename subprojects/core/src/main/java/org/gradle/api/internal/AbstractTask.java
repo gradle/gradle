@@ -61,6 +61,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.scripts.WithContentHash;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
@@ -685,8 +686,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public Class<?> getActionType() {
-            return closure.getClass();
+        public String getActionClassName() {
+            if (closure instanceof WithContentHash) {
+                return "closure_" + ((WithContentHash) closure).getContentHash();
+            }
+            return closure.getClass().getName();
         }
     }
 
@@ -723,11 +727,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public Class<?> getActionType() {
+        public String getActionClassName() {
             if (action instanceof ClassLoaderAwareTaskAction) {
-                return ((ClassLoaderAwareTaskAction) action).getActionType();
+                return ((ClassLoaderAwareTaskAction) action).getActionClassName();
             } else {
-                return action.getClass();
+                String className = action.getClass().getName();
+                if (action instanceof WithContentHash) {
+                    return "action_" + ((WithContentHash) action).getContentHash();
+                }
+                return className;
             }
         }
 

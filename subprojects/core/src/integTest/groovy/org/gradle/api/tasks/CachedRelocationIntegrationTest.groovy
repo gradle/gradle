@@ -23,6 +23,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
 
     def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
+        def originalHome = file("original-home").createDir()
 
         originalLocation.file("external.gradle").text = externalTaskDef()
         originalLocation.file("input.txt") << "input"
@@ -42,6 +43,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
 
         when:
         executer.usingProjectDirectory(originalLocation)
+        executer.withGradleUserHomeDir(originalHome)
         withBuildCache().succeeds "jar", "customTask"
 
         then:
@@ -55,6 +57,18 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         then:
         skippedTasks.containsAll ":compileJava"
         nonSkippedTasks.contains ":customTask"
+
+        when:
+        executer.usingProjectDirectory(originalLocation)
+        run "clean"
+
+        def movedHome = temporaryFolder.file("moved-home")
+        executer.withGradleUserHomeDir(movedHome)
+        executer.usingProjectDirectory(originalLocation)
+        withBuildCache().succeeds "jar", "customTask"
+
+        then:
+        skippedTasks.containsAll ":compileJava", ":customTask"
 
         when:
         executer.usingProjectDirectory(originalLocation)
@@ -101,6 +115,10 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
             task customTask(type: CustomTask) {
                 inputFile = file "input.txt"
                 outputFile = file "build/output.txt"
+                doFirst {
+                    println "Action class hash: \${getContentHash()}"
+                    println "Running task in Gradle home: \${gradle.gradleUserHomeDir}"
+                }
             }
         """
     }

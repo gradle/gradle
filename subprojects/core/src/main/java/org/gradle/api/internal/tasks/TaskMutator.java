@@ -119,8 +119,8 @@ public class TaskMutator {
         }
 
         @Override
-        public Class<?> getActionType() {
-            return action.getActionType();
+        public String getActionClassName() {
+            return action.getActionClassName();
         }
     }
 }
