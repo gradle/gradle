@@ -38,8 +38,8 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     private BuildCacheHasher hasher = new DefaultBuildCacheHasher();
     private String taskClass;
     private HashCode classLoaderHash;
-    private List<HashCode> actionsClassLoaderHashes;
-    private List<String> actionsTypes;
+    private List<HashCode> actionClassLoaderHashes;
+    private List<String> actionTypes;
     private final ImmutableSortedMap.Builder<String, HashCode> inputHashes = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
@@ -59,13 +59,13 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder appendTaskActionImplementations(Collection<TypeImplementation> taskActionImplementations) {
         int actionCount = taskActionImplementations.size();
-        List<String> actionsTypes = Lists.newArrayListWithCapacity(actionCount);
-        List<HashCode> actionsClassLoaderHashes = Lists.newArrayListWithCapacity(actionCount);
+        List<String> actionTypes = Lists.newArrayListWithCapacity(actionCount);
+        List<HashCode> actionClassLoaderHashes = Lists.newArrayListWithCapacity(actionCount);
         for (TypeImplementation actionImpl : taskActionImplementations) {
             String actionType = actionImpl.getTypeName();
-            actionsTypes.add(actionType);
+            actionTypes.add(actionType);
             hasher.putString(actionType);
-            log("actionsType", actionType);
+            log("actionType", actionType);
 
             HashCode hashCode;
             if (actionImpl.hasUnknownClassLoader()) {
@@ -74,12 +74,12 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
                 hashCode = actionImpl.getClassLoaderHash();
                 hasher.putHash(hashCode);
             }
-            actionsClassLoaderHashes.add(hashCode);
-            log("actionsClassLoaderHash", hashCode);
+            actionClassLoaderHashes.add(hashCode);
+            log("actionClassLoaderHash", hashCode);
         }
 
-        this.actionsTypes = actionsTypes;
-        this.actionsClassLoaderHashes = actionsClassLoaderHashes;
+        this.actionTypes = actionTypes;
+        this.actionClassLoaderHashes = actionClassLoaderHashes;
         return this;
     }
 
@@ -103,8 +103,8 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder {
     }
 
     public TaskOutputCachingBuildCacheKey build() {
-        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionsClassLoaderHashes, actionsTypes, inputHashes.build(), outputPropertyNames.build());
-        if (classLoaderHash == null || actionsClassLoaderHashes.contains(null)) {
+        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputHashes.build(), outputPropertyNames.build());
+        if (classLoaderHash == null || actionClassLoaderHashes.contains(null)) {
             return new DefaultTaskOutputCachingBuildCacheKey(null, inputs);
         }
         return new DefaultTaskOutputCachingBuildCacheKey(hasher.hash(), inputs);
