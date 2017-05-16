@@ -87,9 +87,14 @@ public class DefaultVisitedFileDependencyResults implements VisitedFileDependenc
         }
 
         @Override
-        public ResolvedArtifactSet getArtifacts(long id) {
+        public ResolvedArtifactSet getArtifactsForNode(long id) {
             ResolvedArtifactSet artifacts = filesByConfiguration.get(id);
             return artifacts == null ? ResolvedArtifactSet.EMPTY : artifacts;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifactsWithId(long id) {
+            throw new UnsupportedOperationException();
         }
 
         @Override

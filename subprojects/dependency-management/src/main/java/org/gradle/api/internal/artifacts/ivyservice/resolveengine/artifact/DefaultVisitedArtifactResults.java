@@ -70,8 +70,13 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         }
 
         @Override
-        public ResolvedArtifactSet getArtifacts(long id) {
-            return null;
+        public ResolvedArtifactSet getArtifactsForNode(long id) {
+            return EMPTY;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifactsWithId(long id) {
+            return EMPTY;
         }
     }
 
@@ -90,7 +95,12 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         }
 
         @Override
-        public ResolvedArtifactSet getArtifacts(long id) {
+        public ResolvedArtifactSet getArtifactsForNode(long id) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifactsWithId(long id) {
             return resolvedArtifactsById.get(id);
         }
     }

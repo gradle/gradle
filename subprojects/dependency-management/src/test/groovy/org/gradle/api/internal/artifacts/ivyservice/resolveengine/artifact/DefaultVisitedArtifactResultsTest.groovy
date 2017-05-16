@@ -38,8 +38,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def selected = results.select(spec, selector)
 
         expect:
-        selected.getArtifacts(1) == variant1Artifacts
-        selected.getArtifacts(2) == variant2Artifacts
+        selected.getArtifactsWithId(1) == variant1Artifacts
+        selected.getArtifactsWithId(2) == variant2Artifacts
     }
 
 }

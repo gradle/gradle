@@ -387,7 +387,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         public void getNodeValues(DependencyGraphNodeResult node, Collection<? super ResolvedArtifact> values, Collection<? super DependencyGraphNodeResult> connectedNodes) {
             connectedNodes.addAll(node.getOutgoingEdges());
             if (includeFiles) {
-                dest.add(fileDependencyResults.getArtifacts(node.getNodeId()));
+                dest.add(fileDependencyResults.getArtifactsForNode(node.getNodeId()));
             }
         }
 
