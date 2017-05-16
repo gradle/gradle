@@ -22,8 +22,8 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot
 import org.gradle.api.internal.changedetection.state.TaskExecution
-import org.gradle.api.internal.changedetection.state.TypeImplementation
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.internal.Cast
@@ -197,8 +197,8 @@ class TaskTypeTaskStateChangesTest extends Specification {
         return changes*.message
     }
 
-    private static TypeImplementation impl(Class<?> type, HashCode classLoaderHash) {
-        new TypeImplementation(type.getName(), classLoaderHash)
+    private static ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash) {
+        new ImplementationSnapshot(type.getName(), classLoaderHash)
     }
 
     private class SimpleTask extends DefaultTask {}

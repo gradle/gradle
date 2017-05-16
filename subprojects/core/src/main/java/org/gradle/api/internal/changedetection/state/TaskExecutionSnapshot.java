@@ -27,8 +27,8 @@ import org.gradle.internal.id.UniqueId;
  */
 public class TaskExecutionSnapshot {
     private final UniqueId buildId;
-    private final TypeImplementation taskImplementation;
-    private final ImmutableList<TypeImplementation> taskActionsImplementations;
+    private final ImplementationSnapshot taskImplementation;
+    private final ImmutableList<ImplementationSnapshot> taskActionsImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private final ImmutableSortedSet<String> cacheableOutputProperties;
     private final ImmutableSet<String> declaredOutputFilePaths;
@@ -36,7 +36,7 @@ public class TaskExecutionSnapshot {
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(UniqueId buildId, TypeImplementation taskImplementation, ImmutableList<TypeImplementation> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(UniqueId buildId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
         this.buildId = buildId;
         this.taskImplementation = taskImplementation;
         this.taskActionsImplementations = taskActionsImplementations;
@@ -52,11 +52,11 @@ public class TaskExecutionSnapshot {
         return buildId;
     }
 
-    public TypeImplementation getTaskImplementation() {
+    public ImplementationSnapshot getTaskImplementation() {
         return taskImplementation;
     }
 
-    public ImmutableList<TypeImplementation> getTaskActionsImplementations() {
+    public ImmutableList<ImplementationSnapshot> getTaskActionsImplementations() {
         return taskActionsImplementations;
     }
 

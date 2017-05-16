@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,12 +32,12 @@ public class BuildCacheKeyInputs {
 
     private final String taskClass;
     private final HashCode classLoaderHash;
-    private final ImmutableList<HashCode> actionClassLoaderHashes;
+    private final List<HashCode> actionClassLoaderHashes;
     private final ImmutableList<String> actionClassNames;
     private final ImmutableSortedMap<String, HashCode> inputHashes;
     private final ImmutableSortedSet<String> outputPropertyNames;
 
-    public BuildCacheKeyInputs(String taskClass, HashCode classLoaderHash, ImmutableList<HashCode> actionClassLoaderHashes, ImmutableList<String> actionClassNames, ImmutableSortedMap<String, HashCode> inputHashes, ImmutableSortedSet<String> outputPropertyNames) {
+    public BuildCacheKeyInputs(String taskClass, HashCode classLoaderHash, List<HashCode> actionClassLoaderHashes, ImmutableList<String> actionClassNames, ImmutableSortedMap<String, HashCode> inputHashes, ImmutableSortedSet<String> outputPropertyNames) {
         this.taskClass = taskClass;
         this.inputHashes = inputHashes;
         this.classLoaderHash = classLoaderHash;
@@ -58,7 +59,7 @@ public class BuildCacheKeyInputs {
         return classLoaderHash;
     }
 
-    public ImmutableList<HashCode> getActionClassLoaderHashes() {
+    public List<HashCode> getActionClassLoaderHashes() {
         return actionClassLoaderHashes;
     }
 

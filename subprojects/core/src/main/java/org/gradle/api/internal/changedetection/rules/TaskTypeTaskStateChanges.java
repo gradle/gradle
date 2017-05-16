@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TypeImplementation;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.slf4j.Logger;
@@ -33,13 +33,13 @@ import java.util.List;
 class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskTypeTaskStateChanges.class);
     private final String taskPath;
-    private final TypeImplementation taskImplementation;
-    private final ImmutableList<TypeImplementation> taskActionImplementations;
+    private final ImplementationSnapshot taskImplementation;
+    private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private final TaskExecution previousExecution;
 
     public TaskTypeTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, String taskPath, Class<? extends TaskInternal> taskClass, Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        TypeImplementation taskImplementation = new TypeImplementation(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
-        ImmutableList<TypeImplementation> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
+        ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
+        ImmutableList<ImplementationSnapshot> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
 
         currentExecution.setTaskImplementation(taskImplementation);
         currentExecution.setTaskActionImplementations(taskActionImplementations);
@@ -55,22 +55,22 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         this.previousExecution = previousExecution;
     }
 
-    private ImmutableList<TypeImplementation> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    private ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         if (taskActions.isEmpty()) {
             return ImmutableList.of();
         }
-        ImmutableList.Builder<TypeImplementation> actionImpls = ImmutableList.builder();
+        ImmutableList.Builder<ImplementationSnapshot> actionImpls = ImmutableList.builder();
         for (ContextAwareTaskAction taskAction : taskActions) {
             String typeName = taskAction.getActionType().getName();
             HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
-            actionImpls.add(new TypeImplementation(typeName, classLoaderHash));
+            actionImpls.add(new ImplementationSnapshot(typeName, classLoaderHash));
         }
         return actionImpls.build();
     }
 
     @Override
     protected void addAllChanges(List<TaskStateChange> changes) {
-        TypeImplementation prevImplementation = previousExecution.getTaskImplementation();
+        ImplementationSnapshot prevImplementation = previousExecution.getTaskImplementation();
         if (!taskImplementation.getTypeName().equals(prevImplementation.getTypeName())) {
             changes.add(new DescriptiveChange("Task '%s' has changed type from '%s' to '%s'.",
                     taskPath, prevImplementation.getTypeName(), taskImplementation.getTypeName()));
@@ -102,8 +102,8 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         }
     }
 
-    private static boolean hasAnyUnknownClassLoader(Iterable<TypeImplementation> implementations) {
-        for (TypeImplementation implementation : implementations) {
+    private static boolean hasAnyUnknownClassLoader(Iterable<ImplementationSnapshot> implementations) {
+        for (ImplementationSnapshot implementation : implementations) {
             if (implementation.hasUnknownClassLoader()) {
                 return true;
             }

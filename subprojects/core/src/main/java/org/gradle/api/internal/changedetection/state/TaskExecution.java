@@ -27,8 +27,8 @@ import org.gradle.internal.id.UniqueId;
  */
 public abstract class TaskExecution {
     private UniqueId buildId;
-    private TypeImplementation taskImplementation;
-    private ImmutableList<TypeImplementation> taskActionImplementations;
+    private ImplementationSnapshot taskImplementation;
+    private ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
@@ -69,19 +69,19 @@ public abstract class TaskExecution {
         this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
-    public TypeImplementation getTaskImplementation() {
+    public ImplementationSnapshot getTaskImplementation() {
         return taskImplementation;
     }
 
-    public void setTaskImplementation(TypeImplementation taskImplementation) {
+    public void setTaskImplementation(ImplementationSnapshot taskImplementation) {
         this.taskImplementation = taskImplementation;
     }
 
-    public ImmutableList<TypeImplementation> getTaskActionImplementations() {
+    public ImmutableList<ImplementationSnapshot> getTaskActionImplementations() {
         return taskActionImplementations;
     }
 
-    public void setTaskActionImplementations(ImmutableList<TypeImplementation> taskActionImplementations) {
+    public void setTaskActionImplementations(ImmutableList<ImplementationSnapshot> taskActionImplementations) {
         this.taskActionImplementations = taskActionImplementations;
     }
 
