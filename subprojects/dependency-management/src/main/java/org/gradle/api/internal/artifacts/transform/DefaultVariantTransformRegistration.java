@@ -73,7 +73,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         }
         ArrayValueSnapshot paramsSnapshot = (ArrayValueSnapshot) snapshot;
 
-        this.transformer = new ArtifactTransformBackedTransformer(implementation, paramsSnapshot.isolate(), instantiator);
+        this.transformer = new ArtifactTransformBackedTransformer(implementation, paramsSnapshot, instantiator);
     }
 
     public AttributeContainerInternal getFrom() {
