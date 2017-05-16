@@ -66,6 +66,9 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         // Order corresponds to task action order
         List<String> getActionClassLoaderHashes();
 
+        // Order corresponds to task action order
+        List<String> getActionTypes();
+
         SortedMap<String, String> getInputHashes();
 
         SortedSet<String> getOutputPropertyNames();

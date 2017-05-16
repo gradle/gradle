@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -162,6 +163,11 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                     return input.toString();
                 }
             });
+        }
+
+        @Override
+        public List<String> getActionTypes() {
+            return ImmutableList.copyOf(key.getInputs().getActionsTypes());
         }
 
         @Override
