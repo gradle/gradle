@@ -31,10 +31,9 @@ import java.lang.annotation.Target;
  * <p>This will cause the task to be considered out-of-date when the directory paths or task
  * output to those directories have been modified since the task was last run.</p>
  *
- * <p>When the given {@code paths} is a {@link java.util.Map}, then each output directory
+ * <p>When the annotated property is a {@link java.util.Map}, then each output directory
  * will be associated with an identity. For cacheable tasks this is a requirement.
- * The keys of the map should not be {@code null}, and they must be
- * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
+ * The keys of the map must be <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
  * The values of the map will be evaluated to individual directories as per
  * {@link org.gradle.api.Project#file(Object)}.</p>
  *
