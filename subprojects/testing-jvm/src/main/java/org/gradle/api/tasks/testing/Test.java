@@ -680,7 +680,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationExecutor());
+                testReporter = new DefaultTestReport(buildOperationExecutor);
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
