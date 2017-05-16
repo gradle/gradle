@@ -30,10 +30,9 @@ import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 
 public class LogToClient extends BuildCommandOnly {
 
@@ -68,7 +67,7 @@ public class LogToClient extends BuildCommandOnly {
 
     private class AsynchronousLogDispatcher extends Thread {
         private final CountDownLatch completionLock = new CountDownLatch(1);
-        private final BlockingQueue<OutputEvent> eventQueue = new LinkedBlockingDeque<OutputEvent>();
+        private final Queue<OutputEvent> eventQueue = new ConcurrentLinkedQueue<OutputEvent>();
         private final DaemonConnection connection;
         private final OutputEventListener listener;
         private volatile boolean shouldStop;
@@ -105,15 +104,17 @@ public class LogToClient extends BuildCommandOnly {
             OutputEvent event;
             try {
                 while (!shouldStop) {
-                    // we must not use interrupt() because it would automatically
-                    // close the connection (sending data from an interrupted thread
-                    // automatically closes the connection)
-                    event = eventQueue.poll(10, TimeUnit.MILLISECONDS);
-                    if (event != null) {
+                    event = eventQueue.poll();
+                    if (event == null) {
+                        Thread.sleep(10);
+                    } else {
                         dispatchAsync(event);
                     }
                 }
             } catch (InterruptedException ex) {
+                // we must not use interrupt() because it would automatically
+                // close the connection (sending data from an interrupted thread
+                // automatically closes the connection)
                 shouldStop = true;
             }
             sendRemainingEvents();
