@@ -106,7 +106,7 @@ public class LogToClient extends BuildCommandOnly {
                 while (!shouldStop) {
                     event = eventQueue.poll();
                     if (event == null) {
-                        Thread.sleep(10);
+                        Thread.sleep(5);
                     } else {
                         dispatchAsync(event);
                     }
