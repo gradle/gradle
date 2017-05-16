@@ -75,7 +75,7 @@ class ConsoleFunctionalTest extends Specification {
         when:
         currentTimeMs += 2000L;
         renderer.onOutput(completeEvent(2, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY))
-        renderer.onOutput(progressEvent(1, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, '<=--> 33% CONFIGURING'))
+        renderer.onOutput(progressEvent(1, '<=--> 33% CONFIGURING'))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -179,7 +179,7 @@ class ConsoleFunctionalTest extends Specification {
         }
 
         when:
-        renderer.onOutput(progressEvent(2, 'CATEGORY', '[35 / 50] :foo'))
+        renderer.onOutput(progressEvent(2, '[35 / 50] :foo'))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -208,7 +208,7 @@ class ConsoleFunctionalTest extends Specification {
         ConcurrentTestUtil.poll(1) {
             assert progressArea.display == ['> :wat', '> :foo', '> :bar', '> :baz', '> :foz']
         }
-        progressArea.buildProgressLabelCount == metaData.rows / 2
+        progressArea.buildProgressLabelCount == (metaData.rows / 2).toInteger()
 
         when:
         renderer.onOutput(completeEvent(1, ':wat'))
@@ -217,7 +217,7 @@ class ConsoleFunctionalTest extends Specification {
         ConcurrentTestUtil.poll(1) {
             assert progressArea.display == ['> :nope', '> :foo', '> :bar', '> :baz', '> :foz']
         }
-        progressArea.buildProgressLabelCount == metaData.rows / 2
+        progressArea.buildProgressLabelCount == (metaData.rows / 2).toInteger()
     }
 
     def "progress display height scales when more work in progress are added"() {
@@ -271,9 +271,9 @@ class ConsoleFunctionalTest extends Specification {
     def "multiple events for same operation are coalesced and rendered once"() {
         when:
         renderer.onOutput(startEvent(1, ':wat'))
-        renderer.onOutput(progressEvent(1, 'CATEGORY', '[1 / 7] :wat'))
-        renderer.onOutput(progressEvent(1, 'CATEGORY', '[2 / 7] :wat'))
-        renderer.onOutput(progressEvent(1, 'CATEGORY', '[3 / 7] :wat'))
+        renderer.onOutput(progressEvent(1, '[1 / 7] :wat'))
+        renderer.onOutput(progressEvent(1, '[2 / 7] :wat'))
+        renderer.onOutput(progressEvent(1, '[3 / 7] :wat'))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -283,7 +283,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "operation that finishes immediately is not rendered"() {
         when:
-        [startEvent(1, ':wat'), progressEvent(1, 'CATEGORY', ':wat'), completeEvent(1, 'CATEGORY', null, ':wat')].each {
+        [startEvent(1, ':wat'), progressEvent(1, ':wat'), completeEvent(1, ':wat')].each {
             renderer.onOutput(it)
         }
 
@@ -313,14 +313,13 @@ class ConsoleFunctionalTest extends Specification {
         new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, null, null, BuildOperationType.UNCATEGORIZED)
     }
 
-    ProgressEvent progressEvent(Long id, category='CATEGORY', status='STATUS') {
-        long timestamp = timeProvider.currentTime
-        new ProgressEvent(new OperationIdentifier(id), timestamp, category, status)
+    ProgressEvent progressEvent(Long id, status='STATUS') {
+        new ProgressEvent(new OperationIdentifier(id), status)
     }
 
-    ProgressCompleteEvent completeEvent(Long id, category='CATEGORY', description='DESCRIPTION', status='STATUS') {
+    ProgressCompleteEvent completeEvent(Long id, status='STATUS') {
         long timestamp = timeProvider.currentTime
-        new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, category, description, status)
+        new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, status)
     }
 
     private ConsoleStub.TestableRedrawableLabel getStatusBar() {

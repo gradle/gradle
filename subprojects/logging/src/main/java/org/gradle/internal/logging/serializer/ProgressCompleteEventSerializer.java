@@ -27,8 +27,6 @@ public class ProgressCompleteEventSerializer implements Serializer<ProgressCompl
     public void write(Encoder encoder, ProgressCompleteEvent event) throws Exception {
         encoder.writeSmallLong(event.getProgressOperationId().getId());
         encoder.writeLong(event.getTimestamp());
-        encoder.writeString(event.getCategory());
-        encoder.writeString(event.getDescription());
         encoder.writeString(event.getStatus());
     }
 
@@ -36,9 +34,7 @@ public class ProgressCompleteEventSerializer implements Serializer<ProgressCompl
     public ProgressCompleteEvent read(Decoder decoder) throws Exception {
         OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
         long timestamp = decoder.readLong();
-        String category = decoder.readString();
-        String description = decoder.readString();
         String status = decoder.readString();
-        return new ProgressCompleteEvent(id, timestamp, category, description, status);
+        return new ProgressCompleteEvent(id, timestamp, status);
     }
 }
